@@ -9,7 +9,10 @@ Finite Element tools in Julia
 
 ## Get FinEtools
 
+Since  this package is not registered, please use cloning:
+```julia
 Pkg.clone("https://github.com/PetrKryslUCSD/FinEtools.jl")
+```
 
 ## Testing
 
