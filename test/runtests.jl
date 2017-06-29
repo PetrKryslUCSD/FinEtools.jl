@@ -1,5 +1,3 @@
-using FinEtools
-using Base.Test
-
-# write your own tests here
-@test 1 == 2
+include("test_acoustics.jl")
+include("test_heat.jl")
+include("test_linear_deformation.jl")
