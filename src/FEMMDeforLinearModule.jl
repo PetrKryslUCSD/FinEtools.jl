@@ -249,7 +249,8 @@ function  thermalstrainloads(self::FEMMDeforLinear, assembler::A,
         At_mul_B!(RmTJ,  geod.mcsys.csmat,  J); # local Jacobian matrix
         gradN!(geod.fes, gradN, gradNparams[j], RmTJ);#Do: gradN = gradNparams[j]/RmTJ;
         Blmat!(self.mr, B, Ns[j], gradN, loc, geod.mcsys.csmat);#  strains in material cs,  displacements in global cs
-        self.material.thermalstrain!(self.material, thstrain, dot(Ns[j], DeltaT))
+        self.material.thermalstrain!(self.material, thstrain,
+          dot(vec(Ns[j]), DeltaT))
         self.material.update!(self.material,
           thstress, strain, thstrain, t, dt, loc, geod.fes.label[i], :nothing)
         add_btv!(elvec, B, thstress, (-1)*(Jac*w[j]))
