@@ -37,7 +37,7 @@ Integrate a nodal-field function over the discrete manifold.
 """
 function integratefieldfunction(self::FEMMAbstractBase,
   geom::NodalField{FFlt},  afield::NodalField{T},
-  fh::F,  initial::R;  m::FInt=-1)  where {T<:Number,R, F<:Function}
+  fh::F,  initial::R;  m::FInt=-1)  where {T<:Number, R, F<:Function}
   geod = self.geod                # finite elements
   # Constants
   const nfes = count(geod.fes); # number of finite elements in the set

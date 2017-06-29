@@ -142,17 +142,22 @@ What is that about?
 
 -- FEMMBaseModule:  redesign  integration methods  by parameterising with
 the function type.
+Implementation completed.
 
 -- VTK export: export  cell data.
 
 -- Implement  element  fields. (Analogy to  nodal fields.)
+Implemented partially: so far only elementwise constant field has been
+implemented (or rather used  in code)..
 
 -- To get type stability  (to eliminate that pesky allocation during
 calls in a loop), one has to  define:
     femmbase::FEMMBase{S, F} # base finite element modeling machine
+Implemented
 
 -- Type function cross(theta, v) and others in the rotation module.
 It would seem that  cross() is no longer needed in the rotation module.
+Implemented
 
 -- NodalField constructors!  No keywords.
 Implemented 05/17/2017
