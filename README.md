@@ -1,6 +1,6 @@
 # FinEtools
 
-Finite Element tools been in Julia
+Finite Element tools in Julia
 
 
 ![Alt Sample mesh](http://hogwarts.ucsd.edu/~pkrysl/site.images/ScreenHunter_31%20Feb.%2009%2020.54.jpg "FinEtools.jl")
