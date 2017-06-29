@@ -22,7 +22,7 @@ function test()
     forceout[1] = Q; #heat source
   end
   tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);#the exact distribution of temperature
-  N = 1000;# number of subdivisions along the sides of the square domain
+  N = 100;# number of subdivisions along the sides of the square domain
 
 
   # println("Mesh generation")
@@ -183,7 +183,7 @@ function test()
     forceout[1] = -6.0; #heat source
   end
   tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);
-  N = 1000;
+  N = 100;
 
   # println("Mesh generation")
   fens,fes = Q4block(A, A, N, N)
@@ -335,7 +335,7 @@ function test()
     forceout[1] = Q; #heat source
   end
   tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);#the exact distribution of temperature
-  N = 1000;# number of subdivisions along the sides of the square domain
+  N = 100;# number of subdivisions along the sides of the square domain
   Rm=[-0.9917568452513019 -0.12813414805267656
   -0.12813414805267656 0.9917568452513019]
   Rm=[-0.8020689950104449 -0.5972313850116512
