@@ -344,7 +344,7 @@ function inspectintegpoints(self::FEMMDeforLinear,
       updatecsmat!(outputcsys, loc, J, geod.fes.label[i]);
       # Quadrature point quantities
       A_mul_B!(qpstrain, B, ue); # strain in material coordinates
-      qpdT = dot(dTe, Ns[j]);# Quadrature point temperature increment
+      qpdT = dot(dTe, vec(Ns[j]));# Quadrature point temperature increment
       self.material.thermalstrain!(self.material, qpthstrain, qpdT)
       # Material updates the state and returns the output
       out = self.material.update!(self.material, out,
