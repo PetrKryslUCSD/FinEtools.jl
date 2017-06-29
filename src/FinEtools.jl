@@ -333,8 +333,8 @@ using FinEtools.AlgoHeatDiffModule
 include("AlgoDeforLinearModule.jl")
 using FinEtools.AlgoDeforLinearModule
 
-println("")
-println("===================================================================")
-println("FinEtools ready")
+# println("")
+# println("===================================================================")
+# println("FinEtools ready")
 
 end
