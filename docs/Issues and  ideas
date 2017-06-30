@@ -242,3 +242,5 @@ use
 @views function test_vectorized3(a, a_old)
     @. a[:] = a_old[:] * 2
 end
+
+-- Instead of "restart" use  https://github.com/timholy/Revise.jl
