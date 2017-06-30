@@ -1169,8 +1169,8 @@ function test()
   geom = modeldata["geom"]
   lcenter = selectnode(fens, box=[a/2 a/2  b/2 b/2 -Inf Inf], inflate=tolerance)
   cdis = abs(mean(u.values[lcenter, 3]))
-  println("")
-  println("Normalized Center deflection: $(cdis/wc_analytical)")
+  # println("")
+  # println("Normalized Center deflection: $(cdis/wc_analytical)")
   @test abs(cdis/wc_analytical-1.0) < 6.0e-3
   true
 

@@ -607,3 +607,12 @@ end
 end
 using mmmmiintegrationmmmm
 mmmmiintegrationmmmm.test()
+
+module mmmmmmtransientsphere
+using FinEtools
+using Base.Test
+function test()
+end
+end
+using mmmmmmtransientsphere
+mmmmmmtransientsphere.test()
