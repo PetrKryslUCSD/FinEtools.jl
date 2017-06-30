@@ -430,7 +430,6 @@ D  =  acousticABC(abcfemm, geom, P);
 function dipole(dpdn, xyz, J, label)
     n = cross(J[:,1],J[:,2]);
     n = vec(n/norm(n));
-    #println("$( (-1.0im)*dot(vec(k),n)*exp(-1.0im*dot(vec(k),vec(xyz))) )")
     dpdn[1] = -rho*a_amplitude*n[1]
 end
 
@@ -866,8 +865,8 @@ function test()
   function abcp(dpdn, xyz, J, label, t)
       n = cross(J[:,1],J[:,2]);
       n = vec(n/norm(n));
-      arg = (-dot(xyz,wavevector)+omega*(t+tshift));
-      dpdn[1] = P_amplitude*cos(arg)*(-dot(n,wavevector));
+      arg = (-dot(vec(xyz),vec(wavevector))+omega*(t+tshift));
+      dpdn[1] = P_amplitude*cos(arg)*(-dot(vec(n),vec(wavevector)));
   end
 
 
@@ -923,7 +922,7 @@ function test()
 
   function recalculate_incident!(t, pinc, pincdd)
     for j = 1:count(fens)
-      arg=(-dot(vec(fens.xyz[j,:]),wavevector)+omega*(t+tshift));# wave along the wavevector
+      arg=(-dot(vec(fens.xyz[j,:]),vec(wavevector))+omega*(t+tshift));# wave along the wavevector
       pinc.values[j] = P_amplitude*sin(arg)
       pincdd.values[j] = -omega^2*P_amplitude*sin(arg)
     end
