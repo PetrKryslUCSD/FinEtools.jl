@@ -56,7 +56,7 @@ end
 gr = GaussRule(3, 3)
 
 region = FDataDict("femm"=>FEMMDeforLinear(MR,
-    FEMMBase(fes, gr, CSys(updatecs!)), laminamaterial))
+    GeoD(fes, gr, CSys(3, 3, updatecs!)), laminamaterial))
 
 lx0 = selectnode(fens, box=[0.0 0.0 -Inf Inf -Inf Inf], inflate=tolerance)
 lxa = selectnode(fens, box=[a a -Inf Inf -Inf Inf], inflate=tolerance)
@@ -75,7 +75,7 @@ eyb3 = FDataDict( "displacement"=>  0.0, "component"=> 3, "node_list"=>lyb )
 bfes = meshboundary(fes)
 ttopl = selectelem(fens, bfes; facing=true, direction = [0.0 0.0 1.0])
 Trac = FDataDict("traction_vector"=>[0.0; 0.0; -q0],
-    "femm"=>FEMMBase(subset(bfes, ttopl), GaussRule(2, 3)))
+    "femm"=>FEMMBase(GeoD(subset(bfes, ttopl), GaussRule(2, 3))))
 
 modeldata = FDataDict("fens"=>fens,
  "regions"=>[region],
@@ -91,7 +91,7 @@ cdis = abs(mean(u.values[lcenter, 3]))
 println("")
 println("Normalized Center deflection: $(cdis/wc_analytical)")
 
-File =  "NAFEMS-R0031-3-plate.vtk"
+File =  "Z_laminate_u_ss.vtk"
 vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H20;
     scalars = [("Layer", fes.label)], vectors = [("displacement", u.values)])
 @async run(`"paraview.exe" $File`)

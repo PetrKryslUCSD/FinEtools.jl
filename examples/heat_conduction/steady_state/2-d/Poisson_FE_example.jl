@@ -15,9 +15,6 @@ t0 = time()
 A = 1.0 # dimension of the domain (length of the side of the square)
 thermal_conductivity = eye(2,2); # conductivity matrix
 Q = -6.0; # internal heat generation rate
-function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-  forceout[1] = Q; #heat source
-end
 tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);#the exact distribution of temperature
 N = 1000;# number of subdivisions along the sides of the square domain
 
@@ -50,6 +47,9 @@ println("Conductivity")
 println("Nonzero EBC")
 @time F2 = nzebcloadsconductivity(femm, geom, Temp);
 println("Internal heat generation")
+# function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+#   forceout[1] = Q; #heat source
+# end
 # fi = ForceIntensity(FFlt, getsource!);# alternative  specification
 fi = ForceIntensity(FFlt[Q]);
 @time F1 = distribloads(FEMMBase(GeoD(fes, TriRule(1))), geom, Temp, fi, 3);
