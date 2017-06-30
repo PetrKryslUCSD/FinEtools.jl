@@ -50,7 +50,7 @@ fens,fes  = H8extrudeQ4(fens, outer_fes,
 nlayers, (xyz, layer)->(R+layer/nlayers*(Ro-R))*xyz/norm(xyz));
 connected = findunconnnodes(fens, fes);
 fens, new_numbering = compactnodes(fens, connected);
-fess = renumberconn(fes, new_numbering);
+fess = renumberconn!(fes, new_numbering);
 
 geom  =  NodalField(fens.xyz)
 P  =  NodalField(zeros(FCplxFlt,size(fens.xyz,1),1))
@@ -104,11 +104,6 @@ dipfemm  =  FEMMAcoustSurf(GeoD(subset(bfes, linner), GaussRule(2, 2)), material
 println("Computing time elapsed  =  ",time() - t1,"s")
 println("Total time elapsed  =  ",time() - t0,"s")
 
-# File  =   "sphere_dipole_1.vtk"
-# vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
-#  scalars = [( "realP", real(P.values))])
-# @async run(`"paraview.exe" $File`)
-
 
 # Solve
 P0 = deepcopy(P)
@@ -148,9 +143,17 @@ while t <= tfinal
   vP1 = vP0 + (dt/2)*(vQ0+vQ1);
   vP0 = vP1;
   vQ0 = vQ1;
-  P1 = scattersysvec(P1, vP1);
+  P1 = scattersysvec!(P1, vec(vP1));
   P0 = P1;
   La0 = La1;
 end
+
+println("$(vP1[1])")
+
+File  =   "sphere_dipole_1.vtk"
+vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
+ scalars = [( "realP", real(P1.values))])
+@async run(`"paraview.exe" $File`)
+
 
 true
