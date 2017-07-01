@@ -1,11 +1,11 @@
-using JFinEALE
+using FinEtools
 
 println("""
 % Vibration modes of unit cube  of almost incompressible material.
 %
 % Reference: Puso MA, Solberg J (2006) A stabilized nodally integrated
 % tetrahedral. International Journal for Numerical Methods in
-% Engineering 67: 841-867.""") 
+% Engineering 67: 841-867.""")
 t0 = time()
 
 
@@ -13,37 +13,34 @@ E = 1*phun("PA");
 nu = 0.499;
 rho= 1*phun("KG/M^3");
 a=1*phun("M"); b=a; h= a;
-n1=10;# How many element edges per side?
+n1=2;# How many element edges per side?
 na= n1; nb= n1; nh =n1;
 neigvs=20                   # how many eigenvalues
-omega_shift=(0.01*2*pi)^2;
+omega_shift=(0.1*2*pi)^2;
 
-Modelreduction=DeformationModelReduction3D
 fens,fes =H20block(a,b,h, na,nb,nh)
 
 # Make the region
-p=PropertyDeformationLinearIso(rho,E,nu)
-region1=dmake(fes=fes, property=p,
-              integration_rule_stiffness=GaussRule(order=2, dim=3),
-              integration_rule_mass=GaussRule(order=3, dim=3))
+MR = DeforModelRed3D
+material = MatDeforElastIso(MR, rho, E, nu, 0.0)
+region1 = FDataDict("femm"=>FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,2)),
+  material), "femm_mass"=>FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,3)),
+  material))
 
 # Make model data
-modeldata= dmake(modelreduction=DeformationModelReduction3D,
-                 omega_shift=omega_shift,
-                 neigvs=neigvs,
-                 fens= fens,region=[region1],
-                 boundary_conditions=dmake() # the cube is free-floating
-                 );
+modeldata =  FDataDict(
+  "fens"=> fens, "regions"=>  [region1],
+  "omega_shift"=>omega_shift, "neigvs"=>neigvs)
 
 # Solve
-modeldata=JFinEALE.DeformationLinearAlgorithmModule.modal(modeldata)
+modeldata = FinEtools.AlgoDeforLinearModule.modal(modeldata)
 
-fs=modeldata["omega"]/(2*pi)
+fs = modeldata["omega"]/(2*pi)
 println("Eigenvalues: $fs [Hz]")
 
-modeldata["postprocessing"] = dmake(file="unit_cube_mode1",mode=10)
-modeldata=JFinEALE.DeformationLinearAlgorithmModule.exportmode(modeldata)
+modeldata["postprocessing"] = FDataDict("file"=>"unit_cube_mode",
+  "mode"=>10)
+modeldata=FinEtools.AlgoDeforLinearModule.exportmode(modeldata)
+@async run(`"paraview.exe" $(modeldata["postprocessing"]["file"]*"1.vtk")`)
 
 true
-
-    
