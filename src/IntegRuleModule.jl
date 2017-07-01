@@ -91,8 +91,8 @@ Class of the Gauss rule.
 The rule is applicable for a tensor product of  intervals -1 <=x<= +1.
 """
 type GaussRule <: IntegRule
-    order::FInt
     dim::FInt
+    order::FInt
     npts::FInt
     param_coords::FFltMat
     weights::FFltMat
