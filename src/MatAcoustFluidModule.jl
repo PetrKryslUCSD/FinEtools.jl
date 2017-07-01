@@ -4,7 +4,7 @@ module MatAcoustFluidModule
 using FinEtools.FTypesModule
 
 # Class for acoustic fluid models of Mats.
-type MatAcoustFluid
+struct MatAcoustFluid
   bulk_modulus::FFlt;# Bulk modulus
   mass_density::FFlt;# Mass density
 end

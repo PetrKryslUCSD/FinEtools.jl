@@ -5,7 +5,7 @@ using FinEtools.FTypesModule
 """
 Type for coordinate system transformations.
 """
-immutable CSys{F<:Function}
+struct CSys{F<:Function}
   isconstant::Bool
   isidentity::Bool
   updatebuffer!::F # function to update the coordinate system matrix

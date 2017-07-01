@@ -341,7 +341,7 @@ function H8hexahedron(xyz::FFltMat, nL::FInt, nW::FInt, nH::FInt;block_mesh_hand
         N = FESetModule.bfun(dummy, pxyz[i, :]-1.0);# shift coordinates by -1
         pxyz[i, :] =N'*xyz;
     end
-    fens.xyz=pxyz;
+    fens.xyz = pxyz;
 
     return fens, fes;
 end

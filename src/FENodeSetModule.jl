@@ -19,7 +19,7 @@ xyz =
 
 """
 #
-immutable FENodeSet
+mutable struct FENodeSet
     xyz::FFltMat
 
     function FENodeSet(xyz::FFltMat)

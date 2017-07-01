@@ -16,7 +16,7 @@ export IntegRule
 Class of triangular quadrature rule.
 Used for integration on the standard triangle.
 """
-immutable TriRule <: IntegRule
+struct TriRule <: IntegRule
   npts::FInt
   param_coords::FFltMat
   weights::FFltMat
@@ -90,7 +90,7 @@ end
 Class of the Gauss rule.
 The rule is applicable for a tensor product of  intervals -1 <=x<= +1.
 """
-immutable GaussRule <: IntegRule
+struct GaussRule <: IntegRule
     dim::FInt
     order::FInt
     npts::FInt
@@ -170,7 +170,7 @@ end
 Class of tetrahedral quadrature rule.
 Used for integration on the standard tetrahedron.
 """
-immutable TetRule <: IntegRule
+struct TetRule <: IntegRule
   npts::FInt
   param_coords::FFltMat
   weights::FFltMat

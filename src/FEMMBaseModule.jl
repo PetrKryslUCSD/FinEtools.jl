@@ -242,7 +242,7 @@ end
 export connectionmatrix
 
 
-immutable InverseDistanceInspectorData
+struct InverseDistanceInspectorData
   d::FFltVec
   sum_inv_dist::FFltVec
   sum_quant_inv_dist::FFltMat
@@ -332,7 +332,7 @@ end
 export fieldfromintegpoints
 
 
-immutable MeanValueInspectorData
+struct MeanValueInspectorData
   n_quant::FIntVec
   sum_quant_value::FFltMat
 end
