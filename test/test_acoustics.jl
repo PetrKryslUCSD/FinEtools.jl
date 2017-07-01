@@ -350,7 +350,7 @@ function test()
 rho = 1.21*phun("kg/m^3");# mass density
 c  = 343.0*phun("m/s");# sound speed
 bulk =  c^2*rho;
-a_amplitude=1.*phun("mm/s^2");# amplitude of the  acceleration of the sphere
+a_amplitude=1.0*phun("mm/s^2");# amplitude of the  acceleration of the sphere
 # omega = 2000*phun("rev/s");      # frequency of the incident wave
 R = 5.0*phun("mm"); # radius of the interior sphere
 Ro = 4*R # radius of the external sphere
@@ -548,11 +548,11 @@ module mmmmiintegrationmmmm
 using FinEtools
 using Base.Test
 function test()
-rho = 1000.*phun("kg/m^3");# mass density of water
+rho = 1000.0*phun("kg/m^3");# mass density of water
 c  = 1.4491e+3*phun("m/s");# sound speed in water
 bulk =  c^2*rho;
-rhos = 2500.*phun("kg/m^3");# mass density of the solid sphere
-a_amplitude=1.*phun("mm/s^2");# amplitude of the  acceleration of the sphere
+rhos = 2500.0*phun("kg/m^3");# mass density of the solid sphere
+a_amplitude=1.0*phun("mm/s^2");# amplitude of the  acceleration of the sphere
 R = 5.0*phun("mm"); # radius of the interior sphere
 Ro = 3*R # radius of the external sphere
 # Mesh parameters, geometrical tolerance
@@ -618,7 +618,7 @@ function test()
   rho = 1.21*phun("kg/m^3");# mass density
   c  = 343.0*phun("m/s");# sound speed
   bulk =  c^2*rho;
-  a_amplitude=1.*phun("mm/s^2");# amplitude of the  acceleration of the sphere
+  a_amplitude=1.0*phun("mm/s^2");# amplitude of the  acceleration of the sphere
   # omega = 2000*phun("rev/s");      # frequency of the incident wave
   R = 50.0*phun("mm"); # radius of the interior sphere
   Ro = 8*R # radius of the external sphere
@@ -628,7 +628,7 @@ function test()
   tolerance = Ro/(nlayers)/100
   frequency=1200.; # Hz
   omega=2*pi*frequency;
-  dt=1./frequency/20;
+  dt=1.0/frequency/20;
   tfinal=90*dt;
   nsteps=round(tfinal/dt)+1;
 
@@ -698,7 +698,7 @@ function test()
   fi  =  ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label)->dipole(dpdn, xyz, J, label, t));
   La0 = distribloads(dipfemm, geom, P1, fi, 2);
 
-  A = (2./dt)*S + D + (dt/2.)*C;
+  A = (2.0/dt)*S + D + (dt/2.)*C;
 
   step =0;
   while t <= tfinal
@@ -738,11 +738,11 @@ function test()
 
   # println("Rigid movable hemisphere in  water. Time-dependent simulation.
   # ")
-  rho = 1000.*phun("kg/m^3");# mass density of water
+  rho = 1000.0*phun("kg/m^3");# mass density of water
   c  = 1.4491e+3*phun("m/s");# sound speed in water
   bulk =  c^2*rho;
-  rhos = 2500.*phun("kg/m^3");# mass density of the solid sphere
-  a_amplitude=1.*phun("mm/s^2");# amplitude of the  acceleration of the sphere
+  rhos = 2500.0*phun("kg/m^3");# mass density of the solid sphere
+  a_amplitude=1.0*phun("mm/s^2");# amplitude of the  acceleration of the sphere
   R = 5.0*phun("mm"); # radius of the interior sphere
   Ro = 3*R # radius of the external sphere
   P_amplitude = 1000*phun("Pa"); # pressure amplitude
@@ -755,13 +755,13 @@ function test()
   tshift = 0.0
   uincA=P_amplitude/rho/c/omega; # amplitude of the displacement
   # This is the analytical solution of Hickling and Wang
-  uamplHW=P_amplitude/(rho*c^2)./(omega/c)*3/(2*rhos/rho+1);
+  uamplHW=P_amplitude/(rho*c^2)/(omega/c)*3/(2*rhos/rho+1);
   # Mesh parameters, geometrical tolerance
   nperR = 8;
   nlayers=nperR;
   tolerance = Ro/(nlayers)/100
   # Time step
-  dt = 1./frequency/20;
+  dt = 1.0/frequency/20;
   tfinal = 9/frequency;
   nsteps = round(tfinal/dt)+1;
 
@@ -935,7 +935,7 @@ function test()
   fi  =  ForceIntensity(FFlt, 1, fabcp);
   La0 = distribloads(abcfemm, geom, P1, fi, 2);
 
-  A = lufact((2./dt)*S + D + (dt/2.)*Ctild);
+  A = lufact((2.0/dt)*S + D + (dt/2.)*Ctild);
 
   step = 1;
   while step <= nsteps
