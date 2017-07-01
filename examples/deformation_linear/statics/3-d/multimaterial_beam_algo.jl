@@ -15,7 +15,7 @@ function  multimaterial_beam()
   L = 12.;
   t = 6.5;
   nl = 2; nt = 1; nw = 1; ref = 9;
-  p =   200./W/t;
+  p =   200.0/W/t;
   #  Loading in the Z direction
   loadv = [0;0;p]; dir = 3;
   tolerance  = t/1000;

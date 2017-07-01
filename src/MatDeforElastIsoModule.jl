@@ -124,7 +124,7 @@ function update3d!(self::MatDeforElastIso,  output::FFltVec,
   elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
     s1=output[1]; s2=output[2]; s3=output[3];
     s4=output[4]; s5=output[5]; s6=output[6];
-    output[1] = sqrt(1./2*((s1-s2)^2+(s1-s3)^2+(s2-s3)^2+6*(s4^2+s5^2+s6^2)))
+    output[1] = sqrt(1.0/2*((s1-s2)^2+(s1-s3)^2+(s2-s3)^2+6*(s4^2+s5^2+s6^2)))
   end
   return output
 end

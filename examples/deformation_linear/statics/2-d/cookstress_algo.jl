@@ -7,7 +7,7 @@ nu = 1.0/3;
 width = 48.0; height = 44.0; thickness  = 1.0;
 free_height  = 16.0;
 Mid_edge  = [48.0, 52.0];# Location of tracked  deflection
-magn = 1./free_height;# Magnitude of applied load
+magn = 1.0/free_height;# Magnitude of applied load
 convutip = 23.97;
 n = 20;#*int(round(sqrt(170.)/2.)); # number of elements per side
 tolerance = minimum([width, height])/n/1000.;#Geometrical tolerance

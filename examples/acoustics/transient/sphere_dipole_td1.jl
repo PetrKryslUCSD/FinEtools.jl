@@ -17,7 +17,7 @@ nlayers=40;
 tolerance = Ro/(nlayers)/100
 frequency=1200.; # Hz
 omega=2*pi*frequency;
-dt=1./frequency/20;
+dt=1.0/frequency/20;
 tfinal=90*dt;
 nsteps=round(tfinal/dt)+1;
 
@@ -118,7 +118,7 @@ P1 = deepcopy(P0);
 fi  =  ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label)->dipole(dpdn, xyz, J, label, t));
 La0 = distribloads(dipfemm, geom, P1, fi, 2);
 
-A = (2./dt)*S + D + (dt/2.)*C;
+A = (2.0/dt)*S + D + (dt/2.)*C;
 
 step =0;
 while t <= tfinal

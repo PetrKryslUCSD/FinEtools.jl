@@ -125,15 +125,15 @@ function physunitdict(;system_of_units = :SI, base_time_units = :SEC)
     if base_time_units  ==  :SEC
         uSEC  =  1.0;
     elseif base_time_units  ==  :MIN
-        uSEC  =  1./60;
+        uSEC  =  1.0/60;
     elseif base_time_units  ==  :HR
-        uSEC  =  1./(60*60);
+        uSEC  =  1.0/(60*60);
     elseif base_time_units  ==  :DY
-        uSEC  =  1./(60*60*24);
+        uSEC  =  1.0/(60*60*24);
     elseif base_time_units  ==  :YR
-        uSEC  =  1./(60*60*24*365);
+        uSEC  =  1.0/(60*60*24*365);
     elseif base_time_units  ==  :WK
-        uSEC  =  1./(60*60*24*7);
+        uSEC  =  1.0/(60*60*24*7);
     else
         error("The only valid entries for the time base units are: SEC|MIN|HR|DY|YR")
     end

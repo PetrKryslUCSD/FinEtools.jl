@@ -294,7 +294,7 @@ function fieldfromintegpoints(self::FEMM,
     end
     mindn = mindn/1.0e9;
     for jjj = 1:length(idat.d)
-      invdjjj  = 1./(idat.d[jjj]+mindn);
+      invdjjj  = 1.0/(idat.d[jjj]+mindn);
       quant =  out[component]
       for kkk = 1:length(quant)
         idat.sum_quant_inv_dist[conn[jjj], kkk] += invdjjj*quant[kkk];

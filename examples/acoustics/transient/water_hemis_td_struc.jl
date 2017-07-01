@@ -19,13 +19,13 @@ wavevector=wavenumber*front_normal;
 tshift = 0.0
 uincA=P_amplitude/rho/c/omega; # amplitude of the displacement
 # This is the analytical solution of Hickling and Wang
-uamplHW=P_amplitude/(rho*c^2)./(omega/c)*3/(2*rhos/rho+1);
+uamplHW=P_amplitude/(rho*c^2)/(omega/c)*3/(2*rhos/rho+1);
 # Mesh parameters, geometrical tolerance
 nperR = 8;
 nlayers=nperR;
 tolerance = Ro/(nlayers)/100
 # Time step
-dt = 1./frequency/20;
+dt = 1.0/frequency/20;
 tfinal = 9/frequency;
 nsteps = round(tfinal/dt)+1;
 
@@ -199,7 +199,7 @@ fabcp(dpdn, xyz, J, label) = abcp(dpdn, xyz, J, label, t)
 fi  =  ForceIntensity(FFlt, 1, fabcp);
 La0 = distribloads(abcfemm, geom, P1, fi, 2);
 
-A = lufact((2./dt)*S + D + (dt/2.)*Ctild);
+A = lufact((2.0/dt)*S + D + (dt/2.)*Ctild);
 
 step = 1;
 while step <= nsteps
