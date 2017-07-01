@@ -133,7 +133,7 @@ function update3d!(self::MatDeforElastOrtho,
     if length(output) < 1
       output = zeros(1,1)
     end
-    copy!(output,  [sqrt(1./2*((s1-s2)^2+(s1-s3)^2+(s2-s3)^2+6*(s4^2+s5^2+s6^2)))])
+    copy!(output,  [sqrt(1.0/2*((s1-s2)^2+(s1-s3)^2+(s2-s3)^2+6*(s4^2+s5^2+s6^2)))])
   end
   return output
 end

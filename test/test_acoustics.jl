@@ -953,7 +953,6 @@ function test()
     t = t+dt;
     pinc, pincdd = recalculate_incident!(t, pinc, pincdd)
     L1 = -S*gathersysvec!(pincdd, pincddv) - Ctild*gathersysvec!(pinc, pincv);
-    fabcp(dpdn, xyz, J, label) = abcp(dpdn, xyz, J, label, t)
     fi  =  ForceIntensity(FFlt, 1, fabcp);
     La1 = distribloads(abcfemm, geom, P1, fi, 2);
     vQ1 = A\((2/dt)*(S*vQ0)-D*vQ0-Ctild*(2*vP0+(dt/2)*vQ0)+L0+L1+La0+La1);

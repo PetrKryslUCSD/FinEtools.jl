@@ -33,11 +33,11 @@ triangle, which is between 0 and 1 in both parametric coordinates.
 """
 function TriRule(npts=1)
   if npts==1 # integrates exactly linear polynomials
-    param_coords = [1./3. 1./3.];
+    param_coords = [1.0/3. 1.0/3.];
     weights = reshape([1.0]/2.0,1,1);
   elseif npts==3 # integrates exactly quadratic polynomials
-    param_coords = [ 2/3 1/6; 1/6 2/3; 1/6 1/6 ];
-    weights = [1/3 1/3 1/3]/2;
+    param_coords = [ 2.0/3 1.0/6; 1.0/6 2.0/3; 1.0/6 1.0/6 ];
+    weights = [1.0/3 1.0/3 1.0/3]/2;
   elseif npts==6 # integrates exactly quartic polynomials
     param_coords = [ 0.816847572980459 0.091576213509771;
     0.091576213509771 0.816847572980459;

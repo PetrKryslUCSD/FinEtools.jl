@@ -208,7 +208,7 @@ function update2dstrs!(self::MatDeforElastIso, output::FFltVec,
   elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
     s1=stress[1]; s2=stress[2]; s3=0.0;
     s4=stress[3]; s5=0.0; s6=0.0;
-    output[1] = sqrt(1./2*((s1-s2)^2+(s1-s3)^2+(s2-s3)^2+6*(s4^2+s5^2+s6^2)))
+    output[1] = sqrt(1.0/2*((s1-s2)^2+(s1-s3)^2+(s2-s3)^2+6*(s4^2+s5^2+s6^2)))
   end
   return output
 end
@@ -293,7 +293,7 @@ function update2dstrn!(self::MatDeforElastIso, output::FFltVec,
   elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
     s1=stress[1]; s2=stress[2]; s3=stress[4];
     s4=stress[3]; s5=0.0; s6=0.0;
-    output[1] = sqrt(1./2*((s1-s2)^2+(s1-s3)^2+(s2-s3)^2+6*(s4^2+s5^2+s6^2)))
+    output[1] = sqrt(1.0/2*((s1-s2)^2+(s1-s3)^2+(s2-s3)^2+6*(s4^2+s5^2+s6^2)))
   end
   return output
 end
@@ -379,7 +379,7 @@ function update2daxi!(self::MatDeforElastIso, output::FFltVec,
   elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
     s1=stress[1]; s2=stress[2]; s3=stress[3];
     s4=stress[4]; s5=0.0; s6=0.0;
-    output[1] = sqrt(1./2*((s1-s2)^2+(s1-s3)^2+(s2-s3)^2+6*(s4^2+s5^2+s6^2)))
+    output[1] = sqrt(1.0/2*((s1-s2)^2+(s1-s3)^2+(s2-s3)^2+6*(s4^2+s5^2+s6^2)))
   end
   return output
 end
