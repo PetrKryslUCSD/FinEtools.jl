@@ -1266,7 +1266,7 @@ function test()
 
   # Write out mesh with von Mises stresses
   modeldata["postprocessing"] = FDataDict("file"=>"multimaterial_beam_vm",
-  "quantity"=> :vm)
+    "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
   for f in modeldata["postprocessing"]["exported_files"]
     rm(f)
@@ -1274,7 +1274,7 @@ function test()
 
   # Write out mesh with von Mises stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"multimaterial_beam_vm-ew",
-  "quantity"=> :vm)
+   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
   for f in modeldata["postprocessing"]["exported_files"]
     rm(f)
