@@ -324,8 +324,8 @@ export fieldfromintegpoints
 
 function fieldfromintegpoints(self::FEMM,
   geom::NodalField{FFlt},  u::NodalField{T},
-  quantity,  component; context...) where {FEMM<:FEMMAbstractBase,
-  T<:Number}
+  quantity::Symbol,  component::FInt;
+  context...) where {FEMM<:FEMMAbstractBase, T<:Number}
   dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
   return fieldfromintegpoints(self, geom, u, dT, quantity, component; context...)
 end
