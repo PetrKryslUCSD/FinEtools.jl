@@ -251,6 +251,9 @@ For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
 - "femm" = finite element mmodel machine (mandatory);
 
+Output: modeldata updated with
+- modeldata["postprocessing"]["exported_files"] = array of  names of exported
+  files
 """
 function exportdeformation(modeldata::FDataDict)
   modeldata_recognized_keys = ["fens", "regions", "geom", "u", "postprocessing"]
@@ -272,7 +275,8 @@ function exportdeformation(modeldata::FDataDict)
   geom = get(()->error("Must get geometry field!"), modeldata, "geom");
   u = get(()->error("Must get displacement field!"), modeldata, "u");
 
-  # Plot the surface for each region
+  # Export one file for each region
+  modeldata["postprocessing"]["exported_files"] = Array{String, 1}()
   regions = get(()->error("Must get region!"), modeldata, "regions")
   for i = 1:length(regions)
     region = regions[i]
@@ -284,6 +288,7 @@ function exportdeformation(modeldata::FDataDict)
     else
       vtkexportmesh(rfile, fens, femm.geod.fes; vectors=[("u", u.values)])
     end
+    push!(modeldata["postprocessing"]["exported_files"], rfile)
   end
 
   return modeldata
@@ -311,6 +316,10 @@ Algorithm for exporting of the stress for visualization in Paraview.
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
 - "femm" = finite element mmodel machine (mandatory);
+
+Output: modeldata updated with
+- modeldata["postprocessing"]["exported_files"] = array of  names of exported
+  files
 """
 function exportstress(modeldata::FDataDict)
   modeldata_recognized_keys = ["fens", "regions", "geom", "u",
@@ -345,7 +354,8 @@ function exportstress(modeldata::FDataDict)
     push!(context, (:outputcsys, outputcsys))
   end
 
-  # Plot the surface for each region
+  # Export a file for each region
+  modeldata["postprocessing"]["exported_files"] = Array{String, 1}()
   regions = get(()->error("Must get region!"), modeldata, "regions")
   for i = 1:length(regions)
     region = regions[i]
@@ -378,6 +388,7 @@ function exportstress(modeldata::FDataDict)
         scalars=[(string(quantity)*string(component), fld.values)],
         vectors=[("u", u.values)])
     end
+    push!(modeldata["postprocessing"]["exported_files"], rfile)
   end
 
   return modeldata
@@ -406,6 +417,10 @@ Algorithm for exporting of the elementwise stress for visualization in Paraview.
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
 - "femm" = finite element mmodel machine (mandatory);
+
+Output: modeldata updated with
+- modeldata["postprocessing"]["exported_files"] = array of  names of exported
+  files
 """
 function exportstresselementwise(modeldata::FDataDict)
   modeldata_recognized_keys = ["fens", "regions", "geom", "u",
@@ -440,7 +455,8 @@ function exportstresselementwise(modeldata::FDataDict)
     push!(context, (:outputcsys, outputcsys))
   end
 
-  # Plot the surface for each region
+  # Export a file for each region
+  modeldata["postprocessing"]["exported_files"] = Array{String, 1}()
   regions = get(()->error("Must get region!"), modeldata, "regions")
   for i = 1:length(regions)
     region = regions[i]
@@ -473,6 +489,7 @@ function exportstresselementwise(modeldata::FDataDict)
         scalars=[(string(quantity)*string(component), fld.values)],
         vectors=[("u", u.values)])
     end
+    push!(modeldata["postprocessing"]["exported_files"], rfile)
   end
 
   return modeldata
@@ -687,6 +704,10 @@ Algorithm for exporting of the mmode shape for visualization in Paraview.
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
 - "femm" = finite element mmodel machine (mandatory);
+
+Output: modeldata updated with
+- modeldata["postprocessing"]["exported_files"] = array of  names of exported
+  files
 """
 function exportmode(modeldata::FDataDict)
   modeldata_recognized_keys = ["fens", "regions", "geom", "u",
