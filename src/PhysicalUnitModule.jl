@@ -284,7 +284,7 @@ function physunitdict(;system_of_units = :SI, base_time_units = :SEC)
     # The symbol for the thousands of pounds per square inch
     d["KSI"] = uKILO*uPSI;
     # The symbol for the centiPoise
-    d["CP"] = 1.0/1000.*uPA*uSEC;
+    d["CP"] = 1.0/1000.0*uPA*uSEC;
 
     return d
 end

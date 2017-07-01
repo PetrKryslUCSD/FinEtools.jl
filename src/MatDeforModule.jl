@@ -82,7 +82,7 @@ Convert a symmetric matrix of 2x2 stress components to a 3-component vector.
 function stress2x2to3v!(v::FFltVec, t::FFltMat)
   v[1] = t[1,1];
   v[2] = t[2,2];
-  v[3] = 1.0/2.*(t[1,2] + t[2,1]);
+  v[3] = 1.0/2.0*(t[1,2] + t[2,1]);
   return v
 end
 export stress2x2to3v!
@@ -169,9 +169,9 @@ function stress3x3tto6v!(v::FFltVec, t::FFltMat)
   v[1] = t[1,1];
   v[2] = t[2,2];
   v[3] = t[3,3];
-  v[4] = 1/2.*(t[1,2] + t[2,1]);
-  v[5] = 1/2.*(t[1,3] + t[3,1]);
-  v[6] = 1/2.*(t[3,2] + t[2,3]);
+  v[4] = 1/2.0*(t[1,2] + t[2,1]);
+  v[5] = 1/2.0*(t[1,3] + t[3,1]);
+  v[6] = 1/2.0*(t[3,2] + t[2,3]);
   return v
 end
 export stress3x3tto6v!
