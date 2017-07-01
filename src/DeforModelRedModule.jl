@@ -46,35 +46,35 @@ nthstrains(::Type{DeforModelRed3D})::FInt = 6;
 export nthstrains
 
 function stresscomponentmap(::Type{DeforModelRed1D})
-    a=Dict{Symbol,Int64}(); a[:x]=1;
+    a=Dict{Symbol,FInt}(); a[:x]=1;
     a[:xx]=1;
     return a
 end
 export stresscomponentmap
 
 function stresscomponentmap(::Type{DeforModelRed2DStrain})
-    a=Dict{Symbol,Int64}(); a[:x]=1;  a[:y]=2;  a[:xy]=3;  a[:z]=4;
+    a=Dict{Symbol,FInt}(); a[:x]=1;  a[:y]=2;  a[:xy]=3;  a[:z]=4;
     a[:xx]=1;  a[:yy]=2; a[:zz]=4;
     return a
 end
 export stresscomponentmap
 
 function stresscomponentmap(::Type{DeforModelRed2DStress})
-    a=Dict{Symbol,Int64}(); a[:x]=1;  a[:y]=2;  a[:xy]=3;
+    a=Dict{Symbol,FInt}(); a[:x]=1;  a[:y]=2;  a[:xy]=3;
     a[:xx]=1;  a[:yy]=2;
     return a
 end
 export stresscomponentmap
 
 function stresscomponentmap(::Type{DeforModelRed2DAxisymm})
-    a=Dict{Symbol,Int64}(); a[:x]=1;  a[:y]=2;  a[:z]=3;  a[:xy]=4;
+    a=Dict{Symbol,FInt}(); a[:x]=1;  a[:y]=2;  a[:z]=3;  a[:xy]=4;
     a[:xx]=1;  a[:yy]=2;  a[:zz]=3;
     return a
 end
 export stresscomponentmap
 
 function stresscomponentmap(::Type{DeforModelRed3D})
-    a=Dict{Symbol,Int64}(); a[:x]=1;  a[:y]=2;  a[:z]=3;  a[:xy]=4; a[:xz]=5; a[:yz]=6;
+    a=Dict{Symbol,FInt}(); a[:x]=1;  a[:y]=2;  a[:z]=3;  a[:xy]=4; a[:xz]=5; a[:yz]=6;
     a[:xx]=1;  a[:yy]=2;  a[:zz]=3;
     return a
 end
