@@ -267,7 +267,7 @@ function test()
   width = 48.0; height = 44.0; thickness  = 1.0;
   free_height  = 16.0;
   Mid_edge  = [48.0, 52.0];# Location of tracked  deflection
-  magn = 1./free_height;# Magnitude of applied load
+  magn = 1.0/free_height;# Magnitude of applied load
   convutip = 23.97;
   n = 32;#*int(round(sqrt(170.)/2.)); # number of elements per side
   tolerance = minimum([width, height])/n/1000.;#Geometrical tolerance
@@ -1131,7 +1131,7 @@ function test()
     0.0, 0.0, 0.0)
 
   function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    rotmat3!(csmatout, angles[fe_label]/180.*pi* [0.;0.;1.]);
+    rotmat3!(csmatout, angles[fe_label]/180.0*pi* [0.;0.;1.]);
   end
 
   gr = GaussRule(3, 3)
@@ -1196,7 +1196,7 @@ function test()
   L = 12.;
   t = 6.5;
   nl = 2; nt = 1; nw = 1; ref = 9;
-  p =   200./W/t;
+  p =   200.0/W/t;
   #  Loading in the Z direction
   loadv = [0;0;p]; dir = 3;
   tolerance  = t/1000;
