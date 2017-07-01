@@ -24,7 +24,7 @@ using FinEtools.FTypesModule
         # The individual elements from the connectivity that reference
         # node number 5 are 1 and 3, so that fes.conn(map{5},:) lists all the
         # nodes that are connected to node 5 (including node 5 itself).
-type FENodeToFEMap
+immutable FENodeToFEMap
     map::Array{FIntVec,1}
 end
 export FENodeToFEMap

@@ -4,7 +4,7 @@ module MatHeatDiffModule
 using FinEtools.FTypesModule
 
 # Type for heat diffusion models of materials.
-type MatHeatDiff
+immutable MatHeatDiff
   thermal_conductivity::FFltMat;# Thermal conductivity
   specific_heat::FFlt;# Specific heat per unit volume
 end

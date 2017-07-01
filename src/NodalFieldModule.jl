@@ -10,7 +10,7 @@ using FinEtools.FieldModule.@add_Field_fields
 
 Nodal field.
 """
-type NodalField{T<:Number} <: Field
+mutable struct NodalField{T<:Number} <: Field
   @add_Field_fields()
 end
 export NodalField

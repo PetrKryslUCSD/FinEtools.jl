@@ -326,7 +326,7 @@ module scratch1_06092017
 using FinEtools
 using Base.Test
 
-type MyIData
+mutable struct MyIData
   c::FInt
   r::FFltVec
   s::FFltVec
@@ -388,10 +388,10 @@ function test()
 
   ##
   # Analytical solutions.   Radial stress:
-  radial_stress(r)  = press*a.^2/(b^2-a^2).*(1-b^2./r.^2);
+  radial_stress(r)  = press*a.^2/(b^2-a^2).*(1-(b^2)./r.^2);
   ##
   # Circumferential (hoop) stress:
-  hoop_stress(r) = press*a.^2/(b^2-a^2).*(1+b^2./r.^2);
+  hoop_stress(r) = press*a.^2/(b^2-a^2).*(1+(b^2)./r.^2);
 
   ##
   # Radial displacement:

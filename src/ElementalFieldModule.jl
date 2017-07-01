@@ -14,7 +14,7 @@ Elemental field.
 The values in the field are indexed by the element number.  This means  that
 there needs to be one field per finite element set.
 """
-type ElementalField{T<:Number} <: Field
+mutable struct ElementalField{T<:Number} <: Field
   @add_Field_fields()
 end
 export ElementalField

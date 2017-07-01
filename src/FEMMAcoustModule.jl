@@ -20,7 +20,7 @@ using FinEtools.MatrixUtilityModule.complete_lt!
 
 Class for linear acoustics finite element modeling machine.
 """
-type FEMMAcoust{S<:FESet, F<:Function, M} <: FEMMAbstractBase
+mutable struct FEMMAcoust{S<:FESet, F<:Function, M} <: FEMMAbstractBase
   geod::GeoD{S, F} # geometry data finite element modeling machine
   material::M # material object
 end

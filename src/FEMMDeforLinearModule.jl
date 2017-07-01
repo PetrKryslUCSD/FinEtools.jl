@@ -24,7 +24,7 @@ using FinEtools.MatrixUtilityModule.add_btv!
 
 Class for linear deformation finite element modeling machine.
 """
-type FEMMDeforLinear{MR<:DeforModelRed,
+mutable struct FEMMDeforLinear{MR<:DeforModelRed,
   S<:FESet, F<:Function, M<:MatDefor} <: FEMMAbstractBase
   mr::Type{MR}
   geod::GeoD{S, F} # geometry data finite element modeling machine

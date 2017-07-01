@@ -21,7 +21,7 @@ using FinEtools.MatrixUtilityModule.complete_lt!
 
 Class for linear acoustics finite element modeling machine.
 """
-type FEMMAcoustSurf{S<:FESet, F<:Function, M, NF<:Function} <: FEMMAbstractBase
+mutable struct FEMMAcoustSurf{S<:FESet, F<:Function, M, NF<:Function} <: FEMMAbstractBase
   geod::GeoD{S, F} # geometry data finite element modeling machine
   material::M # material object
   getnormal!::NF # get the  normal to the surface

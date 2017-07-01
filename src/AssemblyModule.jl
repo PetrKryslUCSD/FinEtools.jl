@@ -7,7 +7,7 @@ const  inv_dofnum=0;            # invalid degree of freedom number -- no equatio
 abstract type SysmatAssemblerBase end;
 export SysmatAssemblerBase
 
-type SysmatAssemblerSparse{T<:Number} <: SysmatAssemblerBase
+mutable struct SysmatAssemblerSparse{T<:Number} <: SysmatAssemblerBase
     # Type for assembling of a sparse global matrix from elementwise matrices.
     buffer_length::FInt;
     matbuffer::FVec{T};
@@ -110,7 +110,7 @@ export makematrix!
 Assembler for a SYMMETRIC square matrix  assembled from  SYMMETRIC squared
 matrices.
 """
-type SysmatAssemblerSparseSymm{T<:Number} <: SysmatAssemblerBase
+mutable struct SysmatAssemblerSparseSymm{T<:Number} <: SysmatAssemblerBase
     # Type for assembling of a sparse global matrix from elementwise matrices.
     buffer_length:: FInt;
     matbuffer::FVec{T};
@@ -215,7 +215,7 @@ export makematrix!
 abstract type SysvecAssemblerBase end;
 export SysvecAssemblerBase
 
-type SysvecAssembler{T<:Number} <: SysvecAssemblerBase
+mutable struct SysvecAssembler{T<:Number} <: SysvecAssemblerBase
     # % The class sysvec_assembler is for assembling of a system
     # % column vector from elementwise vectors.
     # 	% Fixed degrees of freedom numbers are given this value:

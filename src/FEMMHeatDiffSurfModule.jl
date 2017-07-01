@@ -14,7 +14,7 @@ using FinEtools.MatrixUtilityModule.add_nnt_ut_only!
 using FinEtools.MatrixUtilityModule.complete_lt!
 
 # Class for heat diffusion finite element modeling machine.
-type FEMMHeatDiffSurf{S<:FESet, F<:Function} <: FEMMAbstractBase
+mutable struct FEMMHeatDiffSurf{S<:FESet, F<:Function} <: FEMMAbstractBase
   geod::GeoD{S, F} # geometry data finite element modeling machine
   surfacetransfercoeff::FFlt # material object
 end

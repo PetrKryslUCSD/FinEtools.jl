@@ -17,7 +17,7 @@ Linear orthotropic elasticity  material.
 
 
 """
-type  MatDeforElastOrtho{MR<:DeforModelRed,
+immutable  MatDeforElastOrtho{MR<:DeforModelRed,
   MTAN<:Function, MUPD<:Function, MTHS<:Function} <: MatDefor
   mr::Type{MR}
   mass_density::FFlt # mass density

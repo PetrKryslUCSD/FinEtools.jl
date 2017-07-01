@@ -23,7 +23,7 @@ tangentmoduli!::MTAN
 update!::MUPD
 thermalstrain!::MTHS
 """
-type  MatDeforElastIso{MR<:DeforModelRed,
+immutable  MatDeforElastIso{MR<:DeforModelRed,
   MTAN<:Function, MUPD<:Function, MTHS<:Function} <: MatDefor
   mr::Type{MR}
   mass_density::FFlt # mass density

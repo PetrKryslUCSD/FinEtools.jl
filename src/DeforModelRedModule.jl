@@ -4,15 +4,15 @@ using FinEtools.FTypesModule
 
 
 abstract type DeforModelRed end;
-type DeforModelRed1D <: DeforModelRed
+immutable DeforModelRed1D <: DeforModelRed
 end
-type DeforModelRed2DStrain <: DeforModelRed
+immutable DeforModelRed2DStrain <: DeforModelRed
 end
-type DeforModelRed2DStress <: DeforModelRed
+immutable DeforModelRed2DStress <: DeforModelRed
 end
-type DeforModelRed2DAxisymm <: DeforModelRed
+immutable DeforModelRed2DAxisymm <: DeforModelRed
 end
-type DeforModelRed3D <: DeforModelRed
+immutable DeforModelRed3D <: DeforModelRed
 end
 export DeforModelRed
 export DeforModelRed1D

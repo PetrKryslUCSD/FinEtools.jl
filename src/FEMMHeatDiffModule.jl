@@ -16,7 +16,7 @@ using FinEtools.MatrixUtilityModule.complete_lt!
 using FinEtools.MatrixUtilityModule.mv_product!
 
 # Class for heat diffusion finite element modeling machine.
-type FEMMHeatDiff{S<:FESet, F<:Function, M<:MatHeatDiff} <: FEMMAbstractBase
+mutable struct FEMMHeatDiff{S<:FESet, F<:Function, M<:MatHeatDiff} <: FEMMAbstractBase
     geod::GeoD{S, F} # geometry data finite element modeling machine
     material::M # material object
 end

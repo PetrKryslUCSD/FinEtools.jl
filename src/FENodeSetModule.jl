@@ -19,14 +19,13 @@ xyz =
 
 """
 #
-type FENodeSet
+immutable FENodeSet
     xyz::FFltMat
 
     function FENodeSet(xyz::FFltMat)
         self = new(deepcopy(xyz)); # Need to make a COPY of the input array!
         return self
     end
-
 end
 export FENodeSet
 

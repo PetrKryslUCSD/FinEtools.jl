@@ -25,7 +25,7 @@ getforce!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
 
 The buffer `forceout` is filled with the value  of the force.
 """
-type ForceIntensity{T<:Number, F<:Function}
+immutable ForceIntensity{T<:Number, F<:Function}
   computeforce!::F # function to update the force
   force::FVec{T}    # buffer where the current value of the force can be retrieved
 end

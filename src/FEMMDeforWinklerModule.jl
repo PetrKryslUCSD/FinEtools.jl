@@ -20,7 +20,7 @@ using FinEtools.MatrixUtilityModule.mv_product!
 Type for normal spring support  (Winkler).
 """
 # Class for heat diffusion finite element modeling machine.
-type FEMMDeforWinkler{S<:FESet, F<:Function} <: FEMMAbstractBase
+mutable struct FEMMDeforWinkler{S<:FESet, F<:Function} <: FEMMAbstractBase
   geod::GeoD{S, F} # geometry data finite element modeling machine
 end
 export FEMMDeforWinkler
