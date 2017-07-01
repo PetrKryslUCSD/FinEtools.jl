@@ -3,7 +3,7 @@ module MeshUtilModule
 using FinEtools.FTypesModule
 import Base.IntSet
 
-type HyperFaceContainer
+mutable struct HyperFaceContainer
     o::IntSet # numbers of the other nodes on the hyperface
     n::Int # new node number generated on the hyperface
 end
