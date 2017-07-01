@@ -102,9 +102,7 @@ would not work if the assembler expected the full matrix.
 -- Test the speed  with the material orientation  matrix Different from identity.
 
 --
-C:\Users\pkrysl\AppData\Local\Julia-0.5.2\bin\julia.exe
-C:\Users\pkrysl\AppData\Local\Julia-0.6.0-rc1\bin\julia.exe
-C:\Users\PetrKrysl\AppData\Local\Julia-0.6.0-rc2\bin\julia.exe
+C:\Users\PetrKrysl\AppData\Local\Julia-0.6.0\bin\julia.exe
 C:\Users\PetrKrysl\AppData\Local\Julia-0.7.0-DEV\bin\julia.exe
 
 --
