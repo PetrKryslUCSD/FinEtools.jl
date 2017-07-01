@@ -1181,6 +1181,7 @@ mmmmmmmmmZenkourm.test()
 
 module mmmmmmultimaterial_beam_xz
 using FinEtools
+using FinEtools.AlgoDeforLinearModule
 using Base.Test
 function test()
   # println("""
