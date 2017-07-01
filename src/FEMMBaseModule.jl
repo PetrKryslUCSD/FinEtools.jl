@@ -23,7 +23,7 @@ export FEMMAbstractBase
 
 Class for base finite element modeling machine.
 """
-type FEMMBase{S<:FESet, F<:Function} <: FEMMAbstractBase
+mutable struct FEMMBase{S<:FESet, F<:Function} <: FEMMAbstractBase
   geod::GeoD{S, F} # geometry data finite element modeling machine
 end
 export FEMMBase

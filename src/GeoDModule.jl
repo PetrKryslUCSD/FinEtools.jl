@@ -19,7 +19,7 @@ operations required. For instance, for interior (volume) integrals such as body
 load or the stiffness hexahedral H8 may be used whereas for boundary  (surface)
 integrals quadrilateral Q4 would be needed.
 """
-type GeoD{S<:FESet, F<:Function}
+mutable struct GeoD{S<:FESet, F<:Function}
     fes::S # finite element set object
     integration_rule::IntegRule  # integration rule object
     mcsys::CSys # updater of the material orientation matrix

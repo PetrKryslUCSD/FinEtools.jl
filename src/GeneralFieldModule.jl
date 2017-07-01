@@ -10,7 +10,7 @@ using FinEtools.FieldModule.@add_Field_fields
 
 General field.
 """
-type GeneralField{T<:Number} <: Field
+mutable struct GeneralField{T<:Number} <: Field
   @add_Field_fields()
 end
 export GeneralField

@@ -326,7 +326,7 @@ end
 
 Type for sets of point-like of finite elements.
 """
-type FESetP1 <: FESet0Manifold
+mutable struct FESetP1 <: FESet0Manifold
   @add_FESet_fields
 
   function    FESetP1(conn::FIntMat=[])
@@ -357,7 +357,7 @@ end
 
 Type for sets of curve-like of finite elements with two nodes.
 """
-type FESetL2 <: FESet1Manifold
+mutable struct FESetL2 <: FESet1Manifold
   @add_FESet_fields
 
   function    FESetL2(conn::FIntMat=[])
@@ -388,7 +388,7 @@ end
 
 Type for sets of curve-like of finite elements with three nodes.
 """
-type FESetL3 <: FESet1Manifold
+mutable struct FESetL3 <: FESet1Manifold
   @add_FESet_fields
 
   function    FESetL3(conn::FIntMat=[])
@@ -427,7 +427,7 @@ end
 
 Type for sets of surface-like of triangular finite elements with three nodes.
 """
-type FESetT3 <: FESet2Manifold
+mutable struct FESetT3 <: FESet2Manifold
   @add_FESet_fields
 
   function  FESetT3( conn::FIntMat=[])
@@ -466,7 +466,7 @@ end
 
 Type for sets of surface-like of quadrilateral finite elements with four nodes.
 """
-type FESetQ4 <: FESet2Manifold
+mutable struct FESetQ4 <: FESet2Manifold
   @add_FESet_fields
 
   function    FESetQ4(conn::FIntMat=[])
@@ -512,7 +512,7 @@ end
 
 Type for sets of surface-like of quadrilateral finite elements with nine nodes.
 """
-type FESetQ9 <: FESet2Manifold
+mutable struct FESetQ9 <: FESet2Manifold
   @add_FESet_fields
 
   function    FESetQ9(conn::FIntMat=[])
@@ -565,7 +565,7 @@ end
 
 Type for sets of surface-like of quadrilateral finite elements with eight nodes.
 """
-type FESetQ8 <: FESet2Manifold
+mutable struct FESetQ8 <: FESet2Manifold
   @add_FESet_fields
 
   function    FESetQ8(conn::FIntMat=[])
@@ -634,7 +634,7 @@ end
 
 Type for sets of surface-like of triangular finite elements with six nodes.
 """
-type FESetT6 <: FESet2Manifold
+mutable struct FESetT6 <: FESet2Manifold
   @add_FESet_fields
 
   function    FESetT6(conn::FIntMat=[])
@@ -691,7 +691,7 @@ end
 
 Type for sets of volume-like of hexahedral finite elements with eight nodes.
 """
-type FESetH8 <: FESet3Manifold
+mutable struct FESetH8 <: FESet3Manifold
   @add_FESet_fields
 
   function    FESetH8(conn::FIntMat=[])
@@ -757,7 +757,7 @@ end
 
 Type for sets of volume-like of hexahedral finite elements with 20 nodes.
 """
-type FESetH20 <: FESet3Manifold
+mutable struct FESetH20 <: FESet3Manifold
   @add_FESet_fields
 
   function    FESetH20(conn::FIntMat=[])
@@ -900,7 +900,7 @@ end
 
 Type for sets of volume-like of hexahedral finite elements with 27 nodes.
 """
-type FESetH27 <: FESet3Manifold
+mutable struct FESetH27 <: FESet3Manifold
   @add_FESet_fields
 
   function    FESetH27(conn::FIntMat=[])
@@ -1020,7 +1020,7 @@ end
 
 Type for sets of volume-like of tetrahedral finite elements with four nodes.
 """
-type FESetT4 <: FESet3Manifold
+mutable struct FESetT4 <: FESet3Manifold
   @add_FESet_fields
 
   function    FESetT4(conn::FIntMat=[])
@@ -1065,7 +1065,7 @@ end
 
 Type for sets of volume-like of tetrahedral finite elements with 10 nodes.
 """
-type FESetT10 <: FESet3Manifold
+mutable struct FESetT10 <: FESet3Manifold
   @add_FESet_fields
 
   function FESetT10(conn::FIntMat=[])
