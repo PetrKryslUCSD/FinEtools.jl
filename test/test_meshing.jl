@@ -1,4 +1,4 @@
-module mmmmmiscellaneous1mmmmmm
+module mmmmmiscellaneous2mmmmmm
 using FinEtools
 using Base.Test
 function test()
@@ -15,8 +15,8 @@ function test()
   @test bfes.conn == [1 2; 5 1; 2 3; 3 4; 4 8; 9 5; 8 12; 10 9; 11 10; 12 11]
 end
 end
-using mmmmmiscellaneous1mmmmmm
-mmmmmiscellaneous1mmmmmm.test()
+using mmmmmiscellaneous2mmmmmm
+mmmmmiscellaneous2mmmmmm.test()
 
 module mmmmmiimportexportmmmmm
 using FinEtools
