@@ -51,7 +51,7 @@ function xyz3(self::FENodeSet)
     elseif (size(self.xyz,2)==2)
         val = [self.xyz zeros(size(self.xyz,1),1)];
     else
-        val = self.xyz;
+        val = deepcopy(self.xyz);
     end
 end
 export xyz3
