@@ -1,7 +1,7 @@
 
-module m # pub_thick_pipe_axi()
+module moorthobballoon
 
-using JFinEALE
+using FinEtools
 
 # Orthotropic balloon inflation, axially symmetric model
 
@@ -22,10 +22,10 @@ rex =1.2;
 tolerance=rin/1000.
 
 ##
-# Note that the JFinEALE objects needs to be created with the proper
+# Note that the FinEtools objects needs to be created with the proper
 # model-dimension reduction at hand.  In this case that is the axial symmetry
 # assumption.
-mr=DeformationModelReduction2DAxisymm
+MR = DeforModelRed2DAxisymm
 
 
 # Create the mesh and initialize the geometry.  First we are going
@@ -33,10 +33,8 @@ mr=DeformationModelReduction2DAxisymm
 # corresponding to the thickness in the radial direction, and the second
 # coordinate is the thickness in the axial direction.
 
-fens,fes=Q4block(rex-rin,pi/2,5,20);
-fes.axisymm=(mr== DeformationModelReduction2DAxisymm)           # note that this reflects the chosen model reduction
+fens,fes = Q4block(rex-rin,pi/2,5,20);
 bdryfes = meshboundary(fes);
-bdryfes.axisymm=(mr== DeformationModelReduction2DAxisymm)
 
 icl = selectelem(fens, bdryfes, box=[0.,0.,0.,pi/2],inflate=tolerance);
 for i=1:count(fens)
@@ -46,33 +44,36 @@ end
 
 
 # now we create the geometry and displacement fields
-geom = NodalField(name ="geom",data =fens.xyz)
-u = NodalField(name ="u",data =zeros(size(fens.xyz,1),2)) # displacement field
+geom = NodalField(fens.xyz)
+u = NodalField(zeros(size(fens.xyz,1),2)) # displacement field
 
 # the symmetry plane
 l1 =selectnode(fens; box=[0 rex 0 0], inflate = tolerance)
-setebc!(u,l1,trues(length(l1)),l1*0+2,[0.0])
+setebc!(u,l1,true, 2, 0.0)
 # the axis of symmetry
 l1 =selectnode(fens; box=[0 0 0 rex], inflate = tolerance)
-setebc!(u,l1,trues(length(l1)),l1*0+1,[0.0])
+setebc!(u,l1,true, 1, 0.0)
 
 applyebc!(u)
 numberdofs!(u)
 
 # The traction boundary condition is applied in the radial
 # direction.
-    
-el1femm =  FEMMBase(subset(bdryfes,icl), GaussRule(order=3,dim=1))
-fi = ForceIntensity(JFFlt,(x,J,l)->p*x/norm(x));
+
+el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), GaussRule(1, 3), true))
+function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+  copy!(forceout, XYZ/norm(XYZ)*p)
+  return forceout
+end
+fi = ForceIntensity(FFlt, 2, pressureloading!); # pressure normal to the internal cylindrical surface
 F2= distribloads(el1femm, geom, u, fi, 2);
 
 # Property and material
-material=MaterialDeformationLinear (PropertyDeformationLinearOrtho(E1,E2,E3,nu12,nu13,nu23,G12,G13,G23))
+material=MatDeforElastOrtho(MR, E1,E2,E3,nu12,nu13,nu23,G12,G13,G23)
 
-femm = FEMMDeformationLinear(FEMMBase(fes, GaussRule(order=2,dim=2)), material)
+femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), true), material)
 
-K =stiffness(mr, femm, geom, u)
-#K=cholfact(K)
+K =stiffness(femm, geom, u)
 U=  K\(F2)
 scattersysvec!(u,U[:])
 
@@ -80,15 +81,16 @@ scattersysvec!(u,U[:])
 # coordinate system. Note that this is the usual representation of
 # stress using nodal stress field.
 
-fld= fieldfromintegpoints(mr, femm, geom, u, :Cauchy, 3)
+fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 3)
 
 
 File =  "orthoballoon_sigmaz.vtk"
-vtkexportmesh(File, fens, fes; scalars=fld.values,scalars_name ="sigmaz",
-              vectors=[u.values zeros(JFFlt,size(u.values,1))])
+vtkexportmesh(File, fens, fes; scalars=[("sigmaz", fld.values)],
+              vectors=[("u", u.values)])
+@async run(`"paraview.exe" $File`)
 
-                              
-            
+show(minimum(fld.values))
+show(maximum(fld.values))
 
 end
 #pub_thick_pipe_axi()
