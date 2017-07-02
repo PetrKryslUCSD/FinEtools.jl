@@ -52,35 +52,35 @@
 #
 module m # pub_thick_pipe_axi()
 
-using JFinEALE
+using FinEtools
 
 ##
 # Internal radius of the pipe.
-a=3*phun("MM");
+a = 3*phun("MM");
 ##
 # External radius of the pipe.
-b=9*phun("MM");
+b = 9*phun("MM");
 ##
 # Thickness of the slice.
-t=2*phun("MM");
+t = 2*phun("MM");
 
 ##
 # Geometrical tolerance.
 tolerance  =a/10000.;
 ##
 # Young's modulus and Poisson's ratio.
-E=1000*phun("MEGA*PA");
-nu=0.499;
+E = 1000*phun("MEGA*PA");
+nu = 0.499;
 ##
 # Applied pressure on the internal surface.
-press=  1.0*phun("MEGA*PA");
+press = 1.0*phun("MEGA*PA");
 
 ##
 # Analytical solutions.   Radial stress:
-radial_stress(r) =press*a.^2/(b^2-a^2).*(1-b^2./r.^2);
+radial_stress(r) =press*a.^2/(b^2-a^2).*(1-(b^2)./r.^2);
 ##
 # Circumferential (hoop) stress:
-hoop_stress(r)=press*a.^2/(b^2-a^2).*(1+b^2./r.^2);
+hoop_stress(r)=press*a.^2/(b^2-a^2).*(1+(b^2)./r.^2);
 
 ##
 # Radial displacement:
@@ -101,40 +101,39 @@ nc=3; nt=3;
 # Note that the material object needs to be created with the proper
 # model-dimension reduction in mind.  In this case that is the axial symmetry
 # assumption.
-mr=DeformationModelReduction2DStrain
+MR = DeforModelRed2DStrain
 
 # Create the mesh and initialize the geometry.  First we are going
 # to construct the block of elements with the first coordinate
 # corresponding to the angle, and the second
 # coordinate is the thickness in the radial direction.
-anglrrange=90/180*pi;
-fens,fes =  Q8block (anglrrange, b-a, nc, nt);
-fes.axisymm=(mr== DeformationModelReduction2DAxisymm)           # note that this reflects the chosen model reduction
+anglrrange = 90.0/180*pi;
+fens,fes =  Q8block(anglrrange, b-a, nc, nt);
+
 # Extract the boundary  and mark the finite elements on the
 # interior surface.
 bdryfes = meshboundary(fes);
-bdryfes.axisymm=(mr== DeformationModelReduction2DAxisymm)
-bcl = selectelem(fens, bdryfes, box=[-Inf,Inf,0.,0.],inflate=tolerance);
-internal_fenids= connectednodes (subset(bdryfes,bcl));
+bcl = selectelem(fens, bdryfes, box=[-Inf,Inf,0.,0.], inflate=tolerance);
+internal_fenids = connectednodes(subset(bdryfes,bcl));
 # Now  shape the block  into  the actual wedge piece of the pipe.
 ayr=fens.xyz;
-for i=1:count (fens)
+for i=1:count(fens)
     angl=ayr[i,1]; r=a+ayr[i,2];
-    fens.xyz[i,:]=[r*sin(angl),(r*cos(angl))];
+    fens.xyz[i,:] = [r*sin(angl),(r*cos(angl))];
 end
 
 # now we create the geometry and displacement fields
-geom = NodalField(name ="geom",data =fens.xyz)
-u = NodalField(name ="u",data =zeros(size(fens.xyz,1),2)) # displacement field
+geom = NodalField(fens.xyz)
+u = NodalField(zeros(size(fens.xyz,1),2)) # displacement field
 
 # The symmetry boundary condition  is specified by selecting nodes
 # on the plane x=0.
-l1 =selectnode(fens; box=[0.0 0.0 -Inf Inf], inflate = tolerance)
-setebc!(u,l1,trues(length(l1)),l1*0+1,[0.0])
+l1 = selectnode(fens; box=[0.0 0.0 -Inf Inf], inflate = tolerance)
+setebc!(u, l1, true, 1, 0.0)
 # The second symmetry boundary condition is specified by selecting
 # nodes on the plane y=0.
-l1 =selectnode(fens; box=[-Inf Inf 0.0 0.0], inflate = tolerance)
-setebc!(u,l1,trues(length(l1)),l1*0+2,[0.0])    
+l1 = selectnode(fens; box=[-Inf Inf 0.0 0.0], inflate = tolerance)
+setebc!(u, l1, true, 2, 0.0)
 
 applyebc!(u)
 numberdofs!(u)
@@ -142,32 +141,36 @@ numberdofs!(u)
 # The traction boundary condition is applied in the radial
 # direction.
 
-el1femm =  FEMMBase(subset(bdryfes,bcl), GaussRule(order=3,dim=1))
-fi = ForceIntensity(JFFlt, (x,J,l) -> x/norm(x)*press); # pressure normal to the internal cylindrical surface
-F2= distribloads(el1femm, geom, u, fi, 2);
+el1femm =  FEMMBase(GeoD(subset(bdryfes,bcl), GaussRule(1, 3)))
+function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+  copy!(forceout, XYZ/norm(XYZ)*press)
+  return forceout
+end
+fi = ForceIntensity(FFlt, 2, pressureloading!); # pressure normal to the internal cylindrical surface
+F2 = distribloads(el1femm, geom, u, fi, 2);
 
 # Property and material
-material=MaterialDeformationLinear (PropertyDeformationLinearIso(E,nu))
+material = MatDeforElastIso(MR, E, nu)
 
-femm = FEMMDeformationLinear(FEMMBase(fes, GaussRule(order=2,dim=2)), material)
+femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2)), material)
 
-K =stiffness(mr, femm, geom, u)
+K =stiffness(femm, geom, u)
 #K=cholfact(K)
 U=  K\(F2)
-scattersysvec!(u,U[:])
+scattersysvec!(u, U[:])
 
 # Transfer the solution of the displacement to the nodes on the
 # internal cylindrical surface and convert to
 # cylindrical-coordinate displacements there.
-uv=u.values[internal_fenids,:];
-ur=zeros(JFFlt,length(internal_fenids));
+uv = u.values[internal_fenids,:];
+ur = zeros(FFlt,length(internal_fenids));
 
-for j=1:length(internal_fenids)
-    n=fens.xyz[internal_fenids[j],:];
-    n=n'/norm(n);# normal to the cylindrical internal surface
-    ur[j]=dot(vec(uv[j,:]),vec(n));
+for j = 1:length(internal_fenids)
+    n = fens.xyz[internal_fenids[j],:];
+    n = n'/norm(n);# normal to the cylindrical internal surface
+    ur[j] = dot(vec(uv[j,:]),vec(n));
 end
- 
+
 # Report the  relative displacement on the internal surface:
 println("(Approximate/true displacement) at the internal surface: $( mean(ur)/urex*100  ) %")
 
@@ -175,18 +178,18 @@ println("(Approximate/true displacement) at the internal surface: $( mean(ur)/ur
 # coordinate system. Note that this is the usual representation of
 # stress using nodal stress field.
 
-fld= fieldfromintegpoints(mr, femm, geom, u, :Cauchy, 1)
+fld = fieldfromintegpoints(femm, geom, u, :Cauchy, 1)
 
 
 File =  "thick_pipe_sigmax.vtk"
-vtkexportmesh(File, fens, fes; scalars=fld.values,scalars_name ="sigmax")
+vtkexportmesh(File, fens, fes; scalars=[("sigmax", fld.values)])
 
 # Produce a plot of the solution components in the cylindrical
 # coordinate system.
 # Plot the analytical solution.
 
 r  =linspace(a,b,100);
-using Winston                   # 
+using Winston                   #
 pl = FramedPlot(title="Thick pipe, axially symmetric solution",xlabel="r",ylabel="Radial stress")
 setattr(pl.frame, draw_grid=true)
 add(pl, Curve(r,radial_stress(r), color="black"))
@@ -225,8 +228,8 @@ idat=MyIData(1,JFInt[],JFInt[])
 idat=inspectintegpoints(mr, femm, geom, u, [1:count(fes)], inspector, idat; output=:Cauchy)
 #
 add(pl, Points(idat.r,idat.s, size=1, color="red"))
-display(pl)                                        
-            
+display(pl)
+
 
 end
 #pub_thick_pipe_ps()

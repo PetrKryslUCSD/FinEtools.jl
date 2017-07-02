@@ -34,7 +34,7 @@ finite element accuracy. Finite Elements in Analysis and Design 1: 3-20.
 =#
 
 # Internal radius of the pipe.
-a=3*phun("MM");
+a = 3*phun("MM");
 ##
 # External radius of the pipe.
 b = 9*phun("MM");
