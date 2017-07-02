@@ -244,3 +244,5 @@ end
 -- Instead of "restart" use  https://github.com/timholy/Revise.jl
 
 -- Should algorithms print out anything (for instance warnings)?
+
+-- Use static arrays (stack-allocated) in the material update methods.
