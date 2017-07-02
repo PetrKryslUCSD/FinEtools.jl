@@ -1,5 +1,9 @@
 module FEMMDeforLinearModule
 
+export FEMMDeforLinear
+export stiffness, nzebcloadsstiffness, mass, thermalstrainloads,
+       inspectintegpoints
+
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
 using FinEtools.FESetModule.gradN!
@@ -37,7 +41,7 @@ mutable struct FEMMDeforLinear{MR<:DeforModelRed,
     return new{MR, S, F, M}(mr, geod,  material)
   end
 end
-export FEMMDeforLinear
+
 
 
 function buffers(self::FEMMDeforLinear, geom::NodalField, u::NodalField)
@@ -45,7 +49,7 @@ function buffers(self::FEMMDeforLinear, geom::NodalField, u::NodalField)
   const nne = nodesperelem(self.geod.fes); # number of nodes for element
   const sdim = ndofs(geom);            # number of space dimensions
   const mdim = manifdim(self.geod.fes); # manifold dimension of the element
-  const nstrs = nstresses(self.mr);  # number of stresses
+  const nstrs = nstsstn(self.mr);  # number of stresses
   const elmatdim = ndn*nne;             # dimension of the element matrix
   # Prepare buffers
   elmat = zeros(FFlt, elmatdim, elmatdim);      # element matrix -- buffer
@@ -54,14 +58,14 @@ function buffers(self::FEMMDeforLinear, geom::NodalField, u::NodalField)
   dofnums = zeros(FInt, 1, elmatdim); # degree of freedom array -- buffer
   loc = zeros(FFlt, 1, sdim); # quadrature point location -- buffer
   J = eye(FFlt, sdim, mdim); # Jacobian matrix -- buffer
-  RmTJ = zeros(FFlt, mdim, mdim); # intermediate result -- buffer
+  csmatTJ = zeros(FFlt, mdim, mdim); # intermediate result -- buffer
   gradN = zeros(FFlt, nne, mdim); # intermediate result -- buffer
   D = zeros(FFlt, nstrs, nstrs); # material stiffness matrix -- buffer
   B = zeros(FFlt, nstrs, elmatdim); # strain-displacement matrix -- buffer
   DB = zeros(FFlt, nstrs, elmatdim); # strain-displacement matrix -- buffer
   elvecfix = zeros(FFlt, elmatdim, 1); # vector of prescribed displ. -- buffer
   elvec = zeros(FFlt, elmatdim); # element vector -- buffer
-  return conn, x, dofnums, loc, J, RmTJ, gradN, D, B, DB, elmat, elvec, elvecfix
+  return conn, x, dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix
 end
 
 """
@@ -76,7 +80,7 @@ function stiffness(self::FEMMDeforLinear, assembler::A,
       u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
   geod = self.geod
   npts,  Ns,  gradNparams,  w,  pc = integrationdata(geod);
-  conn, x, dofnums, loc, J, RmTJ, gradN, D, B, DB, elmat, elvec, elvecfix =
+  conn, x, dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix =
                 buffers(self, geom, u)  # Prepare buffers
   self.material.tangentmoduli!(self.material, D, 0.0, 0.0, loc, 0)
   startassembly!(assembler, size(elmat, 1), size(elmat, 2), count(geod.fes),
@@ -90,8 +94,8 @@ function stiffness(self::FEMMDeforLinear, assembler::A,
       At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
       Jac = Jacobianvolume(geod, J, loc, conn, Ns[j]);
       updatecsmat!(geod.mcsys, loc, J, geod.fes.label[i]);
-      At_mul_B!(RmTJ, geod.mcsys.csmat, J); # local Jacobian matrix
-      gradN!(geod.fes, gradN, gradNparams[j], RmTJ);
+      At_mul_B!(csmatTJ, geod.mcsys.csmat, J); # local Jacobian matrix
+      gradN!(geod.fes, gradN, gradNparams[j], csmatTJ);
       Blmat!(self.mr, B, Ns[j], gradN, loc, geod.mcsys.csmat);
       add_btdb_ut_only!(elmat, B, Jac*w[j], D, DB)
     end # Loop over quadrature points
@@ -101,14 +105,12 @@ function stiffness(self::FEMMDeforLinear, assembler::A,
   end # Loop over elements
   return makematrix!(assembler);
 end
-export stiffness
 
 function stiffness(self::FEMMDeforLinear,
             geom::NodalField{FFlt},  u::NodalField{T}) where {T<:Number}
   assembler = SysmatAssemblerSparseSymm();
   return stiffness(self, assembler, geom, u);
 end
-export stiffness
 
 """
     nzebcloadsstiffness(self::FEMMDeforLinear,  assembler::A,
@@ -122,7 +124,7 @@ function nzebcloadsstiffness(self::FEMMDeforLinear,  assembler::A,
   u::NodalField{T}) where {A<:SysvecAssemblerBase, T<:Number}
   geod = self.geod
   npts,  Ns,  gradNparams,  w,  pc = integrationdata(geod);
-  conn, x, dofnums, loc, J, RmTJ, gradN, D, B, DB, elmat, elvec, elvecfix =
+  conn, x, dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix =
                 buffers(self, geom, u)  # Prepare buffers
   self.material.tangentmoduli!(self.material, D, 0.0, 0.0, loc, 0)
   startassembly!(assembler,  u.nfreedofs);
@@ -137,8 +139,8 @@ function nzebcloadsstiffness(self::FEMMDeforLinear,  assembler::A,
         At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
         Jac = Jacobianvolume(geod, J, loc, conn, Ns[j]);
         updatecsmat!(geod.mcsys, loc, J, geod.fes.label[i]);
-        At_mul_B!(RmTJ, geod.mcsys.csmat, J); # local Jacobian matrix
-        gradN!(geod.fes, gradN, gradNparams[j], RmTJ);
+        At_mul_B!(csmatTJ, geod.mcsys.csmat, J); # local Jacobian matrix
+        gradN!(geod.fes, gradN, gradNparams[j], csmatTJ);
         Blmat!(self.mr, B, Ns[j], gradN, loc, geod.mcsys.csmat);
         add_btdb_ut_only!(elmat, B, Jac*w[j], D, DB)
       end # Loop over quadrature points
@@ -150,7 +152,6 @@ function nzebcloadsstiffness(self::FEMMDeforLinear,  assembler::A,
   end # Loop over elements
   return makevector!(assembler);
 end
-export nzebcloadsstiffness
 
 function nzebcloadsstiffness(self::FEMMDeforLinear,
               geom::NodalField{FFlt},
@@ -158,7 +159,6 @@ function nzebcloadsstiffness(self::FEMMDeforLinear,
     assembler = SysvecAssembler()
     return  nzebcloadsstiffness(self, assembler, geom, u);
 end
-export nzebcloadsstiffness
 
 """
     mass(self::FEMMDeforLinear,  assembler::A,
@@ -171,7 +171,7 @@ function mass(self::FEMMDeforLinear,  assembler::A,
   u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
   geod = self.geod
   npts,  Ns,  gradNparams,  w,  pc = integrationdata(geod);
-  conn, x, dofnums, loc, J, RmTJ, gradN, D, B, DB, elmat =
+  conn, x, dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat =
                 buffers(self, geom, u)  # Prepare buffers
   rho::FFlt = self.material.mass_density; # mass density
   NexpTNexp = Array{FFltMat}(1, npts);# basis f. matrix -- buffer
@@ -205,14 +205,12 @@ function mass(self::FEMMDeforLinear,  assembler::A,
   end # Loop over elements
   return makematrix!(assembler);
 end
-export mass
 
 function mass(self::FEMMDeforLinear,
               geom::NodalField{FFlt},  u::NodalField{T}) where {T<:Number}
     assembler = SysmatAssemblerSparseSymm();
     return mass(self, assembler, geom, u);
 end
-export mass
 
 """
     thermalstrainloads(self::FEMMDeforLinear, assembler::A,
@@ -226,14 +224,14 @@ function  thermalstrainloads(self::FEMMDeforLinear, assembler::A,
     dT::NodalField{FFlt}) where {A<:SysvecAssemblerBase, T<:Number}
   geod = self.geod
   npts,  Ns,  gradNparams,  w,  pc = integrationdata(geod);
-  conn, x, dofnums, loc, J, RmTJ, gradN, D, B, DB, elmat, elvec, elvecfix =
+  conn, x, dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix =
                 buffers(self, geom, u)# Prepare buffers
   t= 0.0
   dt = 0.0
   DeltaT = zeros(FFlt, length(conn))
-  strain = zeros(FFlt, nstresses(self.mr)); # total strain -- buffer
-  thstrain = zeros(FFlt, nthstrains(self.mr)); # thermal strain -- buffer
-  thstress = zeros(FFlt, nstresses(self.mr)); # thermal stress -- buffer
+  strain = zeros(FFlt, nstsstn(self.mr)); # total strain -- buffer
+  thstrain = zeros(FFlt, nthstn(self.mr)); # thermal strain -- buffer
+  thstress = zeros(FFlt, nstsstn(self.mr)); # thermal stress -- buffer
   startassembly!(assembler,  u.nfreedofs);
   for i = 1:count(geod.fes) # Loop over elements
     getconn!(geod.fes, conn, i);
@@ -246,12 +244,12 @@ function  thermalstrainloads(self::FEMMDeforLinear, assembler::A,
         At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
         Jac = Jacobianvolume(geod, J, loc, conn, Ns[j]);
         updatecsmat!(geod.mcsys, loc, J, geod.fes.label[i]);
-        At_mul_B!(RmTJ,  geod.mcsys.csmat,  J); # local Jacobian matrix
-        gradN!(geod.fes, gradN, gradNparams[j], RmTJ);#Do: gradN = gradNparams[j]/RmTJ;
-        Blmat!(self.mr, B, Ns[j], gradN, loc, geod.mcsys.csmat);#  strains in material cs,  displacements in global cs
+        At_mul_B!(csmatTJ,  geod.mcsys.csmat,  J); # local Jacobian matrix
+        gradN!(geod.fes, gradN, gradNparams[j], csmatTJ);#Do: gradN = gradNparams[j]/csmatTJ;
+        Blmat!(self.mr, B, Ns[j], gradN, loc, geod.mcsys.csmat);# strains in mater cs, displ in global cs
         self.material.thermalstrain!(self.material, thstrain,
           dot(vec(Ns[j]), DeltaT))
-        self.material.update!(self.material,
+        thstress = self.material.update!(self.material, thstress,
           thstress, strain, thstrain, t, dt, loc, geod.fes.label[i], :nothing)
         add_btv!(elvec, B, thstress, (-1)*(Jac*w[j]))
       end
@@ -261,7 +259,6 @@ function  thermalstrainloads(self::FEMMDeforLinear, assembler::A,
   end # Loop over elements
   return makevector!(assembler);
 end
-export thermalstrainloads
 
 function thermalstrainloads(self::FEMMDeforLinear,
               geom::NodalField{FFlt},
@@ -269,7 +266,6 @@ function thermalstrainloads(self::FEMMDeforLinear,
     assembler = SysvecAssembler()
     return  thermalstrainloads(self, assembler, geom, u, dT);
 end
-export thermalstrainloads
 
 """
     inspectintegpoints(self::FEMMDeforLinear,
@@ -306,7 +302,7 @@ function inspectintegpoints(self::FEMMDeforLinear,
   context...) where {T<:Number, F<:Function}
   geod = self.geod
   npts,  Ns,  gradNparams,  w,  pc = integrationdata(geod);
-  conn, x, dofnums, loc, J, RmTJ, gradN, D, B, DB, elmat, elvec, elvecfix =
+  conn, x, dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix =
                 buffers(self, geom, u)  # Prepare buffers
   # Sort out  the output requirements
   outputcsys = geod.mcsys; # default: report the stresses in the material coord system
@@ -321,11 +317,11 @@ function inspectintegpoints(self::FEMMDeforLinear,
   dTe = zeros(FFlt, length(conn), 1) # nodal temperatures -- buffer
   ue = zeros(FFlt, size(elmat, 1), 1); # array of node displacements -- buffer
   qpdT = 0.0; # node temperature increment
-  qpstrain = zeros(FFlt, nstresses(self.mr), 1); # total strain -- buffer
-  qpthstrain = zeros(FFlt, nthstrains(self.mr)); # thermal strain -- buffer
-  qpstress = zeros(FFlt, nstresses(self.mr)); # stress -- buffer
-  qpstress1 = zeros(FFlt, nstresses(self.mr)); # stress -- buffer
-  out =  zeros(FFlt, nstresses(self.mr));# output -- buffer
+  qpstrain = zeros(FFlt, nstsstn(self.mr), 1); # total strain -- buffer
+  qpthstrain = zeros(FFlt, nthstn(self.mr)); # thermal strain -- buffer
+  qpstress = zeros(FFlt, nstsstn(self.mr)); # stress -- buffer
+  qpstress1 = zeros(FFlt, nstsstn(self.mr)); # stress -- buffer
+  out =  zeros(FFlt, nstsstn(self.mr));# output -- buffer
   # Loop over  all the elements and all the quadrature points within them
   for ilist = 1:length(felist) # Loop over elements
     i = felist[ilist];
@@ -338,8 +334,8 @@ function inspectintegpoints(self::FEMMDeforLinear,
       At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
       Jac = Jacobianvolume(geod, J, loc, conn, Ns[j]);
       updatecsmat!(geod.mcsys, loc, J, geod.fes.label[i]);
-      At_mul_B!(RmTJ,  geod.mcsys.csmat,  J); # local Jacobian matrix
-      gradN!(geod.fes, gradN, gradNparams[j], RmTJ);
+      At_mul_B!(csmatTJ,  geod.mcsys.csmat,  J); # local Jacobian matrix
+      gradN!(geod.fes, gradN, gradNparams[j], csmatTJ);
       Blmat!(self.mr, B, Ns[j], gradN, loc, geod.mcsys.csmat);
       updatecsmat!(outputcsys, loc, J, geod.fes.label[i]);
       # Quadrature point quantities
@@ -347,15 +343,14 @@ function inspectintegpoints(self::FEMMDeforLinear,
       qpdT = dot(vec(dTe), vec(Ns[j]));# Quadrature point temperature increment
       self.material.thermalstrain!(self.material, qpthstrain, qpdT)
       # Material updates the state and returns the output
-      out = self.material.update!(self.material, out,
+      out = self.material.update!(self.material, qpstress, out,
         vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
       if (quantity == :Cauchy)   # Transform stress tensor,  if that is "out"
-        copy!(qpstress, out)
         # To global coord sys
         rotstressvec(self.mr, qpstress1, qpstress, geod.mcsys.csmat')
         # To output coord sys
         rotstressvec(self.mr, qpstress, qpstress1, outputcsys.csmat)
-        out = qpstress
+        copy!(out, qpstress)
       end
       # Call the inspector
       idat = inspector(idat, i, conn, x, out, loc);
@@ -363,7 +358,6 @@ function inspectintegpoints(self::FEMMDeforLinear,
   end # Loop over elements
   return idat; # return the updated inspector data
 end
-export inspectintegpoints
 
 function inspectintegpoints(self::FEMMDeforLinear,
   geom::NodalField{FFlt},  u::NodalField{T},
@@ -374,7 +368,6 @@ function inspectintegpoints(self::FEMMDeforLinear,
   return inspectintegpoints(self, geom, u, dT, felist,
             inspector, idat, quantity; context...);
 end
-export inspectintegpoints
 
 end
 
