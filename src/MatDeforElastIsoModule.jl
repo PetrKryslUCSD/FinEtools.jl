@@ -180,7 +180,7 @@ function tangentmoduli2dstrs!(self::MatDeforElastIso,
 end
 
 """
-    update2dstrs!(self::MatDeforElastIso, output::FFltVec,
+    update2dstrs!(self::MatDeforElastIso, stress::FFltVec, output::FFltVec,
       strain::FFltVec, thstrain::FFltVec=zeros(3), t::FFlt= 0.0, dt::FFlt= 0.0,
       loc::FFltMat=zeros(3,1), label::FInt=0, quantity=:nothing)
 
@@ -200,7 +200,7 @@ Output:
 `output` =  array which is (if necessary) allocated  in an appropriate size, filled
   with the output quantity, and returned.
 """
-function update2dstrs!(self::MatDeforElastIso, output::FFltVec,
+function update2dstrs!(self::MatDeforElastIso, stress::FFltVec, output::FFltVec,
   strain::FFltVec, thstrain::FFltVec=zeros(3), t::FFlt= 0.0, dt::FFlt= 0.0,
   loc::FFltMat=zeros(3,1), label::FInt=0, quantity=:nothing)
   @assert length(stress) == nstsstn(self.mr)
