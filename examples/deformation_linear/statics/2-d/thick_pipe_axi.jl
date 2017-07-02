@@ -150,7 +150,7 @@ vtkexportmesh(File, fens, fes; scalars=[("sigmax", fld.values)])
 # Produce a plot of the solution components in the cylindrical
 # coordinate system.
 
-type MyIData
+mutable struct MyIData
   c::FInt
   r::FFltVec
   s::FFltVec
@@ -162,7 +162,7 @@ function inspector(idat::MyIData, elnum, conn, xe,  out,  xq)
   return idat
 end
 
-idat = MyIData(1, FInt[], FInt[])
+idat = MyIData(1, FFltVec[], FFltVec[])
 idat = inspectintegpoints(femm, geom, u, collect(1:count(fes)),
  inspector, idat, :Cauchy)
 

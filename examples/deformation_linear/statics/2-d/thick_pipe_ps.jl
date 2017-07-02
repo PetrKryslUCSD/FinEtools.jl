@@ -188,47 +188,49 @@ vtkexportmesh(File, fens, fes; scalars=[("sigmax", fld.values)])
 # coordinate system.
 # Plot the analytical solution.
 
-r  =linspace(a,b,100);
-using Winston                   #
-pl = FramedPlot(title="Thick pipe, axially symmetric solution",xlabel="r",ylabel="Radial stress")
-setattr(pl.frame, draw_grid=true)
-add(pl, Curve(r,radial_stress(r), color="black"))
-display(pl)
-
-type MyIData
-    c::JFInt
-    r::JFFltVec
-    s::JFFltVec
+mutable struct MyIData
+    c::FInt
+    r::FFltVec
+    s::FFltVec
 end
 
-function inspector(idat::MyIData,out,loc,pc)
-    function outputRm(c)
-        theNormal=c;
-        r=norm(theNormal);# distance from the axis of symmetry
-        theNormal =theNormal/r;# compute the unit normal vector
-        e1p=[theNormal';0.];# local cylind. coordinate  basis vectors
-        e3p=[0.,0.,1.]';# this one points along the axis of the cylinder
-        e2p=cross(vec(e3p),vec(e1p));# this one is along the hoop direction
-        R= [vec(e1p) vec(e2p) vec(e3p)];# transformation matrix for the stress
-        return R
-    end
-    Rm=outputRm(loc)
-    tm=zeros(JFFlt,3,3)
-    stress4vto3x3t!(tm,out);# stress in global XYZ
-    tpm = Rm'*tm*Rm;#  stress matrix in cylindrical coordinates
-    sp=zeros(JFFlt,6)
-    stress3x3tto6v!(sp,tpm);# stress vector in cylindr. coord.
-    push!(idat.r,norm(loc))
-    push!(idat.s,sp[idat.c])
-    return idat
+function inspector(idat::MyIData, elnum, conn, xe,  out,  xq)
+  function outputRm(c)
+    theNormal=c;
+    r=norm(theNormal);# distance from the axis of symmetry
+    theNormal =theNormal/r;# compute the unit normal vector
+    e1p=[theNormal';0.];# local cylind. coordinate  basis vectors
+    e3p=[0.,0.,1.]';# this one points along the axis of the cylinder
+    e2p=cross(vec(e3p),vec(e1p));# this one is along the hoop direction
+    R= [vec(e1p) vec(e2p) vec(e3p)];# transformation matrix for the stress
+    return R
+  end
+  Rm=outputRm(xq)
+  tm=zeros(FFlt,3,3)
+  stress4vto3x3t!(tm, out);# stress in global XYZ
+  tpm = Rm'*tm*Rm;#  stress matrix in cylindrical coordinates
+  sp=zeros(FFlt,6)
+  stress3x3tto6v!(sp, tpm);# stress vector in cylindr. coord.
+  push!(idat.r,norm(xq))
+  push!(idat.s,sp[idat.c])
+  return idat
 end
 
+idat = MyIData(1, FFltVec[], FFltVec[])
+idat = inspectintegpoints(femm, geom, u, collect(1:count(fes)),
+ inspector, idat, :Cauchy)
+show(idat)
 
-idat=MyIData(1,JFInt[],JFInt[])
-idat=inspectintegpoints(mr, femm, geom, u, [1:count(fes)], inspector, idat; output=:Cauchy)
-#
-add(pl, Points(idat.r,idat.s, size=1, color="red"))
-display(pl)
+using Plots
+plotly()
+
+# Plot the analytical solution.
+r = linspace(a,b,100);
+plot(r, radial_stress(r))
+# Plot the computed  integration-point data
+scatter!(idat.r, idat.s, m=:circle, color=:red)
+gui()
+
 
 
 end
