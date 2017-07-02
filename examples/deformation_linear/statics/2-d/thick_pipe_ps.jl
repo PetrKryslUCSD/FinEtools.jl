@@ -219,7 +219,7 @@ end
 idat = MyIData(1, FFltVec[], FFltVec[])
 idat = inspectintegpoints(femm, geom, u, collect(1:count(fes)),
  inspector, idat, :Cauchy)
-show(idat)
+# show(idat)
 
 using Plots
 plotly()
