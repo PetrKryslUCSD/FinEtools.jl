@@ -1,5 +1,12 @@
 module MatDeforModule
 
+export MatDefor
+export strain2x2tto3v!, strain3vto2x2t!, strain3x3tto6v!, strain6vto3x3t!,
+       strain9vto6v!, strain6vto9v!
+export stress2x2to3v!, stress3vto2x2t!, stress3vto3x3t!, stress4vto3x3t!,
+       stress6vto3x3t!, stress3x3tto6v!, stress9vto6v!
+export rotstressvec, strainvectorrotation, stressvectorrotation,
+       rotatecompliance!, rotatestiffness!
 
 using FinEtools.FTypesModule
 using FinEtools.DeforModelRedModule
@@ -10,7 +17,6 @@ using FinEtools.DeforModelRedModule
 Abstract type that represents deformable materials.
 """
 abstract type MatDefor end
-export MatDefor
 
 """
     strain2x2tto3v!(v::FFltVec, t::FFltMat)
@@ -23,7 +29,6 @@ function strain2x2tto3v!(v::FFltVec, t::FFltMat)
   v[3] = t[1,2] + t[2,1];
   return v
 end
-export strain2x2tto3v!
 
 """
     strain3vto2x2t!(t::FFltMat, v::FFltVec)
@@ -37,7 +42,6 @@ function strain3vto2x2t!(t::FFltMat, v::FFltVec)
   t[2,1] = v[3]/2.;
   return t
 end
-export strain3vto2x2t!
 
 """
     strain3x3tto6v!(v::FFltVec, t::FFltMat)
@@ -53,7 +57,6 @@ function strain3x3tto6v!(v::FFltVec, t::FFltMat)
   v[6] = t[3,2] + t[2,3];
   return v
 end
-export strain3x3tto6v!
 
 """
     strain6vto3x3t!(t::FFltMat, v::FFltVec)
@@ -72,7 +75,6 @@ function strain6vto3x3t!(t::FFltMat, v::FFltVec)
   t[2,3] = v[6]/2.;
   return t
 end
-export strain6vto3x3t!
 
 """
     stress2x2to3v!(v::FFltVec, t::FFltMat)
@@ -85,7 +87,6 @@ function stress2x2to3v!(v::FFltVec, t::FFltMat)
   v[3] = 1.0/2.0*(t[1,2] + t[2,1]);
   return v
 end
-export stress2x2to3v!
 
 """
     stress3vto2x2t!(t::FFltMat, v::FFltVec)
@@ -99,7 +100,6 @@ function stress3vto2x2t!(t::FFltMat, v::FFltVec)
   t[2,1] = v[3];
   return t
 end
-export stress3vto2x2t!
 
 """
     stress3vto3x3t!(t::FFltMat, v::FFltVec)
@@ -113,7 +113,6 @@ function stress3vto3x3t!(t::FFltMat, v::FFltVec)
   t[2,1] = v[3];
   return t
 end
-export stress3vto3x3t!
 
 """
     stress4vto3x3t!(t::FFltMat, v::FFltVec)
@@ -139,7 +138,6 @@ function stress4vto3x3t!(t::FFltMat, v::FFltVec)
   t[3,3] = v[4];
   return t
 end
-export stress4vto3x3t!
 
 """
     stress6vto3x3t!(t::FFltMat, v::FFltVec)
@@ -158,7 +156,6 @@ function stress6vto3x3t!(t::FFltMat, v::FFltVec)
   t[2,3] = v[6];
   return t
 end
-export stress6vto3x3t!
 
 """
     stress3x3tto6v!(v::FFltVec, t::FFltMat)
@@ -174,7 +171,6 @@ function stress3x3tto6v!(v::FFltVec, t::FFltMat)
   v[6] = 1/2.0*(t[3,2] + t[2,3]);
   return v
 end
-export stress3x3tto6v!
 
 """
     strain9vto6v!(t::FFltVec, v::FFltVec)
@@ -190,7 +186,6 @@ function strain9vto6v!(t::FFltVec, v::FFltVec)
   t[6] = v[6]+v[7];
   return t
 end
-export strain9vto6v!
 
 """
     strain6vto9v!(t::FFltVec, v::FFltVec)
@@ -209,7 +204,6 @@ function strain6vto9v!(t::FFltVec, v::FFltVec)
   t[9] = v[5]/2.;
   return t
 end
-export strain6vto9v!
 
 """
     stress9vto6v!(t::FFltVec, v::FFltVec)
@@ -225,15 +219,14 @@ function stress9vto6v!(t::FFltVec, v::FFltVec)
   t[6] = v[6];
   return t
 end
-export stress9vto6v!
 
 
 ################################################################################
 # 3-D model
 
 """
-    rotstressvec(::Type{MR},
-      outstress::FFltVec, instress::FFltVec, Rm::FFltMat) where {MR<:DeforModelRed3D}
+    rotstressvec(::Type{DeforModelRed3D},  outstress::FFltVec,
+      instress::FFltVec, Rm::FFltMat)
 
 Rotate the stress vector by the supplied rotation matrix.
 
@@ -243,8 +236,8 @@ Calculate the rotation of the stress vector to the
 `Rm` = columns are components of 'bar' basis vectors on the 'plain'
      basis vectors
 """
-function  rotstressvec(::Type{MR},
-  outstress::FFltVec, instress::FFltVec, Rm::FFltMat) where {MR<:DeforModelRed3D}
+function  rotstressvec(::Type{DeforModelRed3D},  outstress::FFltVec,
+  instress::FFltVec, Rm::FFltMat)
       # # Derivation of the transformation matrix [T]
     # #This is from Barbero''s  book Finite element analysis of composite
     # #materials  using Abaqus.  Note that his matrix "a"  is the transpose of
@@ -309,10 +302,8 @@ function  rotstressvec(::Type{MR},
                     (a12*a33 + a13*a32)*instress[5] + (a22*a33 + a23*a32)*instress[6]
   return outstress
 end
-export rotstressvec
 
-function strainvectorrotation{MR<:DeforModelRed3D}(::Type{MR},
-  Rm::FFltMat)
+function strainvectorrotation(::Type{DeforModelRed3D}, Rm::FFltMat)
     # Calculate the rotation matrix for a strain vector.
     #
     #   Tbar = strain_vector_rotation(self,Rm)
@@ -336,13 +327,40 @@ function strainvectorrotation{MR<:DeforModelRed3D}(::Type{MR},
            [ 2*a12*a13 2*a22*a23 2*a32*a33 a12*a23 + a13*a22 a12*a33 + a13*a32 a22*a33 + a23*a32]];
     return Tbar
 end
-export strainvectorrotation
 
 ################################################################################
 # 2-D plane strain model
 
-function stressvectorrotation{MR<:DeforModelRed2DStrain}(::Type{MR},
-  Rm::FFltMat)
+"""
+    rotstressvec(::Type{DeforModelRed2DStrain},  outstress::FFltVec,
+      instress::FFltVec,  Rm::FFltMat)
+
+Rotate the stress vector by the supplied rotation matrix.
+
+Calculate the rotation of the stress vector to the
+'bar' coordinate system given by the columns of the rotation matrix `Rm`.
+
+`Rm` = columns are components of 'bar' basis vectors on the 'plain'
+     basis vectors
+"""
+function  rotstressvec(::Type{DeforModelRed2DStrain},  outstress::FFltVec,
+  instress::FFltVec,  Rm::FFltMat)
+  a11=Rm[1,1]; a12=Rm[1,2]; a13=0.0;
+  a21=Rm[2,1]; a22=Rm[2,2]; a23=0.0;
+  a31=0.0; a32=0.0; a33=1.0;
+  # Note the special arrangement  of the components for plane strain
+  outstress[1] =  (a11^2)*instress[1] + (a21^2)*instress[2] +
+  (a31^2)*instress[4] + (2*a11*a21)*instress[3]
+  outstress[2] =  (a12^2)*instress[1] +  (a22^2)*instress[2] +
+  (a32^2)*instress[4] + (2*a12*a22)*instress[3]
+  outstress[4] =  (a13^2)*instress[1] + (a23^2)*instress[2] +
+  (a33^2)*instress[4] + (2*a13*a23)*instress[3]
+  outstress[3] =  a11*a12*instress[1] +  a21*a22*instress[2] +
+  a31*a32*instress[4] + (a11*a22 + a12*a21)*instress[3]
+  return outstress
+end
+
+function stressvectorrotation(::Type{DeforModelRed2DStrain}, Rm::FFltMat)
 
     # Rm = columns are components of 'bar' basis vectors on the 'plain'
     #      basis vectors
@@ -373,10 +391,8 @@ function stressvectorrotation{MR<:DeforModelRed2DStrain}(::Type{MR},
         [ a11*a12  a21*a22  0  a11*a22 + a12*a21]];
     return T
 end
-export stressvectorrotation
 
-function strainvectorrotation{MR<:DeforModelRed2DStrain}(::Type{MR},
-  Rm::FFltMat)
+function strainvectorrotation(::Type{DeforModelRed2DStrain},  Rm::FFltMat)
     # Calculate the rotation matrix for a strain vector.
     #
     #   Tbar = strain_vector_rotation(self,Rm)
@@ -396,15 +412,13 @@ function strainvectorrotation{MR<:DeforModelRed2DStrain}(::Type{MR},
            [ 2*a11*a12  2*a21*a22  0  a11*a22 + a12*a21]];
     return Tbar
 end
-export strainvectorrotation
 
 ################################################################################
 # 2-D plane stress model
 
 """
-    rotstressvec(::Type{MR},
-      outstress::FFltVec, instress::FFltVec,
-      Rm::FFltMat) where {MR<:DeforModelRed2DStress}
+    rotstressvec(::Type{DeforModelRed2DStress},  outstress::FFltVec,
+      instress::FFltVec,  Rm::FFltMat)
 
 Rotate the stress vector by the supplied rotation matrix.
 
@@ -414,9 +428,8 @@ Calculate the rotation of the stress vector to the
 `Rm` = columns are components of 'bar' basis vectors on the 'plain'
      basis vectors
 """
-function  rotstressvec(::Type{MR},
-  outstress::FFltVec, instress::FFltVec,
-  Rm::FFltMat) where {MR<:DeforModelRed2DStress}
+function  rotstressvec(::Type{DeforModelRed2DStress},  outstress::FFltVec,
+  instress::FFltVec,  Rm::FFltMat)
   a11=Rm[1,1]; a12=Rm[1,2];
   a21=Rm[2,1]; a22=Rm[2,2];
   outstress[1] =  (a11^2)*instress[1] + (a21^2)*instress[2] +
@@ -427,15 +440,13 @@ function  rotstressvec(::Type{MR},
   (a11*a22+a12*a21)*instress[3]
   return outstress
 end
-export rotstressvec
 
 ################################################################################
 # 2-D axially symmetric stress model
 
 """
-    rotstressvec(::Type{MR},
-      outstress::FFltVec, instress::FFltVec,
-      Rm::FFltMat) where {MR<:DeforModelRed2DStress}
+    rotstressvec(::Type{DeforModelRed2DAxisymm},  outstress::FFltVec,
+      instress::FFltVec,  Rm::FFltMat)
 
 Rotate the stress vector by the supplied rotation matrix.
 
@@ -445,9 +456,8 @@ Calculate the rotation of the stress vector to the
 `Rm` = columns are components of 'bar' basis vectors on the 'plain'
      basis vectors
 """
-function  rotstressvec(::Type{MR},
-  outstress::FFltVec, instress::FFltVec,
-  Rm::FFltMat) where {MR<:DeforModelRed2DAxisymm}
+function  rotstressvec(::Type{DeforModelRed2DAxisymm},  outstress::FFltVec,
+  instress::FFltVec,  Rm::FFltMat)
   a11=Rm[1,1]; a12=Rm[1,2];
   a21=Rm[2,1]; a22=Rm[2,2];
   outstress[1] =  (a11^2)*instress[1] + (a21^2)*instress[2] +
@@ -460,7 +470,6 @@ function  rotstressvec(::Type{MR},
                   (0.0)*instress[3] + (a11*a22 + a12*a21)*instress[4]
   return outstress
 end
-export rotstressvec
 
 function stressvectorrotation{MR<:DeforModelRed2DStress}(::Type{MR},
   Rm::FFltMat)
@@ -499,7 +508,6 @@ function stressvectorrotation{MR<:DeforModelRed2DStress}(::Type{MR},
         [ a11*a12 a21*a22 a11*a22+a12*a21]];
     return T
 end
-export stressvectorrotation
 
 function strainvectorrotation{MR<:DeforModelRed2DStress}(::Type{MR},
   Rm::FFltMat)
@@ -528,14 +536,13 @@ function strainvectorrotation{MR<:DeforModelRed2DStress}(::Type{MR},
            [ 2*a11*a12, 2*a21*a22, a11*a22 + a12*a21]];
     return Tbar
 end
-export strainvectorrotation
 
 
 ################################################################################
 # 2-D plane axially symmetric model
 
-function stressvectorrotation{MR<:DeforModelRed2DAxisymm}(::Type{MR},
-  Rm::FFltMat)
+function stressvectorrotation(::Type{MR},
+  Rm::FFltMat) where {MR<:DeforModelRed2DAxisymm}
 
     # Rm = columns are components of 'bar' basis vectors on the 'plain'
     #      basis vectors
@@ -565,10 +572,9 @@ function stressvectorrotation{MR<:DeforModelRed2DAxisymm}(::Type{MR},
         [ a11*a12  a21*a22  0  a11*a22 + a12*a21]];
     return T
 end
-export stressvectorrotation
 
-function strainvectorrotation{MR<:DeforModelRed2DAxisymm}(::Type{MR},
-  Rm::FFltMat)
+function strainvectorrotation(::Type{MR},
+  Rm::FFltMat) where {MR<:DeforModelRed2DAxisymm}
     # Calculate the rotation matrix for a strain vector.
     #
     #   Tbar = strain_vector_rotation(self,Rm)
@@ -588,14 +594,13 @@ function strainvectorrotation{MR<:DeforModelRed2DAxisymm}(::Type{MR},
            [ 2*a11*a12  2*a21*a22  0  a11*a22 + a12*a21]];
     return Tbar
 end
-export strainvectorrotation
 
 
 ################################################################################
 # Generic versions of rotations of stiffness and compliance matrices
 
-function rotatestiffness!{MR<:DeforModelRed}(::Type{MR}, D::FFltMat,
-                                                           Rm::FFltMat)
+function rotatestiffness!(::Type{MR}, D::FFltMat,
+                                                           Rm::FFltMat) where {MR<:DeforModelRed}
     # Rotate constitutive stiffness matrix of the material.
     #
     #         function D=transform_stiffness(self,D,Rm)
@@ -606,10 +611,9 @@ function rotatestiffness!{MR<:DeforModelRed}(::Type{MR}, D::FFltMat,
     D = T*D*T';
     return D
 end
-export rotatestiffness!
 
-function rotatecompliance!{MR<:DeforModelRed}(::Type{MR},C::FFltMat,
-  Rm::FFltMat)
+function rotatecompliance!(::Type{MR}, C::FFltMat,
+  Rm::FFltMat) where {MR<:DeforModelRed}
     # Rotate constitutive compliance matrix of the material.
     #
     #   C = rotate_compliance(self,C,Rm)
@@ -620,7 +624,6 @@ function rotatecompliance!{MR<:DeforModelRed}(::Type{MR},C::FFltMat,
     C = Tbar*C*Tbar';
     return C
 end
-export rotatecompliance!
 
 
 end
