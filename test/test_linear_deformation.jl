@@ -1052,6 +1052,7 @@ function test()
   File  =   "LE11NAFEMS_Q8_sigmay.vtk"
   vtkexportmesh(File, fens, fes; scalars = [("sigmay", fld.values)],
   vectors = [("u", u.values)])
+  try rm(File); catch end
 
   sA  =  fld.values[nA]/phun("MEGA*Pa")
   sAn  =  fld.values[nA]/sigmaA

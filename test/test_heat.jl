@@ -518,10 +518,10 @@ function test()
   vtkexportmesh("T4NAFEMS--T6.vtk", regions[1]["femm"].geod.fes.conn,
   [geom.values Temp.values/100], FinEtools.MeshExportModule.T6;
   scalars=[("Temperature", Temp.values)])
-  rm("T4NAFEMS--T6.vtk")
+  try  rm("T4NAFEMS--T6.vtk"); catch end
   vtkexportmesh("T4NAFEMS--T6--base.vtk", regions[1]["femm"].geod.fes.conn,
   [geom.values 0.0*Temp.values/100], FinEtools.MeshExportModule.T6)
-  rm("T4NAFEMS--T6--base.vtk")
+  try rm("T4NAFEMS--T6--base.vtk"); catch end
   # ##
   # # Richardson extrapolation is used to estimate the true solution from the
   # # results for the finest three meshes.
@@ -565,8 +565,7 @@ function test()
   # addresses use of graded meshes  in convergence studies.
 
 
-  @test (norm(resultsTempA-[17.9028, 18.3323, 18.2965, 18.2619, 18.255])
-  )<1.0e-3
+  @test (norm(resultsTempA-[17.9028, 18.3323, 18.2965, 18.2619, 18.255]))<1.0e-3
 
 end
 end
