@@ -38,22 +38,11 @@ nstsstn(::Type{DeforModelRed3D})::FInt = 6;
 How many thermal strain components are there for each model reduction type?
 """
 nthstn(::Type{DeforModelRed1D})::FInt = 1;
-nthstn(::Type{DeforModelRed2DStrain})::FInt = 3;
+nthstn(::Type{DeforModelRed2DStrain})::FInt = 4;
 nthstn(::Type{DeforModelRed2DStress})::FInt = 3;
 nthstn(::Type{DeforModelRed2DAxisymm})::FInt = 4;
 nthstn(::Type{DeforModelRed3D})::FInt = 6;
-
-# """
-#     noutsts(::Type{DeforModelRed1D})::FInt
-#
-# How many output stress components are there for each model reduction type?
-# """
-# noutsts(::Type{DeforModelRed1D})::FInt = 1; # sx
-# noutsts(::Type{DeforModelRed2DStrain})::FInt = 4; # sx,sy,sxy,sz
-# noutsts(::Type{DeforModelRed2DStress})::FInt = 3; # sx,sy,sxy
-# noutsts(::Type{DeforModelRed2DAxisymm})::FInt = 4; # sx,sy,sz,sxy
-# noutsts(::Type{DeforModelRed3D})::FInt = 6;
-
+ 
 """
     stresscomponentmap(::Type{DeforModelRed1D})
 

@@ -304,7 +304,7 @@ function update2dstrn!(self::MatDeforElastIso,  stress::FFltVec, output::FFltVec
     # thstrain[4] =The through the thickness thermal strain
     sz = dot(self.D[3, 1:2], strain[1:2]-thstrain[1:2])-self.D[3,3]*thstrain[4];
     (length(output) >= 4) || (output = zeros(4)) # make sure we can store it
-    copy!(output[1:3], stress); output[4] = sz
+    copy!(output, stress); output[4] = sz
   elseif quantity == :pressure || quantity == :Pressure
     (length(output) >= 1) || (output = zeros(1)) # make sure we can store it
     output[1] = -sum(stress[[1,2,4]])/3.

@@ -320,7 +320,7 @@ function inspectintegpoints(self::FEMMDeforLinear,
   qpstrain = zeros(FFlt, nstsstn(self.mr), 1); # total strain -- buffer
   qpthstrain = zeros(FFlt, nthstn(self.mr)); # thermal strain -- buffer
   qpstress = zeros(FFlt, nstsstn(self.mr)); # stress -- buffer
-  qpstress1 = zeros(FFlt, nstsstn(self.mr)); # stress -- buffer
+  out1 = zeros(FFlt, nstsstn(self.mr)); # stress -- buffer
   out =  zeros(FFlt, nstsstn(self.mr));# output -- buffer
   # Loop over  all the elements and all the quadrature points within them
   for ilist = 1:length(felist) # Loop over elements
@@ -346,11 +346,9 @@ function inspectintegpoints(self::FEMMDeforLinear,
       out = self.material.update!(self.material, qpstress, out,
         vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
       if (quantity == :Cauchy)   # Transform stress tensor,  if that is "out"
-        # To global coord sys
-        rotstressvec(self.mr, qpstress1, qpstress, geod.mcsys.csmat')
-        # To output coord sys
-        rotstressvec(self.mr, qpstress, qpstress1, outputcsys.csmat)
-        copy!(out, qpstress)
+        (length(out1) >= length(out)) || (out1 = zeros(length(out))) 
+        rotstressvec(self.mr, out1, out, geod.mcsys.csmat')# To global coord sys
+        rotstressvec(self.mr, out, out1, outputcsys.csmat)# To output coord sys
       end
       # Call the inspector
       idat = inspector(idat, i, conn, x, out, loc);
