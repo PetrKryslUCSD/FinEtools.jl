@@ -246,3 +246,5 @@ end
 -- Should algorithms print out anything (for instance warnings)?
 
 -- Use static arrays (stack-allocated) in the material update methods.
+
+-- rotatestiffness!   Should probably be redesigned for efficiency
