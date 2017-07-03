@@ -543,6 +543,7 @@ modeldata= the dictionary on input is augmented with
 - "neigvs" = Number of computed eigenvectors
 - "W" = Computed eigenvectors, neigvs columns
 - "omega" =  Computed angular frequencies, array of length neigvs
+- "raw_eigenvalues" = Raw computed eigenvalues 
 """
 function modal(modeldata::FDataDict)
 
@@ -659,15 +660,12 @@ function modal(modeldata::FDataDict)
   d,v,nev,nconv = eigs(K+omega_shift*M, M; nev=neigvs, which=:SM)
   d = d - omega_shift;
 
+  modeldata["raw_eigenvalues"] = d;
   #    Subtract the mass-shifting Angular frequency
   if any(imag(d) .!= 0.0)
-    warn("Some complex angular frequencies detected");
-    warn(" $(d)");
     d=real(d);
   end
   if any(real(d) .< 0.0)
-    warn("Some negative angular frequencies detected");
-    warn(" $(d)");
     d = abs.(d);
   end
   #    Sort  the angular frequencies by magnitude.  Make sure all
