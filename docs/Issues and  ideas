@@ -249,9 +249,12 @@ end
 
 -- rotatestiffness!   Should probably be redesigned for efficiency
 
--- Atom ppackages
-julia-client
+-- Atom packages
+Julia-cclient
 language-Julia
-minimap
-simple-drag-drop-text
+Minimap
 auto-indent
+
+-- Pkg.clone("https://github.com/JuliaDiffEq/DiffEqTutorials.jl")
+using IJulia
+notebook(dir=Pkg.dir("DiffEqTutorials"))
