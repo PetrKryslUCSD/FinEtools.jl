@@ -40,7 +40,7 @@ tolerance = 0.00001*t
 
 # Generate mesh
 n = 4
-na = n # number of elements lengthwise
+na = 8*n # number of elements lengthwise
 nb = n # number of elements through the wwith
 nt = n # number of elements through the thickness
 xs = collect(linspace(0.0, a, na+1))
@@ -72,7 +72,7 @@ end
 gr = GaussRule(3, 2)
 
 region = FDataDict("femm"=>FEMMDeforLinear(MR,
-    FEMMBase(fes, gr, CSys(updatecs!)), material))
+    GeoD(fes, gr, CSys(3, 3, updatecs!)), material))
 
 lx0 = selectnode(fens, box=[0.0 0.0 -Inf Inf -Inf Inf], inflate=tolerance)
 
@@ -85,7 +85,7 @@ function getshr!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::F
 end
 
 Trac = FDataDict("traction_vector"=>getshr!,
-    "femm"=>FEMMBase(subset(bfes, sshearl), GaussRule(2, 3)))
+    "femm"=>FEMMBase(GeoD(subset(bfes, sshearl), GaussRule(2, 3))))
 
 modeldata = FDataDict("fens"=>fens,
  "regions"=>[region],
@@ -108,10 +108,15 @@ println("Solution: $(  time()-t0 )")
 #     scalars = [("Layer", fes.label)], vectors = [("displacement", u.values)])
 # @async run(`"paraview.exe" $File`)
 
-modeldata["postprocessing"] = FDataDict("file"=>"fiber_reinf_cant_iso",
-  "outputcsys"=>CSys(updatecs!), "quantity"=>:Cauchy, "component"=>5)
-# modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
+modeldata["postprocessing"] = FDataDict("file"=>"fiber_reinf_cant_yn_strong",
+  "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy, "component"=>5)
+modeldata = AlgoDeforLinearModule.exportstress(modeldata)
+File = modeldata["postprocessing"]["exported_files"][1]
+@async run(`"paraview.exe" $File`)
+
+# modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
+# File = modeldata["postprocessing"]["exported_files"][1]
+# @async run(`"paraview.exe" $File`)
 
 println("Done: $(  time()-t0 )")
 true
