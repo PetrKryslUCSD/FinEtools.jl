@@ -60,5 +60,8 @@ println("displacement =$(theutip[2]) as compared to converged $convutip")
 modeldata["postprocessing"] = FDataDict("file"=>"cookstress",
    "quantity"=>:Cauchy, "component"=>:xy)
 modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-
+File = modeldata["postprocessing"]["exported_files"][1]
+@async run(`"paraview.exe" $File`)
+fld = modeldata["postprocessing"]["exported_fields"][1]
+println("$(minimum(fld.values)) $(maximum(fld.values))")
 true

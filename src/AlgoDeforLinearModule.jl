@@ -254,6 +254,7 @@ mandatory, the  region dictionary  contains values for keys:
 Output: modeldata updated with
 - modeldata["postprocessing"]["exported_files"] = array of  names of exported
   files
+- modeldata["postprocessing"]["exported_fields"] = array of exported fields
 """
 function exportdeformation(modeldata::FDataDict)
   modeldata_recognized_keys = ["fens", "regions", "geom", "u", "postprocessing"]
@@ -277,6 +278,7 @@ function exportdeformation(modeldata::FDataDict)
 
   # Export one file for each region
   modeldata["postprocessing"]["exported_files"] = Array{String, 1}()
+  modeldata["postprocessing"]["exported_fields"] = Array{Field, 1}()
   regions = get(()->error("Must get region!"), modeldata, "regions")
   for i = 1:length(regions)
     region = regions[i]
@@ -289,6 +291,7 @@ function exportdeformation(modeldata::FDataDict)
       vtkexportmesh(rfile, fens, femm.geod.fes; vectors=[("u", u.values)])
     end
     push!(modeldata["postprocessing"]["exported_files"], rfile)
+    push!(modeldata["postprocessing"]["exported_fields"], u)
   end
 
   return modeldata
@@ -320,6 +323,7 @@ mandatory, the  region dictionary  contains values for keys:
 Output: modeldata updated with
 - modeldata["postprocessing"]["exported_files"] = array of  names of exported
   files
+- modeldata["postprocessing"]["exported_fields"] = array of exported fields
 """
 function exportstress(modeldata::FDataDict)
   modeldata_recognized_keys = ["fens", "regions", "geom", "u",
@@ -356,6 +360,7 @@ function exportstress(modeldata::FDataDict)
 
   # Export a file for each region
   modeldata["postprocessing"]["exported_files"] = Array{String, 1}()
+  modeldata["postprocessing"]["exported_fields"] = Array{Field, 1}()
   regions = get(()->error("Must get region!"), modeldata, "regions")
   for i = 1:length(regions)
     region = regions[i]
@@ -389,6 +394,7 @@ function exportstress(modeldata::FDataDict)
         vectors=[("u", u.values)])
     end
     push!(modeldata["postprocessing"]["exported_files"], rfile)
+    push!(modeldata["postprocessing"]["exported_fields"], fld)
   end
 
   return modeldata
@@ -421,6 +427,7 @@ mandatory, the  region dictionary  contains values for keys:
 Output: modeldata updated with
 - modeldata["postprocessing"]["exported_files"] = array of  names of exported
   files
+- modeldata["postprocessing"]["exported_fields"] = array of exported fields
 """
 function exportstresselementwise(modeldata::FDataDict)
   modeldata_recognized_keys = ["fens", "regions", "geom", "u",
@@ -457,6 +464,7 @@ function exportstresselementwise(modeldata::FDataDict)
 
   # Export a file for each region
   modeldata["postprocessing"]["exported_files"] = Array{String, 1}()
+  modeldata["postprocessing"]["exported_fields"] = Array{Field, 1}()
   regions = get(()->error("Must get region!"), modeldata, "regions")
   for i = 1:length(regions)
     region = regions[i]
@@ -490,6 +498,7 @@ function exportstresselementwise(modeldata::FDataDict)
         vectors=[("u", u.values)])
     end
     push!(modeldata["postprocessing"]["exported_files"], rfile)
+    push!(modeldata["postprocessing"]["exported_fields"], u)
   end
 
   return modeldata
@@ -708,6 +717,7 @@ mandatory, the  region dictionary  contains values for keys:
 Output: modeldata updated with
 - modeldata["postprocessing"]["exported_files"] = array of  names of exported
   files
+- modeldata["postprocessing"]["exported_fields"] = array of exported fields
 """
 function exportmode(modeldata::FDataDict)
   modeldata_recognized_keys = ["fens", "regions", "geom", "u",
