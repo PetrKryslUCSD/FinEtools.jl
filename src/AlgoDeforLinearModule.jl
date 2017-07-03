@@ -157,7 +157,7 @@ function linearstatics(modeldata::FDataDict)
       dcheck!(tractionbc, traction_bcs_recognized_keys)
       traction_vector = tractionbc["traction_vector"];
       if (typeof(traction_vector) <: Function)
-        fi = ForceIntensity(FFlt, ndofn(geom), traction_vector);
+        fi = ForceIntensity(FFlt, ndofs(geom), traction_vector);
       else
         fi = ForceIntensity(traction_vector);
       end
@@ -543,7 +543,7 @@ modeldata= the dictionary on input is augmented with
 - "neigvs" = Number of computed eigenvectors
 - "W" = Computed eigenvectors, neigvs columns
 - "omega" =  Computed angular frequencies, array of length neigvs
-- "raw_eigenvalues" = Raw computed eigenvalues 
+- "raw_eigenvalues" = Raw computed eigenvalues
 """
 function modal(modeldata::FDataDict)
 
