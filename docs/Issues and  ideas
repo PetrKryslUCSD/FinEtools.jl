@@ -248,3 +248,10 @@ end
 -- Use static arrays (stack-allocated) in the material update methods.
 
 -- rotatestiffness!   Should probably be redesigned for efficiency
+
+-- Atom ppackages
+julia-client
+language-Julia
+minimap
+simple-drag-drop-text
+auto-indent
