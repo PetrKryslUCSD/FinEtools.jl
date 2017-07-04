@@ -826,7 +826,7 @@ function test()
     Error = Error+abs.(Temp.values[k,1]-tempf(reshape(fens.xyz[k,:], (1,3))))
   end
   # println("Error =$Error")
-@test abs(Error[1]-2.12164e-10)/2.12164e-10 < 1.0e-3
+@test abs(Error[1]) < 1.0e-3
 end
 end
 using mmmPoissonmmmt4mmmm
@@ -909,7 +909,7 @@ function test()
     Error = Error+abs.(Temp.values[k,1]-tempf(reshape(fens.xyz[k,:], (1,3))))
   end
   # println("Error =$Error")
-@test abs(Error[1]-4.67651e-7)/4.67651e-7 < 1.0e-3
+@test abs(Error[1]) < 1.0e-3
 end
 end
 using mmmPoissonmmmt10mm
@@ -992,7 +992,7 @@ function test()
     Error = Error+abs.(Temp.values[k,1]-tempf(reshape(fens.xyz[k,:], (1,3))))
   end
   # println("Error =$Error")
-@test abs(Error[1]-2.60503e-12)/2.60503e-12 < 1.0e-3
+@test abs(Error[1]) < 1.0e-3
 end
 end
 using mmmPoissonmmh8mm
