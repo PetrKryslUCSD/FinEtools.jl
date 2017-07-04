@@ -14,6 +14,7 @@ Since  this package is not registered, please use cloning:
 ```julia
 Pkg.clone("https://github.com/PetrKryslUCSD/FinEtools.jl")
 ```
+Only version 0.6 and the nightly builds of Julia  are supported.
 
 ## Testing
 
@@ -21,4 +22,5 @@ Pkg.test("FinEtools")
 
 ## Usage
 
-The package comes with examples  of its use.
+The package comes with examples  of its use. Tutorials in notebook form
+are available and more will  be added in the near future.
