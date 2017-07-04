@@ -7,6 +7,9 @@ Simply supported on all four edges.  Uniform transverse  loading.
 The modeled part is one quarter of the full plate here.
 """)
 
+# This is a test recommended by the National Agency for Finite Element Methods
+# and Standards (U.K.): Test R0031/3 from NAFEMS publication R0031, “Composites
+# Benchmarks,” February 1995.
 t0 = time()
 # Skin (face) material parameters
 E1s = 1.0e7*phun("psi")
@@ -57,15 +60,15 @@ gr = GaussRule(3, 3)
 
 rl1 = selectelem(fens, fes, label=1)
 skinbot = FDataDict("femm"=>FEMMDeforLinear(MR,
-    FEMMBase(subset(fes, rl1), gr), skinmaterial))
+    GeoD(subset(fes, rl1), gr), skinmaterial))
 
 rl3 = selectelem(fens, fes, label=3)
 skintop = FDataDict("femm"=>FEMMDeforLinear(MR,
-    FEMMBase(subset(fes, rl3), gr), skinmaterial))
+    GeoD(subset(fes, rl3), gr), skinmaterial))
 
 rl2 = selectelem(fens, fes, label=2)
 core = FDataDict("femm"=>FEMMDeforLinear(MR,
-    FEMMBase(subset(fes, rl2), gr), corematerial))
+    GeoD(subset(fes, rl2), gr), corematerial))
 
 lx0 = selectnode(fens, box=[0.0 0.0 -Inf Inf -Inf Inf], inflate=tolerance)
 lxL2 = selectnode(fens, box=[L/2 L/2 -Inf Inf -Inf Inf], inflate=tolerance)
@@ -80,7 +83,7 @@ eyL2 = FDataDict( "displacement"=>  0.0, "component"=> 2, "node_list"=>lyL2 )
 bfes = meshboundary(fes)
 ttopl = selectelem(fens, bfes; facing=true, direction = [0.0 0.0 1.0])
 Trac = FDataDict("traction_vector"=>[0.0; 0.0; -tmag],
-    "femm"=>FEMMBase(subset(bfes, ttopl), GaussRule(2, 3)))
+    "femm"=>FEMMBase(GeoD(subset(bfes, ttopl), GaussRule(2, 3))))
 
 modeldata = FDataDict("fens"=>fens,
  "regions"=>[skinbot, core, skintop], "essential_bcs"=>[ex0, exL2, ey0, eyL2],
@@ -92,7 +95,7 @@ u = modeldata["u"]
 geom = modeldata["geom"]
 lcenter = selectnode(fens, box=[L/2 L/2  L/2 L/2 -Inf Inf], inflate=tolerance)
 cdis = mean(u.values[lcenter, 3])/phun("in")
-println("Center node displacements $(cdis) [in]")
+println("Center node displacements $(cdis) [in]; NAFEMS-R0031-3 lists –0.123	[in]")
 println("")
 
 File =  "NAFEMS-R0031-3-plate.vtk"
