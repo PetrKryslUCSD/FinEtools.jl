@@ -258,3 +258,4 @@ auto-indent
 -- Pkg.clone("https://github.com/JuliaDiffEq/DiffEqTutorials.jl")
 using IJulia
 notebook(dir=Pkg.dir("DiffEqTutorials"))
+using IJulia; notebook(detached=true)
