@@ -259,3 +259,6 @@ auto-indent
 using IJulia
 notebook(dir=Pkg.dir("DiffEqTutorials"))
 using IJulia; notebook(detached=true)
+
+
+-- atom --clear-window-state
