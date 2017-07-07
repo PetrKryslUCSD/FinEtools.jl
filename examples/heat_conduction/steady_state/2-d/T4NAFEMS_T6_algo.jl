@@ -1,5 +1,5 @@
 using FinEtools
-
+using FinEtools.AlgoBaseModule
 ## Two-dimensional heat transfer with convection: convergence study
 #
 
@@ -47,7 +47,7 @@ tolerance  = Width/1000;
 m = MatHeatDiff(kappa)
 
 modeldata = nothing
-resultsTempA = FFlt[]
+resultsTempA = FFlt[]; params = FFlt[];
 for nref = 1:5
   t0 = time()
 
@@ -79,12 +79,12 @@ for nref = 1:5
   # accurate.
   l2 = selectelem(fens, bfes; box=[Width Width  0.0 Height], inflate =tolerance)
   l3 = selectelem(fens, bfes; box=[0.0 Width Height Height], inflate =tolerance)
-  cfemm = FEMMHeatDiffSurf(FEMMBase(subset(bfes,vcat(l2,l3)),
+  cfemm = FEMMHeatDiffSurf(GeoD(subset(bfes,vcat(l2,l3)),
              GaussRule(1, 3), Thickness), h)
   convection1 = FDataDict("femm"=>cfemm, "ambient_temperature"=>0.);
 
   # The interior
-  femm = FEMMHeatDiff(FEMMBase(fes, TriRule(3), Thickness), m)
+  femm = FEMMHeatDiff(GeoD(fes, TriRule(3), Thickness), m)
   region1 = FDataDict("femm"=>femm)
 
   # Make the model data
@@ -107,12 +107,15 @@ for nref = 1:5
   # Collect the temperature  at the point A  [coordinates
   # (Width,HeightA)].
   push!(resultsTempA, Temp.values[l4][1]);
+    push!(params, 1.0/nref);
 
 end
 
 ##
 # These are the computed results for the temperature at point A:
 println("$( resultsTempA  )")
+
+solnestim, beta, c, residual = FinEtools.AlgoBaseModule.richextrapol(resultsTempA, params)
 
 # Postprocessing
 geom = modeldata["geom"]
