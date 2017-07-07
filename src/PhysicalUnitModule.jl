@@ -244,6 +244,7 @@ function physunitdict(;system_of_units = :SI, base_time_units = :SEC)
     # electricity
     uA  =  uCOUL/uSEC; d["A"] = uA;
     uV  =  uJ/uCOUL; d["V"] = uV;
+    uOHM  =  uA/uV; d["OHM"] = uOHM;
 
     # frequency
     uHZ  =  1.0/uSEC; d["HZ"] = uHZ;
