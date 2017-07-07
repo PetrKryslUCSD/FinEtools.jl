@@ -1,5 +1,6 @@
 using FinEtools
-using FinEtools.AlgoBaseModule
+using FinEtools.AlgoBaseModule.richextrapol
+
 ## Two-dimensional heat transfer with convection: convergence study
 #
 
@@ -107,7 +108,7 @@ for nref = 1:5
   # Collect the temperature  at the point A  [coordinates
   # (Width,HeightA)].
   push!(resultsTempA, Temp.values[l4][1]);
-    push!(params, 1.0/nref);
+    push!(params, 1.0/2^nref);
 
 end
 
@@ -116,15 +117,17 @@ end
 println("$( resultsTempA  )")
 
 solnestim, beta, c, residual = FinEtools.AlgoBaseModule.richextrapol(resultsTempA, params)
+println("Solution estimate = $(solnestim)")
+println("Convergence rate estimate  = $(beta )")
 
 # Postprocessing
 geom = modeldata["geom"]
 Temp = modeldata["temp"]
 regions = modeldata["regions"]
-vtkexportmesh("T4NAFEMS--T6.vtk", regions[1]["femm"].femmbase.fes.conn,
+vtkexportmesh("T4NAFEMS--T6.vtk", regions[1]["femm"].geod.fes.conn,
           [geom.values Temp.values/100], FinEtools.MeshExportModule.T6;
           scalars=[("Temperature", Temp.values)])
-vtkexportmesh("T4NAFEMS--T6--base.vtk", regions[1]["femm"].femmbase.fes.conn,
+vtkexportmesh("T4NAFEMS--T6--base.vtk", regions[1]["femm"].geod.fes.conn,
           [geom.values 0.0*Temp.values/100], FinEtools.MeshExportModule.T6)
 
 # ##
