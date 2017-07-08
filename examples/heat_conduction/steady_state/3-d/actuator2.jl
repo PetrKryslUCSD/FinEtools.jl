@@ -99,6 +99,7 @@ y_i = geom.values[nList, 2]
 T_i = Temp.values[nList, 1]
 ix = sortperm(y_i)
 plot(y_i[ix], T_i[ix], color=:red, label= "hot leg")
+println("maximum(T_i) = $(maximum(T_i))")
 
 nList = selectnode(fens, box=[x3,x3,y0,y3,z2,z2], inflate=t/1000)
 y_o = geom.values[nList, 2]
