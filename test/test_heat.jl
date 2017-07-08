@@ -1040,31 +1040,31 @@ function test()
 
   fens,fes =  H8hexahedron([x1 y0 z0; x2 y1 z1],m2,n1,p1);
   fens1,fes1  =  H8hexahedron([x1 y1 z0;x2 y2 z1],m2,n2,p1);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x0 y1 z0;x1 y2 z1],m1,n2,p1);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x0 y1 z1;x1 y2 z2], m1,n2,p2);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x0 y1 z2;x1 y2 z3],m1,n2,p3);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x0 y2 z2;x1 y3 z3],m1,n3,p3);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x0 y3 z2;x1 y4 z3], m1,n4,p3);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x1 y3 z2;x3 y4 z3],m4,n4,p3);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x3 y3 z2;x4 y4 z3],m3,n4,p3);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x3 y0 z2;x4 y3 z3], m3,n5,p3);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
 
   hotmater = MatHeatDiff(kappa)
@@ -1088,17 +1088,17 @@ function test()
   F = distribloads(hotfemm, geom, Temp, fi, 3) +
   nzebcloadsconductivity(hotfemm, geom, Temp) +
   nzebcloadsconductivity(coldfemm, geom, Temp)
-
 show(size(F))
-# show(norm(F-Ft))
-  println("=========================================================================")
-println("Ft = [")
-for j = 1:length(F)
-  println("$(F[j])")
-end
-println("]")
-show(size(Ft))
-println("=========================================================================")
+#
+# # show(norm(F-Ft))
+#   println("=========================================================================")
+# println("Ft = [")
+# for j = 1:length(F)
+#   println("$(F[j])")
+# end
+# println("]")
+# show(size(Ft))
+# println("=========================================================================")
 println("maximum(K[:]) = $(maximum(K[:]))")
 println("minimum(K[:]) = $(minimum(K[:]))")
 println("mean(K[:]) = $(mean(K[:]))")
@@ -1173,31 +1173,31 @@ function test()
 
   fens,fes =  H8hexahedron([x1 y0 z0; x2 y1 z1],m2,n1,p1);
   fens1,fes1  =  H8hexahedron([x1 y1 z0;x2 y2 z1],m2,n2,p1);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x0 y1 z0;x1 y2 z1],m1,n2,p1);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x0 y1 z1;x1 y2 z2], m1,n2,p2);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x0 y1 z2;x1 y2 z3],m1,n2,p3);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x0 y2 z2;x1 y3 z3],m1,n3,p3);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x0 y3 z2;x1 y4 z3], m1,n4,p3);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x1 y3 z2;x3 y4 z3],m4,n4,p3);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x3 y3 z2;x4 y4 z3],m3,n4,p3);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
   fens1,fes1  =  H8hexahedron([x3 y0 z2;x4 y3 z3], m3,n5,p3);
-  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+  fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
   fes =  cat(fes1,fes2);
 
   fens,fes  =  H8toH20(fens,fes);
