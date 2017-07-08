@@ -1088,7 +1088,10 @@ function test()
   F = distribloads(hotfemm, geom, Temp, fi, 3) +
   nzebcloadsconductivity(hotfemm, geom, Temp) +
   nzebcloadsconductivity(coldfemm, geom, Temp)
-show(F)
+  println("=========================================================================")
+for j = 1:length(F)
+  println("$(F[j])")
+end
 
 println("=========================================================================")
 println("maximum(K[:]) = $(maximum(K[:]))")
