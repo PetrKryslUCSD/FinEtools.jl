@@ -1093,26 +1093,29 @@ function test()
 
 println("maximum(K[:]) = $(maximum(K[:]))")
 println("minimum(K[:]) = $(minimum(K[:]))")
+println("mean(K[:]) = $(mean(K[:]))")
 println("maximum(F[:]) = $(maximum(F[:]))")
 println("minimum(F[:]) = $(minimum(F[:]))")
+println("mean(F[:]) = $(mean(F[:]))")
   U = K\F
   scattersysvec!(Temp,U[:])
-
+  println("maximum(U[:]) = $(maximum(U[:]))")
+  println("minimum(U[:]) = $(minimum(U[:]))")
   # using Plots
   # plotly()
-  nList = selectnode(fens, box=[x1,x1,y0,y1,z1,z1], inflate=t/1000)
+  nList = selectnode(fens, box=[x1,x1,y0,y1,z1,z1], inflate=t/100)
   y_i = geom.values[nList, 2]
   T_i = Temp.values[nList, 1]
   ix = sortperm(y_i)
   # plot(y_i[ix], T_i[ix], color=:red, label= "hot leg")
 
-  nList = selectnode(fens, box=[x3,x3,y0,y3,z2,z2], inflate=t/1000)
+  nList = selectnode(fens, box=[x3,x3,y0,y3,z2,z2], inflate=t/100)
   y_o = geom.values[nList, 2]
   T_o = Temp.values[nList, 1]
   ix = sortperm(y_o)
   # plot!(y_o[ix], T_o[ix], color=:blue, label= "cold leg")
 
-show(T_i)
+# show(T_i)
 println("maximum(T_i) = $(maximum(T_i))")
 @test abs(maximum(T_i)-1382.089817533287) < 1.0e-3
 end
