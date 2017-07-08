@@ -1090,7 +1090,7 @@ function test()
   F = distribloads(hotfemm, geom, Temp, fi, 3) +
   nzebcloadsconductivity(hotfemm, geom, Temp) +
   nzebcloadsconductivity(coldfemm, geom, Temp)
-
+show(F)
 println("maximum(K[:]) = $(maximum(K[:]))")
 println("minimum(K[:]) = $(minimum(K[:]))")
 println("mean(K[:]) = $(mean(K[:]))")
