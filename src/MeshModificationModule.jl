@@ -126,7 +126,7 @@ function  myunique1(A::FIntMat)
     rix=sA[:,end]; rix=rix[:]-maxA;
     sA=sA[:,1:end-1];
     d=(sA[1:end-1,:].!=sA[2:end,:]); # element-wise comparison!
-    ad=map((x) -> (x? 1: 0),[true; any(d,2)]);
+    ad=map((x) -> (x ? 1 : 0),[true; any(d,2)]);
     iu =map((x) -> (x>1 ? true: false),(ad + [ad[2:end];1]));
     Out =A[rix[iu[:]],:];
     return Out
