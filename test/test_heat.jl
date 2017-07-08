@@ -1091,6 +1091,10 @@ function test()
   nzebcloadsconductivity(hotfemm, geom, Temp) +
   nzebcloadsconductivity(coldfemm, geom, Temp)
 
+println("maximum(K[:]) = $(maximum(K[:]))")
+println("minimum(K[:]) = $(minimum(K[:]))")
+println("maximum(F[:]) = $(maximum(F[:]))")
+println("minimum(F[:]) = $(minimum(F[:]))")
   U = K\F
   scattersysvec!(Temp,U[:])
 
