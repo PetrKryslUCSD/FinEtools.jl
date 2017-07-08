@@ -1961,7 +1961,7 @@ function test()
 
   Tipl = selectnode(fens, box=[a a b b 0. 0.], inflate=tolerance)
   utip = mean(u.values[Tipl, 3])
-  println("Deflection $utip, normalized: $(utip/uz_ref)")
+  # println("Deflection $utip, normalized: $(utip/uz_ref)")
   @test abs(abs(utip/uz_ref) - 0.8140937283389692) < 1.0e-5
   # println("Solution: $(  time()-t0 )")
 
