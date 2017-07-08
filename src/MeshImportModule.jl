@@ -1,3 +1,8 @@
+"""
+    MeshImportModule
+
+Module for mesh import  functions.  
+"""
 module MeshImportModule
 
 using FinEtools.FTypesModule

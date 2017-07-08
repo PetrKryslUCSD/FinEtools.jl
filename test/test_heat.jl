@@ -1107,7 +1107,7 @@ function test()
   # plot!(y_o[ix], T_o[ix], color=:blue, label= "cold leg")
 
 # show(T_i)
-println("maximum(T_i) = $(maximum(T_i))")
+# println("maximum(T_i) = $(maximum(T_i))")
 @test abs(maximum(T_i)-1380.5883006341187) < 1.0e-3
 end
 end
@@ -1209,7 +1209,7 @@ function test()
 
   U = K\F
   scattersysvec!(Temp,U[:])
- 
+
   # using Plots
   # plotly()
   nList = selectnode(fens, box=[x1,x1,y0,y1,z1,z1], inflate=t/100)
@@ -1225,7 +1225,7 @@ function test()
   # plot!(y_o[ix], T_o[ix], color=:blue, label= "cold leg")
 
 # show(T_i)
-println("maximum(T_i) = $(maximum(T_i))")
+# println("maximum(T_i) = $(maximum(T_i))")
 @test abs(maximum(T_i)-1382.089817533287) < 1.0e-3
 end
 end

@@ -1,3 +1,8 @@
+"""
+    AlgoDeforLinearModule
+
+Module for algorithms used in linear deformation models.  
+"""
 module AlgoDeforLinearModule
 
 using FinEtools

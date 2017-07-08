@@ -1,5 +1,7 @@
 module MatDeforElastIsoModule
 
+export MatDeforElastIso
+
 using FinEtools.FTypesModule
 using FinEtools.DeforModelRedModule
 using FinEtools.MatDeforModule
@@ -30,7 +32,6 @@ struct  MatDeforElastIso{MR<:DeforModelRed,
   update!::MUPD
   thermalstrain!::MTHS
 end
-export MatDeforElastIso
 
 function threedD(E::FFlt, nu::FFlt)
     lambda = E * nu / (1 + nu) / (1 - 2*(nu));
@@ -459,4 +460,3 @@ end
 #     D[1,1] = D3d[1, 1]- D3d[1,2:3]*D3d[2:3,2:3]\D3d[2:3,1];
 #     return D
 # end
-# export tangentmoduli!

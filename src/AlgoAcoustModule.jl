@@ -1,3 +1,8 @@
+"""
+    AlgoAcoustModule
+
+Module for linear acoustics algorithms.  
+"""
 module AlgoAcoustModule
 
 using FinEtools

@@ -1,5 +1,11 @@
+"""
+    MatHeatDiffModule
+
+Module for linear heat diffusion material models.
+"""
 module MatHeatDiffModule
 
+export MatHeatDiff
 
 using FinEtools.FTypesModule
 
@@ -8,7 +14,7 @@ struct MatHeatDiff
   thermal_conductivity::FFltMat;# Thermal conductivity
   specific_heat::FFlt;# Specific heat per unit volume
 end
-export MatHeatDiff
+
 
 function MatHeatDiff(thermal_conductivity)
     return MatHeatDiff(thermal_conductivity, 0.0)

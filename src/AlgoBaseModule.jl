@@ -1,3 +1,8 @@
+"""
+    AlgoBaseModule
+
+Module for base  algorithms.
+"""
 module AlgoBaseModule
 
 using FinEtools.FTypesModule

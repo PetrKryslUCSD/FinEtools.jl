@@ -1,4 +1,11 @@
+"""
+    RotationUtilModule
+
+Module to handle two-dimensional and three-dimensional rotations.
+"""
 module RotationUtilModule
+
+export rotmat,  rotmat3!, skewmat!
 
 using FinEtools.FTypesModule
 
@@ -42,7 +49,7 @@ function rotmat(theta::FFltMat)
     end
     return R;
 end
-export rotmat
+
 
 """
     rotmat3!(Rmout::FFltMat, a::FFltVec)
@@ -65,7 +72,7 @@ function rotmat3!(Rmout::FFltMat, a::FFltVec)
         copy!(Rmout, ca * (eye(3,3)-aa) + sa/na*thetatilde + aa);
     end
 end
-export rotmat3!
+
 
 """
     skewmat!(S, theta)
@@ -84,7 +91,7 @@ function skewmat!(S, theta)
     end
     return S;
 end
-export skewmat!
+
 
 function cross(theta,v)
     if length(theta)== 3

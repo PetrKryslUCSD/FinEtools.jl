@@ -1,3 +1,8 @@
+"""
+    MatDeforModule
+
+Module to support general operations for deformation material models.
+"""
 module MatDeforModule
 
 export MatDefor

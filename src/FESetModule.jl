@@ -8,6 +8,13 @@ module FESetModule
 import Base.count
 import Base.cat
 
+export FESet,  FESet0Manifold,  FESet1Manifold,  FESet2Manifold,  FESet3Manifold
+export manifdim, nodesperelem, count, getconn!, setlabel!, subset, cat, updateconn!
+export FESetP1
+export FESetL2, FESetL3
+export FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6
+export FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
+
 using FinEtools.FTypesModule
 using FinEtools.RotationUtilModule
 
@@ -16,7 +23,6 @@ abstract type FESet0Manifold <: FESet end
 abstract type FESet1Manifold <: FESet end
 abstract type FESet2Manifold <: FESet end
 abstract type FESet3Manifold <: FESet end
-export FESet,  FESet0Manifold,  FESet1Manifold,  FESet2Manifold,  FESet3Manifold
 
 macro add_FESet_fields()
   return esc(:(
@@ -35,7 +41,6 @@ manifdim(me::FESet0Manifold)::FInt  =0
 manifdim(me::FESet1Manifold)::FInt  =1
 manifdim(me::FESet2Manifold)::FInt  =2
 manifdim(me::FESet3Manifold)::FInt  =3
-export manifdim
 
 """
     nodesperelem(self::T)::FInt where {T<:FESet}
@@ -43,7 +48,6 @@ export manifdim
 Get the number of nodes  connected  by  the finite element.
 """
 (nodesperelem(self::T)::FInt) where {T<:FESet} = self.nodesperelem::FInt
-export nodesperelem
 
 """
     count(self::T)::FInt where {T<:FESet}
@@ -51,7 +55,6 @@ export nodesperelem
 Get the number of individual connectivities in the FE set.
 """
 (count(self::T)::FInt) where {T<:FESet} = size(self.conn, 1)
-export count
 
 """
     getconn!(self::T, conn::CC, j::FInt) where {T<:FESet, CC}
@@ -67,7 +70,6 @@ function getconn!(self::T, conn::CC, j::FInt) where {T<:FESet, CC}
   end
   return self
 end
-export getconn!
 
 """
     boundaryconn(self::T) where {T<:FESet}
@@ -135,7 +137,6 @@ function setlabel!(self::T, val::FInt) where {T<:FESet}
   self.label = zeros(FInt, size(self.conn, 1));
   fill!(self.label, val)
 end
-export setlabel!
 
 """
     setlabel!(self::T, val::FIntVec) where {T<:FESet}
@@ -148,7 +149,6 @@ function setlabel!(self::T, val::FIntVec) where {T<:FESet}
   self.label=zeros(FInt, size(self.conn, 1));
   copy!(self.label, val);
 end
-export setlabel!
 
 """
     subset(self::T, L::FIntVec) where {T<:FESet}
@@ -161,7 +161,6 @@ function subset(self::T, L::FIntVec) where {T<:FESet}
   result.label = deepcopy(self.label[L])
   return  result
 end
-export subset
 
 """
     cat(self::T,  other::T) where {T<:FESet}
@@ -175,7 +174,6 @@ function cat(self::T,  other::T) where {T<:FESet}
   setlabel!(result, vcat(self.label, other.label))
   return result
 end
-export cat
 
 """
     updateconn!(self::T, NewIDs::FIntVec) where {T<:FESet}
@@ -194,7 +192,6 @@ function updateconn!(self::T, NewIDs::FIntVec) where {T<:FESet}
   end
   return self
 end
-export updateconn!
 
 """
     Jacobian(self::T, J::FFltMat)::FFlt where {T<:FESet1Manifold}
@@ -338,7 +335,6 @@ mutable struct FESetP1 <: FESet0Manifold
     return self
   end
 end
-export FESetP1
 
 privbfun(self::FESetP1,  param_coords::FFltVec) = reshape([1.0], 1, 1) # make sure this is a matrix
 privbfundpar(self::FESetP1,  param_coords::FFltVec) = reshape([0.0], 1, 1)
@@ -369,7 +365,6 @@ mutable struct FESetL2 <: FESet1Manifold
     return self
   end
 end
-export FESetL2
 
 privbfun(self::FESetL2,  param_coords::FFltVec) = reshape([(1. - param_coords[1]); (1. + param_coords[1])] / 2.0, 2, 1) # make sure this is a matrix
 privbfundpar(self::FESetL2,  param_coords::FFltVec) = reshape([-1.0; +1.0]/2.0, 2, 1)
@@ -400,7 +395,6 @@ mutable struct FESetL3 <: FESet1Manifold
     return self
   end
 end
-export FESetL3
 
 function privbfun(self::FESetL3,  param_coords::FFltVec)
     xi=param_coords[1];
@@ -439,7 +433,6 @@ mutable struct FESetT3 <: FESet2Manifold
     return self
   end
 end
-export FESetT3
 
 function privbfun(self::FESetT3,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 3-node triangle.
@@ -478,7 +471,6 @@ mutable struct FESetQ4 <: FESet2Manifold
     return self
   end
 end
-export FESetQ4
 
 function privbfun(self::FESetQ4,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 4-node quadrilateral.
@@ -524,7 +516,6 @@ mutable struct FESetQ9 <: FESet2Manifold
     return self
   end
 end
-export FESetQ9
 
 function privbfun(self::FESetQ9,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 4-node quadrilateral.
@@ -577,7 +568,6 @@ mutable struct FESetQ8 <: FESet2Manifold
     return self
   end
 end
-export FESetQ8
 
 function privbfun(self::FESetQ8,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 4-node quadrilateral.
@@ -646,7 +636,6 @@ mutable struct FESetT6 <: FESet2Manifold
     return self
   end
 end
-export FESetT6
 
 function privbfun(self::FESetT6,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 4-node quadrilateral.
@@ -703,7 +692,6 @@ mutable struct FESetH8 <: FESet3Manifold
     return self
   end
 end
-export FESetH8
 
 function privbfun(self::FESetH8,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 8-node hexahedron.
@@ -768,7 +756,6 @@ mutable struct FESetH20 <: FESet3Manifold
     return self
   end
 end
-export FESetH20
 
 function privbfun(self::FESetH20,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 20-node hexahedron.
@@ -911,7 +898,6 @@ mutable struct FESetH27 <: FESet3Manifold
     return self
   end
 end
-export FESetH27
 
 function privbfun(self::FESetH27,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 8-node hexahedron.
@@ -1032,7 +1018,6 @@ mutable struct FESetT4 <: FESet3Manifold
     return self
   end
 end
-export FESetT4
 
 function privbfun(self::FESetT4,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 3-node triangle.
@@ -1077,7 +1062,6 @@ mutable struct FESetT10 <: FESet3Manifold
     return self
   end
 end
-export FESetT10
 
 function privbfun(self::FESetT10,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 3-node triangle.

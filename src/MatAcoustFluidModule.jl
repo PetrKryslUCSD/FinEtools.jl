@@ -1,5 +1,11 @@
+"""
+    MatAcoustFluidModule
+
+Module for acoustic-fluid  material.
+"""
 module MatAcoustFluidModule
 
+export MatAcoustFluid
 
 using FinEtools.FTypesModule
 
@@ -8,7 +14,7 @@ struct MatAcoustFluid
   bulk_modulus::FFlt;# Bulk modulus
   mass_density::FFlt;# Mass density
 end
-export MatAcoustFluid
+
 
 # function update(self, ms, gradtheta, Rm; output = nothing, outputRm =nothing)
 #   # # _Update_ material state.

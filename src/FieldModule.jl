@@ -1,3 +1,8 @@
+"""
+    FieldModule
+
+Module for abstract fields.  
+"""
 module FieldModule
 
 using FinEtools.FTypesModule

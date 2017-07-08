@@ -1,4 +1,12 @@
+"""
+    NodalFieldModule
+
+Module for nodal fields.
+"""
 module NodalFieldModule
+
+export NodalField
+export nnodes
 
 using FinEtools
 using FinEtools.FTypesModule
@@ -13,7 +21,6 @@ Nodal field.
 mutable struct NodalField{T<:Number} <: Field
   @add_Field_fields()
 end
-export NodalField
 
 # Constructor of nodal field
 function NodalField{T<:Number}(data::FMat{T}=[])
@@ -32,6 +39,5 @@ end
 Provide the number of nodes  in the nodal field.
 """
 nnodes(self::NodalField)::FInt = nents(self)
-export nnodes
 
 end

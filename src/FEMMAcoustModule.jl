@@ -1,4 +1,14 @@
+"""
+    FEMMAcoustModule
+
+Module for operations on interiors of domains to construct system matrices and
+system vectors for linear acoustics.
+"""
 module FEMMAcoustModule
+
+export FEMMAcoust
+export acousticmass, nzebcloadsacousticmass
+export acousticstiffness, nzebcloadsacousticstiffness
 
 import Base.Complex
 
@@ -24,7 +34,6 @@ mutable struct FEMMAcoust{S<:FESet, F<:Function, M} <: FEMMAbstractBase
   geod::GeoD{S, F} # geometry data finite element modeling machine
   material::M # material object
 end
-export FEMMAcoust
 
 """
     acousticmass(self::FEMMAcoust,
@@ -84,7 +93,6 @@ function acousticmass(self::FEMMAcoust,
   end # Loop over elements
   return makematrix!(assembler);
 end
-export acousticmass
 
 function acousticmass(self::FEMMAcoust,
   geom::NodalFieldModule.NodalField,
@@ -148,14 +156,12 @@ function nzebcloadsacousticmass(self::FEMMAcoust, assembler::A,
   F =  makevector!(assembler);
   return F
 end
-export nzebcloadsacousticmass
 
 function nzebcloadsacousticmass(self::FEMMAcoust,
   geom::NodalField,  P::NodalField{T}) where {T<:Number}
     assembler  =  SysvecAssembler(P.values[1])
     return nzebcloadsacousticmass(self, assembler, geom, P);
 end
-export nzebcloadsacousticmass
 
 """
     acousticstiffness(self::FEMMAcoust, assembler::A,
@@ -209,7 +215,6 @@ function acousticstiffness(self::FEMMAcoust, assembler::A,
   end # Loop over elements
   return makematrix!(assembler);
 end
-export acousticstiffness
 
 function acousticstiffness(self::FEMMAcoust,
   geom::NodalFieldModule.NodalField,
@@ -218,7 +223,6 @@ function acousticstiffness(self::FEMMAcoust,
     assembler  =  SysmatAssemblerSparseSymm();
     return acousticstiffness(self, assembler, geom, Pddot);
 end
-export acousticstiffness
 
 """
     nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A,
@@ -277,7 +281,6 @@ function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A,
   F =  makevector!(assembler);
   return F
 end
-export nzebcloadsacousticstiffness
 
 function nzebcloadsacousticstiffness(self::FEMMAcoust,
   geom::NodalFieldModule.NodalField,
@@ -285,6 +288,5 @@ function nzebcloadsacousticstiffness(self::FEMMAcoust,
     assembler  =  SysvecAssembler(Pddot.values[1])#T(0.0)
     return nzebcloadsacousticstiffness(self, assembler, geom, Pddot)
 end
-export nzebcloadsacousticstiffness
 
 end

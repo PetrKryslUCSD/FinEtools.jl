@@ -1,3 +1,8 @@
+"""
+    MeshUtilModule
+
+Module for mesh utility functions used in other meshing modules.  
+"""
 module MeshUtilModule
 
 using FinEtools.FTypesModule

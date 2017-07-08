@@ -1,4 +1,11 @@
+"""
+    MeshExportModule
+
+Module for export of meshes and data defined on meshes.
+"""
 module MeshExportModule
+
+export vtkexportmesh
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -143,7 +150,7 @@ function vtkexportmesh(theFile::String, Connectivity, Points, Cell_type;
   end
 
   did_point_data = false
-  
+
   # First try to write point data
   if (scalars != nothing)
     did_point_data = false
@@ -235,7 +242,6 @@ function vtkexportmesh(theFile::String, Connectivity, Points, Cell_type;
   fid=close(fid);
   return true
 end
-export vtkexportmesh
 
 function finealemesh(fens,fes,meshmfile)
     fid=open(meshmfile * ".m","w");

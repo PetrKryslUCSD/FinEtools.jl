@@ -1,4 +1,11 @@
+"""
+    MatDeforElastOrthoModule
+
+Module for  orthotropic elastic material.
+"""
 module MatDeforElastOrthoModule
+
+export MatDeforElastOrtho
 
 using FinEtools.FTypesModule
 using FinEtools.DeforModelRedModule
@@ -38,7 +45,6 @@ struct  MatDeforElastOrtho{MR<:DeforModelRed,
   update!::MUPD
   thermalstrain!::MTHS
 end
-export MatDeforElastOrtho
 
 function threedD(E1::FFlt, E2::FFlt, E3::FFlt,
   nu12::FFlt, nu13::FFlt, nu23::FFlt,
@@ -502,4 +508,3 @@ end
 #     D[1,1] = D3d[1, 1]- D3d[1,2:3]*D3d[2:3,2:3]\D3d[2:3,1];
 #     return D
 # end
-# export tangentmoduli!

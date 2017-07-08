@@ -1,5 +1,7 @@
 """
-Define  basic types.
+    FTypesModule
+
+Module to define  basic types.
 """
 module FTypesModule
 

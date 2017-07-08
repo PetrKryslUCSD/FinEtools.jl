@@ -1,4 +1,13 @@
+"""
+    GeoDModule
+
+Module to manage geometry data.
+"""
 module GeoDModule
+
+export  GeoD
+export Jacobianpoint,  Jacobiancurve,  Jacobiansurface,  Jacobianvolume,
+ Jacobianmdim,  integrationdata
 
 using FinEtools
 using FinEtools.FTypesModule
@@ -26,7 +35,6 @@ mutable struct GeoD{S<:FESet, F<:Function}
     otherdimension::F
     axisymmetric::Bool
 end
-export GeoD
 
 """
     GeoD(fes::S, integration_rule::IntegRule) where {S<:FESet}
@@ -431,12 +439,6 @@ function Jacobianmdim(self::GeoD{T}, J::FFltMat,
   return Jacobianvolume(self, J, loc, conn, N)
 end
 
-export Jacobianpoint
-export Jacobiancurve
-export Jacobiansurface
-export Jacobianvolume
-export Jacobianmdim
-
 """
     integrationdata(self::GeoD)
 
@@ -462,7 +464,6 @@ function  integrationdata(self::GeoD)
     end
     return npts, Ns, gradNparams, w, pc
 end
-export integrationdata
 
 
 #  Associated geometry field. Default is there is none, so any

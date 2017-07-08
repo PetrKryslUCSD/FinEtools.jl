@@ -1,3 +1,8 @@
+"""
+    ForceIntensityModule
+
+Module  to manage  distributed force intensity.
+"""
 module ForceIntensityModule
 
 using FinEtools.FTypesModule

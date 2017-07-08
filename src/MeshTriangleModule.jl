@@ -1,9 +1,11 @@
 """
     MeshTriangleModule
 
-Module  for generation of mesh is composed of triangles.
+Module  for generation of meshes composed of triangles.
 """
 module MeshTriangleModule
+
+export  T3blockx, T3block,  T3toT6,  T6block,  Q4toT3,  T3refine
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -58,12 +60,10 @@ function T3blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol=:a)
   fes = FESetT3(conns);
   return fens,fes
 end
-export T3blockx
 
 function T3blockx(xs::FFltMat,ys::FFltMat,orientation::Symbol=:a)
     return T3blockx(vec(xs),vec(ys),orientation)
 end
-export T3blockx
 
 """
     T3block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, orientation::Symbol=:a)
@@ -76,7 +76,6 @@ function T3block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, orientation::Sym
                     FFltVec(linspace(0.0,Width,nW+1)),
                     orientation)
 end
-export T3block
 
 """
     T3toT6(fens::FENodeSetModule.FENodeSet, fes::FESetModule.FESetT3)
@@ -130,7 +129,6 @@ function T3toT6(fens::FENodeSetModule.FENodeSet, fes::FESetModule.FESetT3)
   fes = FESetModule.FESetT6(nconns) ;
   return fens,fes;
 end
-export T3toT6
 
 """
     T6block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, orientation::Symbol=:a)
@@ -141,7 +139,6 @@ function T6block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, orientation::Sym
     fens,fes = T3block(Length,Width,nL,nW,orientation);
     fens,fes = T3toT6(fens,fes);
 end
-export T6block
 
 """
     Q4toT3(fens::FENodeSet, fes::FESetQ4, orientation::Symbol=:default)
@@ -168,7 +165,6 @@ function Q4toT3(fens::FENodeSet, fes::FESetQ4, orientation::Symbol=:default)
   nfes = FESetModule.FESetT3(nconns);
   return fens,nfes            # I think I should not be overwriting the input!
 end
-export Q4toT3
 
 """
     T3refine(fens::FENodeSet,fes::FESetT3)
@@ -189,6 +185,5 @@ function T3refine(fens::FENodeSet,fes::FESetT3)
   nfes = FESetModule.FESetT3(nconn);
   return fens,nfes            # I think I should not be overwriting the input!
 end
-export T3refine
 
 end

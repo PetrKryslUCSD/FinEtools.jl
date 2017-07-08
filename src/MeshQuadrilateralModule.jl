@@ -1,4 +1,12 @@
+"""
+    MeshQuadrilateralModule
+
+Module  for generation of meshes composed of quadrilaterals.
+"""
 module MeshQuadrilateralModule
+
+export  Q4annulus,  Q4quadrilateral,  Q4elliphole,  Q4block,  Q4blockx,  Q4refine
+export Q8block,  Q4toQ8,  Q8annulus
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -28,7 +36,6 @@ function Q4annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
     fens.xyz=xy;
     return fens,fes
 end
-export Q4annulus
 
 """
     Q4quadrilateral(xyz::FFltMat, nL::FInt, nW::FInt)
@@ -66,7 +73,6 @@ function Q4quadrilateral(xyz::FFltMat, nL::FInt, nW::FInt)
   copy!(fens.xyz, xyz1);
   return fens,fes
 end
-export Q4quadrilateral
 
 """
     Q4elliphole(xradius::FFlt, yradius::FFlt, L::FFlt, H::FFlt,
@@ -111,7 +117,6 @@ function Q4elliphole(xradius::FFlt, yradius::FFlt, L::FFlt, H::FFlt,
   end
   return fens,fes
 end
-export Q4elliphole
 
 """
     Q4block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt)
@@ -124,7 +129,6 @@ function Q4block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt)
   return Q4blockx(collect(linspace(0.0,Length,nL+1)),
   collect(linspace(0.0,Width,nW+1)));
 end
-export Q4block
 
 """
     Q4blockx(xs::FFltVec, ys::FFltVec)
@@ -177,7 +181,6 @@ function Q4blockx(xs::FFltVec, ys::FFltVec)
 
   return fens,fes;
 end
-export Q4blockx
 
 function Q4blockx(xs::AbstractVector, ys::AbstractVector)
   return Q4blockx(FFltVec(xs), FFltVec(ys))
@@ -192,7 +195,6 @@ function Q8block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt)
     fens,fes  = Q4block(Length, Width, nL, nW);
     fens,fes = Q4toQ8(fens, fes);
 end
-export Q8block
 
 """
     Q4toQ8(fens::FENodeSet, fes::FESetQ4)
@@ -246,7 +248,6 @@ function Q4toQ8(fens::FENodeSet, fes::FESetQ4)
   fes = FESetQ8(nconns);
   return fens, fes
 end
-export Q4toQ8
 
 """
     Q4refine(fens::FENodeSet, fes::FESetQ4)
@@ -310,7 +311,6 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
   nfes = FESetModule.FESetQ4(nconn);
   return fens,nfes            # I think I should not be overwriting the input!
 end
-export Q4refine
 
 """
     Q8annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
@@ -334,6 +334,5 @@ function Q8annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
     fens.xyz=xy;
     return fens,fes
 end
-export Q8annulus
 
 end

@@ -1,9 +1,15 @@
+"""
+    FENodeToFEMapModule
+
+Module to construct a map from finite element nodes to the finite elements.  
+"""
 module FENodeToFEMapModule
 
+export FENodeToFEMap
 
 using FinEtools.FTypesModule
 
-  # Map from finite element nodes to the finite elements.
+  #
     #
     # Map from finite element nodes to the finite elements connecting them.
         # For each  node referenced in the connectivity of
@@ -27,7 +33,7 @@ using FinEtools.FTypesModule
 struct FENodeToFEMap
     map::Array{FIntVec,1}
 end
-export FENodeToFEMap
+
 
 
 function FENodeToFEMap(conns::FIntMat,nmax::FInt)

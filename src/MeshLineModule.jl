@@ -1,4 +1,11 @@
+"""
+    MeshLineModule
+
+Module  for generation of meshes composed of line (curve) elements.
+"""
 module MeshLineModule
+
+export L2block, L2blockx
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -13,7 +20,7 @@ Mesh of a 1-D block of L2 finite elements.
 function L2block(Length::FFlt, nL::FInt)
   fens,fes = L2blockx(collect(squeeze(linspace(0,Length,nL+1)',1)));
 end
-export L2block
+
 
 """
     L2blockx(xs::FFltVec)
@@ -31,6 +38,6 @@ function L2blockx(xs::FFltVec)
 
   return fens,fes;
 end
-export L2blockx
+
 
 end

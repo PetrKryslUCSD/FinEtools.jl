@@ -1,4 +1,13 @@
+"""
+    FEMMHeatDiffModule
+
+Module for operations on interiors of domains to construct system matrices and
+system vectors for linear heat conduction/diffusion.
+"""
 module FEMMHeatDiffModule
+
+export  FEMMHeatDiff
+export conductivity,  nzebcloadsconductivity
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -20,7 +29,6 @@ mutable struct FEMMHeatDiff{S<:FESet, F<:Function, M<:MatHeatDiff} <: FEMMAbstra
     geod::GeoD{S, F} # geometry data finite element modeling machine
     material::M # material object
 end
-export FEMMHeatDiff
 
 function  buffers(self::FEMMHeatDiff, geom::NodalField{FFlt},
   temp::NodalField{FFlt})
@@ -85,14 +93,12 @@ function conductivity(self::FEMMHeatDiff,
   end # Loop over elements
   return makematrix!(assembler);
 end
-export conductivity
 
 function conductivity(self::FEMMHeatDiff,
   geom::NodalField{FFlt},  temp::NodalField{FFlt})
     assembler = SysmatAssemblerSparseSymm();
     return conductivity(self, assembler, geom, temp);
 end
-export conductivity
 
 """
     nzebcloadsconductivity(self::FEMMHeatDiff,
@@ -138,14 +144,12 @@ function nzebcloadsconductivity(self::FEMMHeatDiff,
   end
   return makevector!(assembler);
 end
-export nzebcloadsconductivity
 
 function nzebcloadsconductivity(self::FEMMHeatDiff,
   geom::NodalField{FFlt},   temp::NodalField{FFlt})
     assembler = SysvecAssembler()
     return  nzebcloadsconductivity(self, assembler, geom, temp);
 end
-export nzebcloadsconductivity
 
 
 end

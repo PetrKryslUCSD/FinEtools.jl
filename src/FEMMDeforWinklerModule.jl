@@ -1,4 +1,14 @@
+"""
+    FEMMDeforWinklerModule
+
+Module for operations on boundaries of domains to construct system matrices and
+system vectors for linear deformation models with distributed-spring supports
+(Winkler foundation model).
+"""
 module FEMMDeforWinklerModule
+
+export FEMMDeforWinkler
+export surfacenormalspringstiffness
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -23,7 +33,6 @@ Type for normal spring support  (Winkler).
 mutable struct FEMMDeforWinkler{S<:FESet, F<:Function} <: FEMMAbstractBase
   geod::GeoD{S, F} # geometry data finite element modeling machine
 end
-export FEMMDeforWinkler
 
 """
     surfacenormalspringstiffness(self::FEMMDeforWinkler, assembler::A,
@@ -75,7 +84,6 @@ function surfacenormalspringstiffness(self::FEMMDeforWinkler, assembler::A,
   end # Loop over elements
   return makematrix!(assembler);
 end
-export surfacenormalspringstiffness
 
 function surfacenormalspringstiffness(self::FEMMDeforWinkler,
               geom::NodalField{FFlt}, u::NodalField{T},
@@ -83,7 +91,6 @@ function surfacenormalspringstiffness(self::FEMMDeforWinkler,
     assembler = SysmatAssemblerSparseSymm();
     return surfacenormalspringstiffness(self, assembler, geom, u, springconstant);
 end
-export surfacenormalspringstiffness
 
 """
     surfacenormal(loc::FFltMat,J::FFltMat)

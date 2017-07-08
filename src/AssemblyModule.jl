@@ -1,11 +1,21 @@
+"""
+    AssemblyModule
+
+Module for assemblers  of system matrices and vectors.  
+"""
 module AssemblyModule
+
+export SysmatAssemblerBase, SysmatAssemblerSparse, SysmatAssemblerSparseSymm
+export startassembly!, assemble!, makematrix!
+export SysvecAssemblerBase, SysvecAssembler
+export startassembly!, assemble!, makevector!
 
 using FinEtools.FTypesModule
 
 const  inv_dofnum=0;            # invalid degree of freedom number -- no equation
 
 abstract type SysmatAssemblerBase end;
-export SysmatAssemblerBase
+
 
 mutable struct SysmatAssemblerSparse{T<:Number} <: SysmatAssemblerBase
     # Type for assembling of a sparse global matrix from elementwise matrices.
@@ -16,7 +26,6 @@ mutable struct SysmatAssemblerSparse{T<:Number} <: SysmatAssemblerBase
     buffer_pointer::FInt;
     ndofs_row::FInt; ndofs_col::FInt;
 end
-export SysmatAssemblerSparse
 
 # AssemblyModule.SysmatAssemblerSparse()
 function SysmatAssemblerSparse{T<:Number}(zero::T=0.0)
@@ -50,7 +59,6 @@ function startassembly!(self::SysmatAssemblerSparse{T},
     self.ndofs_col =ndofs_col;
     return self
 end
-export startassembly!
 
 """
     assemble!(self::SysmatAssemblerSparse{T}, mat::FMat{T},
@@ -77,7 +85,6 @@ function assemble!(self::SysmatAssemblerSparse{T}, mat::FMat{T},
     self.buffer_pointer=p;
     return self
 end
-export assemble!
 
 """
     makematrix!(self::SysmatAssemblerSparse)
@@ -102,7 +109,6 @@ function makematrix!(self::SysmatAssemblerSparse)
     self=SysmatAssemblerSparse(0.0*self.matbuffer[1])# get rid of the buffers
     return S[1:end-1,1:end-1]
 end
-export makematrix!
 
 """
     SysmatAssemblerSparseSymm{T<:Number} <: SysmatAssemblerBase
@@ -119,7 +125,6 @@ mutable struct SysmatAssemblerSparseSymm{T<:Number} <: SysmatAssemblerBase
     buffer_pointer:: FInt;
     ndofs:: FInt;
 end
-export SysmatAssemblerSparseSymm
 
 # AssemblyModule.SysmatAssemblerSparse()
 function SysmatAssemblerSparseSymm{T<:Number}(zero::T=0.0)
@@ -152,7 +157,6 @@ function startassembly!(self::SysmatAssemblerSparseSymm{T},
     self.ndofs =ndofs;
     return self
 end
-export startassembly!
 
 """
     assemble!(self::SysmatAssemblerSparseSymm{T}, mat::FMat{T},
@@ -179,7 +183,6 @@ function assemble!(self::SysmatAssemblerSparseSymm{T}, mat::FMat{T},
     self.buffer_pointer=p;
     return self
 end
-export assemble!
 
 """
     makematrix!(self::SysmatAssemblerSparseSymm)
@@ -208,12 +211,10 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
     self=SysmatAssemblerSparse(0.0*self.matbuffer[1])# get rid of the buffers
     return S[1:end-1,1:end-1]
 end
-export makematrix!
 
 
 
 abstract type SysvecAssemblerBase end;
-export SysvecAssemblerBase
 
 mutable struct SysvecAssembler{T<:Number} <: SysvecAssemblerBase
     # % The class sysvec_assembler is for assembling of a system
@@ -222,7 +223,6 @@ mutable struct SysvecAssembler{T<:Number} <: SysvecAssemblerBase
     #      % it indicates that this is not a valid free  degree of freedom number.
     F_buffer::FVec{T};
 end
-export SysvecAssembler
 
 function SysvecAssembler{T<:Number}(zero::T=0.0)
     return SysvecAssembler([zero])
@@ -242,7 +242,6 @@ function startassembly!(self::SysvecAssembler{T},
   ndofs_row::FInt) where {T<:Number}
     self.F_buffer= zeros(T,ndofs_row);
 end
-export startassembly!
 
 """
     assemble!(self::SysvecAssembler{T}, vec::MV,
@@ -262,7 +261,6 @@ function assemble!(self::SysvecAssembler{T}, vec::MV,
         end
     end
 end
-export assemble!
 
 """
     makevector!(self::SysvecAssembler)
@@ -272,7 +270,6 @@ Make the global vector.
 function makevector!(self::SysvecAssembler)
   return deepcopy(self.F_buffer);
 end
-export makevector!
 
 
 end

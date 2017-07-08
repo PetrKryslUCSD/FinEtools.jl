@@ -1,4 +1,13 @@
+"""
+    FEMMBaseModule
+
+Module for comments/base operations on interiors and boundaries of domains.
+"""
 module FEMMBaseModule
+
+export FEMMAbstractBase, FEMMBase
+export integratefieldfunction, integratefunction, distribloads
+export connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints
 
 using FinEtools
 using FinEtools.FTypesModule
@@ -16,7 +25,6 @@ using FinEtools.AssemblyModule
 Abstract base type for all finite element models.
 """
 abstract type FEMMAbstractBase; end
-export FEMMAbstractBase
 
 """
     FEMMBase
@@ -26,7 +34,6 @@ Class for base finite element modeling machine.
 mutable struct FEMMBase{S<:FESet, F<:Function} <: FEMMAbstractBase
   geod::GeoD{S, F} # geometry data finite element modeling machine
 end
-export FEMMBase
 
 """
     integratefieldfunction(self::FEMMAbstractBase,
@@ -73,7 +80,6 @@ function integratefieldfunction(self::FEMMAbstractBase,
   end
   return result
 end
-export integratefieldfunction
 
 """
   integratefunction(self::FEMMAbstractBase,
@@ -139,7 +145,6 @@ function integratefunction(self::FEMMAbstractBase,
   end
   return result
 end
-export integratefunction
 
 """
     distribloads(self::FEMM, assembler::A,
@@ -202,7 +207,6 @@ function distribloads(self::FEMM, assembler::A,
   F = makevector!(assembler);
   return F
 end
-export distribloads
 
 function distribloads(self::FEMM,
   geom::NodalField{FFlt},
@@ -212,7 +216,6 @@ function distribloads(self::FEMM,
   assembler = SysvecAssembler(0.0*P.values[1])#T(0.0))
   return distribloads(self, assembler, geom, P, fi, m)
 end
-export distribloads
 
 """
     connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:FEMMAbstractBase}
@@ -239,7 +242,6 @@ function connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:FEMMAbstractBas
   end
   return sparse(rb, cb, vb, nnodes, nnodes)
 end
-export connectionmatrix
 
 
 struct InverseDistanceInspectorData
@@ -320,7 +322,6 @@ function fieldfromintegpoints(self::FEMM,
   # Make the field
   return NodalField(nvals);
 end
-export fieldfromintegpoints
 
 function fieldfromintegpoints(self::FEMM,
   geom::NodalField{FFlt},  u::NodalField{T},
@@ -329,7 +330,6 @@ function fieldfromintegpoints(self::FEMM,
   dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
   return fieldfromintegpoints(self, geom, u, dT, quantity, component; context...)
 end
-export fieldfromintegpoints
 
 
 struct MeanValueInspectorData
@@ -396,7 +396,6 @@ function elemfieldfromintegpoints(self::FEMM,
   # Make the field
   return ElementalField(evals);
 end
-export elemfieldfromintegpoints
 
 function elemfieldfromintegpoints(self::FEMM,
   geom::NodalField{FFlt},  u::NodalField{T},
@@ -405,6 +404,5 @@ function elemfieldfromintegpoints(self::FEMM,
   dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
   return elemfieldfromintegpoints(self, geom, u, dT, quantity, component; context...)
 end
-export elemfieldfromintegpoints
 
 end

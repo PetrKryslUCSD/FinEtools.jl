@@ -1,3 +1,8 @@
+"""
+    PhysicalUnitModule
+
+Module  to handle use of physical units in constant definitions.  
+"""
 module PhysicalUnitModule
 
 using FinEtools.FTypesModule

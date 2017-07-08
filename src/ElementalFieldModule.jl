@@ -1,4 +1,12 @@
+"""
+    ElementalFieldModule
+
+Module for elemental fields.  
+"""
 module ElementalFieldModule
+
+export ElementalField
+export nelems
 
 using FinEtools
 using FinEtools.FTypesModule
@@ -17,7 +25,6 @@ there needs to be one field per finite element set.
 mutable struct ElementalField{T<:Number} <: Field
   @add_Field_fields()
 end
-export ElementalField
 
 # Constructor of nodal field
 function ElementalField{T<:Number}(data::FMat{T}=[])
@@ -36,6 +43,5 @@ end
 Provide the number of elements  in the elemental field.
 """
 nelems(self::ElementalField)::FInt = nents(self)
-export nelems
 
 end

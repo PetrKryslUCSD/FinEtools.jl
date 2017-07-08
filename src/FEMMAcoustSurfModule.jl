@@ -1,4 +1,13 @@
+"""
+    FEMMAcoustSurfModule
+
+Module for operations on boundaries of domains to construct system matrices and
+system vectors for linear acoustics.
+"""
 module FEMMAcoustSurfModule
+
+export FEMMAcoustSurf
+export acousticABC, pressure2resultantforce, pressure2resultanttorque
 
 import Base.Complex
 
@@ -26,7 +35,7 @@ mutable struct FEMMAcoustSurf{S<:FESet, F<:Function, M, NF<:Function} <: FEMMAbs
   material::M # material object
   getnormal!::NF # get the  normal to the surface
 end
-export FEMMAcoustSurf
+
 
 function FEMMAcoustSurf(geod::GeoD{S, F},
   material::M) where {S<:FESet, F<:Function, M}
@@ -95,7 +104,6 @@ function acousticABC(self::FEMMAcoustSurf, assembler::A,
   end # Loop over elements
   return makematrix!(assembler);
 end
-export acousticABC
 
 function acousticABC(self::FEMMAcoustSurf,
   geom::NodalFieldModule.NodalField,
@@ -104,7 +112,6 @@ function acousticABC(self::FEMMAcoustSurf,
   assembler  =  SysmatAssemblerSparseSymm();
   return acousticABC(self, assembler, geom, Pdot);
 end
-export acousticABC
 
 """
     pressure2resultantforce(self::FEMMAcoustSurf, assembler::A,
@@ -158,7 +165,6 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A,
   end # Loop over elements
   return makematrix!(assembler);
 end
-export pressure2resultantforce
 
 function pressure2resultantforce(self::FEMMAcoustSurf,
   geom::NodalFieldModule.NodalField,
@@ -219,7 +225,6 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A,
   end # Loop over elements
   return makematrix!(assembler);
 end
-export pressure2resultanttorque
 
 function pressure2resultanttorque(self::FEMMAcoustSurf,
   geom::NodalFieldModule.NodalField,

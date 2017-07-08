@@ -1,3 +1,8 @@
+"""
+    MatrixUtilityModule
+
+Module for general utility matrix product functions.  
+"""
 module MatrixUtilityModule
 
 using FinEtools.FTypesModule

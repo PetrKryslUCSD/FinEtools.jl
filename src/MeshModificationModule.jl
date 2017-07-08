@@ -1,4 +1,12 @@
+"""
+    MeshModificationModule
+
+Module for mesh modification operations.
+"""
 module MeshModificationModule
+
+export  meshboundary,  fusenodes,  compactnodes,  mergemeshes,  mergenmeshes!,
+  mergenodes,  renumberconn!,  vsmoothing,  meshsmoothing,  mirrormesh
 
 using FinEtools.FTypesModule
 using FinEtools.FENodeSetModule
@@ -22,7 +30,6 @@ function meshboundary{T<:FESet}(fes::T)
 
     return make(bdryconn);
 end
-export meshboundary
 
 function mysortrows(A::FIntMat)
     # Sort the rows of A by sorting each column from back to front.
@@ -208,7 +215,6 @@ function fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance:: FFlt)
   # The node set 2 numbering stays the same
   return fens, new_indexes_of_fens1_nodes
 end
-export fusenodes
 
 """
     compactnodes(fens::FENodeSetModule.FENodeSet, connected::Vector{Bool})
@@ -255,7 +261,6 @@ function compactnodes(fens::FENodeSetModule.FENodeSet, connected::BitArray{1})
   fens = FENodeSetModule.FENodeSet(nxyz[1:id-1,:]);
   return fens, vec(new_numbering)
 end
-export compactnodes
 
 """
     mergemeshes(fens1::FENodeSet, fes1::T1,
@@ -291,7 +296,6 @@ function mergemeshes(fens1::FENodeSet, fes1::T1,
   # fens.
   return fens, newfes1, fes2
 end
-export mergemeshes
 
 function mergenmeshes!(fensa, fesa, tolerance::FFlt)
 #     Merge several meshes together.
@@ -336,7 +340,6 @@ function mergenmeshes!(fensa, fesa, tolerance::FFlt)
     end
     return fens,fesa
 end
-export mergenmeshes!
 
 """
     mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)
@@ -398,7 +401,6 @@ function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)
 
   return fens,fes
 end
-export mergenodes
 
 """
     renumberconn!(fes::FESetModule.FESet, new_numbering::FIntVec)
@@ -427,7 +429,6 @@ function renumberconn!(fes::FESetModule.FESet, new_numbering::FIntVec)
   end
   return fes
 end
-export renumberconn!
 
 function vsmoothing(v::FFltMat,t::FIntMat;options...)
 # General smoothing of meshes.
@@ -470,7 +471,6 @@ function vsmoothing(v::FFltMat,t::FIntMat;options...)
     # return new vertex locations
     return v
 end
-export vsmoothing
 
 
 function meshsmoothing{T<:FESet}(fens::FENodeSet,fes::T;options...)
@@ -490,7 +490,6 @@ function meshsmoothing{T<:FESet}(fens::FENodeSet,fes::T;options...)
     nnodes.xyz= deepcopy(v)
     return nnodes,fes
 end
-export meshsmoothing
 
 function  taubin_smoother(vinp::FFltMat,vneigh::Array{Array{Int,1},1},fixedv::BitArray{1},npass::FInt,lambda::FFlt,mu::FFlt)
     v=deepcopy(vinp);
@@ -611,7 +610,6 @@ function mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
   end
   return fens1,fes1
 end
-export mirrormesh
 
 
 end

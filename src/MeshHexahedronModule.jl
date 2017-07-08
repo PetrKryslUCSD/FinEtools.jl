@@ -1,4 +1,15 @@
+"""
+    MeshHexahedronModule
+
+Module for generation of  hexahedral meshes.
+"""
 module MeshHexahedronModule
+
+export  H8block,  H8blockx,  H8sphere,  H8refine, H8hexahedron,
+ H8extrudeQ4,  H8spheren, H8voximg,  H8compositeplatex
+export H8toH27,  H27block
+export H20block,  H8toH20
+
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -21,7 +32,7 @@ function H8block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH
   return H8blockx(collect(linspace(0, Length, nL+1)),
   collect(linspace(0, Width, nW+1)), collect(linspace(0, Height, nH+1)));
 end
-export H8block
+
 
 """
     H8blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec)
@@ -73,7 +84,6 @@ function H8blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec)
 
   return fens, fes;
 end
-export H8blockx
 
 
 # Create a solid mesh of 1/8 of the sphere of "radius".
@@ -125,7 +135,6 @@ function H8sphere(radius::FFlt, nrefine::FInt)
     end
      return fens,  fes
 end
-export H8sphere
 
 function H8refine(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
 # Refine a mesh of H8 hexahedrals by octasection.
@@ -165,7 +174,6 @@ function H8refine(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
     fes=FESetModule.FESetH8(nconn);
     return fens,  fes
 end
-export H8refine
 
 function   H8toH27(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
 # Convert a mesh of hexahedra H8 to hexahedra H27.
@@ -275,7 +283,6 @@ function   H8toH27(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
     setlabel!(fes, labels);
     return fens, fes;
 end
-export H8toH27
 
 function H8hexahedron(xyz::FFltMat, nL::FInt, nW::FInt, nH::FInt;block_mesh_handle=nothing)
 # Mesh of a general hexahedron given by the location of the vertices.
@@ -345,7 +352,6 @@ function H8hexahedron(xyz::FFltMat, nL::FInt, nW::FInt, nH::FInt;block_mesh_hand
 
     return fens, fes;
 end
-export H8hexahedron
 
 function H27block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
   # Mesh of a 3-D block of H27 finite elements
@@ -375,7 +381,6 @@ function H27block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, n
   fens, fes = H8toH27(fens, fes);
   return fens, fes
 end
-export H27block
 
 function doextrude(fens, fes::FESetQ4, nLayers, extrusionh)
   nn1=count(fens);
@@ -421,7 +426,6 @@ function H8extrudeQ4(fens::FENodeSet,  fes::FESetQ4, nLayers::FInt,
   h8fens, h8fes= doextrude(q4fens, q4fes, nLayers, extrusionh);
   return h8fens, h8fes
 end
-export H8extrudeQ4
 
 function H8spheren(radius::FFlt, nperradius::FInt)
 # Create a solid mesh of 1/8 of sphere.
@@ -527,7 +531,6 @@ layer = oftype(1.0, Inf) + zeros(FFlt, size(xyz,  1), 1);
   fens.xyz = deepcopy(nxyz);
   return fens, fes
 end
-export H8spheren
 
 function H20block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
     # Mesh of a 3-D block of H20 finite elements
@@ -555,7 +558,6 @@ function H20block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, n
     fens, fes = H8block(Length, Width, Height, nL, nW, nH);
     fens, fes = H8toH20(fens, fes);
 end
-export H20block
 
 """
     H8toH20(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
@@ -611,7 +613,6 @@ function   H8toH20(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
   setlabel!(fes, labels);
   return fens, fes;
 end
-export H8toH20
 
 # Construct arrays to describe a hexahedron mesh created from voxel image.
 #
@@ -704,7 +705,6 @@ function H8voximg{DataT<:Number}(img::Array{DataT, 3}, voxdims::FFltVec,
   setlabel!(fes, hmid)
   return fens, fes;
 end
-export H8voximg
 
 """
     H8compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec)
@@ -719,22 +719,21 @@ The finite elements of each layer are labeled with the layer number, starting
 from 1.
 """
 function H8compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec)
-tolerance = minimum(abs.(ts))/maximum(nts)/10.;
-@assert length(ts) >= 1
-layer = 1
-zs = collect(linspace(0,ts[layer],nts[layer]+1))
-fens, fes = H8blockx(xs, ys, zs);
-setlabel!(fes, layer);
-for layer = 2:length(ts)
+  tolerance = minimum(abs.(ts))/maximum(nts)/10.;
+  @assert length(ts) >= 1
+  layer = 1
   zs = collect(linspace(0,ts[layer],nts[layer]+1))
-  fens1, fes1 = H8blockx(xs, ys, zs);
-  setlabel!(fes1, layer);
-  fens1.xyz[:, 3] += sum(ts[1:layer-1]);
-  fens, fes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance);
-  fes = cat(fes1,fes2);
+  fens, fes = H8blockx(xs, ys, zs);
+  setlabel!(fes, layer);
+  for layer = 2:length(ts)
+    zs = collect(linspace(0,ts[layer],nts[layer]+1))
+    fens1, fes1 = H8blockx(xs, ys, zs);
+    setlabel!(fes1, layer);
+    fens1.xyz[:, 3] += sum(ts[1:layer-1]);
+    fens, fes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance);
+    fes = cat(fes1,fes2);
+  end
+  return fens,fes
 end
-return fens,fes
-end
-export H8compositeplatex
 
 end

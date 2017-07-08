@@ -1,4 +1,12 @@
+"""
+    CSysModule
+
+Module for management of coordinate systems.  
+"""
 module CSysModule
+
+export CSys
+export updatecsmat!
 
 using FinEtools.FTypesModule
 
@@ -11,7 +19,7 @@ struct CSys{F<:Function}
   updatebuffer!::F # function to update the coordinate system matrix
   csmat::FFltMat # the coordinate system matrix (buffer); see
 end
-export CSys
+
 
 """
     CSys(sdim::FInt, mdim::FInt, computecsmat::F) where {F<:Function}
@@ -98,7 +106,6 @@ function updatecsmat!(self::CSys, XYZ::FFltMat, tangents::FFltMat, fe_label::FIn
   self.updatebuffer!(self.csmat, XYZ, tangents, fe_label)
   return self.csmat
 end
-export updatecsmat!
 
 """
     gen_iso_csmat(XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)

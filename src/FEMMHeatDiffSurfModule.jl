@@ -1,4 +1,13 @@
+"""
+    FEMMHeatDiffSurfModule
+
+Module for operations on boundaries of domains to construct system matrices and
+system vectors for linear heat diffusion/conduction.
+"""
 module FEMMHeatDiffSurfModule
+
+export  FEMMHeatDiffSurf
+export surfacetransfer,  surfacetransferloads,  nzebcsurfacetransferloads
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -18,7 +27,6 @@ mutable struct FEMMHeatDiffSurf{S<:FESet, F<:Function} <: FEMMAbstractBase
   geod::GeoD{S, F} # geometry data finite element modeling machine
   surfacetransfercoeff::FFlt # material object
 end
-export FEMMHeatDiffSurf
 
 """
     surfacetransfer(self::FEMMHeatDiffSurf,  assembler::A,
@@ -62,7 +70,6 @@ function surfacetransfer(self::FEMMHeatDiffSurf,  assembler::A,
   end # Loop over elements
   return makematrix!(assembler);
 end
-export surfacetransfer
 
 function surfacetransfer(self::FEMMHeatDiffSurf{S},
                                    geom::NodalField{FFlt},
@@ -70,7 +77,6 @@ function surfacetransfer(self::FEMMHeatDiffSurf{S},
     assembler = SysmatAssemblerSparseSymm()
     return  surfacetransfer(self, assembler, geom, temp);
 end
-export surfacetransfer
 
 """
     surfacetransferloads(self::FEMMHeatDiffSurf,  assembler::A,
@@ -124,7 +130,6 @@ function surfacetransferloads(self::FEMMHeatDiffSurf,  assembler::A,
   F = makevector!(assembler);
   return F
 end
-export surfacetransferloads
 
 
 function surfacetransferloads(self::FEMMHeatDiffSurf,
@@ -134,7 +139,6 @@ function surfacetransferloads(self::FEMMHeatDiffSurf,
     assembler = SysvecAssembler()
     return  surfacetransferloads(self, assembler, geom, temp, ambtemp);
 end
-export surfacetransferloads
 
 """
     nzebcsurfacetransferloads(self::FEMMHeatDiffSurf, assembler::A,
@@ -184,7 +188,6 @@ function nzebcsurfacetransferloads(self::FEMMHeatDiffSurf, assembler::A,
   F= makevector!(assembler);
   return F
 end
-export nzebcsurfacetransferloads
 
 function nzebcsurfacetransferloads(self::FEMMHeatDiffSurf,
                                           geom::NodalField{FFlt},
@@ -192,7 +195,6 @@ function nzebcsurfacetransferloads(self::FEMMHeatDiffSurf,
     assembler = SysvecAssembler()
     return  nzebcsurfacetransferloads(self, assembler, geom, temp);
 end
-export nzebcsurfacetransferloads
 
 
 end

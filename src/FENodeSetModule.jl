@@ -1,9 +1,12 @@
 """
     FENodeSetModule
 
-Module for finite element node set.
+Module for the finite element node set.
 """
 module FENodeSetModule
+
+export FENodeSet
+export  spacedim,  xyz3,  count
 
 using FinEtools.FTypesModule
 import Base.count
@@ -20,14 +23,14 @@ xyz =
 """
 #
 mutable struct FENodeSet
-    xyz::FFltMat
+  xyz::FFltMat
 
-    function FENodeSet(xyz::FFltMat)
-        self = new(deepcopy(xyz)); # Need to make a COPY of the input array!
-        return self
-    end
+  function FENodeSet(xyz::FFltMat)
+    self = new(deepcopy(xyz)); # Need to make a COPY of the input array!
+    return self
+  end
 end
-export FENodeSet
+
 
 """
     spacedim(self::FENodeSet)
@@ -36,7 +39,6 @@ Number of dimensions of the space in which the node lives, 1, 2, or 3.
 """
 # Get the  dimension of the coordinate that defines the location  of the node.
 spacedim(self::FENodeSet) =size(self.xyz,2)
-export spacedim
 
 """
     xyz3(self::FENodeSet)
@@ -54,7 +56,6 @@ function xyz3(self::FENodeSet)
         val = deepcopy(self.xyz);
     end
 end
-export xyz3
 
 """
     count(self::FENodeSet)
@@ -64,7 +65,6 @@ Get the number of finite element nodes in the node set.
 function count(self::FENodeSet)
     return size(self.xyz,1)::FInt
 end
-export count
 
 
 end

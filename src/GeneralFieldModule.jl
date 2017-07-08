@@ -1,4 +1,11 @@
+"""
+    GeneralFieldModule
+
+Module for general fields.
+"""
 module GeneralFieldModule
+
+export GeneralField
 
 using FinEtools
 using FinEtools.FTypesModule
@@ -13,7 +20,7 @@ General field.
 mutable struct GeneralField{T<:Number} <: Field
   @add_Field_fields()
 end
-export GeneralField
+
 
 # Constructor of general field
 function GeneralField{T<:Number}(data::FMat{T}=[])

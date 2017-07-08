@@ -1,4 +1,11 @@
+"""
+    MeshSelectionModule
+
+Module for  selection of mesh entities.
+"""
 module MeshSelectionModule
+
+export connectedelems, connectednodes,  selectnode,  selectelem,  findunconnnodes
 
 using FinEtools
 using FinEtools.FTypesModule
@@ -22,7 +29,6 @@ function connectedelems(fes::FESetModule.FESet, node_list::FIntVec)
   end
   cg =find_n(cg);
 end
-export connectedelems
 
 """
     connectednodes(fes::FESetModule.FESet)
@@ -36,7 +42,6 @@ type (the same number of connected nodes by each cell).
 function connectednodes(fes::FESetModule.FESet)
     return unique(fes.conn[:]);
 end
-export connectednodes
 
 function selectnode(fens::FENodeSetModule.FENodeSet; args...)
     # Select nodes using a box.
@@ -87,7 +92,6 @@ function selectnode(fens::FENodeSetModule.FENodeSet; args...)
     nodelist = squeeze(reshape(nodelist,1,length(nodelist)), 1);
     return nodelist
 end
-export selectnode
 
 """
     selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:FESet}
@@ -478,7 +482,6 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     return felist[find(felist)]; # return the nonzero element numbers
 
 end
-export selectelem
 
 
 # Select locations (vertices).
@@ -648,7 +651,6 @@ function findunconnnodes(fens::FENodeSet, fes::FESet)
   end
   return connected
 end
-export findunconnnodes
 
 
 end

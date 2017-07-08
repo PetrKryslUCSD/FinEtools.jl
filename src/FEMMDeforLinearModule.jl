@@ -1,3 +1,9 @@
+"""
+    FEMMDeforLinearModule
+
+Module for operations on interiors of domains to construct system matrices and
+system vectors for linear deformation models.
+"""
 module FEMMDeforLinearModule
 
 export FEMMDeforLinear
@@ -346,7 +352,7 @@ function inspectintegpoints(self::FEMMDeforLinear,
       out = self.material.update!(self.material, qpstress, out,
         vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
       if (quantity == :Cauchy)   # Transform stress tensor,  if that is "out"
-        (length(out1) >= length(out)) || (out1 = zeros(length(out))) 
+        (length(out1) >= length(out)) || (out1 = zeros(length(out)))
         rotstressvec(self.mr, out1, out, geod.mcsys.csmat')# To global coord sys
         rotstressvec(self.mr, out, out1, outputcsys.csmat)# To output coord sys
       end

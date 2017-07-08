@@ -1,3 +1,8 @@
+"""
+    DeforModelRedModule
+
+Module for  model reduction in models of deformation.  
+"""
 module DeforModelRedModule
 
 export DeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,
@@ -42,7 +47,7 @@ nthstn(::Type{DeforModelRed2DStrain})::FInt = 4;
 nthstn(::Type{DeforModelRed2DStress})::FInt = 3;
 nthstn(::Type{DeforModelRed2DAxisymm})::FInt = 4;
 nthstn(::Type{DeforModelRed3D})::FInt = 6;
- 
+
 """
     stresscomponentmap(::Type{DeforModelRed1D})
 

@@ -1,4 +1,12 @@
+"""
+    MeshTetrahedronModule
+
+Module  for generation of meshes composed of tetrahedra.
+"""
 module MeshTetrahedronModule
+
+export  T4blocka,  T4blockb,  T4blockca,  T4blockcb,  T4block,  T4blockx,
+ T4toT10,  T10block
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -10,22 +18,18 @@ using FinEtools.MeshSelectionModule
 function T4blocka(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
     return  T4block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, :a)
 end
-export T4blocka
 
 function T4blockb(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
     return  T4block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, :b)
 end
-export T4blockb
 
 function T4blockca(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
     return  T4block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, :ca)
 end
-export T4blockca
 
 function T4blockcb(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
     return  T4block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, :cb)
 end
-export T4blockcb
 
 """
     T4block(Length::FFlt, Width::FFlt, Height::FFlt,
@@ -48,7 +52,6 @@ function T4block(Length::FFlt, Width::FFlt, Height::FFlt,
                     collect(linspace(0.0, Width, nW+1)),
                     collect(linspace(0.0, Height, nH+1)), orientation);
 end
-export T4block
 
 """
     T4blockx(xs::FFltMat, ys::FFltMat, zs::FFltMat, orientation::Symbol)
@@ -140,7 +143,6 @@ function T4blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec, orientation::Symbol)
 
     return fens, fes
 end
-export T4blockx
 
 """
     T4toT10(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetT4)
@@ -193,7 +195,6 @@ function  T4toT10(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetT4)
     fes = FESetModule.FESetT10(nconn);
     return fens, fes;
 end
-export T4toT10
 
 """
     T10block(Length::FFlt, Width::FFlt, Height::FFlt,
@@ -206,6 +207,5 @@ function T10block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, n
   fens, fes = T4toT10(fens, fes);
   return fens, fes
 end
-export T10block
 
 end
