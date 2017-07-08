@@ -1108,9 +1108,8 @@ function test()
   ix = sortperm(y_o)
   # plot!(y_o[ix], T_o[ix], color=:blue, label= "cold leg")
 
-  # gui()
-
-# println("maximum(T_i) = $(maximum(T_i))")
+show(T_i)
+println("maximum(T_i) = $(maximum(T_i))")
 @test abs(maximum(T_i)-1382.089817533287) < 1.0e-3
 end
 end
