@@ -16,6 +16,7 @@ using FinEtools.FESetModule.gradN!
 using FinEtools.CSysModule
 using FinEtools.GeoDModule
 using FinEtools.FEMMBaseModule
+using FinEtools.FEMMDeforLinearBaseModule
 using FinEtools.FieldModule
 using FinEtools.NodalFieldModule
 using FinEtools.ElementalFieldModule
@@ -28,6 +29,11 @@ using FinEtools.MatrixUtilityModule.add_btdb_ut_only!
 using FinEtools.MatrixUtilityModule.complete_lt!
 using FinEtools.MatrixUtilityModule.mv_product!
 using FinEtools.MatrixUtilityModule.add_btv!
+import FinEtools.FEMMDeforLinearBaseModule.stiffness
+import FinEtools.FEMMDeforLinearBaseModule.nzebcloadsstiffness
+import FinEtools.FEMMDeforLinearBaseModule.mass
+import FinEtools.FEMMDeforLinearBaseModule.thermalstrainloads
+import FinEtools.FEMMDeforLinearBaseModule.inspectintegpoints
 
 """
     FEMMDeforLinear{S<:FESet, F<:Function, P<:PropertyDeformationLinear}
@@ -35,7 +41,7 @@ using FinEtools.MatrixUtilityModule.add_btv!
 Class for linear deformation finite element modeling machine.
 """
 mutable struct FEMMDeforLinear{MR<:DeforModelRed,
-  S<:FESet, F<:Function, M<:MatDefor} <: FEMMAbstractBase
+  S<:FESet, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstract
   mr::Type{MR}
   geod::GeoD{S, F} # geometry data finite element modeling machine
   material::M # material object

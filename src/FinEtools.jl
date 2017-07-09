@@ -307,6 +307,15 @@ export acousticABC
 export pressure2resultantforce
 export pressure2resultanttorque
 
+include("FEMMDeforLinearBaseModule.jl")
+using FinEtools.FEMMDeforLinearBaseModule
+export FEMMDeforLinearAbstract
+export stiffness
+export nzebcloadsstiffness
+export thermalstrainloads
+export mass
+export inspectintegpoints
+
 include("FEMMDeforLinearModule.jl")
 using FinEtools.FEMMDeforLinearModule
 export FEMMDeforLinear
@@ -320,6 +329,15 @@ include("FEMMDeforWinklerModule.jl")
 using FinEtools.FEMMDeforWinklerModule
 export FEMMDeforWinkler
 export surfacenormalspringstiffness
+
+include("FEMMDeforLinearMSModule.jl")
+using FinEtools.FEMMDeforLinearMSModule
+export FEMMDeforLinearMSH8, FEMMDeforLinearMST10
+export stiffness
+export nzebcloadsstiffness
+export thermalstrainloads
+export mass
+export inspectintegpoints
 
 include("AlgoBaseModule.jl")
 using FinEtools.AlgoBaseModule
