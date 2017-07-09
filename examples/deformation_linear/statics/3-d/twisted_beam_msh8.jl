@@ -72,31 +72,31 @@ function  Twisted_beam()
   println("displacement  = $(theutip[dir]) as compared to converged $uex")
 
   # Write out mesh with displacements
-  modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam")
+  modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8")
   modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
 
   # Write out mesh with stresses
-  modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam",
+  modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8",
   "quantity"=> :Cauchy, "component"=> :xy)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
 
   # Write out mesh with stresses
-  modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam",
+  modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8",
   "quantity"=> :Cauchy, "component"=> :xz)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
 
   # Write out mesh with von Mises stresses
-  modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam",
+  modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8",
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
 
   # Write out mesh with von Mises stresses, elementwise
-  modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-ew",
+  modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8-ew",
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
 
   # Write out mesh with von Mises stresses, elementwise
-  modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-ew",
+  modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8-ew",
   "quantity"=> :Cauchy, "component"=> :xz)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
 
