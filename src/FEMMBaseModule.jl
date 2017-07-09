@@ -6,7 +6,7 @@ Module for comments/base operations on interiors and boundaries of domains.
 module FEMMBaseModule
 
 export FEMMAbstractBase, FEMMBase
-export integratefieldfunction, integratefunction, distribloads
+export associategeometry!, integratefieldfunction, integratefunction, distribloads
 export connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints
 
 using FinEtools
@@ -33,6 +33,24 @@ Class for base finite element modeling machine.
 """
 mutable struct FEMMBase{S<:FESet, F<:Function} <: FEMMAbstractBase
   geod::GeoD{S, F} # geometry data finite element modeling machine
+end
+
+"""
+    associategeometry!(self::FEMMAbstractBase,  geom::NodalField{FFlt})
+
+Associate geometry field with the FEMM.
+
+There may be operations that could benefit from pre-computations
+that involve a geometry field. If so, associating the geometry
+field gives the FEMM a chance to save on repeated computations.
+
+Geometry field is normally passed into any routine that evaluates some forms
+(integrals) over the mesh.  Whenever the geometry passed into a routine is not
+consistent with the one for which `associategeometry!()` was called before,
+`associategeometry!()` needs to be called with the new geometry field.
+"""
+function associategeometry!(self::FEMMAbstractBase,  geom::NodalField{FFlt})
+  return self # default is no-op
 end
 
 """

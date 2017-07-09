@@ -272,7 +272,7 @@ include("FEMMBaseModule.jl")
 using FinEtools.FEMMBaseModule
 export FEMMAbstractBase
 export FEMMBase
-export integrationdata
+export associategeometry!
 export integratefieldfunction
 export integratefunction
 export distribloads

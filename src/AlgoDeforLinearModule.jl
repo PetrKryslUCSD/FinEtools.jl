@@ -1,7 +1,7 @@
 """
     AlgoDeforLinearModule
 
-Module for algorithms used in linear deformation models.  
+Module for algorithms used in linear deformation models.
 """
 module AlgoDeforLinearModule
 
@@ -130,7 +130,7 @@ function linearstatics(modeldata::FDataDict)
     dcheck!(region, regions_recognized_keys)
     femm = region["femm"];
     # # Give the  FEMM a chance  to precompute  geometry-related quantities
-    # region.femm = associate_geometry(region.femm,geom);
+    femm = associategeometry!(femm, geom);
     # Add up all the conductivity matrices for all the regions
     K = K + stiffness(femm, geom, u);
     # Loads due to the essential boundary conditions on the displacement field

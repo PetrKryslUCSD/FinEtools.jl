@@ -35,7 +35,7 @@ Compute and assemble  stiffness matrix.
 function stiffness(self::FEMMDeforLinearAbstract, assembler::A,
       geom::NodalField{FFlt},
       u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
-  return spzeros(nfreedofs(u), nfreedofs(u));
+  return spzeros(u.nfreedofs, u.nfreedofs);
 end
 
 function stiffness(self::FEMMDeforLinearAbstract,
@@ -54,7 +54,7 @@ Compute load vector for nonzero EBC for fixed displacement.
 function nzebcloadsstiffness(self::FEMMDeforLinearAbstract,  assembler::A,
   geom::NodalField{FFlt},
   u::NodalField{T}) where {A<:SysvecAssemblerBase, T<:Number}
-  return zeros(FFlt, nfreedofs(u));
+  return zeros(FFlt, u.nfreedofs);
 end
 
 function nzebcloadsstiffness(self::FEMMDeforLinearAbstract,
@@ -73,7 +73,7 @@ Compute the mass matrix.
 function mass(self::FEMMDeforLinearAbstract,  assembler::A,
   geom::NodalField{FFlt},
   u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
-  return spzeros(nfreedofs(u), nfreedofs(u));
+  return spzeros(u.nfreedofs, u.nfreedofs);
 end
 
 function mass(self::FEMMDeforLinearAbstract,
@@ -92,7 +92,7 @@ Compute the thermal-strain load vector.
 function  thermalstrainloads(self::FEMMDeforLinearAbstract, assembler::A,
     geom::NodalField{FFlt}, u::NodalField{T},
     dT::NodalField{FFlt}) where {A<:SysvecAssemblerBase, T<:Number}
-  return zeros(FFlt, nfreedofs(u));
+  return zeros(FFlt, u.nfreedofs);
 end
 
 function thermalstrainloads(self::FEMMDeforLinearAbstract,

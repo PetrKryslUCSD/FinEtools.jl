@@ -466,12 +466,4 @@ function  integrationdata(self::GeoD)
 end
 
 
-#  Associated geometry field. Default is there is none, so any
-#  operation that requires a geometry field needs to be supplied it.
-#  There may be operations that could benefit from pre-computations
-#  that involve a geometry field. If so, associating the geometry
-#  field gives the FEMM a chance to save on repeated computations.
-#         assoc_geom = []; % associated geometry field
-#     end
-
 end
