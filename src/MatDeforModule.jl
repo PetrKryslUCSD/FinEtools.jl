@@ -308,30 +308,7 @@ function  rotstressvec(::Type{DeforModelRed3D},  outstress::FFltVec,
   return outstress
 end
 
-function strainvectorrotation(::Type{DeforModelRed3D}, Rm::FFltMat)
-    # Calculate the rotation matrix for a strain vector.
-    #
-    #   Tbar = strain_vector_rotation(self,Rm)
-    #
-    # Rm = columns are components of 'bar' basis vectors on the 'plain'
-    #      basis vectors
-    #
-    # Calculate the rotation of the 'plain' strain vector to the
-    # 'bar' coordinate system given by the columns of the rotation matrix Rm.
-    #
 
-    a11=Rm[1,1]; a12=Rm[1,2]; a13=Rm[1,3];
-    a21=Rm[2,1]; a22=Rm[2,2]; a23=Rm[2,3];
-    a31=Rm[3,1]; a32=Rm[3,2]; a33=Rm[3,3];
-    Tbar =[
-           [     a11^2     a21^2     a31^2           a11*a21           a11*a31           a21*a31]
-           [     a12^2     a22^2     a32^2           a12*a22           a12*a32           a22*a32]
-           [     a13^2     a23^2     a33^2           a13*a23           a13*a33           a23*a33]
-           [ 2*a11*a12 2*a21*a22 2*a31*a32 a11*a22 + a12*a21 a11*a32 + a12*a31 a21*a32 + a22*a31]
-           [ 2*a11*a13 2*a21*a23 2*a31*a33 a11*a23 + a13*a21 a11*a33 + a13*a31 a21*a33 + a23*a31]
-           [ 2*a12*a13 2*a22*a23 2*a32*a33 a12*a23 + a13*a22 a12*a33 + a13*a32 a22*a33 + a23*a32]];
-    return Tbar
-end
 
 ################################################################################
 # 2-D plane strain model
@@ -365,58 +342,7 @@ function  rotstressvec(::Type{DeforModelRed2DStrain},  outstress::FFltVec,
   return outstress
 end
 
-function stressvectorrotation(::Type{DeforModelRed2DStrain}, Rm::FFltMat)
 
-    # Rm = columns are components of 'bar' basis vectors on the 'plain'
-    #      basis vectors
-    #
-    # Calculate the rotation of the 'plain' stress vector to the
-    # 'bar' coordinate system given by the columns of the rotation matrix Rm.
-    #
-    # Example:
-    # The stress vector "stress" is given in the material coordinate
-    # system defined by the orientation matrix Rm. The following two
-    # transformations are equivalent:
-    #
-    #         t = stress_6v_to_3x3t (mat,stress);
-    #         t = (Rm*t*Rm');# in global coordinate system
-    #         t = (outputRm'*t*outputRm);# in output coordinate system
-    #         stress =stress_3x3t_to_6v (mat,t);# in output coordinate system
-    #
-    #        stress =mat.stress_vector_rotation(outputRm)...
-    #                  *mat.stress_vector_rotation(Rm')...
-    #                      *stress;# in output coordinate system
-
-    a11=Rm[1,1]; a12=Rm[1,2];
-    a21=Rm[2,1]; a22=Rm[2,2];
-    # sigmax, sigmay, sigmaz, tauxy
-    T =[[   a11^2    a21^2  0          2*a11*a21]
-        [   a12^2    a22^2  0          2*a12*a22]
-        [       0        0  1                  0]
-        [ a11*a12  a21*a22  0  a11*a22 + a12*a21]];
-    return T
-end
-
-function strainvectorrotation(::Type{DeforModelRed2DStrain},  Rm::FFltMat)
-    # Calculate the rotation matrix for a strain vector.
-    #
-    #   Tbar = strain_vector_rotation(self,Rm)
-    #
-    # Rm = columns are components of 'bar' basis vectors on the 'plain'
-    #      basis vectors
-    #
-    # Calculate the rotation of the 'plain' strain vector to the
-    # 'bar' coordinate system given by the columns of the rotation matrix Rm.
-    #
-
-    a11=Rm[1,1]; a12=Rm[1,2];
-    a21=Rm[2,1]; a22=Rm[2,2];
-    Tbar =[ [     a11^2      a21^2  0            a11*a21]
-           [     a12^2      a22^2  0            a12*a22]
-           [         0          0  1                  0]
-           [ 2*a11*a12  2*a21*a22  0  a11*a22 + a12*a21]];
-    return Tbar
-end
 
 ################################################################################
 # 2-D plane stress model
@@ -476,159 +402,238 @@ function  rotstressvec(::Type{DeforModelRed2DAxisymm},  outstress::FFltVec,
   return outstress
 end
 
-function stressvectorrotation{MR<:DeforModelRed2DStress}(::Type{MR},
-  Rm::FFltMat)
-
-    # Rm = columns are components of 'bar' basis vectors on the 'plain'
-    #      basis vectors
-    #
-    # Calculate the rotation of the 'plain' stress vector to the
-    # 'bar' coordinate system given by the columns of the rotation matrix Rm.
-    #
-    # Example:
-    # The stress vector "stress" is given in the material coordinate
-    # system defined by the orientation matrix Rm. The following two
-    # transformations are equivalent:
-    #
-    #         t = stress_6v_to_3x3t (mat,stress);
-    #         t = (Rm*t*Rm');# in global coordinate system
-    #         t = (outputRm'*t*outputRm);# in output coordinate system
-    #         stress =stress_3x3t_to_6v (mat,t);# in output coordinate system
-    #
-    #        stress =mat.stress_vector_rotation(outputRm)...
-    #                  *mat.stress_vector_rotation(Rm')...
-    #                      *stress;# in output coordinate system
-
-    a11=Rm[1,1]; a12=Rm[1,2];
-    a21=Rm[2,1]; a22=Rm[2,2];
-    # switch self.reduction
-    #     case {'axisymm','strain'}
-    #         T =[[   a11^2,   a21^2, 0,         2*a11*a21]
-    #             [   a12^2,   a22^2, 0,         2*a12*a22]
-    #             [       0,       0, 1,                 0]
-    #             [ a11*a12, a21*a22, 0, a11*a22 + a12*a21]];
-    #             case 'stress'
-    T =[[   a11^2   a21^2       2*a11*a21]
-        [   a12^2   a22^2       2*a12*a22]
-        [ a11*a12 a21*a22 a11*a22+a12*a21]];
-    return T
-end
-
-function strainvectorrotation{MR<:DeforModelRed2DStress}(::Type{MR},
-  Rm::FFltMat)
-    # Calculate the rotation matrix for a strain vector.
-    #
-    #   Tbar = strain_vector_rotation(self,Rm)
-    #
-    # Rm = columns are components of 'bar' basis vectors on the 'plain'
-    #      basis vectors
-    #
-    # Calculate the rotation of the 'plain' strain vector to the
-    # 'bar' coordinate system given by the columns of the rotation matrix Rm.
-    #
-
-    a11=Rm[1,1]; a12=Rm[1,2];
-    a21=Rm[2,1]; a22=Rm[2,2];
-    # switch self.reduction
-    #     case {'axisymm','strain'}
-    #         Tbar =[ [     a11^2,     a21^2, 0,           a11*a21]
-    #                 [     a12^2,     a22^2, 0,           a12*a22]
-    #                 [         0,         0, 1,                 0]
-    #                 [ 2*a11*a12, 2*a21*a22, 0, a11*a22 + a12*a21]];
-    #   case 'stress'
-    Tbar =[ [     a11^2,     a21^2,           a11*a21]
-           [     a12^2,     a22^2,           a12*a22]
-           [ 2*a11*a12, 2*a21*a22, a11*a22 + a12*a21]];
-    return Tbar
-end
 
 
-################################################################################
-# 2-D plane axially symmetric model
-
-function stressvectorrotation(::Type{MR},
-  Rm::FFltMat) where {MR<:DeforModelRed2DAxisymm}
-
-    # Rm = columns are components of 'bar' basis vectors on the 'plain'
-    #      basis vectors
-    #
-    # Calculate the rotation of the 'plain' stress vector to the
-    # 'bar' coordinate system given by the columns of the rotation matrix Rm.
-    #
-    # Example:
-    # The stress vector "stress" is given in the material coordinate
-    # system defined by the orientation matrix Rm. The following two
-    # transformations are equivalent:
-    #
-    #         t = stress_6v_to_3x3t (mat,stress);
-    #         t = (Rm*t*Rm');# in global coordinate system
-    #         t = (outputRm'*t*outputRm);# in output coordinate system
-    #         stress =stress_3x3t_to_6v (mat,t);# in output coordinate system
-    #
-    #        stress =mat.stress_vector_rotation(outputRm)...
-    #                  *mat.stress_vector_rotation(Rm')...
-    #                      *stress;# in output coordinate system
-
-    a11=Rm[1,1]; a12=Rm[1,2];
-    a21=Rm[2,1]; a22=Rm[2,2];
-    T =[[   a11^2    a21^2  0          2*a11*a21]
-        [   a12^2    a22^2  0          2*a12*a22]
-        [       0        0  1                  0]
-        [ a11*a12  a21*a22  0  a11*a22 + a12*a21]];
-    return T
-end
-
-function strainvectorrotation(::Type{MR},
-  Rm::FFltMat) where {MR<:DeforModelRed2DAxisymm}
-    # Calculate the rotation matrix for a strain vector.
-    #
-    #   Tbar = strain_vector_rotation(self,Rm)
-    #
-    # Rm = columns are components of 'bar' basis vectors on the 'plain'
-    #      basis vectors
-    #
-    # Calculate the rotation of the 'plain' strain vector to the
-    # 'bar' coordinate system given by the columns of the rotation matrix Rm.
-    #
-
-    a11=Rm[1,1]; a12=Rm[1,2];
-    a21=Rm[2,1]; a22=Rm[2,2];
-    Tbar =[ [     a11^2      a21^2  0            a11*a21]
-           [     a12^2      a22^2  0            a12*a22]
-           [         0          0  1                  0]
-           [ 2*a11*a12  2*a21*a22  0  a11*a22 + a12*a21]];
-    return Tbar
-end
-
-
-################################################################################
-# Generic versions of rotations of stiffness and compliance matrices
-
-function rotatestiffness!(::Type{MR}, D::FFltMat,
-                                                           Rm::FFltMat) where {MR<:DeforModelRed}
-    # Rotate constitutive stiffness matrix of the material.
-    #
-    #         function D=transform_stiffness(self,D,Rm)
-    #
-    # Rotate constitutive stiffness matrix of the material to the
-    # coordinate system given by the columns of the rotation matrix Rm.
-    T =stressvectorrotation(MR,Rm);
-    D = T*D*T';
-    return D
-end
-
-function rotatecompliance!(::Type{MR}, C::FFltMat,
-  Rm::FFltMat) where {MR<:DeforModelRed}
-    # Rotate constitutive compliance matrix of the material.
-    #
-    #   C = rotate_compliance(self,C,Rm)
-    #
-    # Rotate constitutive compliance matrix of the material to the
-    # coordinate system given by the columns of the rotation matrix Rm.
-    Tbar =strainvectorrotation(MR,Rm);
-    C = Tbar*C*Tbar';
-    return C
-end
 
 
 end
+
+# function stressvectorrotation{MR<:DeforModelRed2DStress}(::Type{MR},
+#   Rm::FFltMat)
+#
+#     # Rm = columns are components of 'bar' basis vectors on the 'plain'
+#     #      basis vectors
+#     #
+#     # Calculate the rotation of the 'plain' stress vector to the
+#     # 'bar' coordinate system given by the columns of the rotation matrix Rm.
+#     #
+#     # Example:
+#     # The stress vector "stress" is given in the material coordinate
+#     # system defined by the orientation matrix Rm. The following two
+#     # transformations are equivalent:
+#     #
+#     #         t = stress_6v_to_3x3t (mat,stress);
+#     #         t = (Rm*t*Rm');# in global coordinate system
+#     #         t = (outputRm'*t*outputRm);# in output coordinate system
+#     #         stress =stress_3x3t_to_6v (mat,t);# in output coordinate system
+#     #
+#     #        stress =mat.stress_vector_rotation(outputRm)...
+#     #                  *mat.stress_vector_rotation(Rm')...
+#     #                      *stress;# in output coordinate system
+#
+#     a11=Rm[1,1]; a12=Rm[1,2];
+#     a21=Rm[2,1]; a22=Rm[2,2];
+#     # switch self.reduction
+#     #     case {'axisymm','strain'}
+#     #         T =[[   a11^2,   a21^2, 0,         2*a11*a21]
+#     #             [   a12^2,   a22^2, 0,         2*a12*a22]
+#     #             [       0,       0, 1,                 0]
+#     #             [ a11*a12, a21*a22, 0, a11*a22 + a12*a21]];
+#     #             case 'stress'
+#     T =[[   a11^2   a21^2       2*a11*a21]
+#         [   a12^2   a22^2       2*a12*a22]
+#         [ a11*a12 a21*a22 a11*a22+a12*a21]];
+#     return T
+# end
+#
+# function strainvectorrotation{MR<:DeforModelRed2DStress}(::Type{MR},
+#   Rm::FFltMat)
+#     # Calculate the rotation matrix for a strain vector.
+#     #
+#     #   Tbar = strain_vector_rotation(self,Rm)
+#     #
+#     # Rm = columns are components of 'bar' basis vectors on the 'plain'
+#     #      basis vectors
+#     #
+#     # Calculate the rotation of the 'plain' strain vector to the
+#     # 'bar' coordinate system given by the columns of the rotation matrix Rm.
+#     #
+#
+#     a11=Rm[1,1]; a12=Rm[1,2];
+#     a21=Rm[2,1]; a22=Rm[2,2];
+#     # switch self.reduction
+#     #     case {'axisymm','strain'}
+#     #         Tbar =[ [     a11^2,     a21^2, 0,           a11*a21]
+#     #                 [     a12^2,     a22^2, 0,           a12*a22]
+#     #                 [         0,         0, 1,                 0]
+#     #                 [ 2*a11*a12, 2*a21*a22, 0, a11*a22 + a12*a21]];
+#     #   case 'stress'
+#     Tbar =[ [     a11^2,     a21^2,           a11*a21]
+#            [     a12^2,     a22^2,           a12*a22]
+#            [ 2*a11*a12, 2*a21*a22, a11*a22 + a12*a21]];
+#     return Tbar
+# end
+#
+#
+# ################################################################################
+# # 2-D plane axially symmetric model
+#
+# function stressvectorrotation(::Type{MR},
+#   Rm::FFltMat) where {MR<:DeforModelRed2DAxisymm}
+#
+#     # Rm = columns are components of 'bar' basis vectors on the 'plain'
+#     #      basis vectors
+#     #
+#     # Calculate the rotation of the 'plain' stress vector to the
+#     # 'bar' coordinate system given by the columns of the rotation matrix Rm.
+#     #
+#     # Example:
+#     # The stress vector "stress" is given in the material coordinate
+#     # system defined by the orientation matrix Rm. The following two
+#     # transformations are equivalent:
+#     #
+#     #         t = stress_6v_to_3x3t (mat,stress);
+#     #         t = (Rm*t*Rm');# in global coordinate system
+#     #         t = (outputRm'*t*outputRm);# in output coordinate system
+#     #         stress =stress_3x3t_to_6v (mat,t);# in output coordinate system
+#     #
+#     #        stress =mat.stress_vector_rotation(outputRm)...
+#     #                  *mat.stress_vector_rotation(Rm')...
+#     #                      *stress;# in output coordinate system
+#
+#     a11=Rm[1,1]; a12=Rm[1,2];
+#     a21=Rm[2,1]; a22=Rm[2,2];
+#     T =[[   a11^2    a21^2  0          2*a11*a21]
+#         [   a12^2    a22^2  0          2*a12*a22]
+#         [       0        0  1                  0]
+#         [ a11*a12  a21*a22  0  a11*a22 + a12*a21]];
+#     return T
+# end
+#
+# function strainvectorrotation(::Type{MR},
+#   Rm::FFltMat) where {MR<:DeforModelRed2DAxisymm}
+#     # Calculate the rotation matrix for a strain vector.
+#     #
+#     #   Tbar = strain_vector_rotation(self,Rm)
+#     #
+#     # Rm = columns are components of 'bar' basis vectors on the 'plain'
+#     #      basis vectors
+#     #
+#     # Calculate the rotation of the 'plain' strain vector to the
+#     # 'bar' coordinate system given by the columns of the rotation matrix Rm.
+#     #
+#
+#     a11=Rm[1,1]; a12=Rm[1,2];
+#     a21=Rm[2,1]; a22=Rm[2,2];
+#     Tbar =[ [     a11^2      a21^2  0            a11*a21]
+#            [     a12^2      a22^2  0            a12*a22]
+#            [         0          0  1                  0]
+#            [ 2*a11*a12  2*a21*a22  0  a11*a22 + a12*a21]];
+#     return Tbar
+# end
+#
+# ################################################################################
+# # Generic versions of rotations of stiffness and compliance matrices
+#
+# function rotatestiffness!(::Type{MR}, D::FFltMat,
+#                                                            Rm::FFltMat) where {MR<:DeforModelRed}
+#     # Rotate constitutive stiffness matrix of the material.
+#     #
+#     #         function D=transform_stiffness(self,D,Rm)
+#     #
+#     # Rotate constitutive stiffness matrix of the material to the
+#     # coordinate system given by the columns of the rotation matrix Rm.
+#     T =stressvectorrotation(MR,Rm);
+#     D = T*D*T';
+#     return D
+# end
+
+#
+# function rotatecompliance!(::Type{MR}, C::FFltMat,
+#   Rm::FFltMat) where {MR<:DeforModelRed}
+#     # Rotate constitutive compliance matrix of the material.
+#     #
+#     #   C = rotate_compliance(self,C,Rm)
+#     #
+#     # Rotate constitutive compliance matrix of the material to the
+#     # coordinate system given by the columns of the rotation matrix Rm.
+#     Tbar =strainvectorrotation(MR,Rm);
+#     C = Tbar*C*Tbar';
+#     return C
+# end
+# function stressvectorrotation(::Type{DeforModelRed2DStrain}, Rm::FFltMat)
+#
+#     # Rm = columns are components of 'bar' basis vectors on the 'plain'
+#     #      basis vectors
+#     #
+#     # Calculate the rotation of the 'plain' stress vector to the
+#     # 'bar' coordinate system given by the columns of the rotation matrix Rm.
+#     #
+#     # Example:
+#     # The stress vector "stress" is given in the material coordinate
+#     # system defined by the orientation matrix Rm. The following two
+#     # transformations are equivalent:
+#     #
+#     #         t = stress_6v_to_3x3t (mat,stress);
+#     #         t = (Rm*t*Rm');# in global coordinate system
+#     #         t = (outputRm'*t*outputRm);# in output coordinate system
+#     #         stress =stress_3x3t_to_6v (mat,t);# in output coordinate system
+#     #
+#     #        stress =mat.stress_vector_rotation(outputRm)...
+#     #                  *mat.stress_vector_rotation(Rm')...
+#     #                      *stress;# in output coordinate system
+#
+#     a11=Rm[1,1]; a12=Rm[1,2];
+#     a21=Rm[2,1]; a22=Rm[2,2];
+#     # sigmax, sigmay, sigmaz, tauxy
+#     T =[[   a11^2    a21^2  0          2*a11*a21]
+#         [   a12^2    a22^2  0          2*a12*a22]
+#         [       0        0  1                  0]
+#         [ a11*a12  a21*a22  0  a11*a22 + a12*a21]];
+#     return T
+# end
+#
+# function strainvectorrotation(::Type{DeforModelRed2DStrain},  Rm::FFltMat)
+#     # Calculate the rotation matrix for a strain vector.
+#     #
+#     #   Tbar = strain_vector_rotation(self,Rm)
+#     #
+#     # Rm = columns are components of 'bar' basis vectors on the 'plain'
+#     #      basis vectors
+#     #
+#     # Calculate the rotation of the 'plain' strain vector to the
+#     # 'bar' coordinate system given by the columns of the rotation matrix Rm.
+#     #
+#
+#     a11=Rm[1,1]; a12=Rm[1,2];
+#     a21=Rm[2,1]; a22=Rm[2,2];
+#     Tbar =[ [     a11^2      a21^2  0            a11*a21]
+#            [     a12^2      a22^2  0            a12*a22]
+#            [         0          0  1                  0]
+#            [ 2*a11*a12  2*a21*a22  0  a11*a22 + a12*a21]];
+#     return Tbar
+# end
+# function strainvectorrotation(::Type{DeforModelRed3D}, Rm::FFltMat)
+#     # Calculate the rotation matrix for a strain vector.
+#     #
+#     #   Tbar = strain_vector_rotation(self,Rm)
+#     #
+#     # Rm = columns are components of 'bar' basis vectors on the 'plain'
+#     #      basis vectors
+#     #
+#     # Calculate the rotation of the 'plain' strain vector to the
+#     # 'bar' coordinate system given by the columns of the rotation matrix Rm.
+#     #
+#
+#     a11=Rm[1,1]; a12=Rm[1,2]; a13=Rm[1,3];
+#     a21=Rm[2,1]; a22=Rm[2,2]; a23=Rm[2,3];
+#     a31=Rm[3,1]; a32=Rm[3,2]; a33=Rm[3,3];
+#     Tbar =[
+#            [     a11^2     a21^2     a31^2           a11*a21           a11*a31           a21*a31]
+#            [     a12^2     a22^2     a32^2           a12*a22           a12*a32           a22*a32]
+#            [     a13^2     a23^2     a33^2           a13*a23           a13*a33           a23*a33]
+#            [ 2*a11*a12 2*a21*a22 2*a31*a32 a11*a22 + a12*a21 a11*a32 + a12*a31 a21*a32 + a22*a31]
+#            [ 2*a11*a13 2*a21*a23 2*a31*a33 a11*a23 + a13*a21 a11*a33 + a13*a31 a21*a33 + a23*a31]
+#            [ 2*a12*a13 2*a22*a23 2*a32*a33 a12*a23 + a13*a22 a12*a33 + a13*a32 a22*a33 + a23*a32]];
+#     return Tbar
+# end
