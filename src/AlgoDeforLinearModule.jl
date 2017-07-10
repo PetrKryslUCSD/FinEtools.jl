@@ -129,7 +129,7 @@ function linearstatics(modeldata::FDataDict)
     region = regions[i]
     dcheck!(region, regions_recognized_keys)
     femm = region["femm"];
-    # # Give the  FEMM a chance  to precompute  geometry-related quantities
+    # Give the  FEMM a chance  to precompute  geometry-related quantities
     femm = associategeometry!(femm, geom);
     # Add up all the conductivity matrices for all the regions
     K = K + stiffness(femm, geom, u);
@@ -623,8 +623,8 @@ function modal(modeldata::FDataDict)
     else
       femm = get(()->error("Must get femm or femm_stiffness!"), region, "femm")
     end
-    # # Give the  FEMM a chance  to precompute  geometry-related quantities
-    # region.femm = associate_geometry(region.femm,geom);
+    # Give the  FEMM a chance  to precompute  geometry-related quantities
+    femm = associategeometry!(femm, geom);
     # Add up all the stiffness matrices for all the regions
     K = K + stiffness(femm, geom, u);
   end
@@ -640,8 +640,8 @@ function modal(modeldata::FDataDict)
     else
       femm = get(()->error("Must get femm or femm_mass!"), region, "femm")
     end
-    # # Give the  FEMM a chance  to precompute  geometry-related quantities
-    # region.femm = associate_geometry(region.femm,geom);
+    # Give the  FEMM a chance  to precompute  geometry-related quantities
+    femm = associategeometry!(femm, geom);
     # Add up all the mass matrices for all the regions
     M = M + mass(femm, geom, u);
   end
