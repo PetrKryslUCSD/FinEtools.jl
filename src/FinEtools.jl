@@ -193,8 +193,8 @@ export stiffness, nzebcloadsstiffness, thermalstrainloads, mass,
 
 include("FEMMDeforLinearModule.jl")
 using FinEtools.FEMMDeforLinearModule
-FEMMDeforLinear
-stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
+export FEMMDeforLinear
+export stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
 
 include("FEMMDeforWinklerModule.jl")
 using FinEtools.FEMMDeforWinklerModule
