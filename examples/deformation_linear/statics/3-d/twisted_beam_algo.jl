@@ -70,6 +70,7 @@ function  Twisted_beam()
   nl = selectnode(fens, box = [L L -100*W 100*W -100*W 100*W],inflate = tolerance);
   theutip = mean(u.values[nl,:],1)
   println("displacement  = $(theutip[dir]) as compared to converged $uex")
+    println("normalized displacement  = $(theutip[dir]/uex*100) %")
 
   # Write out mesh with displacements
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam")
@@ -94,6 +95,8 @@ function  Twisted_beam()
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-ew",
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
+  vm  = modeldata["postprocessing"]["exported_fields"][1]
+  println("extremes of von Mises: $([minimum(vm.values),   maximum(vm.values)])")
 
   # Write out mesh with von Mises stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-ew",
