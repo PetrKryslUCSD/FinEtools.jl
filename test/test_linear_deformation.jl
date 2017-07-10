@@ -2182,7 +2182,7 @@ function test()
   # Extract the solution
   nl = selectnode(fens, box = [L L -100*W 100*W -100*W 100*W],inflate = tolerance);
   theutip = mean(u.values[nl,:],1)
-  println("displacement  = $(theutip[dir]) as compared to converged $uex")
+  # println("displacement  = $(theutip[dir]) as compared to converged $uex")
   @test abs(theutip[dir]-uex)/uex < 0.0012
 
   # Write out mesh with displacements
@@ -2207,7 +2207,7 @@ function test()
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
   vm  = modeldata["postprocessing"]["exported_fields"][1]
-  println("extremes of vm, nodal: $([minimum(vm.values),   maximum(vm.values)])")
+  # println("extremes of vm, nodal: $([minimum(vm.values),   maximum(vm.values)])")
   try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
   @test norm([minimum(vm.values),   maximum(vm.values)]-[4.78774, 522.126]) < 0.01
 
@@ -2216,8 +2216,8 @@ function test()
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
   vm  = modeldata["postprocessing"]["exported_fields"][1]
-  println("extremes of vm, elemental: $([minimum(vm.values),   maximum(vm.values)])")
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end 
+  # println("extremes of vm, elemental: $([minimum(vm.values),   maximum(vm.values)])")
+  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
   @test norm([minimum(vm.values),   maximum(vm.values)]-[1.85882, 522.126]) < 0.01
 
   # Write out mesh with von Mises stresses, elementwise
@@ -2230,3 +2230,60 @@ end
 end
 using mmtwistedmsh8mmmmmm
 mmtwistedmsh8mmmmmm.test()
+
+module mmunitmmccubemmvibrationmmms
+using FinEtools
+using Base.Test
+function test()
+
+  # println("""
+  # % Vibration modes of unit cube  of almost incompressible material.
+  # % Mean-strain hexahedron.
+  # % Reference: Puso MA, Solberg J (2006) A stabilized nodally integrated
+  # % tetrahedral. International Journal for Numerical Methods in
+  # % Engineering 67: 841-867.""")
+  t0 = time()
+
+
+  E = 1*phun("PA");
+  nu = 0.499;
+  rho= 1*phun("KG/M^3");
+  a=1*phun("M"); b=a; h= a;
+  n1=8 # How many element edges per side?
+  na= n1; nb= n1; nh =n1;
+  neigvs=20                   # how many eigenvalues
+  omega_shift=(0.1*2*pi)^2;
+
+  fens,fes = H8block(a,b,h, na,nb,nh)
+
+  # Make the region
+  MR = DeforModelRed3D
+  material = MatDeforElastIso(MR, rho, E, nu, 0.0)
+  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3,2)),
+    material), "femm_mass"=>FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3,3)),
+    material))
+
+  # Make model data
+  modeldata =  FDataDict(
+    "fens"=> fens, "regions"=>  [region1],
+    "omega_shift"=>omega_shift, "neigvs"=>neigvs)
+
+  # Solve
+  modeldata = FinEtools.AlgoDeforLinearModule.modal(modeldata)
+
+  fs = modeldata["omega"]/(2*pi)
+  # println("Eigenvalues: $fs [Hz]")
+  @test norm(fs-[1.92866e-7, 2.07497e-7, 2.16105e-7, 2.31656e-7, 2.35711e-7, 2.53067e-7, 0.266016, 0.266016, 0.364001, 0.364001, 0.364001, 0.366888, 0.366888, 0.366888, 0.415044, 0.415044, 0.41703, 0.467364, 0.467364, 0.467364]) < 0.0001
+
+  modeldata["postprocessing"] = FDataDict("file"=>"unit_cube_mode",
+    "mode"=>10)
+  modeldata=FinEtools.AlgoDeforLinearModule.exportmode(modeldata)
+  # @async run(`"paraview.exe" $(modeldata["postprocessing"]["file"]*"1.vtk")`)
+  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+
+  true
+
+end
+end
+using mmunitmmccubemmvibrationmmms
+mmunitmmccubemmvibrationmmms.test()
