@@ -503,7 +503,7 @@ function exportstresselementwise(modeldata::FDataDict)
         vectors=[("u", u.values)])
     end
     push!(modeldata["postprocessing"]["exported_files"], rfile)
-    push!(modeldata["postprocessing"]["exported_fields"], u)
+    push!(modeldata["postprocessing"]["exported_fields"], fld)
   end
 
   return modeldata
