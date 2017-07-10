@@ -212,6 +212,7 @@ export strain2x2tto3v!
 export strain3vto2x2t!
 export strain3x3tto6v!
 export strain6vto3x3t!
+export strain9vto3x3t!, strain3x3tto9v!
 export stress2x2to3v!
 export stress3vto2x2t!
 export stress3vto3x3t!
@@ -220,7 +221,7 @@ export stress6vto3x3t!
 export stress3x3tto6v!
 export strain9vto6v!
 export strain6vto9v!
-export stress9vto6v!
+export stress9vto6v!,  stress6vto9v!
 export rotstressvec
 export strainvectorrotation
 export rotatestiffness!

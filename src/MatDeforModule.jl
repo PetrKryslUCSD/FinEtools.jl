@@ -7,9 +7,9 @@ module MatDeforModule
 
 export MatDefor
 export strain2x2tto3v!, strain3vto2x2t!, strain3x3tto6v!, strain6vto3x3t!,
-       strain9vto6v!, strain6vto9v!
+       strain9vto6v!, strain6vto9v!, strain9vto3x3t!, strain3x3tto9v!
 export stress2x2to3v!, stress3vto2x2t!, stress3vto3x3t!, stress4vto3x3t!,
-       stress6vto3x3t!, stress3x3tto6v!, stress9vto6v!
+       stress6vto3x3t!, stress3x3tto6v!, stress9vto6v!,  stress6vto9v!
 export rotstressvec, strainvectorrotation, stressvectorrotation,
        rotatecompliance!, rotatestiffness!
 
@@ -78,6 +78,48 @@ function strain6vto3x3t!(t::FFltMat, v::FFltVec)
   t[3,1] = v[5]/2.;
   t[3,2] = v[6]/2.;
   t[2,3] = v[6]/2.;
+  return t
+end
+
+"""
+    strain3x3tto9v!(v::FFltVec, t::FFltMat)
+
+Convert a matrix of 3x3 strain components to a 9-component vector.
+
+The  strain components are in the order
+     ex, ey, ez, gxy, gyx, gyz, gzy, gxz, gzx
+"""
+function strain3x3tto9v!(v::FFltVec, t::FFltMat)
+  v[1] = t[1,1];
+  v[2] = t[2,2];
+  v[3] = t[3,3];
+  v[4] = t[1,2];
+  v[5] = t[2,1];
+  v[6] = t[2,3];
+  v[7] = t[3,2];
+  v[8] = t[1,3];
+  v[9] = t[3,1];
+  return v
+end
+
+"""
+    strain9vto3x3t!(v::FFltVec, t::FFltMat)
+
+Convert a matrix of 3x3 strain components to a 9-component vector.
+
+The  strain components are in the order
+     ex, ey, ez, gxy, gyx, gyz, gzy, gxz, gzx
+"""
+function strain9vto3x3t!(t::FFltMat, v::FFltVec)
+  t[1,1] = v[1];
+  t[2,2] = v[2];
+  t[3,3] = v[3];
+  t[1,2] = v[4];
+  t[2,1] = v[5];
+  t[2,3] = v[6];
+  t[3,2] = v[7];
+  t[1,3] = v[8];
+  t[3,1] = v[9];
   return t
 end
 
@@ -196,6 +238,9 @@ end
     strain6vto9v!(t::FFltVec, v::FFltVec)
 
 Convert a strain 6-vector to a  strain 9-vector components (tensor).
+
+The  strain components are in the order
+     ex, ey, ez, gxy/2, gxy/2, gyz/2, gyz/2, gxz/2, gxz/2
 """
 function strain6vto9v!(t::FFltVec, v::FFltVec)
   t[1] = v[1];
@@ -213,15 +258,39 @@ end
 """
     stress9vto6v!(t::FFltVec, v::FFltVec)
 
-Convert a stress 9-vector to a  stress 6-vector components (tensor).
+Convert a stress 9-vector (tensor) to a  stress 6-vector components.
+
+The  stress components are in the order
+     sigx, sigy, sigz, tauxy, tauxy, tauyz, tauyz, tauxz, tauxz
 """
 function stress9vto6v!(t::FFltVec, v::FFltVec)
   t[1] = v[1];
   t[2] = v[2];
   t[3] = v[3];
   t[4] = v[4];
-  t[5] = v(8);
+  t[5] = v[8];
   t[6] = v[6];
+  return t
+end
+
+"""
+    stress6vto9v!(t::FFltVec, v::FFltVec)
+
+Convert a stress 6-vector to a  stress 9-vector components (tensor).
+
+The  stress components are in the order
+     sigx, sigy, sigz, tauxy, tauxy, tauyz, tauyz, tauxz, tauxz
+"""
+function stress6vto9v!(t::FFltVec, v::FFltVec)
+  t[1] = v[1];
+  t[2] = v[2];
+  t[3] = v[3];
+  t[4] = v[4];
+  t[5] = v[4];
+  t[6] = v[6];
+  t[7] = v[6];
+  t[8] = v[5];
+  t[9] = v[5];
   return t
 end
 
