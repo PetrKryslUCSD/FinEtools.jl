@@ -124,20 +124,20 @@ function  myunique2(A::FIntMat) # speeded up; now the bottleneck is mysortrows
     return Out
 end
 
-### This code is correct, but very slow.
-function  myunique1(A::FIntMat)
-    maxA=maximum(A[:])
-    sA=sort(A,2);# most time spent here
-    sA= [sA (1:size(A,1))+maxA]
-    sA  = sortrows(sA);;#and here
-    rix=sA[:,end]; rix=rix[:]-maxA;
-    sA=sA[:,1:end-1];
-    d=(sA[1:end-1,:].!=sA[2:end,:]); # element-wise comparison!
-    ad=map((x) -> (x ? 1 : 0),[true; any(d,2)]);
-    iu =map((x) -> (x>1 ? true: false),(ad + [ad[2:end];1]));
-    Out =A[rix[iu[:]],:];
-    return Out
-end
+# ### This code is correct, but very slow.
+# function  myunique1(A::FIntMat)
+#     maxA=maximum(A[:])
+#     sA=sort(A,2);# most time spent here
+#     sA= [sA (1:size(A,1))+maxA]
+#     sA  = sortrows(sA);;#and here
+#     rix=sA[:,end]; rix=rix[:]-maxA;
+#     sA=sA[:,1:end-1];
+#     d=(sA[1:end-1,:].!=sA[2:end,:]); # element-wise comparison!
+#     ad=map((x) -> (x ? 1 : 0),[true; any(d,2)]);
+#     iu =map((x) -> (x>1 ? true: false),(ad + [ad[2:end];1]));
+#     Out =A[rix[iu[:]],:];
+#     return Out
+# end
 
 """
     fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance:: FFlt)
