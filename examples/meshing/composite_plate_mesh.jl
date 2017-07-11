@@ -1,7 +1,7 @@
 using FinEtools
 
 println("""
-Meshing  for an elliptical hole in a finite strip.
+Meshing  for a composite plate.
 """)
 
 t0 = time()

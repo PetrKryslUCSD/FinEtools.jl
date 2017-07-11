@@ -5,7 +5,7 @@ Module for mesh modification operations.
 """
 module MeshModificationModule
 
-export  meshboundary,  fusenodes,  compactnodes,  mergemeshes,  mergenmeshes!,
+export  meshboundary,  fusenodes,  compactnodes,  mergemeshes,  mergenmeshes,
   mergenodes,  renumberconn!,  vsmoothing,  meshsmoothing,  mirrormesh
 
 using FinEtools.FTypesModule
@@ -297,48 +297,37 @@ function mergemeshes(fens1::FENodeSet, fes1::T1,
   return fens, newfes1, fes2
 end
 
-function mergenmeshes!(fensa, fesa, tolerance::FFlt)
-#     Merge several meshes together.
-# %
-# function [fens,fesa] = merge_n_meshes(fensa, fesa, tolerance)
-# %
-# Merge several meshes together either by simple concatenation of nodes or by
-# gluing together nodes within tolerance.
-# %
-# Inputs:
-# fensa= cell array of node sets, one for each mesh;
-# fesa= cell array of finite element sets, one for each mesh;
-# tolerance= Geometric tolerance, maybe supplied as zero (>=0).
-# %
-# The meshes are glued together by
-# merging the nodes that fall within a box of size "tolerance". If tolerance
-# is set to zero, no merging of nodes is performed; the nodes from the meshes are
-# simply concatenated together.
-# %
-# The merged node set, fens, and the cell array of finite element sets with
-# renumbered  connectivities are returned.
-# %
-# Outputs:
-# fens= merged node set,
-# fesa= cell array of finite element sets updated to use the merged node set.
-# %
-# %
-# See also: merge_meshes
+"""
+    mergenmeshes(meshes::Array{Tuple{FENodeSet, FESet}}, tolerance::FFlt)
 
+Merge several meshes together.
 
-    if (length(fensa))!=(length(fesa))
-        error("(length(fensa))!=(length(fesa))");
-    end
-    if (length(fensa))==1
-        fens=fensa[1];
-        return fens,fesa        # There is nothing to be done: this is a single mesh
-    end
-    fens=fensa[1];
-    for j=2:length(fesa)
-        fens,new_indexes_of_fens1_nodes = fusenodes(fensa[j], fens, tolerance);
-        FESetModule.updateconn!(fesa[j],new_indexes_of_fens1_nodes);
-    end
-    return fens,fesa
+The meshes are glued together by
+merging the nodes that fall within a box of size "`tolerance`". If `tolerance`
+is set to zero, no merging of nodes is performed; the nodes from the meshes are
+simply concatenated together.
+
+## Output
+The merged node set, fens, and the array of finite element sets with
+renumbered  connectivities are returned.
+"""
+function mergenmeshes(meshes::Array{Tuple{FENodeSet, FESet}}, tolerance::FFlt)
+  outputfes = Array{FESet,1}()
+  if (length(meshes)) == 1 # A single mesh, package output and return
+    fens, fes = meshes[1];
+    push!(outputfes, fes)
+    return fens, outputfes
+  end
+  # Multiple meshes: process
+  fens, fes = meshes[1];
+  push!(outputfes, fes)
+  for j=2:length(meshes)
+    fens1, fes1 = meshes[j];
+    fens, new_indexes_of_fens1_nodes = fusenodes(fens1, fens, tolerance);
+    FESetModule.updateconn!(fes1,new_indexes_of_fens1_nodes);
+    push!(outputfes, fes1)
+  end
+  return fens, outputfes
 end
 
 """

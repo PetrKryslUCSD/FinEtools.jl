@@ -77,7 +77,7 @@ using FinEtools.MeshImportModule
 
 include("MeshModificationModule.jl")
 using FinEtools.MeshModificationModule
-export meshboundary, fusenodes, compactnodes, mergemeshes, mergenmeshes!,
+export meshboundary, fusenodes, compactnodes, mergemeshes, mergenmeshes,
   mergenodes, renumberconn!, meshsmoothing, mirrormesh
 
 include("MeshQuadrilateralModule.jl")
