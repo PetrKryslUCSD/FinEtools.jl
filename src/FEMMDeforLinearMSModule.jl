@@ -58,7 +58,7 @@ mutable struct FEMMDeforLinearMSH8{MR<:DeforModelRed,
 end
 
 function make_stabilization_material(material::M) where {M}
-  ns = fieldnames(material)
+  ns = fieldnames(typeof(material))
   E = 0.0; nu = 0.0
   if :E in ns
     E = material.E
