@@ -226,7 +226,7 @@ called just once for all the finite elements.
 
 -- inspectintegpoints:  the inspector function has been redefined.  The
 arguments are different.  The description needs to be updated and all references
-need to be updated.
+need to be updated. Implemented: July 2017.
 
 --- Methods that  fill a buffer should also  return the buffer as a convenience.
 Apparently, that is the Julia convention.
@@ -244,10 +244,12 @@ end
 -- Instead of "restart" use  https://github.com/timholy/Revise.jl
 
 -- Should algorithms print out anything (for instance warnings)?
+Option: return aan error status as part of the model data.
 
 -- Use static arrays (stack-allocated) in the material update methods.
 
 -- rotatestiffness!   Should probably be redesigned for efficiency
+On hold.  07/22/2017
 
 -- Atom packages
 Julia-cclient
@@ -262,3 +264,10 @@ using IJulia; notebook(detached=true)
 
 
 -- atom --clear-window-state
+
+-- Start notebook:
+function examples()
+  path = joinpath(@__DIR__,"..","examples")
+  @eval using IJulia
+  @eval notebook(dir=$path)
+end
