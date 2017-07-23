@@ -13,6 +13,12 @@ Finite Element tools in Julia
 
 ![Alt Sample mesh](http://hogwarts.ucsd.edu/~pkrysl/site.images/ScreenHunter_31%20Feb.%2009%2020.54.jpg "FinEtools.jl")
 
+## News
+
+- 07/23/2017: Export of the finite element model to Abaqus  CAE (from Daussault Systems)
+has been implemented. The FinEtools package can of course  handle the finite element calculations that the export enables, but the point is to have an independent verification of the results. Export of continuum-element meshes for  vibration and static stress analysis  is currently included.
+
+
 ## Get FinEtools
 
 Since  this package is not registered, please use cloning:
