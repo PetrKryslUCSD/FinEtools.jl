@@ -219,4 +219,7 @@ using FinEtools.AlgoHeatDiffModule
 include("AlgoDeforLinearModule.jl")
 using FinEtools.AlgoDeforLinearModule
 
+include("AbaqusExportModule.jl")
+using FinEtools.AbaqusExportModule
+
 end
