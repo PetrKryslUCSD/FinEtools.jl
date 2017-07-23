@@ -71,99 +71,104 @@ import Base.open
 import Base.close
 
 export AbaqusExporter
-export open, close
+export close
 export HEADING
 export PART, END_PART, ASSEMBLY, END_ASSEMBLY, INSTANCE, END_INSTANCE
 export NODE, ELEMENT, NSET_NSET, ELSET_ELSET, ORIENTATION, MATERIAL,
-  ELASTIC, ELASTIC_ISOTROPIC, DENSITY, SECTION_CONTROLS
+  ELASTIC, ELASTIC_ISOTROPIC, DENSITY, SECTION_CONTROLS, SOLID_SECTION,
+  SURFACE_SECTION
+export STEP_PERTURBATION_STATIC, BOUNDARY, DLOAD, CLOAD, NODE_PRINT, EL_PRINT,
+  ENERGY_PRINT, END_STEP
+
+mutable struct AbaqusExporter
+  ios::IOStream
+  element_range::Tuple{Int64, Int64}
+  function AbaqusExporter(filename::AbstractString)
+    ios = open(filename * ".inp","w+")
+    return new(ios, (typemax(Int64), 0))
+  end
+end
 
 """
-    AbaqusExporter(filename::AbstractString)
-
-Open an output stream for the Abaqus export.
-"""
-AbaqusExporter(filename::AbstractString) = open(filename * ".inp","w+")
-
-"""
-    HEADING(self::IOStream, Text::AbstractString)
+    HEADING(self::AbaqusExporter, Text::AbstractString)
 
 Write out the `*HEADING` option.
 """
-function HEADING(self::IOStream, Text::AbstractString)
-  println(self, "*HEADING");
-  println(self, Text)
+function HEADING(self::AbaqusExporter, Text::AbstractString)
+  println(self.ios, "*HEADING");
+  println(self.ios, Text)
 end
 
 """
-    PART(self::IOStream, NAME::AbstractString)
+    PART(self::AbaqusExporter, NAME::AbstractString)
 
 Write out the `*PART` option.
 """
-function PART(self::IOStream, NAME::AbstractString)
-  println(self, "*PART, NAME=" * NAME)
+function PART(self::AbaqusExporter, NAME::AbstractString)
+  println(self.ios, "*PART, NAME=" * NAME)
 end
 
 """
-    END_PART(self::IOStream)
+    END_PART(self::AbaqusExporter)
 
 Write out the `*END PART` option.
 """
-function END_PART(self::IOStream)
-  println(self, "*END PART")
+function END_PART(self::AbaqusExporter)
+  println(self.ios, "*END PART")
 end
 
 """
-    ASSEMBLY(self::IOStream, NAME::AbstractString)
+    ASSEMBLY(self::AbaqusExporter, NAME::AbstractString)
 
 Write out the `*ASSEMBLY` option.
 """
-function ASSEMBLY(self::IOStream, NAME::AbstractString)
-  println(self, "*ASSEMBLY, NAME=" * NAME)
+function ASSEMBLY(self::AbaqusExporter, NAME::AbstractString)
+  println(self.ios, "*ASSEMBLY, NAME=" * NAME)
 end
 
 """
-    END_ASSEMBLY(self::IOStream)
+    END_ASSEMBLY(self::AbaqusExporter)
 
 Write out the `*END ASSEMBLY` option.
 """
-function END_ASSEMBLY(self::IOStream)
-  println(self, "*END ASSEMBLY")
+function END_ASSEMBLY(self::AbaqusExporter)
+  println(self.ios, "*END ASSEMBLY")
 end
 
 """
-    INSTANCE(self::IOStream, NAME::AbstractString, PART::AbstractString)
+    INSTANCE(self::AbaqusExporter, NAME::AbstractString, PART::AbstractString)
 
 Write out the `*INSTANCE` option.
 """
-function INSTANCE(self::IOStream, NAME::AbstractString, PART::AbstractString)
-  println(self, "*INSTANCE, NAME=" * NAME * ", PART=" * PART)
+function INSTANCE(self::AbaqusExporter, NAME::AbstractString, PART::AbstractString)
+  println(self.ios, "*INSTANCE, NAME=" * NAME * ", PART=" * PART)
 end
 
 """
-    END_INSTANCE(self::IOStream)
+    END_INSTANCE(self::AbaqusExporter)
 
 Write out the `*END INSTANCE` option.
 """
-function END_INSTANCE(self::IOStream)
-  println(self, "*END INSTANCE")
+function END_INSTANCE(self::AbaqusExporter)
+  println(self.ios, "*END INSTANCE")
 end
 
 """
-    NODE(self::IOStream, xyz::AbstractArray{T, 2}) where {T}
+    NODE(self::AbaqusExporter, xyz::AbstractArray{T, 2}) where {T}
 
 Write out the `*NODE` option.
 
 `xyz`=array of node coordinates
 """
-function NODE(self::IOStream, xyz::AbstractArray{T, 2}) where {T}
-  println(self, "*NODE")
+function NODE(self::AbaqusExporter, xyz::AbstractArray{T, 2}) where {T}
+  println(self.ios, "*NODE")
   for j = 1:size(xyz,1)
-    println(self, "$j,$(xyz[j, 1]),$(xyz[j, 2]),$(xyz[j, 3])")
+    println(self.ios, "$j,$(xyz[j, 1]),$(xyz[j, 2]),$(xyz[j, 3])")
   end
 end
 
 """
-    ELEMENT(self::IOStream, TYPE::AbstractString, ELSET::AbstractString,
+    ELEMENT(self::AbaqusExporter, TYPE::AbstractString, ELSET::AbstractString,
       start::Integer, conn::AbstractArray{T, 2}) where {T<:Integer}
 
 Write out the `*ELEMENT` option.
@@ -173,30 +178,32 @@ Write out the `*ELEMENT` option.
 `start`= start the element numbering at this integer,
 `conn`= connectivity array for the elements, one row per element
 """
-function ELEMENT(self::IOStream, TYPE::AbstractString, ELSET::AbstractString,
+function ELEMENT(self::AbaqusExporter, TYPE::AbstractString, ELSET::AbstractString,
   start::Integer, conn::AbstractArray{T, 2}) where {T<:Integer}
-  println(self, "*ELEMENT, TYPE =" * TYPE * ", ELSET=" * ELSET)
-  nn9=size(conn,2); nn8=min(nn9,15);
+  # Check that start is valid
+  @assert start > 0 "The  starting element number must be > 0"
+  # Check that the current element number range is disjoint from the
+  # range of the elements on input: they must not overlap
+  @assert (self.element_range[2] < start) ||
+          (self.element_range[1] > start+size(conn, 1)-1) "Elements  must be given unique numbers"
+  # Update the element range
+  self.element_range = (min(self.element_range[1], start),
+                        max(self.element_range[2], start+size(conn, 1)-1))
+  println(self.ios, "*ELEMENT, TYPE =" * TYPE * ", ELSET=" * ELSET)
   for j=1:size(conn,1)
-    print(self, "$(j+start-1)")
-    for ixxxx = 1:min(15, size(conn,2))
-      print(self, ",$(conn[j,ixxxx])")
-    end
-    if (nn9>15)
-      print(self, ",\n")
-      for ixxxx = 15+1:size(conn,2)-1
-        print(self, "$(conn[j,ixxxx]),")
+    print(self.ios, "$(j+start-1),")
+    for ixxxx = 1:size(conn,2)-1
+      if ixxxx>15
+        print(self.ios, "\n")
       end
-      for ixxxx = size(conn,2)
-        print(self, "$(conn[j,ixxxx])")
-      end
+      print(self.ios, "$(conn[j,ixxxx]),")
     end
-    print(self, "\n")
+    print(self.ios, "$(conn[j,size(conn,2)])\n")
   end
 end
 
 """
-    NSET_NSET(self::IOStream, NSET::AbstractString,
+    NSET_NSET(self::AbaqusExporter, NSET::AbstractString,
       n::AbstractVector{T}) where {T<:Integer}
 
 Write out the `*NSET` option.
@@ -204,87 +211,89 @@ Write out the `*NSET` option.
 `NSET` = name of the set,
 `n` = array of the node numbers
 """
-function NSET_NSET(self::IOStream, NSET::AbstractString, n::AbstractVector{T}) where {T<:Integer}
-  println(self, "*NSET, NSET=" * NSET)
+function NSET_NSET(self::AbaqusExporter, NSET::AbstractString, n::AbstractVector{T}) where {T<:Integer}
+  println(self.ios, "*NSET, NSET=" * NSET)
   for j=1:length(n)-1
-    println(self, "$(n[j]),")
+    println(self.ios, "$(n[j]),")
   end
-  println(self, "$(n[length(n)])")
+  println(self.ios, "$(n[length(n)])")
 end
 
 """
-    ELSET_ELSET(self::IOStream, ELSET::AbstractString, n::AbstractArray{T, 1}) where {T<:Integer}
+    ELSET_ELSET(self::AbaqusExporter, ELSET::AbstractString, n::AbstractArray{T, 1}) where {T<:Integer}
 
 Write out the `*ELSET` option.
 
 `ELSET` = name of the set,
 `n` = array of the node numbers
 """
-function ELSET_ELSET(self::IOStream, ELSET::AbstractString, n::AbstractArray{T, 1}) where {T<:Integer}
-  println(self, "*ELSET, ELSET=" * ELSET)
+function ELSET_ELSET(self::AbaqusExporter, ELSET::AbstractString, n::AbstractArray{T, 1}) where {T<:Integer}
+  println(self.ios, "*ELSET, ELSET=" * ELSET)
   for j=1:length(n)-1
-    println(self, "$(n[j]),")
+    println(self.ios, "$(n[j]),")
   end
-  println(self, "$(n[length(n)])")
+  println(self.ios, "$(n[length(n)])")
 end
 
 """
-    ORIENTATION(self::IOStream, ORIENTATION::AbstractString,
+    ORIENTATION(self::AbaqusExporter, ORIENTATION::AbstractString,
       a::AbstractArray{T,1}, b::AbstractArray{T,1})
 
 Write out the `*ORIENTATION` option.
+
+Invoke at level: Part,  Part instance,  Assembly
 """
-function ORIENTATION(self::IOStream, ORIENTATION::AbstractString,
+function ORIENTATION(self::AbaqusExporter, ORIENTATION::AbstractString,
   a::AbstractArray{T,1}, b::AbstractArray{T,1}) where {T<:Real}
-  println(self, "*ORIENTATION,NAME=" * ORIENTATION)
-  println(self, "$(a[1]),$(a[2]),$(a[3]),$(b[1]),$(b[2]),$(b[3])")
-  println(self, "1.0, 0.0")
+  println(self.ios, "*ORIENTATION,NAME=" * ORIENTATION)
+  println(self.ios, "$(a[1]),$(a[2]),$(a[3]),$(b[1]),$(b[2]),$(b[3])")
+  println(self.ios, "1,0.0")
 end
 
 """
-    MATERIAL(self::IOStream, MATERIAL::AbstractString)
+    MATERIAL(self::AbaqusExporter, MATERIAL::AbstractString)
 
 Write out the `*MATERIAL` option.
 """
-function MATERIAL(self::IOStream, MATERIAL::AbstractString)
-  println(self, "*MATERIAL,NAME=" * MATERIAL);
+function MATERIAL(self::AbaqusExporter, MATERIAL::AbstractString)
+  println(self.ios, "*MATERIAL,NAME=" * MATERIAL);
 end
 
 """
-    ELASTIC(self::IOStream, E1::F, E2::F, E3::F, nu12::F, nu13::F, nu23::F,
+    ELASTIC(self::AbaqusExporter, E1::F, E2::F, E3::F, nu12::F, nu13::F, nu23::F,
       G12::F, G13::F, G23::F) where {F}
 
 Write out the `*ELASTIC,TYPE=ENGINEERING CONSTANTS` option.
 """
-function ELASTIC(self::IOStream, E1::F, E2::F, E3::F, nu12::F, nu13::F, nu23::F,
+function ELASTIC(self::AbaqusExporter, E1::F, E2::F, E3::F, nu12::F, nu13::F, nu23::F,
   G12::F, G13::F, G23::F) where {F}
-  println(self, "*ELASTIC,TYPE=ENGINEERING CONSTANTS");
-  println(self, "$E1,$E2,$E3,$nu12,$nu13,$nu23,$G12,$G13,");
-  println(self, "$G23");
+  println(self.ios, "*ELASTIC,TYPE=ENGINEERING CONSTANTS");
+  println(self.ios, "$E1,$E2,$E3,$nu12,$nu13,$nu23,$G12,$G13,");
+  println(self.ios, "$G23");
 end
 
 """
-    ELASTIC(self::IOStream, E::F, nu::F) where {F}
-    
+    ELASTIC(self::AbaqusExporter, E::F, nu::F) where {F}
+
 Write out the `*ELASTIC,TYPE=ISOTROPIC` option.
 """
-function ELASTIC(self::IOStream, E::F, nu::F) where {F}
-  println(self, "*ELASTIC,TYPE=ISOTROPIC ");
-  println(self, "$E,$nu");
+function ELASTIC(self::AbaqusExporter, E::F, nu::F) where {F}
+  println(self.ios, "*ELASTIC,TYPE=ISOTROPIC ");
+  println(self.ios, "$E,$nu");
 end
 
 """
-    DENSITY(self::IOStream, rho)
+    DENSITY(self::AbaqusExporter, rho)
 
 Write out the `*DENSITY` option.
 """
-function DENSITY(self::IOStream, rho)
-  println(self, "*DENSITY ");
-  println(self, "$rho");
+function DENSITY(self::AbaqusExporter, rho)
+  println(self.ios, "*DENSITY ");
+  println(self.ios, "$rho");
 end
 
 """
-    SECTION_CONTROLS(self::IOStream, NAME::AbstractString,
+    SECTION_CONTROLS(self::AbaqusExporter, NAME::AbstractString,
       OPTIONAL::AbstractString)
 
 Write out the `*SECTION CONTROLS` option.
@@ -292,33 +301,36 @@ Write out the `*SECTION CONTROLS` option.
 `OPTIONAL` = string, for instance
                      HOURGLASS=ENHANCED
 """
-function SECTION_CONTROLS(self::IOStream, NAME::AbstractString,
+function SECTION_CONTROLS(self::AbaqusExporter, NAME::AbstractString,
   OPTIONAL::AbstractString)
-  println(self, "*SECTION CONTROLS, NAME=" * NAME * "," * OPTIONAL);
+  println(self.ios, "*SECTION CONTROLS, NAME=" * NAME * "," * OPTIONAL);
 end
 
 """
-    SOLID_SECTION(self::IOStream, MATERIAL::AbstractString,
+    SOLID_SECTION(self::AbaqusExporter, MATERIAL::AbstractString,
       ORIENTATION::AbstractString, ELSET::AbstractString,
       CONTROLS::AbstractString)
 
 Write out the `*SOLID SECTION` option.
+
+Level: Part,  Part instance
+
 """
-function SOLID_SECTION(self::IOStream, MATERIAL::AbstractString,
+function SOLID_SECTION(self::AbaqusExporter, MATERIAL::AbstractString,
   ORIENTATION::AbstractString, ELSET::AbstractString,
   CONTROLS::AbstractString)
   if "CONTROLS" == ""
-    println(self, "*SOLID SECTION,MATERIAL=" * MATERIAL *
+    println(self.ios, "*SOLID SECTION,MATERIAL=" * MATERIAL *
       ",ORIENTATION =" * ORIENTATION * ",ELSET=" * ELSET);
   else
-    println(self, "*SOLID SECTION,MATERIAL=" * MATERIAL *
+    println(self.ios, "*SOLID SECTION,MATERIAL=" * MATERIAL *
       ",ORIENTATION =" * ORIENTATION * ",ELSET=" * ELSET *
       ", CONTROLS  =" * CONTROLS);
   end
 end
 
 """
-    HOURGLASS(self::IOStream, KIND::AbstractString, VALUE::F) where {F}
+    HOURGLASS(self::AbaqusExporter, KIND::AbstractString, VALUE::F) where {F}
 
 Write out the `*HOURGLASS` option.
 
@@ -329,54 +341,54 @@ Example:
 5.E8
 ```
 """
-function HOURGLASS(self::IOStream, KIND::AbstractString, VALUE::F) where {F}
-  println(self, "*HOURGLASS " * KIND);
-  println(self, "$( VALUE )");
+function HOURGLASS(self::AbaqusExporter, KIND::AbstractString, VALUE::F) where {F}
+  println(self.ios, "*HOURGLASS " * KIND);
+  println(self.ios, "$( VALUE )");
 end
 
 """
-    SURFACE_SECTION(self::IOStream, ELSET::AbstractString)
+    SURFACE_SECTION(self::AbaqusExporter, ELSET::AbstractString)
 
 Write out the `*SURFACE SECTION` option.
 """
-function SURFACE_SECTION(self::IOStream, ELSET::AbstractString)
-  println(self, "*SURFACE SECTION, ELSET=" * ELSET);
+function SURFACE_SECTION(self::AbaqusExporter, ELSET::AbstractString)
+  println(self.ios, "*SURFACE SECTION, ELSET=" * ELSET);
 end
 
 """
-    STEP_PERTURBATION_STATIC(self::IOStream)
+    STEP_PERTURBATION_STATIC(self::AbaqusExporter)
 
 Write out the `*STEP,PERTURBATION` option for linear static analysis.
 """
-function STEP_PERTURBATION_STATIC(self::IOStream)
-  println(self, "*STEP,PERTURBATION");
-  println(self, "*STATIC");
+function STEP_PERTURBATION_STATIC(self::AbaqusExporter)
+  println(self.ios, "*STEP,PERTURBATION");
+  println(self.ios, "*STATIC");
 end
 
 """
-    STEP_PERTURBATION_BUCKLE(self::IOStream, neigv::Integer)
+    STEP_PERTURBATION_BUCKLE(self::AbaqusExporter, neigv::Integer)
 
 Write out the `*STEP,PERTURBATION` option for linear buckling analysis.
 """
-function STEP_PERTURBATION_BUCKLE(self::IOStream, neigv::Integer)
-  println(self, "*STEP, name=Buckling, nlgeom=NO, perturbation");
-  println(self, "*BUCKLE");
-  println(self, "$(neigv), , , , ");
+function STEP_PERTURBATION_BUCKLE(self::AbaqusExporter, neigv::Integer)
+  println(self.ios, "*STEP, name=Buckling, nlgeom=NO, perturbation");
+  println(self.ios, "*BUCKLE");
+  println(self.ios, "$(neigv), , , , ");
 end
 
 """
-    STEP_FREQUENCY(self::IOStream, Nmodes::Integer)
+    STEP_FREQUENCY(self::AbaqusExporter, Nmodes::Integer)
 
 Write out the `*STEP,FREQUENCY` option.
 """
-function STEP_FREQUENCY(self::IOStream, Nmodes::Integer)
-  println(self, "*STEP");
-  println(self, "*FREQUENCY, EIGENSOLVER=LANCZOS");
-  println(self, "$(Nmodes), , ,-1.E6 \n");
+function STEP_FREQUENCY(self::AbaqusExporter, Nmodes::Integer)
+  println(self.ios, "*STEP");
+  println(self.ios, "*FREQUENCY, EIGENSOLVER=LANCZOS");
+  println(self.ios, "$(Nmodes), , ,-1.E6 \n");
 end
 
 """
-    BOUNDARY(self::IOStream, is_fixed::AbstractArray{B,2},
+    BOUNDARY(self::AbaqusExporter, is_fixed::AbstractArray{B,2},
       fixed_value::AbstractArray{F,2}) where {B, F}
 
 Write out the `*BOUNDARY` option.
@@ -384,34 +396,36 @@ Write out the `*BOUNDARY` option.
 `is_fixed`= array of Boolean flags (true means fixed, or prescribed),  one row per node,
 `fixed_value`=array of displacements to which the corresponding displacement components is fixed
 """
-function BOUNDARY(self::IOStream, is_fixed::AbstractArray{B,2},
+function BOUNDARY(self::AbaqusExporter, is_fixed::AbstractArray{B,2},
   fixed_value::AbstractArray{F,2}) where {B, F}
-  println(self, "*BOUNDARY");
+  println(self.ios, "*BOUNDARY");
   for j=1:size(is_fixed,1)
     for k=1:size(is_fixed,2)
       #<node number>, <first dof>, <last dof>, <magnitude of displacement>
       if is_fixed[j,k]
-        println(self, "$j,$k,$k,$fixed_value[j,k]");
+        println(self.ios, "$j,$k,$k,$fixed_value[j,k]");
       end
     end
   end
 end
 
 """
-    BOUNDARY(self::IOStream, NSET::AbstractString, dof::Integer)
+    BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer)
 
 Write out the `*BOUNDARY` option to fix displacements at zero for a node set.
+
+Invoke at Level: Model,  Step
 
 `NSET`= node set,
 `dof`=Degree of freedom, 1, 2, 3
 """
-function BOUNDARY(self::IOStream, NSET::AbstractString, dof::Integer)
-  println(self, "*BOUNDARY");
-  println(self, NSET * ",$dof");
+function BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer)
+  println(self.ios, "*BOUNDARY");
+  println(self.ios, NSET * ",$dof");
 end
 
 """
-    BOUNDARY(self::IOStream, NSET::AbstractString, dof::Integer,
+    BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer,
       value::F) where {F}
 
 Write out the `*BOUNDARY` option to fix displacements at nonzero value for a
@@ -420,27 +434,27 @@ node set.
 `NSET`= node set,
 `dof`=Degree of freedom, 1, 2, 3
 """
-function BOUNDARY(self::IOStream, NSET::AbstractString, dof::Integer, value::F) where {F}
-  println(self, "*BOUNDARY,TYPE=DISPLACEMENT");
-  println(self, NSET * ",$dof,$dof,$value");
+function BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer, value::F) where {F}
+  println(self.ios, "*BOUNDARY,TYPE=DISPLACEMENT");
+  println(self.ios, NSET * ",$dof,$dof,$value");
 end
 
 """
-    DLOAD(self::IOStream, ELSET::AbstractString,
+    DLOAD(self::AbaqusExporter, ELSET::AbstractString,
       traction::AbstractVector{F}) where {F}
 
 Write out the `*DLOAD` option.
 """
-function DLOAD(self::IOStream, ELSET::AbstractString,
+function DLOAD(self::AbaqusExporter, ELSET::AbstractString,
   traction::AbstractVector{F}) where {F}
-  println(self, "*DLOAD, follower=NO");
+  println(self.ios, "*DLOAD, follower=NO");
   nt = norm(traction)
-  print(self, ELSET * ",TRVEC," * "$(nt),")
-  println(self, "$(traction[1]/nt),$(traction[2]/nt),$(traction[3]/nt)");
+  print(self.ios, ELSET * ",TRVEC," * "$(nt),")
+  println(self.ios, "$(traction[1]/nt),$(traction[2]/nt),$(traction[3]/nt)");
 end
 
 """
-    CLOAD(self::IOStream, NSET::AbstractString, dof::Integer,
+    CLOAD(self::AbaqusExporter, NSET::AbstractString, dof::Integer,
       magnitude::F) where {F}
 
 Write out the `*CLOAD` option.
@@ -449,51 +463,59 @@ NSET=Number of node
 dof= 1, 2, 3,
 magnitude= signed multiplier
 """
-function CLOAD(self::IOStream, NSET::AbstractString, dof::Integer,
+function CLOAD(self::AbaqusExporter, NSET::AbstractString, dof::Integer,
   magnitude::F) where {F}
-  println(self, "*CLOAD");
-  println(self, NSET * "$dof,$magnitude");
+  println(self.ios, "*CLOAD");
+  println(self.ios, NSET * "$dof,$magnitude");
 end
 
 """
-    NODE_PRINT(self::IOStream, NSET::AbstractString)
+    NODE_PRINT(self::AbaqusExporter, NSET::AbstractString)
 
 Write out the `*NODE PRINT` option.
 """
-function NODE_PRINT(self::IOStream, NSET::AbstractString; KEYS = "U")
-  println(self, "*NODE PRINT, NSET=" * NSET);
-  println(self, KEYS);
+function NODE_PRINT(self::AbaqusExporter, NSET::AbstractString; KEYS = "U")
+  println(self.ios, "*NODE PRINT, NSET=" * NSET);
+  println(self.ios, KEYS);
 end
 
 """
-    EL_PRINT(self::IOStream, ELSET::AbstractString, KEYS::AbstractString)
+    EL_PRINT(self::AbaqusExporter, ELSET::AbstractString, KEYS::AbstractString)
 
 Write out the `*EL PRINT` option.
 """
-function EL_PRINT(self::IOStream, ELSET::AbstractString, KEYS::AbstractString)
-  println(self, "*EL PRINT, ELSET=" * ELSET * ", POSITION=INTEGRATION POINTS, SUMMARY= YES");
-  println(self, "");
-  println(self, KEYS);
+function EL_PRINT(self::AbaqusExporter, ELSET::AbstractString, KEYS::AbstractString)
+  println(self.ios, "*EL PRINT, ELSET=" * ELSET * ", POSITION=INTEGRATION POINTS, SUMMARY= YES");
+  println(self.ios, "");
+  println(self.ios, KEYS);
 end
 
 """
-    ENERGY_PRINT(self::IOStream)
+    ENERGY_PRINT(self::AbaqusExporter)
 
 Write out the `*ENERGY PRINT` option.
 """
-function ENERGY_PRINT(self::IOStream)
-  println(self, "*ENERGY PRINT");
+function ENERGY_PRINT(self::AbaqusExporter)
+  println(self.ios, "*ENERGY PRINT");
 end
 
 """
-    END_STEP(self::IOStream)
+    END_STEP(self::AbaqusExporter)
 
 Write out the `*END STEP` option.
 """
-function END_STEP(self::IOStream)
-  println(self, "*END STEP");
+function END_STEP(self::AbaqusExporter)
+  println(self.ios, "*END STEP");
 end
 
+"""
+    close(self::AbaqusExporter)
+
+Close  the strain opened by the exporter.
+"""
+function close(self::AbaqusExporter)
+  close(self.ios)
+end
 
 end # module
 
