@@ -8,10 +8,8 @@
 
 
 
-Finite Element tools in Julia
+# Finite Element tools in Julia
 
-
-![Alt Sample mesh](http://hogwarts.ucsd.edu/~pkrysl/site.images/ScreenHunter_31%20Feb.%2009%2020.54.jpg "FinEtools.jl")
 
 ## News
 
@@ -35,3 +33,5 @@ Pkg.test("FinEtools")
 
 The package comes with examples  of its use. Tutorials in notebook form
 are available and more will  be added in the near future.
+
+![Alt Sample mesh](http://hogwarts.ucsd.edu/~pkrysl/site.images/ScreenHunter_31%20Feb.%2009%2020.54.jpg "FinEtools.jl")
