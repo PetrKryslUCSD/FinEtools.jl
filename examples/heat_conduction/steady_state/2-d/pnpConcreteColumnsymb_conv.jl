@@ -9,7 +9,7 @@ pnpConcreteColumnsymb_conv.
 a=2.5; dy=a/2*sin(15/180*pi); dx=a/2*cos(15/180*pi); Q=4.5; k=1.8; Dz=1.0;
 h= 5.;
 
-m = MaterialHeatDiffusion([k 0; 0 k])
+m = MatHeatDiff([k 0; 0 k])
 
 modeldata = nothing
 
@@ -29,11 +29,10 @@ Temp.dofnums[5] = 4
 
 bfes = FESetL2([4 5]);
 
-cfemm = FEMMHeatDiffusionSurface(FEMMBase(bfes,
-             GaussRule(1, 2), Dz), h)
-femm = FEMMHeatDiffusion(FEMMBase(fes, TriRule(1), Dz), m)
+cfemm = FEMMHeatDiffSurf(GeoD(bfes, GaussRule(1, 2), Dz), h)
+femm = FEMMHeatDiff(GeoD(fes, TriRule(1), Dz), m)
 fi = ForceIntensity(FFlt[Q]);
-F1 = distribloads(femm.femmbase, geom, Temp, fi, 3);
+F1 = distribloads(femm, geom, Temp, fi, 3);
 K = conductivity(femm, geom, Temp)
 F2 = nzebcloadsconductivity(femm, geom, Temp);
 H = surfacetransfer(cfemm, geom, Temp);
@@ -42,4 +41,4 @@ show(H)
 Factor = cholfact(K+H)
 U = Factor\(F1+F2)
 scattersysvec!(Temp, U[:])
-show(Temp)
+display(Temp)
