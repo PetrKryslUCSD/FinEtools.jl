@@ -1,4 +1,3 @@
-# FinEtools
 
 | Build       | Coverage  |
 | ------------- |:-------------:|
@@ -8,7 +7,7 @@
 
 
 
-# Finite Element tools in Julia
+# FinEtools: Finite Element tools in Julia
 
 
 ## News
