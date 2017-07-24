@@ -111,12 +111,20 @@ function MatDeforElastOrtho(mr::Type{DeforModelRed2DAxisymm},
 end
 
 function MatDeforElastOrtho(mr::Type{MR}, E1::FFlt, E2::FFlt, E3::FFlt,
-nu12::FFlt, nu13::FFlt, nu23::FFlt,
-G12::FFlt, G13::FFlt, G23::FFlt) where {MR}
+  nu12::FFlt, nu13::FFlt, nu23::FFlt,
+  G12::FFlt, G13::FFlt, G23::FFlt) where {MR}
   mass_density = 1.0
   CTE1 = CTE2 = CTE3 = 0.0
   return MatDeforElastOrtho(mr, mass_density, E1, E2, E3,    nu12, nu13, nu23,
-    G12, G13, G23, CTE1, CTE2, CTE3)
+  G12, G13, G23, CTE1, CTE2, CTE3)
+end
+
+function MatDeforElastOrtho(mr::Type{MR}, E::FFlt, nu::FFlt) where {MR}
+  mass_density = 1.0
+  CTE1 = CTE2 = CTE3 = 0.0
+  G = E / 2.0 / (1 + nu)
+  return MatDeforElastOrtho(mr, mass_density, E, E, E,    nu, nu, nu,
+  G, G, G, CTE1, CTE2, CTE3)
 end
 
 
@@ -172,7 +180,7 @@ function update3d!(self::MatDeforElastOrtho,  stress::FFltVec, output::FFltVec,
     (length(output) >= 6) || (output = zeros(6)) # make sure we can store it
     copy!(output, stress);
   elseif quantity == :pressure || quantity == :Pressure
-    output[1]  =  -sum(sstress[1:3])/3.
+    output[1]  =  -sum(stress[1:3])/3.
   elseif quantity == :princCauchy || quantity == :princcauchy
     t = zeros(FFlt,3,3)
     t = stress6vto3x3t!(t,stress);

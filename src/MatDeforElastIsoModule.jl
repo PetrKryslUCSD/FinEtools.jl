@@ -122,7 +122,7 @@ function update3d!(self::MatDeforElastIso,  stress::FFltVec, output::FFltVec,
     (length(output) >= 6) || (output = zeros(6)) # make sure we can store it
     copy!(output, stress);
   elseif quantity == :pressure || quantity == :Pressure
-    output[1]  =  -sum(sstress[1:3])/3.
+    output[1]  =  -sum(stress[1:3])/3.
   elseif quantity == :princCauchy || quantity == :princcauchy
     t = zeros(FFlt,3,3)
     t = stress6vto3x3t!(t,stress);
