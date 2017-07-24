@@ -81,7 +81,7 @@ export STEP_PERTURBATION_STATIC, BOUNDARY, DLOAD, CLOAD, NODE_PRINT, EL_PRINT,
   ENERGY_PRINT, END_STEP
 
 mutable struct AbaqusExporter
-  ios::IOStream
+  ios::IO
   element_range::Tuple{Int64, Int64}
   function AbaqusExporter(filename::AbstractString)
     ios = open(filename * ".inp","w+")
@@ -163,7 +163,11 @@ Write out the `*NODE` option.
 function NODE(self::AbaqusExporter, xyz::AbstractArray{T, 2}) where {T}
   println(self.ios, "*NODE")
   for j = 1:size(xyz,1)
-    println(self.ios, "$j,$(xyz[j, 1]),$(xyz[j, 2]),$(xyz[j, 3])")
+    print(self.ios, "$j,$(xyz[j, 1])")
+    for ixxxx = 2:1:size(xyz,2)
+      print(self.ios, ",$(xyz[j, ixxxx])")
+    end
+    print(self.ios, "\n")
   end
 end
 

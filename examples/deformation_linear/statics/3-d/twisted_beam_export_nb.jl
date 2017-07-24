@@ -49,6 +49,7 @@ modeldata =  FDataDict(
 
 
 AE = AbaqusExporter("twisted_beam");
+AE.ios = STDOUT;
 HEADING(AE, "Twisted beam example");
 PART(AE, "part1");
 END_PART(AE);
