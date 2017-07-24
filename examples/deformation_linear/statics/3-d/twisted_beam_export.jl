@@ -14,7 +14,7 @@ function  Twisted_beam_export()
   W = 1.1;
   L = 12.;
   t =  0.32;
-  nl = 2; nt = 1; nw = 1; ref = 3;
+  nl = 2; nt = 1; nw = 1; ref = 5;
   p =   1/W/t;
   #  Loading in the Z direction
   loadv = [0;0;p]; dir = 3; uex = 0.005424534868469; # Harder: 5.424e-3;
@@ -67,13 +67,13 @@ function  Twisted_beam_export()
     1+count(region1["femm"].geod.fes), flux1["femm"].geod.fes.conn)
   NSET_NSET(AE, "l1", l1)
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
-  SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", "Hourglass");
+  SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", "Hourglassctl");
   SURFACE_SECTION(AE, "TractionElements")
   END_INSTANCE(AE);
   END_ASSEMBLY(AE);
   MATERIAL(AE, "elasticity")
   ELASTIC(AE, E, nu)
-  SECTION_CONTROLS(AE, "section1", "HOURGLASS=ENHANCED")
+  SECTION_CONTROLS(AE, "Hourglassctl", "HOURGLASS=ENHANCED")
   STEP_PERTURBATION_STATIC(AE)
   BOUNDARY(AE, "ASSEM1.INSTNC1.l1", 1)
   BOUNDARY(AE, "ASSEM1.INSTNC1.l1", 2)
