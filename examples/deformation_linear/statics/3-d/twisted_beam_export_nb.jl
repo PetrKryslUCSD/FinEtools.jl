@@ -7,7 +7,7 @@ nu = 0.22;
 W = 1.1;
 L = 12.;
 t =  0.32;
-nl = 2; nt = 1; nw = 1; ref = 3;
+nl = 2; nt = 1; nw = 1; ref = 4;
 p =   1/W/t;
 #  Loading in the Z direction
 loadv = [0;0;p]; dir = 3; uex = 0.005424534868469; # Harder: 5.424e-3;

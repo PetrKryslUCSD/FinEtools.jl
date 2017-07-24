@@ -178,7 +178,7 @@ function update3d!(self::MatDeforElastOrtho,  stress::FFltVec, output::FFltVec,
     t = stress6vto3x3t!(t,stress);
     ep = eig(t);
     (length(output) >= 3) || (output = zeros(3)) # make sure we can store it
-    copy!(output,  sort(ep[1]));
+    copy!(output,  sort(ep[1], rev=true));
   elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
     s1=stress[1]; s2=stress[2]; s3=stress[3];
     s4=stress[4]; s5=stress[5]; s6=stress[6];
@@ -269,7 +269,7 @@ function update2dstrs!(self::MatDeforElastOrtho, stress::FFltVec,  output::FFltV
     t = stress3vto2x2t!(stress,t);
     ep = eig(t);
     (length(output) >= 2) || (output = zeros(2)) # make sure we can store it
-    copy!(output,  sort(ep[1]));
+    copy!(output,  sort(ep[1], rev=true));
   elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
     s1=stress[1]; s2=stress[2]; s3=0.0;
     s4=stress[3]; s5=0.0; s6=0.0;
@@ -363,7 +363,7 @@ function update2dstrn!(self::MatDeforElastOrtho,  stress::FFltVec, output::FFltV
     t = stress4vto3x3t!(t, stress[[1,2,4,3]]);
     ep = eig(t);
     (length(output) >= 3) || (output = zeros(3)) # make sure we can store it
-    copy!(output,  sort(ep[1]));
+    copy!(output,  sort(ep[1], rev=true));
   elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
     (length(output) >= 1) || (output = zeros(1)) # make sure we can store it
     s1=stress[1]; s2=stress[2]; s3=stress[4];
@@ -457,7 +457,7 @@ function update2daxi!(self::MatDeforElastOrtho,  stress::FFltVec, output::FFltVe
     t = stress4vto3x3t!(stress,t);
     ep = eig(t);
     (length(output) >= 3) || (output = zeros(3)) # make sure we can store it
-    copy!(output,  sort(ep[1]));
+    copy!(output,  sort(ep[1], rev=true));
   elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
     s1=stress[1]; s2=stress[2]; s3=stress[3];
     s4=stress[4]; s5=0.0; s6=0.0;
