@@ -2291,6 +2291,7 @@ mmunitmmccubemmvibrationmmms.test()
 module mmmmmtwistedbeamisommmmm
 using FinEtools
 using Base.Test
+using FinEtools.AlgoDeforLinearModule
 function test()
   E = 0.29e8;
   nu = 0.22;
@@ -2345,48 +2346,56 @@ function test()
   # Extract the solution
   nl = selectnode(fens, box = [L L -100*W 100*W -100*W 100*W],inflate = tolerance);
   theutip = mean(u.values[nl,:],1)
-  println("displacement  = $(theutip[dir]) as compared to converged $uex")
-    println("normalized displacement  = $(theutip[dir]/uex*100) %")
+  # println("displacement  = $(theutip[dir]) as compared to converged $uex")
+    # println("normalized displacement  = $(theutip[dir]/uex*100) %")
+    @test abs(theutip[dir]/uex*100-99.85504856450584) < 1.0e-6
 
   # Write out mesh with displacements
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam")
   modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
+  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
 
   # Write out mesh with stresses
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam",
   "quantity"=> :Cauchy, "component"=> :xy)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
+  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
 
   # Write out mesh with stresses
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam",
   "quantity"=> :Cauchy, "component"=> :xz)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
+  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
 
   # Write out mesh with von Mises stresses
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam",
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
+  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
 
   # Write out mesh with von Mises stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-ew",
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
   vm  = modeldata["postprocessing"]["exported_fields"][1]
-  println("extremes of von Mises: $([minimum(vm.values),   maximum(vm.values)])")
+  # println("extremes of von Mises: $([minimum(vm.values),   maximum(vm.values)])")
+  @test norm([minimum(vm.values),   maximum(vm.values)] - [6.94796, 451.904]) < 1.e-3
+  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
 
   # Write out mesh with von Mises stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-ew",
   "quantity"=> :Cauchy, "component"=> :xz)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
+  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
 
   # Write out mesh with principal stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-principal-1-ew",
   "quantity"=> :princCauchy, "component"=> 1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
   ps  = modeldata["postprocessing"]["exported_fields"][1]
-  println("extremes of first principal stress: $([minimum(ps.values),   maximum(ps.values)])")
+  # println("extremes of first principal stress: $([minimum(ps.values),   maximum(ps.values)])")
   @test norm([minimum(ps.values),   maximum(ps.values)] - [0.493918, 459.106]) < 1.e-3
-
+  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
 
   # Write out mesh with principal stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-principal-3-ew",
@@ -2394,7 +2403,8 @@ function test()
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
   ps  = modeldata["postprocessing"]["exported_fields"][1]
   # println("extremes of third principal stress: $([minimum(ps.values),   maximum(ps.values)])")
-@test norm([minimum(ps.values),   maximum(ps.values)] - [-459.106, -0.493918]) < 1.e-3
+  @test norm([minimum(ps.values),   maximum(ps.values)] - [-459.106, -0.493918]) < 1.e-3
+  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
 
 end
 end
