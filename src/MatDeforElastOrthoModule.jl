@@ -127,6 +127,14 @@ function MatDeforElastOrtho(mr::Type{MR}, E::FFlt, nu::FFlt) where {MR}
   G, G, G, CTE1, CTE2, CTE3)
 end
 
+function MatDeforElastOrtho(mr::Type{MR}, mass_density::FFlt,
+  E::FFlt, nu::FFlt, CTE::FFlt) where {MR}
+  CTE1 = CTE2 = CTE3 = CTE
+  G = E / 2.0 / (1 + nu)
+  return MatDeforElastOrtho(mr, mass_density, E, E, E,    nu, nu, nu,
+  G, G, G, CTE1, CTE2, CTE3)
+end
+
 
 ################################################################################
 # 3-D solid model

@@ -2639,9 +2639,686 @@ function test()
     s = readlines(f)
     nlines = length(s)
   end
-  @test nlines == 1409 
+  @test nlines == 1409
   rm("unit_cube_modes_h20.inp")
 end
 end
 using mmmmuunit_cube_modes_exportmmmmmm
 mmmmuunit_cube_modes_exportmmmmmm.test()
+
+module mmmmmpipemmPSmorthom
+using FinEtools
+using Base.Test
+
+mutable struct MyIData
+    c::FInt
+    r::FFltVec
+    s::FFltVec
+end
+
+function test()
+
+## Thick pipe with internal pressure: plane strain
+#
+
+##
+# Link to the  <matlab:edit('pub_thick_pipe_ps') m-file>.
+
+## Description
+##
+# This is a simple modification of the full three-dimensional simulation of
+# the tutorial pub_thick_pipe takes advantage of the plane-strain model
+# reduction procedure.
+##
+# An infinitely long thick walled cylindrical pipe
+# with inner boundary radius of 3 mm and outer boundary radius of 9 mm is
+# subjected to an internal pressure of 1.0 MPa. A wedge   with thickness of
+# 2 mm and a 90-degree angle sector is considered for the finite element
+# analysis. The material properties are taken as  isotropic linear elastic
+# with $E=1000$ MPa and $\nu=0.4999$ to represent nearly incompressible
+# behavior. This problem has been proposed to by MacNeal and Harder as a
+# test of an element's ability to represent the  response of a nearly
+# incompressible material. The plane-strain condition is assumed in the
+# axial direction of the pipe which together with the radial symmetry
+# confines the material in all but the radial direction and therefore
+# amplifies the numerical difficulties associated with the confinement of
+# the nearly incompressible material.
+##
+# There is an analytical solution to this problem. Timoshenko and Goodier
+# presented the original solution of Lame in their textbook. We are going
+# to compare with  both the stress distribution (radial and hoop stresses)
+# and the displacement of the inner  cylindrical surface.
+
+##
+#
+# <html>
+# <table border=0><tr><td>
+# <img src="../docs/pub_thick_pipe_ps.png" width = "30#">
+# </td></tr>
+# <tr><td>Figure 1. Definition of the geometry of the internally pressurized thick pipe</td></tr>
+# </table>
+# </html>
+
+##
+# References:
+#
+# # Macneal RH, Harder RL (1985) A proposed standard set of problems to test
+# finite element accuracy. Finite Elements in Analysis and Design 1: 3-20.
+#
+# # Timoshenko S. and Goodier J. N., Theory of Elasticity, McGraw-Hill, 2nd ed., 1951.
+
+## Solution
+#
+
+##
+# Internal radius of the pipe.
+a = 3*phun("MM");
+##
+# External radius of the pipe.
+b = 9*phun("MM");
+##
+# Thickness of the slice.
+t = 2*phun("MM");
+
+##
+# Geometrical tolerance.
+tolerance  =a/10000.;
+##
+# Young's modulus and Poisson's ratio.
+E = 1000*phun("MEGA*PA");
+nu = 0.499;
+##
+# Applied pressure on the internal surface.
+press = 1.0*phun("MEGA*PA");
+
+##
+# Analytical solutions.   Radial stress:
+radial_stress(r) =press*a.^2/(b^2-a^2).*(1-(b^2)./r.^2);
+##
+# Circumferential (hoop) stress:
+hoop_stress(r)=press*a.^2/(b^2-a^2).*(1+(b^2)./r.^2);
+
+##
+# Radial displacement:
+radial_displacement(r)=press*a^2*(1+nu)*(b^2+r.^2*(1-2*nu))/(E*(b^2-a^2).*r);;
+
+##
+# Therefore the radial displacement of the loaded surface will be:
+urex = radial_displacement(a);
+
+
+##
+# The mesh parameters: The numbers of element edges axially,
+# and through the thickness of the pipe wall (radially).
+
+nc=3; nt=3;
+
+##
+# Note that the material object needs to be created with the proper
+# model-dimension reduction in mind.  In this case that is the axial symmetry
+# assumption.
+MR = DeforModelRed2DStrain
+
+# Create the mesh and initialize the geometry.  First we are going
+# to construct the block of elements with the first coordinate
+# corresponding to the angle, and the second
+# coordinate is the thickness in the radial direction.
+anglrrange = 90.0/180*pi;
+fens,fes =  Q8block(anglrrange, b-a, nc, nt);
+
+# Extract the boundary  and mark the finite elements on the
+# interior surface.
+bdryfes = meshboundary(fes);
+bcl = selectelem(fens, bdryfes, box=[-Inf,Inf,0.,0.], inflate=tolerance);
+internal_fenids = connectednodes(subset(bdryfes,bcl));
+# Now  shape the block  into  the actual wedge piece of the pipe.
+ayr=fens.xyz;
+for i=1:count(fens)
+    angl=ayr[i,1]; r=a+ayr[i,2];
+    fens.xyz[i,:] = [r*sin(angl),(r*cos(angl))];
+end
+
+# now we create the geometry and displacement fields
+geom = NodalField(fens.xyz)
+u = NodalField(zeros(size(fens.xyz,1),2)) # displacement field
+
+# The symmetry boundary condition  is specified by selecting nodes
+# on the plane x=0.
+l1 = selectnode(fens; box=[0.0 0.0 -Inf Inf], inflate = tolerance)
+setebc!(u, l1, true, 1, 0.0)
+# The second symmetry boundary condition is specified by selecting
+# nodes on the plane y=0.
+l1 = selectnode(fens; box=[-Inf Inf 0.0 0.0], inflate = tolerance)
+setebc!(u, l1, true, 2, 0.0)
+
+applyebc!(u)
+numberdofs!(u)
+
+# The traction boundary condition is applied in the radial
+# direction.
+
+el1femm =  FEMMBase(GeoD(subset(bdryfes,bcl), GaussRule(1, 3)))
+function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+  copy!(forceout, XYZ/norm(XYZ)*press)
+  return forceout
+end
+fi = ForceIntensity(FFlt, 2, pressureloading!); # pressure normal to the internal cylindrical surface
+F2 = distribloads(el1femm, geom, u, fi, 2);
+
+# Property and material
+material = MatDeforElastOrtho(MR, E, nu)
+
+femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2)), material)
+
+K =stiffness(femm, geom, u)
+#K=cholfact(K)
+U=  K\(F2)
+scattersysvec!(u, U[:])
+
+# Transfer the solution of the displacement to the nodes on the
+# internal cylindrical surface and convert to
+# cylindrical-coordinate displacements there.
+uv = u.values[internal_fenids,:];
+ur = zeros(FFlt,length(internal_fenids));
+
+for j = 1:length(internal_fenids)
+    n = fens.xyz[internal_fenids[j],:];
+    n = n'/norm(n);# normal to the cylindrical internal surface
+    ur[j] = dot(vec(uv[j,:]),vec(n));
+end
+
+# Report the  relative displacement on the internal surface:
+# println("(Approximate/true displacement) at the internal surface: $( mean(ur)/urex*100  ) %")
+@test abs(mean(ur)/urex*100 - 100) < 0.1
+
+# Produce a plot of the radial stress component in the cylindrical
+# coordinate system. Note that this is the usual representation of
+# stress using nodal stress field.
+
+fld = fieldfromintegpoints(femm, geom, u, :Cauchy, 1)
+
+
+File =  "thick_pipe_sigmax.vtk"
+vtkexportmesh(File, fens, fes; scalars=[("sigmax", fld.values)])
+try rm(File); catch end
+
+# Produce a plot of the solution components in the cylindrical
+# coordinate system.
+# Plot the analytical solution.
+
+function inspector(idat::MyIData, elnum, conn, xe,  out,  xq)
+  function outputRm(c)
+    theNormal=c;
+    r=norm(theNormal);# distance from the axis of symmetry
+    theNormal =theNormal/r;# compute the unit normal vector
+    e1p=[theNormal';0.];# local cylind. coordinate  basis vectors
+    e3p=[0.,0.,1.]';# this one points along the axis of the cylinder
+    e2p=cross(vec(e3p),vec(e1p));# this one is along the hoop direction
+    R= [vec(e1p) vec(e2p) vec(e3p)];# transformation matrix for the stress
+    return R
+  end
+  Rm=outputRm(xq)
+  tm=zeros(FFlt,3,3)
+  stress4vto3x3t!(tm, out);# stress in global XYZ
+  tpm = Rm'*tm*Rm;#  stress matrix in cylindrical coordinates
+  sp=zeros(FFlt,6)
+  stress3x3tto6v!(sp, tpm);# stress vector in cylindr. coord.
+  push!(idat.r,norm(xq))
+  push!(idat.s,sp[idat.c])
+  return idat
+end
+
+idat = MyIData(1, FFltVec[], FFltVec[])
+idat = inspectintegpoints(femm, geom, u, collect(1:count(fes)),
+ inspector, idat, :Cauchy)
+# show(idat)
+
+@test norm(idat.s - [-7.44858e5, -3.55143e5, -7.44858e5, -3.55143e5, -2.19961e5,
+-1.08612e5, -2.19961e5, -1.08612e5, -58910.9, -12517.6, -58910.9, -12517.6,
+-7.44858e5, -3.55143e5, -7.44858e5, -3.55143e5, -2.19961e5, -1.08612e5,
+-2.19961e5, -1.08612e5, -58910.9, -12517.6, -58910.9, -12517.6, -7.44858e5,
+-3.55143e5, -7.44858e5, -3.55143e5, -2.19961e5, -1.08612e5, -2.19961e5,
+ -1.08612e5, -58910.9, -12517.6, -58910.9, -12517.6])/1.0e5 < 1.e-3
+# using Plots
+# plotly()
+#
+# # Plot the analytical solution.
+# r = linspace(a,b,100);
+# plot(r, radial_stress(r))
+# # Plot the computed  integration-point data
+# scatter!(idat.r, idat.s, m=:circle, color=:red)
+# gui()
+end
+end
+using mmmmmpipemmPSmorthom
+mmmmmpipemmPSmorthom.test()
+
+module scratch1_06092017_ortho
+using FinEtools
+using Base.Test
+
+mutable struct MyIData
+  c::FInt
+  r::FFltVec
+  s::FFltVec
+end
+
+function test()
+
+  # println("Thick pipe with internal pressure: axially symmetric model")
+  #=
+  This is a simple modification of the full three-dimensional simulation of
+  the tutorial pub_thick_pipe that implements the axially-symmetric model
+  reduction procedure.
+
+  An infinitely long thick walled cylindrical pipe
+  with inner boundary radius of 3 mm and outer boundary radius of 9 mm is
+  subjected to an internal pressure of 1.0 MPa. A wedge   with thickness of
+  2 mm and a 90-degree angle sector is considered for the finite element
+  analysis. The material properties are taken as  isotropic linear elastic
+  with $E=1000$ MPa and $\nu=0.4999$ to represent nearly incompressible
+  behavior. This problem has been proposed to by MacNeal and Harder as a
+  test of an element's ability to represent the  response of a nearly
+  incompressible material. The plane-strain condition is assumed in the
+  axial direction of the pipe which together with the radial symmetry
+  confines the material in all but the radial direction and therefore
+  amplifies the numerical difficulties associated with the confinement of
+  the nearly incompressible material.
+
+  There is an analytical solution to this problem. Timoshenko and Goodier
+  presented the original solution of Lame in their textbook. We are going
+  to compare with  both the stress distribution (radial and hoop stresses)
+  and the displacement of the inner  cylindrical surface.
+
+  References:
+  - Macneal RH, Harder RL (1985) A proposed standard set of problems to test
+  finite element accuracy. Finite Elements in Analysis and Design 1: 3-20.
+  - Timoshenko S. and Goodier J. N., Theory of Elasticity, McGraw-Hill, 2nd ed., 1951.
+
+  =#
+
+  # Internal radius of the pipe.
+  a=3*phun("MM");
+  ##
+  # External radius of the pipe.
+  b = 9*phun("MM");
+  ##
+  # Thickness of the slice.
+  t = 2*phun("MM");
+
+  ##
+  # Geometrical tolerance.
+  tolerance   = a/10000.;
+  ##
+  # Young's modulus and Poisson's ratio.
+  E = 1000*phun("MEGA*PA");
+  nu = 0.499;
+  ##
+  # Applied pressure on the internal surface.
+  press =   1.0*phun("MEGA*PA");
+
+  ##
+  # Analytical solutions.   Radial stress:
+  radial_stress(r)  = press*a.^2/(b^2-a^2).*(1-(b^2)./r.^2);
+  ##
+  # Circumferential (hoop) stress:
+  hoop_stress(r) = press*a.^2/(b^2-a^2).*(1+(b^2)./r.^2);
+
+  ##
+  # Radial displacement:
+  radial_displacement(r) = press*a^2*(1+nu)*(b^2+r.^2*(1-2*nu))/(E*(b^2-a^2).*r);;
+
+  ##
+  # Therefore the radial displacement of the loaded surface will be:
+  urex  =  radial_displacement(a);
+
+
+  ##
+  # The mesh parameters: The numbers of element edges axially,
+  # and through the thickness of the pipe wall (radially).
+
+  na = 1; nt = 10;
+
+  ##
+  # Note that the material object needs to be created with the proper
+  # model-dimension reduction in effect.  In this case that is the axial symmetry
+  # assumption.
+  MR = DeforModelRed2DAxisymm
+  axisymmetric = true
+
+  # Create the mesh and initialize the geometry.  First we are going
+  # to construct the block of elements with the first coordinate
+  # corresponding to the thickness in the radial direction, and the second
+  # coordinate is the thickness in the axial direction.
+  fens,fes  =   Q8block(b-a, t, nt, na);
+
+  # Extract the boundary  and mark the finite elements on the
+  # interior surface.
+  bdryfes = meshboundary(fes);
+
+  bcl = selectelem(fens, bdryfes, box=[0.,0.,-Inf,Inf], inflate=tolerance);
+  internal_fenids= connectednodes(subset(bdryfes,bcl));
+  # Now  shape the block  into  the actual wedge piece of the pipe.
+  for i=1:count(fens)
+    fens.xyz[i,:] = fens.xyz[i,:] + [a; 0.0];
+  end
+
+  # now we create the geometry and displacement fields
+  geom = NodalField(fens.xyz)
+  u = NodalField(zeros(size(fens.xyz,1),2)) # displacement field
+
+  # The plane-strain condition in the axial direction  is specified by selecting nodes
+  # on the plane y=0 and y=t.
+  l1 = selectnode(fens; box=[-Inf Inf 0.0 0.0], inflate = tolerance)
+  setebc!(u, l1, true, 2, 0.0)
+  l1 = selectnode(fens; box=[-Inf Inf t t], inflate = tolerance)
+  setebc!(u, l1, true, 2, 0.0)
+
+  applyebc!(u)
+  numberdofs!(u)
+
+  # The traction boundary condition is applied in the radial
+  # direction.
+
+  el1femm =  FEMMBase(GeoD(subset(bdryfes,bcl), GaussRule(1, 3), axisymmetric))
+  fi = ForceIntensity([press; 0.0]);
+  F2= distribloads(el1femm, geom, u, fi, 2);
+
+  # Property and material
+  material = MatDeforElastOrtho(MR,  E, nu)
+
+  femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), axisymmetric), material)
+
+  K = stiffness(femm, geom, u)
+  #K=cholfact(K)
+  U =  K\(F2)
+  scattersysvec!(u,U[:])
+
+  # Transfer the solution of the displacement to the nodes on the
+  # internal cylindrical surface and convert to
+  # cylindrical-coordinate displacements there.
+  uv=u.values[internal_fenids,:]
+  # Report the  relative displacement on the internal surface:
+  # println("(Approximate/true displacement) at the internal surface: $( mean(uv[:,1])/urex*100  ) %")
+
+  # Produce a plot of the radial stress component in the cylindrical
+  # coordinate system. Note that this is the usual representation of
+  # stress using nodal stress field.
+
+  fld = fieldfromintegpoints(femm, geom, u, :Cauchy, 1)
+
+
+  # File =  "thick_pipe_sigmax.vtk"
+  # vtkexportmesh(File, fens, fes; scalars=[("sigmax", fld.values)])
+
+  # Produce a plot of the solution components in the cylindrical
+  # coordinate system.
+
+  function inspector(idat::MyIData, elnum, conn, xe,  out,  xq)
+    push!(idat.r, xq[1])
+    push!(idat.s, out[idat.c])
+    return idat
+  end
+
+  idat = MyIData(1, FInt[], FInt[])
+  idat = inspectintegpoints(femm, geom, u, collect(1:count(fes)),
+  inspector, idat, :Cauchy)
+
+  # using Plots
+  # plotly()
+  #
+  # # Plot the analytical solution.
+  # r = linspace(a,b,100);
+  # plot(r, radial_stress(r))
+  # # Plot the computed  integration-point data
+  # plot!(idat.r, idat.s, m=:circle, color=:red)
+  # gui()
+
+  @test  abs(idat.r[1]-0.003126794919243112)<1.0e-9
+  @test  abs(idat.s[1]- -910911.9777008593)<1.0e-2
+
+  ## Discussion
+  #
+  ##
+  # The axially symmetric model is clearly very effective
+  # computationally, as the size is much reduced compared to the 3-D
+  # model.  In conjunction with  uniform or selective reduced integration
+  # it can be very accurate as well.
+end
+end
+using scratch1_06092017_ortho
+scratch1_06092017_ortho.test()
+
+module mmLE11Q8mm
+using FinEtools
+using Base.Test
+function test()
+
+  # NAFEMS LE11 benchmark with Q8 elements.
+  # # This is a test recommended by the National Agency for Finite Element
+  # # Methods and Standards (U.K.): Test LE11 from NAFEMS Publication TNSB,
+  # # Rev. 3, “The Standard NAFEMS Benchmarks,” October 1990.
+  # #
+  # # Target solution: Direct stress,   =  –105 MPa at point A.
+  #function  LE11NAFEMS()
+  # Parameters:
+  Ea =  210000*phun("MEGA*Pa")
+  nua =  0.3;
+  alphaa = 2.3e-4;              # thermal expansion coefficient
+  sigmaA = -105*phun("MEGA*Pa")
+  nref =  1;                        # how many times should we refine the mesh?
+  X = [1.     0.;#A
+  1.4    0.;#B
+  0.995184726672197   0.098017140329561;
+  1.393258617341076 0.137223996461385;
+  0.980785  0.195090;#
+  1.37309939 0.27312645;
+  0.956940335732209   0.290284677254462
+  1.339716470025092 0.406398548156247
+  0.9238795  0.38268;#C
+  1.2124  0.7;#D
+  0.7071  0.7071;#E
+  1.1062  1.045;#F
+  0.7071  (0.7071+1.79)/2;#(E+H)/2
+  1.      1.39;#G
+  0.7071  1.79;#H
+  1.      1.79;#I
+  ]*phun("M")
+  tolerance  = 1.e-6*phun("M")
+  ##
+  # Note that the material object needs to be created with the proper
+  # model-dimension reduction in mind.  In this case that is the axial symmetry
+  # assumption.
+  MR  =  DeforModelRed2DAxisymm
+
+
+
+  fens = FENodeSet(X);
+  fes = FESetQ4([1 2 4 3; 3 4 6 5; 5 6 8 7; 7 8 10 9; 9 10 12 11; 11 12 14 13; 13 14 16 15]);
+  for ref = 1:nref
+    fens,fes = Q4refine(fens,fes);
+    list = selectnode(fens,distance = 1.0+0.1/2^nref, from = [0. 0.], inflate = tolerance);
+    fens.xyz[list,:] =  FinEtools.MeshUtilModule.ontosphere(fens.xyz[list,:],1.0);
+  end
+  fens,fes = Q4toQ8(fens,fes)
+  list = selectnode(fens,distance = 1.0+0.1/2^nref, from = [0. 0.], inflate = tolerance);
+  fens.xyz[list,:] =  FinEtools.MeshUtilModule.ontosphere(fens.xyz[list,:],1.0);
+
+  #     File  =   "mesh.vtk"
+  # vtkexportmesh(File, fens, fes)
+
+  # now we create the geometry and displacement fields
+  geom  =  NodalField(fens.xyz)
+  u  =  NodalField(zeros(size(fens.xyz,1),2)) # displacement field
+
+  # Apply EBC's
+  l1 = selectnode(fens,box = [-Inf Inf 0 0],inflate = tolerance)
+  setebc!(u, l1, true, 2, 00.0)
+  l1 = selectnode(fens,box = [-Inf Inf 1.79  1.79],inflate = tolerance)
+  setebc!(u, l1, true, 2, 00.0)
+  applyebc!(u)
+  numberdofs!(u)
+
+  # Temperature field
+  dT  = NodalField(reshape(fens.xyz[:,1]+fens.xyz[:,2],size(fens.xyz,1),1));
+
+
+  # Property and material
+  material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
+
+  femm  =  FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 3), true), material)
+
+  K  = stiffness(femm, geom, u)
+  F  =  thermalstrainloads(femm, geom, u, dT)
+  #K = cholfact(K)
+  U =   K\F
+  scattersysvec!(u, U[:])
+
+  nA  = selectnode(fens,box = FFlt[1.0  1.0 0.0 0.0], inflate = tolerance);
+
+  fld =  fieldfromintegpoints(femm, geom, u, dT, :Cauchy, 2)
+
+
+  File  =   "LE11NAFEMS_Q8_sigmay.vtk"
+  vtkexportmesh(File, fens, fes; scalars = [("sigmay", fld.values)],
+  vectors = [("u", u.values)])
+  # println("range of  sigmay = $((minimum(fld.values), maximum(fld.values)))")
+  @test norm([minimum(fld.values), maximum(fld.values)] - -1.443052182185006e8, -1.4106181545272605e7) < 1.0e-2
+  # @async run(`"paraview.exe" $File`)
+  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+
+  sA  =  fld.values[nA]/phun("MEGA*Pa")
+  sAn  =  fld.values[nA]/sigmaA
+  # println("Stress at point A: $(sA) i. e.  $( sAn*100  )% of reference value")
+  @test abs(sA[1] - (-93.8569)) < 1.0e-3
+
+  fen2fe  = FENodeToFEMap(fes.conn, nnodes(geom))
+  function inspector(idat, elnum, conn, xe,  out,  xq)
+    println("loc = $(  xq  ) : $(  transpose(out)/phun("MEGA*Pa")  )")
+    return idat
+  end
+
+  # inspectintegpoints(femm, geom, u, dT,  fen2fe.map[nA[1]],
+  # inspector, []; quantity = :Cauchy)
+
+end
+end
+using mmLE11Q8mm
+mmLE11Q8mm.test()
+
+module mmLE11Q8mmortho
+using FinEtools
+using Base.Test
+function test()
+
+  # NAFEMS LE11 benchmark with Q8 elements.
+  # # This is a test recommended by the National Agency for Finite Element
+  # # Methods and Standards (U.K.): Test LE11 from NAFEMS Publication TNSB,
+  # # Rev. 3, “The Standard NAFEMS Benchmarks,” October 1990.
+  # #
+  # # Target solution: Direct stress,   =  –105 MPa at point A.
+  #function  LE11NAFEMS()
+  # Parameters:
+  Ea =  210000*phun("MEGA*Pa")
+  nua =  0.3;
+  alphaa = 2.3e-4;              # thermal expansion coefficient
+  sigmaA = -105*phun("MEGA*Pa")
+  nref =  1;                        # how many times should we refine the mesh?
+  X = [1.     0.;#A
+  1.4    0.;#B
+  0.995184726672197   0.098017140329561;
+  1.393258617341076 0.137223996461385;
+  0.980785  0.195090;#
+  1.37309939 0.27312645;
+  0.956940335732209   0.290284677254462
+  1.339716470025092 0.406398548156247
+  0.9238795  0.38268;#C
+  1.2124  0.7;#D
+  0.7071  0.7071;#E
+  1.1062  1.045;#F
+  0.7071  (0.7071+1.79)/2;#(E+H)/2
+  1.      1.39;#G
+  0.7071  1.79;#H
+  1.      1.79;#I
+  ]*phun("M")
+  tolerance  = 1.e-6*phun("M")
+  ##
+  # Note that the material object needs to be created with the proper
+  # model-dimension reduction in mind.  In this case that is the axial symmetry
+  # assumption.
+  MR  =  DeforModelRed2DAxisymm
+
+
+
+  fens = FENodeSet(X);
+  fes = FESetQ4([1 2 4 3; 3 4 6 5; 5 6 8 7; 7 8 10 9; 9 10 12 11; 11 12 14 13; 13 14 16 15]);
+  for ref = 1:nref
+    fens,fes = Q4refine(fens,fes);
+    list = selectnode(fens,distance = 1.0+0.1/2^nref, from = [0. 0.], inflate = tolerance);
+    fens.xyz[list,:] =  FinEtools.MeshUtilModule.ontosphere(fens.xyz[list,:],1.0);
+  end
+  fens,fes = Q4toQ8(fens,fes)
+  list = selectnode(fens,distance = 1.0+0.1/2^nref, from = [0. 0.], inflate = tolerance);
+  fens.xyz[list,:] =  FinEtools.MeshUtilModule.ontosphere(fens.xyz[list,:],1.0);
+
+  #     File  =   "mesh.vtk"
+  # vtkexportmesh(File, fens, fes)
+
+  # now we create the geometry and displacement fields
+  geom  =  NodalField(fens.xyz)
+  u  =  NodalField(zeros(size(fens.xyz,1),2)) # displacement field
+
+  # Apply EBC's
+  l1 = selectnode(fens,box = [-Inf Inf 0 0],inflate = tolerance)
+  setebc!(u, l1, true, 2, 00.0)
+  l1 = selectnode(fens,box = [-Inf Inf 1.79  1.79],inflate = tolerance)
+  setebc!(u, l1, true, 2, 00.0)
+  applyebc!(u)
+  numberdofs!(u)
+
+  # Temperature field
+  dT  = NodalField(reshape(fens.xyz[:,1]+fens.xyz[:,2],size(fens.xyz,1),1));
+
+
+  # Property and material
+  material = MatDeforElastOrtho(MR, 0.0, Ea, nua, alphaa)
+
+  femm  =  FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 3), true), material)
+
+  K  = stiffness(femm, geom, u)
+  F  =  thermalstrainloads(femm, geom, u, dT)
+  #K = cholfact(K)
+  U =   K\F
+  scattersysvec!(u, U[:])
+
+  nA  = selectnode(fens,box = FFlt[1.0  1.0 0.0 0.0], inflate = tolerance);
+
+  fld =  fieldfromintegpoints(femm, geom, u, dT, :Cauchy, 2)
+
+
+  File  =   "LE11NAFEMS_Q8_sigmay.vtk"
+  vtkexportmesh(File, fens, fes; scalars = [("sigmay", fld.values)],
+  vectors = [("u", u.values)])
+  # println("range of  sigmay = $((minimum(fld.values), maximum(fld.values)))")
+  @test norm([minimum(fld.values), maximum(fld.values)] - -1.443052182185006e8, -1.4106181545272605e7) < 1.0e-2
+  # @async run(`"paraview.exe" $File`)
+  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+
+  sA  =  fld.values[nA]/phun("MEGA*Pa")
+  sAn  =  fld.values[nA]/sigmaA
+  # println("Stress at point A: $(sA) i. e.  $( sAn*100  )% of reference value")
+  @test abs(sA[1] - (-93.8569)) < 1.0e-3
+
+  fen2fe  = FENodeToFEMap(fes.conn, nnodes(geom))
+  function inspector(idat, elnum, conn, xe,  out,  xq)
+    println("loc = $(  xq  ) : $(  transpose(out)/phun("MEGA*Pa")  )")
+    return idat
+  end
+
+  # inspectintegpoints(femm, geom, u, dT,  fen2fe.map[nA[1]],
+  # inspector, []; quantity = :Cauchy)
+
+end
+end
+using mmLE11Q8mmortho
+mmLE11Q8mmortho.test()

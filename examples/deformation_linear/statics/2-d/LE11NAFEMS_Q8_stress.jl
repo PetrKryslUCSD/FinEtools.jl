@@ -90,6 +90,9 @@ fld =  fieldfromintegpoints(femm, geom, u, dT, :Cauchy, 2)
 File  =   "LE11NAFEMS_Q8_sigmay.vtk"
 vtkexportmesh(File, fens, fes; scalars = [("sigmay", fld.values)],
     vectors = [("u", u.values)])
+println("range of  sigmay = $((minimum(fld.values), maximum(fld.values)))")
+    @async run(`"paraview.exe" $File`)
+
 
 sA  =  fld.values[nA]/phun("MEGA*Pa")
 sAn  =  fld.values[nA]/sigmaA
@@ -103,10 +106,5 @@ end
 
 inspectintegpoints(femm, geom, u, dT,  fen2fe.map[nA[1]],
   inspector, []; quantity = :Cauchy)
-
-#finealemesh(fens,fes,"meshmfile")
-
-# end
-# LE11NAFEMS()
 
 end
