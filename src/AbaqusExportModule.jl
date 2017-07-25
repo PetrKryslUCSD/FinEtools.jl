@@ -72,13 +72,13 @@ import Base.close
 
 export AbaqusExporter
 export close
-export HEADING
+export HEADING, COMMENT
 export PART, END_PART, ASSEMBLY, END_ASSEMBLY, INSTANCE, END_INSTANCE
 export NODE, ELEMENT, NSET_NSET, ELSET_ELSET, ORIENTATION, MATERIAL,
   ELASTIC, ELASTIC_ISOTROPIC, DENSITY, SECTION_CONTROLS, SOLID_SECTION,
   SURFACE_SECTION
-export STEP_PERTURBATION_STATIC, BOUNDARY, DLOAD, CLOAD, NODE_PRINT, EL_PRINT,
-  ENERGY_PRINT, END_STEP
+export STEP_PERTURBATION_STATIC, STEP_FREQUENCY, BOUNDARY, DLOAD, CLOAD,
+  END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
 
 mutable struct AbaqusExporter
   ios::IO
@@ -87,6 +87,15 @@ mutable struct AbaqusExporter
     ios = open(filename * ".inp","w+")
     return new(ios, (typemax(Int64), 0))
   end
+end
+
+"""
+    COMMENT(self::AbaqusExporter, Text::AbstractString)
+
+Write out the `**` comment option.
+"""
+function COMMENT(self::AbaqusExporter, Text::AbstractString)
+  println(self.ios, "**" * Text)
 end
 
 """
@@ -334,6 +343,21 @@ function SOLID_SECTION(self::AbaqusExporter, MATERIAL::AbstractString,
 end
 
 """
+    SOLID_SECTION(self::AbaqusExporter, MATERIAL::AbstractString,
+      ORIENTATION::AbstractString, ELSET::AbstractString)
+
+Write out the `*SOLID SECTION` option.
+
+Level: Part,  Part instance
+
+"""
+function SOLID_SECTION(self::AbaqusExporter, MATERIAL::AbstractString,
+  ORIENTATION::AbstractString, ELSET::AbstractString)
+  println(self.ios, "*SOLID SECTION,MATERIAL=" * MATERIAL *
+      ",ORIENTATION =" * ORIENTATION * ",ELSET=" * ELSET);
+end
+
+"""
     HOURGLASS(self::AbaqusExporter, KIND::AbstractString, VALUE::F) where {F}
 
 Write out the `*HOURGLASS` option.
@@ -522,26 +546,3 @@ function close(self::AbaqusExporter)
 end
 
 end # module
-
-# module mmmmmmmmmm
-# using FinEtools
-# using Base.Test
-# using AbaqusExportModule
-# function test()
-#   AE = AbaqusExporter("SimpleExample");
-#   HEADING(AE, "My first example ");
-#   PART(AE, "part1");
-#   END_PART(AE);
-#   ASSEMBLY(AE, "ASSEM1");
-#   INSTANCE(AE, "INSTNC1","PART1");
-#   NODE(AE, rand(4,3));
-#   ELEMENT(AE, "c3d8", "Allh8", 1, rand(UInt8, 4, 8)+1)
-#   ELEMENT(AE, "c3d20", "Allh20", 1, rand(UInt8, 4, 20)+1)
-#   NSET_NSET(AE, "Corner", vec([1 2 3 4]));
-#   END_INSTANCE(AE);
-#   END_ASSEMBLY(AE);
-#   close(AE)
-# end
-# end
-# using mmmmmmmmmm
-# mmmmmmmmmm.test()
