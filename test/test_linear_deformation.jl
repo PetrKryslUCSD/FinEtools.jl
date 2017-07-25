@@ -2020,13 +2020,13 @@ function test()
   G13s = 0.1875e7*phun("psi")
   G23s = 0.1875e7*phun("psi")
   # Core material parameters
-  E1c = 10.*phun("psi")
-  E2c = 10.*phun("psi")
+  E1c = 10.0*phun("psi")
+  E2c = 10.0*phun("psi")
   E3c = 10e4.*phun("psi")
   nu12c = 0.
   nu13c = 0.
   nu23c = 0.
-  G12c = 10.*phun("psi")
+  G12c = 10.0*phun("psi")
   G13c = 3.0e4*phun("psi")
   G23c = 1.2e4*phun("psi")
   L = 10.0*phun("in") # side of the square plate
