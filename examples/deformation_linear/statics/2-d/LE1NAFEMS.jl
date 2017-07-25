@@ -1,6 +1,6 @@
-using JFinEALE
+using FinEtools
 
-println("LE1NAFEMS, plane stress."        )        
+println("LE1NAFEMS, plane stress."        )
 t0 = time()
 
 E = 210e3*phun("MEGA*PA");# 210e3 MPa
@@ -28,7 +28,7 @@ u = NodalField(name ="u",data =zeros(size(fens.xyz,1),2)) # displacement field
 l1 =selectnode(fens; box=[0.0 Inf 0.0 0.0], inflate = tolerance)
 setebc!(u,l1,trues(length(l1)),l1*0+2,[0.0])
 l1 =selectnode(fens; box=[0.0 0.0 0.0 Inf], inflate = tolerance)
-setebc!(u,l1,trues(length(l1)),l1*0+1,[0.0])    
+setebc!(u,l1,trues(length(l1)),l1*0+1,[0.0])
 
 applyebc!(u)
 numberdofs!(u)
@@ -56,7 +56,7 @@ nl=selectnode (fens, box=[2.0,2.0,0.0,0.0],inflate=tolerance);
 thecorneru=zeros(JFFlt,1,2)
 gathervaluesasmat!(u,thecorneru,nl);
 thecorneru=thecorneru/phun("mm")
-println("$(time()-t0) [s];  displacement =$(thecorneru) [MM] as compared to reference [-0.10215,0] [MM]") 
+println("$(time()-t0) [s];  displacement =$(thecorneru) [MM] as compared to reference [-0.10215,0] [MM]")
 
 using JFinEALE.MeshExportModule
 

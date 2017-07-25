@@ -75,17 +75,22 @@ export close
 export HEADING, COMMENT
 export PART, END_PART, ASSEMBLY, END_ASSEMBLY, INSTANCE, END_INSTANCE
 export NODE, ELEMENT, NSET_NSET, ELSET_ELSET, ORIENTATION, MATERIAL,
-  ELASTIC, ELASTIC_ISOTROPIC, DENSITY, SECTION_CONTROLS, SOLID_SECTION,
+  ELASTIC, EXPANSION, DENSITY, SECTION_CONTROLS, SOLID_SECTION,
   SURFACE_SECTION
 export STEP_PERTURBATION_STATIC, STEP_FREQUENCY, BOUNDARY, DLOAD, CLOAD,
+  TEMPERATURE,
   END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
 
 mutable struct AbaqusExporter
+  filename::AbstractString
   ios::IO
   element_range::Tuple{Int64, Int64}
   function AbaqusExporter(filename::AbstractString)
-    ios = open(filename * ".inp","w+")
-    return new(ios, (typemax(Int64), 0))
+    if match(r".*\.inp$", filename) == nothing
+      filename = filename * ".inp"
+    end
+    ios = open(filename,"w+")
+    return new(deepcopy(filename), ios, (typemax(Int64), 0))
   end
 end
 
@@ -296,6 +301,16 @@ function ELASTIC(self::AbaqusExporter, E::F, nu::F) where {F}
 end
 
 """
+    EXPANSION(self::AbaqusExporter, CTE::F) where {F}
+
+Write out the `*EXPANSION` option.
+"""
+function EXPANSION(self::AbaqusExporter, CTE::F) where {F}
+  println(self.ios, "*EXPANSION");
+  println(self.ios, "$CTE,");
+end
+
+"""
     DENSITY(self::AbaqusExporter, rho)
 
 Write out the `*DENSITY` option.
@@ -495,6 +510,22 @@ function CLOAD(self::AbaqusExporter, NSET::AbstractString, dof::Integer,
   magnitude::F) where {F}
   println(self.ios, "*CLOAD");
   println(self.ios, NSET * "$dof,$magnitude");
+end
+
+"""
+    TEMPERATURE(self::AbaqusExporter, nlist::AbstractArray{I, 1},
+      tlist::AbstractArray{F, 1}) where {I, F}
+
+Write out the `*TEMPERATURE` option.
+"""
+function TEMPERATURE(self::AbaqusExporter, Classifier::AbstractString,
+  nlist::AbstractArray{I, 1},
+  tlist::AbstractArray{F, 1}) where {I, F}
+  @assert length(nlist) == length(tlist)
+  println(self.ios, "*TEMPERATURE");
+  for ixxxx = 1:length(nlist)
+    println(self.ios, Classifier * "$(nlist[ixxxx]),$(tlist[ixxxx])");
+  end
 end
 
 """
