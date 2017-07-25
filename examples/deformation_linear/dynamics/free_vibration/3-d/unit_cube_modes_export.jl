@@ -46,7 +46,7 @@ mode = 7
 scattersysvec!(u, v[:,mode])
 File =  "unit_cube_modes.vtk"
 vtkexportmesh(File, fens, fes; vectors=[("mode$mode", u.values)])
-
+@async run(`"paraview.exe" $File`)
 
 AE = AbaqusExporter("unit_cube_modes_h20");
 # AE.ios = STDOUT;
