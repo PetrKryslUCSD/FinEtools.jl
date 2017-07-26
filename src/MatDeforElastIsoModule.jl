@@ -215,10 +215,10 @@ function update2dstrs!(self::MatDeforElastIso, stress::FFltVec, output::FFltVec,
     copy!(output, stress);
   elseif quantity == :pressure || quantity == :Pressure
     (length(output) >= 1) || (output = zeros(1)) # make sure we can store it
-    output[1] = -sum(stress[1:2])/2.
+    output[1] = -sum(stress[1:2])/3.
   elseif quantity == :princCauchy || quantity == :princcauchy
     t = zeros(FFlt,2,2)
-    t = stress3vto2x2t!(stress,t);
+    t = stress3vto2x2t!(t,stress);
     ep = eig(t);
     (length(output) >= 2) || (output = zeros(2)) # make sure we can store it
     copy!(output,  sort(ep[1], rev=true));
@@ -290,9 +290,14 @@ Output:
   calculated and stored in the `stress` vector.
 `output` =  array which is (if necessary) allocated  in an appropriate size, filled
   with the output quantity, and returned.
+
+Note on the principal stresses: The principal stresses are calculated for the
+fully three-dimensional  stress state, that is not the "in-plane" maximum and
+minimum,  but rather  the  three-dimensional maximum (1) and minimum (3).
+The intermediate principal stress is (2).
 """
 function update2dstrn!(self::MatDeforElastIso,  stress::FFltVec, output::FFltVec,
-  strain::FFltVec, thstrain::FFltVec=zeros(3), t::FFlt= 0.0, dt::FFlt= 0.0,
+  strain::FFltVec, thstrain::FFltVec=zeros(4), t::FFlt= 0.0, dt::FFlt= 0.0,
   loc::FFltMat=zeros(3,1), label::FInt=0, quantity=:nothing)
   @assert length(stress) == nstsstn(self.mr)
   D = zeros(3, 3)
@@ -308,17 +313,20 @@ function update2dstrn!(self::MatDeforElastIso,  stress::FFltVec, output::FFltVec
     copy!(output, stress); output[4] = sz
   elseif quantity == :pressure || quantity == :Pressure
     (length(output) >= 1) || (output = zeros(1)) # make sure we can store it
-    output[1] = -sum(stress[[1,2,4]])/3.
+    sz = dot(self.D[3, 1:2], strain[1:2]-thstrain[1:2])-self.D[3,3]*thstrain[4];
+    output[1] = -(sum(stress[[1,2]]) + sz)/3.
   elseif quantity == :princCauchy || quantity == :princcauchy
     (length(output) >= 3) || (output = zeros(3)) # make sure we can store it
     t = zeros(FFlt, 3,3)
-    t = stress4vto3x3t!(t, stress[[1,2,4,3]]);
+    sz = dot(self.D[3, 1:2], strain[1:2]-thstrain[1:2])-self.D[3,3]*thstrain[4];
+    t = stress4vto3x3t!(t, vcat(stress[[1,2,3]], sz));
     ep = eig(t);
     (length(output) >= 3) || (output = zeros(3)) # make sure we can store it
     copy!(output,  sort(ep[1], rev=true));
   elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
     (length(output) >= 1) || (output = zeros(1)) # make sure we can store it
-    s1=stress[1]; s2=stress[2]; s3=stress[4];
+    sz = dot(self.D[3, 1:2], strain[1:2]-thstrain[1:2])-self.D[3,3]*thstrain[4];
+    s1=stress[1]; s2=stress[2]; s3=sz;
     s4=stress[3]; s5=0.0; s6=0.0;
     (length(output) >= 1) || (output = zeros(1)) # make sure we can store it
     output[1] = sqrt(1.0/2*((s1-s2)^2+(s1-s3)^2+(s2-s3)^2+6*(s4^2+s5^2+s6^2)))
