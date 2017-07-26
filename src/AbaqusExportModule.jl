@@ -220,6 +220,12 @@ function ELEMENT(self::AbaqusExporter, TYPE::AbstractString, ELSET::AbstractStri
   end
 end
 
+function ELEMENT(self::AbaqusExporter, TYPE::AbstractString, ELSET::AbstractString,
+  conn::AbstractArray{T, 2}) where {T<:Integer}
+  start = self.element_range[2] + 1
+  ELEMENT(self, TYPE, ELSET, start, conn)
+end
+
 """
     NSET_NSET(self::AbaqusExporter, NSET::AbstractString,
       n::AbstractVector{T}) where {T<:Integer}
@@ -373,6 +379,21 @@ function SOLID_SECTION(self::AbaqusExporter, MATERIAL::AbstractString,
 end
 
 """
+    SOLID_SECTION(self::AbaqusExporter, MATERIAL::AbstractString,
+      ORIENTATION::AbstractString, ELSET::AbstractString)
+
+Write out the `*SOLID SECTION` option.
+
+Level: Part,  Part instance
+
+"""
+function SOLID_SECTION(self::AbaqusExporter, MATERIAL::AbstractString,
+  ORIENTATION::AbstractString, ELSET::AbstractString, thickness::F) where {F}
+  SOLID_SECTION(self, MATERIAL, ORIENTATION, ELSET)
+  println(self.ios, "$(thickness),");
+end
+
+"""
     HOURGLASS(self::AbaqusExporter, KIND::AbstractString, VALUE::F) where {F}
 
 Write out the `*HOURGLASS` option.
@@ -502,14 +523,30 @@ end
 
 Write out the `*CLOAD` option.
 
-NSET=Number of node
+NSET=Node set
 dof= 1, 2, 3,
 magnitude= signed multiplier
 """
 function CLOAD(self::AbaqusExporter, NSET::AbstractString, dof::Integer,
   magnitude::F) where {F}
   println(self.ios, "*CLOAD");
-  println(self.ios, NSET * "$dof,$magnitude");
+  println(self.ios, NSET * ",$dof,$magnitude");
+end
+
+"""
+    CLOAD(self::AbaqusExporter, nodenumber::Integer, dof::Integer,
+      magnitude::F) where {F}
+
+Write out the `*CLOAD` option.
+
+nodenumber=Number of node
+dof= 1, 2, 3,
+magnitude= signed multiplier
+"""
+function CLOAD(self::AbaqusExporter, nodenumber::Integer, dof::Integer,
+  magnitude::F) where {F}
+  println(self.ios, "*CLOAD");
+  println(self.ios, "$(nodenumber),$dof,$magnitude");
 end
 
 """
