@@ -279,7 +279,7 @@ function update2dstrs!(self::MatDeforElastOrtho, stress::FFltVec,  output::FFltV
     copy!(output, stress);
   elseif quantity == :pressure || quantity == :Pressure
     (length(output) >= 1) || (output = zeros(1)) # make sure we can store it
-    output[1] = -sum(stress[1:2])/2.
+    output[1] = -sum(stress[1:2])/3.
   elseif quantity == :princCauchy || quantity == :princcauchy
     t = zeros(FFlt,2,2)
     t = stress3vto2x2t!(t,stress);
