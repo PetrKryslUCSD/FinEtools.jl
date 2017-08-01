@@ -59,27 +59,29 @@ sigmaA=-105*phun("MEGA*PA");
 # The mesh  will be created in a very coarse representation from the
 # key points in the drawing. The first coordinate is radial, the second coordinate is axial.
 rz=[1.     0.;#A
-    1.4    0.;#B
-    0.995184726672197   0.098017140329561;
-    1.393258617341076 0.137223996461385;
-    0.980785  0.195090;#
-    1.37309939 0.27312645;
-    0.956940335732209   0.290284677254462
-    1.339716470025092 0.406398548156247
-    0.9238795  0.38268;#C
-    1.2124  0.7;#D
-    0.7071  0.7071;#E
-    1.1062  1.045;#F
-    0.7071  (0.7071+1.79)/2;#(E+H)/2
-    1.      1.39;#G
-    0.7071  1.79;#H
-    1.      1.79;#I
-    ]*phun("M")
-    tolerance =1.e-6*phun("M")
-    ##
-    # Note that the material object needs to be created with the proper
-    # model-dimension reduction in mind.  In this case that is the fully three-dimensional solid.
-    mr=DeformationModelReduction3D
+1.4    0.;#B
+0.995184726672197   0.098017140329561;
+1.393258617341076 0.137223996461385;
+0.980785  0.195090;#
+1.37309939 0.27312645;
+0.956940335732209   0.290284677254462
+1.339716470025092 0.406398548156247
+0.9238795  0.38268;#C
+1.2124  0.7;#D
+0.7071  0.7071;#E
+1.1062  1.045;#F
+0.7071  (0.7071+1.79)/2;#(E+H)/2
+1.      1.39;#G
+0.7071  1.79;#H
+1.      1.79;#I
+]*phun("M")
+
+# Geometrical tolerance for searching
+tolerance =1.e-6*phun("M")
+##
+# Note that the material object needs to be created with the proper
+# model-dimension reduction in mind.  In this case that is the fully three-dimensional solid.
+mr=DeformationModelReduction3D
 
 fens=FENodeSet(rz);
 fes=FESetQ4(conn=[1 2 4 3; 3 4 6 5; 5 6 8 7; 7 8 10 9; 9 10 12 11; 11 12 14 13; 13 14 16 15]);
@@ -102,7 +104,7 @@ for ref=1:nref
     fens,fes=Q4refine(fens,fes);
     list=selectnode(fens,distance=1.0+0.1/2^nref, from=[0. 0.], inflate=tolerance);
     fens.xyz[list,:]= JFinEALE.MeshUtilModule.ontosphere(fens.xyz[list,:],1.0);
-end 
+end
 
 ##
 # The mesh is extruded by sweeping around the axis of symmetry.
@@ -138,7 +140,7 @@ f2l=selectelem (fens,bfes,box=[-Inf,Inf,-Inf,Inf,-angslice,-angslice],inflate=to
 sweep(rza)=[-rza[1]*sin(rza[3]+angslice/2.0),rza[1]*cos(rza[3]+angslice/2.0),rza[2]]
 for j=1:size(fens.xyz,1)
     fens.xyz[j,:]=sweep(fens.xyz[j,:])
-end    
+end
 
 
 ##
@@ -181,9 +183,9 @@ u = NodalField(name ="u",data =zeros(size(fens.xyz,1),3)) # displacement field
 # The EBCs are applied  next.  Only the axial (Z) degrees of freedom at
 # the bottom and top are fixed to zero.
 l1=selectnode(fens,box=[-Inf Inf -Inf Inf 0.0 0.0],inflate=tolerance)
-setebc!(u,l1,trues(length(l1)),l1*0+3,[0.0])    
+setebc!(u,l1,trues(length(l1)),l1*0+3,[0.0])
 l1=selectnode(fens,box=[-Inf Inf -Inf Inf 1.79  1.79],inflate=tolerance)
-setebc!(u,l1,trues(length(l1)),l1*0+3,[0.0])    
+setebc!(u,l1,trues(length(l1)),l1*0+3,[0.0])
 applyebc!(u)
 numberdofs!(u)
 
@@ -223,19 +225,19 @@ F = thermalstrainloads(mr, femm, geom, u, dT)
 
 U=  (K+H)\F
 scattersysvec!(u,U[:])
-    
-    
+
+
     ##
     # The stress  is recovered from the stress calculated at the
-    # integration points.  
-    
+    # integration points.
+
 fld= fieldfromintegpoints(mr, femm, geom, u, dT, :Cauchy, 3)
 
 
     ##
     # Now that we have the nodal field  for the axial stress, we can plot
     # the axial stress painted on the deformed geometry.
-    
+
 
 File =  "LE11NAFEMS_H8_sigmaz.vtk"
 vtkexportmesh(File, fens, fes; scalars=fld.values,scalars_name ="sigmaz", vectors=u.values,vectors_name="u")
