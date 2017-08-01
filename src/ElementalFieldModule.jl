@@ -1,7 +1,7 @@
 """
     ElementalFieldModule
 
-Module for elemental fields.  
+Module for elemental fields.
 """
 module ElementalFieldModule
 
@@ -26,8 +26,12 @@ mutable struct ElementalField{T<:Number} <: Field
   @add_Field_fields()
 end
 
-# Constructor of nodal field
-function ElementalField{T<:Number}(data::FMat{T}=[])
+"""
+   ElementalField(data::FMat{T}=[]) where {T<:Number}
+
+Constructor of elemental field.
+"""
+function ElementalField(data::FMat{T}=[]) where {T<:Number}
   values = deepcopy(data)
   dofnums = 0*similar(values,FInt)
   is_fixed = similar(values,Bool)

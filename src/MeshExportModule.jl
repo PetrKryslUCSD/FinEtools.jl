@@ -24,13 +24,17 @@ const H20=25
 
 
 """
-    vtkexportmesh(theFile::String, Connectivity, Points, Cell_type;
-      vectors=nothing, vectors_name ="vectors",
-      scalars=nothing, scalars_name ="scalars", binary = false)
+    vtkexportmesh(theFile::String, fens::FENodeSet, fes::T;
+      opts...) where {T<:FESet}
 
 Export mesh to a VTK 1.0 file as an unstructured grid.
+
+opts = keyword argument list, where
+scalars = array of tuples, (name, data)
+vectors = array of tuples, (name, data)
 """
-function vtkexportmesh{T<:FESet}(theFile::String, fens::FENodeSet, fes::T; opts...)
+function vtkexportmesh(theFile::String, fens::FENodeSet, fes::T;
+  opts...) where {T<:FESet}
   if typeof(fes) == FESetL2
     Cell_type=L2
   elseif typeof(fes) == FESetT3

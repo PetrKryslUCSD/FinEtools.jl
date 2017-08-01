@@ -22,8 +22,12 @@ mutable struct NodalField{T<:Number} <: Field
   @add_Field_fields()
 end
 
-# Constructor of nodal field
-function NodalField{T<:Number}(data::FMat{T}=[])
+"""
+    NodalField(data::FMat{T}=[]) where {T<:Number}
+
+Constructor of nodal field.
+"""
+function NodalField(data::FMat{T}=[]) where {T<:Number}
   values = deepcopy(data)
   dofnums = 0*similar(values,FInt)
   is_fixed = similar(values,Bool)

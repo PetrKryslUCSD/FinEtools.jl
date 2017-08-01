@@ -1,7 +1,7 @@
 """
     AssemblyModule
 
-Module for assemblers  of system matrices and vectors.  
+Module for assemblers  of system matrices and vectors.
 """
 module AssemblyModule
 
@@ -28,7 +28,7 @@ mutable struct SysmatAssemblerSparse{T<:Number} <: SysmatAssemblerBase
 end
 
 # AssemblyModule.SysmatAssemblerSparse()
-function SysmatAssemblerSparse{T<:Number}(zero::T=0.0)
+function SysmatAssemblerSparse(zero::T=0.0) where {T<:Number}
     return SysmatAssemblerSparse{T}(0,[zero],[0],[0],0,0,0)
 end
 
@@ -127,7 +127,7 @@ mutable struct SysmatAssemblerSparseSymm{T<:Number} <: SysmatAssemblerBase
 end
 
 # AssemblyModule.SysmatAssemblerSparse()
-function SysmatAssemblerSparseSymm{T<:Number}(zero::T=0.0)
+function SysmatAssemblerSparseSymm(zero::T=0.0) where {T<:Number}
     return SysmatAssemblerSparseSymm{T}(0,[zero],[0],[0],0,0)
 end
 
@@ -224,7 +224,7 @@ mutable struct SysvecAssembler{T<:Number} <: SysvecAssemblerBase
     F_buffer::FVec{T};
 end
 
-function SysvecAssembler{T<:Number}(zero::T=0.0)
+function SysvecAssembler(zero::T=0.0) where {T<:Number}
     return SysvecAssembler([zero])
 end
 

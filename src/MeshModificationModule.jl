@@ -15,14 +15,14 @@ using Base.Sort
 using Base.Order
 
 """
-    meshboundary{T<:FESet}(fes::T)
+    meshboundary(fes::T) where {T<:FESet}
 
 Extract the boundary finite elements from a mesh.
 
 Extract the finite elements of manifold dimension (n-1) from the
 supplied list of finite elements of manifold dimension (n).
 """
-function meshboundary{T<:FESet}(fes::T)
+function meshboundary(fes::T) where {T<:FESet}
     # Form all hyperfaces, non-duplicates are boundary cells
     hypf= FESetModule.boundaryconn(fes);    # get the connectivity of the boundary elements
     bdryconn = myunique2(hypf);

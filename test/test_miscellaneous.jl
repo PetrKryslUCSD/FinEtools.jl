@@ -281,7 +281,7 @@ function test()
   @test norm([solnestim, beta, c] - [92.46031652777476, 0.6053628424093497, -2.471055221256022]) < 1.e-5
 
   sol = [231.7, 239.1, 244.8]
-  h = [(4./5.)^i for i in 0:1:2]
+  h = [(4.0/5.)^i for i in 0:1:2]
   solnestim, beta, c, residual = richextrapol(sol, h)
   # println("$((solnestim, beta, c))")
   @test norm([solnestim, beta, c] - [263.91176470588067, 1.1697126080157385, 32.21176470588068]) < 1.e-5

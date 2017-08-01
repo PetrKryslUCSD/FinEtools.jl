@@ -22,8 +22,12 @@ mutable struct GeneralField{T<:Number} <: Field
 end
 
 
-# Constructor of general field
-function GeneralField{T<:Number}(data::FMat{T}=[])
+"""
+    GeneralField(data::FMat{T}=[]) where {T<:Number}
+
+Constructor of general field.
+"""
+function GeneralField(data::FMat{T}=[]) where {T<:Number}
   values = deepcopy(data)
   dofnums = 0*similar(values,FInt)
   is_fixed = similar(values,Bool)
