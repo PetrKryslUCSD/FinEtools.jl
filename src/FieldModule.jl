@@ -1,11 +1,16 @@
 """
     FieldModule
 
-Module for abstract fields.  
+Module for abstract fields.
 """
 module FieldModule
 
 using FinEtools.FTypesModule
+
+export Field
+export ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!,
+  gathervalues_asmat!, gatherdofnums!, numberdofs!, setebc!, applyebc!,
+  scattersysvec!
 
 """
 Abstract field.
@@ -19,7 +24,7 @@ Expected  attributes:
 See the macro `add_Field_fields()`.
 """
 abstract type Field end
-export Field
+
 
 macro add_Field_fields()
   return esc(:(
@@ -38,23 +43,22 @@ end
 Dimension of the degree of freedom parameters (i. e.  how many degrees of
 freedom per entity).
 """
-ndofs{F<:Field}(self::F)::FInt =  size(self.values, 2)
-export ndofs
+(ndofs(self::F)::FInt  where {F<:Field}) =  size(self.values, 2)
 
 """
     nents{F<:Field}(self::F)
 
 Number of nodes associated with the field.
 """
-nents{F<:Field}(self::F)::FInt = size(self.values, 1)
-export nents
+(nents(self::F)::FInt  where {F<:Field}) = size(self.values, 1)
+
 
 """
     gathersysvec{F<:Field}(self::F)
 
 Gather values from the field for the whole system vector.
 """
-function gathersysvec{F<:Field}(self::F)
+function gathersysvec(self::F) where {F<:Field}
   nents,dim = size(self.values)
   vec = zeros(typeof(self.values[1,1]),self.nfreedofs,1)
   for i = 1:nents
@@ -67,7 +71,6 @@ function gathersysvec{F<:Field}(self::F)
   end
   return vec
 end
-export gathersysvec
 
 """
     gathersysvec!(self::F, vec::FVec{T}) where {F<:Field, T}
@@ -87,7 +90,6 @@ function gathersysvec!(self::F, vec::FVec{T}) where {F<:Field, T}
   end
   return vec
 end
-export gathersysvec!
 
 """
     gathervalues_asvec!(self::Field, dest::A, conn::CC)
@@ -101,7 +103,8 @@ degrees of freedom,  then the next node and so on.
 `dest` = destination buffer: overwritten  inside,  must be preallocated
 in the correct size
 """
-function gathervalues_asvec!(self::Field, dest::A, conn::CC) where {A<:AbstractArray, CC<:AbstractArray{FInt}}
+function gathervalues_asvec!(self::Field, dest::A,
+  conn::CC) where {A<:AbstractArray, CC<:AbstractArray{FInt}}
   en::FInt = 1;
   for i = 1:length(conn)
     for j = 1:size(self.values,2)
@@ -110,7 +113,6 @@ function gathervalues_asvec!(self::Field, dest::A, conn::CC) where {A<:AbstractA
     end
   end
 end
-export gathervalues_asvec!
 
 """
     gathervalues_asmat!(self::Field, dest::A, conn::CC)
@@ -125,14 +127,14 @@ row and so on.
 `dest` = destination buffer: overwritten  inside,  must be preallocated
 in the correct size
 """
-function gathervalues_asmat!(self::Field, dest::A, conn::CC) where {A<:AbstractArray, CC<:AbstractArray{FInt}}
+function gathervalues_asmat!(self::Field, dest::A,
+  conn::CC) where {A<:AbstractArray, CC<:AbstractArray{FInt}}
   for i = 1:length(conn)
     for j = 1:size(self.values,2)
       dest[i, j] = self.values[conn[i], j];
     end
   end
 end
-export gathervalues_asmat!
 
 """
     gatherdofnums!(self::Field, dest::A, conn::CC) where {A, CC<:AbstractArray{FInt}}
@@ -148,7 +150,6 @@ function gatherdofnums!(self::Field, dest::A, conn::CC) where {A, CC<:AbstractAr
     end
   end
 end
-export gatherdofnums!
 
 """
     numberdofs!(self::Field)
@@ -176,7 +177,6 @@ function numberdofs!(self::Field)
   end
   return  self
 end
-export numberdofs!
 
 """
     setebc!(self::Field, fenids::FIntVec, is_fixed::Bool, comp::FInt,
@@ -213,7 +213,6 @@ function setebc!(self::Field, fenids::FIntVec, is_fixed::Bool, comp::FInt,
   fill!(self.dofnums, 0)
   return  self
 end
-export setebc!
 
 """
     setebc!(self::Field, fenids::FIntVec, is_fixed::Bool, comp::FInt,
@@ -250,7 +249,6 @@ function setebc!(self::Field, fenids::FIntVec, is_fixed::Bool, comp::FInt,
   fill!(self.dofnums, 0)
   return  self
 end
-export setebc!
 
 """
     setebc!(self::Field, fenids::FIntVec, comp::FInt,
@@ -272,7 +270,7 @@ function setebc!(self::Field, fenids::FIntVec, comp::FInt,
   val::FVec{T}) where {T<:Number}
   return setebc!(self, fenids, true, comp, val)
 end
-export setebc!
+
 
 """
     setebc!(self::Field, fenids::FIntVec, comp::FInt;
@@ -294,7 +292,6 @@ function setebc!(self::Field, fenids::FIntVec, comp::FInt;
   val::T=0.0) where {T<:Number}
   return setebc!(self, fenids, true, comp, val)
 end
-export setebc!
 
 """
     setebc!(self::Field, fenids::FIntVec, is_fixed::Bool, comp::FInt;
@@ -319,7 +316,6 @@ function setebc!(self::Field, fenids::FIntVec, is_fixed::Bool, comp::FInt;
   setebc!(self, fenids, is_fixed, j, val)
   return self
 end
-export setebc!
 
 """
     applyebc!(self::Field)
@@ -337,14 +333,13 @@ function applyebc!(self::Field)
   end
   return  self
 end
-export applyebc!
 
 """
-    scattersysvec!{T<:Number}(self::Field, vec::FVec{T})
+    scattersysvec!(self::Field, vec::FVec{T}) where {T<:Number}
 
 Scatter values to the field from a system vector.
 """
-function scattersysvec!{T<:Number}(self::Field, vec::FVec{T})
+function scattersysvec!(self::Field, vec::FVec{T}) where {T<:Number}
   nents,dim = size(self.values);
   for i = 1:nents
     for j = 1:dim
@@ -356,7 +351,6 @@ function scattersysvec!{T<:Number}(self::Field, vec::FVec{T})
   end
   return  self
 end
-export scattersysvec!
 
 
 end
