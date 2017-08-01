@@ -43,15 +43,18 @@ end
 Dimension of the degree of freedom parameters (i. e.  how many degrees of
 freedom per entity).
 """
-(ndofs(self::F)  where {F<:Field})::FInt =  size(self.values, 2)
+function ndofs(self::F)::FInt  where {F<:Field}
+  return size(self.values, 2)
+end
 
 """
     nents{F<:Field}(self::F)
 
 Number of nodes associated with the field.
 """
-(nents(self::F)  where {F<:Field})::FInt = size(self.values, 1)
-
+function nents(self::F)::FInt  where {F<:Field}
+  return  size(self.values, 1)
+end
 
 """
     gathersysvec{F<:Field}(self::F)
