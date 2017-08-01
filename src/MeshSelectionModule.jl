@@ -523,14 +523,6 @@ function vselect(v::FFltMat; args...)
 
     # Helper functions
     inrange(rangelo::FFlt,rangehi::FFlt,x::FFlt) = ((x>=rangelo) && (x<=rangehi));
-    function inbox(box::FFltVec,sdim::FInt,x::FFltVec)
-        for i=1:sdim
-            if (!inrange(box[2*i-1],box[2*i],x[i]))
-                return false
-            end
-        end
-        return true
-    end
 
     # Extract arguments
     box = nothing; distance = nothing; from = nothing; plane  =  nothing; thickness = nothing; nearestto = nothing; inflate = 0.0;

@@ -1,7 +1,7 @@
 """
     MeshUtilModule
 
-Module for mesh utility functions used in other meshing modules.  
+Module for mesh utility functions used in other meshing modules.
 """
 module MeshUtilModule
 
@@ -60,5 +60,13 @@ function ontosphere(xyz::FFltMat,radius::FFlt)
     return xyz;
 end
 
+# function inbox(box::FFltVec,sdim::FInt,x::FFltVec)
+#     for i=1:sdim
+#         if (!inrange(box[2*i-1],box[2*i],x[i]))
+#             return false
+#         end
+#     end
+#     return true
+# end
 
 end
