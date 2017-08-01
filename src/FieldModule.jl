@@ -43,14 +43,14 @@ end
 Dimension of the degree of freedom parameters (i. e.  how many degrees of
 freedom per entity).
 """
-(ndofs(self::F)::FInt  where {F<:Field}) =  size(self.values, 2)
+(ndofs(self::F)  where {F<:Field})::FInt =  size(self.values, 2)
 
 """
     nents{F<:Field}(self::F)
 
 Number of nodes associated with the field.
 """
-(nents(self::F)::FInt  where {F<:Field}) = size(self.values, 1)
+(nents(self::F)  where {F<:Field})::FInt = size(self.values, 1)
 
 
 """
