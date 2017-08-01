@@ -11,7 +11,7 @@ sigma_yD = 92.7*phun("MEGA*PA");# tensile stress at [2.0, 0.0] meters
 Radius = 1.0*phun("m")
 Thickness = 0.1*phun("m")
 n = 64; # number of elements per side
-tolerance = 1.0/n/1000.;#Geometrical tolerance
+tolerance = 1.0/n/1000.; # Geometrical tolerance
 
 fens,fes = Q4block(1.0, pi/2, n, n*2)
 fens,fes  = H8extrudeQ4(fens, fes,
