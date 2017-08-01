@@ -623,7 +623,8 @@ end
 # Output:
 # t = array of hexahedron connectivities,  one hexahedron per row
 # v =Array of vertex locations,  one vertex per row
-function H8voximggen{DataT<:Number}(img::Array{DataT, 3}, voxval::Array{DataT, 1})
+function H8voximggen(img::Array{DataT, 3},
+  voxval::Array{DataT, 1}) where {DataT<:Number}
    M=size(img,  1); N=size(img,  2); P=size(img,  3);
 
      function find_nonempty(minvoxval, maxvoxval)
@@ -691,8 +692,8 @@ function H8voximggen{DataT<:Number}(img::Array{DataT, 3}, voxval::Array{DataT, 1
 end
 
 
-function H8voximg{DataT<:Number}(img::Array{DataT, 3}, voxdims::FFltVec,
-  voxval::Array{DataT, 1})
+function H8voximg(img::Array{DataT, 3}, voxdims::FFltVec,
+  voxval::Array{DataT, 1}) where {DataT<:Number}
   h, v, hmid= H8voximggen(img, voxval)
   xyz=zeros(FFlt, size(v, 1), 3)
   for j=1:size(v, 1)

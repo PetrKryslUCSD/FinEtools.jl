@@ -462,7 +462,7 @@ function vsmoothing(v::FFltMat,t::FIntMat;options...)
 end
 
 
-function meshsmoothing{T<:FESet}(fens::FENodeSet,fes::T;options...)
+function meshsmoothing(fens::FENodeSet, fes::T; options...) where {T<:FESet}
 # General smoothing of meshes.
 #
 # function [t,v] =smoothing(t,v,options)
