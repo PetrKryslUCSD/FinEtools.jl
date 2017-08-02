@@ -1,7 +1,7 @@
 """
     MatrixUtilityModule
 
-Module for general utility matrix product functions.  
+Module for general utility matrix product functions.
 """
 module MatrixUtilityModule
 
@@ -58,6 +58,8 @@ function add_gkgt_ut_only!(Ke::FFltMat, gradN::FFltMat, Jac_w::FFlt,
   @assert size(Ke, 1) == size(Ke, 2)
   Kedim = size(Ke, 1)
   nne, mdim = size(gradN)
+  @assert size(kappa_bar) == (mdim, mdim)
+  @assert size(kappa_bargradNT) == (mdim, nne)
   mx::FInt = 0
   nx::FInt = 0
   px::FInt = 0
@@ -104,6 +106,7 @@ end
 
 function mv_product!(r::FFltVec, Ke::FFltMat, v::FFltVec)
   @assert size(Ke, 1) == size(Ke, 2)
+  @assert length(v) == size(Ke, 2)
   Kedim = size(Ke, 1)
   mx::FInt = 0
   nx::FInt = 0
@@ -133,7 +136,10 @@ during each call of this function.
 function add_btdb_ut_only!(Ke::FFltMat, B::FFltMat, Jac_w::FFlt,
         D::FFltMat, DB::FFltMat)
   @assert size(Ke, 1) == size(Ke, 2)
+  @assert size(B, 1) == size(D, 1)
   nstr, Kedim = size(B)
+  @assert size(D) == (nstr, nstr)
+  @assert size(DB) == (nstr, Kedim)
   mx::FInt = 0
   nx::FInt = 0
   px::FInt = 0
@@ -174,6 +180,7 @@ during each call of this function.
 """
 function add_nnt_ut_only!(Ke::FFltMat, N::FFltMat, Jac_w_coeff::FFlt)
   @assert size(Ke, 1) == size(Ke, 2)
+  @assert size(N, 1) == size(Ke, 2)
   Kedim = size(N, 1)
   mx::FInt = 0
   nx::FInt = 0

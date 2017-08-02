@@ -74,6 +74,7 @@ function assemble!(self::SysmatAssemblerSparse{T}, mat::FMat{T},
     nrows=length(dofnums_row); ncolumns=length(dofnums_col);
     p = self.buffer_pointer
     @assert p+ncolumns*nrows <= self.buffer_length+1
+    @assert size(mat) == (nrows, ncolumns)
     @inbounds for j=1:ncolumns
         @inbounds for i=1:nrows
             self.matbuffer[p] = mat[i,j] # serialized matrix
@@ -94,6 +95,8 @@ Make a sparse matrix.
 function makematrix!(self::SysmatAssemblerSparse)
     # Make a sparse matrix.
     # The method makes a sparse matrix from the assembly buffers.
+    @assert length(self.rowbuffer) >= self.buffer_pointer-1
+    @assert length(self.colbuffer) >= self.buffer_pointer-1
     @inbounds for j=1:self.buffer_pointer-1
         if self.rowbuffer[j] == inv_dofnum
             self.rowbuffer[j]=self.ndofs_row+1;
@@ -172,6 +175,7 @@ function assemble!(self::SysmatAssemblerSparseSymm{T}, mat::FMat{T},
     nrows=length(dofnums); ncolumns=nrows;
     p = self.buffer_pointer
     @assert p+ncolumns*nrows <= self.buffer_length+1
+    @assert size(mat) == (nrows, ncolumns)
     @inbounds for j=1:ncolumns
         @inbounds for i=j:nrows
             self.matbuffer[p] = mat[i,j] # serialized matrix
@@ -192,6 +196,8 @@ Make a sparse SYMMETRIC SQUARE matrix.
 function makematrix!(self::SysmatAssemblerSparseSymm)
     # Make a sparse matrix.
     # The method makes a sparse matrix from the assembly buffers.
+    @assert length(self.rowbuffer) >= self.buffer_pointer-1
+    @assert length(self.colbuffer) >= self.buffer_pointer-1
     @inbounds for j=1:self.buffer_pointer-1
         if self.rowbuffer[j] == inv_dofnum
             self.rowbuffer[j]=self.ndofs+1;

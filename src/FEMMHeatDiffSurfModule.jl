@@ -119,9 +119,7 @@ function surfacetransferloads(self::FEMMHeatDiffSurf,  assembler::A,
         Jac = Jacobiansurface(geod, J, loc, conn,  Ns[j]);
         Ta = dot(pT, Ns[j])
         factor = Ta*self.surfacetransfercoeff*Jac*w[j]
-        @inbounds for  mx = 1:Hedim
-          Fe[mx] += factor*Ns[j][mx]
-        end
+        Fe .+= factor*Ns[j]
       end # Loop over quadrature points
       gatherdofnums!(temp, dofnums, conn); # retrieve degrees of freedom
       assemble!(assembler,  Fe,  dofnums); # assemble element load vector

@@ -271,3 +271,9 @@ function examples()
   @eval using IJulia
   @eval notebook(dir=$path)
 end
+
+-- Mean-strain extrapolation technology: need to consider the thermal properties
+oof the stabilization material. It needs to produce  thermal strains  just as
+the real material.
+
+-- Search for JFinEALE: some examples have not been converted  yet.

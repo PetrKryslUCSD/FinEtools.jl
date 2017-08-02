@@ -91,11 +91,7 @@ function mass(self::FEMMDeforLinearAbstract,  assembler::A,
       At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
       Jac = Jacobianvolume(geod, J, loc, conn, Ns[j]);
       thefactor::FFlt =(rho*Jac*w[j]);
-      @inbounds for nx = 1:size(elmat,1) # Do: Me = Me + (Nexp'*Nexp) * (rho * Jac * w(j));
-        @inbounds for mx = 1:size(elmat,2)
-          elmat[mx, nx] = elmat[mx, nx] + NexpTNexp[j][mx, nx]*thefactor
-        end
-      end
+      elmat .+= NexpTNexp[j]*thefactor
     end # Loop over quadrature points
     gatherdofnums!(u,  dofnums,  conn);# retrieve degrees of freedom
     assemble!(assembler,  elmat,  dofnums,  dofnums);# assemble symmetric matrix
