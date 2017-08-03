@@ -54,7 +54,7 @@ MR = DeforModelRed3D
 
 material = MatDeforElastIso(MR, E, nu)
 
-femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material, true)
+femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material)
 
 # The geometry field now needs to be associated with the FEMM
 femm = associategeometry!(femm, geom)
@@ -71,7 +71,7 @@ thecorneru = thecorneru/phun("mm")
 println("$(time()-t0) [s];  displacement =$(thecorneru) [MM] as compared to reference [-0.10215,0] [MM]")
 
 
-fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2)
+fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimtrendpaper)
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
 
 println("$(n), $(fld.values[nl,1][1]/phun("MPa"))")
