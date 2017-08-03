@@ -46,22 +46,15 @@ mutable struct FEMMDeforLinearMSH8{MR<:DeforModelRed,
   material::M # material object
   stabilization_material::MatDeforElastIso
   phis::FFltVec
-  Experimental::Bool
   function FEMMDeforLinearMSH8(mr::Type{MR}, geod::GeoD{S, F},
-    material::M, Experimental::Bool) where {MR<:DeforModelRed,
+    material::M) where {MR<:DeforModelRed,
     S<:FESetH8, F<:Function, M<:MatDefor}
     @assert mr === material.mr "Model reduction is mismatched"
     @assert (mr === DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
     return new{MR, S, F, M}(mr, geod,  material, stabilization_material,
-      zeros(FFlt, 1), Experimental)
+      zeros(FFlt, 1))
   end
-end
-
-function FEMMDeforLinearMSH8(mr::Type{MR}, geod::GeoD{S, F},
-  material::M) where {MR<:DeforModelRed,
-  S<:FESetH8, F<:Function, M<:MatDefor}
-  return FEMMDeforLinearMSH8(mr, geod,  material, false)
 end
 
 function make_stabilization_material(material::M) where {M}
@@ -583,7 +576,14 @@ function inspectintegpoints(self::FEMMDeforLinearAbstractMS,
   felist::FIntVec,
   inspector::F,  idat, quantity=:Cauchy;
   context...) where {T<:Number, F<:Function}
-  if self.Experimental
+  tonode = :meanonly
+  for (i, arg) in enumerate(context)
+    sy, val = arg
+    if sy == :tonode
+      tonode = val
+    end
+  end
+  if tonode == :estimtrend
     return inspectintegpoints_extrapol(self, geom, u, dT, felist,
       inspector, idat, quantity; context...);
   else
