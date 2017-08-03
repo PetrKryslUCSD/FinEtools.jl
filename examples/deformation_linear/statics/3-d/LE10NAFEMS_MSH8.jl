@@ -16,18 +16,20 @@ t0 = time()
 E = 210e3*phun("MEGA*PA");# 210e3 MPa
 nu = 0.3;
 qmagn = 1.0*phun("MEGA*PA");# transverse pressure
-sigma_yP = 92.7*phun("MEGA*PA");# tensile stress at [2.0, 0.0] meters
+sigma_yP = -5.38*phun("MEGA*PA");# tensile stress at [2.0, 0.0] meters
 Ae =3.25*phun("m"); # Major radius of the exterior ellipse
 Be =2.75*phun("m"); # Minor radius of the exterior ellipse
 Ai =2.0*phun("m"); # Major radius of the interior ellipse
 Bi =1.0*phun("m"); # Minor radius of the interior ellipse
 Thickness = 0.6*phun("m")
-n = 6; # number of elements per side
-tolerance = 1.0/n/1000.; # Geometrical tolerance
+nc = 6; # number of elements per side
+nr = 5; # number of elements per side
+nt = 2; # number of elements through the thickness
+tolerance = Thickness/nt/1000.; # Geometrical tolerance
 
-fens,fes = Q4block(1.0, pi/2, n, n*2)
+fens,fes = Q4block(1.0, pi/2, nr, nc)
 fens,fes  = H8extrudeQ4(fens, fes,
-  1, (xyz, layer)->[xyz[1], xyz[2], (layer)*Thickness]);
+  nt, (xyz, layer)->[xyz[1], xyz[2], (layer)/nt*Thickness]);
 
 # Select the  boundary faces, on the boundary that is clamped,  and on the part
 # of the boundary that is loaded with the transverse pressure
@@ -37,8 +39,8 @@ topbfl = selectelem(fens, bdryfes, box=[0.0, 1.0, 0.0, pi/2, Thickness, Thicknes
 
 # Reshape the generated block into the elliptical plate
 for i=1:count(fens)
-    t=fens.xyz[i,1]; a=fens.xyz[i,2]; z=fens.xyz[i,3]
-    fens.xyz[i,:]=[(t*3.25+(1-t)*2)*cos(a), (t*2.75+(1-t)*1)*sin(a), z];
+    r=fens.xyz[i,1]; a=fens.xyz[i,2]; z=fens.xyz[i,3]
+    fens.xyz[i,:]=[(r*Ae+(1-r)*Ai)*cos(a) (r*Be+(1-r)*Bi)*sin(a) z];
 end
 
 
@@ -72,7 +74,7 @@ MR = DeforModelRed3D
 
 material = MatDeforElastIso(MR, E, nu)
 
-femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material, true)
+femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material)
 
 # The geometry field now needs to be associated with the FEMM
 femm = associategeometry!(femm, geom)
@@ -82,17 +84,17 @@ K = cholfact(K)
 U = K\(F2)
 scattersysvec!(u, U[:])
 
-nl = selectnode(fens, box=[2.0, 2.0, 0.0, 0.0, 0.0, 0.0],inflate=tolerance);
+nl = selectnode(fens, box=[Ai,Ai,0,0,Thickness,Thickness],inflate=tolerance);
 thecorneru = zeros(FFlt,1,3)
 gathervalues_asmat!(u, thecorneru, nl);
 thecorneru = thecorneru/phun("mm")
-println("$(time()-t0) [s];  displacement =$(thecorneru) [MM] as compared to reference [-0.10215,0] [MM]")
+println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
 
 
-fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2)
+fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimtrend)
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 
-println("$(n), $(fld.values[nl,1][1]/phun("MPa"))")
+println("$((nc, nr, nt)), $(fld.values[nl,1][1]/phun("MPa"))")
 
 File =  "LE10NAFEMS_sigmay.vtk"
 vtkexportmesh(File, fes.conn, geom.values,
