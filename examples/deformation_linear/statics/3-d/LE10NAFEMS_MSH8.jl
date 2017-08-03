@@ -22,12 +22,14 @@ Be =2.75*phun("m"); # Minor radius of the exterior ellipse
 Ai =2.0*phun("m"); # Major radius of the interior ellipse
 Bi =1.0*phun("m"); # Minor radius of the interior ellipse
 Thickness = 0.6*phun("m")
-nc = 6; # number of elements per side
-nr = 5; # number of elements per side
-nt = 2; # number of elements through the thickness
+nc = 16; # number of elements per side
+nr = 8; # number of elements per side
+nt = 8; # number of elements through the thickness
 tolerance = Thickness/nt/1000.; # Geometrical tolerance
 
 fens,fes = Q4block(1.0, pi/2, nr, nc)
+#
+@assert nt % 2 == 0 "Number of elements through the thickness must be even"
 fens,fes  = H8extrudeQ4(fens, fes,
   nt, (xyz, layer)->[xyz[1], xyz[2], (layer)/nt*Thickness]);
 
@@ -47,9 +49,11 @@ end
 geom = NodalField(fens.xyz)
 u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
 
-l1 =connectednodes(subset(bdryfes, exteriorbfl)) # clamped boundary
+l1 =connectednodes(subset(bdryfes, exteriorbfl)) # external boundary
 setebc!(u, l1, true, 1, 0.0)
 setebc!(u, l1, true, 2, 0.0)
+l1 = selectnode(fens; box=[0.0, Inf, 0.0, Inf, Thickness/2.0, Thickness/2.0], inflate = tolerance)
+l1 = intersect(l1, connectednodes(subset(bdryfes, exteriorbfl)))
 setebc!(u, l1, true, 3, 0.0)
 l1 =selectnode(fens; box=[0.0, 0.0, 0.0, Inf, 0.0, Thickness], inflate = tolerance)
 setebc!(u,l1,true, 1, 0.0) # symmetry plane X = 0
@@ -58,7 +62,7 @@ setebc!(u,l1,true, 2, 0.0) # symmetry plane Y = 0
 
 applyebc!(u)
 numberdofs!(u)
-
+display(u)
 
 el1femm =  FEMMBase(GeoD(subset(bdryfes,topbfl), GaussRule(2, 2)))
 function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
@@ -91,7 +95,7 @@ thecorneru = thecorneru/phun("mm")
 println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
 
 
-fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimtrend)
+fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimtrend)#
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 
 println("$((nc, nr, nt)), $(fld.values[nl,1][1]/phun("MPa"))")
