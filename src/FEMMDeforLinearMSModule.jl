@@ -586,6 +586,9 @@ function inspectintegpoints(self::FEMMDeforLinearAbstractMS,
   if tonode == :estimtrend
     return inspectintegpoints_extrapol(self, geom, u, dT, felist,
       inspector, idat, quantity; context...);
+  elseif tonode == :estimtrendpaper
+    return inspectintegpoints_extrapol_paper(self, geom, u, dT, felist,
+      inspector, idat, quantity; context...);
   else
     return inspectintegpoints_1pt(self, geom, u, dT, felist,
       inspector, idat, quantity; context...);
@@ -601,5 +604,160 @@ function inspectintegpoints(self::FEMMDeforLinearAbstractMS,
  return inspectintegpoints(self, geom, u, dT, felist,
            inspector, idat, quantity; context...);
 end
+
+
+"""
+   inspectintegpoints(self::FEMMDeforLinear,
+     geom::NodalField{FFlt},  u::NodalField{T},
+     dT::NodalField{FFlt},
+     felist::FIntVec,
+     inspector::F,  idat, quantity=:Cauchy;
+     context...) where {T<:Number, F<:Function}
+
+Inspect integration point quantities.
+
+`geom` - reference geometry field
+`u` - displacement field
+`dT` - temperature difference field
+`felist` - indexes of the finite elements that are to be inspected:
+    The fes to be included are: `fes[felist]`.
+`context`    - structure: see the update!() method of the material.
+`inspector` - functionwith the signature
+       idat = inspector(idat, j, conn, x, out, loc);
+  where
+   `idat` - a structure or an array that the inspector may
+          use to maintain some state,  for instance minimum or maximum of
+          stress, `j` is the element number, `conn` is the element connectivity,
+          `out` is the output of the update!() method,  `loc` is the location
+          of the integration point in the *reference* configuration.
+### Return
+The updated inspector data is returned.
+"""
+function inspectintegpoints_extrapol_paper(self::FEMMDeforLinearAbstractMS,
+ geom::NodalField{FFlt},  u::NodalField{T},
+ dT::NodalField{FFlt},
+ felist::FIntVec,
+ inspector::F,  idat, quantity=:Cauchy;
+ context...) where {T<:Number, F<:Function}
+ geod = self.geod
+ npts,  Ns,  gradNparams,  w,  pc = integrationdata(geod);
+ conn, x, dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac,
+ D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
+ MeanN = deepcopy(Ns[1])
+ # Sort out  the output requirements
+ outputcsys = geod.mcsys; # default: report the stresses in the material coord system
+ for arg in context
+   sy,  val = arg
+   if sy == :outputcsys
+     outputcsys = val
+   end
+ end
+ idat1 = idat
+ t= 0.0
+ dt = 0.0
+ dTe = zeros(FFlt, length(conn), 1) # nodal temperatures -- buffer
+ ue = zeros(FFlt, size(elmat, 1), 1); # array of node displacements -- buffer
+ qpdT = 0.0; # node temperature increment
+ qpstrain = zeros(FFlt, nstsstn(self.mr), 1); # total strain -- buffer
+ qpthstrain = zeros(FFlt, nthstn(self.mr)); # thermal strain -- buffer
+ qpstress = zeros(FFlt, nstsstn(self.mr)); # stress -- buffer
+ out1 = zeros(FFlt, nstsstn(self.mr)); # stress -- buffer
+ out =  zeros(FFlt, nstsstn(self.mr));# output -- buffer
+ # Loop over  all the elements and all the quadrature points within them
+ for ilist = 1:length(felist) # Loop over elements
+   i = felist[ilist];
+   getconn!(geod.fes, conn, i);
+   gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
+   gathervalues_asvec!(u, ue, conn);# retrieve element displacements
+   gathervalues_asvec!(dT, dTe, conn);# retrieve element temperature increments
+   # NOTE: the coordinate system should be evaluated at a single point within the
+   # element in order for the derivatives to be consistent at all quadrature points
+   loc .= mean(x, 1)
+   updatecsmat!(geod.mcsys, loc, J, geod.fes.label[i]);
+   vol = 0.0; # volume of the element
+   fill!(MeangradN, 0.0) # mean basis function gradients
+   fill!(MeanN, 0.0) # mean basis function gradients
+   for j = 1:npts # Loop over quadrature points
+     At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
+     Jac[j] = Jacobianvolume(geod, J, loc, conn, Ns[j]);
+     At_mul_B!(csmatTJ, geod.mcsys.csmat, J); # local Jacobian matrix
+     gradN!(geod.fes, AllgradN[j], gradNparams[j], csmatTJ);
+     dvol = Jac[j]*w[j]
+     MeangradN .= MeangradN .+ AllgradN[j]*dvol
+     MeanN .= MeanN .+ Ns[j]*dvol
+     vol = vol + dvol
+   end # Loop over quadrature points
+   MeangradN .= MeangradN/vol
+   Blmat!(self.mr, Bbar, MeanN, MeangradN, loc, geod.mcsys.csmat);
+   MeanN .= MeanN/vol
+   qpdT = dot(vec(dTe), vec(MeanN));# Quadrature point temperature increment
+   # Quadrature point quantities
+   A_mul_B!(qpstrain, Bbar, ue); # strain in material coordinates
+   self.material.thermalstrain!(self.material, qpthstrain, qpdT)
+   # Material updates the state and returns the output
+   out = self.material.update!(self.material, qpstress, out,
+    vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
+   if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
+     (length(out1) >= length(out)) || (out1 = zeros(length(out)))
+     rotstressvec(self.mr, out1, out, geod.mcsys.csmat')# To global coord sys
+     rotstressvec(self.mr, out, out1, outputcsys.csmat)# To output coord sys
+   end
+   # Material updates the state and returns the output
+   sbout = deepcopy(out)
+   sbout1 = deepcopy(out)
+   out = self.stabilization_material.update!(self.stabilization_material, qpstress, sbout,
+    vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
+   if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
+     (length(sbout1) >= length(sbout)) || (sbout1 = zeros(length(sbout)))
+     rotstressvec(self.mr, sbout1, sbout, geod.mcsys.csmat')# To global coord sys
+     rotstressvec(self.mr, sbout, sbout1, outputcsys.csmat)# To output coord sys
+   end
+   sqploc = deepcopy(loc)
+   B = deepcopy(Bbar)
+   sstoredout = zeros(FFlt, npts, length(out))
+   A = ones(FFlt, npts, 4)
+   sout = deepcopy(out)
+   sout1 = deepcopy(out1)
+   for j = 1:npts # Loop over quadrature points (stabilization material)
+     At_mul_B!(sqploc, Ns[j], x);# Quadrature points location
+     A[j, 1:3] .= vec(sqploc - loc);
+     Blmat!(self.mr, B, Ns[j], AllgradN[j], sqploc, geod.mcsys.csmat);
+     qpdT = dot(vec(dTe), vec(Ns[j]));# Quadrature point temperature increment
+     #  Quadrature point quantities
+     A_mul_B!(qpstrain, B, ue); # strain in material coordinates
+     self.material.thermalstrain!(self.stabilization_material, qpthstrain, qpdT)
+     # Material updates the state and returns the output
+     out = self.stabilization_material.update!(self.stabilization_material, qpstress, sout,
+       vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
+     if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
+       (length(sout1) >= length(sout)) || (sout1 = zeros(length(sout)))
+       rotstressvec(self.mr, sout1, sout, geod.mcsys.csmat')# To global coord sys
+       rotstressvec(self.mr, sout, sout1, outputcsys.csmat)# To output coord sys
+     end
+     sstoredout[j, :] .= sout # store  the output for this quadrature point
+   end # Loop over quadrature points
+   #  Solve for the least-square fit parameters
+   Q, R = qr(A)
+   p = R \ (transpose(Q) * sstoredout)
+   for nod = 1:size(x, 1)
+     #  Predict the value  of the output quantity at the node
+     nout = out - sbout + vec(reshape(vec(x[nod, :]) - vec(loc), 1, 3) * p[1:3, :]) + p[4, :]
+     # Call the inspector for the node location
+     idat1 = inspector(idat1, i, conn, x, nout, x[nod, :]);
+   end
+ end # Loop over elements
+ return idat1; # return the updated inspector data
+end
+
+function inspectintegpoints_extrapol_paper(self::FEMMDeforLinearAbstractMS,
+ geom::NodalField{FFlt},  u::NodalField{T},
+ felist::FIntVec,
+ inspector::F, idat, quantity=:Cauchy;
+ context...) where {T<:Number, F<:Function}
+ dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
+ return inspectintegpoints(self, geom, u, dT, felist,
+           inspector, idat, quantity; context...);
+end
+
 
 end

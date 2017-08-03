@@ -22,9 +22,9 @@ Be =2.75*phun("m"); # Minor radius of the exterior ellipse
 Ai =2.0*phun("m"); # Major radius of the interior ellipse
 Bi =1.0*phun("m"); # Minor radius of the interior ellipse
 Thickness = 0.6*phun("m")
-nc = 16; # number of elements per side
-nr = 8; # number of elements per side
-nt = 8; # number of elements through the thickness
+nc = 6; # number of elements per side
+nr = 5; # number of elements per side
+nt = 2; # number of elements through the thickness
 tolerance = Thickness/nt/1000.; # Geometrical tolerance
 
 fens,fes = Q4block(1.0, pi/2, nr, nc)
