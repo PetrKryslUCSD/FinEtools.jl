@@ -1,13 +1,16 @@
 """
     MeshImportModule
 
-Module for mesh import  functions.  
+Module for mesh import  functions.
 """
 module MeshImportModule
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
 using FinEtools.FENodeSetModule
+
+
+const chunk = 50
 
 """
     import_NASTRAN(filename)
@@ -23,11 +26,11 @@ Import tetrahedral (4- and 10-node) NASTRAN mesh (.nas file).
 function import_NASTRAN(filename)
   lines = readlines(filename)
 
-  chunk = 5000
   nnode = 0
   node = zeros(chunk, 4)
+  maxnodel = 10
   nelem = 0
-  elem = zeros(Int, chunk, 13)
+  elem = zeros(Int, chunk, maxnodel + 3)
 
   current_line = 1
   while true
@@ -55,7 +58,7 @@ function import_NASTRAN(filename)
       #   CTETRA,1,3,15,14,12,16,8971,4853,8972,4850,8973,4848
       nelem = nelem + 1
       if size(elem, 1) < nelem
-        elem = vcat(elem, zeros(chunk, 4))
+        elem = vcat(elem, zeros(Int, chunk, maxnodel + 3))
       end
       A = split(replace(temp, ",", " "))
       elem[nelem, 1] = parse(Int64, A[2])
@@ -69,7 +72,7 @@ function import_NASTRAN(filename)
           current_line = current_line + 1
           temp = strip(temp)
           Acont = split(replace(temp, ",", " "))
-          A = hcat(A, Acont)
+          A = vcat(A, Acont)
         end
       end
       elem[nelem, 3] = nperel
@@ -100,7 +103,7 @@ function import_NASTRAN(filename)
   if (ennod[1] != 4) && (ennod[1] != 10)
     error("Unknown element type")
   end
-  conn = elem[:,4:3+ennod[1]]
+  conn = elem[:,4:3+convert(Int, ennod[1])]
 
   # Create output arguments. First the nodes
   fens = FENodeSet(xyz)
@@ -112,6 +115,166 @@ function import_NASTRAN(filename)
   setlabel!(fes, elem[:,2])
 
   return fens, fes
+end
+
+mutable struct AbaqusElementSection
+  ElementLine::AbstractString
+  nelem::Int
+  elem::Array{Int64}
+end
+
+"""
+    import_ABAQUS(filename)
+
+Import tetrahedral (4- and 10-node) or hexahedral (8- and 20-node) Abaqus mesh
+(.inp file).
+
+    Limitations:
+    1. Only the `*NODE` and `*ELEMENT`  sections are read
+    2. Only 4-node and 10-node tetrahedra and 8-node or 20-node  hexahedra
+      are handled.
+
+"""
+function import_ABAQUS(filename)
+  lines = readlines(filename)
+
+  maxelnodes = 20
+
+  nnode = 0
+  node = zeros(chunk, 4)
+  Reading_nodes = false
+  next_line = 1
+  while true
+    if next_line > length(lines)
+      break
+    end
+    temp = uppercase(strip(lines[next_line]))
+    next_line = next_line + 1
+    if (length(temp) >= 5) && (temp[1:5] == "*NODE")
+      Reading_nodes = true
+      nnode = 0
+      node = zeros(chunk, 4)
+      temp = uppercase(strip(lines[next_line]))
+      next_line = next_line + 1
+    end
+    if Reading_nodes
+      if temp[1:1] == "*" # another section started
+        Reading_nodes = false
+        break
+      end
+      nnode = nnode + 1
+      if size(node, 1) < nnode # if needed, allocate more space
+        node = vcat(node, zeros(chunk, 4))
+      end
+      A = split(replace(temp, ",", " "))
+      for  six = 1:length(A)
+        node[nnode, six] = parse(Float64, A[six])
+      end
+    end
+  end # while
+
+  nelemset = 0
+  elemset = AbaqusElementSection[]
+  Reading_elements = false
+  next_line = 1
+  while true
+    if next_line > length(lines)
+      break
+    end
+    temp = uppercase(strip(lines[next_line]))
+    next_line = next_line + 1
+    if (length(temp) >= 8) && (temp[1:8] == "*ELEMENT")
+      Reading_elements = true
+      nelemset = nelemset + 1
+      nelem = 0
+      a = AbaqusElementSection(temp, nelem, zeros(Int64, chunk, maxelnodes+1))
+      push!(elemset, a)
+      temp = uppercase(strip(lines[next_line]))
+      next_line = next_line + 1
+    end
+    if Reading_elements
+      if temp[1:1] == "*" # another section started
+        Reading_elements = false
+        break
+      end
+      elemset[nelemset].nelem = elemset[nelemset].nelem + 1
+      if size(elemset[nelemset].elem, 1) < elemset[nelemset].nelem
+        elemset[nelemset].elem = vcat(elemset[nelemset].elem,
+                                      zeros(Int64, chunk, maxelnodes+1))
+      end
+      A = split(temp, ",")
+      if (A[end] == "") # the present line is continued on the next one
+        temp = uppercase(strip(lines[next_line]))
+        next_line = next_line + 1
+        Acont = split(temp, ",")
+        A = vcat(A[1:end-1], Acont)
+      end
+      for ixxxx = 1:length(A)
+        elemset[nelemset].elem[elemset[nelemset].nelem, ixxxx] = parse(Int64, A[ixxxx])
+      end
+    end
+  end # while
+
+  node = node[1:nnode, :] # truncate the array to just the lines read
+  # The nodes need to be in serial order:  if they are not,  the element
+  # connectivities  will not point at the right nodes. So,  if that's the case we
+  # will figure out the sequential numbering of the nodes  and then we will
+  # renumbered the connectivvities of the elements.
+  newnumbering = collect(1:nnode)
+  if norm(collect(1:nnode)-node[:,1]) != 0
+    newnumbering = zeros(Int, convert(Int, maximum(node[:,1])))
+    jn = 1
+    for ixxxx = 1:size(node, 1)
+      if node[ixxxx,1] != 0
+        on = convert(Int, node[ixxxx,1])
+        newnumbering[on] = jn
+        jn = jn + 1
+      end
+    end
+  end
+
+  # Process output arguments
+  # Nodes
+  xyz = node[:,2:4]
+  fens = FENodeSet(xyz)
+
+  # Element sets
+  fesarray = FESet[]
+
+  function feset_construct(elemset1)
+    temp = uppercase(strip(elemset1.ElementLine))
+    b  = split(temp, ",")
+    for ixxx = 1:length(b)
+      c = split(b[ixxx], "=")
+      if (uppercase(strip(c[1])) == "TYPE") && (length(c) > 1)
+        TYPE = uppercase(strip(c[2]))
+        if (length(TYPE) >= 4) && (TYPE[1:4] == "C3D8")
+          return FESetH8(elemset1.elem[:, 2:9])
+        elseif (length(TYPE) >= 5) && (TYPE[1:5] == "C3D20")
+          return FESetH20(elemset1.elem[:, 2:21])
+        elseif (length(TYPE) >= 4) && (TYPE[1:4] == "C3D4")
+          return FESetT4(elemset1.elem[:, 2:5])
+        elseif (length(TYPE) >= 5) && (TYPE[1:5] == "C3D10")
+          return FESetT10(elemset1.elem[:, 2:11])
+        else
+          return nothing
+        end
+      end
+    end
+  end
+
+  for ixxxx = 1:length(elemset)
+    elemset[ixxxx].elem = elemset[ixxxx].elem[1:elemset[ixxxx].nelem, :]
+    fes = feset_construct(elemset[ixxxx])
+      if (fes === nothing)
+        warn("Don't know how to handle " * elemset[ixxxx].ElementLine)
+      else
+        fes = renumberconn!(fes, newnumbering)
+        push!(fesarray, fes)
+      end
+    end
+
+  return fens, fesarray
 end
 
 end #Module
