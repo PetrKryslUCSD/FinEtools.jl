@@ -2,148 +2,7 @@ module junk
 
 using FinEtools
 using FinEtools.MeshExportModule
-
-chunk = 50
-
-mutable struct AbaqusElementSection
-  ElementLine::AbstractString
-  nelem::Int
-  elem::Array{Int64}
-end
-
-"""
-    import_ABAQUS(filename)
-
-Import tetrahedral (4- and 10-node) Abaqus mesh (.inp file).
-
-    Limitations:
-    1. Only the `*NODE` and `*ELEMENT`  sections are read
-    2. Only 4-node and 10-node tetrahedra  are handled.
-    3. The file needs to be free-form (data separated by commas).
-
-"""
-function import_ABAQUS(filename)
-  lines = readlines(filename)
-
-  maxelnodes = 20
-
-  nnode = 0
-  node = zeros(chunk, 4)
-  Reading_nodes = false
-  next_line = 1
-  while true
-    if next_line > length(lines)
-      break
-    end
-    temp = uppercase(strip(lines[next_line]))
-    next_line = next_line + 1
-    if (length(temp) >= 5) && (temp[1:5] == "*NODE")
-      Reading_nodes = true
-      nnode = 0
-      node = zeros(chunk, 4)
-      temp = uppercase(strip(lines[next_line]))
-      next_line = next_line + 1
-    end
-    if Reading_nodes
-      if temp[1:1] == "*" # another section started
-        Reading_nodes = false
-        break
-      end
-      nnode = nnode + 1
-      if size(node, 1) < nnode # if needed, allocate more space
-        node = vcat(node, zeros(chunk, 4))
-      end
-      A = split(replace(temp, ",", " "))
-      for  six = 1:4
-        node[nnode, six] = parse(Float64, A[six])
-      end
-    end
-  end # while
-
-  nelemset = 0
-  elemset = AbaqusElementSection[]
-  Reading_elements = false
-  next_line = 1
-  while true
-    if next_line > length(lines)
-      break
-    end
-    temp = uppercase(strip(lines[next_line]))
-    next_line = next_line + 1
-    if (length(temp) >= 8) && (temp[1:8] == "*ELEMENT")
-      Reading_elements = true
-      nelemset = nelemset + 1
-      nelem = 0
-      a = AbaqusElementSection(temp, nelem, zeros(Int64, chunk, maxelnodes+1))
-      push!(elemset, a)
-      temp = uppercase(strip(lines[next_line]))
-      next_line = next_line + 1
-    end
-    if Reading_elements
-      if temp[1:1] == "*" # another section started
-        Reading_elements = false
-        break
-      end
-      elemset[nelemset].nelem = elemset[nelemset].nelem + 1
-      if size(elemset[nelemset].elem, 1) < elemset[nelemset].nelem
-        elemset[nelemset].elem = vcat(elemset[nelemset].elem,
-                                      zeros(Int64, chunk, maxelnodes+1))
-      end
-      A = split(temp, ",")
-      if (A[end] == "") # the present line is continued on the next one
-        temp = uppercase(strip(lines[next_line]))
-        next_line = next_line + 1
-        Acont = split(temp, ",")
-        A = hcat(A[1:end-1], Acont)
-      end
-      for ixxxx = 1:length(A)
-        elemset[nelemset].elem[elemset[nelemset].nelem, ixxxx] = parse(Int64, A[ixxxx])
-      end
-    end
-  end # while
-
-  node = node[1:nnode, :] # truncate the array to just the lines read
-  # The nodes need to be in serial order:  if they are not,  the element
-  # connectivities  will not point at the right nodes
-  if norm(collect(1:nnode)-node[:,1]) != 0
-    error("Nodes are not in serial order")
-  end
-
-  # Process output arguments
-  # Nodes
-  xyz = node[:,2:4]
-  fens = FENodeSet(xyz)
-
-  # Element sets
-  fesarray = FESet[]
-
-  function feset_construct(elemset1)
-    temp = uppercase(strip(elemset1.ElementLine))
-    b  = split(temp, ",")
-    for ixxx = 1:length(b)
-      c = split(b[ixxx], "=")
-      if (uppercase(strip(c[1])) == "TYPE") && (length(c) > 1)
-        TYPE = uppercase(strip(c[2]))
-        if (length(TYPE) >= 4) && (TYPE[1:4] == "C3D8")
-          return FESetH8(elemset1.elem[:, 2:9])
-        elseif (length(TYPE) >= 5) && (TYPE[1:5] == "C3D20")
-          return FESetH20(elemset1.elem[:, 2:21])
-        else
-          return nothing
-        end
-      end
-    end
-  end
-
-  for ixxxx = 1:length(elemset)
-    elemset[ixxxx].elem = elemset[ixxxx].elem[1:elemset[ixxxx].nelem, :]
-    fes = feset_construct(elemset[ixxxx])
-    !(fes === nothing) &&  push!(fesarray, fes)
-  end
-
-  return fens, fesarray
-end
-
+using FinEtools.MeshImportModule
 
 ## Solid cylinder/taper/sphere—-temperature loading; quadratic brick mesh
 
@@ -214,7 +73,7 @@ END_ASSEMBLY(AE);
 close(AE)
 
 
-fens, fesarray = import_ABAQUS("./LE11NAFEMS_H8.inp")
+fens, fesarray = MeshImportModule.import_ABAQUS("./LE11NAFEMS_H8.inp")
 
 File = "LE11NAFEMS_H8.vtk"
 MeshExportModule.vtkexportmesh(File, fens, fesarray[1])
