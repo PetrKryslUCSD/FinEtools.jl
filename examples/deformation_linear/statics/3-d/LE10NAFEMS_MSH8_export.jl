@@ -25,14 +25,16 @@ Thickness = 0.6*phun("m")
 nc = 6; # number of elements per side
 nr = 5; # number of elements per side
 nt = 2; # number of elements through the thickness
-# nc = 20; # number of elements per side
-# nr = 20; # number of elements per side
-# nt = 10; # number of elements through the thickness
+# nc = 26; # number of elements per side
+# nr = 25; # number of elements per side
+# nt = 18; # number of elements through the thickness
 tolerance = Thickness/nt/1000.; # Geometrical tolerance
 
+fens,fes = Q4block(1.0, pi/2, nr, nc)
+#
 @assert nt % 2 == 0 "Number of elements through the thickness must be even"
-fens,fes = T10block(1.0, pi/2, Thickness, nr, nc, nt, orientation=:b)
-
+fens,fes  = H8extrudeQ4(fens, fes,
+  nt, (xyz, layer)->[xyz[1], xyz[2], (layer)/nt*Thickness]);
 
 # Select the  boundary faces, on the boundary that is clamped,  and on the part
 # of the boundary that is loaded with the transverse pressure
@@ -64,7 +66,7 @@ setebc!(u,l2,true, 2, 0.0) # symmetry plane Y = 0
 applyebc!(u)
 numberdofs!(u)
 
-el1femm =  FEMMBase(GeoD(subset(bdryfes,topbfl), TriRule(3)))
+el1femm =  FEMMBase(GeoD(subset(bdryfes,topbfl), GaussRule(2, 2)))
 function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
     forceout .=  [0.0, 0.0, -qmagn]
     return forceout
@@ -78,7 +80,7 @@ MR = DeforModelRed3D
 
 material = MatDeforElastIso(MR, E, nu)
 
-femm = FEMMDeforLinearMST10(MR, GeoD(fes, TetRule(4)), material)
+femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material)
 
 # The geometry field now needs to be associated with the FEMM
 femm = associategeometry!(femm, geom)
@@ -95,29 +97,28 @@ thecorneru = thecorneru/phun("mm")
 println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
 
 
-fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimtrendpaper)#
+fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimtrend)#
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 
 println("$((nc, nr, nt)), $(fld.values[nl,1][1]/phun("MPa"))")
 
-# File =  "LE10NAFEMS_MST10_sigmay.vtk"
+# File =  "LE10NAFEMS_sigmay.vtk"
 # vtkexportmesh(File, fes.conn, geom.values,
-#                FinEtools.MeshExportModule.T10; vectors=[("u", u.values)],
+#                FinEtools.MeshExportModule.H8; vectors=[("u", u.values)],
 #                scalars=[("sigmay", fld.values)])
 # @async run(`"paraview.exe" $File`)
 # true
 
 
-
-AE = AbaqusExporter("LE10NAFEMS_MST10");
+AE = AbaqusExporter("LE10NAFEMS_H8");
 HEADING(AE, "LE10NAFEMS: Transverse deflection of elliptical plate with elliptical hole.");
 PART(AE, "part1");
 END_PART(AE);
 ASSEMBLY(AE, "ASSEM1");
 INSTANCE(AE, "INSTNC1", "PART1");
 NODE(AE, fens.xyz);
-ELEMENT(AE, "c3d10", "AllElements", 1, femm.geod.fes.conn)
-ELEMENT(AE, "SFM3D6", "TractionElements",
+ELEMENT(AE, "c3d8rh", "AllElements", 1, femm.geod.fes.conn)
+ELEMENT(AE, "SFM3D4", "TractionElements",
 1+count(femm.geod.fes), el1femm.geod.fes.conn)
 NSET_NSET(AE, "l1", l1)
 NSET_NSET(AE, "l2", l2)
