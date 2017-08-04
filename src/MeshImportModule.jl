@@ -31,7 +31,7 @@ function import_NASTRAN(filename)
   node = zeros(chunk, 4)
   maxnodel = 10
   nelem = 0
-  elem = zeros(Int, chunk, maxnodel + 3)
+  elem = zeros(FInt, chunk, maxnodel + 3)
 
   current_line = 1
   while true
@@ -59,11 +59,11 @@ function import_NASTRAN(filename)
       #   CTETRA,1,3,15,14,12,16,8971,4853,8972,4850,8973,4848
       nelem = nelem + 1
       if size(elem, 1) < nelem
-        elem = vcat(elem, zeros(Int, chunk, maxnodel + 3))
+        elem = vcat(elem, zeros(FInt, chunk, maxnodel + 3))
       end
       A = split(replace(temp, ",", " "))
-      elem[nelem, 1] = parse(Int64, A[2])
-      elem[nelem, 2] = parse(Int64, A[3])
+      elem[nelem, 1] = parse(FInt, A[2])
+      elem[nelem, 2] = parse(FInt, A[3])
       if length(A) == 7  #  nodes per element  equals  4
         nperel = 4
       else
@@ -78,7 +78,7 @@ function import_NASTRAN(filename)
       end
       elem[nelem, 3] = nperel
       for  six = 1:nperel
-        elem[nelem, six+3] = parse(Int64, A[six+3])
+        elem[nelem, six+3] = parse(FInt, A[six+3])
       end
     end # CTETRA
 
@@ -104,7 +104,7 @@ function import_NASTRAN(filename)
   if (ennod[1] != 4) && (ennod[1] != 10)
     error("Unknown element type")
   end
-  conn = elem[:,4:3+convert(Int, ennod[1])]
+  conn = elem[:,4:3+convert(FInt, ennod[1])]
 
   # Create output arguments. First the nodes
   fens = FENodeSet(xyz)
@@ -120,8 +120,8 @@ end
 
 mutable struct AbaqusElementSection
   ElementLine::AbstractString
-  nelem::Int
-  elem::Array{Int64}
+  nelem::FInt
+  elem::Array{FInt,2}
 end
 
 """
@@ -188,7 +188,7 @@ function import_ABAQUS(filename)
       Reading_elements = true
       nelemset = nelemset + 1
       nelem = 0
-      a = AbaqusElementSection(temp, nelem, zeros(Int64, chunk, maxelnodes+1))
+      a = AbaqusElementSection(temp, nelem, zeros(FInt, chunk, maxelnodes+1))
       push!(elemset, a)
       temp = uppercase(strip(lines[next_line]))
       next_line = next_line + 1
@@ -201,7 +201,7 @@ function import_ABAQUS(filename)
       elemset[nelemset].nelem = elemset[nelemset].nelem + 1
       if size(elemset[nelemset].elem, 1) < elemset[nelemset].nelem
         elemset[nelemset].elem = vcat(elemset[nelemset].elem,
-                                      zeros(Int64, chunk, maxelnodes+1))
+                                      zeros(FInt, chunk, maxelnodes+1))
       end
       A = split(temp, ",")
       if (A[end] == "") # the present line is continued on the next one
@@ -211,7 +211,7 @@ function import_ABAQUS(filename)
         A = vcat(A[1:end-1], Acont)
       end
       for ixxxx = 1:length(A)
-        elemset[nelemset].elem[elemset[nelemset].nelem, ixxxx] = parse(Int64, A[ixxxx])
+        elemset[nelemset].elem[elemset[nelemset].nelem, ixxxx] = parse(FInt, A[ixxxx])
       end
     end
   end # while
@@ -223,11 +223,11 @@ function import_ABAQUS(filename)
   # renumbered the connectivvities of the elements.
   newnumbering = collect(1:nnode)
   if norm(collect(1:nnode)-node[:,1]) != 0
-    newnumbering = zeros(Int, convert(Int, maximum(node[:,1])))
+    newnumbering = zeros(FInt, convert(FInt, maximum(node[:,1])))
     jn = 1
     for ixxxx = 1:size(node, 1)
       if node[ixxxx,1] != 0
-        on = convert(Int, node[ixxxx,1])
+        on = convert(FInt, node[ixxxx,1])
         newnumbering[on] = jn
         jn = jn + 1
       end
