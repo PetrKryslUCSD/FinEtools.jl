@@ -53,7 +53,7 @@ end
 vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.Q4;
           scalars=scalarllist)
 sleep(1.0)
-rm(File)
+try rm(File) catch end
 # @async run(`"paraview.exe" $File`)
 
 true
@@ -315,7 +315,7 @@ function test()
     scalars = real(P.values);
     vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
     scalars = [("Pressure", scalars)])
-    rm(File)
+    try rm(File) catch end
     # @async run(`"paraview.exe" $File`)
 
     ref=rho*c
@@ -452,7 +452,7 @@ scattersysvec!(P, p[:])
 File  =   "sphere_dipole_1.vtk"
 vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
  scalars = [( "realP", real(P.values))])
-rm(File)
+try rm(File) catch end
 # @async run(`"paraview.exe" $File`)
 
 true
@@ -528,7 +528,7 @@ scalars = real(P.values);
 vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.T10;
 scalars = [("Pressure", scalars)])
 # @async run(`"paraview.exe" $File`)
-rm(File)
+try rm(File) catch end
 
 # plotly()
 # ix = sortperm(geom.values[nLx,1])
