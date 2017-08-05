@@ -99,22 +99,14 @@ end
 Select finite elements.
 
 ### box
+Select  all elements with all nodes inside a given box:
+exteriorbfl = selectelem(fens, bdryfes,
+     box=[1.0, 1.0, 0.0, pi/2, 0.0, Thickness], inflate=tolerance);
+
 ### label
 """
 function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:FESet}
 
-    # box
-    #
-    # Select all FEs with all nodes allin the box:
-    #     fe_select(fens,fes,struct ('box',[1 -1 2 0 4 3]))
-    # Select all FEs with at least one node allin the box:
-    #     fe_select(fens,fes,struct ('box',[1 -1 2 0 4 3],'anynode',true))
-    #
-    # label
-    #
-    # Select all FEs with given label:
-    #     fe_select(fens,fes,struct ('label', 13))
-    #
     # flood
     #
     # Select all FEs connected together (Starting from node 13):
@@ -303,7 +295,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
         sd =spacedim(fens);
         md =manifdim(fes);
         if (md !=sd-1)
-            error("'Facing' selection of fes make sense only for Manifold dimension ==Space dimension-1")
+            error("'Facing' selection of fes make sense only for Manifold dimension == Space dimension-1")
         end
         param_coords =zeros(FFlt,1,md);
         Need_Evaluation = (typeof(direction) <: Function);
@@ -464,7 +456,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
 
     #  Default:   Select based on location of nodes
     #   Should we consider the element only if all its nodes are in?
-    allinvalue = (allin== nothing) || ((allin!= nothing) && (allin))
+    allinvalue = (allin == nothing) || ((allin != nothing) && (allin))
     nodelist=selectnode(fens; args...);
     # Select elements based upon whether there nodes are in the selected node list
     for i=1: size(fes.conn,1)
