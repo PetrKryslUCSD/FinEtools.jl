@@ -277,3 +277,5 @@ oof the stabilization material. It needs to produce  thermal strains  just as
 the real material.
 
 -- Search for JFinEALE: some examples have not been converted  yet.
+
+-- For the QR factorization use qrfact!(A, pivot=Val(false))
