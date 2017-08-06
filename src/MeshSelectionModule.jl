@@ -43,16 +43,15 @@ function connectednodes(fes::FESetModule.FESet)
     return unique(fes.conn[:]);
 end
 
+"""
+    selectnode(fens::FENodeSetModule.FENodeSet; args...)
+
+Select nodes using some criterion.
+
+See the function `vselect()` for examples of the criteria.
+"""
 function selectnode(fens::FENodeSetModule.FENodeSet; args...)
-    # Select nodes using a box.
-    #
-    # function nodelist = fenode_select(fens, options)
-    #
-    # Select nodes using some criterion, for instance and node is selected
-    # because it is allin a box or on its surface.
-    #
-    # box
-    #
+
     # Example: fenode_select(fens,struct ('box',[1 -1 2 0 4 3])), selects
     # nodes which are strictly allin the box
     #  -1<= x <=1     0<= y <=2     3<= z <=4
@@ -98,12 +97,59 @@ end
 
 Select finite elements.
 
-### box
-Select  all elements with all nodes inside a given box:
-exteriorbfl = selectelem(fens, bdryfes,
-     box=[1.0, 1.0, 0.0, pi/2, 0.0, Thickness], inflate=tolerance);
+### facing
+Select all "boundary" elements that "face" a certain direction.
+```
+exteriorbfl = selectelem(fens, bdryfes, facing=true, direction=[1.0, 1.0, 0.0]);
+```
+or
+```
+exteriorbfl = selectelem(fens, bdryfes, facing=true, direction=dout, tolerance = 0.01);
+```
+where
+```
+function dout(xyz)
+    return xyz/norm(xyz)
+end
+```
+and `xyz` is the location of the centroid  of  a boundary element.
+Here the finite element is considered "facing" in the given direction if the dot
+product of its normal and the direction vector is greater than tolerance.
+
+This selection method makes sense only for elements that are  surface-like (i. e.
+for boundary mmeshes).
 
 ### label
+Select elements based on their label.
+```
+rl1 = selectelem(fens, fes, label=1)
+```
+
+### box, distance
+Select elements based on some criteria that their nodes satisfy.  See the
+function `selectnode()`.
+
+Example:
+Select all  elements whose nodes are closer than `R+tolerance` from the point `from`.
+```
+linner = selectelem(fens, bfes, distance = R, from = [0.0 0.0 0.0],
+  inflate = tolerance)
+```
+
+Example:
+
+```
+exteriorbfl = selectelem(fens, bdryfes,
+   box=[1.0, 1.0, 0.0, pi/2, 0.0, Thickness], inflate=tolerance);
+```
+
+## Optional keyword arguments
+Should we consider the element only if all its nodes are in?
+`allin` = Boolean: if true, then all nodes of an element must satisfy the
+    criterion; otherwise  one is enough.
+
+## Output
+`felist` = list of finite elements from the set that satisfy the criteria
 """
 function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:FESet}
 
@@ -112,33 +158,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     # Select all FEs connected together (Starting from node 13):
     #     fe_select(fens,fes,struct ('flood', true, 'startfen', 13))
     #
-    # facing
-    #
-    # Select all FEs "facing" in the direction [1,0,0] (along the x-axis):
-    #     fe_select(fens,fes,struct ('facing', true, 'direction', [1,0,0]))
-    # Select all FEs "facing" in the direction [x(1),x(2),0] (away from the z-axis):
-    #     fe_select(fens,fes,struct ('facing', true, 'direction', @(x)(+[x(1:2),0])))
-    # Here x is the centroid of the nodes of each selected fe.
-    # Select all FEs "facing" in the direction [x(1),x(2),0] (away from the z-axis):
-    #     fe_select(fens,fes,struct ('facing',1,'direction',@(x)(+[x(1:2),0]),'tolerance',0.01))
-    # Here the fe is considered facing in the given direction if the dot
-    # product of its normal and the direction vector is greater than tolerance.
-    #
-    # The option 'inflate' may be used to increase or decrease the extent of
-    # the box (or the distance) to make sure some nodes which would be on the
-    # boundary are either excluded or included.
-    #
-    # nearestto
-    #
-    # Select the geometric cell nearest to the given location.
-    # nearest=fe_select(fens,fes,struct('nearestto',[2.3,-2]))
-    #
-    # distance
-    #
-    # Select the finite elements within a given distance from the center.
-    # Example: fe_select(fens,fes,struct ('distance',0.5, 'from',[1 -1])), selects
-    # elements whose nodes are Less than 0.5 units removed from the point [1 -1].
-    #
+
     # smoothpatch
     #
     # Select all FEs that are part of a smooth surface.
@@ -153,24 +173,10 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     #     fe_select(fens,fes,struct ('facing',1,'direction',@(x)(+[x(1:2),0]),'tolerance',0.01))
     # Here the fe is considered facing in the given direction if the dot
     # product of its normal and the direction vector is greater than tolerance.
-    #
-    #
-    # Output:
-    # felist= list of finite elements from the set that satisfy the criteria
-    #
-    # Examples:
-    #     topl =fe_select (fens,bfes,struct('box', [0,L,-Inf,Inf,b/2,b/2],...
-    #                             'inflate',tolerance));
-    #     #  The subset  of the finite elements that are in the box is
-    #     traction.fes= subset(bfes,topl);
-    #
-    # Note: This function uses the node selection function fenode_select() to search
-    # the nodes.
-    #
-    # See also: fenode_select
 
     # Extract arguments
-    allin= nothing; flood= nothing; facing= nothing; label= nothing; nearestto= nothing; smoothpatch= nothing;
+    allin= nothing; flood= nothing; facing= nothing; label= nothing;
+    nearestto= nothing; smoothpatch= nothing;
     for arg in args
         sy, val = arg
         if sy==:flood
@@ -309,7 +315,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
             Tangents =xyz'*Nder;
             N = normal(Tangents);
             if (Need_Evaluation)
-                d=direction(mean(xyz,1));
+                d = direction(mean(xyz,1));
                 d = reshape(d,1,sd)/norm(d);
             end
             if (dot(vec(N),vec(d))>tolerance)
@@ -457,7 +463,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     #  Default:   Select based on location of nodes
     #   Should we consider the element only if all its nodes are in?
     allinvalue = (allin == nothing) || ((allin != nothing) && (allin))
-    nodelist=selectnode(fens; args...);
+    nodelist = selectnode(fens; args...);
     # Select elements based upon whether there nodes are in the selected node list
     for i=1: size(fes.conn,1)
         I = intersect(fes.conn[i,:], nodelist);
@@ -475,26 +481,34 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
 
 end
 
+"""
+    vselect(v::FFltMat; args...)
 
-# Select locations (vertices).
+Select locations (vertices) from the array based on some criterion.
+
+## Arguments
+`v` = array of locations, one location per row
+`args` = pairs of keyword argument/value
+
+### box
+```
+nLx = vselect(fens.xyz, box = [0.0 Lx  0.0 0.0 0.0 0.0], inflate = Lx/1.0e5)
+```
+
+The keyword 'inflate' may be used to increase or decrease the extent of
+the box (or the distance) to make sure some nodes which would be on the
+boundary are either excluded or included.
+
+### distance
+```
+list = selectnode(fens.xyz, distance=1.0+0.1/2^nref, from=[0. 0.], inflate=tolerance);
+```
+### plane
+### nearestto
+
+"""
 function vselect(v::FFltMat; args...)
 
-    # v= array of locations, one location per row
-    # options = structure with attributes described below
-    #
-    # box
-    #
-    # Select locations using some criterion, for instance and location is selected
-    # because it is allin a box or on its surface.
-    # Example: v_select(v,struct ('box',[1 -1 2 0 4 3])), selects
-    # locations which are strictly allin the box
-    #  -1<= x <=1     0<= y <=2     3<= z <=4
-    #
-    # distance
-    #
-    # Example: v_select(v,struct ('distance',0.5, 'from',[1 -1])), selects
-    # nodes which are less than 0.5 units removed from the point [1 -1].
-    #
     # plane
     #
     # Example: v_select(v,struct ('plane',[[1, 0.5, 0.2], -2.3], 'thickness',0.5,')), selects
@@ -597,13 +611,13 @@ function vselect(v::FFltMat; args...)
                 nn =nn +1; vlist[nn] =i;
             end
         end
-    elseif nearestto!=nothing
-        location = nearestto;
+    elseif nearestto != nothing
+        location = vec(nearestto);
         distance =  zeros(1,size(v,1));
         for i=1:size(v,1)
-            distance[i] = norm(location-v[i,:])
+            distance[i] = norm(location-vec(v[i,:]))
         end
-        Mv,j=findmin(v[:,2])
+        Mv,j=findmin(distance)
         vlist[1] = j;
         nn=1;
     end

@@ -653,6 +653,8 @@ function  Twisted_beam(dir)
 
   # Extract the solution
   nl = selectnode(fens, box = [L L -100*W 100*W -100*W 100*W],inflate = tolerance);
+  nl1 = selectnode(fens, nearestto = fens.xyz[nl[1],:]+ tolerance/30*rand(size(fens.xyz, 2)));
+  @test nl[1] == nl1[1]
   theutip = mean(u.values[nl,:],1)
   # println("displacement  = $(theutip[dir]) as compared to converged $uex")
   @test    abs(theutip[dir]-uex)<1.0e-5
