@@ -4344,7 +4344,7 @@ function test()
     # target point is on the boundary of the domain it will not be an
     # integration node as we use Gauss quadrature. The reference value is -5.38 MPa.
 
-    println("LE10NAFEMS: Transverse deflection of elliptical plate with elliptical hole."        )
+    # println("LE10NAFEMS: Transverse deflection of elliptical plate with elliptical hole."        )
     t0 = time()
 
     E = 210e3*phun("MEGA*PA");# 210e3 MPa
