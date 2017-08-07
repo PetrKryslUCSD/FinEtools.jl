@@ -78,7 +78,7 @@ for continuum mechanics.
   include("MeshModificationModule.jl")
   using FinEtools.MeshModificationModule
   export meshboundary, fusenodes, compactnodes, mergemeshes, mergenmeshes,
-  mergenodes, renumberconn!, meshsmoothing, mirrormesh
+    mergenodes, renumberconn!, meshsmoothing, mirrormesh
 
   include("MeshQuadrilateralModule.jl")
   using FinEtools.MeshQuadrilateralModule

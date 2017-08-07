@@ -186,3 +186,106 @@ end
 end
 using mmmmmAbaqusmmiimportmmm
 mmmmmAbaqusmmiimportmmm.test()
+
+module mmsmoothingm1
+using FinEtools
+using Base.Test
+function test()
+
+    # println("""
+    # Meshing, deforming  and smoothing
+    # """)
+
+    A= 100. # strip width
+    N = 16
+    tolerance = A/N/1.0e5
+    fens,fes = T3block(A, A, N, N)
+
+    bnl = connectednodes(meshboundary(fes))
+    for ixxxx = 1:length(bnl)
+        x, y = fens.xyz[bnl[ixxxx], :]
+        fens.xyz[bnl[ixxxx], 1] += A/N*sin(2*pi*y/A)
+        fens.xyz[bnl[ixxxx], 2] += -A/N*sin(2*pi*x/A)
+    end
+
+    File =  "mesh_smoothing_before.vtk"
+    vtkexportmesh(File, fens, fes);
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+    before = [50.0, 43.75]
+    # println("$(fens.xyz[Int(N^2/2), :] )")
+    @test norm(before-fens.xyz[Int(N^2/2), :]) < 1.e-4
+
+    fixedv = falses(count(fens))
+    fixedv[bnl] = true
+    fens, fes = meshsmoothing(fens, fes; fixedv = fixedv, method = :laplace, npass = 100)
+
+    after = [50.0438, 44.0315]
+    # println("$(fens.xyz[Int(N^2/2), :] )")
+    @test norm(fens.xyz[Int(N^2/2), :]-after) < 1.e-4
+
+    geom = NodalField(fens.xyz)
+
+    File =  "mesh_smoothing_after.vtk"
+    vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.T3);
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+
+    # println("Done")
+    true
+end
+end
+using mmsmoothingm1
+mmsmoothingm1.test()
+
+
+module mmsmoothingm2
+using FinEtools
+using Base.Test
+function test()
+
+    # println("""
+    # Meshing, deforming  and smoothing
+    # """)
+
+    A= 100. # strip width
+    N = 16
+    tolerance = A/N/1.0e5
+    fens,fes = T3block(A, A, N, N)
+
+    bnl = connectednodes(meshboundary(fes))
+    for ixxxx = 1:length(bnl)
+        x, y = fens.xyz[bnl[ixxxx], :]
+        fens.xyz[bnl[ixxxx], 1] += A/N*sin(2*pi*y/A)
+        fens.xyz[bnl[ixxxx], 2] += -A/N*sin(2*pi*x/A)
+    end
+
+    File =  "mesh_smoothing_before.vtk"
+    vtkexportmesh(File, fens, fes);
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+    before = [50.0, 43.75]
+    # println("$(fens.xyz[Int(N^2/2), :] )")
+    @test norm(before-fens.xyz[Int(N^2/2), :]) < 1.e-4
+
+    fixedv = falses(count(fens))
+    fixedv[bnl] = true
+    fens, fes = meshsmoothing(fens, fes; fixedv = fixedv, method = :taubin, npass = 100)
+
+    after = [50.0059, 43.6281]
+    # println("$(fens.xyz[Int(N^2/2), :] )")
+    @test norm(fens.xyz[Int(N^2/2), :]-after) < 1.e-4
+
+    geom = NodalField(fens.xyz)
+
+    File =  "mesh_smoothing_after.vtk"
+    vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.T3);
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+
+    # println("Done")
+    true
+end
+end
+using mmsmoothingm2
+mmsmoothingm2.test()
