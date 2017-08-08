@@ -127,6 +127,7 @@ using Plots
 plotly()
 plot(vec(ts), vec(Pnh))
 gui()
+println("$(Pnh[end])")
 
 # # Surface for the ABC
 # abc1  =  FDataDict("femm"=>FEMMAcoustSurf(GeoD(outer_fes, GaussRule(2, 2)),
