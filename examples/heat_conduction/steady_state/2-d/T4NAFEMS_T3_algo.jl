@@ -44,7 +44,7 @@ HeightA = 0.2*phun("M");
 Thickness = 0.1*phun("M");
 tolerance  = Width/1000;
 
-m = MaterialHeatDiffusion(kappa)
+m = MatHeatDiff(kappa)
 
 modeldata = nothing
 resultsTempA = FFlt[]
@@ -78,12 +78,12 @@ for nref = 1:5
   # accurate.
   l2 = selectelem(fens, bfes; box=[Width Width  0.0 Height], inflate =tolerance)
   l3 = selectelem(fens, bfes; box=[0.0 Width Height Height], inflate =tolerance)
-  cfemm = FEMMHeatDiffusionSurface(FEMMBase(subset(bfes,vcat(l2,l3)),
+  cfemm = FEMMHeatDiffSurf(GeoD(subset(bfes,vcat(l2,l3)),
              GaussRule(1, 3), Thickness), h)
   convection1 = FDataDict("femm"=>cfemm, "ambient_temperature"=>0.);
 
   # The interior
-  femm = FEMMHeatDiffusion(FEMMBase(fes, TriRule(3), Thickness), m)
+  femm = FEMMHeatDiff(GeoD(fes, TriRule(3), Thickness), m)
   region1 = FDataDict("femm"=>femm)
 
   # Make the model data
@@ -93,7 +93,7 @@ for nref = 1:5
                         "convection_bcs"=>[convection1]);
 
   # Call the solver
-  modeldata = FinEtools.AlgoHeatDiffusionModule.steadystate(modeldata)
+  modeldata = FinEtools.AlgoHeatDiffModule.steadystate(modeldata)
 
   println("Total time elapsed = ",time() - t0,"s")
 
@@ -105,6 +105,7 @@ for nref = 1:5
   ##
   # Collect the temperature  at the point A  [coordinates
   # (Width,HeightA)].
+  println("$(Temp.values[l4][1])")
   push!(resultsTempA, Temp.values[l4][1]);
 
 end
@@ -117,10 +118,10 @@ println("$( resultsTempA  )")
 geom = modeldata["geom"]
 Temp = modeldata["temp"]
 regions = modeldata["regions"]
-vtkexportmesh("T4NAFEMS--T3.vtk", regions[1]["femm"].femmbase.fes.conn,
+vtkexportmesh("T4NAFEMS--T3.vtk", regions[1]["femm"].geod.fes.conn,
           [geom.values Temp.values/100], FinEtools.MeshExportModule.T3;
           scalars=[("Temperature", Temp.values)])
-vtkexportmesh("T4NAFEMS--T3--base.vtk", regions[1]["femm"].femmbase.fes.conn,
+vtkexportmesh("T4NAFEMS--T3--base.vtk", regions[1]["femm"].geod.fes.conn,
           [geom.values 0.0*Temp.values/100], FinEtools.MeshExportModule.T3)
 
 # ##
