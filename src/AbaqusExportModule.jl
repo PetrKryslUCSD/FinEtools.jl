@@ -353,14 +353,9 @@ Level: Part,  Part instance
 function SOLID_SECTION(self::AbaqusExporter, MATERIAL::AbstractString,
   ORIENTATION::AbstractString, ELSET::AbstractString,
   CONTROLS::AbstractString)
-  if "CONTROLS" == ""
-    println(self.ios, "*SOLID SECTION,MATERIAL=" * MATERIAL *
-      ",ORIENTATION =" * ORIENTATION * ",ELSET=" * ELSET);
-  else
-    println(self.ios, "*SOLID SECTION,MATERIAL=" * MATERIAL *
+  println(self.ios, "*SOLID SECTION,MATERIAL=" * MATERIAL *
       ",ORIENTATION =" * ORIENTATION * ",ELSET=" * ELSET *
       ", CONTROLS  =" * CONTROLS);
-  end
 end
 
 """
@@ -452,22 +447,22 @@ function STEP_FREQUENCY(self::AbaqusExporter, Nmodes::Integer)
 end
 
 """
-    BOUNDARY(self::AbaqusExporter, is_fixed::AbstractArray{B,2},
-      fixed_value::AbstractArray{F,2}) where {B, F}
+    BOUNDARY(self::AbaqusExporter, NSET::AbstractString,
+        is_fixed::AbstractArray{B,2},  fixed_value::AbstractArray{F,2}) where {B, F}
 
 Write out the `*BOUNDARY` option.
 
 `is_fixed`= array of Boolean flags (true means fixed, or prescribed),  one row per node,
 `fixed_value`=array of displacements to which the corresponding displacement components is fixed
 """
-function BOUNDARY(self::AbaqusExporter, is_fixed::AbstractArray{B,2},
-  fixed_value::AbstractArray{F,2}) where {B, F}
+function BOUNDARY(self::AbaqusExporter, NSET::AbstractString,
+    is_fixed::AbstractArray{B,2},  fixed_value::AbstractArray{F,2}) where {B, F}
   println(self.ios, "*BOUNDARY");
   for j=1:size(is_fixed,1)
     for k=1:size(is_fixed,2)
       #<node number>, <first dof>, <last dof>, <magnitude of displacement>
       if is_fixed[j,k]
-        println(self.ios, "$j,$k,$k,$fixed_value[j,k]");
+        println(self.ios, NSET * "$j,$k,$k,$(fixed_value[j,k])");
       end
     end
   end
