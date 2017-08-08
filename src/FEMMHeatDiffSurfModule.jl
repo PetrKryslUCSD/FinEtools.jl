@@ -168,7 +168,7 @@ function nzebcsurfacetransferloads(self::FEMMHeatDiffSurf, assembler::A,
   # Now loop over all finite elements in the set
   for i=1:nfes # Loop over elements
     getconn!(geod.fes, conn, i);
-    gathervalues_asvec!(temp, pT, conn);# retrieve element coordinates
+    gatherfixedvalues_asvec!(temp, pT, conn);# retrieve element coordinates
     if norm(pT) != 0.0    # Is the load nonzero?
       gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
       fill!(He,  0.0);

@@ -121,7 +121,7 @@ function nzebcloadsconductivity(self::FEMMHeatDiff,
   # Now loop over all finite elements in the set
   for i = 1:count(geod.fes) # Loop over elements
     getconn!(geod.fes, conn, i);
-    gathervalues_asvec!(temp, elvecfix, conn);# retrieve element coordinates
+    gatherfixedvalues_asvec!(temp, elvecfix, conn);# retrieve element coordinates
     if norm(elvecfix) != 0.     # Is the load nonzero?
       gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
       fill!(elmat,  0.0);

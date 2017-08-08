@@ -1,7 +1,7 @@
 """
     AlgoHeatDiffModule
 
-Module for algorithms in linear heat conduction/diffusion  models.  
+Module for algorithms in linear heat conduction/diffusion  models.
 """
 module AlgoHeatDiffModule
 

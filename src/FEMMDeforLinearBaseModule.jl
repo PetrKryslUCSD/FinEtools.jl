@@ -167,7 +167,7 @@ function nzebcloadsstiffness(self::FEMMDeforLinearAbstract,  assembler::A,
   startassembly!(assembler,  u.nfreedofs);
   for i = 1:count(geod.fes) # Loop over elements
     getconn!(geod.fes, conn, i);
-    gathervalues_asvec!(u, elvecfix, conn);# retrieve element displacement vector
+    gatherfixedvalues_asvec!(u, elvecfix, conn);# retrieve element displacement vector
     if norm(elvecfix) != 0     # Is the load nonzero?
       gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
       fill!(elmat,  0.0); # Initialize element matrix
