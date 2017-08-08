@@ -45,9 +45,10 @@ for continuum mechanics.
 
   include("FieldModule.jl")
   using FinEtools.FieldModule
-  export Field, ndofs, nents, gathersysvec, gathersysvec!,
-  gathervalues_asvec!, gathervalues_asmat!, gatherdofnums!, numberdofs!,
-  setebc!, applyebc!, scattersysvec!
+  export Field, ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!,
+    gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!,
+    gatherfixedvalues_asmat!, numberdofs!, setebc!, applyebc!,
+    scattersysvec!, copy!
 
   include("GeneralFieldModule.jl")
   using FinEtools.GeneralFieldModule

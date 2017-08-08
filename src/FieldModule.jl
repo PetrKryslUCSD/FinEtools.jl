@@ -6,11 +6,13 @@ Module for abstract fields.
 module FieldModule
 
 using FinEtools.FTypesModule
+import Base.copy!
 
 export Field
 export ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!,
-  gathervalues_asmat!, gatherdofnums!, numberdofs!, setebc!, applyebc!,
-  scattersysvec!
+  gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!,
+  gatherfixedvalues_asmat!, numberdofs!, setebc!, applyebc!,
+  scattersysvec!, copy!
 
 """
 Abstract field.
@@ -54,6 +56,20 @@ Number of nodes associated with the field.
 """
 function nents(self::F)::FInt  where {F<:Field}
   return  size(self.values, 1)
+end
+
+"""
+    copy!(DEST::F,  SRC::F) where {F<:Field}
+
+Copy data from one field to another.
+"""
+function copy!(DEST::F,  SRC::F) where {F<:Field}
+    copy!(DEST.values, SRC.values)
+    copy!(DEST.dofnums, SRC.dofnums)
+    copy!(DEST.is_fixed, SRC.is_fixed)
+    copy!(DEST.fixed_values, SRC.fixed_values)
+    DEST.nfreedofs = SRC.nfreedofs
+    return  DEST
 end
 
 """
@@ -137,6 +153,61 @@ function gathervalues_asmat!(self::Field, dest::A,
       dest[i, j] = self.values[conn[i], j];
     end
   end
+end
+
+"""
+    gatherfixedvalues_asvec!(self::Field, dest::A,
+      conn::CC) where {A<:AbstractArray, CC<:AbstractArray{FInt}}
+
+Gather FIXED values from the field into a vector.
+
+The order is: for each node  in the connectivity, copy into the buffer all the
+fixed degrees of freedom,  then the next node and so on. If a degree of freedom
+is NOT fixed, the corresponding entry is  set to zero.
+
+`dest` = destination buffer: overwritten  inside,  must be preallocated
+in the correct size
+"""
+function gatherfixedvalues_asvec!(self::Field, dest::A,
+    conn::CC) where {A<:AbstractArray, CC<:AbstractArray{FInt}}
+    en::FInt = 1;
+    for i = 1:length(conn)
+        for j = 1:size(self.values,2)
+            if self.is_fixed[conn[i],j] # free degree of freedom
+                dest[en] = self.fixed_values[conn[i], j];
+            else
+                dest[en] = 0.0
+            end
+            en = en + 1;
+        end
+    end
+end
+
+"""
+    gatherfixedvalues_asmat!(self::Field, dest::A,
+      conn::CC) where {A<:AbstractArray, CC<:AbstractArray{FInt}}
+
+Gather FIXED values from the field into a two-dimensional array.
+
+The order is: for each node  in the connectivity, copy into the corresponding
+row of the buffer all the degrees of freedom,  then the next node into the next
+row and so on.  If a degree of freedom
+is NOT fixed, the corresponding entry is  set to zero.
+
+`dest` = destination buffer: overwritten  inside,  must be preallocated
+in the correct size
+"""
+function gatherfixedvalues_asmat!(self::Field, dest::A,
+    conn::CC) where {A<:AbstractArray, CC<:AbstractArray{FInt}}
+    for i = 1:length(conn)
+        for j = 1:size(self.values,2)
+            if self.is_fixed[i,j] # fixed degree of freedom
+                dest[i, j] = self.fixed_values[conn[i], j];
+            else
+                dest[i, j] = 0.0
+            end
+        end
+    end
 end
 
 """
