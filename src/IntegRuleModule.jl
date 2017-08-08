@@ -32,13 +32,13 @@ triangle, which is between 0 and 1 in both parametric coordinates.
      6 -- six point rule, 10 -- Strang 10 point, order 13, degree of precision 7, rule).
 """
 function TriRule(npts=1)
-  if npts==1 # integrates exactly linear polynomials
+  if npts == 1 # integrates exactly linear polynomials
     param_coords = [1.0/3. 1.0/3.];
     weights = reshape([1.0]/2.0,1,1);
-  elseif npts==3 # integrates exactly quadratic polynomials
+elseif npts == 3 # integrates exactly quadratic polynomials
     param_coords = [ 2.0/3 1.0/6; 1.0/6 2.0/3; 1.0/6 1.0/6 ];
     weights = [1.0/3 1.0/3 1.0/3]/2;
-  elseif npts==6 # integrates exactly quartic polynomials
+elseif npts == 6 # integrates exactly quartic polynomials
     param_coords = [ 0.816847572980459 0.091576213509771;
     0.091576213509771 0.816847572980459;
     0.091576213509771 0.091576213509771;
@@ -46,7 +46,7 @@ function TriRule(npts=1)
     0.445948490915965 0.108103018168070;
     0.445948490915965 0.445948490915965];
     weights = [0.109951743655322*[1, 1, 1] 0.223381589678011*[1, 1, 1] ]/2;
-  elseif npts==10 # integrates exactly quartic polynomials
+elseif npts == 13 # integrates exactly quartic polynomials
     param_coords = [0.333333333333333  0.333333333333333
     0.479308067841923  0.260345966079038
     0.260345966079038  0.479308067841923
