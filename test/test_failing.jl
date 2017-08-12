@@ -4,7 +4,7 @@ using FinEtools
 using FinEtools.MeshExportModule
 using Base.Test
 function test()
-    for orientation in [:a :b :ca :cb]
+    for orientation in [:a :b]
 
         # println("""
         #
