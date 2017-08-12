@@ -6,59 +6,12 @@ Module to export an abaqus INP file.
 ## Example:
 Very simple  definition of a model.
 ```
-AE = AbaqusExporter();
-open("f" * ".inp");
-HEADING(["My first example ");
-NODE(model_data.geom.values);
-ELEMENT(ElType,"All",1,fes.conn);
-ELEMENT("SFM3D4","Traction",count(fes)+1,model_data.boundary_conditions.traction{1}.fes.conn);
-NSET_NSET("Corner",nc);
-ORIENTATION("Orientation", axis, aangle);
-MATERIAL("Material");
-ELASTIC(E1,E2,E3,nu12,nu13,nu23,G12,G13,G23);
-SOLID_SECTION("Material","Orientation","All");
-SURFACE_SECTION("Traction");
-STEP_PERTURBATION("Linear solution");
-BOUNDARY_direct(model_data.u.is_fixed,model_data.u.fixed_values);
-DLOAD("Traction",model_data.boundary_conditions.traction{1}.traction);
-NODE_PRINT("Corner");
-END_STEP();
-close();
+
 ```
 ## Example:
 In this example we define a part, and an instance within an assembly.
 ```
 
-AE=Abaqus_exporter;
-open(["f-" num2str(ref) ".inp"]);
-HEADING([mfilename " " "ElType=" ElType " " "ref=" num2str(ref)]);
-PART("part1");
-END_PART();
-ASSEMBLY("ASSEM1");
-INSTANCE("INSTNC1","PART1");
-NODE(model_data.geom.values);
-ELEMENT(ElType,"All",1,fes.conn);
-ELEMENT(SurfElType,"Traction",count(fes)+1,model_data.boundary_conditions.traction{1}.fes.conn);
-NSET_NSET("Corner",nc);
-ORIENTATION("Orientation", Rm(:,1), Rm(:,2));
-SOLID_SECTION("Material","Orientation","All");
-SURFACE_SECTION("Traction");
-NSET_NSET("xfix",find(model_data.u.is_fixed(:,1)));
-NSET_NSET("yfix",find(model_data.u.is_fixed(:,2)));
-NSET_NSET("zfix",find(model_data.u.is_fixed(:,3)));
-END_INSTANCE();
-END_ASSEMBLY();
-MATERIAL("Material");
-ELASTIC(E1,E2,E3,nu12,nu13,nu23,G12,G13,G23);
-STEP_PERTURBATION("Linear solution");
-DLOAD("ASSEM1.INSTNC1.Traction",model_data.boundary_conditions.traction{1}.traction);
-BOUNDARY("ASSEM1.INSTNC1.xfix",1);
-BOUNDARY("ASSEM1.INSTNC1.yfix",2);
-BOUNDARY("ASSEM1.INSTNC1.zfix",3);
-NODE_PRINT("ASSEM1.INSTNC1.Corner");
-ENERGY_PRINT();
-END_STEP();
-close();
 ```
 
 """

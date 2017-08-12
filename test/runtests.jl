@@ -4,3 +4,4 @@ using Base.Test
 @testset "Heat diffusion" begin include("test_heat.jl") end
 @testset "Linear deformation" begin include("test_linear_deformation.jl") end
 @testset "Meshing" begin include("test_meshing.jl") end
+@testset "Voxel box" begin include("test_voxel_box.jl") end

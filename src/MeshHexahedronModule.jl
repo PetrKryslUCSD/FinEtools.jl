@@ -691,20 +691,25 @@ function H8voximggen(img::Array{DataT, 3},
     return h, v, hmid
 end
 
+"""
+    H8voximg(img::Array{DataT, 3}, voxdims::FFltVec,
+        voxval::Array{DataT, 1}) where {DataT<:Number}
 
+Generate a hexahedral mesh  from three-dimensional image.
+"""
 function H8voximg(img::Array{DataT, 3}, voxdims::FFltVec,
-  voxval::Array{DataT, 1}) where {DataT<:Number}
-  h, v, hmid= H8voximggen(img, voxval)
-  xyz=zeros(FFlt, size(v, 1), 3)
-  for j=1:size(v, 1)
+    voxval::Array{DataT, 1}) where {DataT<:Number}
+    h, v, hmid = H8voximggen(img, voxval)
+    xyz = zeros(FFlt, size(v, 1), 3)
     for k=1:3
-      xyz[j, k]=v[j, k]*voxdims[k]
+        for j=1:size(v, 1)
+            xyz[j, k] = v[j, k]*voxdims[k]
+        end
     end
-  end
-  fens =FENodeSetModule.FENodeSet(xyz);
-  fes = FESetModule.FESetH8(h) ;
-  setlabel!(fes, hmid)
-  return fens, fes;
+    fens  = FENodeSetModule.FENodeSet(xyz);
+    fes = FESetModule.FESetH8(h);
+    setlabel!(fes, hmid)
+    return fens, fes;
 end
 
 """
