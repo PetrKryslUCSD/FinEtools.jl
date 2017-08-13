@@ -78,6 +78,23 @@ function GeoD(fes::S, integration_rule::IntegRule,
 end
 
 """
+    GeoD(fes::S, integration_rule::IntegRule, axisymmetric::Bool,
+      otherdimension::FFlt) where {S<:FESet}
+
+Construct with the default orientation matrix (identity), for axially symmetric
+models. The other dimension is given.
+"""
+function GeoD(fes::S, integration_rule::IntegRule, axisymmetric::Bool,
+  otherdimension::FFlt) where {S<:FESet}
+  function otherdimensionfu(loc::FFltMat,
+    conn::CC, N::FFltMat)::FFlt where {CC<:AbstractArray{FInt}}
+    return otherdimension::FFlt
+  end
+  return GeoD(fes, integration_rule, CSys(manifdim(fes)),
+            otherdimensionfu, axisymmetric)
+end
+
+"""
     GeoD(fes::S, integration_rule::IntegRule,
       mcsys::Csys) where {S<:FESet}
 

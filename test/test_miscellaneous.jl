@@ -463,3 +463,47 @@ end
 end
 using mmmeasurementm8
 mmmeasurementm8.test()
+
+module mmmeasurementm9
+using FinEtools
+using Base.Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl, nt, nw = 2, 3, 4;
+
+    fens,fes  = L2block(L,nl)
+    geom  =  NodalField(fens.xyz)
+    bfes = FESetP1(reshape([nl+1], 1, 1))
+
+    femm  =  FEMMBase(GeoD(bfes, PointRule(), t*W))
+    S = integratefunction(femm, geom, (x) ->  1.0, 2)
+    # println("Length  of the boundary curve = $(S)")
+    @test abs(S - t*W)/S < 1.0e-5
+end
+end
+using mmmeasurementm9
+mmmeasurementm9.test()
+
+module mmmeasurementm10
+using FinEtools
+using Base.Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl, nt, nw = 2, 3, 4;
+
+    fens,fes  = L2block(L,nl)
+    geom  =  NodalField(fens.xyz)
+    bfes = FESetP1(reshape([nl+1], 1, 1))
+axisymmetric = true
+    femm  =  FEMMBase(GeoD(bfes, PointRule(), axisymmetric, W))
+    S = integratefunction(femm, geom, (x) ->  1.0, 2)
+    # println("Length  of the boundary curve = $(S)")
+    @test abs(S - 2*pi*L*W)/S < 1.0e-5
+end
+end
+using mmmeasurementm10
+mmmeasurementm10.test()
