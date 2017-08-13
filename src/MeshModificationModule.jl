@@ -78,6 +78,10 @@ function mysortdim2!(A::FIntMat)
     return A
 end
 
+function  myunique2(A::FIntVec)
+    return myunique2(reshape(A, length(A), 1))
+end
+
 function  myunique2(A::FIntMat) # speeded up; now the bottleneck is mysortrows
     #println("size(A)=$(size(A))")
     maxA=maximum(A[:])::FInt

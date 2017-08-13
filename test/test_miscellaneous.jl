@@ -290,3 +290,131 @@ end
 end
 using mmmmrichmmmmmm
 mmmmrichmmmmmm.test()
+
+module mmmeasurementm1
+using FinEtools
+using Base.Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl, nt, nw = 2, 3, 4;
+
+    fens,fes  = H8block(L,W,t, nl,nw,nt)
+    geom  =  NodalField(fens.xyz)
+
+    femm  =  FEMMBase(GeoD(fes, GaussRule(3, 2)))
+    V = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(V - W*L*t)/V < 1.0e-5
+end
+end
+using mmmeasurementm1
+mmmeasurementm1.test()
+
+module mmmeasurementm2
+using FinEtools
+using Base.Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl, nt, nw = 2, 3, 4;
+
+    fens,fes  = H8block(L,W,t, nl,nw,nt)
+    geom  =  NodalField(fens.xyz)
+    bfes = meshboundary(fes)
+    femm  =  FEMMBase(GeoD(bfes, GaussRule(2, 2)))
+    S = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(S - 2*(W*L + L*t + W*t))/S < 1.0e-5
+end
+end
+using mmmeasurementm2
+mmmeasurementm2.test()
+
+
+module mmmeasurementm3
+using FinEtools
+using Base.Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl, nt, nw = 2, 3, 4;
+
+    fens,fes  = Q4block(L,W,nl,nw)
+    geom  =  NodalField(fens.xyz)
+    bfes = meshboundary(fes)
+    femm  =  FEMMBase(GeoD(bfes, GaussRule(1, 2)))
+    S = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(S - 2*(W + L))/S < 1.0e-5
+end
+end
+using mmmeasurementm3
+mmmeasurementm3.test()
+
+
+module mmmeasurementm4
+using FinEtools
+using Base.Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl, nt, nw = 2, 3, 4;
+
+    fens,fes  = L2block(L,nl)
+    geom  =  NodalField(fens.xyz)
+    bfes = meshboundary(fes)
+    femm  =  FEMMBase(GeoD(bfes, PointRule()))
+    S = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(S - 2)/S < 1.0e-5
+end
+end
+using mmmeasurementm4
+mmmeasurementm4.test()
+
+
+module mmmeasurementm5
+using FinEtools
+using Base.Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl, nt, nw = 2, 3, 4;
+
+    fens,fes  = Q4block(L,W,nl,nw)
+    geom  =  NodalField(fens.xyz)
+
+    nfes = FESetP1(reshape(collect(1:count(fens)), count(fens), 1))
+    femm  =  FEMMBase(GeoD(nfes, PointRule()))
+    S = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(S - count(fens))/S < 1.0e-5
+
+end
+end
+using mmmeasurementm5
+mmmeasurementm5.test()
+
+
+module mmmeasurementm6
+using FinEtools
+using Base.Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl, nt, nw = 2, 3, 4;
+
+    fens,fes  = H8block(L,W,t, nl,nw,nt)
+    geom  =  NodalField(fens.xyz)
+
+    nfes = FESetP1(reshape(collect(1:count(fens)), count(fens), 1))
+    femm  =  FEMMBase(GeoD(nfes, PointRule()))
+    S = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(S - count(fens))/S < 1.0e-5
+
+end
+end
+using mmmeasurementm6
+mmmeasurementm6.test()

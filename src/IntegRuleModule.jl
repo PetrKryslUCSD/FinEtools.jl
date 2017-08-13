@@ -8,7 +8,7 @@ module IntegRuleModule
 using FinEtools.FTypesModule
 
 abstract type IntegRule end
-export IntegRule
+export IntegRule, TriRule, GaussRule, TetRule, PointRule
 
 """
     TriRule
@@ -21,7 +21,7 @@ struct TriRule <: IntegRule
   param_coords::FFltMat
   weights::FFltMat
 end
-export TriRule
+
 
 """
     TriRule(npts=1)
@@ -97,7 +97,6 @@ struct GaussRule <: IntegRule
     param_coords::FFltMat
     weights::FFltMat
 end
-export GaussRule
 
 """
   GaussRule(dim=1, order=1)
@@ -175,7 +174,6 @@ struct TetRule <: IntegRule
   param_coords::FFltMat
   weights::FFltMat
 end
-export TetRule
 
 """
     TetRule(npts=1)
@@ -213,6 +211,29 @@ function TetRule(npts=1)
   end
 
   return  TetRule(npts, param_coords, reshape(weights,length(weights),1))
+end
+
+
+"""
+    PointRule
+
+Class of point quadrature rule.
+Used for integration on the standard "point" shape.
+"""
+struct PointRule <: IntegRule
+  npts::FInt
+  param_coords::FFltMat
+  weights::FFltMat
+end
+
+"""
+    PointRule()
+
+POINT integration rule.
+
+"""
+function PointRule()
+    return PointRule(1, reshape([1.0], 1, 1), reshape([1.0], 1, 1))
 end
 
 end

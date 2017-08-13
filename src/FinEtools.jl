@@ -149,8 +149,7 @@ export startassembly!, assemble!, makevector!
 
 include("IntegRuleModule.jl")
 using FinEtools.IntegRuleModule
-export IntegRule
-export TriRule, GaussRule, TetRule
+export IntegRule, TriRule, GaussRule, TetRule, PointRule
 
 include("GeoDModule.jl")
 using FinEtools.GeoDModule

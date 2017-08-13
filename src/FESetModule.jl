@@ -200,6 +200,17 @@ Evaluate the curve Jacobian.
 
 `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
+function Jacobian(self::T, J::FFltMat)::FFlt where {T<:FESet0Manifold}
+    return 1.0::FFlt;
+end
+
+"""
+    Jacobian(self::T, J::FFltMat)::FFlt where {T<:FESet1Manifold}
+
+Evaluate the curve Jacobian.
+
+`J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
+"""
 function Jacobian(self::T, J::FFltMat)::FFlt where {T<:FESet1Manifold}
   sdim,  ntan = size(J);
   @assert ntan == 1 "Expected number of tangent vectors: 1"
@@ -337,7 +348,7 @@ mutable struct FESetP1 <: FESet0Manifold
 end
 
 privbfun(self::FESetP1,  param_coords::FFltVec) = reshape([1.0], 1, 1) # make sure this is a matrix
-privbfundpar(self::FESetP1,  param_coords::FFltVec) = reshape([0.0], 1, 1)
+privbfundpar(self::FESetP1,  param_coords::FFltVec) = zeros(1, 0)
 
 function privboundaryconn(self::FESetP1)
     # Get boundary connectivity.
