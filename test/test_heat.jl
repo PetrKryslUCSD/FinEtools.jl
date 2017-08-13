@@ -1894,3 +1894,48 @@ end
 end
 using mPoisson_FE_T3_orientations
 mPoisson_FE_T3_orientations.test()
+
+module mmT129b_l2_uqm
+using FinEtools
+using Base.Test
+function test()
+    L = 6.0;
+    kappa = reshape([4.0], 1, 1);
+    Q  = 0.1;
+    n = 7; # number of elements
+    crosssection = 1.0
+
+    fens,fes = L2block(L, n)
+
+
+    # Define boundary conditions
+    l1  = selectnode(fens; box=[0. 0.], inflate = L/n/100.0)
+    l2  = selectnode(fens; box=[L L], inflate = L/n/100.0)
+
+    essential1 = FDataDict("node_list"=>vcat(l1, l2), "temperature"=> 0.0);
+    material = MatHeatDiff(kappa)
+    femm = FEMMHeatDiff(GeoD(fes, GaussRule(1, 2), crosssection), material)
+
+    geom = NodalField(fens.xyz)
+    Temp = NodalField(zeros(size(fens.xyz,1),1))
+    setebc!(Temp, vcat(l1, l2), true, 1, 0.0)
+    applyebc!(Temp)
+    numberdofs!(Temp)
+
+    K = conductivity(femm, geom, Temp)
+
+    F2 = nzebcloadsconductivity(femm, geom, Temp);
+
+    fi = ForceIntensity(FFlt[Q]);
+    F1 = distribloads(femm, geom, Temp, fi, 3);
+
+    K = cholfact(K)
+    U = K\(F1+F2)
+    scattersysvec!(Temp,U[:])
+
+    # println("maximum(U)-0.1102 = $(maximum(U)-0.1102)")
+@test abs(maximum(U)-0.1102) < 1.0e-4
+end
+end
+using mmT129b_l2_uqm
+mmT129b_l2_uqm.test()
