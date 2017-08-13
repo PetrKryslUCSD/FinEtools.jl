@@ -418,3 +418,48 @@ end
 end
 using mmmeasurementm6
 mmmeasurementm6.test()
+
+
+module mmmeasurementm7
+using FinEtools
+using Base.Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl, nt, nw = 2, 3, 4;
+
+    fens,fes  = L2block(L,nl)
+    geom  =  NodalField(fens.xyz)
+    bfes = FESetP1(reshape([nl+1], 1, 1))
+    axisymmetric = true
+    femm  =  FEMMBase(GeoD(bfes, PointRule(), axisymmetric))
+    S = integratefunction(femm, geom, (x) ->  1.0, 1)
+    # println(" Length  of the circle = $(S)")
+    @test abs(S - 2*pi*L)/S < 1.0e-5
+end
+end
+using mmmeasurementm7
+mmmeasurementm7.test()
+
+module mmmeasurementm8
+using FinEtools
+using Base.Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl, nt, nw = 2, 3, 4;
+
+    fens,fes  = L2block(L,nl)
+    geom  =  NodalField(fens.xyz)
+    bfes = FESetP1(reshape([nl+1], 1, 1))
+
+    femm  =  FEMMBase(GeoD(bfes, PointRule(), t))
+    S = integratefunction(femm, geom, (x) ->  1.0, 1)
+    # println("Length  of the boundary curve = $(S)")
+    @test abs(S - t)/S < 1.0e-5
+end
+end
+using mmmeasurementm8
+mmmeasurementm8.test()
