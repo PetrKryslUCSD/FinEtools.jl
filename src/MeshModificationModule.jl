@@ -6,7 +6,7 @@ Module for mesh modification operations.
 module MeshModificationModule
 
 export  meshboundary,  fusenodes,  compactnodes,  mergemeshes,  mergenmeshes,
-  mergenodes,  renumberconn!,  meshsmoothing,  mirrormesh
+  mergenodes,  renumberconn!,  meshsmoothing,  mirrormesh, nodepartitioning
 
 using FinEtools.FTypesModule
 using FinEtools.FENodeSetModule
@@ -618,5 +618,61 @@ function mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
   return fens1,fes1
 end
 
+"""
+    nodepartitioning(fens::FENodeSet, npartitions = 2)
+
+Compute the inertial partitioning of the nodes.
+
+`npartitions` = number of partitions, but note that the actual number of
+partitions is going to be an even number.
+"""
+function nodepartitioning(fens::FENodeSet, npartitions = 2)
+    @assert npartitions >= 2
+    # Recursive inertial cut routine
+    function inertialcut(ptng, X, level)
+        Xmean = mean(X, 1);
+        X = X .- Xmean  # move the center of the point cloud to the origin
+        U, S, V = svd(X, thin=true);
+        v = V[:, 1];
+        d = X * v
+        c = classifypoints(d)
+        @. ptng = 2*ptng - c
+        if level > 1
+            i1 = find(x -> x == 1, c)
+            i0 = find(x -> x == 0, c)
+            ptng1 = inertialcut(ptng[i1], X[i1, :], level - 1)
+            ptng0 = inertialcut(ptng[i0], X[i0, :], level - 1)
+            ptng[i1] = ptng1
+            ptng[i0] = ptng0
+        end
+        return ptng
+    end
+    # Which half of the domain do the nodes belong to?
+    function classifypoints(d)
+        c = zeros(FInt, length(d))
+        medd = median(d);
+        toggle = +1
+        for ixxxx = 1:length(d)
+            if d[ixxxx] < medd
+                c[ixxxx] = 1
+            elseif d[ixxxx] > medd
+                c[ixxxx] = 0
+            else
+                if toggle > 0
+                    c[ixxxx] = 1
+                else
+                    c[ixxxx] = 0
+                end
+                toggle = -toggle
+            end
+        end
+        return c
+    end
+
+    nlevels = ceil(Int(log(npartitions)/log(2)))
+    X = deepcopy(fens.xyz)
+    ptng = ones(FInt, size(X,1))
+    return  inertialcut(ptng, X, nlevels)
+end
 
 end
