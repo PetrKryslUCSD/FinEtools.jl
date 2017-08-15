@@ -563,16 +563,11 @@ function vselect(v::FFltMat; args...)
 
     # Process the different options
     if box!=nothing
-        dim = Int(round(length(box)/2.))::FInt;
-        if dim != size(v,2)
-            error("Dimension of box not matched to dimension of array of vertices")
-        end
-        abox=FFltVec(vec(box))
-        for i=1: dim
-            abox[2*i-1]=min(box[2*i-1],box[2*i]) - inflatevalue;
-            abox[2*i]=max(box[2*i-1],box[2*i]) + inflatevalue;
-        end
         sdim = size(v,2)
+        dim = Int(round(length(box)/2.))::FInt;
+        @assert dim == sdim "Dimension of box not matched to dimension of array of vertices"
+        abox=FFltVec(vec(box))
+        inflatebox!(abox, inflatevalue)
         for j =1:size(v,1)
           match = true
           for i=1:sdim

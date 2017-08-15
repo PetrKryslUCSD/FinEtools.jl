@@ -622,6 +622,19 @@ function test()
     b3 = updatebox!(b1, c)
     # println("$(b3)")
     @test norm(b3 - [-1.0, 0.999928, 0.248077, 3.0, -0.5, 0.93455]) < 1.0e-4
+    x = [0.25 1.1 -0.3]
+    @test inbox(b3, x)
+    @test inbox(b3, c)
+    @test inbox(b3, a[2, :])
+    b4 = boundingbox(-a)
+    # println("$(b3)")
+    # println("$(b4)")
+    # println("$(boxesoverlap(b3, b4))")
+    @test !boxesoverlap(b3, b4)
+    b5 = updatebox!(b3, [0.0 -0.4 0.0])
+    # println("$(b5)")
+    # println("$(boxesoverlap(b5, b4))")
+    @test boxesoverlap(b5, b4)
 end
 end
 using mmboxm1

@@ -5,12 +5,34 @@ Module for working with bounding boxes.
 """
 module BoxModule
 
-export updatebox!, boundingbox
+export inbox, updatebox!, boundingbox, inflatebox!, boxesoverlap
 
 using FinEtools
 using FinEtools.FTypesModule
 
-inrange(rangelo::FFlt,rangehi::FFlt,x::FFlt) = ((x>=rangelo) && (x<=rangehi));
+
+
+"""
+    inbox(box::AbstractVector, x::AbstractVector)
+
+Is the given location inside the box.
+
+Note: point on the boundary of the box is counted as being inside.
+"""
+function inbox(box::AbstractVector, x::AbstractVector)
+    inrange(rangelo,rangehi,r) = ((r>=rangelo) && (r<=rangehi));
+    sdim=length(x);
+    @assert 2*sdim == length(box)
+    b = inrange(box[1], box[2], x[1]);
+    for i=2:sdim
+        b = (b && inrange(box[2*i-1], box[2*i], x[i]));
+    end
+    return b
+end
+
+function inbox(box::AbstractVector, x::AbstractArray)
+    return inbox(box, vec(x))
+end
 
 """
     updatebox!(box::AbstractVector, x::AbstractArray)
@@ -62,6 +84,35 @@ Returns `box` = bounding box
 """
 function boundingbox(x::AbstractArray)
     return updatebox!(Array{FFlt}(0), x)
+end
+
+function inflatebox!(box::AbstractVector, inflatevalue)
+    abox = deepcopy(box)
+    sdim = Int(length(box)/2);
+    for i=1:sdim
+        box[2*i-1] = min(abox[2*i-1],abox[2*i]) - inflatevalue;
+        box[2*i]   = max(abox[2*i-1],abox[2*i]) + inflatevalue;
+    end
+    return box
+end
+
+"""
+    boxesoverlap(box1::AbstractVector, box2::AbstractVector)
+
+Do the given boxes overlap?
+"""
+function boxesoverlap(box1::AbstractVector, box2::AbstractVector)
+    dim=Int(length(box1)/2);
+    @assert 2*dim == length(box2) "Mismatched boxes"
+    for i=1:dim
+        if box1[2*i-1]>box2[2*i]
+            return false;
+        end
+        if box1[2*i]<box2[2*i-1]
+            return false;
+        end
+    end
+    return  true;
 end
 
 end

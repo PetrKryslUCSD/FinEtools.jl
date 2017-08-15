@@ -12,7 +12,7 @@ export FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec
 
 include("BoxModule.jl")
 using FinEtools.BoxModule
-export updatebox!, boundingbox
+export inbox, updatebox!, boundingbox, inflatebox!, boxesoverlap
 
 include("MatrixUtilityModule.jl")
 
