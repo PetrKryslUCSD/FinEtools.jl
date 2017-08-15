@@ -8,7 +8,7 @@ nH = 10
 nR = 50
 fens,fes = Q4elliphole(a, a, L/2, H/2, nL, nH, nR)
 
-npartitions = 8
+npartitions = 4
 partitioning = nodepartitioning(fens, npartitions)
 partitionnumbers = unique(partitioning)
 

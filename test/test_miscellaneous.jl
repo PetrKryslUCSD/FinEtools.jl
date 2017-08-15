@@ -551,3 +551,53 @@ end
 end
 using mmmeasurementm12
 mmmeasurementm12.test()
+
+module mmpartitioning1m
+using FinEtools
+using Base.Test
+function test()
+    a = 10. # radius of the hole
+    nC = 20
+    nR = 4
+    fens,fes = Q4annulus(a, 1.5*a, nR, nC, 2*pi)
+
+    npartitions = 8
+    partitioning = nodepartitioning(fens, npartitions)
+    partitionnumbers = unique(partitioning)
+    @test norm(partitionnumbers - [1
+    3
+    2
+    5
+    6
+    7
+    8
+    4]) < 1.e-5
+end
+end
+using mmpartitioning1m
+mmpartitioning1m.test()
+
+
+module mmpartitioning2m
+using FinEtools
+using Base.Test
+function test()
+    H = 100. # strip width
+    a = 10. # radius of the hole
+    L = 200. # length of the strip
+    nL = 15
+    nH = 10
+    nR = 50
+    fens,fes = Q4elliphole(a, a, L/2, H/2, nL, nH, nR)
+@test count(fes) == 1250
+    npartitions = 4
+    partitioning = nodepartitioning(fens, npartitions)
+    partitionnumbers = unique(partitioning)
+    @test norm(partitionnumbers - [1
+    3
+    4
+    2]) < 1.e-5
+end
+end
+using mmpartitioning2m
+mmpartitioning2m.test()
