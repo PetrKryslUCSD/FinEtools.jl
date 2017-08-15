@@ -601,3 +601,28 @@ end
 end
 using mmpartitioning2m
 mmpartitioning2m.test()
+
+module mmboxm1
+using FinEtools
+using Base.Test
+function test()
+    a = [0.431345 0.611088 0.913161;
+    0.913581 0.459229 0.82186;
+    0.999429 0.965389 0.571139;
+    0.390146 0.711732 0.302495;
+    0.873037 0.248077 0.51149;
+    0.999928 0.832524 0.93455]
+    b1 = boundingbox(a)
+    @test norm(b1 - [0.390146, 0.999928, 0.248077, 0.965389, 0.302495, 0.93455]) < 1.0e-4
+    b2 = updatebox!(b1, a)
+    @test norm(b1 - b2) < 1.0e-4
+    b2 = updatebox!([], a)
+    @test norm(b1 - b2) < 1.0e-4
+    c = [-1.0, 3.0, -0.5]
+    b3 = updatebox!(b1, c)
+    # println("$(b3)")
+    @test norm(b3 - [-1.0, 0.999928, 0.248077, 3.0, -0.5, 0.93455]) < 1.0e-4
+end
+end
+using mmboxm1
+mmboxm1.test()
