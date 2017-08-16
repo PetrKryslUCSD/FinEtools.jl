@@ -396,6 +396,67 @@ function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)
 end
 
 """
+    mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt, candidates::FIntVec)
+
+Merge together  nodes of a single node set.
+
+Similar to `mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)`, but only
+the candidate nodes are considered for merging.
+"""
+function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt, candidates::FIntVec)
+    xyz1 = fens.xyz;
+    dim  = size(xyz1,2);
+    id1 = collect(1:count(fens));
+    c1 = ones(size(xyz1,1),1);
+    xyzd = zeros(size(xyz1));
+    d = zeros(size(xyz1,1));
+    m = trues(size(xyz1,1));
+    biggerthantolerance = 1000*tolerance
+    # Mark nodes from the array that are duplicated
+    for ic = 1:length(candidates)
+        i = candidates[ic]
+        if (id1[i]>0) # This node has not yet been marked for merging
+            XYZ = reshape(xyz1[i,:], 1, dim);
+            xyzd[:,:] = abs.(xyz1-c1*XYZ); #find the distances along  coordinate directions
+            fill!(d, biggerthantolerance)
+            d[candidates] = sum(xyzd,2)[candidates];
+            map!((x) -> x<tolerance, m, d);
+            jx = find(m);
+            if (!isempty(jx))
+                minn = minimum(jx);
+                id1[jx] = -minn;
+                id1[minn] = minn;
+            end
+        end
+    end
+    # Generate  merged arrays of the nodes
+    xyzm = zeros(FFlt,count(fens),dim);
+    mid = 1;
+    for i = 1:count(fens) # and then we pick only non-duplicated fens1
+        if id1[i] > 0 # this node is the master
+            id1[i] = mid;
+            xyzm[mid,:] = xyz1[i,:];
+            mid = mid+1;
+        else # this node is the slave
+            id1[i] = id1[-id1[i]];
+        end
+    end
+    nnodes = mid-1;
+    xyzm = xyzm[1:nnodes,:];
+    # Renumber the cells
+    conns = fes.conn;
+    for i = 1:FESetModule.count(fes)
+        conn = conns[i,:];
+        conns[i,:] = id1[conn];
+    end
+    fes.conn = deepcopy(conns);
+
+    fens = FENodeSet(xyzm[1:nnodes,:]);
+
+    return fens,fes
+end
+
+"""
     renumberconn!(fes::FESetModule.FESet, new_numbering::FIntVec)
 
 Renumber the nodes in the connectivity of the finite elements based on a new
