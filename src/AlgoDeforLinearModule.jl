@@ -749,4 +749,74 @@ function exportmode(modeldata::FDataDict)
   return exportdeformation(modeldata)
 end
 
+"""
+    gepbinvpwr2(K, M; nev::Int=6, evshift::FFlt = 0.0,
+        v0::FFltMat = Array{FFlt}(0, 0),
+        tol::FFlt = 1.0e-3, maxiter::Int = 300, verbose::Bool=false)
+
+Block inverse power method.
+
+Block inverse power method for k smallest eigenvalues of the generalized
+eigenvalue problem
+           `K*v= lambda*M*v`
+
+# Arguments
+* `K` =  square symmetric stiffness matrix (if necessary mass-shifted),
+* `M` =  square symmetric mass matrix,
+
+# Keyword arguments
+* `v0` =  initial guess of the eigenvectors (for instance random),
+* `nev` = the number of eigenvalues sought
+* `tol` = relative tolerance on the eigenvalue, expressed in terms of norms of the
+      change of the eigenvalue estimates from iteration to iteration.
+* `maxiter` =  maximum number of allowed iterations
+
+#  Return
+* `labm` = computed eigenvalues,
+* `v` = computed eigenvectors,
+* `nconv` = number of converged eigenvalues
+* `niter` = number of iterations taken
+"""
+function gepbinvpwr2(K, M; nev::Int=6, evshift::FFlt = 0.0,
+    v0::FFltMat = Array{FFlt}(0, 0),
+    tol::FFlt = 1.0e-3, maxiter::Int = 300, verbose::Bool=false)
+    @assert nev >= 1
+    v = deepcopy(v0)
+    if isempty(v0)
+        v = rand(size(K, 1), nev)
+    end
+    @assert nev <= size(v, 2)
+    nvecs = size(v, 2)  # How many eigenvalues are iterated?
+    plamb = zeros(nvecs)  # previous eigenvalue
+    lamb = zeros(nvecs)
+    lamberr = zeros(nvecs)
+    converged = falses(nvecs)  # not yet
+    niter = 0
+    nconv = 0
+    nmult = 0
+    lu = cholfact(K+evshift*M)
+    for i = 1:maxiter
+        u = lu\(M*v)
+        v, r = qr(u; thin=true)  # economy factorization
+        for j = 1:nvecs
+            lamb[j] = dot(v[:, j], K*v[:, j]) / dot(v[:, j], M*v[:, j])
+            lamberr[j] = abs(lamb[j] - plamb[j])/abs(lamb[j])
+            converged[j] = lamberr[j] <= tol
+        end
+        nconv = length(find(converged[1:nev]))
+        verbose && println("nconv = $(nconv)")
+        if nconv == nev # converged on all requested eigenvalues
+            break
+        end
+        plamb, lamb = lamb, plamb # swap the eigenvalue arrays
+        niter = niter + 1
+    end
+    return lamb, v, nconv, niter, nmult, lamberr
+end
+# (d,[v,],nconv,niter,nmult,resid)
+# eigs returns the nev requested eigenvalues in d, the corresponding Ritz vectors
+# v (only if ritzvec=true), the number of converged eigenvalues nconv, the number
+# of iterations niter and the number of matrix vector multiplications nmult, as
+# well as the final residual vector resid.
+
 end
