@@ -5055,7 +5055,7 @@ function test()
         fs = real(sqrt.(complex(d)))/(2*pi)
         # println("Eigenvalues: $fs [Hz]")
         @test norm(fs - [0.0, 0.0, 0.0, 0.0, 0.000166835, 0.000182134, 517.147, 517.147, 660.491, 660.491, 1440.36, 1440.36, 1654.15, 1654.15, 2550.83, 2550.83, 2595.36, 2595.36, 2707.35, 2707.35]) < 2.0e-2
-        # mode = 7
+        # mode = 7 
         # scattersysvec!(u, v[:,mode])
         # File =  "unit_cube_modes.vtk"
         # vtkexportmesh(File, fens, fes; vectors=[("mode$mode", u.values)])
