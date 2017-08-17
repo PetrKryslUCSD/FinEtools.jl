@@ -59,6 +59,7 @@ println("Total time elapsed = ", time() - t0, "s")
 File =  "annulus.vtk"
 vtkexportmesh(File,  fes.conn,  [geom.values Temp.values],
  FinEtools.MeshExportModule.Q4; scalars=[("Temperature", Temp.values)])
+@async run(`"paraview.exe" $File`)
 
 println("Minimum/maximum temperature= $(minimum(Temp.values))/$(maximum(Temp.values)))")
 

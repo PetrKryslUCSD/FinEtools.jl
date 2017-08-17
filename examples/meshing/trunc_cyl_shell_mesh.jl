@@ -27,10 +27,11 @@ println("  before merging  = $(count(fens))")
 # vtkexportmesh(File, fens, fes)
 # @async run(`"paraview.exe" $File`)
 
-# candidates = selectnode(fens, box = boundingbox([Rmed-h -Inf 0.0; Rmed+h +Inf 0.0]), inflate = tolerance)
-# fens,fes = mergenodes(fens, fes,  tolerance, candidates);
+candidates = selectnode(fens, box = boundingbox([Rmed-h -Inf 0.0; Rmed+h +Inf 0.0]), inflate = tolerance)
+fens,fes = mergenodes(fens, fes,  tolerance, candidates);
 
-fens,fes = mergenodes(fens, fes,  tolerance);
+# fens,fes = mergenodes(fens, fes,  tolerance);
+
 println("  after merging  = $(count(fens))")
 
 println("Mesh generation ($(time() - t0) sec)")

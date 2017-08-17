@@ -562,7 +562,7 @@ function vselect(v::FFltMat; args...)
 
 
     # Process the different options
-    if box!=nothing
+    if box != nothing
         sdim = size(v,2)
         dim = Int(round(length(box)/2.))::FInt;
         @assert dim == sdim "Dimension of box not matched to dimension of array of vertices"
@@ -579,7 +579,7 @@ function vselect(v::FFltMat; args...)
               nn = nn + 1; vlist[nn] = j;
           end
         end
-    elseif distance!=nothing
+    elseif distance != nothing
         fromvalue =0*v[1,:];
         if from!=nothing
             fromvalue = from;
@@ -591,19 +591,19 @@ function vselect(v::FFltMat; args...)
                 nn =nn +1; vlist[nn] =i;
             end
         end
-    elseif plane!=nothing
-        n = plane[1:3];
-        n=n/norm(n); n = reshape(n,3,1)
-        thicknessvalue =0.0;
-        if thickness!=nothing
+    elseif plane != nothing
+        normal = plane[1:3];
+        normal = vec(normal/norm(normal));
+        thicknessvalue = 0.0;
+        if thickness != nothing
             thicknessvalue = thickness;
         end
-        t=thicknessvalue+inflatevalue;
-        d=plane[4];
-        for i=1:size(v,1)
-            ad=v[i,:]*n;
-            if abs(d-ad[1])<t
-                nn =nn +1; vlist[nn] =i;
+        t = thicknessvalue+inflatevalue;
+        distance = plane[4];
+        for i = 1:size(v,1)
+            ad = dot(v[i,:], normal);
+            if abs(distance-ad)<t
+                nn = nn +1; vlist[nn] =i;
             end
         end
     elseif nearestto != nothing
