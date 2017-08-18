@@ -338,7 +338,7 @@ mutable struct FESetP1 <: FESet0Manifold
   @add_FESet_fields
 
   function    FESetP1(conn::FIntMat=[])
-    const nodesperelem::FInt  = 1
+    nodesperelem::FInt  = 1
     @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
     # Need to make a COPY of the input arrays
     self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
@@ -368,7 +368,7 @@ mutable struct FESetL2 <: FESet1Manifold
   @add_FESet_fields
 
   function    FESetL2(conn::FIntMat=[])
-    const nodesperelem::FInt  = 2
+    nodesperelem::FInt  = 2
     @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
     # Need to make a COPY of the input arrays
     self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
@@ -398,7 +398,7 @@ mutable struct FESetL3 <: FESet1Manifold
   @add_FESet_fields
 
   function    FESetL3(conn::FIntMat=[])
-    const nodesperelem::FInt  = 3
+    nodesperelem::FInt  = 3
     @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
     # Need to make a COPY of the input arrays
     self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
@@ -436,7 +436,7 @@ mutable struct FESetT3 <: FESet2Manifold
   @add_FESet_fields
 
   function  FESetT3( conn::FIntMat=[])
-    const nodesperelem::FInt  = 3
+    nodesperelem::FInt  = 3
     @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
     # Need to make a COPY of the input arrays
     self = new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
@@ -474,7 +474,7 @@ mutable struct FESetQ4 <: FESet2Manifold
   @add_FESet_fields
 
   function    FESetQ4(conn::FIntMat=[])
-    const nodesperelem::FInt  = 4
+    nodesperelem::FInt  = 4
     @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
     # Need to make a COPY of the input arrays
     self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
@@ -519,7 +519,7 @@ mutable struct FESetQ9 <: FESet2Manifold
   @add_FESet_fields
 
   function    FESetQ9(conn::FIntMat=[])
-    const nodesperelem::FInt  = 9
+    nodesperelem::FInt  = 9
     @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
     # Need to make a COPY of the input arrays
     self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
@@ -571,7 +571,7 @@ mutable struct FESetQ8 <: FESet2Manifold
   @add_FESet_fields
 
   function    FESetQ8(conn::FIntMat=[])
-    const nodesperelem::FInt  = 8
+    nodesperelem::FInt  = 8
     @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
     # Need to make a COPY of the input arrays
     self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
@@ -639,7 +639,7 @@ mutable struct FESetT6 <: FESet2Manifold
   @add_FESet_fields
 
   function    FESetT6(conn::FIntMat=[])
-    const nodesperelem::FInt  = 6
+    nodesperelem::FInt  = 6
     @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
     # Need to make a COPY of the input arrays
     self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
@@ -695,7 +695,7 @@ mutable struct FESetH8 <: FESet3Manifold
   @add_FESet_fields
 
   function    FESetH8(conn::FIntMat=[])
-    const nodesperelem::FInt  = 8
+    nodesperelem::FInt  = 8
     @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
     # Need to make a COPY of the input arrays
     self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
@@ -760,7 +760,7 @@ mutable struct FESetH20 <: FESet3Manifold
   @add_FESet_fields
 
   function    FESetH20(conn::FIntMat=[])
-    const nodesperelem::FInt  = 20
+    nodesperelem::FInt  = 20
     @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
     self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
     setlabel!(self, 0)
@@ -902,7 +902,7 @@ mutable struct FESetH27 <: FESet3Manifold
   @add_FESet_fields
 
   function    FESetH27(conn::FIntMat=[])
-    const nodesperelem::FInt  = 27
+    nodesperelem::FInt  = 27
     @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
     self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
     setlabel!(self, 0)
@@ -1021,7 +1021,7 @@ mutable struct FESetT4 <: FESet3Manifold
   @add_FESet_fields
 
   function    FESetT4(conn::FIntMat=[])
-    const nodesperelem::FInt  = 4
+    nodesperelem::FInt  = 4
     @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
     # Need to make a COPY of the input arrays
     self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
@@ -1065,7 +1065,7 @@ mutable struct FESetT10 <: FESet3Manifold
   @add_FESet_fields
 
   function FESetT10(conn::FIntMat=[])
-    const nodesperelem::FInt  = 10
+    nodesperelem::FInt  = 10
     @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
     # Need to make a COPY of the input arrays
     self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
