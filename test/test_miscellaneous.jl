@@ -663,3 +663,33 @@ end
 end
 using mmMeasurement_1
 mmMeasurement_1.test()
+
+module mphunm2
+using FinEtools
+using Base.Test
+function test()
+    for btu in [:SEC :MIN :HR :DY :YR :WK]
+        t = 0.333*phun(base_time_units = btu, "s")
+        v = 2.0*phun(base_time_units = btu, "m/s")
+        # display(v*t)
+        @test abs(v*t - 0.666) < 1.0e-6
+    end
+end
+end
+using mphunm2
+mphunm2.test()
+
+module mphunm3
+using FinEtools
+using Base.Test
+function test()
+    for sou in [:SI :US :IMPERIAL :CGS :SIMM]
+        t = 0.333*phun(system_of_units = sou, "s")
+        v = 2.0*phun(system_of_units = sou, "m/s")
+        # display(v*t/phun(system_of_units = sou, "m"))
+        @test abs(v*t/phun(system_of_units = sou, "m") - 0.666) < 1.0e-6
+    end
+end
+end
+using mphunm3
+mphunm3.test()
