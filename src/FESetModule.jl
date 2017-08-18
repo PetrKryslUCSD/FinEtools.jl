@@ -108,27 +108,6 @@ function bfundpar(self::T,  param_coords::FFltVec)::FFltMat where {T<:FESet}
 end
 
 """
-    Jacobianmatrix!(self::T,  J::FFltMat,  x::FFltMat,
-       gradNparams::FFltMat) where {T<:FESet}
-
-Evaluate the Jacobian matrix.
-"""
-function Jacobianmatrix!(self::T,  J::FFltMat,  x::FFltMat,
-   gradNparams::FFltMat) where {T<:FESet}
-  @assert (size(J, 2) == size(x, 2)) && (size(J, 1) == size(gradNparams, 2))
-  @inbounds for nx = 1:size(x, 2)
-    @inbounds for mx = 1:size(gradNparams, 2)
-      accumulator::FFlt = 0.0;
-      @inbounds for kx = 1:size(x, 1)
-        accumulator = accumulator + x[kx, mx]*gradNparams[kx, nx]; # = x' * gradNparams
-      end
-      J[mx, nx] = accumulator
-    end
-  end
-  return me
-end
-
-"""
     setlabel!(self::T, val::FInt) where {T<:FESet}
 
 Set the label of the entire finite elements set.
@@ -1117,3 +1096,25 @@ function privboundaryfe(self::FESetT10)
 end
 
 end
+
+
+# """
+#     Jacobianmatrix!(self::T,  J::FFltMat,  x::FFltMat,
+#        gradNparams::FFltMat) where {T<:FESet}
+#
+# Evaluate the Jacobian matrix.
+# """
+# function Jacobianmatrix!(self::T,  J::FFltMat,  x::FFltMat,
+#     gradNparams::FFltMat) where {T<:FESet}
+#     @assert (size(J, 2) == size(x, 2)) && (size(J, 1) == size(gradNparams, 2))
+#     @inbounds for nx = 1:size(x, 2)
+#         @inbounds for mx = 1:size(gradNparams, 2)
+#             accumulator::FFlt = 0.0;
+#             @inbounds for kx = 1:size(x, 1)
+#                 accumulator = accumulator + x[kx, mx]*gradNparams[kx, nx]; # = x' * gradNparams
+#             end
+#             J[mx, nx] = accumulator
+#         end
+#     end
+#     return self
+# end
