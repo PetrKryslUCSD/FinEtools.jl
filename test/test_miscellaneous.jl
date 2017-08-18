@@ -639,3 +639,27 @@ end
 end
 using mmboxm1
 mmboxm1.test()
+
+
+module mmMeasurement_1
+using FinEtools
+using Base.Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  3.32;
+    nl, nt, nw = 5, 3, 4;
+
+    for or in [:a :b :ca :cb]
+        fens,fes  = T4block(L,W,t, nl,nw,nt, or)
+        geom  =  NodalField(fens.xyz)
+
+        femm  =  FEMMBase(GeoD(fes, TetRule(5)))
+        V = integratefunction(femm, geom, (x) ->  1.0)
+        @test abs(V - W*L*t)/V < 1.0e-5
+    end
+
+end
+end
+using mmMeasurement_1
+mmMeasurement_1.test()
