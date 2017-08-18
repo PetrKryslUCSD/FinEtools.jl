@@ -508,13 +508,13 @@ mutable struct FESetQ9 <: FESet2Manifold
 end
 
 function privbfun(self::FESetQ9,  param_coords::FFltVec)
-    # Evaluate the basis function matrix for an 4-node quadrilateral.
+    # Evaluate the basis function matrix for an 9-node quadrilateral.
     xi=param_coords[1];
     xis = [(xi-1)*xi/2;  (xi+1)*xi/2;  -(xi+1)*(xi-1)];
     eta=param_coords[2];
     etas = [(eta-1)*eta/2;  (eta+1)*eta/2;  -(eta+1)*(eta-1)];
     xisetas=(xis*etas');
-    val = xisetas([1     2     5     4     3     8     6     7     9])';
+    val = xisetas[[1     2     5     4     3     8     6     7     9]];
     return reshape(val, 9, 1); # Make sure this is a matrix
 end
 
@@ -529,7 +529,7 @@ function privbfundpar(self::FESetQ9,  param_coords::FFltVec)
     dxisetas=(dxis*etas');
     xisdetas=(xis*detas');
     ix=[1     2     5     4     3     8     6     7     9]
-    val =  [dxisetas(ix)'             xisdetas(ix)'];
+    val =  [dxisetas[ix]'             xisdetas[ix]'];
     return reshape(val, 9, 2); # Make sure this is a matrix
 end
 

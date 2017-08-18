@@ -693,3 +693,131 @@ end
 end
 using mphunm3
 mphunm3.test()
+
+
+module mxmeasurementm1
+using FinEtools
+using Base.Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl, nt, nw = 2, 3, 4;
+
+    fens,fes  = H27block(L,W,t, nl,nw,nt)
+    geom  =  NodalField(fens.xyz)
+
+    femm  =  FEMMBase(GeoD(fes, GaussRule(3, 3)))
+    V = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(V - W*L*t)/V < 1.0e-5
+end
+end
+using mxmeasurementm1
+mxmeasurementm1.test()
+
+module mxmeasurementm2
+using FinEtools
+using Base.Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl, nt, nw = 2, 3, 4;
+
+    fens,fes  = H27block(L,W,t, nl,nw,nt)
+    geom  =  NodalField(fens.xyz)
+
+bfes = meshboundary(fes)
+    femm  =  FEMMBase(GeoD(bfes, GaussRule(2, 4)))
+    V = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(V - 2*(W*L+L*t+W*t))/V < 1.0e-5
+end
+end
+using mxmeasurementm2
+mxmeasurementm2.test()
+
+module mxmeasurementm3
+using FinEtools
+using FinEtools.MeshExportModule
+using Base.Test
+function test()
+    W = 4.1;
+    L = 12.;
+    t =  5.32;
+    a = 0.3
+    nl, nt, nw = 6, 8, 9;
+
+    fens,fes  = H20block(L,W,t, nl,nw,nt)
+    for ixxxx = 1:count(fens)
+        x,y,z = fens.xyz[ixxxx, :]
+        fens.xyz[ixxxx, :] = [x+a*sin(y) y+a*sin(z) z+a*sin(x)]
+    end
+    geom  =  NodalField(fens.xyz)
+    # File = "mesh.vtk"
+    # MeshExportModule.vtkexportmesh(File, fens, fes)
+
+    bfes = meshboundary(fes)
+    femm  =  FEMMBase(GeoD(bfes, GaussRule(2, 4)))
+    S20 = integratefunction(femm, geom, (x) ->  1.0)
+
+    fens,fes  = H27block(L,W,t, nl,nw,nt)
+    for ixxxx = 1:count(fens)
+        x,y,z = fens.xyz[ixxxx, :]
+        fens.xyz[ixxxx, :] = [x+a*sin(y) y+a*sin(z) z+a*sin(x)]
+    end
+    geom  =  NodalField(fens.xyz)
+    # File = "mesh.vtk"
+    # MeshExportModule.vtkexportmesh(File, fens, fes)
+
+    bfes = meshboundary(fes)
+    femm  =  FEMMBase(GeoD(bfes, GaussRule(2, 4)))
+    S27 = integratefunction(femm, geom, (x) ->  1.0)
+    # println("$((S20-S27)/S20)")
+
+    @test abs((S20-S27)/S20) < 1.0e-5
+end
+end
+using mxmeasurementm3
+mxmeasurementm3.test()
+
+module mxmeasurementm4
+using FinEtools
+using FinEtools.MeshExportModule
+using Base.Test
+function test()
+    W = 4.1;
+    L = 12.;
+    t =  5.32;
+    a = 0.3
+    nl, nt, nw = 6, 8, 9;
+
+    fens,fes  = H20block(L,W,t, nl,nw,nt)
+    for ixxxx = 1:count(fens)
+        x,y,z = fens.xyz[ixxxx, :]
+        fens.xyz[ixxxx, :] = [x+a*sin(y) y+a*sin(z) z+a*sin(x)]
+    end
+    geom  =  NodalField(fens.xyz)
+    # File = "mesh.vtk"
+    # MeshExportModule.vtkexportmesh(File, fens, fes)
+
+    femm  =  FEMMBase(GeoD(fes, GaussRule(3, 4)))
+    V20 = integratefunction(femm, geom, (x) ->  1.0)
+
+    fens,fes  = H27block(L,W,t, nl,nw,nt)
+    for ixxxx = 1:count(fens)
+        x,y,z = fens.xyz[ixxxx, :]
+        fens.xyz[ixxxx, :] = [x+a*sin(y) y+a*sin(z) z+a*sin(x)]
+    end
+    geom  =  NodalField(fens.xyz)
+    # File = "mesh.vtk"
+    # MeshExportModule.vtkexportmesh(File, fens, fes)
+
+    femm  =  FEMMBase(GeoD(fes, GaussRule(3, 4)))
+    V27 = integratefunction(femm, geom, (x) ->  1.0)
+    # println("$((S20-S27)/S20)")
+
+    @test abs((V20-V27)/V20) < 1.0e-5
+end
+end
+using mxmeasurementm4
+mxmeasurementm4.test()
