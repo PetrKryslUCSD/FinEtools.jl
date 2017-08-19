@@ -45,18 +45,14 @@ end
 Dimension of the degree of freedom parameters (i. e.  how many degrees of
 freedom per entity).
 """
-function ndofs(self::F)::FInt  where {F<:Field}
-  return size(self.values, 2)
-end
+ndofs(self::Field)  = size(self.values, 2)
 
 """
     nents{F<:Field}(self::F)
 
 Number of nodes associated with the field.
 """
-function nents(self::F)::FInt  where {F<:Field}
-  return  size(self.values, 1)
-end
+nents(self::Field)  = size(self.values, 1)
 
 """
     copy!(DEST::F,  SRC::F) where {F<:Field}
@@ -386,9 +382,53 @@ current degree-of-freedom numbering. In such a case this method sets
 function setebc!(self::Field, fenids::FIntVec, is_fixed::Bool, comp::FInt;
   val::T=0.0) where {T<:Number}
   j = comp
-  @assert (j >= 1) && (j <= ndofn(self))
+  @assert (j >= 1) && (j <= ndofs(self))
   setebc!(self, fenids, is_fixed, j, val)
   return self
+end
+
+"""
+    setebc!(self::Field, fenids::FIntVec)
+
+Set the EBCs (essential boundary conditions).
+
+Suppress all degrees of freedom at the given nodes.
+
+`fenids`         - array of N node identifiers
+
+Note:  Any call to setebc!() potentially changes the current assignment
+which degrees of freedom are free and which are fixed
+and therefore is presumed to invalidate the
+current degree-of-freedom numbering. In such a case this method sets
+`nfreedofs = 0`; and  `dofnums=0`.
+"""
+function setebc!(self::Field, fenids::FIntVec)
+    Zer = zero(eltype(self.fixed_values[1]))
+    for comp = 1:size(self.values, 2)
+        setebc!(self, fenids, true, comp, Zer)
+    end
+    return self
+end
+
+"""
+    setebc!(self::Field)
+
+Set the EBCs (essential boundary conditions).
+
+All essential boundary conditions are CLEARED.
+
+Note:  Any call to setebc!() potentially changes the current assignment
+which degrees of freedom are free and which are fixed
+and therefore is presumed to invalidate the
+current degree-of-freedom numbering. In such a case this method sets
+`nfreedofs = 0`; and  `dofnums=0`.
+"""
+function setebc!(self::Field)
+  self.nfreedofs = 0
+  fill!(self.dofnums, 0)
+  fill!(self.is_fixed, false)
+  fill!(self.fixed_values, zero(eltype(self.fixed_values[1])))
+  return  self
 end
 
 """
