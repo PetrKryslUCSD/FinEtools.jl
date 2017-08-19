@@ -909,3 +909,30 @@ end
 end
 using mmmfieldmm1
 mmmfieldmm1.test()
+
+module mmcrossm
+using FinEtools
+using FinEtools.RotationUtilModule
+using Base.Test
+function test()
+    a = vec([0.1102, -0.369506, -0.0167305])
+    b = vec([0.0824301, -0.137487, 0.351721])
+    c = cross(a, b)
+    # println("$(c)")
+    A = zeros(3, 3)
+    skewmat!(A, a)
+    d = A * b
+    # println("$(d)")
+    @test norm(c - d) < 1.0e-6
+    e = RotationUtilModule.cross3(a, b)
+    @test norm(c - e) < 1.0e-6
+
+    a = vec([0.1102, -0.135])
+    b = vec([-0.137487, 0.351721])
+    c = RotationUtilModule.cross2(a, b)
+    # println("$(c)")
+    @test norm(c - 0.0201989092) < 1.0e-6
+end
+end
+using mmcrossm
+mmcrossm.test()
