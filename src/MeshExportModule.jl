@@ -11,6 +11,7 @@ using FinEtools.FTypesModule
 using FinEtools.FESetModule
 using FinEtools.FENodeSetModule
 
+const P1=1
 const L2=3
 const T3=5
 const Q4=9
@@ -35,7 +36,9 @@ vectors = array of tuples, (name, data)
 """
 function vtkexportmesh(theFile::String, fens::FENodeSet, fes::T;
   opts...) where {T<:FESet}
-  if typeof(fes) == FESetL2
+  if typeof(fes) == FESetP1
+    Cell_type=P1
+  elseif typeof(fes) == FESetL2
     Cell_type=L2
   elseif typeof(fes) == FESetT3
     Cell_type=T3
