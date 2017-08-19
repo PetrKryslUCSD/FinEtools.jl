@@ -117,7 +117,7 @@ function surfacetransferloads(self::FEMMHeatDiffSurf,  assembler::A,
         At_mul_B!(loc, Ns[j], x);# Quadrature points location
         At_mul_B!(J,  x,  gradNparams[j]); # calculate the Jacobian matrix
         Jac = Jacobiansurface(geod, J, loc, conn,  Ns[j]);
-        Ta = dot(pT, Ns[j])
+        Ta = dot(vec(pT), vec(Ns[j]))
         factor = Ta*self.surfacetransfercoeff*Jac*w[j]
         Fe .+= factor*Ns[j]
       end # Loop over quadrature points
