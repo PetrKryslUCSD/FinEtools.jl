@@ -5,7 +5,7 @@ Module to handle two-dimensional and three-dimensional rotations.
 """
 module RotationUtilModule
 
-export rotmat,  rotmat3!, skewmat!
+export rotmat,  rotmat3!, skewmat!, cross3, cross2
 
 using FinEtools.FTypesModule
 
@@ -39,32 +39,27 @@ end
 Compute skew-symmetric matrix.
 """
 function skewmat!(S, theta)
-    if length(theta)== 3
-        S[:,:]=[ 0.0    -theta[3] theta[2];
-                theta[3]   0.0   -theta[1];
-                -theta[2] theta[1]  0.0];
-    elseif  length(theta) == 2
-        S[:,:]=[-theta[2] theta[1]];
-    else
-        error("theta must be a 3-vector");
-    end
+    @assert  length(theta)== 3 "Input must be a 3-vector"
+    S[:,:]=[ 0.0    -theta[3] theta[2];
+            theta[3]   0.0   -theta[1];
+            -theta[2] theta[1]  0.0];
     return S;
 end
 
 
-function cross(theta,v)
-    if length(theta)== 3
-        n    =[ 0.0-theta[3]*v[2]+theta[2]*v[3];
-                theta[3]*v[1]+0.0-theta[1]*v[3];
-                -theta[2]*v[1]+theta[1]*v[2]+0.0];
-    elseif  length(theta) == 2
-        n    =-theta[2]*v[1] +theta[1]*v[2];
-    else
-        error("theta must be a 3-vector");
-    end
-    return n;
+function cross3(theta, v)
+    @assert (length(theta)== 3) && (length(v)== 3) "Inputs must be 3-vectors"
+    return [ 0.0-theta[3]*v[2]+theta[2]*v[3];
+            theta[3]*v[1]+0.0-theta[1]*v[3];
+            -theta[2]*v[1]+theta[1]*v[2]+0.0];
 end
 
+
+
+function cross2(theta, v)
+    @assert (length(theta)== 2) && (length(v)== 2) "Inputs must be 2-vectors"
+    return -theta[2]*v[1] +theta[1]*v[2];
+end
 
 # """
 #     rotmat(theta::FFltMat)
