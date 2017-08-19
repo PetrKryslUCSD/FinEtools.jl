@@ -39,12 +39,12 @@ function  buffers(self::FEMMAcoust, geom::NodalField{FFlt},
     P::NodalField{F}) where {F}
     geod = self.geod
     # Constants
-    const nfes = count(geod.fes); # number of finite elements in the set
-    const ndn = ndofs(P); # number of degrees of freedom per node
-    const nne =  nodesperelem(geod.fes); # number of nodes per element
-    const sdim =  ndofs(geom);            # number of space dimensions
-    const mdim = manifdim(geod.fes);     # manifold dimension of the element
-    const Cedim = ndn*nne;          # dimension of the element matrix
+    nfes = count(geod.fes); # number of finite elements in the set
+    ndn = ndofs(P); # number of degrees of freedom per node
+    nne =  nodesperelem(geod.fes); # number of nodes per element
+    sdim =  ndofs(geom);            # number of space dimensions
+    mdim = manifdim(geod.fes);     # manifold dimension of the element
+    Cedim = ndn*nne;          # dimension of the element matrix
     # Prepare assembler and temporaries
     conn = zeros(FInt, nne, 1); # element nodes -- used as a buffer
     x = zeros(FFlt, nne, sdim); # array of node coordinates -- used as a buffer
