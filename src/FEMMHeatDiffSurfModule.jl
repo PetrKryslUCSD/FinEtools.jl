@@ -38,12 +38,12 @@ function surfacetransfer(self::FEMMHeatDiffSurf,  assembler::A,
   geom::NodalField{FFlt}, temp::NodalField{FFlt}) where {A<:SysmatAssemblerBase}
   geod = self.geod
   # Constants
-  const nfes = count(geod.fes); # number of finite elements in the set
-  const ndn = ndofs(temp); # number of degrees of freedom per node
-  const nne = nodesperelem(geod.fes); # number of nodes for element
-  const sdim = ndofs(geom);            # number of space dimensions
-  const mdim = manifdim(geod.fes); # manifold dimension of the element
-  const Hedim = ndn*nne;             # dimension of the element matrix
+  nfes = count(geod.fes); # number of finite elements in the set
+  ndn = ndofs(temp); # number of degrees of freedom per node
+  nne = nodesperelem(geod.fes); # number of nodes for element
+  sdim = ndofs(geom);            # number of space dimensions
+  mdim = manifdim(geod.fes); # manifold dimension of the element
+  Hedim = ndn*nne;             # dimension of the element matrix
   # Precompute basis f. values + basis f. gradients wrt parametric coor
   npts,  Ns,  gradNparams,  w,  pc = integrationdata(geod);
   # Prepare assembler and temporaries
@@ -90,12 +90,12 @@ function surfacetransferloads(self::FEMMHeatDiffSurf,  assembler::A,
   ambtemp::NodalField{FFlt}) where {A<:SysvecAssemblerBase}
   geod = self.geod
   # Constants
-  const nfes = count(geod.fes); # number of finite elements in the set
-  const ndn = ndofs(temp); # number of degrees of freedom per node
-  const nne = nodesperelem(geod.fes); # number of nodes for element
-  const sdim = ndofs(geom);            # number of space dimensions
-  const mdim = manifdim(geod.fes); # manifold dimension of the element
-  const Hedim = ndn*nne;             # dimension of the element matrix
+  nfes = count(geod.fes); # number of finite elements in the set
+  ndn = ndofs(temp); # number of degrees of freedom per node
+  nne = nodesperelem(geod.fes); # number of nodes for element
+  sdim = ndofs(geom);            # number of space dimensions
+  mdim = manifdim(geod.fes); # manifold dimension of the element
+  Hedim = ndn*nne;             # dimension of the element matrix
   # Precompute basis f. values + basis f. gradients wrt parametric coor
   npts,  Ns,  gradNparams,  w,  pc = integrationdata(geod);
   # Prepare assembler and temporaries
@@ -148,12 +148,12 @@ function nzebcsurfacetransferloads(self::FEMMHeatDiffSurf, assembler::A,
   geom::NodalField{FFlt}, temp::NodalField{FFlt}) where {A<:SysvecAssemblerBase}
   geod = self.geod
   # Constants
-  const nfes = count(geod.fes); # number of finite elements in the set
-  const ndn = ndofs(temp); # number of degrees of freedom per node
-  const nne = nodesperelem(geod.fes); # number of nodes for element
-  const sdim = ndofs(geom);            # number of space dimensions
-  const mdim = manifdim(geod.fes); # manifold dimension of the element
-  const Hedim = ndn*nne;             # dimension of the element matrix
+  nfes = count(geod.fes); # number of finite elements in the set
+  ndn = ndofs(temp); # number of degrees of freedom per node
+  nne = nodesperelem(geod.fes); # number of nodes for element
+  sdim = ndofs(geom);            # number of space dimensions
+  mdim = manifdim(geod.fes); # manifold dimension of the element
+  Hedim = ndn*nne;             # dimension of the element matrix
   # Precompute basis f. values + basis f. gradients wrt parametric coor
   npts,  Ns,  gradNparams,  w,  pc = integrationdata(geod);
   # Prepare assembler and temporaries
