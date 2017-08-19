@@ -926,6 +926,9 @@ function test()
     @test norm(c - d) < 1.0e-6
     e = RotationUtilModule.cross3(a, b)
     @test norm(c - e) < 1.0e-6
+    f = zeros(3)
+    RotationUtilModule.cross3!(f, a, b)
+    @test norm(c - f) < 1.0e-6
 
     a = vec([0.1102, -0.135])
     b = vec([-0.137487, 0.351721])
@@ -936,3 +939,69 @@ end
 end
 using mmcrossm
 mmcrossm.test()
+
+module mstresscomponentmap
+using FinEtools
+using Base.Test
+function test()
+    MR = DeforModelRed1D
+    @test stresscomponentmap(MR)[:x] == 1
+    MR = DeforModelRed2DAxisymm
+    @test stresscomponentmap(MR)[:x] == 1
+    @test stresscomponentmap(MR)[:zz] == 3
+end
+end
+using mstresscomponentmap
+mstresscomponentmap.test()
+
+module mgen_iso_csmat1
+using FinEtools
+using FinEtools.FESetModule
+using FinEtools.CSysModule
+using Base.Test
+function test()
+    L = 2.0
+    nl = 1
+
+    fens,fes  = L2block(L, nl)
+    fens.xyz = xyz3(fens)
+    fens.xyz[2, 3] += L/2
+    csmatout = zeros(FFlt, 3, 1)
+    gradNparams = FESetModule.bfundpar(fes, vec([0.0]));
+    J = transpose(fens.xyz) * gradNparams
+    CSysModule.gen_iso_csmat!(csmatout, mean(fens.xyz, 1), J, 0)
+    # println("$(csmatout)")
+    # println("$(norm(vec(csmatout)))")
+    @test norm(csmatout - [0.894427; 0.0; 0.447214]) < 1.0e-5
+end
+end
+using mgen_iso_csmat1
+mgen_iso_csmat1.test()
+
+module mgen_iso_csmat2
+using FinEtools
+using FinEtools.FESetModule
+using FinEtools.CSysModule
+using FinEtools.MeshExportModule
+using Base.Test
+function test()
+    L = 2.0
+    nl = 1
+
+    fens,fes  = Q4block(L, 2*L, nl, nl)
+    fens.xyz = xyz3(fens)
+    fens.xyz[2, 3] += L/2
+    File = "mesh.vtk"
+    MeshExportModule.vtkexportmesh(File, fens, fes)
+    csmatout = zeros(FFlt, 3, 2)
+    gradNparams = FESetModule.bfundpar(fes, vec([0.0 0.0]));
+    J = transpose(fens.xyz[fes.conn[1, :], :]) * gradNparams
+    # println("J = $(J)")
+    @test norm(J - [1.0 0.0; 0.0 2.0; 0.25 -0.25]) < 1.0e-5
+    CSysModule.gen_iso_csmat!(csmatout, mean(fens.xyz, 1), J, 0)
+    # println("csmatout = $(csmatout)")
+    @test norm(csmatout - [0.970143 0.0291979; 0.0 0.992727; 0.242536 -0.116791]) < 1.0e-5
+end
+end
+using mgen_iso_csmat2
+mgen_iso_csmat2.test()

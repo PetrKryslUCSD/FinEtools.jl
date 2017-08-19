@@ -100,8 +100,8 @@ function integratefieldfunction(self::FEMMAbstractBase,
 end
 
 """
-  integratefunction(self::FEMMAbstractBase,
-    geom::NodalField{FFlt}, fh::F, m::FInt = -1) where {F<:Function}
+    integratefunction(self::FEMMAbstractBase,
+        geom::NodalField{FFlt}, fh::F, m::FInt = -1) where {F<:Function}
 
 Integrate a function over the discrete manifold.
 

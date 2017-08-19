@@ -1,7 +1,7 @@
 """
     CSysModule
 
-Module for management of coordinate systems.  
+Module for management of coordinate systems.
 """
 module CSysModule
 
@@ -9,6 +9,7 @@ export CSys
 export updatecsmat!
 
 using FinEtools.FTypesModule
+using FinEtools.RotationUtilModule
 
 """
 Type for coordinate system transformations.
@@ -136,24 +137,24 @@ because each quadrature point gets a local coordinate system which
 depends on the orientation of the element.
 """
 function gen_iso_csmat!(csmatout::FFltMat,
-  XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-  sdim, mdim = size(tangents);
-  if sdim == mdim # finite element embedded in space of the same dimension
-    copy!(csmatout, eye(sdim));
-  else # lower-dimensional finite element embedded in space of higher dimension
-    e1=tangents[:,1]/norm(tangents[:,1]);
-    if mdim==1 # curve -like finite element
-      copy!(csmatout, [e1]);
-    elseif mdim==2 # surface -like finite element
-      n =skewmat(e1)*tangents(:,2)/norm(tangents(:,2));
-      e2=skewmat(n)*e1;
-      e2=e2/norm(e2);
-      copy!(csmatout,  [e1,e2]);
-    else
-      error("Got an incorrect size of tangents");
+    XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    sdim, mdim = size(tangents);
+    if sdim == mdim # finite element embedded in space of the same dimension
+        copy!(csmatout, eye(sdim));
+    else # lower-dimensional finite element embedded in space of higher dimension
+        @assert 0 < mdim < 3
+        e1 = tangents[:,1]/norm(tangents[:,1]);
+        if mdim == 1 # curve -like finite element
+            copy!(csmatout, e1);
+        elseif mdim == 2 # surface -like finite element
+            n = RotationUtilModule.cross3(e1, vec(tangents[:,2]/norm(tangents[:,2])));
+            e2 = RotationUtilModule.cross3(n, e1);
+            e2 = e2/norm(e2);
+            csmatout[:,1] = e1
+            csmatout[:,2] = e2
+        end
     end
-  end
-  return csmatout
+    return csmatout
 end
 
 end

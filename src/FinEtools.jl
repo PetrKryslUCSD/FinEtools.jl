@@ -23,7 +23,7 @@ export phun
 
 include("RotationUtilModule.jl")
 using FinEtools.RotationUtilModule
-export rotmat,  rotmat3!, skewmat!, cross3, cross2
+export rotmat,  rotmat3!, skewmat!, cross3, cross3!, cross2
 
 include("CSysModule.jl")
 using FinEtools.CSysModule
