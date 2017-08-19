@@ -23,6 +23,13 @@ const Q8=23
 const T10=24
 const H20=25
 
+VTKtypemap = Dict{DataType, Int}(FESetP1=>P1, FESetL2=>L2, FESetT3=>T3,
+    FESetQ4=>Q4, FESetT4=>T4, FESetH8=>H8, FESetQ8=>Q8, FESetL3=>L3, FESetT6=>T6,
+    FESetT10=>T10, FESetH20=>H20)
+
+numnodesmap = Dict{Int, Int}(P1=>1, L2=>2, T3=>3,
+    Q4=>4, T4=>4, H8=>8, Q8=>8, L3=>3, T6=>6,
+    T10=>10, H20=>20)
 
 """
     vtkexportmesh(theFile::String, fens::FENodeSet, fes::T;
@@ -36,31 +43,7 @@ vectors = array of tuples, (name, data)
 """
 function vtkexportmesh(theFile::String, fens::FENodeSet, fes::T;
   opts...) where {T<:FESet}
-  if typeof(fes) == FESetP1
-    Cell_type=P1
-  elseif typeof(fes) == FESetL2
-    Cell_type=L2
-  elseif typeof(fes) == FESetT3
-    Cell_type=T3
-  elseif typeof(fes) == FESetQ4
-    Cell_type=Q4
-  elseif typeof(fes) == FESetT4
-    Cell_type=T4
-  elseif typeof(fes) == FESetH8
-      Cell_type=H8
-  elseif typeof(fes) == FESetQ8
-      Cell_type=Q8
-  elseif typeof(fes) == FESetL3
-      Cell_type=L3
-  elseif typeof(fes) == FESetT6
-      Cell_type=T6
-  elseif typeof(fes) == FESetT10
-      Cell_type=T10
-  elseif typeof(fes) == FESetH20
-      Cell_type=H20
-  else
-      error("Cannot handle $(typeof(fes))")
-  end
+  Cell_type = get(()->error("Unknown VTK type!"), VTKtypemap, typeof(fes));
   return vtkexportmesh(theFile, fes.conn, fens.xyz, Cell_type; opts...)
 end
 
@@ -80,30 +63,8 @@ function vtkexportmesh(theFile::String, Connectivity, Points, Cell_type;
       X[j,1:size(Points,2)] =  Points[j,:]
     end
   end
-  if (Cell_type == L2) && (size(Connectivity,2)!=2)
-    error("Wrong number of connected nodes")
-  end
-  if (Cell_type == T3) && (size(Connectivity,2)!=3)
-    error("Wrong number of connected nodes")
-  end
-  if (Cell_type == T6) && (size(Connectivity,2)!=6)
-    error("Wrong number of connected nodes")
-  end
-  if (Cell_type == Q4) && (size(Connectivity,2)!=4)
-    error("Wrong number of connected nodes")
-  end
-  if (Cell_type == T4) && (size(Connectivity,2)!=4)
-    error("Wrong number of connected nodes")
-  end
-  if (Cell_type == T10) && (size(Connectivity,2)!=10)
-    error("Wrong number of connected nodes")
-  end
-  if (Cell_type == H8) && (size(Connectivity,2)!=8)
-    error("Wrong number of connected nodes")
-  end
-  if (Cell_type == H20) && (size(Connectivity,2)!=20)
-    error("Wrong number of connected nodes")
-  end
+  numnodes = get(()->error("Wrong number of connected nodes!"), numnodesmap, Cell_type);
+  @assert numnodes == size(Connectivity,2)
 
   fid=open(theFile,"w");
   if (fid == -1)
