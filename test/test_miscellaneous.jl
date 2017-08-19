@@ -859,8 +859,14 @@ function test()
   Ly=800.0; # length of the box, millimeters
 
   fens,fes = L2block(Lx,4); # Mesh
+  @test size(fens.xyz,2) == 1
   X = xyz3(fens)
   fens.xyz = deepcopy(X)
+  @test size(fens.xyz,2) == 3
+  X = xyz3(fens)
+  fens.xyz = deepcopy(X)
+  @test size(fens.xyz,2) == 3
+
   # show(fes.conn)
   # File = "mesh.vtk"
   # MeshExportModule.vtkexportmesh(File, fens, fes)
