@@ -34,9 +34,9 @@ include("FESetModule.jl")
 using FinEtools.FESetModule
 export FESet, FESet0Manifold, FESet1Manifold, FESet2Manifold, FESet3Manifold
 export manifdim, nodesperelem, count, getconn!, setotherdimension!, setlabel!,
-subset, cat, updateconn!
+    subset, cat, updateconn!
 export FESetP1, FESetL2, FESetL3, FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6,
-FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
+    FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
 
 
 include("FENodeSetModule.jl")
@@ -49,10 +49,10 @@ export FENodeToFEMap
 
 include("FieldModule.jl")
 using FinEtools.FieldModule
-export Field, ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!,
-gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!,
-gatherfixedvalues_asmat!, numberdofs!, setebc!, applyebc!,
-scattersysvec!, copy!
+export ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!,
+    gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!,
+    gatherfixedvalues_asmat!, numberdofs!, setebc!, applyebc!,
+    scattersysvec!, copy!, wipe!
 
 include("GeneralFieldModule.jl")
 using FinEtools.GeneralFieldModule
