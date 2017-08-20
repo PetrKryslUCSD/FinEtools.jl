@@ -751,17 +751,13 @@ function exportmode(modeldata::FDataDict)
   # Scatter the desired mode
   W = modeldata["W"]
   if typeof(mode)<:Int
-      if (length(omega)<mode) || (mode<0)
-        error("Invalid mode number $mode")
-      end
+      @assert 0 < mode <= length(omega) "Invalid mode number $mode"
       scattersysvec!(modeldata["u"], W[:,mode])
   else
       us = Array{Tuple{String, Field}}(0)
       u = modeldata["u"]
       for ixxxx in mode
-          if (length(omega)<ixxxx) || (ixxxx<0)
-            error("Invalid mode number $ixxxx")
-          end
+          @assert 0 < ixxxx <= length(omega) "Invalid mode number $ixxxx"
           scattersysvec!(u, W[:,ixxxx])
           push!(us, ("mode_$(ixxxx)", deepcopy(u)))
       end
