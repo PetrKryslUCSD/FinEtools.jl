@@ -834,7 +834,7 @@ function gepbinvpwr2(K, M; nev::Int=6, evshift::FFlt = 0.0,
         end
         nconv = length(find(converged[1:nev]))
         verbose && println("nconv = $(nconv)")
-        if nconv == nev # converged on all requested eigenvalues
+        if nconv >= nev # converged on all requested eigenvalues
             break
         end
         if withrr
