@@ -15,15 +15,15 @@ Algorithm for static linear deformation (stress) analysis.
 
 `modeldata` = dictionary with values for keys
 
-- "fens"  = finite element node set
-- "regions"  = array of region dictionaries
-- "essential_bcs" = array of essential boundary condition dictionaries
-- "traction_bcs" = array of traction boundary condition dictionaries
-- "temperature_change" = dictionary of data for temperature change
+* "fens"  = finite element node set
+* "regions"  = array of region dictionaries
+* "essential_bcs" = array of essential boundary condition dictionaries
+* "traction_bcs" = array of traction boundary condition dictionaries
+* "temperature_change" = dictionary of data for temperature change
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
-- "femm" = finite element mmodel machine (mandatory);
+* "femm" = finite element mmodel machine (mandatory);
 
 For essential boundary conditions (optional) each dictionary
 would hold
@@ -43,8 +43,8 @@ would hold
 
 Output:
 modeldata= the dictionary on input is augmented with
-- "geom" = the nodal field that is the geometry
-- "u" = the nodal field that is the computed displacement
+* "geom" = the nodal field that is the geometry
+* "u" = the nodal field that is the computed displacement
 """
 function linearstatics(modeldata::FDataDict)
 
@@ -243,23 +243,24 @@ Algorithm for exporting of the deformation for visualization in Paraview.
 
 `modeldata` = dictionary with values for keys
 
-- "fens"  = finite element node set
-- "regions"  = array of region dictionaries
-- "geom" = geometry field
-- "u" = displacement field
-- "postprocessing" = dictionary  with values for keys
+* "fens"  = finite element node set
+* "regions"  = array of region dictionaries
+* "geom" = geometry field
+* "u" = displacement field, or
+* "us" = array of  tuples (name, displacement field)
+* "postprocessing" = dictionary  with values for keys
   + "boundary_only" = should only the boundary of the  regions be rendered?
                       Default is render the interior.
   + "file" = name of the  postprocessing file
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
-- "femm" = finite element mmodel machine (mandatory);
+* "femm" = finite element mmodel machine (mandatory);
 
 Output: modeldata updated with
-- modeldata["postprocessing"]["exported_files"] = array of  names of exported
+* modeldata["postprocessing"]["exported_files"] = array of  names of exported
   files
-- modeldata["postprocessing"]["exported_fields"] = array of exported fields
+* modeldata["postprocessing"]["exported_fields"] = array of exported fields
 """
 function exportdeformation(modeldata::FDataDict)
   modeldata_recognized_keys = ["fens", "regions", "geom", "u", "postprocessing"]
@@ -279,7 +280,11 @@ function exportdeformation(modeldata::FDataDict)
 
   fens = get(()->error("Must get fens!"), modeldata, "fens")
   geom = get(()->error("Must get geometry field!"), modeldata, "geom");
-  u = get(()->error("Must get displacement field!"), modeldata, "u");
+  u = get(modeldata, "u", nothing);
+  us = get(modeldata, "us", nothing);
+  if us == nothing
+      us = [("u", u)]
+  end
 
   # Export one file for each region
   modeldata["postprocessing"]["exported_files"] = Array{String, 1}()
@@ -289,11 +294,15 @@ function exportdeformation(modeldata::FDataDict)
     region = regions[i]
     femm = region["femm"]
     rfile = ffile * "$i" * ".vtk";
+    vectors = Array{Tuple{String, FFltMat}}(0)
+    for ixxxx = 1:length(us)
+        push!(vectors, (us[ixxxx][1], us[ixxxx][2].values))
+    end
     if boundary_only
       bfes = meshboundary(femm.geod.fes);
-      vtkexportmesh(rfile, fens, bfes;  vectors=[("u", u.values)])
+      vtkexportmesh(rfile, fens, bfes;  vectors=vectors)
     else
-      vtkexportmesh(rfile, fens, femm.geod.fes; vectors=[("u", u.values)])
+      vtkexportmesh(rfile, fens, femm.geod.fes; vectors=vectors)
     end
     push!(modeldata["postprocessing"]["exported_files"], rfile)
     push!(modeldata["postprocessing"]["exported_fields"], u)
@@ -309,11 +318,11 @@ Algorithm for exporting of the stress for visualization in Paraview.
 
 `modeldata` = dictionary with values for keys
 
-- "fens"  = finite element node set
-- "regions"  = array of region dictionaries
-- "geom" = geometry field
-- "u" = displacement field
-- "postprocessing" = dictionary  with values for keys
+* "fens"  = finite element node set
+* "regions"  = array of region dictionaries
+* "geom" = geometry field
+* "u" = displacement field
+* "postprocessing" = dictionary  with values for keys
   + "boundary_only" = should only the boundary of the  regions be rendered?
                       Default is render the interior.
   + "file" = name of the  postprocessing file
@@ -323,12 +332,12 @@ Algorithm for exporting of the stress for visualization in Paraview.
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
-- "femm" = finite element mmodel machine (mandatory);
+* "femm" = finite element mmodel machine (mandatory);
 
 Output: modeldata updated with
-- modeldata["postprocessing"]["exported_files"] = array of  names of exported
+* modeldata["postprocessing"]["exported_files"] = array of  names of exported
   files
-- modeldata["postprocessing"]["exported_fields"] = array of exported fields
+* modeldata["postprocessing"]["exported_fields"] = array of exported fields
 """
 function exportstress(modeldata::FDataDict)
   modeldata_recognized_keys = ["fens", "regions", "geom", "u",
@@ -413,11 +422,11 @@ Algorithm for exporting of the elementwise stress for visualization in Paraview.
 
 `modeldata` = dictionary with values for keys
 
-- "fens"  = finite element node set
-- "regions"  = array of region dictionaries
-- "geom" = geometry field
-- "u" = displacement field
-- "postprocessing" = dictionary  with values for keys
+* "fens"  = finite element node set
+* "regions"  = array of region dictionaries
+* "geom" = geometry field
+* "u" = displacement field
+* "postprocessing" = dictionary  with values for keys
   + "boundary_only" = should only the boundary of the  regions be rendered?
                       Default is render the interior.
   + "file" = name of the  postprocessing file
@@ -427,12 +436,12 @@ Algorithm for exporting of the elementwise stress for visualization in Paraview.
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
-- "femm" = finite element mmodel machine (mandatory);
+* "femm" = finite element mmodel machine (mandatory);
 
 Output: modeldata updated with
-- modeldata["postprocessing"]["exported_files"] = array of  names of exported
+* modeldata["postprocessing"]["exported_files"] = array of  names of exported
   files
-- modeldata["postprocessing"]["exported_fields"] = array of exported fields
+* modeldata["postprocessing"]["exported_fields"] = array of exported fields
 """
 function exportstresselementwise(modeldata::FDataDict)
   modeldata_recognized_keys = ["fens", "regions", "geom", "u",
@@ -517,13 +526,13 @@ Modal (free-vibration) analysis solver.
 
 `modeldata` = dictionary with values for keys
 
-- "fens"  = finite element node set
-- "regions"  = array of region dictionaries
-- "essential_bcs" = array of essential boundary condition dictionaries
+* "fens"  = finite element node set
+* "regions"  = array of region dictionaries
+* "essential_bcs" = array of essential boundary condition dictionaries
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
-- "femm" = finite element mmodel machine (mandatory);
+* "femm" = finite element mmodel machine (mandatory);
 
 For essential boundary conditions (optional) each dictionary
 would hold
@@ -536,19 +545,19 @@ would hold
             (mandatory)
 
 Control parameters:
-- "neigvs" = number of eigenvalues/eigenvectors to compute
-- "omega_shift"= angular frequency shift for mass shifting
-- "use_lumped_mass" = true or false?  (Default is false: consistent mass)
+* "neigvs" = number of eigenvalues/eigenvectors to compute
+* "omega_shift"= angular frequency shift for mass shifting
+* "use_lumped_mass" = true or false?  (Default is false: consistent mass)
 
 
 Output:
 modeldata= the dictionary on input is augmented with
-- "geom" = the nodal field that is the geometry
-- "u" = the nodal field that is the computed displacement
-- "neigvs" = Number of computed eigenvectors
-- "W" = Computed eigenvectors, neigvs columns
-- "omega" =  Computed angular frequencies, array of length neigvs
-- "raw_eigenvalues" = Raw computed eigenvalues
+* "geom" = the nodal field that is the geometry
+* "u" = the nodal field that is the computed displacement
+* "neigvs" = Number of computed eigenvectors
+* "W" = Computed eigenvectors, neigvs columns
+* "omega" =  Computed angular frequencies, array of length neigvs
+* "raw_eigenvalues" = Raw computed eigenvalues
 """
 function modal(modeldata::FDataDict)
 
@@ -699,13 +708,13 @@ Algorithm for exporting of the mmode shape for visualization in Paraview.
 
 `modeldata` = dictionary with values for keys
 
-- "fens"  = finite element node set
-- "regions"  = array of region dictionaries
-- "geom" = geometry field
-- "u" = displacement field
-- "W" = Computed free-vibration eigenvectors, neigvs columns
-- "omega" =  Computed free-vibration angular frequencies, array of length neigvs
-- "postprocessing" = dictionary  with values for keys
+* "fens"  = finite element node set
+* "regions"  = array of region dictionaries
+* "geom" = geometry field
+* "u" = displacement field
+* "W" = Computed free-vibration eigenvectors, neigvs columns
+* "omega" =  Computed free-vibration angular frequencies, array of length neigvs
+* "postprocessing" = dictionary  with values for keys
   + "boundary_only" = should only the boundary of the  regions be rendered?
                       Default is render the interior.
   + "file" = name of the  postprocessing file
@@ -715,12 +724,12 @@ Algorithm for exporting of the mmode shape for visualization in Paraview.
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
-- "femm" = finite element mmodel machine (mandatory);
+* "femm" = finite element mmodel machine (mandatory);
 
 Output: modeldata updated with
-- modeldata["postprocessing"]["exported_files"] = array of  names of exported
+* modeldata["postprocessing"]["exported_files"] = array of  names of exported
   files
-- modeldata["postprocessing"]["exported_fields"] = array of exported fields
+* modeldata["postprocessing"]["exported_fields"] = array of exported fields
 """
 function exportmode(modeldata::FDataDict)
   modeldata_recognized_keys = ["fens", "regions", "geom", "u",
@@ -737,14 +746,27 @@ function exportmode(modeldata::FDataDict)
     mode =  get(postprocessing, "mode", mode);
   end
 
-  omega=modeldata["omega"]
-  if (length(omega)<mode) || (mode<0)
-    error("Invalid node number $mode")
-  end
+  omega = modeldata["omega"]
 
   # Scatter the desired mode
   W = modeldata["W"]
-  scattersysvec!(modeldata["u"], W[:,mode])
+  if typeof(mode)<:Int
+      if (length(omega)<mode) || (mode<0)
+        error("Invalid mode number $mode")
+      end
+      scattersysvec!(modeldata["u"], W[:,mode])
+  else
+      us = Array{Tuple{String, Field}}(0)
+      u = modeldata["u"]
+      for ixxxx in mode
+          if (length(omega)<ixxxx) || (ixxxx<0)
+            error("Invalid mode number $ixxxx")
+          end
+          scattersysvec!(u, W[:,ixxxx])
+          push!(us, ("mode_$(ixxxx)", deepcopy(u)))
+      end
+      modeldata["us"] = us
+  end
 
   return exportdeformation(modeldata)
 end
