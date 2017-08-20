@@ -770,16 +770,23 @@ eigenvalue problem
 * `tol` = relative tolerance on the eigenvalue, expressed in terms of norms of the
       change of the eigenvalue estimates from iteration to iteration.
 * `maxiter` =  maximum number of allowed iterations
+* `withrr` = with Rayleigh-Ritz problem solved to improve the subspace?  (default
+    is false)
+* `verbose` = verbose? (default is false)
 
 #  Return
 * `labm` = computed eigenvalues,
 * `v` = computed eigenvectors,
 * `nconv` = number of converged eigenvalues
 * `niter` = number of iterations taken
+* `nmult` = ignore this output
+* `lamberr` = eigenvalue errors, defined as  normalized  differences  of
+    successive  estimates of the eigenvalues
 """
 function gepbinvpwr2(K, M; nev::Int=6, evshift::FFlt = 0.0,
     v0::FFltMat = Array{FFlt}(0, 0),
-    tol::FFlt = 1.0e-3, maxiter::Int = 300, verbose::Bool=false)
+    tol::FFlt = 1.0e-3, maxiter::Int = 300, withrr::Bool=false,
+    verbose::Bool=false)
     @assert nev >= 1
     v = deepcopy(v0)
     if isempty(v0)
@@ -794,9 +801,9 @@ function gepbinvpwr2(K, M; nev::Int=6, evshift::FFlt = 0.0,
     niter = 0
     nconv = 0
     nmult = 0
-    lu = cholfact(K+evshift*M)
+    factor = cholfact(K+evshift*M)
     for i = 1:maxiter
-        u = lu\(M*v)
+        u = factor\(M*v)
         v, r = qr(u; thin=true)  # economy factorization
         for j = 1:nvecs
             lamb[j] = dot(v[:, j], K*v[:, j]) / dot(v[:, j], M*v[:, j])
@@ -807,6 +814,13 @@ function gepbinvpwr2(K, M; nev::Int=6, evshift::FFlt = 0.0,
         verbose && println("nconv = $(nconv)")
         if nconv == nev # converged on all requested eigenvalues
             break
+        end
+        if withrr
+            rrd,rrv = eig(transpose(v)*K*v, transpose(v)*M*v)
+            ix = sortperm(abs.(rrd))
+            rrd = rrd[ix]
+            rrv = rrv[:, ix]
+            v = v*rrv
         end
         plamb, lamb = lamb, plamb # swap the eigenvalue arrays
         niter = niter + 1
