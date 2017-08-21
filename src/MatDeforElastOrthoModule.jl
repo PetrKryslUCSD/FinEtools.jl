@@ -237,7 +237,7 @@ function tangentmoduli2dstrs!(self::MatDeforElastOrtho,
   t::FFlt, dt::FFlt, loc::FFltMat, label::FInt)
   D[1:2, 1:2] = self.D[1:2, 1:2] -
     (reshape(self.D[1:2,3], 2, 1) * reshape(self.D[3,1:2], 1, 2))/self.D[3, 3]
-  const ix=[1, 2, 4];
+  ix=[1, 2, 4];
   for i = 1:3
     D[3,i] = D[i,3] = self.D[4, ix[i]];
   end
@@ -325,7 +325,7 @@ Calculate the material stiffness matrix.
 function tangentmoduli2dstrn!(self::MatDeforElastOrtho,
   D::FFltMat,
   t::FFlt, dt::FFlt, loc::FFltMat, label::FInt)
-  const ix = [1, 2, 4];
+  ix = [1, 2, 4];
   for i = 1:length(ix)
     for j = 1:length(ix)
       D[j,i] = self.D[ix[j], ix[i]];

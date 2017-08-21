@@ -31,12 +31,12 @@ using FinEtools.MatrixUtilityModule.add_btv!
 abstract type FEMMDeforLinearAbstract <: FEMMAbstractBase end
 
 function buffers(self::FEMMDeforLinearAbstract, geom::NodalField, u::NodalField)
-  const ndn = ndofs(u); # number of degrees of freedom per node
-  const nne = nodesperelem(self.geod.fes); # number of nodes for element
-  const sdim = ndofs(geom);            # number of space dimensions
-  const mdim = manifdim(self.geod.fes); # manifold dimension of the element
-  const nstrs = nstsstn(self.mr);  # number of stresses
-  const elmatdim = ndn*nne;             # dimension of the element matrix
+  ndn = ndofs(u); # number of degrees of freedom per node
+  nne = nodesperelem(self.geod.fes); # number of nodes for element
+  sdim = ndofs(geom);            # number of space dimensions
+  mdim = manifdim(self.geod.fes); # manifold dimension of the element
+  nstrs = nstsstn(self.mr);  # number of stresses
+  elmatdim = ndn*nne;             # dimension of the element matrix
   # Prepare buffers
   elmat = zeros(FFlt, elmatdim, elmatdim);      # element matrix -- buffer
   conn = zeros(FInt, nne, 1); # element nodes -- buffer

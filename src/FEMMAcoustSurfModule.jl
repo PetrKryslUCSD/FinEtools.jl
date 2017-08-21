@@ -67,12 +67,12 @@ function acousticABC(self::FEMMAcoustSurf, assembler::A,
   Pdot::NodalFieldModule.NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
   geod = self.geod
   # Constants
-  const nfes = count(geod.fes); # number of finite elements in the set
-  const ndn = ndofs(Pdot); # number of degrees of freedom per node
-  const nne =  nodesperelem(geod.fes); # number of nodes per element
-  const sdim =  ndofs(geom);            # number of space dimensions
-  const mdim = manifdim(geod.fes);     # manifold dimension of the element
-  const Dedim = ndn*nne;          # dimension of the element matrix
+  nfes = count(geod.fes); # number of finite elements in the set
+  ndn = ndofs(Pdot); # number of degrees of freedom per node
+  nne =  nodesperelem(geod.fes); # number of nodes per element
+  sdim =  ndofs(geom);            # number of space dimensions
+  mdim = manifdim(geod.fes);     # manifold dimension of the element
+  Dedim = ndn*nne;          # dimension of the element matrix
   # Precompute basis f. values + basis f. gradients wrt parametric coor
   npts, Ns, gradNparams, w, pc  =  integrationdata(geod);
   # Material
@@ -130,12 +130,12 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A,
    Force::GeneralField) where {T<:Number, A<:SysmatAssemblerBase}
   geod = self.geod
   # Constants
-  const nfes = count(geod.fes); # number of finite elements in the set
-  const ndn = ndofs(P); # number of degrees of freedom per node
-  const nne =  nodesperelem(geod.fes); # number of nodes per element
-  const sdim =  ndofs(geom);            # number of space dimensions
-  const mdim = manifdim(geod.fes);     # manifold dimension of the element
-  const edim = ndn*nne;          # dimension of the element matrix
+  nfes = count(geod.fes); # number of finite elements in the set
+  ndn = ndofs(P); # number of degrees of freedom per node
+  nne =  nodesperelem(geod.fes); # number of nodes per element
+  sdim =  ndofs(geom);            # number of space dimensions
+  mdim = manifdim(geod.fes);     # manifold dimension of the element
+  edim = ndn*nne;          # dimension of the element matrix
   # Precompute basis f. values + basis f. gradients wrt parametric coor
   npts, Ns, gradNparams, w, pc  =  integrationdata(geod);
   Ge = zeros(FFlt, 3, nne); # element coupling matrix -- used as a buffer
@@ -190,12 +190,12 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A,
   Torque::GeneralField, CG::FFltVec) where {T<:Number, A<:SysmatAssemblerBase}
   geod = self.geod
   # Constants
-  const nfes = count(geod.fes); # number of finite elements in the set
-  const ndn = ndofs(P); # number of degrees of freedom per node
-  const nne =  nodesperelem(geod.fes); # number of nodes per element
-  const sdim =  ndofs(geom);            # number of space dimensions
-  const mdim = manifdim(geod.fes);     # manifold dimension of the element
-  const edim = ndn*nne;          # dimension of the element matrix
+  nfes = count(geod.fes); # number of finite elements in the set
+  ndn = ndofs(P); # number of degrees of freedom per node
+  nne =  nodesperelem(geod.fes); # number of nodes per element
+  sdim =  ndofs(geom);            # number of space dimensions
+  mdim = manifdim(geod.fes);     # manifold dimension of the element
+  edim = ndn*nne;          # dimension of the element matrix
   # Precompute basis f. values + basis f. gradients wrt parametric coor
   npts, Ns, gradNparams, w, pc  =  integrationdata(geod);
   Ge = zeros(FFlt, 3, nne); # element coupling matrix -- used as a buffer

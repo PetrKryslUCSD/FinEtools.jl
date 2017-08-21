@@ -97,9 +97,9 @@ function make_stabilization_material(material::M) where {M}
 end
 
 function buffers1(self::FEMMDeforLinearAbstractMS, geom::NodalField, npts::FInt)
-  const nne = nodesperelem(self.geod.fes); # number of nodes for element
-  const sdim = ndofs(geom);            # number of space dimensions
-  const mdim = manifdim(self.geod.fes); # manifold dimension of the element
+  nne = nodesperelem(self.geod.fes); # number of nodes for element
+  sdim = ndofs(geom);            # number of space dimensions
+  mdim = manifdim(self.geod.fes); # manifold dimension of the element
     # Prepare buffers
   conn = zeros(FInt, nne, 1); # element nodes -- buffer
   x = zeros(FFlt, nne, sdim); # array of node coordinates -- buffer
@@ -111,12 +111,12 @@ function buffers1(self::FEMMDeforLinearAbstractMS, geom::NodalField, npts::FInt)
 end
 
 function buffers2(self::FEMMDeforLinearAbstractMS, geom::NodalField, u::NodalField, npts::FInt)
-  const ndn = ndofs(u); # number of degrees of freedom per node
-  const nne = nodesperelem(self.geod.fes); # number of nodes for element
-  const sdim = ndofs(geom);            # number of space dimensions
-  const mdim = manifdim(self.geod.fes); # manifold dimension of the element
-  const nstrs = nstsstn(self.mr);  # number of stresses
-  const elmatdim = ndn*nne;             # dimension of the element matrix
+  ndn = ndofs(u); # number of degrees of freedom per node
+  nne = nodesperelem(self.geod.fes); # number of nodes for element
+  sdim = ndofs(geom);            # number of space dimensions
+  mdim = manifdim(self.geod.fes); # manifold dimension of the element
+  nstrs = nstsstn(self.mr);  # number of stresses
+  elmatdim = ndn*nne;             # dimension of the element matrix
   # Prepare buffers
   elmat = zeros(FFlt, elmatdim, elmatdim);      # element matrix -- buffer
   conn = zeros(FInt, nne, 1); # element nodes -- buffer

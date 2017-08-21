@@ -33,12 +33,12 @@ end
 function  buffers(self::FEMMHeatDiff, geom::NodalField{FFlt},
   temp::NodalField{FFlt})
   # Constants
-  const nfes = count(self.geod.fes); # number of finite elements in the set
-  const ndn = ndofs(temp); # number of degrees of freedom per node
-  const nne = nodesperelem(self.geod.fes); # number of nodes for element
-  const sdim = ndofs(geom);   # number of space dimensions
-  const mdim = manifdim(self.geod.fes); # manifold dimension of the element
-  const Kedim = ndn*nne;      # dimension of the element matrix
+  nfes = count(self.geod.fes); # number of finite elements in the set
+  ndn = ndofs(temp); # number of degrees of freedom per node
+  nne = nodesperelem(self.geod.fes); # number of nodes for element
+  sdim = ndofs(geom);   # number of space dimensions
+  mdim = manifdim(self.geod.fes); # manifold dimension of the element
+  Kedim = ndn*nne;      # dimension of the element matrix
   elmat = zeros(FFlt, Kedim, Kedim); # buffer
   elvec = zeros(FFlt, Kedim); # buffer
   elvecfix = zeros(FFlt, Kedim); # buffer

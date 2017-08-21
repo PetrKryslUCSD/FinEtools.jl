@@ -50,12 +50,12 @@ function surfacenormalspringstiffness(self::FEMMDeforWinkler, assembler::A,
   springconstant::FFlt) where {A<:SysmatAssemblerBase, T<:Number}
   geod = self.geod
   # Constants
-  const nfes = count(geod.fes); # number of finite elements in the set
-  const ndn = ndofs(u); # number of degrees of freedom per node
-  const nne = nodesperelem(geod.fes); # number of nodes for element
-  const sdim = ndofs(geom);            # number of space dimensions
-  const mdim = manifdim(geod.fes); # manifold dimension of the element
-  const Kedim = ndn*nne;             # dimension of the element matrix
+  nfes = count(geod.fes); # number of finite elements in the set
+  ndn = ndofs(u); # number of degrees of freedom per node
+  nne = nodesperelem(geod.fes); # number of nodes for element
+  sdim = ndofs(geom);            # number of space dimensions
+  mdim = manifdim(geod.fes); # manifold dimension of the element
+  Kedim = ndn*nne;             # dimension of the element matrix
   # Precompute basis f. values + basis f. gradients wrt parametric coor
   npts, Ns, gradNparams, w, pc = integrationdata(geod);
   # Prepare assembler and temporaries

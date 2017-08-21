@@ -65,11 +65,11 @@ function integratefieldfunction(self::FEMMAbstractBase,
   fh::F,  initial::R;  m::FInt=-1)  where {T<:Number, R, F<:Function}
   geod = self.geod                # finite elements
   # Constants
-  const nfes = count(geod.fes); # number of finite elements in the set
-  const ndn = ndofs(afield); # number of degrees of freedom per node
-  const nne = nodesperelem(geod.fes); # number of nodes per element
-  const sdim = ndofs(geom);            # number of space dimensions
-  const mdim = manifdim(geod.fes);     # manifold dimension of the element
+  nfes = count(geod.fes); # number of finite elements in the set
+  ndn = ndofs(afield); # number of degrees of freedom per node
+  nne = nodesperelem(geod.fes); # number of nodes per element
+  sdim = ndofs(geom);            # number of space dimensions
+  mdim = manifdim(geod.fes);     # manifold dimension of the element
   # Precompute basis f. values + basis f. gradients wrt parametric coor
   npts, Ns, gradNparams, w, pc = integrationdata(geod);
   conn = zeros(FInt,nne,1); # element nodes -- used as a buffer
@@ -140,10 +140,10 @@ function integratefunction(self::FEMMAbstractBase,
     m = manifdim(geod.fes);  # native  manifold dimension
   end
   # Constants
-  const nfes = count(geod.fes); # number of finite elements in the set
-  const nne = nodesperelem(geod.fes); # number of nodes per element
-  const sdim = ndofs(geom);            # number of space dimensions
-  const mdim = manifdim(geod.fes);     # manifold dimension of the element
+  nfes = count(geod.fes); # number of finite elements in the set
+  nne = nodesperelem(geod.fes); # number of nodes per element
+  sdim = ndofs(geom);            # number of space dimensions
+  mdim = manifdim(geod.fes);     # manifold dimension of the element
   # Precompute basis f. values + basis f. gradients wrt parametric coor
   npts, Ns, gradNparams, w, pc = integrationdata(geod);
   conn = zeros(FInt, nne, 1); # element nodes -- used as a buffer
@@ -183,12 +183,12 @@ function distribloads(self::FEMM, assembler::A,
   m::FInt) where {FEMM<:FEMMAbstractBase, T<:Number, A<:SysvecAssemblerBase}
   geod = self.geod;         # the geometry data
   # Constants
-  const nfes = count(geod.fes); # number of finite elements in the set
-  const ndn = ndofs(P); # number of degrees of freedom per node
-  const nne = nodesperelem(geod.fes); # number of nodes per element
-  const sdim = ndofs(geom);            # number of space dimensions
-  const mdim = manifdim(geod.fes);     # manifold dimension of the element
-  const Cedim = ndn*nne;       # dimension of the element matrix/vector
+  nfes = count(geod.fes); # number of finite elements in the set
+  ndn = ndofs(P); # number of degrees of freedom per node
+  nne = nodesperelem(geod.fes); # number of nodes per element
+  sdim = ndofs(geom);            # number of space dimensions
+  mdim = manifdim(geod.fes);     # manifold dimension of the element
+  Cedim = ndn*nne;       # dimension of the element matrix/vector
   # Precompute basis f. values + basis f. gradients wrt parametric coor
   npts, Ns, gradNparams, w, pc = integrationdata(geod);
   # Prepare some buffers:
@@ -293,8 +293,8 @@ function fieldfromintegpoints(self::FEMM,
   context...) where {FEMM<:FEMMAbstractBase, T<:Number}
   geod = self.geod
   # Constants
-  const nne = nodesperelem(geod.fes); # number of nodes for element
-  const sdim = ndofs(geom);            # number of space dimensions
+  nne = nodesperelem(geod.fes); # number of nodes for element
+  sdim = ndofs(geom);            # number of space dimensions
   # Container of intermediate results
   idat = InverseDistanceInspectorData(
   zeros(FFlt, nne),
@@ -380,12 +380,12 @@ function elemfieldfromintegpoints(self::FEMM,
   context...) where {FEMM<:FEMMAbstractBase, T<:Number}
   geod = self.geod
   # Constants
-  const nne = nodesperelem(geod.fes); # number of nodes for element
-  const sdim = ndofs(geom);            # number of space dimensions
+  nne = nodesperelem(geod.fes); # number of nodes for element
+  sdim = ndofs(geom);            # number of space dimensions
   # Container of intermediate results
   idat = MeanValueInspectorData(
-  zeros(FInt, count(geod.fes)),
-  zeros(FFlt, count(geod.fes), length(component))
+      zeros(FInt, count(geod.fes)),
+      zeros(FFlt, count(geod.fes), length(component))
   );
   # This is an mean-value interpolation inspector. The mean of the
   # quadrature-point quantities is reported per element.
