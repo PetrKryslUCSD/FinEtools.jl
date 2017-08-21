@@ -227,16 +227,18 @@ include("AbaqusExportModule.jl")
 using FinEtools.AbaqusExportModule
 export AbaqusExporter, close
 export HEADING, COMMENT, PART, END_PART, ASSEMBLY, END_ASSEMBLY,
-INSTANCE, END_INSTANCE, NODE, ELEMENT, NSET_NSET, ELSET_ELSET, ORIENTATION,
-MATERIAL, ELASTIC, EXPANSION, DENSITY, SECTION_CONTROLS, SOLID_SECTION,
-SURFACE_SECTION
+    INSTANCE, END_INSTANCE, NODE, ELEMENT, NSET_NSET, ELSET_ELSET, ORIENTATION,
+    MATERIAL, ELASTIC, EXPANSION, DENSITY, SECTION_CONTROLS, SOLID_SECTION,
+    SURFACE_SECTION
 export STEP_PERTURBATION_STATIC, STEP_FREQUENCY, BOUNDARY, DLOAD, CLOAD,
-TEMPERATURE,  END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
+    TEMPERATURE,  END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
 
 include("VoxelBoxModule.jl")
 using FinEtools.VoxelBoxModule
 export VoxelBoxVolume, voxeldims, fillvolume!, fillsolid!,
     intersectionop, unionop, complementop, differenceop,
-    solidsphere, solidhalfspace, solidbox, solidcylinder, vtkexport
+    solidsphere, solidhalfspace, solidbox, solidcylinder,
+    trim,
+    vtkexport
 
 end

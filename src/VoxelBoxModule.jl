@@ -9,7 +9,9 @@ module VoxelBoxModule
 
 export VoxelBoxVolume, voxeldims, fillvolume!, fillsolid!,
     intersectionop, unionop, complementop, differenceop,
-    solidsphere, solidhalfspace, solidbox, solidcylinder, vtkexport
+    solidsphere, solidhalfspace, solidbox, solidcylinder,
+    trim,
+    vtkexport
 
 mutable struct VoxelBoxVolume{CoordT<:Number,DataT<:Number}
     origin::Array{CoordT,1}
@@ -21,6 +23,13 @@ function VoxelBoxVolume(::Type{DataT},
     nvox::Array{Int,1}, dimensions::Array{CoordT,1}) where {CoordT<:Number,DataT<:Number}
     origin = zeros(CoordT,3)
     data = zeros(DataT,nvox...)
+    V = VoxelBoxVolume(origin, dimensions, data);
+    return V
+end
+
+function VoxelBoxVolume(data::Array{DataT,3},
+    dimensions::Array{CoordT,1})  where {CoordT<:Number,DataT<:Number}
+    origin = zeros(CoordT,3)
     V = VoxelBoxVolume(origin, dimensions, data);
     return V
 end
@@ -161,6 +170,81 @@ function fillvolume!(V::VoxelBoxVolume, fillvalue::DataT) where {DataT<:Number}
     return V
 end
 
+function trim(V::VoxelBoxVolume, emptyvalue)
+    emptyvalue = convert(eltype(V.data[1]), emptyvalue)
+    function sliceisempty(slice, emptyvalue)
+        for jx = 1:size(slice, 2)
+            for ix = 1:size(slice, 1)
+                if slice[ix, jx] != emptyvalue
+                    return false
+                end
+            end
+        end
+        return true
+    end
+    xmin = 1
+    for i = 1:size(V.data, 1)
+        slice = view(V.data, i, :, :)
+        if !sliceisempty(slice, emptyvalue)
+            break
+        end
+        xmin = i
+    end
+    xmax = size(V.data, 1)
+    for i = size(V.data, 1):-1:1
+        slice = view(V.data, i, :, :)
+        if !sliceisempty(slice, emptyvalue)
+            break
+        end
+        xmax = i
+    end
+    (xmin, xmax)
+end
+
+
+"""
+    vtkexport(theFile::String, V::VoxelBoxVolume{CoordT,DataT}) where {CoordT<:Number,DataT<:Number}
+
+Compute.
+"""
+function vtkexport(theFile::String, V::VoxelBoxVolume{CoordT,DataT}) where {CoordT<:Number,DataT<:Number}
+    fid=open(theFile,"w");
+    if (fid==-1)
+        error(["Could not open " * theFile])
+        return nothing
+    end
+    print(fid,"# vtk DataFile Version 2.0\n");
+    print(fid,"Example\n");
+    print(fid,"ASCII\n");
+    print(fid,"DATASET STRUCTURED_POINTS\n");
+    nx, ny, nz = size(V.data)
+    print(fid,"DIMENSIONS $(nx) $(ny) $(nz)\n");
+    voxszx=V.dimensions[1]/nx
+    voxszy=V.dimensions[2]/ny
+    voxszz=V.dimensions[3]/nz
+    print(fid,"SPACING $(voxszx) $(voxszy) $(voxszz)\n");
+    print(fid,"ORIGIN 0 0 0\n");
+    print(fid,"POINT_DATA $(nx*ny*nz)\n");
+    #     bit , unsigned_char , char , unsigned_short , short , unsigned_int , int ,
+    # unsigned_long , long , float , or double
+    Types =  Dict{DataType, String}(Int8=>"char" , UInt8=>"unsigned_char",
+                                    UInt16=>"unsigned_short", Int16=>"short",
+                                    UInt32=>"unsigned_int" , Int32=>"int" ,
+                                    UInt64=>"unsigned_long" , Int64=>"long" ,
+                                    Float32=>"float", Float64=> "double")
+    typed=Types[DataT]
+    print(fid,"SCALARS volume_scalars $typed 1\n");
+    print(fid,"LOOKUP_TABLE default\n");
+    for j=1:(nx*ny*nz)
+        print(fid,"$(V.data[j])\n");
+    end
+     fid=close(fid);
+end
+export vtkexport
+
+
+end
+
 # """
 #     bar
 #
@@ -190,45 +274,3 @@ end
 #     end
 #     return Vover
 # end
-
-
-"""
-    vtkexport(theFile::String, V::VoxelBoxVolume{CoordT,DataT}) where {CoordT<:Number,DataT<:Number}
-
-Compute.
-"""
-function vtkexport(theFile::String, V::VoxelBoxVolume{CoordT,DataT}) where {CoordT<:Number,DataT<:Number}
-    fid=open(theFile,"w");
-    if (fid==-1)
-        error(["Could not open " * theFile])
-        return nothing
-    end
-    print(fid,"# vtk DataFile Version 2.0\n");
-    print(fid,"Example\n");
-    print(fid,"ASCII\n");
-    print(fid,"DATASET STRUCTURED_POINTS\n");
-    nx, ny, nz = size(V.data)
-    print(fid,"DIMENSIONS $(nx) $(ny) $(nz)\n");
-    voxszx=V.dimensions[1]/nx
-    voxszy=V.dimensions[2]/ny
-    voxszz=V.dimensions[3]/nz
-    print(fid,"SPACING $(voxszx) $(voxszy) $(voxszz)\n");
-    print(fid,"ORIGIN 0 0 0\n");
-    print(fid,"POINT_DATA $(nx*ny*nz)\n");
-    typed="int"
-    if (DataT==Int)
-        typed="int"
-    else
-        typed="undefined"
-    end
-    print(fid,"SCALARS volume_scalars $typed 1\n");
-    print(fid,"LOOKUP_TABLE default\n");
-    for j=1:(nx*ny*nz)
-        print(fid,"$(V.data[j])\n");
-    end
-     fid=close(fid);
-end
-export vtkexport
-
-
-end
