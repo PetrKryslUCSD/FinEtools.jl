@@ -131,7 +131,7 @@ function nzebcloadsacousticmass(self::FEMMAcoust, assembler::A,
     # Now loop over all finite elements in the set
     for i = 1:count(geod.fes) # Loop over elements
         getconn!(geod.fes, conn, i);# retrieve element node numbers
-        gatherfixedvalues_asmat!(P, elvecfix, conn);# retrieve element coordinates
+        gatherfixedvalues_asvec!(P, elvecfix, conn);# retrieve element coordinates
         if norm(elvecfix) !=  0.0     # Is the load nonzero?
             gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
             fill!(elmat, 0.0);
@@ -234,7 +234,7 @@ function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A,
     # Now loop over all finite elements in the set
     for i = 1:count(geod.fes) # Loop over elements
         getconn!(geod.fes, conn, i);# retrieve element node numbers
-        gatherfixedvalues_asmat!(Pddot, elvecfix, conn);# retrieve element coordinates
+        gatherfixedvalues_asvec!(Pddot, elvecfix, conn);# retrieve element coordinates
         if norm(elvecfix) !=  0.0  # Is the load nonzero?
             gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
             fill!(elmat, 0.0);
