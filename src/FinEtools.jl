@@ -235,7 +235,8 @@ export STEP_PERTURBATION_STATIC, STEP_FREQUENCY, BOUNDARY, DLOAD, CLOAD,
 
 include("VoxelBoxModule.jl")
 using FinEtools.VoxelBoxModule
-export VoxelBoxVolume, voxeldims, fillvolume!, fillsolid!,
+export VoxelBoxVolume, voxeldims, size,
+    fillvolume!, fillsolid!,
     intersectionop, unionop, complementop, differenceop,
     solidsphere, solidhalfspace, solidbox, solidcylinder,
     trim,
