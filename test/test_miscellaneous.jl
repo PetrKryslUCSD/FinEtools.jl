@@ -1005,3 +1005,42 @@ end
 end
 using mgen_iso_csmat2
 mgen_iso_csmat2.test()
+
+module mmfieldx1
+using FinEtools
+using Base.Test
+function test()
+    f = NodalField(zeros(5, 1))
+    setebc!(f, [3,4], true, 1;        val=7.0)
+    # display(f)
+    applyebc!(f)
+    dest = zeros(2,1)
+    # length([1,4])
+    gatherfixedvalues_asmat!(f, dest, [1,4])
+    # display(dest)
+    @test (dest[1,1] == 0.0) && (dest[2,1] == 7.0)
+
+    f = NodalField(zeros(5, 1))
+    setebc!(f, [3,4], true, 1)
+    # display(f)
+    applyebc!(f)
+    dest = zeros(2,1)
+    # length([1,4])
+    gatherfixedvalues_asmat!(f, dest, [1,4])
+    # display(dest)
+    @test (dest[1,1] == 0.0) && (dest[2,1] == 0.0)
+
+
+    f = NodalField(zeros(5, 1))
+    setebc!(f, [3,4], 1; val=8.2)
+    # display(f)
+    applyebc!(f)
+    dest = zeros(2,1)
+    # length([1,4])
+    gatherfixedvalues_asmat!(f, dest, [1,4])
+    # display(dest)
+    @test (dest[1,1] == 0.0) && (dest[2,1] == 8.2)
+end
+end
+using mmfieldx1
+mmfieldx1.test()

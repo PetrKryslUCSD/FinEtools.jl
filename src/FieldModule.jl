@@ -217,11 +217,9 @@ function gatherfixedvalues_asmat!(self::Field, dest::AbstractArray{T, 2},
         for j = 1:size(self.fixed_values,2)
             if self.is_fixed[conn[i],j] # fixed degree of freedom
                 dest[i, j] = self.fixed_values[conn[i], j];
-                println("self.fixed_values[conn[$i], $j] = $(self.fixed_values[conn[i], j])")
             else
                 dest[i, j] = 0.0
             end
-            println("Setting dest[$i, $j] = $(dest[i, j])")
         end
     end
     return dest
