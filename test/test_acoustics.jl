@@ -1,5 +1,5 @@
 
-module mmmmmmmmmmrrigid
+module mmrrigid
 using FinEtools
 using Base.Test
 function test()
@@ -59,8 +59,8 @@ try rm(File) catch end
 true
 end
 end
-using mmmmmmmmmmrrigid
-mmmmmmmmmmrrigid.test()
+using mmrrigid
+mmrrigid.test()
 
 module fahyL2example
 
@@ -192,7 +192,7 @@ end
 using mmfahyH8example
 mmfahyH8example.test()
 
-module mmmmfahyH27example
+module mmfahyH27example
 using FinEtools
 using Base.Test
 function test()
@@ -248,10 +248,10 @@ fs = real(sqrt.(complex(d)))/(2*pi)
   true
 end
 end
-using mmmmfahyH27example
-mmmmfahyH27example.test()
+using mmfahyH27example
+mmfahyH27example.test()
 
-module mmmmmstraight_duct_H8_1
+module mstraight_duct_H8_1
 using FinEtools
 using Base.Test
 function test()
@@ -336,10 +336,10 @@ function test()
 
 end
 end
-using mmmmmstraight_duct_H8_1
-mmmmmstraight_duct_H8_1.test()
+using mstraight_duct_H8_1
+mstraight_duct_H8_1.test()
 
-module mmmmmmmmmmsphere_dipole_1
+module mmsphere_dipole_1
 using FinEtools
 using Base.Test
 function test()
@@ -458,10 +458,10 @@ try rm(File) catch end
 true
 end
 end
-using mmmmmmmmmmsphere_dipole_1
-mmmmmmmmmmsphere_dipole_1.test()
+using mmsphere_dipole_1
+mmsphere_dipole_1.test()
 
-module mmmmmmmstraight_duct_T10_examplemmm
+module mstraight_duct_T10_examplem
 using FinEtools
 using Base.Test
 function test()
@@ -541,10 +541,10 @@ try rm(File) catch end
 true
 end
 end
-using mmmmmmmstraight_duct_T10_examplemmm
-mmmmmmmstraight_duct_T10_examplemmm.test()
+using mstraight_duct_T10_examplem
+mstraight_duct_T10_examplem.test()
 
-module mmmmiintegrationmmmm
+module mmiintegrationmm
 using FinEtools
 using Base.Test
 function test()
@@ -604,10 +604,10 @@ mass =  V*rhos;
 Inertia = I*rhos;
 end
 end
-using mmmmiintegrationmmmm
-mmmmiintegrationmmmm.test()
+using mmiintegrationmm
+mmiintegrationmm.test()
 
-module mmmmmmtransientsphere
+module mmtransientsphere
 using FinEtools
 using Base.Test
 function test()
@@ -728,10 +728,10 @@ function test()
 
 end
 end
-using mmmmmmtransientsphere
-mmmmmmtransientsphere.test()
+using mmtransientsphere
+mmtransientsphere.test()
 
-module mmmmhhemispheremmmmmm
+module mmhhemispheremm
 using FinEtools
 using Base.Test
 function test()
@@ -1036,10 +1036,10 @@ function test()
 
 end
 end
-using mmmmhhemispheremmmmmm
-mmmmhhemispheremmmmmm.test()
+using mmhhemispheremm
+mmhhemispheremm.test()
 
-module mmmmmmbbaffledmmmm
+module mmbbaffledmm
 using FinEtools
 using Base.Test
 function test()
@@ -1136,10 +1136,10 @@ P = modeldata["P"]
 true
 end
 end
-using mmmmmmbbaffledmmmm
-mmmmmmbbaffledmmmm.test()
+using mmbbaffledmm
+mmbbaffledmm.test()
 
-module mmmmtransientmm1mmmm
+module mmtransientmm1mm
 using FinEtools
 using Base.Test
 function test()
@@ -1273,5 +1273,73 @@ function test()
 @test abs(Pnh[end]-221.11319820621947) < 1.0e-3
 end
 end
-using mmmmtransientmm1mmmm
-mmmmtransientmm1mmmm.test()
+using mmtransientmm1mm
+mmtransientmm1mm.test()
+
+module mmAnnularmm
+using FinEtools
+using FinEtools.AlgoAcoustModule
+using Base.Test
+function test()
+
+
+    # println("""
+    # Annular region, pressure BC + rigid wall.
+    # This version uses the FinEtools algorithm module.
+    # Version: 08/21/2017
+    # """)
+
+    t0 = time()
+
+    rho = 1001*phun("kg/m^3");# mass density
+    c  = 1500.0*phun("m/s");# sound speed
+    bulk =  c^2*rho;
+    omega =  2000*phun("rev/s");      # frequency of the piston
+    rin =  1.0*phun("m");#internal radius
+
+    rex =  2.0*phun("m"); #external radius
+    nr = 20; nc = 120;
+    Angle = 2*pi;
+    thickness =  1.0*phun("m/s");
+    tolerance = min(rin/nr,  rin/nc/2/pi)/10000;
+
+    fens, fes = Q4annulus(rin, rex, nr, nc, Angle)
+    fens, fes = mergenodes(fens,  fes,  tolerance);
+    edge_fes = meshboundary(fes);
+
+    # The pressure boundary condition
+    l1 = selectelem(fens, edge_fes, box=[-1.1*rex -0.9*rex -0.5*rex 0.5*rex]);
+    ebc1 = FDataDict("node_list"=>connectednodes(subset(edge_fes, l1)),
+     "pressure"=>x -> cos(2*pi*x[2]/rin)+1im*sin(2*pi*x[2]/rin)) # entering the domain
+
+    material = MatAcoustFluid(bulk, rho)
+    femm = FEMMAcoust(GeoD(fes,  GaussRule(2, 2)),  material)
+    region1 = FDataDict("femm"=>femm)
+
+    # Make model data
+    modeldata = FDataDict("fens"=>fens,
+    "omega"=>omega,
+    "regions"=>[region1], "essential_bcs"=>[ebc1]);
+
+    # Call the solver
+    modeldata = FinEtools.AlgoAcoustModule.steadystate(modeldata)
+    geom=modeldata["geom"]
+    P=modeldata["P"]
+    # println("Minimum/maximum pressure, real= $(minimum(real(P.values)))/$(maximum(real(P.values))))")
+    # println("Minimum/maximum pressure, imag= $(minimum(imag(P.values)))/$(maximum(imag(P.values))))")
+    @test abs(minimum(real(P.values)) - -26.02026924534437) < 1.0e-5
+    @test abs(maximum(real(P.values)) - 32.15639028990587) < 1.0e-5
+    @test abs(minimum(imag(P.values)) - -3.083023162317023) < 1.0e-5
+    @test abs(maximum(imag(P.values)) - 3.083023162317045) < 1.0e-5
+    # println("Total time elapsed = ",time() - t0,"s")
+
+    # # Postprocessing
+    # File = "acou_annulusmod.vtk"
+    # vtkexportmesh(File, fes.conn, geom.values,
+    # FinEtools.MeshExportModule.Q4; scalars=[("Pre", real(P.values)), ("Pim", imag(P.values))])
+    # @async run(`"paraview.exe" $File`)
+
+end
+end
+using mmAnnularmm
+mmAnnularmm.test()
