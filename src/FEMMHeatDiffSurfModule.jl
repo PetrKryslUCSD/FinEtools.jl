@@ -105,7 +105,7 @@ function surfacetransferloads(self::FEMMHeatDiffSurf,  assembler::A,
   dofnums = zeros(FInt, 1, Hedim); # degree of freedom array -- used as a buffer
   loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
   J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
-  pT = zeros(FFlt, Hedim, 1);
+  pT = zeros(FFlt, Hedim);
   startassembly!(assembler,  temp.nfreedofs);
   for i = 1:nfes # Loop over elements
     getconn!(geod.fes, conn, i);
@@ -163,7 +163,7 @@ function nzebcsurfacetransferloads(self::FEMMHeatDiffSurf, assembler::A,
   dofnums = zeros(FInt, 1, Hedim); # degree of freedom array -- used as a buffer
   loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
   J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
-  pT = zeros(FFlt, Hedim, 1);
+  pT = zeros(FFlt, Hedim);
   startassembly!(assembler,  temp.nfreedofs);
   # Now loop over all finite elements in the set
   for i=1:nfes # Loop over elements
