@@ -1268,7 +1268,9 @@ function test()
     # plot(vec(ts), vec(Pnh))
     # gui()
     # println("$(Pnh[end])")
-@test abs(Pnh[end]-51.31533813848438) < 1.0e-6
+    # println("$(length(Pnh))")
+    # println("$(Pnh[end])")
+@test abs(Pnh[end]-221.11319820621947) < 1.0e-3
 end
 end
 using mmmmtransientmm1mmmm
