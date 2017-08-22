@@ -122,8 +122,8 @@ function gathersysvec!(self::F, vec::FVec{T}) where {F<:Field, T}
 end
 
 """
-    gathervalues_asvec!(self::Field, dest::A, conn::CC)
-      where {A<:AbstractArray, CC<:AbstractArray{FInt}}
+    gathervalues_asvec!(self::Field, dest::AbstractArray{T, 1},
+        conn::CC) where {CC<:AbstractArray{FInt}, T}
 
 Gather values from the field into a vector.
 
@@ -133,8 +133,8 @@ degrees of freedom,  then the next node and so on.
 `dest` = destination buffer: overwritten  inside,  must be preallocated
 in the correct size
 """
-function gathervalues_asvec!(self::Field, dest::A,
-    conn::CC) where {A<:AbstractArray, CC<:AbstractArray{FInt}}
+function gathervalues_asvec!(self::Field, dest::AbstractArray{T, 1},
+    conn::CC) where {CC<:AbstractArray{FInt}, T}
     en::FInt = 1;
     for i = 1:length(conn)
         for j = 1:size(self.values,2)
@@ -145,8 +145,8 @@ function gathervalues_asvec!(self::Field, dest::A,
 end
 
 """
-    gathervalues_asmat!(self::Field, dest::A, conn::CC)
-      where {A<:AbstractArray, CC<:AbstractArray{FInt}}
+    gathervalues_asmat!(self::Field, dest::AbstractArray{T, 2},
+        conn::CC) where {CC<:AbstractArray{FInt}, T}
 
 Gather values from the field into a two-dimensional array.
 
@@ -157,8 +157,8 @@ row and so on.
 `dest` = destination buffer: overwritten  inside,  must be preallocated
 in the correct size
 """
-function gathervalues_asmat!(self::Field, dest::A,
-    conn::CC) where {A<:AbstractArray, CC<:AbstractArray{FInt}}
+function gathervalues_asmat!(self::Field, dest::AbstractArray{T, 2},
+    conn::CC) where {CC<:AbstractArray{FInt}, T}
     for i = 1:length(conn)
         for j = 1:size(self.values,2)
             dest[i, j] = self.values[conn[i], j];
@@ -167,8 +167,8 @@ function gathervalues_asmat!(self::Field, dest::A,
 end
 
 """
-    gatherfixedvalues_asvec!(self::Field, dest::A,
-      conn::CC) where {A<:AbstractArray, CC<:AbstractArray{FInt}}
+    gatherfixedvalues_asvec!(self::Field, dest::AbstractArray{T, 1},
+        conn::CC) where {CC<:AbstractArray{FInt}, T}
 
 Gather FIXED values from the field into a vector.
 
@@ -179,11 +179,11 @@ is NOT fixed, the corresponding entry is  set to zero.
 `dest` = destination buffer: overwritten  inside,  must be preallocated
 in the correct size
 """
-function gatherfixedvalues_asvec!(self::Field, dest::A,
-    conn::CC) where {A<:AbstractArray, CC<:AbstractArray{FInt}}
+function gatherfixedvalues_asvec!(self::Field, dest::AbstractArray{T, 1},
+    conn::CC) where {CC<:AbstractArray{FInt}, T}
     en::FInt = 1;
     for i = 1:length(conn)
-        for j = 1:size(self.values,2)
+        for j = 1:size(self.fixed_values,2)
             if self.is_fixed[conn[i],j] # free degree of freedom
                 dest[en] = self.fixed_values[conn[i], j];
             else
@@ -195,8 +195,8 @@ function gatherfixedvalues_asvec!(self::Field, dest::A,
 end
 
 """
-    gatherfixedvalues_asmat!(self::Field, dest::A,
-      conn::CC) where {A<:AbstractArray, CC<:AbstractArray{FInt}}
+    gatherfixedvalues_asmat!(self::Field, dest::AbstractArray{T, 2},
+        conn::CC) where {CC<:AbstractArray{FInt}, T}
 
 Gather FIXED values from the field into a two-dimensional array.
 
@@ -208,10 +208,10 @@ is NOT fixed, the corresponding entry is  set to zero.
 `dest` = destination buffer: overwritten  inside,  must be preallocated
 in the correct size
 """
-function gatherfixedvalues_asmat!(self::Field, dest::A,
-    conn::CC) where {A<:AbstractArray, CC<:AbstractArray{FInt}}
+function gatherfixedvalues_asmat!(self::Field, dest::AbstractArray{T, 2},
+    conn::CC) where {CC<:AbstractArray{FInt}, T}
     for i = 1:length(conn)
-        for j = 1:size(self.values,2)
+        for j = 1:size(self.fixed_values,2)
             if self.is_fixed[i,j] # fixed degree of freedom
                 dest[i, j] = self.fixed_values[conn[i], j];
             else
