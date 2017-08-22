@@ -382,8 +382,8 @@ function inspectintegpoints_mean(self::FEMMDeforLinearAbstractMS,
   end
   t= 0.0
   dt = 0.0
-  dTe = zeros(FFlt, length(conn), 1) # nodal temperatures -- buffer
-  ue = zeros(FFlt, size(elmat, 1), 1); # array of node displacements -- buffer
+  dTe = zeros(FFlt, length(conn)) # nodal temperatures -- buffer
+  ue = zeros(FFlt, size(elmat, 1)); # array of node displacements -- buffer
   qpdT = 0.0; # node temperature increment
   qpstrain = zeros(FFlt, nstsstn(self.mr), 1); # total strain -- buffer
   qpthstrain = zeros(FFlt, nthstn(self.mr)); # thermal strain -- buffer
@@ -459,8 +459,8 @@ function inspectintegpoints_extrapol(self::FEMMDeforLinearAbstractMS,
  idat1 = idat
  t= 0.0
  dt = 0.0
- dTe = zeros(FFlt, length(conn), 1) # nodal temperatures -- buffer
- ue = zeros(FFlt, size(elmat, 1), 1); # array of node displacements -- buffer
+ dTe = zeros(FFlt, length(conn)) # nodal temperatures -- buffer
+ ue = zeros(FFlt, size(elmat, 1)); # array of node displacements -- buffer
  qpdT = 0.0; # node temperature increment
  qpstrain = zeros(FFlt, nstsstn(self.mr), 1); # total strain -- buffer
  qpthstrain = zeros(FFlt, nthstn(self.mr)); # thermal strain -- buffer
@@ -564,8 +564,8 @@ function inspectintegpoints_extrapol_paper(self::FEMMDeforLinearAbstractMS,
  idat1 = idat
  t= 0.0
  dt = 0.0
- dTe = zeros(FFlt, length(conn), 1) # nodal temperatures -- buffer
- ue = zeros(FFlt, size(elmat, 1), 1); # array of node displacements -- buffer
+ dTe = zeros(FFlt, length(conn)) # nodal temperatures -- buffer
+ ue = zeros(FFlt, size(elmat, 1)); # array of node displacements -- buffer
  qpdT = 0.0; # node temperature increment
  qpstrain = zeros(FFlt, nstsstn(self.mr), 1); # total strain -- buffer
  qpthstrain = zeros(FFlt, nthstn(self.mr)); # thermal strain -- buffer
@@ -771,7 +771,7 @@ end
 #  idat1 = idat
 #  t= 0.0
 #  dt = 0.0
-#  dTe = zeros(FFlt, length(conn), 1) # nodal temperatures -- buffer
+#  dTe = zeros(FFlt, length(conn)) # nodal temperatures -- buffer
 #  ue = zeros(FFlt, size(elmat, 1), 1); # array of node displacements -- buffer
 #  qpdT = 0.0; # node temperature increment
 #  qpstrain = zeros(FFlt, nstsstn(self.mr), 1); # total strain -- buffer
@@ -926,7 +926,7 @@ end
 #  idat1 = idat
 #  t= 0.0
 #  dt = 0.0
-#  dTe = zeros(FFlt, length(conn), 1) # nodal temperatures -- buffer
+#  dTe = zeros(FFlt, length(conn)) # nodal temperatures -- buffer
 #  ue = zeros(FFlt, size(elmat, 1), 1); # array of node displacements -- buffer
 #  qpdT = 0.0; # node temperature increment
 #  qpstrain = zeros(FFlt, nstsstn(self.mr), 1); # total strain -- buffer

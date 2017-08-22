@@ -49,7 +49,7 @@ function buffers(self::FEMMDeforLinearAbstract, geom::NodalField, u::NodalField)
   D = zeros(FFlt, nstrs, nstrs); # material stiffness matrix -- buffer
   B = zeros(FFlt, nstrs, elmatdim); # strain-displacement matrix -- buffer
   DB = zeros(FFlt, nstrs, elmatdim); # strain-displacement matrix -- buffer
-  elvecfix = zeros(FFlt, elmatdim, 1); # vector of prescribed displ. -- buffer
+  elvecfix = zeros(FFlt, elmatdim); # vector of prescribed displ. -- buffer
   elvec = zeros(FFlt, elmatdim); # element vector -- buffer
   return conn, x, dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix
 end
@@ -299,8 +299,8 @@ function inspectintegpoints(self::FEMMDeforLinearAbstract,
   end
   t= 0.0
   dt = 0.0
-  dTe = zeros(FFlt, length(conn), 1) # nodal temperatures -- buffer
-  ue = zeros(FFlt, size(elmat, 1), 1); # array of node displacements -- buffer
+  dTe = zeros(FFlt, length(conn)) # nodal temperatures -- buffer
+  ue = zeros(FFlt, size(elmat, 1)); # array of node displacements -- buffer
   qpdT = 0.0; # node temperature increment
   qpstrain = zeros(FFlt, nstsstn(self.mr), 1); # total strain -- buffer
   qpthstrain = zeros(FFlt, nthstn(self.mr)); # thermal strain -- buffer
