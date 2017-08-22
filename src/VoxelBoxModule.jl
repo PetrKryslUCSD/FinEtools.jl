@@ -22,7 +22,7 @@ mutable struct VoxelBoxVolume{CoordT<:Number,DataT<:Number}
     data::Array{DataT,3}
 end
 
-function VoxelBoxVolume(::Type{CoordT},::Type{DataT}) where {CoordT<:Number,DataT<:Number}
+function VoxelBoxVolume(::Type{CoordT}, ::Type{DataT}) where {CoordT<:Number,DataT<:Number}
     V = VoxelBoxVolume(zeros(CoordT, 3), zeros(CoordT, 3), Array{DataT}(0, 0, 0));
     return V
 end
@@ -52,6 +52,8 @@ function voxeldims(V::VoxelBoxVolume)
 end
 
 size(V::VoxelBoxVolume, which) = size(V.data, which)
+size(V::VoxelBoxVolume) = size(V.data)
+
 
 struct SolidCF{F<:Function}
     f::F
@@ -181,6 +183,11 @@ function fillvolume!(V::VoxelBoxVolume, fillvalue::DataT) where {DataT<:Number}
     return V
 end
 
+"""
+    trim(V::VoxelBoxVolume, emptyvalue)
+
+Trim off pieces of the volume that consist only of the empty value.
+"""
 function trim(V::VoxelBoxVolume, emptyvalue)
     emptyvalue = convert(eltype(V.data[1]), emptyvalue)
     function sliceisempty(slice, emptyvalue)
@@ -195,21 +202,48 @@ function trim(V::VoxelBoxVolume, emptyvalue)
     end
     xmin = 1
     for i = 1:size(V.data, 1)
-        slice = view(V.data, i, :, :)
-        if !sliceisempty(slice, emptyvalue)
-            break
+        if !sliceisempty(view(V.data, i, :, :), emptyvalue)
+            xmin = i; break
         end
-        xmin = i
     end
     xmax = size(V.data, 1)
     for i = size(V.data, 1):-1:1
-        slice = view(V.data, i, :, :)
-        if !sliceisempty(slice, emptyvalue)
-            break
+        if !sliceisempty(view(V.data, i, :, :), emptyvalue)
+            xmax = i; break
         end
-        xmax = i
     end
-    (xmin, xmax)
+    ymin = 1
+    for i = 1:size(V.data, 2)
+        if !sliceisempty(view(V.data, :, i, :), emptyvalue)
+            ymin = i; break
+        end
+    end
+    ymax = size(V.data, 2)
+    for i = size(V.data, 2):-1:1
+        if !sliceisempty(view(V.data, :, i, :), emptyvalue)
+            ymax = i; break
+        end
+    end
+    zmin = 1
+    for i = 1:size(V.data, 3)
+        if !sliceisempty(view(V.data, :, :, i), emptyvalue)
+            zmin = i; break
+        end
+    end
+    zmax = size(V.data, 3)
+    for i = size(V.data, 3):-1:1
+        if !sliceisempty(view(V.data, :, :, i), emptyvalue)
+            zmax = i; break
+        end
+    end
+    if (xmin == 1) && (xmax == size(V.data, 1)) &&
+        (ymin == 1) && (ymax == size(V.data, 2))  &&
+        (zmin == 1) && (zmax == size(V.data, 3))
+        return V
+    end
+    origin = V.origin .+ vec([xmin, ymin, zmin])./size(V.data).*V.boxdim
+    boxdim = vec([(xmax - xmin) (ymax - ymin) (zmax - zmin)]).*voxeldims(V)
+    return VoxelBoxVolume(origin, boxdim, V.data[xmin:xmax, ymin:ymax, zmin:zmax])
 end
 
 
