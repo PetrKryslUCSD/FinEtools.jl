@@ -142,6 +142,7 @@ function gathervalues_asvec!(self::Field, dest::AbstractArray{T, 1},
             en = en + 1;
         end
     end
+    return dest
 end
 
 """
@@ -164,6 +165,7 @@ function gathervalues_asmat!(self::Field, dest::AbstractArray{T, 2},
             dest[i, j] = self.values[conn[i], j];
         end
     end
+    return dest
 end
 
 """
@@ -192,6 +194,7 @@ function gatherfixedvalues_asvec!(self::Field, dest::AbstractArray{T, 1},
             en = en + 1;
         end
     end
+    return dest
 end
 
 """
@@ -212,13 +215,16 @@ function gatherfixedvalues_asmat!(self::Field, dest::AbstractArray{T, 2},
     conn::CC) where {CC<:AbstractArray{FInt}, T}
     for i = 1:length(conn)
         for j = 1:size(self.fixed_values,2)
-            if self.is_fixed[i,j] # fixed degree of freedom
+            if self.is_fixed[conn[i],j] # fixed degree of freedom
                 dest[i, j] = self.fixed_values[conn[i], j];
+                println("self.fixed_values[conn[$i], $j] = $(self.fixed_values[conn[i], j])")
             else
                 dest[i, j] = 0.0
             end
+            println("Setting dest[$i, $j] = $(dest[i, j])")
         end
     end
+    return dest
 end
 
 """
@@ -234,6 +240,7 @@ function gatherdofnums!(self::Field, dest::A, conn::CC) where {A, CC<:AbstractAr
             en = en+1;
         end
     end
+    return dest
 end
 
 """
