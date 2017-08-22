@@ -7,7 +7,10 @@ FinEtools.jl .
 """
 module VoxelBoxModule
 
-export VoxelBoxVolume, voxeldims, fillvolume!, fillsolid!,
+import Base.size
+
+export VoxelBoxVolume, voxeldims, size,
+    fillvolume!, fillsolid!,
     intersectionop, unionop, complementop, differenceop,
     solidsphere, solidhalfspace, solidbox, solidcylinder,
     trim,
@@ -15,32 +18,40 @@ export VoxelBoxVolume, voxeldims, fillvolume!, fillsolid!,
 
 mutable struct VoxelBoxVolume{CoordT<:Number,DataT<:Number}
     origin::Array{CoordT,1}
-    dimensions::Array{CoordT,1}
+    boxdim::Array{CoordT,1}
     data::Array{DataT,3}
 end
 
+function VoxelBoxVolume(::Type{CoordT},::Type{DataT}) where {CoordT<:Number,DataT<:Number}
+    V = VoxelBoxVolume(zeros(CoordT, 3), zeros(CoordT, 3), Array{DataT}(0, 0, 0));
+    return V
+end
+
 function VoxelBoxVolume(::Type{DataT},
-    nvox::Array{Int,1}, dimensions::Array{CoordT,1}) where {CoordT<:Number,DataT<:Number}
+    nvox::Array{Int,1}, boxdim::Array{CoordT,1}) where {CoordT<:Number,DataT<:Number}
     origin = zeros(CoordT,3)
     data = zeros(DataT,nvox...)
-    V = VoxelBoxVolume(origin, dimensions, data);
+    V = VoxelBoxVolume(origin, boxdim, data);
     return V
 end
 
 function VoxelBoxVolume(data::Array{DataT,3},
-    dimensions::Array{CoordT,1})  where {CoordT<:Number,DataT<:Number}
-    origin = zeros(CoordT,3)
-    V = VoxelBoxVolume(origin, dimensions, data);
+    boxdim::Array{CoordT,1})  where {CoordT<:Number,DataT<:Number}
+    V = VoxelBoxVolume(CoordT,DataT);
+    copy!(V.boxdim, boxdim)
+    V.data = deepcopy(data)
     return V
 end
 
 function voxeldims(V::VoxelBoxVolume)
     nx, ny, nz = size(V.data)
-    voxszx=V.dimensions[1]/nx
-    voxszy=V.dimensions[2]/ny
-    voxszz=V.dimensions[3]/nz
+    voxszx=V.boxdim[1]/nx
+    voxszy=V.boxdim[2]/ny
+    voxszz=V.boxdim[3]/nz
     return (voxszx, voxszy, voxszz)
 end
+
+size(V::VoxelBoxVolume, which) = size(V.data, which)
 
 struct SolidCF{F<:Function}
     f::F
@@ -142,9 +153,9 @@ Filled a solid using a solid characteristic function.
 function fillsolid!(V::VoxelBoxVolume,
     f::SolidCF, fillvalue::DataT) where {DataT<:Number}
     nx, ny, nz = size(V.data)
-    voxszx=V.dimensions[1]/nx
-    voxszy=V.dimensions[2]/ny
-    voxszz=V.dimensions[3]/nz
+    voxszx=V.boxdim[1]/nx
+    voxszy=V.boxdim[2]/ny
+    voxszz=V.boxdim[3]/nz
     for i = 1:nx
         x = V.origin[1] + voxszx*(i+0.5)
         for j = 1:ny
@@ -219,9 +230,9 @@ function vtkexport(theFile::String, V::VoxelBoxVolume{CoordT,DataT}) where {Coor
     print(fid,"DATASET STRUCTURED_POINTS\n");
     nx, ny, nz = size(V.data)
     print(fid,"DIMENSIONS $(nx) $(ny) $(nz)\n");
-    voxszx=V.dimensions[1]/nx
-    voxszy=V.dimensions[2]/ny
-    voxszz=V.dimensions[3]/nz
+    voxszx=V.boxdim[1]/nx
+    voxszy=V.boxdim[2]/ny
+    voxszz=V.boxdim[3]/nz
     print(fid,"SPACING $(voxszx) $(voxszy) $(voxszz)\n");
     print(fid,"ORIGIN 0 0 0\n");
     print(fid,"POINT_DATA $(nx*ny*nz)\n");
