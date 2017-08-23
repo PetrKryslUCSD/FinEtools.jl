@@ -207,3 +207,35 @@ end
 end
 using mmmvvoxelmm8
 mmmvvoxelmm8.test()
+
+module mmmvvoxelmm9
+using FinEtools
+using Base.Test
+function test()
+    raw = zeros(UInt8, 13, 14, 15)
+    fill!(raw, 2)
+    V = VoxelBoxVolume(raw, [4.0, 4.0, 5.0])
+    V.data[5:7, 2:13, 12:14] = 1
+    Vt = trim(V, 2)
+    Vp = pad(Vt, (4, 6), (1, 1), (11, 1), 0)
+    @test size(V) == size(Vp)
+    @test size(Vt) == (3, 12, 3)
+    @test size(V, 3) == 15
+    Vtt = trim(Vt, 0)
+    @test size(Vtt) == (3, 12, 3)
+
+    # File = "mmmvvoxelmm9.vtk"
+    # vtkexport(File, V)
+    # # @async run(`"paraview.exe" $File`)
+    # try rm(File) catch end
+
+    # println("$(V.data[7,13,12])")
+    # println("$(V.data[1,12,12])")
+    # println("$(V.data[12,10,5])")
+    # @test (V.data[7,13,12]==1)
+    # @test (V.data[1,12,12]==2)
+    # @test (V.data[12,10,5]==2)
+end
+end
+using mmmvvoxelmm9
+mmmvvoxelmm9.test()

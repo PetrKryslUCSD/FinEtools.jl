@@ -13,7 +13,7 @@ export VoxelBoxVolume, voxeldims, size,
     fillvolume!, fillsolid!,
     intersectionop, unionop, complementop, differenceop,
     solidsphere, solidhalfspace, solidbox, solidcylinder,
-    trim,
+    trim, pad, threshold,
     vtkexport
 
 mutable struct VoxelBoxVolume{CoordT<:Number,DataT<:Number}
@@ -241,11 +241,45 @@ function trim(V::VoxelBoxVolume, emptyvalue)
         (zmin == 1) && (zmax == size(V.data, 3))
         return V
     end
-    origin = V.origin .+ vec([xmin, ymin, zmin])./size(V.data).*V.boxdim
-    boxdim = vec([(xmax - xmin) (ymax - ymin) (zmax - zmin)]).*voxeldims(V)
+    origin = V.origin .+ vec([xmin, ymin, zmin]) .* voxeldims(V)
+    boxdim = vec([(xmax - xmin) (ymax - ymin) (zmax - zmin)]) .* voxeldims(V)
     return VoxelBoxVolume(origin, boxdim, V.data[xmin:xmax, ymin:ymax, zmin:zmax])
 end
 
+"""
+    pad(V::VoxelBoxVolume, ipad, jpad, kpad, padvalue)
+
+Pad voxel box with a constant value.
+"""
+function pad(V::VoxelBoxVolume, ipad, jpad, kpad, padvalue)
+    # Adjust the number of pixels
+    data = zeros(eltype(V.data[1]), size(V) .+ (sum(ipad), sum(jpad), sum(kpad)))
+    fill!(data, padvalue)
+    data[ipad[1]+1:ipad[1]+size(V, 1), jpad[1]+1:jpad[1]+size(V, 2), kpad[1]+1:kpad[1]+size(V, 3)] = V.data
+    origin = V.origin .- vec([ipad[1], jpad[1], kpad[1]]) .* voxeldims(V)
+    boxdim = [x for x in size(V) .* voxeldims(V)]
+    return VoxelBoxVolume(origin, boxdim, data)
+end
+
+"""
+    threshold(V, threshold_value, voxel_below, voxel_above)
+
+Threshold the data.
+"""
+function threshold(V, threshold_value, voxel_below, voxel_above)
+    for k= 1:size(V, 3)
+        for j= 1:size(V, 2)
+            for i= 1:size(V, 1)
+                if V.data[i,j,k] > threshold_value
+                    V.data[i,j,k] = voxel_above
+                else
+                    V.data[i,j,k] = voxel_below
+                end
+            end
+        end
+    end
+    return V
+end
 
 """
     vtkexport(theFile::String, V::VoxelBoxVolume{CoordT,DataT}) where {CoordT<:Number,DataT<:Number}

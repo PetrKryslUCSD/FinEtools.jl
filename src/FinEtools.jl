@@ -239,7 +239,7 @@ export VoxelBoxVolume, voxeldims, size,
     fillvolume!, fillsolid!,
     intersectionop, unionop, complementop, differenceop,
     solidsphere, solidhalfspace, solidbox, solidcylinder,
-    trim,
+    trim, pad, threshold,
     vtkexport
 
 end
