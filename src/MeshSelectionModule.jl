@@ -14,23 +14,6 @@ using FinEtools.FESetModule
 using FinEtools.RotationUtilModule
 
 """
-    connectedelems(fes::FESetModule.FESet, node_list::FIntVec)
-
-Extract the numbers of the finite elements connected to given nodes.
-
-Extract the list of numbers for the fes  that are connected to given nodes.
-
-Warning: this tends to be an expensive operation.
-"""
-function connectedelems(fes::FESetModule.FESet, node_list::FIntVec)
-  cg=zeros(FInt,size(fes.conn,1));
-  for j=1:size(fes.conn,1)
-    cg[j]= length( intersect(fes.conn[j,:], node_list) );
-  end
-  cg =find_n(cg);
-end
-
-"""
     connectednodes(fes::FESetModule.FESet)
 
 Extract the node numbers of the nodes  connected by given finite elements.
@@ -648,3 +631,21 @@ end
 
 
 end
+
+# 
+# """
+#     connectedelems(fes::FESetModule.FESet, node_list::FIntVec)
+#
+# Extract the numbers of the finite elements connected to given nodes.
+#
+# Extract the list of numbers for the fes  that are connected to given nodes.
+#
+# Warning: this tends to be an expensive operation.
+# """
+# function connectedelems(fes::FESetModule.FESet, node_list::FIntVec)
+#   cg=zeros(FInt,size(fes.conn,1));
+#   for j=1:size(fes.conn,1)
+#     cg[j]= length( intersect(fes.conn[j,:], node_list) );
+#   end
+#   cg =find_n(cg);
+# end
