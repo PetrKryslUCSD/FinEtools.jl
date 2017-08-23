@@ -1,7 +1,7 @@
 """
     FENodeToFEMapModule
 
-Module to construct a map from finite element nodes to the finite elements.  
+Module to construct a map from finite element nodes to the finite elements.
 """
 module FENodeToFEMapModule
 
@@ -35,9 +35,15 @@ struct FENodeToFEMap
 end
 
 
+"""
+    FENodeToFEMap(conns::FIntMat,nmax::FInt)
 
-function FENodeToFEMap(conns::FIntMat,nmax::FInt)
-    #n=  maximum(conns[:]);#largest node number
+Map from finite element nodes to the finite elements connecting them.
+
+`nmax` = largest possible node number
+"""
+function FENodeToFEMap(conns::FIntMat, nmax::FInt)
+    #n=  maximum(conns[:]);#
     map = Array{FIntVec}(nmax)
     for i = 1:length(map)
         map[i] = []  # initially empty arrays

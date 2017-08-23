@@ -176,30 +176,30 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
 
     # Extract arguments
     allin= nothing; flood= nothing; facing= nothing; label= nothing;
-    nearestto= nothing; smoothpatch= nothing;
+    nearestto= nothing; smoothpatch= nothing; startnode = 0
     for arg in args
         sy, val = arg
-        if sy==:flood
+        if sy == :flood
             flood=val
-        elseif sy==:facing
+        elseif sy == :facing
             facing=val
-        elseif sy==:label
+        elseif sy == :label
             label=val
-        elseif sy==:nearestto
+        elseif sy == :nearestto
             nearestto=val
-        elseif sy==:smoothpatch
+        elseif sy == :smoothpatch
             smoothpatch=val
         end
     end
 
-    # if isfield(options,'flood')
-    #     flood = true;
-    #     if isfield(options,'startfen')
-    #         startfen = options.startfen;
-    #     else
-    #         error('Need the identifier of the Starting node, startfen');
-    #     end
-    # end
+    if flood != nothing
+        for arg in args
+            sy, val = arg
+            if sy == :startnode
+                startnode=val
+            end
+        end
+    end
 
     if facing != nothing
         facing = true;
@@ -207,9 +207,9 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
         tolerance = 0.001;
         for arg in args
             sy, val = arg
-            if sy==:direction
+            if sy == :direction
                 direction=val
-            elseif sy==:tolerance
+            elseif sy == :tolerance
                 tolerance=val
             end
         end
@@ -261,26 +261,27 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
         return  felist[find(felist)]; # return the nonzero element numbers
     end
 
-    #   # Select by flooding
-    #   if (flood)
-    #     fen2fe_map=fenode_to_fe_map (struct ('fes',fes));
-    #     gmap=fen2fe_map.map;
-    #     conn=fes.conn;
-    #     felist= zeros(1, size(conn,1));
-    #     felist(gmap{startfen})=1;
-    #     while true
-    #       pfelist=felist;
-    #       markedl=find(felist~=0);
-    #       for j=markedl
-    #         for k=conn(j,:)
-    #           felist(gmap{k})=1;
-    #         end
-    #       end
-    #       if sum(pfelist-felist)==0, break; end
-    #     end
-    #     felist =find(felist~=0);
-    #     return;
-    #   end
+    # Select by flooding
+    if flood != nothing && (flood)
+        @assert startnode > 0
+        fen2fe = FENodeToFEMap(fes.conn, count(fens))
+        felist = zeros(FInt, count(fes));
+        pfelist = zeros(FInt, count(fes));
+        felist[fen2fe.map[startnode]] = 1;
+        while true
+            copy!(pfelist, felist);
+            markedl = find(x -> x != 0, felist)
+            for j = markedl
+                for k = fes.conn[j,:]
+                    felist[fen2fe.map[k]] = 1;
+                end
+            end
+            if sum(pfelist-felist) == 0 # If there are no more changes in this pass, we are done
+                break;
+            end
+        end
+        return find(x -> x != 0, felist); # return the nonzero element numbers;
+    end
 
     # Helper function: calculate the normal to a boundary finite element
     function normal(Tangents)
@@ -534,19 +535,19 @@ function vselect(v::FFltMat; args...)
     box = nothing; distance = nothing; from = nothing; plane  =  nothing; thickness = nothing; nearestto = nothing; inflate = 0.0;
     for arg in args
         sy, val = arg
-        if sy==:box
+        if sy == :box
             box=val
-        elseif sy==:distance
+        elseif sy == :distance
             distance=val
-        elseif sy==:from
+        elseif sy == :from
             from=val
-        elseif sy==:plane
+        elseif sy == :plane
             plane=val
-        elseif sy==:thickness
+        elseif sy == :thickness
             thickness=val
-        elseif sy==:nearestto
+        elseif sy == :nearestto
             nearestto=val
-        elseif sy==:inflate
+        elseif sy == :inflate
             inflate=val
         end
     end
