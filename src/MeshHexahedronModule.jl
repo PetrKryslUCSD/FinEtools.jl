@@ -666,8 +666,8 @@ function H8voximggen(img::Array{DataT, 3},
         locs =[1 J K;1+1 J K;1+1 J+1 K;1 J+1 K;1 J K+1;1+1 J K+1;1+1 J+1 K+1;1 J+1 K+1];
         vidx = find_vertex(I, locs);
         nh =nh +1;
-        h[nh, :] =vidx;
-        hmid[nh] =img[I, J, K];
+        h[nh, :] = vidx;
+        hmid[nh] = convert(FInt, img[I, J, K]);
     end
 
     nv =0;                      # number of vertices
