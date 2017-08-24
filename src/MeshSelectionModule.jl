@@ -632,7 +632,7 @@ end
 
 end
 
-# 
+# NOTE: This operation is probably best done with the  node-to-element  map.
 # """
 #     connectedelems(fes::FESetModule.FESet, node_list::FIntVec)
 #
