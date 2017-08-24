@@ -540,17 +540,20 @@ end
 
 General smoothing of meshes.
 
-Keyword options:
+## Keyword options:
 method = :taubin (default) or :laplace
-fixedv = Boolean array, one entry per vertex: is the vertex iimmovable (true)
+fixedv = Boolean array, one entry per vertex: is the vertex immovable (true)
     or movable  (false)
 npass = number of passes (default 2)
+
+## Return
+The modified  node set. 
 """
 function meshsmoothing(fens::FENodeSet, fes::T; options...) where {T<:FESet}
     v = deepcopy(fens.xyz)
     v = vsmoothing(v, fes.conn; options...)
     copy!(fens.xyz, v)
-    return fens,fes
+    return fens
 end
 
 function  taubin_smoother(vinp::FFltMat,vneigh::Array{Array{Int,1},1},fixedv::BitArray{1},npass::FInt,lambda::FFlt,mu::FFlt)

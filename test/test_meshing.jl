@@ -218,7 +218,7 @@ function test()
 
     fixedv = falses(count(fens))
     fixedv[bnl] = true
-    fens, fes = meshsmoothing(fens, fes; fixedv = fixedv, method = :laplace, npass = 100)
+    fens = meshsmoothing(fens, fes; fixedv = fixedv, method = :laplace, npass = 100)
 
     after = [50.0438, 44.0315]
     # println("$(fens.xyz[Int(N^2/2), :] )")
@@ -270,7 +270,7 @@ function test()
 
     fixedv = falses(count(fens))
     fixedv[bnl] = true
-    fens, fes = meshsmoothing(fens, fes; fixedv = fixedv, method = :taubin, npass = 100)
+    fens = meshsmoothing(fens, fes; fixedv = fixedv, method = :taubin, npass = 100)
 
     after = [50.0059, 43.6281]
     # println("$(fens.xyz[Int(N^2/2), :] )")
@@ -303,7 +303,7 @@ function test()
     fillsolid!(V, differenceop(unionop(b1, b2), h1), 1)
 
     fens, fes = H8voximg(V.data, vec([voxeldims(V)...]), [1])
-    fens, fes = meshsmoothing(fens, fes; npass = 5)
+    fens = meshsmoothing(fens, fes; npass = 5)
     # println("count(fes) = $(count(fes))")
     @test count(fes) == 16337
 
