@@ -253,11 +253,12 @@ Pad voxel box with a constant value.
 """
 function pad(V::VoxelBoxVolume, ipad, jpad, kpad, padvalue)
     # Adjust the number of pixels
+    originalvoxeldims = voxeldims(V)
     data = zeros(eltype(V.data[1]), size(V) .+ (sum(ipad), sum(jpad), sum(kpad)))
     fill!(data, padvalue)
     data[ipad[1]+1:ipad[1]+size(V, 1), jpad[1]+1:jpad[1]+size(V, 2), kpad[1]+1:kpad[1]+size(V, 3)] = V.data
     origin = V.origin .- vec([ipad[1], jpad[1], kpad[1]]) .* voxeldims(V)
-    boxdim = [x for x in size(V) .* voxeldims(V)]
+    boxdim = [x for x in size(data) .* originalvoxeldims]
     return VoxelBoxVolume(origin, boxdim, data)
 end
 
