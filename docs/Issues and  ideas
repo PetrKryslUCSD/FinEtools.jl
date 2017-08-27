@@ -143,6 +143,7 @@ the function type.
 Implementation completed.
 
 -- VTK export: export  cell data.
+Implemented  July 2017.
 
 -- Implement  element  fields. (Analogy to  nodal fields.)
 Implemented partially: so far only elementwise constant field has been
@@ -197,6 +198,7 @@ and elsewhere: CC a union of  vector and column or row matrix?
 or
 gatherdofnums!(self::Field, dest::A, conn::CC) where {A, CC}
 Perhaps CC<:AbstractArray
+Implemented August 2017
 
 -- Packages:  symbol-gen, compare-files
 
@@ -273,9 +275,11 @@ function examples()
 end
 
 -- Mean-strain extrapolation technology: need to consider the thermal properties
-oof the stabilization material. It needs to produce  thermal strains  just as
+of the stabilization material. It needs to produce  thermal strains  just as
 the real material.
 
 -- Search for JFinEALE: some examples have not been converted  yet.
 
 -- For the QR factorization use qrfact!(A, pivot=Val(false))
+
+-- Return additional data from Abaqus  reader  as a dictionary.
