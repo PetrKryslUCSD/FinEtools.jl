@@ -1,10 +1,9 @@
 
-module moorthobballoon
+module moorthobballoon_penalty
 
 using FinEtools
 
 # Orthotropic balloon inflation, axially symmetric model
-
 
 # Parameters:
 E1=1.0;
@@ -21,17 +20,7 @@ rin=1.;
 rex =1.2;
 tolerance=rin/1000.
 
-##
-# Note that the FinEtools objects needs to be created with the proper
-# model-dimension reduction at hand.  In this case that is the axial symmetry
-# assumption.
 MR = DeforModelRed2DAxisymm
-
-
-# Create the mesh and initialize the geometry.  First we are going
-# to construct the block of elements with the first coordinate
-# corresponding to the thickness in the radial direction, and the second
-# coordinate is the thickness in the axial direction.
 
 fens,fes = Q4block(rex-rin,pi/2,5,20);
 bdryfes = meshboundary(fes);
@@ -42,18 +31,16 @@ for i=1:count(fens)
     fens.xyz[i,:]=[r*cos(a) r*sin(a)];
 end
 
-
 # now we create the geometry and displacement fields
 geom = NodalField(fens.xyz)
 u = NodalField(zeros(size(fens.xyz,1),2)) # displacement field
 
 # the symmetry plane
-l1 =selectnode(fens; box=[0 rex 0 0], inflate = tolerance)
-setebc!(u,l1,true, 2, 0.0)
+ly =selectelem(fens, bdryfes; box=[0 rex 0 0], inflate = tolerance)
 # the axis of symmetry
-l1 =selectnode(fens; box=[0 0 0 rex], inflate = tolerance)
-setebc!(u,l1,true, 1, 0.0)
+lx =selectelem(fens, bdryfes; box=[0 0 0 rex], inflate = tolerance)
 
+# No EBC
 applyebc!(u)
 numberdofs!(u)
 println("Number of degrees of freedom = $(u.nfreedofs)")
@@ -74,8 +61,19 @@ material=MatDeforElastOrtho(MR, E1,E2,E3,nu12,nu13,nu23,G12,G13,G23)
 
 femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), true), material)
 
+##
+# The restraints of the nodes on the bounding cross-sections in the direction
+# of the normal to the plane of the cross-section  in the
+# circumferential direction are introduced using a penalty formulation.
+# For that purpose we introduce  a finite element model machine for the
+# surface  finite elements on the cross-sections.
+springcoefficient =1.0e9/ (abs(p)/E1)
+xsfemm = FEMMDeforWinkler(GeoD(subset(bdryfes, lx), GaussRule(1, 3), true))
+ysfemm = FEMMDeforWinkler(GeoD(subset(bdryfes, ly), GaussRule(1, 3), true))
+H = surfacenormalspringstiffness(xsfemm,  geom, u, springcoefficient) +
+    surfacenormalspringstiffness(ysfemm,  geom, u, springcoefficient)
 K =stiffness(femm, geom, u)
-U=  K\(F2)
+U=  (K + H)\(F2)
 scattersysvec!(u,U[:])
 
 # Produce a plot of the radial stress component in the cylindrical
@@ -85,10 +83,11 @@ scattersysvec!(u,U[:])
 fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 3)
 println("Minimum/maximum = $(minimum(fld.values))/$(maximum(fld.values))")
 
-File =  "orthoballoon_sigmaz.vtk"
+File =  "orthoballoon_penalty_sigmaz.vtk"
 vtkexportmesh(File, fens, fes; scalars=[("sigmaz", fld.values)],
               vectors=[("u", u.values)])
 @async run(`"paraview.exe" $File`)
+
 
 
 end

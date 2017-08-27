@@ -12,18 +12,20 @@ rho = 1001*phun("kg/m^3");# mass density
 c  = 1500.0*phun("m/s");# sound speed
 bulk =  c^2*rho;
 omega =  200*phun("rev/s");      # frequency of the piston
+a_piston = 1.0*phun("m/s")
 
 axisymmetric = true
-Platten_radius = 15*phun("mm")
-Piston_radius = 35*phun("mm")
+Platten_radius = 12*phun("mm")
+Piston_radius = 33*phun("mm")
 @assert Piston_radius > Platten_radius
 Tank_radius = 50*phun("mm")
 @assert Tank_radius > Piston_radius
-Platten_height = 75*phun("mm")
-Piston_height = 75*phun("mm")
+Platten_height = 100*phun("mm")
+Piston_height = 33*phun("mm")
 Tank_height = Platten_height + Piston_height + 75*phun("mm")
 Gap_height = Tank_height-(Platten_height + Piston_height)
 Tolerance = Platten_radius/1.0e6
+
 
 xs = vec([0.0 Platten_radius Piston_radius Tank_radius])
 ys = vec(vcat(vec(linspace(0.0, Platten_height, 4)),
@@ -52,20 +54,21 @@ fes = renumberconn!(fes, new_numbering);
 
 edge_fes = meshboundary(fes);
 
+material = MatAcoustFluid(bulk, rho)
 # The pressure boundary condition
 l1 = selectelem(fens, edge_fes, box=[0.0 Piston_radius Tank_height-Piston_height Tank_height-Piston_height]);
-ebc1 = FDataDict("node_list"=>connectednodes(subset(edge_fes, l1)),
-    "pressure"=>x -> 1.0) # entering the domain
+flux1  =  FDataDict("femm"=>FEMMAcoustSurf(GeoD(subset(edge_fes, l1), GaussRule(1, 2), axisymmetric),
+          material),  "normal_flux"=> -rho*a_piston+0.0im);
 l2 = selectelem(fens, edge_fes, box=[Piston_radius Tank_radius Tank_height Tank_height]);
 ebc2 = FDataDict("node_list"=>connectednodes(subset(edge_fes, l2)),
     "pressure"=>x -> 0.0) # entering the domain
-material = MatAcoustFluid(bulk, rho)
+
 femm = FEMMAcoust(GeoD(fes,  GaussRule(2, 2), axisymmetric),  material)
 region1 = FDataDict("femm"=>femm)
 
 # Make model data
 modeldata = FDataDict("fens"=>fens,"omega"=>omega,
-    "regions"=>[region1], "essential_bcs"=>[ebc1 ebc2]);
+    "regions"=>[region1], "flux_bcs"=>[flux1], "essential_bcs"=>[ebc2]);
 
 # Call the solver
 modeldata = FinEtools.AlgoAcoustModule.steadystate(modeldata)
