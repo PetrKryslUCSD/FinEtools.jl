@@ -172,6 +172,8 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
             nearestto=val
         elseif sy == :smoothpatch
             smoothpatch=val
+        elseif sy == :allin
+            allin=val
         end
     end
 
