@@ -288,37 +288,37 @@ end
 Compute.
 """
 function vtkexport(theFile::String, V::VoxelBoxVolume{CoordT,DataT}) where {CoordT<:Number,DataT<:Number}
-    fid=open(theFile,"w");
-    if (fid==-1)
-        error(["Could not open " * theFile])
-        return nothing
+    open(theFile,"w") do fid
+        if (fid==-1)
+            error(["Could not open " * theFile])
+            return nothing
+        end
+        print(fid,"# vtk DataFile Version 2.0\n");
+        print(fid,"Example\n");
+        print(fid,"ASCII\n");
+        print(fid,"DATASET STRUCTURED_POINTS\n");
+        nx, ny, nz = size(V.data)
+        print(fid,"DIMENSIONS $(nx) $(ny) $(nz)\n");
+        voxszx=V.boxdim[1]/nx
+        voxszy=V.boxdim[2]/ny
+        voxszz=V.boxdim[3]/nz
+        print(fid,"SPACING $(voxszx) $(voxszy) $(voxszz)\n");
+        print(fid,"ORIGIN 0 0 0\n");
+        print(fid,"POINT_DATA $(nx*ny*nz)\n");
+        #     bit , unsigned_char , char , unsigned_short , short , unsigned_int , int ,
+        # unsigned_long , long , float , or double
+        Types =  Dict{DataType, String}(Int8=>"char" , UInt8=>"unsigned_char",
+        UInt16=>"unsigned_short", Int16=>"short",
+        UInt32=>"unsigned_int" , Int32=>"int" ,
+        UInt64=>"unsigned_long" , Int64=>"long" ,
+        Float32=>"float", Float64=> "double")
+        typed=Types[DataT]
+        print(fid,"SCALARS volume_scalars $typed 1\n");
+        print(fid,"LOOKUP_TABLE default\n");
+        for j=1:(nx*ny*nz)
+            print(fid,"$(V.data[j])\n");
+        end
     end
-    print(fid,"# vtk DataFile Version 2.0\n");
-    print(fid,"Example\n");
-    print(fid,"ASCII\n");
-    print(fid,"DATASET STRUCTURED_POINTS\n");
-    nx, ny, nz = size(V.data)
-    print(fid,"DIMENSIONS $(nx) $(ny) $(nz)\n");
-    voxszx=V.boxdim[1]/nx
-    voxszy=V.boxdim[2]/ny
-    voxszz=V.boxdim[3]/nz
-    print(fid,"SPACING $(voxszx) $(voxszy) $(voxszz)\n");
-    print(fid,"ORIGIN 0 0 0\n");
-    print(fid,"POINT_DATA $(nx*ny*nz)\n");
-    #     bit , unsigned_char , char , unsigned_short , short , unsigned_int , int ,
-    # unsigned_long , long , float , or double
-    Types =  Dict{DataType, String}(Int8=>"char" , UInt8=>"unsigned_char",
-                                    UInt16=>"unsigned_short", Int16=>"short",
-                                    UInt32=>"unsigned_int" , Int32=>"int" ,
-                                    UInt64=>"unsigned_long" , Int64=>"long" ,
-                                    Float32=>"float", Float64=> "double")
-    typed=Types[DataT]
-    print(fid,"SCALARS volume_scalars $typed 1\n");
-    print(fid,"LOOKUP_TABLE default\n");
-    for j=1:(nx*ny*nz)
-        print(fid,"$(V.data[j])\n");
-    end
-     fid=close(fid);
 end
 export vtkexport
 

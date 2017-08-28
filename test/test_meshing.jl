@@ -48,7 +48,8 @@ using FinEtools.MeshImportModule
 using FinEtools.MeshExportModule
 using Base.Test
 function test()
-  fens, fes = MeshImportModule.import_NASTRAN(dirname(@__FILE__) * "/" * "Slot-coarser.nas")
+  fens, fes = MeshImportModule.import_NASTRAN(dirname(@__FILE__) * "/" * "Slot-coarser.nas";
+    allocationchunk = 13)
   # show(fes.conn[count(fes), :])
   File = "Slot-coarser.vtk"
   MeshExportModule.vtkexportmesh(File, fens, fes)
@@ -175,7 +176,8 @@ function test()
   close(AE)
 
 
-  fens, fesarray = MeshImportModule.import_ABAQUS("./LE11NAFEMS_H8.inp")
+  fens, fesarray = MeshImportModule.import_ABAQUS("./LE11NAFEMS_H8.inp";
+    allocationchunk = 11)
 
   File = "LE11NAFEMS_H8.vtk"
   MeshExportModule.vtkexportmesh(File, fens, fesarray[1])
@@ -545,7 +547,8 @@ function test()
   close(AE)
 
 
-  fens, fesarray = MeshImportModule.import_ABAQUS("./LE11NAFEMS_H8.inp")
+  fens, fesarray = MeshImportModule.import_ABAQUS("./LE11NAFEMS_H8.inp";
+    allocationchunk = 12)
 
   File = "LE11NAFEMS_H8.vtk"
   MeshExportModule.vtkexportmesh(File, fens, fesarray[1])

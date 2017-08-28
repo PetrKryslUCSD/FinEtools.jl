@@ -17,7 +17,7 @@ arrays is increased by this much. If the number of entities to be read  is
 large, the chunk should be probably increased so that only a few reallocations
 are needed.
 """
-const chunk = 100
+const chunk = 1000
 
 """
     import_NASTRAN(filename)
@@ -30,14 +30,14 @@ Import tetrahedral (4- and 10-node) NASTRAN mesh (.nas file).
     3. The file needs to be free-form (data separated by commas).
 
 """
-function import_NASTRAN(filename)
+function import_NASTRAN(filename; allocationchunk=chunk)
   lines = readlines(filename)
 
   nnode = 0
-  node = zeros(chunk, 4)
+  node = zeros(allocationchunk, 4)
   maxnodel = 10
   nelem = 0
-  elem = zeros(FInt, chunk, maxnodel + 3)
+  elem = zeros(FInt, allocationchunk, maxnodel + 3)
 
   current_line = 1
   while true
@@ -53,7 +53,7 @@ function import_NASTRAN(filename)
       #   GRID,1,,-1.32846E-017,3.25378E-033,0.216954
       nnode = nnode + 1
       if size(node, 1) < nnode
-        node = vcat(node, zeros(chunk, 4))
+        node = vcat(node, zeros(allocationchunk, 4))
       end
       A = split(replace(temp, ",", " "))
       for  six = 1:4
@@ -65,7 +65,7 @@ function import_NASTRAN(filename)
       #   CTETRA,1,3,15,14,12,16,8971,4853,8972,4850,8973,4848
       nelem = nelem + 1
       if size(elem, 1) < nelem
-        elem = vcat(elem, zeros(FInt, chunk, maxnodel + 3))
+        elem = vcat(elem, zeros(FInt, allocationchunk, maxnodel + 3))
       end
       A = split(replace(temp, ",", " "))
       elem[nelem, 1] = parse(FInt, A[2])
@@ -142,13 +142,13 @@ Import tetrahedral (4- and 10-node) or hexahedral (8- and 20-node) Abaqus mesh
       are handled.
 
 """
-function import_ABAQUS(filename)
+function import_ABAQUS(filename; allocationchunk=chunk)
   lines = readlines(filename)
 
   maxelnodes = 20
 
   nnode = 0
-  node = zeros(chunk, 4)
+  node = zeros(allocationchunk, 4)
   Reading_nodes = false
   next_line = 1
   while true
@@ -160,7 +160,7 @@ function import_ABAQUS(filename)
     if (length(temp) >= 5) && (temp[1:5] == "*NODE")
       Reading_nodes = true
       nnode = 0
-      node = zeros(chunk, 4)
+      node = zeros(allocationchunk, 4)
       temp = uppercase(strip(lines[next_line]))
       next_line = next_line + 1
     end
@@ -171,7 +171,7 @@ function import_ABAQUS(filename)
       end
       nnode = nnode + 1
       if size(node, 1) < nnode # if needed, allocate more space
-        node = vcat(node, zeros(chunk, 4))
+        node = vcat(node, zeros(allocationchunk, 4))
       end
       A = split(replace(temp, ",", " "))
       for  six = 1:length(A)
@@ -194,7 +194,7 @@ function import_ABAQUS(filename)
       Reading_elements = true
       nelemset = nelemset + 1
       nelem = 0
-      a = AbaqusElementSection(temp, nelem, zeros(FInt, chunk, maxelnodes+1))
+      a = AbaqusElementSection(temp, nelem, zeros(FInt, allocationchunk, maxelnodes+1))
       push!(elemset, a)
       temp = uppercase(strip(lines[next_line]))
       next_line = next_line + 1
@@ -207,7 +207,7 @@ function import_ABAQUS(filename)
       elemset[nelemset].nelem = elemset[nelemset].nelem + 1
       if size(elemset[nelemset].elem, 1) < elemset[nelemset].nelem
         elemset[nelemset].elem = vcat(elemset[nelemset].elem,
-                                      zeros(FInt, chunk, maxelnodes+1))
+                                      zeros(FInt, allocationchunk, maxelnodes+1))
       end
       A = split(temp, ",")
       if (A[end] == "") # the present line is continued on the next one
