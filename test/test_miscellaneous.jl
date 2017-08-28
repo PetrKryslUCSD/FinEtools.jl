@@ -1044,3 +1044,25 @@ end
 end
 using mmfieldx1
 mmfieldx1.test()
+
+
+module mmconnection1
+using FinEtools
+using Base.Test
+function test()
+    h = 0.05*phun("M");
+    l = 10*h;
+    nh = 3; nl  = 4; nc = 5;
+
+    fens,fes  = H8block(h,l,2.0*pi,nh,nl,nc)
+    femm = FEMMBase(GeoD(fes, GaussRule(3, 2)))
+    C = connectionmatrix(femm, count(fens))
+    Degree = [length(find(C[j,:])) for j in 1:size(C, 1)]
+    # println("Maximum degree  = $(maximum(Degree))")
+    # println("Minimum degree  = $(minimum(Degree))")
+    @test maximum(Degree) == 27
+    @test minimum(Degree) == 8
+end
+end
+using mmconnection1
+mmconnection1.test()

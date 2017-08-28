@@ -163,10 +163,9 @@ export Jacobianpoint, Jacobiancurve, Jacobiansurface, Jacobianvolume, Jacobianmd
 
 include("FEMMBaseModule.jl")
 using FinEtools.FEMMBaseModule
-export FEMMAbstractBase
-export FEMMBase
-export associategeometry!, integratefieldfunction, integratefunction,
-distribloads, fieldfromintegpoints, elemfieldfromintegpoints
+export FEMMAbstractBase, FEMMBase
+export associategeometry!, integratefieldfunction, integratefunction, distribloads,
+ connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints
 
 include("FEMMHeatDiffModule.jl")
 using FinEtools.FEMMHeatDiffModule

@@ -6,8 +6,8 @@ Module for comments/base operations on interiors and boundaries of domains.
 module FEMMBaseModule
 
 export FEMMAbstractBase, FEMMBase
-export associategeometry!, integratefieldfunction, integratefunction, distribloads
-export connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints
+export associategeometry!, integratefieldfunction, integratefunction, distribloads,
+ connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints
 
 using FinEtools
 using FinEtools.FTypesModule
@@ -244,21 +244,21 @@ The matrix has a nonzero in all the rows and columns which correspond to nodes
 connected by some finite element.
 """
 function connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:FEMMAbstractBase}
-  nfes = size(self.fes.conn,1)
-  nconns = size(self.fes.conn,2)
-  N = nfes*nconns*nconns
-  rb = FInt[]; sizehint!(rb, N)
-  cb = FInt[]; sizehint!(cb, N)
-  vb = ones(FInt, N);
-  @inbounds for  j = 1:nfes
-    @inbounds for  k = 1:nconns
-      append!(rb, self.fes.conn[j, :])
-      @inbounds for  m = 1:nconns
-        push!(cb, self.fes.conn[j, k])
-      end
+    nfes = size(self.geod.fes.conn,1)
+    nconns = size(self.geod.fes.conn,2)
+    N = nfes*nconns*nconns
+    rb = FInt[]; sizehint!(rb, N)
+    cb = FInt[]; sizehint!(cb, N)
+    vb = ones(FInt, N);
+    @inbounds for  j = 1:nfes
+        @inbounds for  k = 1:nconns
+            append!(rb, self.geod.fes.conn[j, :])
+            @inbounds for  m = 1:nconns
+                push!(cb, self.geod.fes.conn[j, k])
+            end
+        end
     end
-  end
-  return sparse(rb, cb, vb, nnodes, nnodes)
+    return sparse(rb, cb, vb, nnodes, nnodes)
 end
 
 
