@@ -782,3 +782,50 @@ end
 end
 using mmAbaqusexport3
 mmAbaqusexport3.test()
+
+
+module mttriangles13
+using FinEtools
+using FinEtools.MeshExportModule
+using Base.Test
+function test()
+    xs = collect(linspace( 1.0, 3.0, 4))
+    ys = collect(linspace(-1.0, 3.0, 4))
+    fens, fes = T3blockx(xs, ys, :a)
+    @test count(fes) == 3*3*2
+    fens, fes = T3blockx(xs, ys, :b)
+    @test count(fes) == 3*3*2
+
+    # File = "playground.vtk"
+    # MeshExportModule.vtkexportmesh(File, fens, fes)
+    # @async run(`"paraview.exe" $File`)
+    # try rm(File) catch end
+
+end
+end
+using mttriangles13
+mttriangles13.test()
+
+module mttriangles14
+using FinEtools
+using FinEtools.MeshExportModule
+using Base.Test
+function test()
+    xs = collect(linspace( 1.0, 3.0, 4))
+    ys = collect(linspace(-1.0, 3.0, 5))
+    fens, fes = Q4blockx(xs, ys)
+    fens, fes = Q4toT3(fens, fes)
+    @test count(fes) == 3*4*2
+    fens, fes = Q4blockx(xs, ys)
+    fens, fes = Q4toT3(fens, fes, :alternate)
+    @test count(fes) == 3*4*2
+
+    # File = "playground.vtk"
+    # MeshExportModule.vtkexportmesh(File, fens, fes)
+    # @async run(`"paraview.exe" $File`)
+    # try rm(File) catch end
+
+end
+end
+using mttriangles14
+mttriangles14.test()
