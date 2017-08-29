@@ -5604,3 +5604,73 @@ end
 end
 using mocylpull1
 mocylpull1.test()
+
+
+module mbar1
+using FinEtools
+using FinEtools.FENodeSetModule
+using FinEtools.MeshExportModule
+using Base.Test
+function test()
+    Area = 2.0*phun("in^2")
+    E = 30e6*phun("psi") # Young's modulus
+    nu = 0.0
+    alpha = 5.5e-6*phun("in")/phun("in")/phun("F")
+    fens = FENodeSetModule.FENodeSet([10. -5 20;
+    30 25 -15]*phun("in") )
+    fes = FESetL2(reshape([1,2],1,2))
+
+    # function otherdimensionfu(loc::FFltMat,
+    #   conn::CC, N::FFltMat)::FFlt where {CC<:AbstractArray{FInt}}
+    #   return otherdimension::FFlt
+    # end
+    geod = GeoD(fes, GaussRule(1, 2), CSys(3, 1), (loc, conn, N) -> Area, false)
+    # display(geod)
+
+    MR = DeforModelRed1D
+    material = MatDeforElastIso(MR,  0.0, E, nu, alpha)
+    # display(material )
+
+    geom = NodalField(fens.xyz)
+    u = NodalField(zeros(size(fens.xyz, 1), 3)) # displacement field
+    numberdofs!(u)
+
+    femm = FEMMDeforLinear(MR, geod,  material)
+    K = stiffness(femm,  geom,  u)
+    # println("K = $(K/(phun("lbf")/phun("in")))")
+    ref_K=   1.0e+05 *[
+    1.8916    2.8373   -3.3102   -1.8916   -2.8373    3.3102
+    2.8373    4.2560   -4.9653   -2.8373   -4.2560    4.9653
+   -3.3102   -4.9653    5.7929    3.3102    4.9653   -5.7929
+   -1.8916   -2.8373    3.3102    1.8916    2.8373   -3.3102
+   -2.8373   -4.2560    4.9653    2.8373    4.2560   -4.9653
+    3.3102    4.9653   -5.7929   -3.3102   -4.9653    5.7929];
+    @test norm(K/(phun("lbf")/phun("in")) - ref_K)/1.0e5 < 1.0e-3
+
+    dT = NodalField(zeros(size(fens.xyz, 1), 1)+100*phun("F")) # temperature field
+    # display(dT)
+
+    F2 = thermalstrainloads(femm, geom, u, dT)
+    # println("F2 = $(F2/(phun("lbf")))")
+    ref_F=  1.0e+04 *[
+    -1.313449091077187
+    -1.970173636615779
+    2.298535909385076
+    1.313449091077187
+    1.970173636615779
+    -2.298535909385076]
+    @test norm(F2/(phun("lbf")) - ref_F) < 1.0e-2
+
+   # K = cholfact(K)
+   # U=  K\(F2)
+   # scattersysvec!(u, U[:])
+
+    # File = "playground.vtk"
+    # MeshExportModule.vtkexportmesh(File, fens, fes)
+    # @async run(`"paraview.exe" $File`)
+    # try rm(File) catch end
+
+end
+end
+using mbar1
+mbar1.test()

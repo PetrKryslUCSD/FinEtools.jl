@@ -64,6 +64,12 @@ function MatDeforElastIso(mr::Type{DeforModelRed2DAxisymm},
     tangentmoduli2daxi!, update2daxi!, thermalstrain2daxi!)
 end
 
+function MatDeforElastIso(mr::Type{DeforModelRed1D},
+  mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
+  return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
+    tangentmoduli1d!, update1d!, thermalstrain1d!)
+end
+
 function MatDeforElastIso(mr::Type{MR}, E::FFlt, nu::FFlt) where {MR}
   mass_density = 1.0
   CTE = 0.0
@@ -441,6 +447,86 @@ function thermalstrain2daxi!(self::MatDeforElastIso, thstrain::FFltVec, dT= 0.0)
   thstrain[2] = self.CTE*dT
   thstrain[3] = self.CTE*dT
   thstrain[4] = 0.0
+  return thstrain
+end
+
+################################################################################
+# 2-D axially symmetric
+################################################################################
+
+"""
+    tangentmoduli2daxi!(self::MatDeforElastIso,
+      ms::MatDeforElastIsoMS, D::FFltMat,
+      t::FFlt, dt::FFlt, loc::FFltMat, label::FInt)
+
+Calculate the material stiffness matrix.
+
+`D` = matrix of tangent moduli, 3 x 3, supplied as a buffer and overwritten.
+"""
+function tangentmoduli1d!(self::MatDeforElastIso,
+  D::FFltMat,
+  t::FFlt, dt::FFlt, loc::FFltMat, label::FInt)
+  D[1, 1] = self.E;
+  return D
+end
+
+"""
+    update1d!(self::MatDeforElastIso,  stress::FFltVec, output::FFltVec,
+      strain::FFltVec, thstrain::FFltVec=zeros(1), t::FFlt= 0.0, dt::FFlt= 0.0,
+      loc::FFltMat=zeros(3,1), label::FInt=0, quantity=:nothing)
+
+Update material state.
+
+`strain` = strain vector,
+`thstrain` = thermal strain vector,
+`t` = current time,
+`dt` = current time step,
+`loc` = location of the quadrature point in global Cartesian coordinates,
+`label` = label of the finite element in which the quadrature point is found.
+
+Output:
+`stress` = stress vector, allocated by the caller with a size of the number of
+  stress and strain components, `nstsstn`. The components of the stress vector are
+  calculated and stored in the `stress` vector.
+`output` =  array which is (if necessary) allocated  in an appropriate size, filled
+  with the output quantity, and returned.
+"""
+function update1d!(self::MatDeforElastIso,  stress::FFltVec, output::FFltVec,
+  strain::FFltVec, thstrain::FFltVec=zeros(1), t::FFlt= 0.0, dt::FFlt= 0.0,
+  loc::FFltMat=zeros(3,1), label::FInt=0, quantity=:nothing)
+  @assert length(stress) == nstsstn(self.mr)
+  D = zeros(1, 1)
+  tangentmoduli1d!(self, D, t, dt, loc, label)
+  A_mul_B!(stress, D, strain-thstrain);
+  if quantity == :nothing
+    #Nothing to be copied to the output array
+  elseif quantity == :cauchy || quantity == :Cauchy
+    (length(output) >= 1) || (output = zeros(1)) # make sure we can store it
+    copy!(output, stress);
+  elseif quantity == :pressure || quantity == :Pressure
+    (length(output) >= 1) || (output = zeros(1)) # make sure we can store it
+    output[1] = -sum(stress[[1]])/3.
+  elseif quantity == :princCauchy || quantity == :princcauchy
+    copy!(output,  stress[1]);
+  elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
+    s1=stress[1]; s2=0.0; s3=0.0;
+    s4=00.0; s5=0.0; s6=0.0;
+    (length(output) >= 1) || (output = zeros(1)) # make sure we can store it
+    output[1] = sqrt(1.0/2*((s1-s2)^2+(s1-s3)^2+(s2-s3)^2+6*(s4^2+s5^2+s6^2)))
+  end
+  return output
+end
+
+"""
+    thermalstrain1d!(self::MatDeforElastIso, thstrain::FFltVec, dT= 0.0)
+
+Compute thermal strain from the supplied temperature increment.
+
+The thermal strain is evaluated  for the axial strain.
+"""
+function thermalstrain1d!(self::MatDeforElastIso, thstrain::FFltVec, dT= 0.0)
+  @assert length(thstrain) == nthstn(self.mr)
+  thstrain[1] = self.CTE*dT
   return thstrain
 end
 
