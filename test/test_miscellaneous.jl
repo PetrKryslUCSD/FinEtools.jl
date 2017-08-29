@@ -1066,3 +1066,20 @@ end
 end
 using mmconnection1
 mmconnection1.test()
+
+module mmquadrature3
+using FinEtools
+using Base.Test
+function test()
+    gr = GaussRule(1,1)
+    @test gr.param_coords[1] == 0.0
+    @test_throws ErrorException gr = GaussRule(1,5)
+    @test_throws AssertionError gr = GaussRule(4,1)
+
+    @test_throws ErrorException tr = TriRule(4)
+
+    @test_throws ErrorException tr = TetRule(3)
+end
+end
+using mmquadrature3
+mmquadrature3.test()
