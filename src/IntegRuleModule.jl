@@ -104,7 +104,7 @@ end
 Gauss rule.
 """
 function GaussRule(dim=1, order=1)
-    @assert 1 <= dim <= 3
+    @assert 1 <= dim <= 3 "Gauss rule of dimension $(dim) not available"
     if     (order==1)
         param_coords = [ 0.0 ];
         weights  = [ 2.0 ];
@@ -140,7 +140,7 @@ function GaussRule(dim=1, order=1)
                 r=r+1
             end
         end
-    elseif (dim==3)
+    else # (dim==3)
         pc=param_coords;
         w=weights;
         npts=order^3
@@ -156,8 +156,6 @@ function GaussRule(dim=1, order=1)
                 end
             end
         end
-    else
-        error("Gauss rule of dimension $(dim) not available")
     end
     return GaussRule(order,dim,npts,param_coords,weights)
 end

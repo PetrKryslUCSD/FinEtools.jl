@@ -239,3 +239,60 @@ end
 end
 using mmmvvoxelmm9
 mmmvvoxelmm9.test()
+
+module mvoxelmm12
+using FinEtools
+using Base.Test
+function test()
+    V = VoxelBoxVolume(Int, 5*[5,6,7], [4.0, 4.0, 5.0])
+
+    b1 = solidbox((0.0, 0.0, 0.0), (1.0, 4.0, 5.0))
+    b2 = solidbox((0.0, 0.0, 0.0), (4.0, 1.0, 5.0))
+    fillsolid!(V, unionop(b1, b2), 2)
+    fillsolid!(V, complementop(unionop(b1, b2)), 1)
+
+    File = "mvoxelmm12.vtk"
+    vtkexport(File, V)
+    @async run(`"paraview.exe" $File`)
+    # try rm(File) catch end
+
+    # println("$(V.data[15,13,12])")
+    # println("$(V.data[1,1,12])")
+    @test (V.data[15,13,12]==1)
+    @test (V.data[1,1,12]==2)
+end
+end
+using mvoxelmm12
+mvoxelmm12.test()
+
+module mvoxelmm13
+using FinEtools
+using Base.Test
+function test()
+    V = VoxelBoxVolume(Int, 7*[5,6,7], [4.0, 4.0, 5.0])
+
+    for k = 1:size(V, 3)
+        for j = 1:size(V, 2)
+            for i = 1:size(V, 1)
+                V.data[i, j, k] = 35 ^ 2-(i^2+j^2+k^2)
+            end
+        end
+    end
+
+    threshold_value, voxel_below, voxel_above = 20, 1, 0
+    V = threshold(V, threshold_value, voxel_below, voxel_above)
+
+    # File = "mvoxelmm13.vtk"
+    # vtkexport(File, V)
+    # @async run(`"paraview.exe" $File`)
+    # try rm(File) catch end
+
+    # println("$(V.data[15,13,12])")
+    # println("$(V.data[1,1,12])")
+    # @test (V.data[15,13,12]==1)
+    @test (V.data[1,1,1]==0)
+    @test (V.data[end,end,end] != 0)
+end
+end
+using mvoxelmm13
+mvoxelmm13.test()
