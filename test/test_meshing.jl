@@ -104,9 +104,6 @@ using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
 using Base.Test
 function test()
-
-
-
   ## Solid cylinder/taper/sphere—-temperature loading; quadratic brick mesh
 
   # The mesh  will be created in a very coarse representation from the
@@ -664,3 +661,31 @@ end
 end
 using mmfflood2
 mmfflood2.test()
+
+module mt4orientation2
+using FinEtools
+using FinEtools.MeshImportModule
+using FinEtools.MeshExportModule
+using Base.Test
+function test()
+    xs = collect(linspace(0.0, 2.0, 5))
+    ys = collect(linspace(0.0, 1.0, 6).^2)
+    zs = collect(linspace(0.0, 1.0, 3))
+    fens, fes = T4blockx(xs, ys, zs, :a)
+    @test count(fes) == 240
+    fens, fes = T4blockx(xs, ys, zs, :b)
+    @test count(fes) == 240
+    fens, fes = T4blockx(xs, ys, zs, :ca)
+    @test count(fes) == 200
+    fens, fes = T4blockx(xs, ys, zs, :cb)
+    @test count(fes) == 200
+    # show(fes.conn[count(fes), :])
+    # File = "Slot-coarser.vtk"
+    # MeshExportModule.vtkexportmesh(File, fens, fes)
+    # rm(File)
+    # @test fes.conn[count(fes), :] == [143, 140, 144, 138, 361, 363, 176, 519, 781, 520]
+    # @async run(`"paraview.exe" $File`)
+end
+end
+using mt4orientation2
+mt4orientation2.test()

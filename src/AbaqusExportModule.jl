@@ -23,16 +23,13 @@ using FinEtools.FENodeSetModule
 import Base.open
 import Base.close
 
-export AbaqusExporter
-export close
-export HEADING, COMMENT
-export PART, END_PART, ASSEMBLY, END_ASSEMBLY, INSTANCE, END_INSTANCE
-export NODE, ELEMENT, NSET_NSET, ELSET_ELSET, ORIENTATION, MATERIAL,
-  ELASTIC, EXPANSION, DENSITY, SECTION_CONTROLS, SOLID_SECTION,
-  SURFACE_SECTION
-export STEP_PERTURBATION_STATIC, STEP_FREQUENCY, BOUNDARY, DLOAD, CLOAD,
-  TEMPERATURE,
-  END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
+export AbaqusExporter, close
+export HEADING, COMMENT, PART, END_PART, ASSEMBLY, END_ASSEMBLY, INSTANCE,
+    END_INSTANCE, NODE, ELEMENT, NSET_NSET, ELSET_ELSET, ORIENTATION, MATERIAL,
+    ELASTIC, EXPANSION, DENSITY, SECTION_CONTROLS, SOLID_SECTION,
+    SURFACE_SECTION, STEP_PERTURBATION_STATIC, STEP_FREQUENCY,
+    STEP_PERTURBATION_BUCKLE, BOUNDARY, DLOAD, CLOAD, TEMPERATURE,
+    END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
 
 mutable struct AbaqusExporter
   filename::AbstractString
@@ -341,22 +338,22 @@ function SOLID_SECTION(self::AbaqusExporter, MATERIAL::AbstractString,
   println(self.ios, "$(thickness),");
 end
 
-"""
-    HOURGLASS(self::AbaqusExporter, KIND::AbstractString, VALUE::F) where {F}
-
-Write out the `*HOURGLASS` option.
-
-```
-Example:
-*SOLID SECTION,ELSET=SOLID3,MATERIAL=MAT,CONTROL=A
-*HOURGLASS STIFFNESS
-5.E8
-```
-"""
-function HOURGLASS(self::AbaqusExporter, KIND::AbstractString, VALUE::F) where {F}
-  println(self.ios, "*HOURGLASS " * KIND);
-  println(self.ios, "$( VALUE )");
-end
+# """
+#     HOURGLASS(self::AbaqusExporter, KIND::AbstractString, VALUE::F) where {F}
+#
+# Write out the `*HOURGLASS` option.
+#
+# ```
+# Example:
+# *SOLID SECTION,ELSET=SOLID3,MATERIAL=MAT,CONTROL=Ac
+# *HOURGLASS STIFFNESS
+# 5.E8
+# ```
+# """
+# function HOURGLASS(self::AbaqusExporter, KIND::AbstractString, VALUE::F) where {F}
+#   println(self.ios, "*HOURGLASS " * KIND);
+#   println(self.ios, "$( VALUE )");
+# end
 
 """
     SURFACE_SECTION(self::AbaqusExporter, ELSET::AbstractString)
