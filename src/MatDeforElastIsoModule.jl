@@ -21,59 +21,59 @@ thermalstrain!::MTHS
 ```
 """
 struct  MatDeforElastIso{MR<:DeforModelRed,
-  MTAN<:Function, MUPD<:Function, MTHS<:Function} <: MatDefor
-  mr::Type{MR}
-  mass_density::FFlt # mass density
-  E::FFlt # Young's modulus
-  nu::FFlt # Poisson ratio
-  CTE::FFlt # Coefficient of Thermal Expansion
-  D::FFltMat # cached matrix of 3D tangent moduli
-  tangentmoduli!::MTAN
-  update!::MUPD
-  thermalstrain!::MTHS
+    MTAN<:Function, MUPD<:Function, MTHS<:Function} <: MatDefor
+    mr::Type{MR}
+    mass_density::FFlt # mass density
+    E::FFlt # Young's modulus
+    nu::FFlt # Poisson ratio
+    CTE::FFlt # Coefficient of Thermal Expansion
+    D::FFltMat # cached matrix of 3D tangent moduli
+    tangentmoduli!::MTAN
+    update!::MUPD
+    thermalstrain!::MTHS
 end
 
 function threedD(E::FFlt, nu::FFlt)
     lambda = E * nu / (1 + nu) / (1 - 2*(nu));
-  mu = E / 2. / (1+nu);
-  D = lambda * m1 * m1' + 2. * mu * mI;
-  return D
+    mu = E / 2. / (1+nu);
+    D = lambda * m1 * m1' + 2. * mu * mI;
+    return D
 end
 
 function MatDeforElastIso(mr::Type{DeforModelRed3D},
-  mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
-  return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
+    mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
+    return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
     tangentmoduli3d!, update3d!, thermalstrain3d!)
 end
 
 function MatDeforElastIso(mr::Type{DeforModelRed2DStress},
-  mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
-  return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
+    mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
+    return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
     tangentmoduli2dstrs!, update2dstrs!, thermalstrain2dstrs!)
 end
 
 function MatDeforElastIso(mr::Type{DeforModelRed2DStrain},
-  mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
-  return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
+    mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
+    return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
     tangentmoduli2dstrn!, update2dstrn!, thermalstrain2dstrn!)
 end
 
 function MatDeforElastIso(mr::Type{DeforModelRed2DAxisymm},
-  mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
-  return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
+    mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
+    return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
     tangentmoduli2daxi!, update2daxi!, thermalstrain2daxi!)
 end
 
 function MatDeforElastIso(mr::Type{DeforModelRed1D},
-  mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
-  return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
+    mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
+    return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
     tangentmoduli1d!, update1d!, thermalstrain1d!)
 end
 
 function MatDeforElastIso(mr::Type{MR}, E::FFlt, nu::FFlt) where {MR}
-  mass_density = 1.0
-  CTE = 0.0
-  return MatDeforElastIso(mr, mass_density, E, nu, CTE)
+    mass_density = 1.0
+    CTE = 0.0
+    return MatDeforElastIso(mr, mass_density, E, nu, CTE)
 end
 
 ################################################################################
