@@ -196,13 +196,6 @@ function test()
     vtkexport(File, V)
     # @async run(`"paraview.exe" $File`)
     try rm(File) catch end
-
-    # println("$(V.data[7,13,12])")
-    # println("$(V.data[1,12,12])")
-    # println("$(V.data[12,10,5])")
-    # @test (V.data[7,13,12]==1)
-    # @test (V.data[1,12,12]==2)
-    # @test (V.data[12,10,5]==2)
 end
 end
 using mmmvvoxelmm8
@@ -253,8 +246,8 @@ function test()
 
     File = "mvoxelmm12.vtk"
     vtkexport(File, V)
-    @async run(`"paraview.exe" $File`)
-    # try rm(File) catch end
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
 
     # println("$(V.data[15,13,12])")
     # println("$(V.data[1,1,12])")
@@ -274,7 +267,7 @@ function test()
     for k = 1:size(V, 3)
         for j = 1:size(V, 2)
             for i = 1:size(V, 1)
-                V.data[i, j, k] = 35 ^ 2-(i^2+j^2+k^2)
+                V.data[i, j, k] = 35^2-(i^2+j^2+k^2)
             end
         end
     end
