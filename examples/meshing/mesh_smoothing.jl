@@ -23,7 +23,7 @@ println("$(fens.xyz[Int(N^2/2), :] )")
 
 fixedv = falses(count(fens))
 fixedv[bnl] = true
-fens, fes = meshsmoothing(fens, fes; fixedv = fixedv, method = :taubin, npass = 100)
+fens = meshsmoothing(fens, fes; fixedv = fixedv, method = :taubin, npass = 100)
 
 println("$(fens.xyz[Int(N^2/2), :] )")
 

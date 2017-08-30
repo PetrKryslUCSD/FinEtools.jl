@@ -1,7 +1,7 @@
 using FinEtools
 
 println("""
-Meshing  for an L-shaped membrane.
+Meshing an L-shaped membrane: merging multiple meshes.
 """)
 
 t0 = time()

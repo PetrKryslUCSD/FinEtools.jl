@@ -1,10 +1,10 @@
 module junk
 
 using FinEtools
-using FinEtools.MeshImportModule
+using FinEtools.MeshImportModule: import_NASTRAN
 using FinEtools.MeshExportModule
 
-fens, fes = MeshImportModule.import_NASTRAN("C:/Users/Petr Krysl/Dropbox/Julia/FinEtools_Examples/meshing/Slot-coarser.nas")
+fens, fes = import_NASTRAN("$(@__DIR__)" * "/Slot-coarser.nas")
 File = "Slot-coarser.vtk"
 MeshExportModule.vtkexportmesh(File, fens, fes)
 @async run(`"paraview.exe" $File`)

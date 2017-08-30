@@ -2,12 +2,11 @@ module junk
 
 using FinEtools
 using FinEtools.MeshExportModule
-using FinEtools.MeshImportModule
+using FinEtools.MeshImportModule: import_ABAQUS
 
 
 
-
-fens, fesarray = MeshImportModule.import_ABAQUS("./examples/meshing/NLE10-coarse-T10.inp")
+fens, fesarray = import_ABAQUS("$(@__DIR__)/" * "NLE10-coarse-T10.inp")
 
 File = "LE10NAFEMS_T10.vtk"
 MeshExportModule.vtkexportmesh(File, fens, fesarray[1])
