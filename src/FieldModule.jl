@@ -431,6 +431,29 @@ function setebc!(self::Field, fenids::FIntVec)
 end
 
 """
+    setebc!(self::Field, fenid::FInt)
+
+Set the EBCs (essential boundary conditions).
+
+Suppress all degrees of freedom at the given node.
+
+`fenid`         - One integer as a node identifier
+
+Note:  Any call to setebc!() potentially changes the current assignment
+which degrees of freedom are free and which are fixed
+and therefore is presumed to invalidate the
+current degree-of-freedom numbering. In such a case this method sets
+`nfreedofs = 0`; and  `dofnums=0`.
+"""
+function setebc!(self::Field, fenid::FInt)
+    Zer = zero(eltype(self.fixed_values[1]))
+    for comp = 1:size(self.values, 2)
+        setebc!(self, [fenid], true, comp, Zer)
+    end
+    return self
+end
+
+"""
     setebc!(self::Field)
 
 Set the EBCs (essential boundary conditions).
