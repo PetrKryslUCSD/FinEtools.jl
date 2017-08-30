@@ -1,7 +1,7 @@
 """
     DeforModelRedModule
 
-Module for  model reduction in models of deformation.  
+Module for  model reduction in models of deformation.
 """
 module DeforModelRedModule
 
@@ -26,7 +26,7 @@ struct DeforModelRed3D <: DeforModelRed
 end
 
 """
-    nstsstn(::Type{DeforModelRed1D})::FInt
+    nstsstn(::Type{DeforModelRed})::FInt
 
 How many stress components involved in the balance equation (and how many
 strain components) are there for each model reduction type?
