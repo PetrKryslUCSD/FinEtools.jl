@@ -7,6 +7,8 @@ module ForceIntensityModule
 
 using FinEtools.FTypesModule
 
+export ForceIntensity, updateforce!
+
 """
     ForceIntensity{T<:Number, F<:Function}
 
@@ -31,10 +33,9 @@ getforce!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
 The buffer `forceout` is filled with the value  of the force.
 """
 struct ForceIntensity{T<:Number, F<:Function}
-  computeforce!::F # function to update the force
-  force::FVec{T}    # buffer where the current value of the force can be retrieved
+    computeforce!::F # function to update the force
+    force::FVec{T}    # buffer where the current value of the force can be retrieved
 end
-export ForceIntensity
 
 """
     ForceIntensity(::Type{T}, ndofn::FInt,
@@ -53,9 +54,9 @@ location XYZ, using if appropriate the information supplied in the Jacobian
 matrix `tangents`, and the label of the finite element, `fe_label`.
 """
 function ForceIntensity(::Type{T}, ndofn::FInt,
-  computeforce!::F) where {T<:Number, F<:Function}
-  # Allocate the buffer to be ready for the first call
-  return ForceIntensity(computeforce!, zeros(T, ndofn));
+    computeforce!::F) where {T<:Number, F<:Function}
+    # Allocate the buffer to be ready for the first call
+    return ForceIntensity(computeforce!, zeros(T, ndofn));
 end
 
 """
@@ -64,11 +65,11 @@ end
 Construct force intensity when the constant force vector is given.
 """
 function ForceIntensity(force::FVec{T}) where {T<:Number}
-  function computeforce!(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    # do nothing:  the force is already in the buffer
-    return forceout
-  end
-  return ForceIntensity(computeforce!, deepcopy(force));
+    function computeforce!(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+        # do nothing:  the force is already in the buffer
+        return forceout
+    end
+    return ForceIntensity(computeforce!, deepcopy(force));
 end
 
 """
@@ -78,7 +79,7 @@ Construct force intensity when the force is given as a scalar value.
 The dimension of the force vector in this case is 1.
 """
 function ForceIntensity(force::T) where {T<:Number}
-  return ForceIntensity(T[force]);
+    return ForceIntensity(T[force]);
 end
 
 """
@@ -91,10 +92,9 @@ After the return from this function the updated force can be read from the
 buffer as `self.force`.
 """
 function updateforce!(self::ForceIntensity, XYZ::FFltMat,
-  tangents::FFltMat, fe_label::FInt)
-  self.computeforce!(self.force, XYZ, tangents, fe_label)
-  return self.force
+    tangents::FFltMat, fe_label::FInt)
+    self.computeforce!(self.force, XYZ, tangents, fe_label)
+    return self.force
 end
-export updateforce!
 
 end

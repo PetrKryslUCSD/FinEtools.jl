@@ -472,6 +472,27 @@ function  rotstressvec(::Type{DeforModelRed2DAxisymm},  outstress::FFltVec,
 end
 
 
+################################################################################
+# 1-D stress model
+
+"""
+    rotstressvec(::Type{DeforModelRed2DAxisymm},  outstress::FFltVec,
+      instress::FFltVec,  Rm::FFltMat)
+
+Rotate the stress vector by the supplied rotation matrix.
+
+Calculate the rotation of the stress vector to the
+'bar' coordinate system given by the columns of the rotation matrix `Rm`.
+
+`Rm` = columns are components of 'bar' basis vectors on the 'plain'
+     basis vectors
+"""
+function  rotstressvec(::Type{DeforModelRed1D},  outstress::FFltVec,
+  instress::FFltVec,  Rm::FFltMat)
+  copy!(outstress, instress)
+  return outstress
+end
+
 
 
 
