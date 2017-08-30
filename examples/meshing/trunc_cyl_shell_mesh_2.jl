@@ -36,6 +36,6 @@ println("  after merging  = $(count(fens))")
 
 println("Mesh generation ($(time() - t0) sec)")
 
-File =  "unit_cube_modes.vtk"
+File =  "trunc_cyl_shell_mesh_2.vtk"
 vtkexportmesh(File, fens, fes)
 @async run(`"paraview.exe" $File`)

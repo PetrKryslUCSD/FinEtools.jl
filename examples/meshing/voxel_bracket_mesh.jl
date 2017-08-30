@@ -8,7 +8,7 @@ h1 = solidcylinder((2.0, 2.5, 2.5), (1.0, 0.0, 0.0), 00.75)
 fillsolid!(V, differenceop(unionop(b1, b2), h1), 1)
 
 fens, fes = H8voximg(V.data, vec([voxeldims(V)...]), [1])
-fens, fes = meshsmoothing(fens, fes; npass = 5)
+fens = meshsmoothing(fens, fes; npass = 5)
 println("count(fes) = $(count(fes))")
 
 File = "voxel_bracket_mesh.vtk"
