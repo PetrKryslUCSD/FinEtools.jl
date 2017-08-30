@@ -283,3 +283,7 @@ the real material.
 -- For the QR factorization use qrfact!(A, pivot=Val(false))
 
 -- Return additional data from Abaqus  reader  as a dictionary.
+
+-- This is a bit of a puzzle: How to transform (rotate) stresses for
+  lower-dimensional  finite elements embedded in higher dimensional spaces?
+  The transformation matrix is rectangular, not square.
