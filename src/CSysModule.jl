@@ -144,9 +144,9 @@ function gen_iso_csmat!(csmatout::FFltMat,
     else # lower-dimensional finite element embedded in space of higher dimension
         @assert 0 < mdim < 3
         e1 = tangents[:,1]/norm(tangents[:,1]);
-        if mdim == 1 # curve -like finite element
+        if mdim == 1 # curve-like finite element
             copy!(csmatout, e1);
-        elseif mdim == 2 # surface -like finite element
+        elseif mdim == 2 # surface-like finite element
             n = RotationUtilModule.cross3(e1, vec(tangents[:,2]/norm(tangents[:,2])));
             e2 = RotationUtilModule.cross3(n, e1);
             e2 = e2/norm(e2);
