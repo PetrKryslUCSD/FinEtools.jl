@@ -59,4 +59,4 @@ println("Total time elapsed = ",time() - t0,"s")
 
 # Postprocessing
 vtkexportmesh("annulusmod.vtk", fes.conn, [geom.values Temp.values],
-FinEtools.MeshExportModule.Q8; scalars=[("Temperature", Temp.values)])
+FinEtools.MeshExportModule.Q4; scalars=[("Temperature", Temp.values)])

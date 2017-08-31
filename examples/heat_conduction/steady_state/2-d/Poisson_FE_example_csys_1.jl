@@ -43,9 +43,9 @@ List = vcat(l1, l2, l3, l4)
 
 t1 = time()
 
-material = MaterialHeatDiffusion(thermal_conductivity)
+material = MatHeatDiff(thermal_conductivity)
 
-femm = FEMMHeatDiffusion(FEMMBase(fes, TriRule(1), CSys(Rm)), material)
+femm = FEMMHeatDiff(GeoD(fes, TriRule(1), CSys(Rm)), material)
 
 println("Conductivity")
 @time K = conductivity(femm, geom, Temp)
@@ -53,7 +53,7 @@ println("Nonzero EBC")
 @time F2 = nzebcloadsconductivity(femm, geom, Temp);
 println("Internal heat generation")
 fi = ForceIntensity(FFlt[Q]);
-@time F1 = distribloads(femm.femmbase, geom, Temp, fi, 3);
+@time F1 = distribloads(femm, geom, Temp, fi, 3);
 
 println("Factorization")
 @time K = cholfact(K)

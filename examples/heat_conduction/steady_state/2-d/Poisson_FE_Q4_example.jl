@@ -40,8 +40,8 @@ numberdofs!(Temp)
 
 t1 = time()
 
-m = MaterialHeatDiffusion(thermal_conductivity)
-femm = FEMMHeatDiffusion(FEMMBase(fes, GaussRule(2, 2)), m)
+m = MatHeatDiff(thermal_conductivity)
+femm = FEMMHeatDiff(GeoD(fes, GaussRule(2, 2)), m)
 
 println("Conductivity")
 @time K=conductivity(femm, geom, Temp)
@@ -50,8 +50,8 @@ println("Conductivity")
 println("Nonzero EBC")
 @time F2 = nzebcloadsconductivity(femm, geom, Temp);
 println("Internal heat generation")
-fi = ForceIntensity(FFlt, getsource!);
-@time F1 = distribloads(femm.femmbase, geom, Temp, fi, 3);
+fi = ForceIntensity(FFlt, 1, getsource!);
+@time F1 = distribloads(femm, geom, Temp, fi, 3);
 
 println("Factorization")
 @time K = cholfact(K)

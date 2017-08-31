@@ -28,8 +28,8 @@ l4  = selectnode(fens; box=[0. A A A], inflate = 1.0/N/100.0)
 
 essential1 = FDataDict("node_list"=>vcat(l1, l2, l3, l4),
 "temperature"=>truetempf);
-material = MaterialHeatDiffusion(thermal_conductivity)
-femm = FEMMHeatDiffusion(FEMMBase(fes, TriRule(1)), material)
+material = MatHeatDiff(thermal_conductivity)
+femm = FEMMHeatDiff(GeoD(fes, TriRule(1)), material)
 region1 = FDataDict("femm"=>femm, "Q"=>magn)
 # Make model data
 modeldata= FDataDict("fens"=> fens,
@@ -38,7 +38,7 @@ modeldata= FDataDict("fens"=> fens,
 
 
 # Call the solver
-modeldata = FinEtools.AlgoHeatDiffusionModule.steadystate(modeldata)
+modeldata = FinEtools.AlgoHeatDiffModule.steadystate(modeldata)
 
 println("Total time elapsed = ",time() - t0,"s")
 
@@ -50,8 +50,7 @@ function errfh(loc,val)
     return ((exact-val)*exact)[1]
 end
 
-femm.femmbase.integration_rule = TriRule(6)
-E = integratefieldfunction(femm.femmbase, geom, Temp, errfh, 0.0, m=3)
+E = integratefieldfunction(femm, geom, Temp, errfh, 0.0, m=3)
 println("Error=$E")
 
 # Postprocessing

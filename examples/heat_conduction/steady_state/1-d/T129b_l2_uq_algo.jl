@@ -1,5 +1,8 @@
 using FinEtools
 using FinEtools.AlgoHeatDiffModule
+using DataFrames
+using CSV
+
 
 L = 6.0;
 kappa = reshape([4.0], 1, 1);
@@ -31,10 +34,14 @@ geom=modeldata["geom"]
 Temp=modeldata["temp"]
 femm=modeldata["regions"][1]["femm"]
 
-using Plots
-plotly()
-plot(geom.values, Temp.values)
-gui()
+# using Plots
+# plotly()
+# plot(geom.values, Temp.values)
+# gui()
+df = DataFrame(x=vec(geom.values), T=vec(Temp.values))
+File = "T129b.CSV"
+CSV.write(File, df)
+@async run(`"paraview.exe" $File`)
 
 function errfh(loc,val)
     x = loc[1]
