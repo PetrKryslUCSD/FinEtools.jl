@@ -5063,7 +5063,7 @@ function test()
     end
 
     if true
-        solver = AlgoDeforLinearModule.gepbinvpwr2
+        solver = AlgoDeforLinearModule.ssit
         v0 = eye(size(K,1), 2*neigvs)
         tol = 1.0e-2
         maxiter = 20
@@ -5237,7 +5237,7 @@ function test()
     end
 
     if true
-        solver = AlgoDeforLinearModule.gepbinvpwr2
+        solver = AlgoDeforLinearModule.ssit
         v0 = eye(size(K,1), 2*neigvs)
         tol = 1.0e-2
         maxiter = 20
@@ -5733,7 +5733,7 @@ function test()
     U=  K\F
     scattersysvec!(u, U[:])
     @test norm(u.values  - [ 0.0         0.0
-                              0.0         0.0      
+                              0.0         0.0
                               0.0213333   0.0408366
                              -0.016       0.0461699
                               0.0426667   0.150091

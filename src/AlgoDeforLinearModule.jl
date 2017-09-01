@@ -768,11 +768,11 @@ function exportmode(modeldata::FDataDict)
 end
 
 """
-    gepbinvpwr2(K, M; nev::Int=6, evshift::FFlt = 0.0,
+    ssit(K, M; nev::Int=6, evshift::FFlt = 0.0,
         v0::FFltMat = Array{FFlt}(0, 0),
         tol::FFlt = 1.0e-3, maxiter::Int = 300, verbose::Bool=false)
 
-Block inverse power method.
+Subspace  Iteration (block inverse power) method.
 
 Block inverse power method for k smallest eigenvalues of the generalized
 eigenvalue problem
@@ -801,7 +801,7 @@ eigenvalue problem
 * `lamberr` = eigenvalue errors, defined as  normalized  differences  of
     successive  estimates of the eigenvalues
 """
-function gepbinvpwr2(K, M; nev::Int=6, evshift::FFlt = 0.0,
+function ssit(K, M; nev::Int=6, evshift::FFlt = 0.0,
     v0::FFltMat = Array{FFlt}(0, 0),
     tol::FFlt = 1.0e-3, maxiter::Int = 300, withrr::Bool=false,
     verbose::Bool=false)
@@ -820,11 +820,15 @@ function gepbinvpwr2(K, M; nev::Int=6, evshift::FFlt = 0.0,
     nconv = 0
     nmult = 0
     factor = cholfact(K+evshift*M)
+    Kv = zeros(size(K, 1), size(v, 2))
+    Mv = zeros(size(M, 1), size(v, 2))
     for i = 1:maxiter
         u = factor\(M*v)
         v, r = qr(u; thin=true)  # economy factorization
+        A_mul_B!(Kv, K, v)
+        A_mul_B!(Mv, M, v)
         for j = 1:nvecs
-            lamb[j] = dot(v[:, j], K*v[:, j]) / dot(v[:, j], M*v[:, j])
+            lamb[j] = dot(v[:, j], Kv[:, j]) / dot(v[:, j], Mv[:, j])
             lamberr[j] = abs(lamb[j] - plamb[j])/abs(lamb[j])
             converged[j] = lamberr[j] <= tol
         end
@@ -834,7 +838,7 @@ function gepbinvpwr2(K, M; nev::Int=6, evshift::FFlt = 0.0,
             break
         end
         if withrr
-            rrd,rrv = eig(transpose(v)*K*v, transpose(v)*M*v)
+            rrd,rrv = eig(transpose(v)*Kv, transpose(v)*Mv)
             ix = sortperm(abs.(rrd))
             rrd = rrd[ix]
             rrv = rrv[:, ix]
