@@ -66,7 +66,7 @@ if true
 end
 
 if true
-    solver = AlgoDeforLinearModule.gepbinvpwr2
+    solver = AlgoDeforLinearModule.ssit
     v0 = rand(size(K,1), 2*neigvs)
     tol = 1.0e-2
     maxiter = 20
