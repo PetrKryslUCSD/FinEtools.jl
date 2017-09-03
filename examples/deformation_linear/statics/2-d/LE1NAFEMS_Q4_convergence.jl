@@ -13,14 +13,15 @@ Thickness = 0.1*phun("m")
 
 
 sigyderrs = Dict{Symbol, FFltVec}()
+nelems = []
 
 for extrapolation in [:estimtrendpaper :default]
     sigyderrs[extrapolation] = FFltVec[]
     nelems = []
-    for n in [16, 32, 64]
+    for n in [16, 32, 64, 128]
         tolerance = 1.0/n/1000.; # Geometrical tolerance
 
-        fens,fes = Q4block(1.0, pi/2, n, n*2)
+        fens,fes = Q4block(1.0, pi/2, n, n)
 
         bdryfes = meshboundary(fes);
         icl = selectelem(fens, bdryfes, box=[1.0, 1.0, 0.0, pi/2], inflate=tolerance);
@@ -51,8 +52,7 @@ for extrapolation in [:estimtrendpaper :default]
         fi = ForceIntensity(FFlt, 2, pfun);
         F2 = distribloads(el1femm, geom, u, fi, 2);
 
-        # Note that the material object needs to be created with the proper
-        # model-dimension reduction in mind.  In this case that is the fully three-dimensional solid.
+        # Note that the material object needs to be created for plane stress.
         MR = DeforModelRed2DStress
 
         material = MatDeforElastIso(MR, E, nu)

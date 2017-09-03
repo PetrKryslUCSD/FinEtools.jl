@@ -108,7 +108,7 @@ MR = DeforModelRed2DStrain
 # corresponding to the angle, and the second
 # coordinate is the thickness in the radial direction.
 anglrrange = 90.0/180*pi;
-fens,fes =  Q8block(anglrrange, b-a, nc, nt);
+fens,fes =  T6block(anglrrange, b-a, nc, nt);
 
 # Extract the boundary  and mark the finite elements on the
 # interior surface.
@@ -152,7 +152,7 @@ F2 = distribloads(el1femm, geom, u, fi, 2);
 # Property and material
 material = MatDeforElastIso(MR, E, nu)
 
-femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2)), material)
+femm = FEMMDeforLinear(MR, GeoD(fes, TriRule(3)), material)
 
 K =stiffness(femm, geom, u)
 #K=cholfact(K)
@@ -228,7 +228,7 @@ plotly()
 r = linspace(a,b,100);
 plot(r, radial_stress(r))
 # Plot the computed  integration-point data
-scatter!(idat.r, idat.s, m=:circle, color=:red)
+scatter!(idat.r, idat.s, m=:circle, color=:green)
 gui()
 
 
