@@ -411,7 +411,7 @@ function inspectintegpoints_extrapol(self::FEMMDeforLinearAbstractMS,
             stabmat.thermalstrain!(stabmat, qpthstrain, qpdT)
             # Material updates the state and returns the output
             sout = stabmat.update!(stabmat, qpstress, sout,
-            vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
+                vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
             if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
                 (length(sout1) >= length(sout)) || (sout1 = zeros(length(sout)))
                 rotstressvec(self.mr, sout1, sout, geod.mcsys.csmat')# To global coord sys
@@ -443,6 +443,8 @@ function inspectintegpoints_extrapol_paper(self::FEMMDeforLinearAbstractMS,
     conn, x, dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac,
     D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
     MeanN = deepcopy(Ns[1])
+    realmat = self.material
+    stabmat = self.stabilization_material
     # Sort out  the output requirements
     outputcsys = geod.mcsys; # default: report the stresses in the material coord system
     for arg in context
@@ -499,9 +501,9 @@ function inspectintegpoints_extrapol_paper(self::FEMMDeforLinearAbstractMS,
         qpdT = dot(vec(dTe), vec(MeanN));# Quadrature point temperature increment
         # Quadrature point quantities
         A_mul_B!(qpstrain, Bbar, ue); # strain in material coordinates
-        self.material.thermalstrain!(self.material, qpthstrain, qpdT)
+        realmat.thermalstrain!(realmat, qpthstrain, qpdT)
         # REAL Material updates the state and returns the output
-        rout = self.material.update!(self.material, qpstress, rout,
+        rout = realmat.update!(realmat, qpstress, rout,
             vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(rout1) >= length(rout)) || (rout1 = zeros(length(rout)))
@@ -509,7 +511,7 @@ function inspectintegpoints_extrapol_paper(self::FEMMDeforLinearAbstractMS,
             rotstressvec(self.mr, rout, rout1, outputcsys.csmat)# To output coord sys
         end
         # STABILIZATION Material updates the state and returns the output
-        sbout = self.stabilization_material.update!(self.stabilization_material, qpstress, sbout,
+        sbout = stabmat.update!(stabmat, qpstress, sbout,
             vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(sbout1) >= length(sbout)) || (sbout1 = zeros(length(sbout)))
@@ -523,9 +525,9 @@ function inspectintegpoints_extrapol_paper(self::FEMMDeforLinearAbstractMS,
             qpdT = dot(vec(dTe), vec(Ns[j]));# Quadrature point temperature increment
             #  Quadrature point quantities
             A_mul_B!(qpstrain, B, ue); # strain in material coordinates
-            self.material.thermalstrain!(self.stabilization_material, qpthstrain, qpdT)
+            stabmat.thermalstrain!(stabmat, qpthstrain, qpdT)
             # Material updates the state and returns the output
-            sout = self.stabilization_material.update!(self.stabilization_material, qpstress, sout,
+            sout = stabmat.update!(stabmat, qpstress, sout,
                 vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
             if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
                 (length(sout1) >= length(sout)) || (sout1 = zeros(length(sout)))
@@ -539,8 +541,8 @@ function inspectintegpoints_extrapol_paper(self::FEMMDeforLinearAbstractMS,
         p = R \ (transpose(Q) * sstoredout)
         for nod = 1:size(x, 1)
             #  Predict the value  of the output quantity at the node
-            trnd = p[1:3, :]
-            xdel = vec(x[nod, :]) - vec(loc)
+            trnd = @view p[1:3, :]
+            xdel = vec(@view x[nod, :]) - vec(loc)
             nout = rout - sbout + vec(reshape(xdel, 1, 3) * trnd) + p[4, :]
             # Call the inspector for the node location
             idat1 = inspector(idat1, i, conn, x, nout, x[nod, :]);

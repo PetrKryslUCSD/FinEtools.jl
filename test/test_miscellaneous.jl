@@ -1,4 +1,4 @@
-module mmmmmiscellaneous1mmmmmm
+module mmiscellaneous1mmm
 using FinEtools
 using Base.Test
 function test()
@@ -15,10 +15,10 @@ function test()
   @test bfes.conn == [1 2; 5 1; 2 3; 3 4; 4 8; 9 5; 8 12; 10 9; 11 10; 12 11]
 end
 end
-using mmmmmiscellaneous1mmmmmm
-mmmmmiscellaneous1mmmmmm.test()
+using mmiscellaneous1mmm
+mmiscellaneous1mmm.test()
 
-module mmmmstressconversionm
+module mstressconversionm
 using FinEtools
 using Base.Test
 function test()
@@ -83,10 +83,10 @@ function test()
 
 end
 end
-using mmmmstressconversionm
-mmmmstressconversionm.test()
+using mstressconversionm
+mstressconversionm.test()
 
-module mmmmmtwistedeexportmmmmm
+module mmtwistedeexportmm
 using FinEtools
 using Base.Test
 using FinEtools.AbaqusExportModule
@@ -174,11 +174,11 @@ function test()
   true
 end
 end
-using mmmmmtwistedeexportmmmmm
-mmmmmtwistedeexportmmmmm.test()
+using mmtwistedeexportmm
+mmtwistedeexportmm.test()
 
 
-module mmmmmtwistedeexport2mmmmm
+module mmtwistedeexport2mm
 using FinEtools
 using Base.Test
 using FinEtools.AbaqusExportModule
@@ -266,10 +266,10 @@ function test()
   true
 end
 end
-using mmmmmtwistedeexport2mmmmm
-mmmmmtwistedeexport2mmmmm.test()
+using mmtwistedeexport2mm
+mmtwistedeexport2mm.test()
 
-module mmmmrichmmmmmm
+module mrichmmm
 using FinEtools
 using FinEtools.AlgoBaseModule
 using Base.Test
@@ -288,8 +288,8 @@ function test()
 
 end
 end
-using mmmmrichmmmmmm
-mmmmrichmmmmmm.test()
+using mrichmmm
+mrichmmm.test()
 
 module mmmeasurementm1
 using FinEtools
