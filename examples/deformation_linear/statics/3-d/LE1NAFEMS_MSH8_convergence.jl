@@ -12,6 +12,7 @@ Thick0 = 0.1*phun("m")/2.0 # to account for the symmetry reduction
 
 sigyderrs = Dict{Symbol, FFltVec}()
 
+nelems = []
 for extrapolation in [:estimtrendpaper :estimtrend :default]
     sigyderrs[extrapolation] = FFltVec[]
     nelems = []
