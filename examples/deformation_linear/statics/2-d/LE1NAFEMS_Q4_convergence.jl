@@ -15,10 +15,10 @@ Thickness = 0.1*phun("m")
 sigyderrs = Dict{Symbol, FFltVec}()
 nelems = []
 
-for extrapolation in [:estimtrendpaper :default]
+for extrapolation in [:default]
     sigyderrs[extrapolation] = FFltVec[]
     nelems = []
-    for n in [16, 32, 64, 128]
+    for n in [16, 32, 64, 128, 256, 512]
         tolerance = 1.0/n/1000.; # Geometrical tolerance
 
         fens,fes = Q4block(1.0, pi/2, n, n)
@@ -74,9 +74,8 @@ for extrapolation in [:estimtrendpaper :default]
         println("$(time()-t0) [s];  displacement =$(thecorneru) [MM] as compared to reference [-0.10215,0] [MM]")
 
 
-        fld = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-            tonode = extrapolation)
-        println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
+        fld = fieldfromintegpoints(femm, geom, u, :Cauchy, 2)
+        println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) vs $(sigma_yD/phun("MPa")) [MPa]")
 
         println("$(n), $(fld.values[nl,1][1]/phun("MPa"))")
         push!(nelems, count(fes))
@@ -94,8 +93,7 @@ using DataFrames
 using CSV
 
 df = DataFrame(nelems=vec(nelems),
-    sigyderrtrend=vec(sigyderrs[:estimtrendpaper]),
     sigyderrdefault=vec(sigyderrs[:default]))
-File = "LE1NAFEMS_MSH8_convergence.CSV"
+File = "LE1NAFEMS_Q4_convergence.CSV"
 CSV.write(File, df)
 @async run(`"paraview.exe" $File`)

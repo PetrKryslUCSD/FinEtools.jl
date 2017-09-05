@@ -287,3 +287,5 @@ the real material.
 -- This is a bit of a puzzle: How to transform (rotate) stresses for
   lower-dimensional  finite elements embedded in higher dimensional spaces?
   The transformation matrix is rectangular, not square.
+
+-- 
