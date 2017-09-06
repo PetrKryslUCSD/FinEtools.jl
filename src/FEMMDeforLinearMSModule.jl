@@ -212,8 +212,10 @@ function stiffness(self::FEMMDeforLinearAbstractMS, assembler::A,
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(geod);
     conn, x, dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac,
     D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
-    self.material.tangentmoduli!(self.material, D, 0.0, 0.0, loc, 0)
-    self.stabilization_material.tangentmoduli!(self.stabilization_material,
+    realmat = self.material
+    stabmat = self.stabilization_material
+    realmat.tangentmoduli!(realmat, D, 0.0, 0.0, loc, 0)
+    stabmat.tangentmoduli!(stabmat,
     Dstab, 0.0, 0.0, loc, 0)
     startassembly!(assembler, size(elmat, 1), size(elmat, 2), count(geod.fes),
     u.nfreedofs, u.nfreedofs);
@@ -262,6 +264,8 @@ function inspectintegpoints_mean(self::FEMMDeforLinearAbstractMS,
     conn, x, dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac,
     D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
     MeanN = deepcopy(Ns[1])
+    realmat = self.material
+    stabmat = self.stabilization_material
     # Sort out  the output requirements
     outputcsys = geod.mcsys; # default: report the stresses in the material coord system
     for arg in context
@@ -310,10 +314,10 @@ function inspectintegpoints_mean(self::FEMMDeforLinearAbstractMS,
         qpdT = dot(vec(dTe), vec(MeanN));# Quadrature point temperature increment
         # Quadrature point quantities
         A_mul_B!(qpstrain, Bbar, ue); # strain in material coordinates
-        self.material.thermalstrain!(self.material, qpthstrain, qpdT)
+        realmat.thermalstrain!(realmat, qpthstrain, qpdT)
         # Material updates the state and returns the output
-        out = self.material.update!(self.material, qpstress, out,
-        vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
+        out = realmat.update!(realmat, qpstress, out,
+            vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(out1) >= length(out)) || (out1 = zeros(length(out)))
             rotstressvec(self.mr, out1, out, geod.mcsys.csmat')# To global coord sys
@@ -417,7 +421,7 @@ function inspectintegpoints_extrapol(self::FEMMDeforLinearAbstractMS,
                 rotstressvec(self.mr, sout1, sout, geod.mcsys.csmat')# To global coord sys
                 rotstressvec(self.mr, sout, sout1, outputcsys.csmat)# To output coord sys
             end
-            sstoredout[j, :] .= sout # store  the output for this quadrature point
+            sstoredout[j, :] .= self.phis[i] * sout # store output for this q. p.
         end # Loop over quadrature points
         #  Solve for the least-square fit parameters
         Q, R = qr(A)
@@ -541,9 +545,8 @@ function inspectintegpoints_extrapol_paper(self::FEMMDeforLinearAbstractMS,
         p = R \ (transpose(Q) * sstoredout)
         for nod = 1:size(x, 1)
             #  Predict the value  of the output quantity at the node
-            trnd = @view p[1:3, :]
             xdel = vec(@view x[nod, :]) - vec(loc)
-            nout = rout - sbout + vec(reshape(xdel, 1, 3) * trnd) + p[4, :]
+            nout = rout + self.phis[i] * (- sbout + vec(reshape(xdel, 1, 3) * p[1:3, :]) + p[4, :])
             # Call the inspector for the node location
             idat1 = inspector(idat1, i, conn, x, nout, x[nod, :]);
         end
