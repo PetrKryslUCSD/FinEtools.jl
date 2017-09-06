@@ -32,7 +32,7 @@ nu = 0.3;
 uaa, ubb, ucc, uab, uac, ubc,  ua,  ub,  uc,  ud =
 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0
 vaa, vbb, vcc, vab, vac, vbc,  va,  vb,  vc,  vd =
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+0.0, 0.0, 0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 waa, wbb, wcc, wab, wac, wbc,  wa,  wb,  wc,  wd =
 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 u(x, y, z) = uaa*x^2 + ubb*y^2 + ucc*z^2 + uab*x*y + uac*x*z + ubc*y*z + ua*x + ub*y + uc*z + ud
@@ -79,8 +79,9 @@ println("sigs = $(sigs)")
 println("")
 
 femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material)
+femm = associategeometry!(femm, geom)
 
-fld = fieldfromintegpoints(femm, geom, Uf, :Cauchy, 1; tonode = :estimtrendpaper)
+fld = fieldfromintegpoints(femm, geom, Uf, :Cauchy, 1; tonode = :estimtrend)
 println("fld.values = $(fld.values)")
 
 File =  "a.vtk"

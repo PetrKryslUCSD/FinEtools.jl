@@ -1,11 +1,12 @@
-module mLE1NAFEMS_MSH8m
+module mLE1NAFEMS_MST10m
 using FinEtools
 using FinEtools.MeshExportModule
 using DataFrames
 using CSV
 using Base.Test
 function test()
-    println("LE1NAFEMS, 3D version. MSH8"        )
+
+    println("LE1NAFEMS, 3D version. MST10"        )
     t0 = time()
 
     E = 210e3*phun("MEGA*PA");# 210e3 MPa
@@ -20,12 +21,12 @@ function test()
     for extrapolation in [:estimtrendpaper :estimtrend :default]
         sigyderrs[extrapolation] = FFltVec[]
         nelems = []
-        for ref in 0:1:5
+        for ref in 0:1:4
             Thickness = Thick0
             # Thickness = Thick0/2^ref
             tolerance = Thickness/2^ref/1000.; # Geometrical tolerance
 
-            fens,fes = H8block(1.0, pi/2, Thickness, 2^ref*5, 2^ref*6, 1)
+            fens,fes = T10block(1.0, pi/2, Thickness, 2^ref*5, 2^ref*6, 1; orientation = :b)
 
             bdryfes = meshboundary(fes);
             icl = selectelem(fens, bdryfes, box=[1.0, 1.0, 0.0, pi/2, 0.0, Thickness], inflate=tolerance);
@@ -49,7 +50,7 @@ function test()
             numberdofs!(u)
 
 
-            el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), GaussRule(2, 2)))
+            el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), TriRule(3)))
             function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
                 pt= [2.75/3.25*XYZ[1], 3.25/2.75*XYZ[2], 0.0]
                 forceout .=    vec(p*pt/norm(pt));
@@ -64,7 +65,7 @@ function test()
 
             material = MatDeforElastIso(MR, E, nu)
 
-            femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material)
+            femm = FEMMDeforLinearMST10(MR, GeoD(fes, TetRule(4)), material)
 
             # The geometry field now needs to be associated with the FEMM
             femm = associategeometry!(femm, geom)
@@ -96,15 +97,17 @@ function test()
         end
     end
 
+
+
     df = DataFrame(nelems=vec(nelems),
         sigyderrtrendpaper=vec(sigyderrs[:estimtrendpaper]),
         sigyderrtrend=vec(sigyderrs[:estimtrend]),
         sigyderrdefault=vec(sigyderrs[:default]))
-    File = "LE1NAFEMS_MSH8_convergence.CSV"
+    File = "LE1NAFEMS_MST10_convergence.CSV"
     CSV.write(File, df)
     @async run(`"paraview.exe" $File`)
 
 end
 end
-using mLE1NAFEMS_MSH8m
-mLE1NAFEMS_MSH8m.test()
+using mLE1NAFEMS_MST10m
+mLE1NAFEMS_MST10m.test()
