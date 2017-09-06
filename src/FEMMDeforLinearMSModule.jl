@@ -421,7 +421,7 @@ function inspectintegpoints_extrapol(self::FEMMDeforLinearAbstractMS,
                 rotstressvec(self.mr, sout1, sout, geod.mcsys.csmat')# To global coord sys
                 rotstressvec(self.mr, sout, sout1, outputcsys.csmat)# To output coord sys
             end
-            sstoredout[j, :] .= self.phis[i] * sout # store output for this q. p.
+            sstoredout[j, :] .= sout # store output for this q. p.
         end # Loop over quadrature points
         #  Solve for the least-square fit parameters
         Q, R = qr(A)
@@ -546,7 +546,7 @@ function inspectintegpoints_extrapol_paper(self::FEMMDeforLinearAbstractMS,
         for nod = 1:size(x, 1)
             #  Predict the value  of the output quantity at the node
             xdel = vec(@view x[nod, :]) - vec(loc)
-            nout = rout + self.phis[i] * (- sbout + vec(reshape(xdel, 1, 3) * p[1:3, :]) + p[4, :])
+            nout = rout - sbout + vec(reshape(xdel, 1, 3) * p[1:3, :]) + p[4, :]
             # Call the inspector for the node location
             idat1 = inspector(idat1, i, conn, x, nout, x[nod, :]);
         end
