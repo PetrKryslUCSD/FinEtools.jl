@@ -235,9 +235,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
 
     #     Select based on fe label
     if label!= nothing
-        if length(fes.label)<1
-            return [];
-        end
+        @assert length(fes.label) == size(fes.conn,1)
         for i=1:size(fes.conn,1)
             if label==fes.label[i]
                 felist[i] =i;   # matched this element
@@ -271,14 +269,14 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     # Helper function: calculate the normal to a boundary finite element
     function normal(Tangents)
         sdim, mdim = size(Tangents);
+        @assert (mdim==1) || (mdim==2)
         if     mdim==1 # 1-D fe
             N = [Tangents[2,1],-Tangents[1,1]];
-        elseif     mdim==2 # 2-D fe
+            return N/norm(N);
+        elseif mdim==2 # 2-D fe
             N=RotationUtilModule.cross(Tangents[:,1],Tangents[:,2])
-        else
-            error("Got an incorrect size of tangents");
+            return N/norm(N);
         end
-        return N=N/norm(N);
     end
 
     # Select by in which direction the normal of the fes face
@@ -286,9 +284,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
         xs =fens.xyz;
         sd =spacedim(fens);
         md =manifdim(fes);
-        if (md !=sd-1)
-            error("'Facing' selection of fes make sense only for Manifold dimension == Space dimension-1")
-        end
+        @assert (md == sd-1) "'Facing': only for Manifold dim. == Space dim.-1"
         param_coords =zeros(FFlt,1,md);
         Need_Evaluation = (typeof(direction) <: Function);
         if ( !Need_Evaluation)
@@ -450,7 +446,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     #   Should we consider the element only if all its nodes are in?
     allinvalue = (allin == nothing) || ((allin != nothing) && (allin))
     nodelist = selectnode(fens; args...);
-    # Select elements based upon whether there nodes are in the selected node list
+    # Select elements whose nodes are in the selected node list
     for i=1: size(fes.conn,1)
         I = intersect(fes.conn[i,:], nodelist);
         if allinvalue
