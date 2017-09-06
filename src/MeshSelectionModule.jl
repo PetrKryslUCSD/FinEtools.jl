@@ -549,11 +549,11 @@ function vselect(v::FFltMat; args...)
         end
     elseif nearestto != nothing
         location = vec(nearestto);
-        distance =  zeros(1,size(v,1));
+        distance =  zeros(size(v,1));
         for i=1:size(v,1)
             distance[i] = norm(location-vec(v[i,:]))
         end
-        Mv,j=findmin(distance)
+        Mv,j = findmin(distance)
         vlist[1] = j;
         nn=1;
     end
