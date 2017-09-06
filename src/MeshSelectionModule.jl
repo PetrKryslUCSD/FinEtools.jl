@@ -34,42 +34,6 @@ Select nodes using some criterion.
 See the function `vselect()` for examples of the criteria.
 """
 function selectnode(fens::FENodeSetModule.FENodeSet; args...)
-
-    # Example: fenode_select(fens,struct ('box',[1 -1 2 0 4 3])), selects
-    # nodes which are strictly allin the box
-    #  -1<= x <=1     0<= y <=2     3<= z <=4
-    #
-    # The option 'inflate' may be used to increase or decrease the extent of
-    # the box (or the distance) to make sure some nodes which would be on the
-    # boundary are either excluded or included.
-    #
-    # Example: fenode_select(fens,struct ('box',[1 -1 0 0 0 0],'inflate',0.01))
-    # selects nodes along the line segment between x=-1, and x= 1, where all
-    # the nodes in the box that one gets by inflating up the segment by 0.01 in
-    # all directions.
-    #
-    # distance
-    #
-    # Example: fenode_select(fens,struct ('distance',0.5, 'from',[1 -1])), selects
-    # nodes which are Less than 0.5 units removed from the point [1 -1].
-    #
-    # nearestto
-    #
-    # Example: fenode_select(fens,struct ('nearestto',[1 -1])), selects
-    # the node nearest to the point [1 -1].
-    #
-    # The option 'inflate' may be used to increase or decrease the extent of
-    # the box (or the distance) to make sure some nodes which would be on the
-    # boundary are either excluded or included.
-    #
-    # Example: fenode_select(fens,struct ('box',[1 -1 0 0 0 0],'inflate',0.01))
-    # selects nodes along the line segment between x=-1, and x= 1, where all
-    # the nodes in the box that one gets by inflating up the segment by 0.01 in
-    # all directions.
-    #
-    #
-    # See also: v_select
-
     nodelist = vselect(fens.xyz; args...)
     nodelist = squeeze(reshape(nodelist,1,length(nodelist)), 1);
     return nodelist
@@ -483,37 +447,32 @@ boundary are either excluded or included.
 
 ### distance
 ```
-list = selectnode(fens.xyz, distance=1.0+0.1/2^nref, from=[0. 0.], inflate=tolerance);
+list = selectnode(fens.xyz, distance=1.0+0.1/2^nref, from=[0. 0.],
+        inflate=tolerance);
 ```
-### plane
-### nearestto
 
+### plane
+```
+candidates = selectnode(fens, plane = [0.0 0.0 1.0 0.0], thickness = h/1000)
+```
+The keyword `plane` defines the plane by its normal in its distance from the
+origin. Nodes are selected they lie on the plane,  or near the plane within the
+distance `thickness` from the plane. The normal is assumed to be of unit length,
+if it isn't apply as such, it will be normalized internally.
+
+### nearestto
+```
+nh = selectnode(fens, nearestto = [R+Ro/2, 0.0, 0.0] )
+```
 """
 function vselect(v::FFltMat; args...)
-
-    # plane
-    #
-    # Example: v_select(v,struct ('plane',[[1, 0.5, 0.2], -2.3], 'thickness',0.5,')), selects
-    # nodes which are less than 0.5 units removed from the plane with normal [1, 0.5, 0.2],
-    # (the normal is assumed to be of unit length, if it isn't as supplied,
-    # it will be normalized internally), at signed distance -2.3 from the
-    # origin.
-    #
-    # nearestto
-    #
-    # Example: v_select(v,struct ('nearestto',[1 -1])), selects
-    # the node nearest to the point [1 -1].
-    #
-    # The option 'inflate' may be used to increase or decrease the extent of
-    # the box (or the distance) to make sure some locations which would be on the
-    # boundary are either excluded or included.
-    #
 
     # Helper functions
     inrange(rangelo::FFlt,rangehi::FFlt,x::FFlt) = ((x>=rangelo) && (x<=rangehi));
 
     # Extract arguments
-    box = nothing; distance = nothing; from = nothing; plane  =  nothing; thickness = nothing; nearestto = nothing; inflate = 0.0;
+    box = nothing; distance = nothing; from = nothing; plane  =  nothing;
+    thickness = nothing; nearestto = nothing; inflate = 0.0;
     for arg in args
         sy, val = arg
         if sy == :box
