@@ -5766,8 +5766,8 @@ mmmLE10expiAbaqus2mmmm.test()
 module mplate_w_hole_RECT_MSH8m
 using FinEtools
 using FinEtools.MeshExportModule
-using DataFrames
-using CSV
+# using DataFrames
+# using CSV
 using Base.Test
 function test()
     E = 210000*phun("MEGA*PA");# 210e3 MPa
@@ -5822,7 +5822,7 @@ function test()
 
             fens,fes = H8elliphole(Ri, Ri, Re, Re, Thickness,
                 2^ref*nCircumferential, 2^ref*nCircumferential, 2^ref*nRadial, 1)
-            @test count(fes) == 144    
+            @test count(fes) == 144
             # File =  "a.vtk"
             # vtkexportmesh(File, fes.conn, fens.xyz,
             #     FinEtools.MeshExportModule.H8)
