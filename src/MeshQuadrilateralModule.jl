@@ -75,7 +75,7 @@ end
 
 """
     Q4elliphole(xradius::FFlt, yradius::FFlt, L::FFlt, H::FFlt,
-      nL::FInt, nH::FInt, nT::FInt)
+      nL::FInt, nH::FInt, nW::FInt)
 
 Mesh of one quarter of a rectangular plate with an elliptical hole.
 
@@ -84,11 +84,11 @@ Mesh of one quarter of a rectangular plate with an elliptical hole.
     nL,nH= numbers of edges along the side of the plate; this also happens
       to be the number of edges along the circumference of the elliptical
       hole
-    nT= number of edges along the remaining straight edge (from the hole
+    nW= number of edges along the remaining straight edge (from the hole
       in the direction of the length),
 """
 function Q4elliphole(xradius::FFlt, yradius::FFlt, L::FFlt, H::FFlt,
-  nL::FInt, nH::FInt, nT::FInt)
+  nL::FInt, nH::FInt, nW::FInt)
   dA =pi/2/(nL +nH);
   tolerance = (xradius+yradius)/(nL*nH)/100;
   fens= nothing; fes= nothing;
@@ -97,7 +97,7 @@ function Q4elliphole(xradius::FFlt, yradius::FFlt, L::FFlt, H::FFlt,
           L (i-1)/nH*H;
           L (i)/nH*H;
           xradius*cos((i)*dA) yradius*sin((i)*dA)];
-    fens1,fes1 = Q4quadrilateral(xy,nT,1);
+    fens1,fes1 = Q4quadrilateral(xy,nW,1);
     if (fens == nothing)
       fens = fens1; fes = fes1;
     else
@@ -110,7 +110,7 @@ function Q4elliphole(xradius::FFlt, yradius::FFlt, L::FFlt, H::FFlt,
           (nL-i+1)/nL*L   H;
           (nL-i)/nL*L  H;
           xradius*cos((nH+i)*dA)   yradius*sin((nH+i)*dA)];
-    fens1,fes1 = Q4quadrilateral(xy,nT,1);
+    fens1,fes1 = Q4quadrilateral(xy,nW,1);
     fens,fes1,fes2 = MeshModificationModule.mergemeshes(fens1, fes1, fens, fes, tolerance);
     fes = FESetModule.cat(fes1, fes2);
   end

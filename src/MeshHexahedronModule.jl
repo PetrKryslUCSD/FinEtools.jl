@@ -5,10 +5,9 @@ Module for generation of  hexahedral meshes.
 """
 module MeshHexahedronModule
 
-export  H8block,  H8blockx,  H8sphere,  H8refine, H8hexahedron,
- H8extrudeQ4,  H8spheren, H8voximg,  H8compositeplatex
-export H8toH27,  H27block
-export H20block,  H8toH20
+export  H8block,  H8blockx,  H8sphere,  H8refine, H8hexahedron, H8extrudeQ4,
+    H8spheren, H8voximg,  H8compositeplatex, H8elliphole, H8toH27,  H27block,
+    H20block,  H8toH20
 
 
 using FinEtools.FTypesModule
@@ -17,6 +16,7 @@ using FinEtools.FENodeSetModule
 using FinEtools.MeshUtilModule
 using FinEtools.MeshModificationModule
 using FinEtools.MeshSelectionModule
+using FinEtools.MeshQuadrilateralModule: Q4elliphole
 
 """
     H8block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
@@ -284,44 +284,22 @@ function   H8toH27(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
     return fens, fes;
 end
 
-function H8hexahedron(xyz::FFltMat, nL::FInt, nW::FInt, nH::FInt;block_mesh_handle=nothing)
-# Mesh of a general hexahedron given by the location of the vertices.
-#
-# function [fens, fes] = H8_hexahedron(xyz, nL, nW, nH, block_mesh_handle)
-#
-# xyz = One vertex location per row; Either two rows (for a rectangular
-#      block given by the its corners),  or eight rows (general hexahedron).
-# nL,  nW,  nH = Divided into elements: nL,  nW,  nH in the first,  second,  and
-#      third direction.
-# Optional argument:
-# block_mesh_handle = function handle of the block-generating mesh function
-#      (having the signature of the function H8_block()).
-#
-# Output:
-# fens= finite element node set
-# fes = finite element set
-#
-#
-# Examples:
-#
-#     xyz = [3,  1,  6; -5,  2,  1];
-#     [fens, fes] = H8_hexahedron(xyz, 12, 3, 4);
-#     drawmesh({fens, fes}, 'fes', 'facecolor', 'red'); hold on
-#
-#     A=[0, 0, 0]; B=[0, 0, 2]; C=[0, 3, 2]; D=[0, 3, 0];
-#     E=[5, 0, 0]; F=[5, 0, 2]; G=[5, 3, 2]; H=[5, 3, 0];
-#     P=[3.75, 0, 0];
-#     [fens, fes] = H8_hexahedron([A;P;(D+H)/2;D;B;(B+F)/2;(C+G)/2;C], 2, 3, 4, []);
-#     drawmesh({fens, fes}, 'fes', 'facecolor', 'red'); hold on
-#
-#     A=[0, 0, 0]; B=[0, 0, 2]; C=[0, 3, 2]; D=[0, 3, 0];
-#     E=[5, 0, 0]; F=[5, 0, 2]; G=[5, 3, 2]; H=[5, 3, 0];
-#     P=[3.75, 0, 0];
-#     [fens, fes] = H8_hexahedron([A;P;(D+H)/2;D;B;(B+F)/2;(C+G)/2;C], 1, 2, 3, @H20_block);
-#     drawmesh({fens, fes}, 'nodes', 'fes', 'facecolor', 'none'); hold on
+"""
+    bar
 
+Mesh of a general hexahedron given by the location of the vertices.
+
+
+`xyz` = One vertex location per row; Either two rows (for a rectangular
+     block given by the its corners),  or eight rows (general hexahedron).
+`nL`,  `nW`,  `nH` = number of elements in each direction
+`blockfun` = Optional argument: function of the block-generating mesh function
+     (having the signature of the function `H8block()`).
+"""
+function H8hexahedron(xyz::FFltMat, nL::FInt, nW::FInt, nH::FInt; blockfun=nothing)
     npts=size(xyz, 1);
-    if npts==2
+    @assert (npts == 2) || (npts == 8) "Need 2 or 8 points"
+    if npts == 2
         lo=minimum(xyz, 1);
         hi=maximum(xyz, 1);
         xyz=[lo[1]  lo[2]  lo[3];
@@ -332,15 +310,13 @@ function H8hexahedron(xyz::FFltMat, nL::FInt, nW::FInt, nH::FInt;block_mesh_hand
             hi[1]  lo[2]  hi[3];
             hi[1]  hi[2]  hi[3];
             lo[1]  hi[2]  hi[3]];
-    elseif npts!=8
-        error("Need 2 or 8 points");
     end
 
-    if block_mesh_handle==nothing
-        block_mesh_handle =H8block; # default block type
+    if blockfun == nothing
+        blockfun = H8block; # default block type
     end
 
-    fens, fes= block_mesh_handle(2.0, 2.0, 2.0, nL, nW, nH);
+    fens, fes= blockfun(2.0, 2.0, 2.0, nL, nW, nH);
 
     dummy = FESetModule.FESetH8(reshape(collect(1:8), 1, 8))
     pxyz=fens.xyz;
@@ -740,6 +716,29 @@ function H8compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec)
     fes = cat(fes1,fes2);
   end
   return fens,fes
+end
+
+"""
+    H8elliphole(xradius::FFlt, yradius::FFlt, L::FFlt, H::FFlt, T::FFlt,
+        nL::FInt, nH::FInt, nW::FInt, nT::FInt)
+
+Mesh of one quarter of a rectangular plate with an elliptical hole.
+
+`xradius`,`yradius` = radii of the ellipse,
+`L`,`H` = dimensions of the plate,
+`T` = thickness of the plate
+`nL`,`nH`= numbers of edges along the side of the plate; this is also
+  the number of edges along the circumference of the elliptical hole
+`nW` = number of edges along the remaining straight edge (from the hole
+  in the radial direction),
+"""
+function H8elliphole(xradius::FFlt, yradius::FFlt, L::FFlt, H::FFlt, T::FFlt,
+    nL::FInt, nH::FInt, nW::FInt, nT::FInt)
+    fens,fes  =  Q4elliphole(xradius, yradius, L, H, nL, nH, nW)
+    fens.xyz = xyz3(fens)
+    ex(xyz, layer) = xyz + reshape(layer/nT*T*[0.0 0.0 1.0], size(xyz, 1), size(xyz, 2))
+    fens,fes  =  H8extrudeQ4(fens, fes, nT, ex);
+    return fens,fes
 end
 
 end
