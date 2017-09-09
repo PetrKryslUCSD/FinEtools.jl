@@ -546,7 +546,7 @@ function inspectintegpoints_trend_paper(self::FEMMDeforLinearAbstractMS,
         for nod = 1:size(x, 1)
             #  Predict the value  of the output quantity at the node
             xdel = vec(@view x[nod, :]) - vec(loc)
-            nout = rout - sbout + vec(reshape(xdel, 1, 3) * p[1:3, :]) + p[4, :]
+            @views nout = rout - sbout + vec(reshape(xdel, 1, 3) * p[1:3, :]) + p[4, :]
             # Call the inspector for the node location
             idat1 = inspector(idat1, i, conn, x, nout, x[nod, :]);
         end
