@@ -32,7 +32,7 @@ abstract type FEMMAbstractBase; end
 Class for base finite element modeling machine.
 """
 mutable struct FEMMBase{S<:FESet, F<:Function} <: FEMMAbstractBase
-  geod::GeoD{S, F} # geometry data finite element modeling machine
+    geod::GeoD{S, F} # geometry data finite element modeling machine
 end
 
 """
