@@ -46,12 +46,13 @@ function test()
 
     sigxderrs = Dict{Symbol, FFltVec}()
     sigyderrs = Dict{Symbol, FFltVec}()
-
-    nelems = []
-    for extrapolation in [:estimtrendpaper :estimtrend :default]
+    numelements = []
+    numnodes = []
+    for extrapolation in [:estimtrendpaper :estimtrend :estimmean]
         sigxderrs[extrapolation] = FFltVec[]
         sigyderrs[extrapolation] = FFltVec[]
-        nelems = []
+        numelements = []
+        numnodes = []
         for ref in 0:1:5
             # Thickness = H
             Thickness = H/2^ref
@@ -139,7 +140,8 @@ function test()
             sigxB = mean(sigx.values[nlB,1], 1)[1]
             sigxBtrue = sigmatt([0.0, Ri, 0.0])
             println("sig_x@B =$(sigxB/phun("MPa")) vs $(sigxBtrue/phun("MPa")) [MPa]")
-            push!(nelems, count(fes))
+            push!(numnodes, count(fens))
+            push!(numelements, count(fes))
             push!(sigxderrs[extrapolation], abs(sigxB/sigxBtrue - 1.0))
             push!(sigyderrs[extrapolation], abs(sigyA/sigyAtrue - 1.0))
             # File =  "a.vtk"
@@ -150,10 +152,10 @@ function test()
         end
     end
 
-    df = DataFrame(nelems=vec(nelems),
+    df = DataFrame(numelements=vec(numelements), numnodes=vec(numnodes),
         sigyderrtrendpaper=vec(sigyderrs[:estimtrendpaper]),
         sigyderrtrend=vec(sigyderrs[:estimtrend]),
-        sigyderrdefault=vec(sigyderrs[:default]))
+        sigyderrdefault=vec(sigyderrs[:estimmean]))
     File = "plate_w_hole_MSH8_convergence.CSV"
     CSV.write(File, df)
     @async run(`"paraview.exe" $File`)

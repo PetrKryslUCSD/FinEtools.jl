@@ -15,7 +15,7 @@ Thickness = 0.1*phun("m")
 sigyderrs = Dict{Symbol, FFltVec}()
 nelems = []
 
-for extrapolation in [:default]
+for extrapolation in [:estimmean]
     sigyderrs[extrapolation] = FFltVec[]
     nelems = []
     for n in [16, 32, 64, 128, 256, 512]
@@ -93,7 +93,7 @@ using DataFrames
 using CSV
 
 df = DataFrame(nelems=vec(nelems),
-    sigyderrdefault=vec(sigyderrs[:default]))
+    sigyderrdefault=vec(sigyderrs[:estimmean]))
 File = "LE1NAFEMS_Q4_convergence.CSV"
 CSV.write(File, df)
 @async run(`"paraview.exe" $File`)

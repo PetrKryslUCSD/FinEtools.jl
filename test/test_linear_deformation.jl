@@ -4708,7 +4708,7 @@ function test()
     # println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
     @test norm(thecorneru - [-0.0268854 0.0 -0.0919955]) < 1.0e-5
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :default)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimmean)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
     @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2650465514560634) < 1.0e-3
 
@@ -4818,7 +4818,7 @@ function test()
     # println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
     @test norm(thecorneru - [-0.0268854 0.0 -0.0919955]) < 1.0e-5
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :default)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimmean)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
     @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2650465514560634) < 1.0e-3
 
@@ -5915,7 +5915,7 @@ function test()
     # df = DataFrame(nelems=vec(nelems),
     #     sigyderrtrendpaper=vec(sigyderrs[:estimtrendpaper]),
     #     sigyderrtrend=vec(sigyderrs[:estimtrend]),
-    #     sigyderrdefault=vec(sigyderrs[:default]))
+    #     sigyderrdefault=vec(sigyderrs[:estimmean]))
     # File = "LE1NAFEMS_MSH8_convergence.CSV"
     # CSV.write(File, df)
     # @async run(`"paraview.exe" $File`)

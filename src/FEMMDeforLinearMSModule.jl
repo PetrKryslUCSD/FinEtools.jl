@@ -329,7 +329,7 @@ function inspectintegpoints_mean(self::FEMMDeforLinearAbstractMS,
     return idat; # return the updated inspector data
 end
 
-function inspectintegpoints_extrapol(self::FEMMDeforLinearAbstractMS,
+function inspectintegpoints_trend(self::FEMMDeforLinearAbstractMS,
     geom::NodalField{FFlt},  u::NodalField{T},
     dT::NodalField{FFlt},
     felist::FIntVec,
@@ -436,7 +436,7 @@ function inspectintegpoints_extrapol(self::FEMMDeforLinearAbstractMS,
     return idat1; # return the updated inspector data
 end
 
-function inspectintegpoints_extrapol_paper(self::FEMMDeforLinearAbstractMS,
+function inspectintegpoints_trend_paper(self::FEMMDeforLinearAbstractMS,
     geom::NodalField{FFlt},  u::NodalField{T},
     dT::NodalField{FFlt},
     felist::FIntVec,
@@ -595,14 +595,14 @@ function inspectintegpoints(self::FEMMDeforLinearAbstractMS,
         end
     end
     if tonode == :estimtrend
-        return inspectintegpoints_extrapol(self, geom, u, dT, felist,
-        inspector, idat, quantity; context...);
+        return inspectintegpoints_trend(self, geom, u, dT, felist,
+            inspector, idat, quantity; context...);
     elseif tonode == :estimtrendpaper
-        return inspectintegpoints_extrapol_paper(self, geom, u, dT, felist,
-        inspector, idat, quantity; context...);
-    else
+        return inspectintegpoints_trend_paper(self, geom, u, dT, felist,
+            inspector, idat, quantity; context...);
+    elseif tonode == :estimmean || true # DEFAULT
         return inspectintegpoints_mean(self, geom, u, dT, felist,
-        inspector, idat, quantity; context...);
+            inspector, idat, quantity; context...);
     end
 end
 

@@ -374,7 +374,7 @@ gathervalues_asmat!(u, thecorneru, nl);
 thecorneru = thecorneru/phun("mm")
 println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
 
-fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :default)#
+fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimmean)#
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 
 println("Mean-stress: $(fld.values[nl,1][1]/phun("MPa"))")
@@ -486,7 +486,7 @@ gathervalues_asmat!(u, thecorneru, nl);
 thecorneru = thecorneru/phun("mm")
 println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
 
-fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :default)#
+fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimmean)#
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 
 println("Mean-stress: $(fld.values[nl,1][1]/phun("MPa"))")
