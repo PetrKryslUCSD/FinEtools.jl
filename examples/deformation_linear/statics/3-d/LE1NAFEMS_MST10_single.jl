@@ -34,7 +34,7 @@ display(gyz)
 #
 # sigyderrs = Dict{Symbol, FFltVec}()
 #
-# for extrapolation in [:estimtrendpaper :estimtrend :estimmean]
+# for extrapolation in [:extraptrendpaper :extraptrend :extrapmean]
 #     sigyderrs[extrapolation] = FFltVec[]
 #     nelems = []
 #     for ref in 0:1:4
@@ -119,9 +119,9 @@ display(gyz)
 # using CSV
 #
 # df = DataFrame(nelems=vec(nelems),
-#     sigyderrtrendpaper=vec(sigyderrs[:estimtrendpaper]),
-#     sigyderrtrend=vec(sigyderrs[:estimtrend]),
-#     sigyderrdefault=vec(sigyderrs[:estimmean]))
+#     sigyderrtrendpaper=vec(sigyderrs[:extraptrendpaper]),
+#     sigyderrtrend=vec(sigyderrs[:extraptrend]),
+#     sigyderrdefault=vec(sigyderrs[:extrapmean]))
 # File = "LE1NAFEMS_MST10_convergence.CSV"
 # CSV.write(File, df)
 # @async run(`"paraview.exe" $File`)

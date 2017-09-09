@@ -12,7 +12,7 @@ Thick0 = 0.1*phun("m")/2.0 # to account for the symmetry reduction
 
 sigyderrs = Dict{Symbol, FFltVec}()
 
-for extrapolation in [:estimtrendpaper]
+for extrapolation in [:extraptrendpaper]
     sigyderrs[extrapolation] = FFltVec[]
     nelems = []
     for ref in 1:1
@@ -97,9 +97,9 @@ end
 # using CSV
 #
 # df = DataFrame(nelems=vec(nelems),
-#     sigyderrtrendpaper=vec(sigyderrs[:estimtrendpaper]),
-#     sigyderrtrend=vec(sigyderrs[:estimtrend]),
-#     sigyderrdefault=vec(sigyderrs[:estimmean]))
+#     sigyderrtrendpaper=vec(sigyderrs[:extraptrendpaper]),
+#     sigyderrtrend=vec(sigyderrs[:extraptrend]),
+#     sigyderrdefault=vec(sigyderrs[:extrapmean]))
 # File = "LE1NAFEMS_MST10_convergence.CSV"
 # CSV.write(File, df)
 # @async run(`"paraview.exe" $File`)

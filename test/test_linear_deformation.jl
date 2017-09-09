@@ -4708,16 +4708,16 @@ function test()
     # println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
     @test norm(thecorneru - [-0.0268854 0.0 -0.0919955]) < 1.0e-5
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimmean)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extrapmean)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
     @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2650465514560634) < 1.0e-3
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimtrend)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrend)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 # println("$(fld.values[nl,1][1]/phun("MPa"))")
     @test abs(fld.values[nl,1][1]/phun("MPa") - -5.543874813140925) < 1.0e-3
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimtrendpaper)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrendpaper)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 # println("$(fld.values[nl,1][1]/phun("MPa"))")
     @test abs(fld.values[nl,1][1]/phun("MPa") - -5.55851747065307) < 1.0e-3
@@ -4818,16 +4818,16 @@ function test()
     # println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
     @test norm(thecorneru - [-0.0268854 0.0 -0.0919955]) < 1.0e-5
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimmean)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extrapmean)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
     @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2650465514560634) < 1.0e-3
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimtrend)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrend)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 # println("$(fld.values[nl,1][1]/phun("MPa"))")
     @test abs(fld.values[nl,1][1]/phun("MPa") - -5.543874813140925) < 1.0e-3
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimtrendpaper)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrendpaper)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 # println("$(fld.values[nl,1][1]/phun("MPa"))")
     @test abs(fld.values[nl,1][1]/phun("MPa") - -5.55851747065307) < 1.0e-3
@@ -5712,7 +5712,7 @@ function test()
     # println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
 
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :estimtrend)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrend)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 
     # println("$((nc, nr, nt)), $(fld.values[nl,1][1]/phun("MPa"))")
@@ -5812,7 +5812,7 @@ function test()
     sigyderrs = Dict{Symbol, FFltVec}()
 
     nelems = []
-    for extrapolation in [:estimmean]
+    for extrapolation in [:extrapmean]
         sigyderrs[extrapolation] = FFltVec[]
         nelems = []
         for ref in [1]
@@ -5913,9 +5913,9 @@ function test()
     end
 
     # df = DataFrame(nelems=vec(nelems),
-    #     sigyderrtrendpaper=vec(sigyderrs[:estimtrendpaper]),
-    #     sigyderrtrend=vec(sigyderrs[:estimtrend]),
-    #     sigyderrdefault=vec(sigyderrs[:estimmean]))
+    #     sigyderrtrendpaper=vec(sigyderrs[:extraptrendpaper]),
+    #     sigyderrtrend=vec(sigyderrs[:extraptrend]),
+    #     sigyderrdefault=vec(sigyderrs[:extrapmean]))
     # File = "LE1NAFEMS_MSH8_convergence.CSV"
     # CSV.write(File, df)
     # @async run(`"paraview.exe" $File`)

@@ -594,13 +594,13 @@ function inspectintegpoints(self::FEMMDeforLinearAbstractMS,
             tonode = val
         end
     end
-    if tonode == :estimtrend
+    if tonode == :extraptrend
         return inspectintegpoints_trend(self, geom, u, dT, felist,
             inspector, idat, quantity; context...);
-    elseif tonode == :estimtrendpaper
+    elseif tonode == :extraptrendpaper
         return inspectintegpoints_trend_paper(self, geom, u, dT, felist,
             inspector, idat, quantity; context...);
-    elseif tonode == :estimmean || true # DEFAULT
+    elseif tonode == :extrapmean || true # DEFAULT
         return inspectintegpoints_mean(self, geom, u, dT, felist,
             inspector, idat, quantity; context...);
     end

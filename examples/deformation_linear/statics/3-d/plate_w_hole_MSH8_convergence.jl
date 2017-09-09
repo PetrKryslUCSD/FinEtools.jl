@@ -48,7 +48,7 @@ function test()
     sigyderrs = Dict{Symbol, FFltVec}()
     numelements = []
     numnodes = []
-    for extrapolation in [:estimtrendpaper :estimtrend :estimmean]
+    for extrapolation in [:extraptrendpaper :extraptrend :extrapmean]
         sigxderrs[extrapolation] = FFltVec[]
         sigyderrs[extrapolation] = FFltVec[]
         numelements = []
@@ -153,9 +153,9 @@ function test()
     end
 
     df = DataFrame(numelements=vec(numelements), numnodes=vec(numnodes),
-        sigyderrtrendpaper=vec(sigyderrs[:estimtrendpaper]),
-        sigyderrtrend=vec(sigyderrs[:estimtrend]),
-        sigyderrdefault=vec(sigyderrs[:estimmean]))
+        sigyderrtrendpaper=vec(sigyderrs[:extraptrendpaper]),
+        sigyderrtrend=vec(sigyderrs[:extraptrend]),
+        sigyderrdefault=vec(sigyderrs[:extrapmean]))
     File = "plate_w_hole_MSH8_convergence.CSV"
     CSV.write(File, df)
     @async run(`"paraview.exe" $File`)
