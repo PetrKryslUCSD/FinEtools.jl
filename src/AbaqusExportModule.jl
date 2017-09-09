@@ -20,7 +20,6 @@ module AbaqusExportModule
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
 using FinEtools.FENodeSetModule
-import Base.open
 import Base.close
 
 export AbaqusExporter, close
