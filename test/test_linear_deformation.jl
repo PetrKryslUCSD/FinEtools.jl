@@ -1687,7 +1687,7 @@ function test()
   vtkexportmesh(File, fens, fes; scalars=[("sigmaz", fld.values)],
                 vectors=[("u", u.values)])
   # @async run(`"paraview.exe" $File`)
-  rm(File)
+  try rm(File); catch end
 
   @test abs(minimum(fld.values)-(-0.05139098099088048)) < 1.0e-5
   @test abs(maximum(fld.values)-0.5704453140236726) < 1.0e-5
@@ -1844,7 +1844,6 @@ function test()
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress",
      "quantity"=>:Cauchy, "component"=>:xy)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  File = modeldata["postprocessing"]["exported_files"][1]
   # @async run(`"paraview.exe" $File`)
   for f in modeldata["postprocessing"]["exported_files"]
     rm(f)
@@ -1975,7 +1974,6 @@ function test()
   modeldata["postprocessing"] = FDataDict("file"=>"fiber_reinf_cant_yn_strong",
     "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy, "component"=>5)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  File = modeldata["postprocessing"]["exported_files"][1]
   # @async run(`"paraview.exe" $File`)
   for f in modeldata["postprocessing"]["exported_files"]
     rm(f)
@@ -3187,7 +3185,7 @@ function test()
   # println("range of  sigmay = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-1.443052182185006e8, -1.4106181545272605e7]) < 1.0e-2
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(File); catch end
 
   sA  =  fld.values[nA]/phun("MEGA*Pa")
   sAn  =  fld.values[nA]/sigmaA
@@ -3305,7 +3303,7 @@ function test()
   # println("range of  sigmay = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-1.443052182185006e8, -1.4106181545272605e7]) < 1.0e-2
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(File); catch end
 
   sA  =  fld.values[nA]/phun("MEGA*Pa")
   sAn  =  fld.values[nA]/sigmaA
@@ -3421,7 +3419,7 @@ function test()
   # println("range of  sigmay = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-1.6338426447540134e8, -4.961956343464769e6]) < 1.e-1
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(File); catch end
 
 
   sA  =  fld.values[nA]/phun("MEGA*Pa")
@@ -3444,7 +3442,7 @@ function test()
   # println("range of  pressure = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-1.1881819144904878e7, 7.555030948761216e7]) < 1.e-1
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(File); catch end
 
   fld =  fieldfromintegpoints(femm, geom, u, dT, :vm, 1)
   File  =   "LE11NAFEMS_Q8_vm.vtk"
@@ -3453,7 +3451,7 @@ function test()
   # println("range of von Mises = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [3.221370699152578e7, 1.4437590830351183e8]) < 1.e-1
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(File); catch end
 
   AE = AbaqusExporter("LE11NAFEMS_Q8_export_stress");
   HEADING(AE, "NAFEMS LE11 benchmark with Q8 elements.");
@@ -4654,6 +4652,8 @@ function test()
     output = MeshImportModule.import_ABAQUS("NLE10.inp")
     fens, fes = output["fens"], output["fesets"][1]
 
+    try rm("NLE10.inp"); catch end
+
     # Select the  boundary faces, on the boundary that is clamped,  and on the part
     # of the boundary that is loaded with the transverse pressure
     bdryfes = meshboundary(fes);
@@ -5270,6 +5270,7 @@ NODE_PRINT(AE, "ASSEM1.INSTNC1.tip")
 ENERGY_PRINT(AE)
 END_STEP(AE)
 close(AE)
+try rm(AE.filename); catch end
 
 # println("Done: $(  time()-t0 )")
 true
@@ -5924,3 +5925,193 @@ end
 end
 using mplate_w_hole_RECT_MSH8m
 mplate_w_hole_RECT_MSH8m.test()
+
+module mplate_w_hole_RECT_H20m
+using FinEtools
+using FinEtools.MeshExportModule
+using FinEtools.MeshImportModule: import_ABAQUS
+# using DataFrames
+# using CSV
+using Base.Test
+function test()
+    E = 210000*phun("MEGA*PA");# 210e3 MPa
+    nu = 0.3;
+    Ri= 0.15*phun("M"); # hole radius
+    Re = 2*Ri; # outer radius
+    H = 0.01*phun("M") # thickness of the plate
+    nRadial, nCircumferential=6, 3;
+    sigma0=1*phun("MEGA*PA");
+
+    function sigmaxx(x)
+        local r = norm(vec(x[1:2]));
+        local th = atan2(x[2],x[1]);
+        return sigma0*(1-Ri^2/r^2*(3/2*cos(2*th)+cos(4*th))+3/2*Ri^4/r^4*cos(4*th));
+    end
+    function sigmayy(x)
+        local r = norm(vec(x[1:2]));
+        local th = atan2(x[2],x[1]);
+        return -sigma0*(Ri^2/r^2*(1/2*cos(2*th)-cos(4*th))+3/2*Ri^4/r^4*cos(4*th));
+    end
+    function sigmaxy(x)
+        local r = norm(vec(x[1:2]));
+        local th = atan2(x[2],x[1]);
+        return -sigma0*(Ri^2/r^2*(1/2*sin(2*th)+sin(4*th))-3/2*Ri^4/r^4*sin(4*th));
+    end
+    function sigmarr(x)
+        local r = norm(vec(x[1:2]));
+        local th = atan2(x[2],x[1]);
+        return sigma0/2*(1-Ri^2/r^2) + sigma0/2*(1-4*Ri^2/r^2+3*Ri^4/r^4)*cos(2*th)
+    end
+    function sigmatt(x)
+        local r = norm(vec(x[1:2]));
+        local th = atan2(x[2],x[1]);
+        return sigma0/2*(1+Ri^2/r^2) - sigma0/2*(1+3*Ri^4/r^4)*cos(2*th)
+    end
+    function sigmart(x)
+        local r = norm(vec(x[1:2]));
+        local th = atan2(x[2],x[1]);
+        return -sigma0/2*(1+2*Ri^2/r^2-3*Ri^4/r^4)*sin(2*th)
+    end
+
+    sigyderrs = Dict{Symbol, FFltVec}()
+
+    nelems = []
+    for extrapolation in [:extrapmean]
+        sigyderrs[extrapolation] = FFltVec[]
+        nelems = []
+        for ref in [1]
+            Thickness = H
+            # Thickness = H/2^ref
+            tolerance = Thickness/2^ref/1000.; # Geometrical tolerance
+
+            fens,fes = H8elliphole(Ri, Ri, Re, Re, Thickness,
+            2^ref*nCircumferential, 2^ref*nCircumferential, 2^ref*nRadial, 1)
+            fens,fes = H8toH20(fens,fes)
+            # File =  "a.vtk"
+            # vtkexportmesh(File, fes.conn, fens.xyz,
+            #     FinEtools.MeshExportModule.H20)
+            # @async run(`"paraview.cexe" $File`)
+
+            # println("My mesh=>$((count(fens), count(fes)))")
+            @test count(fens) == 1131
+            @test count(fes) == 144
+            #
+            # output = import_ABAQUS("plane_w_hole_m_debug.inp")
+            # fens1,fes1 = output["fens"], output["fesets"][1]
+            # println("Matlab mesh=>$((count(fens1), count(fes1[1])))")
+            #
+            #  fens3, newfes1, fes2 = mergemeshes(fens,fes, fens1,fes1[1], tolerance)
+            #  fes3 = cat(2, newfes1)
+            #  println("Merged mesh=>$((count(fens3), count(fes3)))")
+
+            geom = NodalField(fens.xyz)
+            u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+
+            l1 =selectnode(fens; box=[0.0, Inf, 0.0, 0.0, 0.0, Thickness], inflate = tolerance)
+            setebc!(u,l1,true, 2, 0.0)
+            l1 =selectnode(fens; box=[0.0, 0.0, 0.0, Inf, 0.0, Thickness], inflate = tolerance)
+            setebc!(u,l1,true, 1, 0.0)
+            l1 =selectnode(fens; box=[0.0, Inf, 0.0, Inf, 0.0, 0.0], inflate = tolerance)
+            setebc!(u,l1,true, 3, 0.0)
+            # l1 =selectnode(fens; box=[0.0, Inf, 0.0, Inf, Thickness, Thickness], inflate = tolerance)
+            # setebc!(u,l1,true, 3, 0.0)
+
+            applyebc!(u)
+            numberdofs!(u)
+
+
+            bdryfes = meshboundary(fes);
+            # ixl = selectelem(fens, bdryfes, plane=[1.0, 0.0, 0.0, Re], thickness=tolerance);
+            ixl = selectelem(fens, bdryfes, box=[Re, Re, -Inf, +Inf, -Inf, +Inf], inflate = tolerance);
+            elxfemm =  FEMMBase(GeoD(subset(bdryfes,ixl), GaussRule(2, 2)))
+            function pfunx(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
+                forceout[1] = sigmaxx(XYZ)
+                forceout[2] = sigmaxy(XYZ)
+                forceout[3] = 0.0
+                return forceout
+            end
+            fi = ForceIntensity(FFlt, 3, pfunx);
+            Fx = distribloads(elxfemm, geom, u, fi, 2);
+            # iyl = selectelem(fens, bdryfes, plane=[0.0, 1.0, 0.0, Re], thickness=tolerance);
+            iyl = selectelem(fens, bdryfes, box=[-Inf, +Inf, Re, Re, -Inf, +Inf], inflate = tolerance);
+            elyfemm =  FEMMBase(GeoD(subset(bdryfes,iyl), GaussRule(2, 2)))
+            function pfuny(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
+                forceout[1] = sigmaxy(XYZ)
+                forceout[2] = sigmayy(XYZ)
+                forceout[3] = 0.0
+                return forceout
+            end
+            fi = ForceIntensity(FFlt, 3, pfuny);
+            Fy = distribloads(elyfemm, geom, u, fi, 2);
+
+            MR = DeforModelRed3D
+
+            material = MatDeforElastIso(MR, E, nu)
+
+            femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3, 2)), material)
+
+            # The geometry field now needs to be associated with the FEMM
+            femm = associategeometry!(femm, geom)
+
+            K = stiffness(femm, geom, u)
+            K = cholfact(K)
+            U = K\(Fx + Fy)
+            scattersysvec!(u, U[:])
+            # println("oof load = $(norm(Fx + Fy, 2))")
+            @test abs(norm(Fx + Fy, 2) - 883.437848042617) < 1.0e-2
+
+            nlA = selectnode(fens, box=[Ri, Ri, 0.0, 0.0, 0.0, 00.0], inflate=tolerance);
+            pointu = zeros(FFlt,length(nlA),3)
+            gathervalues_asmat!(u, pointu, nlA);
+            # println("disp@A = $(pointu/phun("mm")) [MM]")
+            @test norm(pointu/phun("mm") - [0.00213238 0.0 0.0]) < 1.0e-4
+            nlB = selectnode(fens, box=[0.0, 0.0, Ri, Ri, 0.0, 0.0], inflate=tolerance);
+            pointu = zeros(FFlt,length(nlB),3)
+            gathervalues_asmat!(u, pointu, nlB);
+            # println("disp@B = $(pointu/phun("mm")) [MM]")
+            @test norm(pointu/phun("mm") - [0.0 -0.000708141 0.0]) < 1.0e-4
+            nlC = selectnode(fens, box=[Re, Re, Re, Re, Thickness, Thickness], inflate=tolerance);
+            pointu = zeros(FFlt,length(nlC),3)
+            gathervalues_asmat!(u, pointu, nlC);
+            # println("disp@C = $(pointu/phun("mm")) [MM]")
+            @test norm(pointu/phun("mm") - [0.00168556 -0.000455007 -1.4286e-5]) < 1.0e-4
+
+            nlAallz = selectnode(fens, box=[Ri, Ri, 0.0, 0.0, 0.0, Thickness], inflate=tolerance);
+            nlBallz = selectnode(fens, box=[0.0, 0.0, Ri, Ri, 0.0, Thickness], inflate=tolerance);
+            sigx = fieldfromintegpoints(femm, geom, u, :Cauchy, 1;
+                tonode = extrapolation)
+            sigy = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
+                tonode = extrapolation)
+            sigyA = mean(sigy.values[nlAallz,1], 1)[1]
+            sigyAtrue = sigmayy([Ri, 0.0, 0.0])
+            # println("sig_y@A =$(sigyA/phun("MPa")) vs $(sigyAtrue/phun("MPa")) [MPa]")
+            @assert abs(sigyA/phun("MPa") - -0.8513053526935438)/(sigyAtrue/phun("MPa")) < 1.0e-4
+            sigxB = mean(sigx.values[nlBallz,1], 1)[1]
+            sigxBtrue = sigmaxx([0.0, Ri, 0.0])
+            # println("sig_x@B =$(sigxB/phun("MPa")) vs $(sigxBtrue/phun("MPa")) [MPa]")
+            @assert abs(sigxB/phun("MPa") - 2.789413093796375)/3.0 < 1.0e-4
+            # println("$extrapolation, $(count(fes)), $(sigyd/phun("MPa"))")
+            # push!(nelems, count(fes))
+            # push!(sigyderrs[extrapolation], abs(sigyd/sigma_yD - 1.0))
+            File =  "a.vtk"
+            vtkexportmesh(File, fes.conn, geom.values,
+                FinEtools.MeshExportModule.H20; vectors=[("u", u.values)],
+                scalars=[("sigmax", sigx.values/phun("MEGA*PA")),
+                ("sigmay", sigy.values/phun("MEGA*PA"))])
+            # @async run(`"paraview.exe" $File`)
+            try rm(File); catch end
+        end
+    end
+
+    # df = DataFrame(nelems=vec(nelems),
+    #     sigyderrtrendpaper=vec(sigyderrs[:extraptrendpaper]),
+    #     sigyderrtrend=vec(sigyderrs[:extraptrend]),
+    #     sigyderrdefault=vec(sigyderrs[:extrapmean]))
+    # File = "LE1NAFEMS_MSH8_convergence.CSV"
+    # CSV.write(File, df)
+    # @async run(`"paraview.exe" $File`)
+
+end
+end
+using mplate_w_hole_RECT_H20m
+mplate_w_hole_RECT_H20m.test()
