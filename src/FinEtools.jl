@@ -76,6 +76,13 @@ export connectedelems, connectednodes, selectnode, selectelem, findunconnnodes
 include("MeshExportModule.jl")
 using FinEtools.MeshExportModule
 export vtkexportmesh
+export AbaqusExporter, close, HEADING, COMMENT, PART, END_PART,
+    ASSEMBLY, END_ASSEMBLY, INSTANCE, END_INSTANCE, NODE, ELEMENT,
+    NSET_NSET, ELSET_ELSET, ORIENTATION, MATERIAL,
+    ELASTIC, EXPANSION, DENSITY, SECTION_CONTROLS, SOLID_SECTION,
+    SURFACE_SECTION, STEP_PERTURBATION_STATIC, STEP_FREQUENCY,
+    STEP_PERTURBATION_BUCKLE, BOUNDARY, DLOAD, CLOAD, TEMPERATURE,
+    END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
 
 include("MeshImportModule.jl")
 using FinEtools.MeshImportModule
@@ -221,16 +228,6 @@ using FinEtools.AlgoHeatDiffModule
 
 include("AlgoDeforLinearModule.jl")
 using FinEtools.AlgoDeforLinearModule
-
-include("AbaqusExportModule.jl")
-using FinEtools.AbaqusExportModule
-export AbaqusExporter, close
-export HEADING, COMMENT, PART, END_PART, ASSEMBLY, END_ASSEMBLY, INSTANCE,
-    END_INSTANCE, NODE, ELEMENT, NSET_NSET, ELSET_ELSET, ORIENTATION, MATERIAL,
-    ELASTIC, EXPANSION, DENSITY, SECTION_CONTROLS, SOLID_SECTION,
-    SURFACE_SECTION, STEP_PERTURBATION_STATIC, STEP_FREQUENCY,
-    STEP_PERTURBATION_BUCKLE, BOUNDARY, DLOAD, CLOAD, TEMPERATURE,
-    END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
 
 include("VoxelBoxModule.jl")
 using FinEtools.VoxelBoxModule

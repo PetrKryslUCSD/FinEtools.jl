@@ -16,7 +16,8 @@ for i=1:count(fens)
 end
 println("$((count(fens), count(fes)))")
 
-fens1,fes1 = import_ABAQUS("LE1AbaqusExport-C3D10HS-5-6-1.inp")
+output = import_ABAQUS("LE1AbaqusExport-C3D10HS-5-6-1.inp")
+fens1, fes1 = output["fens"], output["fesets"][1]
 println("$((count(fens1), count(fes1[1])))")
 
  fens, newfes1, fes2 = mergemeshes(fens,fes, fens1,fes1[1], tolerance)

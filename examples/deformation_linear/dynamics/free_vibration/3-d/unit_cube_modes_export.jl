@@ -1,5 +1,5 @@
 using FinEtools
-using FinEtools.AbaqusExportModule
+using FinEtools.MeshExportModule
 
 println("""
 Vibration modes of unit cube  of almost incompressible material.

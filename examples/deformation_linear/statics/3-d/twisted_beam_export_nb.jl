@@ -1,6 +1,6 @@
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using FinEtools.AbaqusExportModule
+using FinEtools.MeshExportModule
 
 E = 0.29e8;
 nu = 0.22;

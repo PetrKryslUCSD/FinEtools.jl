@@ -6,10 +6,11 @@ using FinEtools.MeshImportModule: import_ABAQUS
 
 
 
-fens, fesarray = import_ABAQUS("$(@__DIR__)/" * "NLE10-coarse-T10.inp")
+output = import_ABAQUS("$(@__DIR__)/" * "NLE10-coarse-T10.inp")
+fens, fes = output["fens"], output["fesets"][1]
 
 File = "LE10NAFEMS_T10.vtk"
-MeshExportModule.vtkexportmesh(File, fens, fesarray[1])
+MeshExportModule.vtkexportmesh(File, fens, fes)
 @async run(`"paraview.exe" $File`)
 
 

@@ -48,13 +48,14 @@ using FinEtools.MeshImportModule
 using FinEtools.MeshExportModule
 using Base.Test
 function test()
-  fens, fes = MeshImportModule.import_NASTRAN(dirname(@__FILE__) * "/" * "Slot-coarser.nas";
+  output = MeshImportModule.import_NASTRAN(dirname(@__FILE__) * "/" * "Slot-coarser.nas";
     allocationchunk = 13)
   # show(fes.conn[count(fes), :])
   File = "Slot-coarser.vtk"
-  MeshExportModule.vtkexportmesh(File, fens, fes)
+  MeshExportModule.vtkexportmesh(File, output["fens"], output["fesets"][1])
   rm(File)
-  @test fes.conn[count(fes), :] == [143, 140, 144, 138, 361, 363, 176, 519, 781, 520]
+  @test output["fesets"][1].conn[count(output["fesets"][1]), :] ==
+    [143, 140, 144, 138, 361, 363, 176, 519, 781, 520]
   # @async run(`"paraview.exe" $File`)
 end
 end
@@ -173,11 +174,12 @@ function test()
   close(AE)
 
 
-  fens, fesarray = MeshImportModule.import_ABAQUS("./LE11NAFEMS_H8.inp";
+  output = MeshImportModule.import_ABAQUS("./LE11NAFEMS_H8.inp";
     allocationchunk = 11)
+    fens, fes = output["fens"], output["fesets"][1]
 
   File = "LE11NAFEMS_H8.vtk"
-  MeshExportModule.vtkexportmesh(File, fens, fesarray[1])
+  MeshExportModule.vtkexportmesh(File, fens, fes)
   # @async run(`"paraview.exe" $File`)
   try rm(File) catch end
 
@@ -544,11 +546,12 @@ function test()
   close(AE)
 
 
-  fens, fesarray = MeshImportModule.import_ABAQUS("./LE11NAFEMS_H8.inp";
+  output = MeshImportModule.import_ABAQUS("./LE11NAFEMS_H8.inp";
     allocationchunk = 12)
+    fens, fes = output["fens"], output["fesets"][1]
 
   File = "LE11NAFEMS_H8.vtk"
-  MeshExportModule.vtkexportmesh(File, fens, fesarray[1])
+  MeshExportModule.vtkexportmesh(File, fens, fes)
   # @async run(`"paraview.exe" $File`)
   try rm(File) catch end
 
@@ -770,11 +773,12 @@ function test()
   close(AE)
 
 
-  fens, fesarray = MeshImportModule.import_ABAQUS("./LE11NAFEMS_H8_B.inp";
+  output = MeshImportModule.import_ABAQUS("./LE11NAFEMS_H8_B.inp";
     allocationchunk = 11)
+    fens, fes = output["fens"], output["fesets"][1]
 
   File = "LE11NAFEMS_H8.vtk"
-  MeshExportModule.vtkexportmesh(File, fens, fesarray[1])
+  MeshExportModule.vtkexportmesh(File, fens, fes)
   # @async run(`"paraview.exe" $File`)
   # try rm(File) catch end
 

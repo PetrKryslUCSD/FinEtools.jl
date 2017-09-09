@@ -254,10 +254,13 @@ Option: return an error status as part of the model data.
 On hold.  07/22/2017
 
 -- Atom packages
-Julia-cclient
+Julia-client
 language-Julia
 Minimap
 auto-indent
+
+-- Atom themes:
+"behave" is an excellent dark theme:  very easy on the eyes
 
 -- Pkg.clone("https://github.com/JuliaDiffEq/DiffEqTutorials.jl")
 using IJulia
@@ -265,7 +268,9 @@ notebook(dir=Pkg.dir("DiffEqTutorials"))
 using IJulia; notebook(detached=true, dir="C:\\Users\\PetrKrysl\\.julia\\v0.6\\FinEtools")
 
 
--- atom --clear-window-state
+-- When  Atom would not start: run this
+  atom --clear-window-state
+  in a command window
 
 -- Start notebook:
 function examples()
@@ -283,6 +288,7 @@ the real material.
 -- For the QR factorization use qrfact!(A, pivot=Val(false))
 
 -- Return additional data from Abaqus  reader  as a dictionary.
+Implemented: 09/09/2017
 
 -- This is a bit of a puzzle: How to transform (rotate) stresses for
   lower-dimensional  finite elements embedded in higher dimensional spaces?
@@ -294,3 +300,6 @@ the real material.
 
 '.platform-win32 .find-and-replace, .platform-linux .find-and-replace':
   'alt-shift-ctrl-r': 'find-and-replace:replace-next'
+
+-- Mesh import: return dictionary of output data
+Implemented: 09/09/2017

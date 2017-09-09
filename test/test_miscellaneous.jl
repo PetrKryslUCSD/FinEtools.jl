@@ -89,7 +89,7 @@ mstressconversionm.test()
 module mmtwistedeexportmm
 using FinEtools
 using Base.Test
-using FinEtools.AbaqusExportModule
+using FinEtools.MeshExportModule
 function test()
   E = 0.29e8;
   nu = 0.22;
@@ -181,7 +181,7 @@ mmtwistedeexportmm.test()
 module mmtwistedeexport2mm
 using FinEtools
 using Base.Test
-using FinEtools.AbaqusExportModule
+using FinEtools.MeshExportModule
 function test()
   E = 0.29e8;
   nu = 0.22;

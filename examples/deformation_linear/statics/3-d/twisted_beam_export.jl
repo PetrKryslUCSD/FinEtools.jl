@@ -1,6 +1,6 @@
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using FinEtools.AbaqusExportModule
+using FinEtools.MeshExportModule
 
 println("""
 Refer to twisted_beam.jl.

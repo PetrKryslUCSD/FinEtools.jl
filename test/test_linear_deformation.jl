@@ -2558,7 +2558,7 @@ mmtwistedbeamoorthomm.test()
 
 module muunit_cube_modes_exportmmm
 using FinEtools
-using FinEtools.AbaqusExportModule
+using FinEtools.MeshExportModule
 using Base.Test
 function test()
 
@@ -4651,8 +4651,8 @@ function test()
     """
     write("NLE10.inp", INP_file)
 
-    fens, fesarray = MeshImportModule.import_ABAQUS("NLE10.inp")
-    fes = fesarray[1]
+    output = MeshImportModule.import_ABAQUS("NLE10.inp")
+    fens, fes = output["fens"], output["fesets"][1]
 
     # Select the  boundary faces, on the boundary that is clamped,  and on the part
     # of the boundary that is loaded with the transverse pressure
@@ -4761,8 +4761,8 @@ function test()
     END_STEP(AE)
     close(AE)
 
-    fens, fesarray = MeshImportModule.import_ABAQUS(AE.filename)
-    fes = fesarray[1]
+    output = MeshImportModule.import_ABAQUS(AE.filename)
+    fens, fes = output["fens"], output["fesets"][1]
 
     # Select the  boundary faces, on the boundary that is clamped,  and on the part
     # of the boundary that is loaded with the transverse pressure

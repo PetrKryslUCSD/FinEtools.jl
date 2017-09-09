@@ -1363,8 +1363,8 @@ S,
 """
 write("NLE10.inp", INP_file)
 
-fens, fesarray = MeshImportModule.import_ABAQUS("NLE10.inp")
-fes = fesarray[1]
+output = MeshImportModule.import_ABAQUS("NLE10.inp")
+fens, fes = output["fens"], output["fesets"][1]
 
 # Select the  boundary faces, on the boundary that is clamped,  and on the part
 # of the boundary that is loaded with the transverse pressure
@@ -1475,8 +1475,8 @@ DLOAD(AE, "ASSEM1.INSTNC1.TractionElements", vec([0.0, 0.0, -qmagn]))
 END_STEP(AE)
 close(AE)
 
-fens, fesarray = MeshImportModule.import_ABAQUS(AE.filename)
-fes = fesarray[1]
+output = MeshImportModule.import_ABAQUS(AE.filename)
+fens, fes = output["fens"], output["fesets"][1]
 
 # Select the  boundary faces, on the boundary that is clamped,  and on the part
 # of the boundary that is loaded with the transverse pressure

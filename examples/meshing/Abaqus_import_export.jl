@@ -73,10 +73,11 @@ END_ASSEMBLY(AE);
 close(AE)
 
 
-fens, fesarray = MeshImportModule.import_ABAQUS("./LE11NAFEMS_H8.inp")
+output = MeshImportModule.import_ABAQUS("./LE11NAFEMS_H8.inp")
+fens, fes = output["fens"], output["fesets"][1]
 
 File = "LE11NAFEMS_H8.vtk"
-MeshExportModule.vtkexportmesh(File, fens, fesarray[1])
+MeshExportModule.vtkexportmesh(File, fens, fes)
 @async run(`"paraview.exe" $File`)
 
 
