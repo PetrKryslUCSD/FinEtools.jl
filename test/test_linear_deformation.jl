@@ -6120,8 +6120,6 @@ mplate_w_hole_RECT_H20m.test()
 module mplate_w_hole_MST10m
 using FinEtools
 using FinEtools.MeshExportModule
-using DataFrames
-using CSV
 using Base.Test
 function test()
     E = 2.4*phun("MEGA*PA");# 210e3 MPa
