@@ -8,7 +8,7 @@ module IntegRuleModule
 using FinEtools.FTypesModule
 
 abstract type IntegRule end
-export IntegRule, TriRule, GaussRule, TetRule, PointRule
+export IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule
 
 """
     TriRule
@@ -232,6 +232,36 @@ POINT integration rule.
 """
 function PointRule()
     return PointRule(1, reshape([1.0], 1, 1), reshape([1.0], 1, 1))
+end
+
+"""
+    SimplexRule
+
+Class of simplex quadrature rule.
+Used for integration on the standard triangle or the standard tetrahedron.
+"""
+struct SimplexRule <: IntegRule
+    npts::FInt
+    param_coords::FFltMat
+    weights::FFltMat
+end
+
+function SimplexRule(dim=1, npts=1)
+    @assert 0 <= dim <= 3 "Simplex rule of dimension $(dim) not available"
+
+    if dim == 0
+        r = PointRule()
+        return SimplexRule(r.npts, r.param_coords, r.weights)
+    elseif dim == 1
+        r = GaussRule(dim, npts)
+        return SimplexRule(r.npts, r.param_coords, r.weights)
+    elseif dim == 2
+        r = TriRule(npts)
+        return SimplexRule(r.npts, r.param_coords, r.weights)
+    else
+        r = TetRule(npts)
+        return SimplexRule(r.npts, r.param_coords, r.weights)
+    end
 end
 
 end
