@@ -6246,18 +6246,18 @@ function test()
             # thecorneru = mean(thecorneru, 1)[1]/phun("mm")
             # println("displacement = $(thecorneru) vs -0.10215 [MM]")
 
-            println("Extrapolation: $( extrapolation )")
+            # println("Extrapolation: $( extrapolation )")
             sigx = fieldfromintegpoints(femm, geom, u, :Cauchy, 1;
                 tonode = extrapolation)
             sigy = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
                 tonode = extrapolation)
             sigyA = mean(sigy.values[nlA,1], 1)[1]
             sigyAtrue = sigmatt([Ri, 0.0, 0.0])
-            println("sig_y@A =$(sigyA/phun("MPa")) vs $(sigyAtrue/phun("MPa")) [MPa]")
+            # println("sig_y@A =$(sigyA/phun("MPa")) vs $(sigyAtrue/phun("MPa")) [MPa]")
             @assert abs(sigyA/phun("MPa") - -0.6705333234697736)/(sigyAtrue/phun("MPa")) < 1.0e-4
             sigxB = mean(sigx.values[nlB,1], 1)[1]
             sigxBtrue = sigmatt([0.0, Ri, 0.0])
-            println("sig_x@B =$(sigxB/phun("MPa")) vs $(sigxBtrue/phun("MPa")) [MPa]")
+            # println("sig_x@B =$(sigxB/phun("MPa")) vs $(sigxBtrue/phun("MPa")) [MPa]")
             @assert abs(sigxB/phun("MPa") - 2.373495947081475)/3.0 < 1.0e-4
             push!(numnodes, count(fens))
             push!(numelements, count(fes))
