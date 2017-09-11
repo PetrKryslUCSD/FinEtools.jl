@@ -131,9 +131,9 @@ function test()
 
             println("Extrapolation: $( extrapolation )")
             sigx = fieldfromintegpoints(femm, geom, u, :Cauchy, 1;
-                tonode = extrapolation)
+                inspectormethod = :averaging, tonode = extrapolation)
             sigy = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-                tonode = extrapolation)
+                inspectormethod = :averaging, tonode = extrapolation)
             sigyA = mean(sigy.values[nlA,1], 1)[1]
             sigyAtrue = sigmatt([Ri, 0.0, 0.0])
             println("sig_y@A =$(sigyA/phun("MPa")) vs $(sigyAtrue/phun("MPa")) [MPa]")
@@ -153,6 +153,9 @@ function test()
     end
 
     df = DataFrame(numelements=vec(numelements), numnodes=vec(numnodes),
+        sigxderrtrendpaper=vec(sigxderrs[:extraptrendpaper]),
+        sigxderrtrend=vec(sigxderrs[:extraptrend]),
+        sigxderrdefault=vec(sigxderrs[:extrapmean]),
         sigyderrtrendpaper=vec(sigyderrs[:extraptrendpaper]),
         sigyderrtrend=vec(sigyderrs[:extraptrend]),
         sigyderrdefault=vec(sigyderrs[:extrapmean]))

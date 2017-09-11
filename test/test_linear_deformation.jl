@@ -4710,16 +4710,14 @@ function test()
 
     fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extrapmean)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2650465514560634) < 1.0e-3
+    @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2554539080497493) < 1.0e-3
 
     fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrend)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
-# println("$(fld.values[nl,1][1]/phun("MPa"))")
     @test abs(fld.values[nl,1][1]/phun("MPa") - -5.543874813140925) < 1.0e-3
 
     fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrendpaper)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
-# println("$(fld.values[nl,1][1]/phun("MPa"))")
     @test abs(fld.values[nl,1][1]/phun("MPa") - -5.55851747065307) < 1.0e-3
 
     File =  "LE10NAFEMS_MST10_sigmay.vtk"
@@ -4820,7 +4818,7 @@ function test()
 
     fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extrapmean)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2650465514560634) < 1.0e-3
+    @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2554539080497493) < 1.0e-3
 
     fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrend)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
@@ -6258,7 +6256,7 @@ function test()
             sigxB = mean(sigx.values[nlB,1], 1)[1]
             sigxBtrue = sigmatt([0.0, Ri, 0.0])
             # println("sig_x@B =$(sigxB/phun("MPa")) vs $(sigxBtrue/phun("MPa")) [MPa]")
-            @assert abs(sigxB/phun("MPa") - 2.373495947081475)/3.0 < 1.0e-4
+            @assert abs(sigxB/phun("MPa") - 2.495298248741976)/3.0 < 1.0e-4
             push!(numnodes, count(fens))
             push!(numelements, count(fes))
             push!(sigxderrs[extrapolation], abs(sigxB/sigxBtrue - 1.0))
