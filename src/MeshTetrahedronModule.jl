@@ -5,8 +5,7 @@ Module  for generation of meshes composed of tetrahedra.
 """
 module MeshTetrahedronModule
 
-export  T4blocka,  T4blockb,  T4blockca,  T4blockcb,  T4block,  T4blockx,
- T4toT10,  T10block
+export  T4block, T4blockx, T4toT10,  T10block
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -14,22 +13,6 @@ using FinEtools.FENodeSetModule
 using FinEtools.MeshUtilModule
 using FinEtools.MeshModificationModule
 using FinEtools.MeshSelectionModule
-
-function T4blocka(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
-    return  T4block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, :a)
-end
-
-function T4blockb(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
-    return  T4block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, :b)
-end
-
-function T4blockca(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
-    return  T4block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, :ca)
-end
-
-function T4blockcb(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
-    return  T4block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, :cb)
-end
 
 """
     T4block(Length::FFlt, Width::FFlt, Height::FFlt,
