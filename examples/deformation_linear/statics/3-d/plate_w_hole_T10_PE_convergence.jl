@@ -1,4 +1,4 @@
-module mplate_w_hole_MSH8m
+module mplate_w_hole_PE_T10m
 using FinEtools
 using FinEtools.MeshExportModule
 using DataFrames
@@ -58,7 +58,7 @@ function test()
             Thickness = H/2^ref
             tolerance = Thickness/2^ref/1000.; # Geometrical tolerance
 
-            fens,fes = H8block(1.0, pi/2, Thickness, 2^ref*nRadial, 2^ref*nCircumferential, 1)
+            fens,fes = T10block(1.0, pi/2, Thickness, 2^ref*nRadial, 2^ref*nCircumferential, 1)
 
             bdryfes = meshboundary(fes);
             icl = selectelem(fens, bdryfes, box=[1.0, 1.0, 0.0, pi/2, 0.0, Thickness], inflate=tolerance);
@@ -84,12 +84,12 @@ function test()
             l1 =selectnode(fens; box=[0.0, Inf, 0.0, Inf, 0.0, 0.0], inflate = tolerance)
             setebc!(u,l1,true, 3, 0.0)
             # If this was enabled, the plane-strain  constraint would be enforced.
-            # l1 =selectnode(fens; box=[0.0, Inf, 0.0, Inf, Thickness, Thickness], inflate = tolerance)
-            # setebc!(u,l1,true, 3, 0.0)
+            l1 =selectnode(fens; box=[0.0, Inf, 0.0, Inf, Thickness, Thickness], inflate = tolerance)
+            setebc!(u,l1,true, 3, 0.0)
 
             applyebc!(u)
             numberdofs!(u)
-            el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), GaussRule(2, 2)))
+            el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), TriRule(3)))
             function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
                 local r = sqrt(XYZ[1]^2 + XYZ[2]^2)
                 nx = XYZ[1]/r; ny = XYZ[2]/r
@@ -112,7 +112,7 @@ function test()
 
             material = MatDeforElastIso(MR, E, nu)
 
-            femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material)
+            femm = FEMMDeforLinear(MR, GeoD(fes, TetRule(4)), material)
 
             # The geometry field now needs to be associated with the FEMM
             femm = associategeometry!(femm, geom)
@@ -131,9 +131,9 @@ function test()
 
             println("Extrapolation: $( extrapolation )")
             sigx = fieldfromintegpoints(femm, geom, u, :Cauchy, 1;
-                inspectormethod = :averaging, tonode = extrapolation)
+                tonode = extrapolation)
             sigy = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-                inspectormethod = :averaging, tonode = extrapolation)
+                tonode = extrapolation)
             sigyA = mean(sigy.values[nlA,1], 1)[1]
             sigyAtrue = sigmatt([Ri, 0.0, 0.0])
             println("sig_y@A =$(sigyA/phun("MPa")) vs $(sigyAtrue/phun("MPa")) [MPa]")
@@ -159,11 +159,11 @@ function test()
         sigyderrtrendpaper=vec(sigyderrs[:extraptrendpaper]),
         sigyderrtrend=vec(sigyderrs[:extraptrend]),
         sigyderrdefault=vec(sigyderrs[:extrapmean]))
-    File = "plate_w_hole_MSH8_convergence.CSV"
+    File = "plate_w_hole_PE_T10_convergence.CSV"
     CSV.write(File, df)
     @async run(`"paraview.exe" $File`)
 
 end
 end
-using mplate_w_hole_MSH8m
-mplate_w_hole_MSH8m.test()
+using mplate_w_hole_PE_T10m
+mplate_w_hole_PE_T10m.test()

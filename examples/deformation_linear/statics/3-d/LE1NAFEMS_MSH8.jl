@@ -10,7 +10,7 @@ p = 10*phun("MEGA*PA");# 10 MPA Outward pressure on the outside ellipse
 sigma_yD = 92.7*phun("MEGA*PA");# tensile stress at [2.0, 0.0] meters
 Radius = 1.0*phun("m")
 Thickness = 0.1*phun("m")
-n = 64; # number of elements per side
+n = 2; # number of elements per side
 tolerance = 1.0/n/1000.; # Geometrical tolerance
 
 fens,fes = Q4block(1.0, pi/2, n, n*2)
@@ -71,7 +71,8 @@ thecorneru = thecorneru/phun("mm")
 println("$(time()-t0) [s];  displacement =$(thecorneru) [MM] as compared to reference [-0.10215,0] [MM]")
 
 
-fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrendpaper)
+fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
+    inspectormethod = :averaging, tonode = :extraptrendpaper)
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
 
 println("$(n), $(fld.values[nl,1][1]/phun("MPa"))")

@@ -1,4 +1,4 @@
-module mplate_w_hole_MSH8m
+module mplate_w_hole_PE_MSH8m
 using FinEtools
 using FinEtools.MeshExportModule
 using DataFrames
@@ -84,8 +84,8 @@ function test()
             l1 =selectnode(fens; box=[0.0, Inf, 0.0, Inf, 0.0, 0.0], inflate = tolerance)
             setebc!(u,l1,true, 3, 0.0)
             # If this was enabled, the plane-strain  constraint would be enforced.
-            # l1 =selectnode(fens; box=[0.0, Inf, 0.0, Inf, Thickness, Thickness], inflate = tolerance)
-            # setebc!(u,l1,true, 3, 0.0)
+            l1 =selectnode(fens; box=[0.0, Inf, 0.0, Inf, Thickness, Thickness], inflate = tolerance)
+            setebc!(u,l1,true, 3, 0.0)
 
             applyebc!(u)
             numberdofs!(u)
@@ -159,11 +159,11 @@ function test()
         sigyderrtrendpaper=vec(sigyderrs[:extraptrendpaper]),
         sigyderrtrend=vec(sigyderrs[:extraptrend]),
         sigyderrdefault=vec(sigyderrs[:extrapmean]))
-    File = "plate_w_hole_MSH8_convergence.CSV"
+    File = "plate_w_hole_PE_MSH8_convergence.CSV"
     CSV.write(File, df)
     @async run(`"paraview.exe" $File`)
 
 end
 end
-using mplate_w_hole_MSH8m
-mplate_w_hole_MSH8m.test()
+using mplate_w_hole_PE_MSH8m
+mplate_w_hole_PE_MSH8m.test()
