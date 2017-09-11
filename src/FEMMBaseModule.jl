@@ -387,8 +387,8 @@ function fieldfromintegpoints(self::FEMM,
         );
         # Loop over cells to interpolate to nodes
         idat = inspectintegpoints(self,  geom,  u,  dT,
-        collect(1:count(geod.fes)),  _idi_inspector,  idat, quantity;
-        context...);
+            collect(1:count(geod.fes)),  _idi_inspector,  idat, quantity;
+            context...);
         # The data for the field to be constructed is initialized
         nvals = zeros(FFlt, nnodes(geom), length(component));
         # compute the data array
