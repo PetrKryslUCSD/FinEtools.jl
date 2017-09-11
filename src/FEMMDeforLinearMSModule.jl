@@ -253,7 +253,83 @@ function stiffness(self::FEMMDeforLinearAbstractMS, assembler::A,
     return makematrix!(assembler);
 end
 
-function inspectintegpoints_mean(self::FEMMDeforLinearAbstractMS,
+function _iip_meanonly(self::FEMMDeforLinearAbstractMS,
+    geom::NodalField{FFlt},  u::NodalField{T},
+    dT::NodalField{FFlt},
+    felist::FIntVec,
+    inspector::F,  idat, quantity=:Cauchy;
+    context...) where {T<:Number, F<:Function}
+    geod = self.geod
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(geod);
+    conn, x, dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac,
+    D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
+    MeanN = deepcopy(Ns[1])
+    realmat = self.material
+    stabmat = self.stabilization_material
+    # Sort out  the output requirements
+    outputcsys = geod.mcsys; # default: report the stresses in the material coord system
+    for arg in context
+        sy,  val = arg
+        if sy == :outputcsys
+            outputcsys = val
+        end
+    end
+    t= 0.0
+    dt = 0.0
+    dTe = zeros(FFlt, length(conn)) # nodal temperatures -- buffer
+    ue = zeros(FFlt, size(elmat, 1)); # array of node displacements -- buffer
+    qpdT = 0.0; # node temperature increment
+    qpstrain = zeros(FFlt, nstsstn(self.mr), 1); # total strain -- buffer
+    qpthstrain = zeros(FFlt, nthstn(self.mr)); # thermal strain -- buffer
+    qpstress = zeros(FFlt, nstsstn(self.mr)); # stress -- buffer
+    out1 = zeros(FFlt, nstsstn(self.mr)); # stress -- buffer
+    out =  zeros(FFlt, nstsstn(self.mr));# output -- buffer
+    # Loop over  all the elements and all the quadrature points within them
+    for ilist = 1:length(felist) # Loop over elements
+        i = felist[ilist];
+        getconn!(geod.fes, conn, i);
+        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
+        gathervalues_asvec!(u, ue, conn);# retrieve element displacements
+        gathervalues_asvec!(dT, dTe, conn);# retrieve element temperature increments
+        # NOTE: the coordinate system should be evaluated at a single point within the
+        # element in order for the derivatives to be consistent at all quadrature points
+        loc .= mean(x, 1)
+        updatecsmat!(geod.mcsys, loc, J, geod.fes.label[i]);
+        vol = 0.0; # volume of the element
+        fill!(MeangradN, 0.0) # mean basis function gradients
+        fill!(MeanN, 0.0) # mean basis function gradients
+        for j = 1:npts # Loop over quadrature points
+            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
+            Jac[j] = Jacobianvolume(geod, J, loc, conn, Ns[j]);
+            At_mul_B!(csmatTJ, geod.mcsys.csmat, J); # local Jacobian matrix
+            gradN!(geod.fes, AllgradN[j], gradNparams[j], csmatTJ);
+            dvol = Jac[j]*w[j]
+            MeangradN .= MeangradN .+ AllgradN[j]*dvol
+            MeanN .= MeanN .+ Ns[j]*dvol
+            vol = vol + dvol
+        end # Loop over quadrature points
+        MeangradN .= MeangradN/vol
+        Blmat!(self.mr, Bbar, MeanN, MeangradN, loc, geod.mcsys.csmat);
+        MeanN .= MeanN/vol
+        qpdT = dot(vec(dTe), vec(MeanN));# Quadrature point temperature increment
+        # Quadrature point quantities
+        A_mul_B!(qpstrain, Bbar, ue); # strain in material coordinates
+        realmat.thermalstrain!(realmat, qpthstrain, qpdT)
+        # Material updates the state and returns the output
+        out = realmat.update!(realmat, qpstress, out,
+            vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
+        if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
+            (length(out1) >= length(out)) || (out1 = zeros(length(out)))
+            rotstressvec(self.mr, out1, out, geod.mcsys.csmat')# To global coord sys
+            rotstressvec(self.mr, out, out1, outputcsys.csmat)# To output coord sys
+        end
+        # Call the inspector
+        idat = inspector(idat, i, conn, x, out, loc);
+    end # Loop over elements
+    return idat; # return the updated inspector data
+end
+
+function _iip_extrapmean(self::FEMMDeforLinearAbstractMS,
     geom::NodalField{FFlt},  u::NodalField{T},
     dT::NodalField{FFlt},
     felist::FIntVec,
@@ -331,7 +407,7 @@ function inspectintegpoints_mean(self::FEMMDeforLinearAbstractMS,
     return idat; # return the updated inspector data
 end
 
-function inspectintegpoints_trend(self::FEMMDeforLinearAbstractMS,
+function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
     geom::NodalField{FFlt},  u::NodalField{T},
     dT::NodalField{FFlt},
     felist::FIntVec,
@@ -352,7 +428,6 @@ function inspectintegpoints_trend(self::FEMMDeforLinearAbstractMS,
             outputcsys = val
         end
     end
-    idat1 = idat
     t= 0.0
     dt = 0.0
     dTe = zeros(FFlt, length(conn)) # nodal temperatures -- buffer
@@ -432,13 +507,13 @@ function inspectintegpoints_trend(self::FEMMDeforLinearAbstractMS,
             #  Predict the value  of the output quantity at the node
             nout = rout + vec(reshape(vec(x[nod, :]) - vec(loc), 1, 3) * p[1:3, :])
             # Call the inspector for the node location
-            idat1 = inspector(idat1, i, conn, x, nout, x[nod, :]);
+            idat = inspector(idat, i, conn, x, nout, x[nod, :]);
         end
     end # Loop over elements
-    return idat1; # return the updated inspector data
+    return idat; # return the updated inspector data
 end
 
-function inspectintegpoints_trend_paper(self::FEMMDeforLinearAbstractMS,
+function _iip_extraptrend_paper(self::FEMMDeforLinearAbstractMS,
     geom::NodalField{FFlt},  u::NodalField{T},
     dT::NodalField{FFlt},
     felist::FIntVec,
@@ -459,7 +534,6 @@ function inspectintegpoints_trend_paper(self::FEMMDeforLinearAbstractMS,
             outputcsys = val
         end
     end
-    idat1 = idat
     t= 0.0
     dt = 0.0
     dTe = zeros(FFlt, length(conn)) # nodal temperatures -- buffer
@@ -550,10 +624,10 @@ function inspectintegpoints_trend_paper(self::FEMMDeforLinearAbstractMS,
             xdel = vec(@view x[nod, :]) - vec(loc)
             @views nout = rout - sbout + vec(reshape(xdel, 1, 3) * p[1:3, :]) + p[4, :]
             # Call the inspector for the node location
-            idat1 = inspector(idat1, i, conn, x, nout, x[nod, :]);
+            idat = inspector(idat, i, conn, x, nout, x[nod, :]);
         end
     end # Loop over elements
-    return idat1; # return the updated inspector data
+    return idat; # return the updated inspector data
 end
 
 """
@@ -597,13 +671,16 @@ function inspectintegpoints(self::FEMMDeforLinearAbstractMS,
         end
     end
     if tonode == :extraptrend
-        return inspectintegpoints_trend(self, geom, u, dT, felist,
+        return _iip_extraptrend(self, geom, u, dT, felist,
             inspector, idat, quantity; context...);
     elseif tonode == :extraptrendpaper
-        return inspectintegpoints_trend_paper(self, geom, u, dT, felist,
+        return _iip_extraptrend_paper(self, geom, u, dT, felist,
             inspector, idat, quantity; context...);
-    elseif tonode == :extrapmean || true # DEFAULT
-        return inspectintegpoints_mean(self, geom, u, dT, felist,
+    elseif tonode == :extrapmean
+        return _iip_extrapmean(self, geom, u, dT, felist,
+            inspector, idat, quantity; context...);
+    elseif tonode == :meanonly || true # this is the default
+        return _iip_meanonly(self, geom, u, dT, felist,
             inspector, idat, quantity; context...);
     end
 end

@@ -4708,16 +4708,22 @@ function test()
     # println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
     @test norm(thecorneru - [-0.0268854 0.0 -0.0919955]) < 1.0e-5
 
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :meanonly)#
+    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
+    @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2650465514560634) < 1.0e-3
+
     fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extrapmean)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
     @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2554539080497493) < 1.0e-3
 
     fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrend)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
+# println("$(fld.values[nl,1][1]/phun("MPa"))")
     @test abs(fld.values[nl,1][1]/phun("MPa") - -5.543874813140925) < 1.0e-3
 
     fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrendpaper)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
+# println("$(fld.values[nl,1][1]/phun("MPa"))")
     @test abs(fld.values[nl,1][1]/phun("MPa") - -5.55851747065307) < 1.0e-3
 
     File =  "LE10NAFEMS_MST10_sigmay.vtk"
@@ -4815,6 +4821,10 @@ function test()
     thecorneru = thecorneru/phun("mm")
     # println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
     @test norm(thecorneru - [-0.0268854 0.0 -0.0919955]) < 1.0e-5
+
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :meanonly)#
+    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
+    @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2650465514560634) < 1.0e-3
 
     fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extrapmean)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
@@ -6273,3 +6283,114 @@ end
 end
 using mplate_w_hole_MST10m
 mplate_w_hole_MST10m.test()
+
+module mmLE1NAFEMSsstress
+using FinEtools
+using Base.Test
+function test()
+    E = 210e3*phun("MEGA*PA");# 210e3 MPa
+    nu = 0.3;
+    p = 10*phun("MEGA*PA");# 10 MPA Outward pressure on the outside ellipse
+    sigma_yD = 92.7*phun("MEGA*PA");# tensile stress at [2.0, 0.0] meters
+    Radius = 1.0*phun("m")
+    Thickness = 0.1*phun("m")
+    n = 2; # number of elements per side
+    tolerance = 1.0/n/1000.; # Geometrical tolerance
+
+    fens,fes = Q4block(1.0, pi/2, n, n*2)
+    fens,fes  = H8extrudeQ4(fens, fes,
+      1, (xyz, layer)->[xyz[1], xyz[2], (layer)*Thickness]);
+
+    bdryfes = meshboundary(fes);
+    icl = selectelem(fens, bdryfes, box=[1.0, 1.0, 0.0, pi/2, 0.0, Thickness], inflate=tolerance);
+    for i=1:count(fens)
+        t=fens.xyz[i,1]; a=fens.xyz[i,2]; z=fens.xyz[i,3]
+        fens.xyz[i,:]=[(t*3.25+(1-t)*2)*cos(a), (t*2.75+(1-t)*1)*sin(a), z];
+    end
+
+
+    geom = NodalField(fens.xyz)
+    u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+
+    l1 =selectnode(fens; box=[0.0, Inf, 0.0, 0.0, 0.0, Thickness], inflate = tolerance)
+    setebc!(u,l1,true, 2, 0.0)
+    l1 =selectnode(fens; box=[0.0, 0.0, 0.0, Inf, 0.0, Thickness], inflate = tolerance)
+    setebc!(u,l1,true, 1, 0.0)
+    l1 =selectnode(fens; box=[0.0, Inf, 0.0, Inf, 0.0, 0.0], inflate = tolerance)
+    setebc!(u,l1,true, 3, 0.0)
+
+    applyebc!(u)
+    numberdofs!(u)
+
+
+    el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), GaussRule(2, 2)))
+    function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
+        pt= [2.75/3.25*XYZ[1], 3.25/2.75*XYZ[2], 0.0]
+        forceout .=    vec(p*pt/norm(pt));
+        return forceout
+    end
+    fi = ForceIntensity(FFlt, 3, pfun);
+    F2 = distribloads(el1femm, geom, u, fi, 2);
+
+    # Note that the material object needs to be created with the proper
+    # model-dimension reduction in mind.  In this case that is the fully three-dimensional solid.
+    MR = DeforModelRed3D
+
+    material = MatDeforElastIso(MR, E, nu)
+
+    femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material)
+
+    # The geometry field now needs to be associated with the FEMM
+    femm = associategeometry!(femm, geom)
+
+    K = stiffness(femm, geom, u)
+    K = cholfact(K)
+    U = K\(F2)
+    scattersysvec!(u, U[:])
+
+    nl = selectnode(fens, box=[2.0, 2.0, 0.0, 0.0, 0.0, 0.0],inflate=tolerance);
+    thecorneru = zeros(FFlt,1,3)
+    gathervalues_asmat!(u, thecorneru, nl);
+    thecorneru = thecorneru/phun("mm")
+    # println("displacement =$(thecorneru) [MM] as compared to reference [-0.10215,0] [MM]")
+    @test norm(thecorneru - [-0.107276 0.0 0.0]) < 1.0e-4
+
+
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
+        inspectormethod = :averaging, tonode = :meanonly)
+    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
+    @test abs(fld.values[nl,1][1]/phun("MPa") - 42.54884174624546) < 1.0e-3
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
+        inspectormethod = :averaging, tonode = :extrapmean)
+    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
+    @test abs(fld.values[nl,1][1]/phun("MPa") - 42.54884174624546) < 1.0e-3
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
+        inspectormethod = :averaging, tonode = :extraptrend)
+    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
+    @test abs(fld.values[nl,1][1]/phun("MPa") - 84.3081520312644) < 1.0e-3
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
+        inspectormethod = :averaging, tonode = :extraptrendpaper)
+    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
+    @test abs(fld.values[nl,1][1]/phun("MPa") - 88.13603726952553) < 1.0e-3
+
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
+        inspectormethod = :invdistance, tonode = :meanonly)
+    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
+    @test abs(fld.values[nl,1][1]/phun("MPa") - 42.54884174624546) < 1.0e-3
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
+        inspectormethod = :invdistance, tonode = :extrapmean)
+    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
+    @test abs(fld.values[nl,1][1]/phun("MPa") - 42.54884174624546) < 1.0e-3
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
+        inspectormethod = :invdistance, tonode = :extraptrend)
+    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
+    @test abs(fld.values[nl,1][1]/phun("MPa") - 84.3081520312644) < 1.0e-3
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
+        inspectormethod = :invdistance, tonode = :extraptrendpaper)
+    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
+    @test abs(fld.values[nl,1][1]/phun("MPa") - 88.13603726952553) < 1.0e-3
+
+end
+end
+using mmLE1NAFEMSsstress
+mmLE1NAFEMSsstress.test()
