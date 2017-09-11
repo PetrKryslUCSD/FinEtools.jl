@@ -92,6 +92,9 @@ function linearstatics(modeldata::FDataDict)
   # Construct the displacement field
   u = NodalField(zeros(nnodes(geom), ndofs(geom)))
 
+  # Construct the temperature field
+  temp = NodalField(zeros(nnodes(geom), 1))
+
   # Apply the essential boundary conditions on the displacement field
   essential_bcs = get(modeldata, "essential_bcs", nothing);
   if (essential_bcs != nothing)
@@ -232,6 +235,7 @@ function linearstatics(modeldata::FDataDict)
   # Update the model data
   setindex!(modeldata, geom, "geom");
   setindex!(modeldata, u, "u");
+  setindex!(modeldata, temp, "temp");
   setindex!(modeldata, dot(F,U)/2, "work");
   return modeldata            # ... And return the updated model data
 end
