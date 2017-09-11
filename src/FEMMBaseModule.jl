@@ -263,9 +263,62 @@ end
 
 
 struct InverseDistanceInspectorData
-    d::FFltVec
-    sum_inv_dist::FFltVec
-    sum_quant_inv_dist::FFltMat
+    component::Int
+    d::FFltVec # nodesperelem(geod.fes)
+    sum_inv_dist::FFltVec # nnodes(geom)
+    sum_quant_inv_dist::FFltMat # nnodes(geom) x length(component)
+end
+
+
+# This is an inverse-distance interpolation inspector.
+function _idi_inspector(idat, elnum, conn, xe,  out,  xq)
+    # xe = coordinates of the nodes of the element
+    # xq = coordinate of the quadrature point
+    mindn = Inf
+    for jjj = 1:length(idat.d)
+        idat.d[jjj]  = sum((vec(xe[jjj, :])-vec(xq)).^2);
+        if (idat.d[jjj] > 0.0)
+            mindn = min(mindn, idat.d[jjj])
+        end
+    end
+    mindn = mindn/1.0e9;
+    for jjj = 1:length(idat.d)
+        invdjjj  = 1.0/(idat.d[jjj]+mindn);
+        quant =  out[idat.component]
+        for kkk = 1:length(quant)
+            idat.sum_quant_inv_dist[conn[jjj], kkk] += invdjjj*quant[kkk];
+        end
+        idat.sum_inv_dist[conn[jjj]] += invdjjj;
+    end
+    return idat
+end
+
+
+struct AveragingInspectorData
+    component::Int
+    d::FFltVec # nodesperelem(geod.fes)
+    ncontrib::FIntVec # nnodes(geom)
+    sum_quant::FFltMat # nnodes(geom) x length(component)
+end
+
+# This is a simple nodal averaging inspector.
+# The quadrature point is assumed contribute only to the node that is nearest to
+# it: The idea is that the inspected element  will produce outputs  at the
+# locations of the nodes.
+function _avg_inspector(idat, elnum, conn, xe,  out,  xq)
+    # xe = coordinates of the nodes of the element
+    # xq = coordinate of the quadrature point
+    for jjj = 1:size(xe, 1)
+        idat.d[jjj] = sum((vec(xe[jjj, :])-vec(xq)).^2);
+    end
+    # Find  the node nearest to the quadrature point
+    (minval, ix) = findmin(idat.d)
+    quant =  out[idat.component]
+    for kkk = 1:length(quant)
+        idat.sum_quant[conn[ix], kkk] += quant[kkk];
+    end
+    idat.ncontrib[conn[ix]] += 1
+    return idat
 end
 
 """
@@ -295,45 +348,55 @@ function fieldfromintegpoints(self::FEMM,
     # Constants
     nne = nodesperelem(geod.fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
-    # Container of intermediate results
-    idat = InverseDistanceInspectorData(
-    zeros(FFlt, nne),
-    zeros(FFlt, nnodes(geom)),
-    zeros(FFlt, nnodes(geom), length(component))
-    );
-    # This is an inverse-distance interpolation inspector.
-    function idi_inspector(idat, elnum, conn, xe,  out,  xq)
-        # xe = coordinates of the nodes of the element
-        # xq = coordinate of the quadrature point
-        mindn = Inf
-        for jjj = 1:length(idat.d)
-            idat.d[jjj]  = sum((vec(xe[jjj, :])-vec(xq)).^2);
-            if (idat.d[jjj] > 0.0)
-                mindn = min(mindn, idat.d[jjj])
-            end
+    inspectormethod = :invdistance
+    for (i, arg) in enumerate(context)
+        sy, val = arg
+        if sy == :inspectormethod
+            inspectormethod = val
         end
-        mindn = mindn/1.0e9;
-        for jjj = 1:length(idat.d)
-            invdjjj  = 1.0/(idat.d[jjj]+mindn);
-            quant =  out[component]
-            for kkk = 1:length(quant)
-                idat.sum_quant_inv_dist[conn[jjj], kkk] += invdjjj*quant[kkk];
-            end
-            idat.sum_inv_dist[conn[jjj]] += invdjjj;
-        end
-        return idat
     end
-    # Loop over cells to interpolate to nodes
-    idat = inspectintegpoints(self,  geom,  u,  dT,
-    collect(1:count(geod.fes)),  idi_inspector,  idat, quantity;
-    context...);
-    # The data for the field to be constructed is initialized
-    nvals = zeros(FFlt, nnodes(geom), length(component));
-    # compute the data array
-    for kkk = 1:size(nvals, 1)
-        for j = 1:length(component)
-            if (idat.sum_inv_dist[kkk] > 0.0)
-                nvals[kkk, j] = idat.sum_quant_inv_dist[kkk, j]/idat.sum_inv_dist[kkk];
+    if inspectormethod == :averaging
+        # Container of intermediate results
+        idat = AveragingInspectorData(
+        component,
+        zeros(FFlt, nne),
+        zeros(Int, nnodes(geom)),
+        zeros(FFlt, nnodes(geom), length(component))
+        );
+        # Loop over cells to interpolate to nodes
+        idat = inspectintegpoints(self,  geom,  u,  dT,
+            collect(1:count(geod.fes)),  _avg_inspector,  idat, quantity;
+            context...);
+        # The data for the field to be constructed is initialized
+        nvals = zeros(FFlt, nnodes(geom), length(component));
+        # compute the data array
+        for kkk = 1:size(nvals, 1)
+            for j = 1:length(component)
+                if (idat.ncontrib[kkk] > 0)
+                    nvals[kkk, j] = idat.sum_quant[kkk, j]/idat.ncontrib[kkk];
+                end
+            end
+        end
+    else # inverse distance
+        # Container of intermediate results
+        idat = InverseDistanceInspectorData(
+        component,
+        zeros(FFlt, nne),
+        zeros(FFlt, nnodes(geom)),
+        zeros(FFlt, nnodes(geom), length(component))
+        );
+        # Loop over cells to interpolate to nodes
+        idat = inspectintegpoints(self,  geom,  u,  dT,
+        collect(1:count(geod.fes)),  _idi_inspector,  idat, quantity;
+        context...);
+        # The data for the field to be constructed is initialized
+        nvals = zeros(FFlt, nnodes(geom), length(component));
+        # compute the data array
+        for kkk = 1:size(nvals, 1)
+            for j = 1:length(component)
+                if (idat.sum_inv_dist[kkk] > 0.0)
+                    nvals[kkk, j] = idat.sum_quant_inv_dist[kkk, j]/idat.sum_inv_dist[kkk];
+                end
             end
         end
     end
@@ -401,8 +464,8 @@ function elemfieldfromintegpoints(self::FEMM,
     end
     # Loop over cells to interpolate to nodes
     idat = inspectintegpoints(self,  geom,  u,  dT,
-    collect(1:count(geod.fes)), mv_inspector,  idat, quantity;
-    context...);
+        collect(1:count(geod.fes)), mv_inspector,  idat, quantity;
+        context...);
     # The data for the field to be constructed is initialized
     evals = zeros(FFlt, count(geod.fes), length(component));
     # compute the data array

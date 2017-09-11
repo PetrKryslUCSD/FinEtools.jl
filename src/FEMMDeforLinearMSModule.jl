@@ -323,8 +323,10 @@ function inspectintegpoints_mean(self::FEMMDeforLinearAbstractMS,
             rotstressvec(self.mr, out1, out, geod.mcsys.csmat')# To global coord sys
             rotstressvec(self.mr, out, out1, outputcsys.csmat)# To output coord sys
         end
-        # Call the inspector
-        idat = inspector(idat, i, conn, x, out, loc);
+        # Call the inspector for each node location
+        for nod = 1:size(x, 1)
+            idat = inspector(idat, i, conn, x, out, x[nod, :]);
+        end
     end # Loop over elements
     return idat; # return the updated inspector data
 end
