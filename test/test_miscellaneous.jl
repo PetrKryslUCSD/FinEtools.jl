@@ -1083,3 +1083,17 @@ end
 end
 using mmquadrature3
 mmquadrature3.test()
+
+module mmmatchingmm
+using FinEtools.AlgoBaseModule: FDataDict, dcheck!
+using Base.Test
+function test()
+    d = FDataDict("postp"=>true, "preprocessing"=>nothing)
+    recognized_keys = ["postprocessing", "something",  "else"]
+    notmatched = dcheck!(d, recognized_keys)
+    # display(notmatched)
+    @test !isempty(notmatched)
+end
+end
+using mmmatchingmm
+mmmatchingmm.test()
