@@ -542,10 +542,8 @@ mandatory, the  region dictionary  contains values for keys:
 
 For essential boundary conditions (optional) each dictionary
 would hold
-  + "displacement" = fixed (prescribed) displacement (scalar),  or
-            a function with signature
-                function w = f(x)
-            If not given, zero displacement assumed.
+  + "displacement" = fixed (prescribed) displacement (scalar): only zero
+        displacement is  allowed for modal analysis.
   + "component" = which component is prescribed  (1, 2, 3)?
   + "node_list" = list of nodes on the boundary to which the condition applies
             (mandatory)
@@ -608,16 +606,7 @@ function modal(modeldata::FDataDict)
             dcheck!(ebc, essential_bcs_recognized_keys)
             fenids = get(()->error("Must get node list!"), ebc, "node_list");
             displacement = get(ebc, "displacement", nothing);
-            u_fixed = zeros(FFlt, length(fenids)); # default is  zero displacement
-            if (displacement != nothing) # if it is nonzero,
-                if (typeof(displacement) <: Function) # it could be a function
-                    for k = 1:length(fenids)
-                        u_fixed[k] = displacement(geom.values[fenids[k],:])[1];
-                    end
-                else # or it could be a constant
-                    fill!(u_fixed, displacement);
-                end
-            end
+            u_fixed = zeros(FFlt, length(fenids)); # only zero displacement accepted
             component = get(ebc, "component", 0); # which component?
             setebc!(u, fenids[:], true, component, u_fixed);
         end
