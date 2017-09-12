@@ -1,4 +1,4 @@
-module mmmmmiscellaneous2mmmmmm
+module miscellaneous2mm
 using FinEtools
 using Base.Test
 function test()
@@ -15,10 +15,10 @@ function test()
   @test bfes.conn == [1 2; 5 1; 2 3; 3 4; 4 8; 9 5; 8 12; 10 9; 11 10; 12 11]
 end
 end
-using mmmmmiscellaneous2mmmmmm
-mmmmmiscellaneous2mmmmmm.test()
+using miscellaneous2mm
+miscellaneous2mm.test()
 
-module mmmQ4blockneous2mmmmmm
+module mmmQ4blockneous2mm
 using FinEtools
 using FinEtools.MeshExportModule
 using Base.Test
@@ -39,10 +39,10 @@ function test()
   # @async run(`"paraview.exe" $File`)
 end
 end
-using mmmQ4blockneous2mmmmmm
-mmmQ4blockneous2mmmmmm.test()
+using mmmQ4blockneous2mm
+mmmQ4blockneous2mm.test()
 
-module mmmmmiimportexportmmmmm
+module miimportexportm
 using FinEtools
 using FinEtools.MeshImportModule
 using FinEtools.MeshExportModule
@@ -59,10 +59,30 @@ function test()
   # @async run(`"paraview.exe" $File`)
 end
 end
-using mmmmmiimportexportmmmmm
-mmmmmiimportexportmmmmm.test()
+using miimportexportm
+miimportexportm.test()
 
-module mmmLshapemmmmmmm
+module miimportexportm2
+using FinEtools
+using FinEtools.MeshImportModule
+using FinEtools.MeshExportModule
+using Base.Test
+function test()
+  output = MeshImportModule.import_NASTRAN(dirname(@__FILE__) * "/" * "Slot-coarser-2.nas";
+    allocationchunk = 13)
+  # show(fes.conn[count(fes), :])
+  File = "Slot-coarser.vtk"
+  MeshExportModule.vtkexportmesh(File, output["fens"], output["fesets"][1])
+  rm(File)
+  @test output["fesets"][1].conn[count(output["fesets"][1]), :] ==
+    [143, 140, 144, 138, 361, 363, 176, 519, 781, 520]
+  # @async run(`"paraview.exe" $File`)
+end
+end
+using miimportexportm2
+miimportexportm2.test()
+
+module mmmLshapemmm
 using FinEtools
 using Base.Test
 function test()
@@ -96,10 +116,10 @@ function test()
   true
 end
 end
-using mmmLshapemmmmmmm
-mmmLshapemmmmmmm.test()
+using mmmLshapemmm
+mmmLshapemmm.test()
 
-module mmmmmAbaqusmmiimportmmm
+module mAbaqusmmiimportmmm
 using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
@@ -185,8 +205,8 @@ function test()
 
 end
 end
-using mmmmmAbaqusmmiimportmmm
-mmmmmAbaqusmmiimportmmm.test()
+using mAbaqusmmiimportmmm
+mAbaqusmmiimportmmm.test()
 
 module mmsmoothingm1
 using FinEtools
