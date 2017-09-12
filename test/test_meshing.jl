@@ -853,3 +853,99 @@ end
 end
 using mttriangles14
 mttriangles14.test()
+
+module mselecte1
+using FinEtools
+
+using Base.Test
+function test()
+
+    # println("""
+    # The initially twisted cantilever beam is one of the standard test
+    # problems for verifying the finite-element accuracy [1]. The beam is
+    #   clamped at one end and loaded either with unit in-plane or
+    #   unit out-of-plane force at the other. The centroidal axis of the beam is
+    #   straight at the undeformed  configuration, while its cross-sections are
+    #   twisted about the centroidal axis from 0 at the clamped end to pi/2 at
+    #   the free end.
+    #
+    #   Reference:
+    #   Zupan D, Saje M (2004) On "A proposed standard set of problems to test
+    #   finite element accuracy": the twisted beam. Finite Elements in Analysis
+    #   and Design 40: 1445-1451.
+    #   """)
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl = 2; nt = 1; nw = 1; ref = 7;
+    tolerance  = t/1000;
+
+    fens,fes  = H8block(L,W,t, nl*ref,nw*ref,nt*ref)
+
+    # Reshape into a twisted beam shape
+    for i = 1:count(fens)
+        a = fens.xyz[i,1]/L*(pi/2); y = fens.xyz[i,2]-(W/2); z = fens.xyz[i,3]-(t/2);
+        fens.xyz[i,:] = [fens.xyz[i,1],y*cos(a)-z*sin(a),y*sin(a)+z*cos(a)];
+    end
+
+    # Clamped end of the beam
+    l1  = selectnode(fens; box = [0 0 -100*W 100*W W W], inflate  =  tolerance)
+    # display(l1)
+    @test isempty(l1)
+
+    # # Traction on the opposite edge
+    boundaryfes  =   meshboundary(fes);
+    Toplist   = selectelem(fens,boundaryfes, facing = true,
+    direction = [-1.0 0.0 0.0], dotmin = 0.999);
+    # display(Toplist)
+    @test length(Toplist) == 49
+    Toplist   = selectelem(fens,boundaryfes, box = [L L -Inf Inf -Inf Inf],
+    allin = true, inflate  =  tolerance);
+    # display(Toplist)
+    @test length(Toplist) == 49
+    Toplist   = selectelem(fens,boundaryfes, box = [L L -Inf Inf -Inf Inf],
+    allin = false, inflate  =  tolerance);
+    # display(Toplist)
+    @test length(Toplist) == 77
+
+    # File =  "b.vtk"
+    # vtkexportmesh(File, subset(boundaryfes, Toplist).conn, fens.xyz,
+    #     FinEtools.MeshExportModule.Q4)
+    # File =  "a.vtk"
+    # vtkexportmesh(File, fes.conn, fens.xyz,  FinEtools.MeshExportModule.H8)
+    # @async run(`"paraview.exe" $File`)
+end
+end
+using mselecte1
+mselecte1.test()
+
+
+module mselecte2
+using FinEtools
+
+using Base.Test
+function test()
+
+    W = 10.0;
+    L = 12.;
+    nl = 2; nw = 1; ref = 7;
+    tolerance  = W/1000;
+
+    fens,fes  = Q4block(L, W, nl*ref, nw*ref)
+
+    boundaryfes  =   meshboundary(fes);
+    alist   = selectelem(fens,boundaryfes, facing = true,
+    direction = [0.0 -1.0], dotmin = 0.999);
+    # display(alist)
+    @test length(alist) == 14
+
+    # File =  "b.vtk"
+    # vtkexportmesh(File, subset(boundaryfes, alist).conn, fens.xyz,
+    #     FinEtools.MeshExportModule.L2)
+    # File =  "a.vtk"
+    # vtkexportmesh(File, fes.conn, fens.xyz,  FinEtools.MeshExportModule.Q4)
+    # @async run(`"paraview.exe" $File`)
+end
+end
+using mselecte2
+mselecte2.test()

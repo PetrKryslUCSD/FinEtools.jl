@@ -51,7 +51,7 @@ exteriorbfl = selectelem(fens, bdryfes, facing=true, direction=[1.0, 1.0, 0.0]);
 ```
 or
 ```
-exteriorbfl = selectelem(fens, bdryfes, facing=true, direction=dout, tolerance = 0.01);
+exteriorbfl = selectelem(fens, bdryfes, facing=true, direction=dout, dotmin = 0.91);
 ```
 where
 ```
@@ -61,7 +61,7 @@ end
 ```
 and `xyz` is the location of the centroid  of  a boundary element.
 Here the finite element is considered "facing" in the given direction if the dot
-product of its normal and the direction vector is greater than tolerance.
+product of its normal and the direction vector is greater than `dotmin`.
 
 This selection method makes sense only for elements that are  surface-like (i. e.
 for boundary mmeshes).
@@ -77,7 +77,7 @@ Select elements based on some criteria that their nodes satisfy.  See the
 function `selectnode()`.
 
 Example:
-Select all  elements whose nodes are closer than `R+tolerance` from the point `from`.
+Select all  elements whose nodes are closer than `R+inflate` from the point `from`.
 ```
 linner = selectelem(fens, bfes, distance = R, from = [0.0 0.0 0.0],
   inflate = tolerance)
@@ -123,7 +123,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
 
     # Extract arguments
     allin= nothing; flood= nothing; facing= nothing; label= nothing;
-    nearestto= nothing; smoothpatch= nothing; startnode = 0
+    nearestto= nothing; smoothpatch= nothing; startnode = 0; dotmin = 1.0
     for arg in args
         sy, val = arg
         if sy == :flood
@@ -134,8 +134,6 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
             label=val
         elseif sy == :nearestto
             nearestto=val
-        elseif sy == :smoothpatch
-            smoothpatch=val
         elseif sy == :allin
             allin=val
         end
@@ -153,13 +151,13 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     if facing != nothing
         facing = true;
         direction = nothing
-        tolerance = 0.001;
+        dottol = 1.0;
         for arg in args
             sy, val = arg
             if sy == :direction
                 direction=val
-            elseif sy == :tolerance
-                tolerance=val
+            elseif sy == :tolerance || sy == :dotmin # allow for obsolete keyword  to work
+                dotmin=val
             end
         end
     end
@@ -264,7 +262,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
                 d = direction(mean(xyz,1));
                 d = reshape(d,1,sd)/norm(d);
             end
-            if (dot(vec(N),vec(d))>tolerance)
+            if (dot(vec(N),vec(d)) > dotmin)
                 felist[i]=i;
             end
         end
