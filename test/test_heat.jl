@@ -21,7 +21,7 @@ function test()
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
   end
-  tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);#the exact distribution of temperature
+  tempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
   N = 100;# number of subdivisions along the sides of the square domain
 
 
@@ -68,7 +68,7 @@ function test()
 
   Error= 0.0
   for k=1:size(fens.xyz,1)
-    Error = Error+abs.(Temp.values[k,1]-tempf(reshape(fens.xyz[k,:], (1,2))))
+    Error = Error+abs.(Temp.values[k,1].-tempf(reshape(fens.xyz[k,:], (1,2))))
   end
   # println("Error =$Error")
 
@@ -182,7 +182,7 @@ function test()
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = -6.0; #heat source
   end
-  tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);
+  tempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
   N = 100;
 
   # println("Mesh generation")
@@ -253,7 +253,7 @@ function test()
   A= 1.0
   thermal_conductivity = eye(2,2); # conductivity matrix
   magn = -6.0; #heat source
-  truetempf(x)=1.0 + x[1].^2 + 2.0*x[2].^2;
+  truetempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
   N=20;
 
   # println("""
@@ -334,7 +334,7 @@ function test()
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
   end
-  tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);#the exact distribution of temperature
+  tempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
   N = 100;# number of subdivisions along the sides of the square domain
   Rm=[-0.9917568452513019 -0.12813414805267656
   -0.12813414805267656 0.9917568452513019]
@@ -762,7 +762,7 @@ function test()
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
   end
-  tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);#the exact distribution of temperature
+  tempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
   N = 30;# number of subdivisions along the sides of the square domain
 
   # println("Mesh generation")
@@ -845,7 +845,7 @@ function test()
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
   end
-  tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);#the exact distribution of temperature
+  tempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
   N = 13;# number of subdivisions along the sides of the square domain
 
   # println("Mesh generation")
@@ -928,7 +928,7 @@ function test()
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
   end
-  tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);#the exact distribution of temperature
+  tempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
   N = 13;# number of subdivisions along the sides of the square domain
 
   # println("Mesh generation")
@@ -1255,7 +1255,7 @@ function test()
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
   end
-  tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);#the exact distribution of temperature
+  tempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
   N = 100;# number of subdivisions along the sides of the square domain
 
 
@@ -1467,7 +1467,7 @@ function test()
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
   end
-  tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);#the exact distribution of temperature
+  tempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
   N = 10;# number of subdivisions along the sides of the square domain
 
 
@@ -1555,7 +1555,7 @@ function test()
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = -6.0; #heat source
   end
-  tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);
+  tempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
   N = 10;
 
   # println("Mesh generation")
@@ -1638,7 +1638,7 @@ function test()
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
   end
-  tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);#the exact distribution of temperature
+  tempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
   N = 10;# number of subdivisions along the sides of the square domain
 
   # println("Mesh generation")
@@ -1731,7 +1731,7 @@ function test()
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = -6.0; #heat source
   end
-  tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);
+  tempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
   N = 10;
 
   # println("Mesh generation")
@@ -1826,7 +1826,7 @@ function test()
         function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             forceout[1] = -6.0; #heat source
         end
-        tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);
+        tempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
         N = 10;
 
         # println("Mesh generation")

@@ -171,7 +171,7 @@ S = acousticstiffness(femm, geom, P);
 C = acousticmass(femm, geom, P);
 
 d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
-d = d - OmegaShift;
+d = d .- OmegaShift;
 fs = real(sqrt.(complex(d)))/(2*pi)
 # println("Eigenvalues: $fs [Hz]")
 #
