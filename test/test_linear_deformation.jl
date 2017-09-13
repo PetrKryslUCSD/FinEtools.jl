@@ -5041,7 +5041,7 @@ function test()
 
     if true
         d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
-        d = d - OmegaShift;
+        d[:] = d .- OmegaShift;
         fs = real(sqrt.(complex(d)))/(2*pi)
         # println("Eigenvalues: $fs [Hz]")
         @test norm(sort(fs)[1:8] - [0.0, 0.0, 0.0, 0.0, 0.000166835, 0.000182134, 517.147, 517.147]) < 2.0e-2
@@ -5063,7 +5063,7 @@ function test()
         # if nconv < neigvs
             # println("NOT converged")
         # end
-        lamb = lamb - OmegaShift;
+        broadcast!(+, lamb, lamb, - OmegaShift);
         fs = real(sqrt.(complex(lamb)))/(2*pi)
         # println("Eigenvalues: $fs [Hz]")
         # println("$(sort(fs))")
@@ -5215,7 +5215,7 @@ function test()
 
     if true
         d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
-        d = d - OmegaShift;
+        broadcast!(+, d, d, - OmegaShift);
         fs = real(sqrt.(complex(d)))/(2*pi)
         # println("Eigenvalues: $fs [Hz]")
         @test norm(sort(fs)[1:8] - [0.0, 0.0, 0.0, 0.0, 0.000166835, 0.000182134, 517.147, 517.147]) < 2.0e-2
@@ -5550,7 +5550,7 @@ function test()
     # coordinate is the thickness in the axial direction.
 
     fens,fes = Q4block(rex-rin,Length,5,20);
-    fens.xyz[:, 1] += rin
+    broadcast(+, fens.xyz[:, 1], fens.xyz[:, 1], rin)
     bdryfes = meshboundary(fes);
 
     # now we create the geometry and displacement fields
@@ -5638,7 +5638,8 @@ function test()
     3.3102    4.9653   -5.7929   -3.3102   -4.9653    5.7929];
     @test norm(K/(phun("lbf")/phun("in")) - ref_K)/1.0e5 < 1.0e-3
 
-    dT = NodalField(zeros(size(fens.xyz, 1), 1)+100*phun("F")) # temperature field
+    dT = NodalField(broadcast(+, zeros(size(fens.xyz, 1), 1),
+        100*phun("F"))) # temperature field
     # display(dT)
 
     F2 = thermalstrainloads(femm, geom, u, dT)
@@ -6563,7 +6564,7 @@ function test()
     # coordinate is the thickness in the axial direction.
 
     fens,fes = Q4block(rex-rin,Length,5,20);
-    fens.xyz[:, 1] += rin
+    broadcast!(+, fens.xyz[:, 1], fens.xyz[:, 1], rin)
     bdryfes = meshboundary(fes);
 
     # the symmetry plane
@@ -6710,7 +6711,7 @@ function test()
     sA  =  fld.values[nA]/phun("MEGA*Pa")
     sAn  =  fld.values[nA]/sigmaA
     # println("Stress at point A: $(sA) i. e.  $( sAn*100  )% of reference value")
-    @test norm(sA - -93.8569) < 1.0e-4
+    @test norm(sA .- -93.8569) < 1.0e-4
 
     fen2fe  = FENodeToFEMap(fes.conn, nnodes(geom))
     function inspector(idat, elnum, conn, xe,  out,  xq)

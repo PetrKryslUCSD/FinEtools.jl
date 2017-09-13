@@ -667,7 +667,7 @@ function modal(modeldata::FDataDict)
     #          [W,Omega]= eig(full(K+omega_shift*M), full(M));
 
     d,v,nev,nconv = eigs(K+omega_shift*M, M; nev=neigvs, which=:SM)
-    d = d - omega_shift;
+    broadcast!(+, d, d, -omega_shift);
 
     modeldata["raw_eigenvalues"] = d;
     #    Subtract the mass-shifting Angular frequency
