@@ -36,7 +36,7 @@ S = acousticstiffness(femm, geom, P);
 C = acousticmass(femm, geom, P);
 
 d,v,nev,nconv =eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
-d = d - OmegaShift;
+d = d .- OmegaShift;
 fs=real(sqrt.(complex(d)))/(2*pi)
 # println("Eigenvalues: $fs [Hz]")
 #
@@ -100,7 +100,7 @@ S  =  acousticstiffness(femm, geom, P);
 C  =  acousticmass(femm, geom, P);
 
 d,v,nev,nconv  = eigs(C+OmegaShift*S, S; nev = neigvs, which = :SM)
-d  =  d - OmegaShift;
+d  =  d .- OmegaShift;
 fs = real(sqrt.(complex(d)))/(2*pi)
 # println("Eigenvalues: $fs [Hz]")
 
@@ -230,7 +230,7 @@ S = acousticstiffness(femm, geom, P);
 C = acousticmass(femm, geom, P);
 
 d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
-d = d - OmegaShift;
+d = d .- OmegaShift;
 fs = real(sqrt.(complex(d)))/(2*pi)
 # println("Eigenvalues: $fs [Hz]")
 #
@@ -996,7 +996,7 @@ function test()
     y = reshape(y,length(y),1);
     local B = [t ones(t)];
     local p = (B'*B)\(B'*y);
-    return y-p[1]*t-p[2];
+    return y.-p[1]*t.-p[2];
   end
 
   ux = remove_bias(t_store, tTu_store[1,:])
