@@ -66,7 +66,7 @@ function Q4quadrilateral(xyz::FFltMat, nL::FInt, nW::FInt)
     dummy = FESetModule.FESetQ4(reshape(collect(1:4),1,4))
     pxyz = fens.xyz;
     for i = 1:FENodeSetModule.count(fens)
-        N = FESetModule.bfun(dummy,pxyz[i,:]-1.0);# shift coordinates by -1
+        N = FESetModule.bfun(dummy, broadcast(-, pxyz[i,:], 1.0));# shift coordinates by -1
         pxyz[i,:] = N'*xyz;
     end
     copy!(fens.xyz, xyz1);
