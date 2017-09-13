@@ -5237,7 +5237,7 @@ function test()
         # if nconv < neigvs
             # println("NOT converged")
         # end
-        lamb = lamb - OmegaShift;
+        lamb = lamb .- OmegaShift;
         fs = real(sqrt.(complex(lamb)))/(2*pi)
         # println("Eigenvalues: $fs [Hz]")
         # println("$(sort(fs))")
