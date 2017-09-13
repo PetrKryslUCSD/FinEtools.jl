@@ -377,7 +377,7 @@ function doextrude(fens, fes::FESetQ4, nLayers, extrusionh)
     gc=1;
     for k=1:nLayers
         for i=1:count(fes)
-            hconn[gc, :]=[fes.conn[i, :]+(k-1)*nn1 fes.conn[i, :]+k*nn1];
+            hconn[gc, :]=[broadcast(+, fes.conn[i, :], (k-1)*nn1) broadcast(+, fes.conn[i, :], k*nn1)];
             gc=gc+1;
         end
     end
