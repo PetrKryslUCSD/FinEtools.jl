@@ -43,8 +43,7 @@ end
 """
     CSys(csmat::FFltMat)
 
-Construct ccoordinate system when the function to compute the
-rotation matrix is given.
+Construct ccoordinate system when the rotation matrix is given.
 """
 function CSys(csmat::FFltMat)
   function updatebuffer!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
