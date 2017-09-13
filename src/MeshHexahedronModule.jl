@@ -699,7 +699,7 @@ function H8compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec)
         zs = collect(linspace(0,ts[layer],nts[layer]+1))
         fens1, fes1 = H8blockx(xs, ys, zs);
         setlabel!(fes1, layer);
-        fens1.xyz[:, 3] += sum(ts[1:layer-1]);
+        fens1.xyz[:, 3] = fens1.xyz[:, 3] .+ sum(ts[1:layer-1]);
         fens, fes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance);
         fes = cat(fes1,fes2);
     end
