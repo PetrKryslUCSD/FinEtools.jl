@@ -62,7 +62,8 @@ end
 and `xyz` is the location of the centroid  of  a boundary element.
 Here the finite element is considered "facing" in the given direction if the dot
 product of its normal and the direction vector is greater than `dotmin`.
-The default value for `dotmin` is 0.9.
+The default value for `dotmin` is 0.01 (this corresponds to  almost 90 degrees
+between the normal to the finite element  and the given direction).
 
 This selection method makes sense only for elements that are  surface-like (i. e.
 for boundary mmeshes).
@@ -124,7 +125,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
 
     # Extract arguments
     allin= nothing; flood= nothing; facing= nothing; label= nothing;
-    nearestto= nothing; smoothpatch= nothing; startnode = 0; dotmin = 1.0
+    nearestto= nothing; smoothpatch= nothing; startnode = 0; dotmin = 0.01
     for arg in args
         sy, val = arg
         if sy == :flood
@@ -152,7 +153,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     if facing != nothing
         facing = true;
         direction = nothing
-        dotmin = 0.9;
+        dotmin = 0.01;
         for arg in args
             sy, val = arg
             if sy == :direction
