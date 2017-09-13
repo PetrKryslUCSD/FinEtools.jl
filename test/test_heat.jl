@@ -250,64 +250,64 @@ module mmmmmPoisson_FE_example_algo
 using FinEtools
 using Base.Test
 function test()
-  A= 1.0
-  thermal_conductivity = eye(2,2); # conductivity matrix
-  magn = -6.0; #heat source
-  truetempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
-  N=20;
+    A= 1.0
+    thermal_conductivity = eye(2,2); # conductivity matrix
+    magn = -6.0; #heat source
+    truetempf(x) = (1.0 .+ x[1].^2 .+ 2*x[2].^2);#the exact distribution of temperature
+    N=20;
 
-  # println("""
-  #
-  # Heat conduction example described by Amuthan A. Ramabathiran
-  # http://www.codeproject.com/Articles/579983/Finite-Element-programming-in-Julia:
-  # Unit square, with known temperature distribution along the boundary,
-  # and uniform heat generation rate inside.  Mesh of regular TRIANGLES,
-  # in a grid of $N x $N edges.
-  # This version uses the FinEtools algorithm module.
-  # """
-  # )
-  t0 = time()
+    # println("""
+    #
+    # Heat conduction example described by Amuthan A. Ramabathiran
+    # http://www.codeproject.com/Articles/579983/Finite-Element-programming-in-Julia:
+    # Unit square, with known temperature distribution along the boundary,
+    # and uniform heat generation rate inside.  Mesh of regular TRIANGLES,
+    # in a grid of $N x $N edges.
+    # This version uses the FinEtools algorithm module.
+    # """
+    # )
+    t0 = time()
 
-  fens,fes =T3block(A, A, N, N)
-
-
-  # Define boundary conditions
-  l1 =selectnode(fens; box=[0. 0. 0. A], inflate = 1.0/N/100.0)
-  l2 =selectnode(fens; box=[A A 0. A], inflate = 1.0/N/100.0)
-  l3 =selectnode(fens; box=[0. A 0. 0.], inflate = 1.0/N/100.0)
-  l4 =selectnode(fens; box=[0. A A A], inflate = 1.0/N/100.0)
-
-  essential1 = FDataDict("node_list"=>vcat(l1, l2, l3, l4),
-  "temperature"=>truetempf);
-  material = MatHeatDiff(thermal_conductivity)
-  femm = FEMMHeatDiff(GeoD(fes, TriRule(1)), material)
-  region1 = FDataDict("femm"=>femm, "Q"=>magn)
-  # Make model data
-  modeldata= FDataDict("fens"=> fens,
-  "regions"=>[region1],
-  "essential_bcs"=>[essential1]);
+    fens,fes =T3block(A, A, N, N)
 
 
-  # Call the solver
-  modeldata = FinEtools.AlgoHeatDiffModule.steadystate(modeldata)
+    # Define boundary conditions
+    l1 =selectnode(fens; box=[0. 0. 0. A], inflate = 1.0/N/100.0)
+    l2 =selectnode(fens; box=[A A 0. A], inflate = 1.0/N/100.0)
+    l3 =selectnode(fens; box=[0. A 0. 0.], inflate = 1.0/N/100.0)
+    l4 =selectnode(fens; box=[0. A A A], inflate = 1.0/N/100.0)
 
-  # println("Total time elapsed = ",time() - t0,"s")
+    essential1 = FDataDict("node_list"=>vcat(l1, l2, l3, l4),
+        "temperature"=>truetempf);
+    material = MatHeatDiff(thermal_conductivity)
+    femm = FEMMHeatDiff(GeoD(fes, TriRule(1)), material)
+    region1 = FDataDict("femm"=>femm, "Q"=>magn)
+    # Make model data
+    modeldata= FDataDict("fens"=> fens,
+        "regions"=>[region1],
+        "essential_bcs"=>[essential1]);
 
-  geom=modeldata["geom"]
-  Temp=modeldata["temp"]
-  femm=modeldata["regions"][1]["femm"]
-  function errfh(loc,val)
-    exact = truetempf(loc)
-    return ((exact-val)^2)[1]
-  end
 
-  femm.geod.integration_rule = TriRule(6)
-  E = integratefieldfunction(femm, geom, Temp, errfh, 0.0, m=3)
+    # Call the solver
+    modeldata = FinEtools.AlgoHeatDiffModule.steadystate(modeldata)
+
+    # println("Total time elapsed = ",time() - t0,"s")
+
+    geom=modeldata["geom"]
+    Temp=modeldata["temp"]
+    femm=modeldata["regions"][1]["femm"]
+    function errfh(loc,val)
+        exact = truetempf(loc)
+        return ((exact-val)^2)[1]
+    end
+
+    femm.geod.integration_rule = TriRule(6)
+    E = integratefieldfunction(femm, geom, Temp, errfh, 0.0, m=3)
     # println("Error=$E")
 
     @test E<00.0025
 
-  end
+end
 end
 using mmmmmPoisson_FE_example_algo
 mmmmmPoisson_FE_example_algo.test()
