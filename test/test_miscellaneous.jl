@@ -1097,3 +1097,106 @@ end
 end
 using mmmatchingmm
 mmmatchingmm.test()
+
+
+module mboundary13
+using FinEtools
+using FinEtools.MeshExportModule
+using Base.Test
+function test()
+    xs = collect(linspace( 1.0, 3.0, 4))
+    ys = collect(linspace(-1.0, 5.0, 5))
+    fens, fes = T3blockx(xs, ys, :a)
+    @test count(fes) == 4*3*2
+
+    boundaryfes  =   meshboundary(fes);
+    ytl   = selectelem(fens, boundaryfes, facing = true,
+        direction = [0.0 +1.0], dotmin = 0.999);
+    @test length(ytl) == 3
+
+    geom  =  NodalField(fens.xyz)
+
+    femm  =  FEMMBase(GeoD(subset(boundaryfes, ytl), GaussRule(1, 2)))
+    L = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(L - 2.0)/L < 1.0e-5
+
+    # File = "playground.vtk"
+    # MeshExportModule.vtkexportmesh(File, fens, fes)
+    # @async run(`"paraview.exe" $File`)
+    # try rm(File) catch end
+
+end
+end
+using mboundary13
+mboundary13.test()
+
+
+module mboundary14
+using FinEtools
+using FinEtools.MeshExportModule
+using Base.Test
+function test()
+    xs = collect(linspace( 1.0, 3.0, 4))
+    ys = collect(linspace(-1.0, 5.0, 5))
+    fens, fes = Q4blockx(xs, ys)
+    fens, fes = Q4toQ8(fens, fes)
+    @test count(fes) == 4*3
+
+    boundaryfes  =   meshboundary(fes);
+    ytl   = selectelem(fens, boundaryfes, facing = true,
+        direction = [0.0 +1.0], dotmin = 0.999);
+    @test length(ytl) == 3
+
+    geom  =  NodalField(fens.xyz)
+
+    femm  =  FEMMBase(GeoD(subset(boundaryfes, ytl), GaussRule(1, 3)))
+    L = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(L - 2.0)/L < 1.0e-5
+
+    # File = "playground.vtk"
+    # MeshExportModule.vtkexportmesh(File, fens, fes)
+    # @async run(`"paraview.exe" $File`)
+    # try rm(File) catch end
+
+end
+end
+using mboundary14
+mboundary14.test()
+
+
+module mboundary15
+using FinEtools
+using FinEtools.MeshExportModule
+using Base.Test
+function test()
+    xs = collect(linspace( 1.0, 3.0, 4))
+    ys = collect(linspace(-1.0, 5.0, 5))
+    zs = collect(linspace(+2.0, 5.0, 7))
+    fens, fes = T4blockx(xs, ys, zs, :a)
+    @test count(fes) == 432
+
+    boundaryfes  =   meshboundary(fes);
+    ytl   = selectelem(fens, boundaryfes, facing = true,
+        direction = [0.0 +1.0 0.0], dotmin = 0.999);
+    @test length(ytl) == 36
+
+    geom  =  NodalField(fens.xyz)
+
+    femm  =  FEMMBase(GeoD(subset(boundaryfes, ytl), SimplexRule(2, 1)))
+    S = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(S - 6.0)/S < 1.0e-5
+
+
+    femm  =  FEMMBase(GeoD(fes, SimplexRule(3, 1)))
+    V = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(V - 36.0)/V < 1.0e-5
+
+    # File = "playground.vtk"
+    # MeshExportModule.vtkexportmesh(File, fens, fes)
+    # @async run(`"paraview.exe" $File`)
+    # try rm(File) catch end
+
+end
+end
+using mboundary15
+mboundary15.test()
