@@ -1879,7 +1879,7 @@ function test()
 
         Error = 0.0
         for k=1:size(fens.xyz,1)
-            Error = Error.+abs.(Temp.values[k,1]-tempf(reshape(fens.xyz[k,:], (1,2))))
+            Error = Error.+abs.(Temp.values[k,1].-tempf(reshape(fens.xyz[k,:], (1,2))))
         end
         # println("Error =$Error")
         @test Error[1]<1.e-5
@@ -1998,8 +1998,8 @@ function test()
     # println("Minimum/maximum temperature= $(minimum(Temp.values))/$(maximum(Temp.values)))")
     #
     # println("Total time elapsed = ",time() - t0,"s")
-@test abs(minimum(Temp.values - -0.5000094018945275)) < 1.e-4
-@test abs(maximum(Temp.values - 0.600010400530557)) < 1.e-4
+@test abs(minimum(Temp.values) - -0.5000094018945275) < 1.e-4
+@test abs(maximum(Temp.values) - 0.600010400530557) < 1.e-4
     # # Postprocessing
     # File = "annulusmod.vtk"
     # vtkexportmesh(File, fes.conn, [geom.values Temp.values],
