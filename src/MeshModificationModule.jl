@@ -89,7 +89,7 @@ function  myunique2(A::FIntMat) # speeded up; now the bottleneck is mysortrows
     #@time
     sA=mysortdim2!(sA)::FIntMat;#this is fast
     #@time sA=sort(A,2,alg=QuickSort)::FIntMat;#this is slow
-    sA= [sA (1:size(A,1))+maxA]::FIntMat
+    sA= [sA broadcast(+, 1:size(A,1), maxA)]::FIntMat
     #@time
     sA =mysortrows(sA); # this now takes the majority of time, but much less than the function below
     #@time sA  = sortrows(sA,alg=QuickSort);;#this is slow

@@ -100,7 +100,7 @@ function T4blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec, orientation::Symbol)
     function node_numbers(i::FInt, j::FInt, k::FInt, nL::FInt, nW::FInt, nH::FInt)
         f=(k-1)*((nL+1)*(nW+1))+(j-1)*(nL+1)+i;
         nn=[f (f+1)  f+(nL+1)+1 f+(nL+1)];
-        return [nn nn+((nL+1)*(nW+1))];
+        return [nn broadcast(+, nn, (nL+1)*(nW+1))];
     end
 
     gc=1;
@@ -115,7 +115,7 @@ function T4blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec, orientation::Symbol)
                 end
                 for r=1:size(t4i, 1)
                     for c1=1:size(t4i, 2)
-                        conns[gc, c1]=nn[t4i[r, c1]];
+                        conns[gc, c1] = nn[t4i[r, c1]];
                     end
                     gc=gc+1;
                 end
