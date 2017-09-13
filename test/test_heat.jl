@@ -383,7 +383,7 @@ function test()
 
   Error= 0.0
   for k=1:size(fens.xyz,1)
-    Error = Error+abs.(Temp.values[k,1]-tempf(reshape(fens.xyz[k,:], (1,2))))
+    Error = Error+abs.(Temp.values[k,1].-tempf(reshape(fens.xyz[k,:], (1,2))))
   end
   # println("Error =$Error")
   @test Error[1]<1.e-4
