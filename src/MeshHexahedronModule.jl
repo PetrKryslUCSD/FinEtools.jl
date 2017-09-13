@@ -458,7 +458,7 @@ function H8spheren(radius::FFlt, nperradius::FInt)
     fes=cat(fes1, fes2);
 
     xyz = deepcopy(fens.xyz);
-    layer = oftype(1.0, Inf) + zeros(FFlt, size(xyz,  1), 1);
+    layer = broadcast(+, zeros(FFlt, size(xyz,  1), 1), oftype(1.0, Inf));
     conn = deepcopy(fes.conn);
     bg = meshboundary(fes);
     l = selectelem(fens, bg; facing=true,  direction=[1. 1. 1.], dotmin = 0.01);
