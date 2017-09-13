@@ -278,8 +278,8 @@ function test()
 
     fens,fes  =  H8block(Lx,Ly,Ly,n,2,2); # Mesh
     bfes  =  meshboundary(fes)
-    L0 = selectelem(fens,bfes,facing = true, direction = [-1.0 0.0 0.0])
-    L10 = selectelem(fens,bfes,facing = true, direction = [+1.0 0.0 0.0])
+    L0 = selectelem(fens,bfes, facing = true, direction = [-1.0 0.0 0.0])
+    L10 = selectelem(fens,bfes, facing = true, direction = [+1.0 0.0 0.0])
     nLx = selectnode(fens,box = [0.0 Lx  0.0 0.0 0.0 0.0], inflate = Lx/1.0e5)
 
     geom  =  NodalField(fens.xyz)

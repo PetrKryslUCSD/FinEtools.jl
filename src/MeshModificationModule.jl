@@ -167,57 +167,57 @@ needs to be updated to refer to the same nodes in  the set `fens` as
      `updateconn!(fes, new_indexes_of_fens1_nodes);`
 """
 function fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance:: FFlt)
-  xyz1::FFltMat = deepcopy(fens1.xyz);
-  id1::FIntVec = collect(1:size(xyz1,1));
-  dim =size(xyz1,2);
-  xyz2::FFltMat = deepcopy(fens2.xyz);
-  id2::FIntVec = collect(1:size(xyz2,1));
-  n1::FFlt= 0.0
-  # Mark nodes from the first array that are duplicated in the second
-  if (tolerance>0.0) # should we attempt to merge nodes?
-    for i=1:size(xyz1,1)
-      for rx=1:size(xyz2,1)
-        n1= 0.0
-        for cx=1:size(xyz2,2)
-          n1=n1+abs(xyz2[rx,cx]-xyz1[i,cx]);
+    xyz1::FFltMat = deepcopy(fens1.xyz);
+    id1::FIntVec = collect(1:size(xyz1,1));
+    dim =size(xyz1,2);
+    xyz2::FFltMat = deepcopy(fens2.xyz);
+    id2::FIntVec = collect(1:size(xyz2,1));
+    n1::FFlt= 0.0
+    # Mark nodes from the first array that are duplicated in the second
+    if (tolerance>0.0) # should we attempt to merge nodes?
+        for i=1:size(xyz1,1)
+            for rx=1:size(xyz2,1)
+                n1= 0.0
+                for cx=1:size(xyz2,2)
+                    n1=n1+abs(xyz2[rx,cx]-xyz1[i,cx]);
+                end
+                if (n1<tolerance)
+                    id1[i] =-rx; break;
+                end
+            end
         end
-        if (n1<tolerance)
-          id1[i] =-rx; break;
+    end
+    # Generate  fused arrays of the nodes
+    xyzm = zeros(FFlt,size(xyz1,1)+size(xyz2,1),dim);
+    for rx=1:size(xyz2,1)
+        xyzm[rx,:]=xyz2[rx,:];
+    end
+    idm = zeros(FInt,size(xyz1,1)+size(xyz2,1));
+    for rx=1:size(xyz2,1)
+        idm[rx]=rx;
+    end
+    mid=size(xyz2,1)+1;
+    for i=1:size(xyz1,1) # and then we pick only non-duplicated fens1
+        if id1[i]>0
+            id1[i]=mid;
+            idm[mid]=mid;
+            for cx=1:size(xyz1,2)
+                xyzm[mid,cx]=xyz1[i,cx];
+            end
+            mid=mid+1;
+        else
+            id1[i]=id2[-id1[i]];
         end
-      end
     end
-  end
-  # Generate  fused arrays of the nodes
-  xyzm = zeros(FFlt,size(xyz1,1)+size(xyz2,1),dim);
-  for rx=1:size(xyz2,1)
-    xyzm[rx,:]=xyz2[rx,:];
-  end
-  idm = zeros(FInt,size(xyz1,1)+size(xyz2,1));
-  for rx=1:size(xyz2,1)
-    idm[rx]=rx;
-  end
-  mid=size(xyz2,1)+1;
-  for i=1:size(xyz1,1) # and then we pick only non-duplicated fens1
-    if id1[i]>0
-      id1[i]=mid;
-      idm[mid]=mid;
-      for cx=1:size(xyz1,2)
-        xyzm[mid,cx]=xyz1[i,cx];
-      end
-      mid=mid+1;
-    else
-      id1[i]=id2[-id1[i]];
-    end
-  end
-  nnodes =mid-1;
-  xyzm =xyzm[1:nnodes,:];
+    nnodes =mid-1;
+    xyzm =xyzm[1:nnodes,:];
 
-  # Create the fused Node set
-  fens = FENodeSet(xyzm);
-  # The Node set 1 numbering will change
-  new_indexes_of_fens1_nodes = id1[:];
-  # The node set 2 numbering stays the same
-  return fens, new_indexes_of_fens1_nodes
+    # Create the fused Node set
+    fens = FENodeSet(xyzm);
+    # The Node set 1 numbering will change
+    new_indexes_of_fens1_nodes = id1[:];
+    # The node set 2 numbering stays the same
+    return fens, new_indexes_of_fens1_nodes
 end
 
 """
@@ -250,20 +250,20 @@ Finally, check that the mesh is valid:
 validate_mesh(fens, fes);
 """
 function compactnodes(fens::FENodeSetModule.FENodeSet, connected::BitArray{1})
-  @assert length(connected) == count(fens)
-  new_numbering = zeros(FInt,count(fens),1);
-  nxyz = deepcopy(fens.xyz);
-  id=1;
-  for i=1:length(connected)
-    if (connected[i])
-      new_numbering[i] = id;
-      nxyz[id,:] = fens.xyz[i,:];
-      id=id+1;
+    @assert length(connected) == count(fens)
+    new_numbering = zeros(FInt,count(fens),1);
+    nxyz = deepcopy(fens.xyz);
+    id=1;
+    for i=1:length(connected)
+        if (connected[i])
+            new_numbering[i] = id;
+            nxyz[id,:] = fens.xyz[i,:];
+            id=id+1;
+        end
     end
-  end
-  #new_numbering = new_numbering[1:id-1];
-  fens = FENodeSetModule.FENodeSet(nxyz[1:id-1,:]);
-  return fens, vec(new_numbering)
+    #new_numbering = new_numbering[1:id-1];
+    fens = FENodeSetModule.FENodeSet(nxyz[1:id-1,:]);
+    return fens, vec(new_numbering)
 end
 
 """
@@ -290,15 +290,15 @@ fens2 is are guaranteed to be the same. Therefore, the connectivity of
 fes2 will in fact remain the same.
 """
 function mergemeshes(fens1::FENodeSet, fes1::T1,
-  fens2::FENodeSet, fes2::T2, tolerance::FFlt) where {T1<:FESet,T2<:FESet}
-  # Fuse the nodes
-  fens, new_indexes_of_fens1_nodes = fusenodes(fens1, fens2, tolerance);
-  # Renumber the finite elements
-  newfes1 = deepcopy(fes1)
-  updateconn!(newfes1, new_indexes_of_fens1_nodes);
-  # Note that now the connectivity of both fes1 and fes2 point into
-  # fens.
-  return fens, newfes1, fes2
+    fens2::FENodeSet, fes2::T2, tolerance::FFlt) where {T1<:FESet,T2<:FESet}
+    # Fuse the nodes
+    fens, new_indexes_of_fens1_nodes = fusenodes(fens1, fens2, tolerance);
+    # Renumber the finite elements
+    newfes1 = deepcopy(fes1)
+    updateconn!(newfes1, new_indexes_of_fens1_nodes);
+    # Note that now the connectivity of both fes1 and fes2 point into
+    # fens.
+    return fens, newfes1, fes2
 end
 
 """
@@ -316,22 +316,22 @@ The merged node set, fens, and the array of finite element sets with
 renumbered  connectivities are returned.
 """
 function mergenmeshes(meshes::Array{Tuple{FENodeSet, FESet}}, tolerance::FFlt)
-  outputfes = Array{FESet,1}()
-  if (length(meshes)) == 1 # A single mesh, package output and return
+    outputfes = Array{FESet,1}()
+    if (length(meshes)) == 1 # A single mesh, package output and return
+        fens, fes = meshes[1];
+        push!(outputfes, fes)
+        return fens, outputfes
+    end
+    # Multiple meshes: process
     fens, fes = meshes[1];
     push!(outputfes, fes)
+    for j=2:length(meshes)
+        fens1, fes1 = meshes[j];
+        fens, new_indexes_of_fens1_nodes = fusenodes(fens1, fens, tolerance);
+        FESetModule.updateconn!(fes1,new_indexes_of_fens1_nodes);
+        push!(outputfes, fes1)
+    end
     return fens, outputfes
-  end
-  # Multiple meshes: process
-  fens, fes = meshes[1];
-  push!(outputfes, fes)
-  for j=2:length(meshes)
-    fens1, fes1 = meshes[j];
-    fens, new_indexes_of_fens1_nodes = fusenodes(fens1, fens, tolerance);
-    FESetModule.updateconn!(fes1,new_indexes_of_fens1_nodes);
-    push!(outputfes, fes1)
-  end
-  return fens, outputfes
 end
 
 """
@@ -346,53 +346,53 @@ set, fens, and the finite element set with renumbered  connectivities
 are returned.
 """
 function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)
-  xyz1 = fens.xyz;
-  dim  = size(xyz1,2);
-  id1 = collect(1:count(fens));
-  c1 = ones(size(xyz1,1),1);
-  xyzd = zeros(size(xyz1));
-  d = zeros(size(xyz1,1));
-  m = trues(size(xyz1,1));
-  # Mark nodes from the array that are duplicated
-  for i = 1:count(fens)
-    if (id1[i]>0) # This node has not yet been marked for merging
-      XYZ = reshape(xyz1[i,:], 1, dim);
-      xyzd[:,:] = abs.(xyz1-c1*XYZ); #find the distances along  coordinate directions
-      d = sum(xyzd,2);
-      map!((x)->x<tolerance, m, d);
-      jx = find(m);
-      if (!isempty(jx))
-        minn = minimum(jx);
-        id1[jx] = -minn;
-        id1[minn] = minn;
-      end
+    xyz1 = fens.xyz;
+    dim  = size(xyz1,2);
+    id1 = collect(1:count(fens));
+    c1 = ones(size(xyz1,1),1);
+    xyzd = zeros(size(xyz1));
+    d = zeros(size(xyz1,1));
+    m = trues(size(xyz1,1));
+    # Mark nodes from the array that are duplicated
+    for i = 1:count(fens)
+        if (id1[i]>0) # This node has not yet been marked for merging
+            XYZ = reshape(xyz1[i,:], 1, dim);
+            xyzd[:,:] = abs.(xyz1-c1*XYZ); #find the distances along  coordinate directions
+            d = sum(xyzd,2);
+            map!((x)->x<tolerance, m, d);
+            jx = find(m);
+            if (!isempty(jx))
+                minn = minimum(jx);
+                id1[jx] = -minn;
+                id1[minn] = minn;
+            end
+        end
     end
-  end
-  # Generate  merged arrays of the nodes
-  xyzm = zeros(FFlt,count(fens),dim);
-  mid = 1;
-  for i = 1:count(fens) # and then we pick only non-duplicated fens1
-    if id1[i] > 0 # this node is the master
-      id1[i] = mid;
-      xyzm[mid,:] = xyz1[i,:];
-      mid = mid+1;
-    else # this node is the slave
-      id1[i] = id1[-id1[i]];
+    # Generate  merged arrays of the nodes
+    xyzm = zeros(FFlt,count(fens),dim);
+    mid = 1;
+    for i = 1:count(fens) # and then we pick only non-duplicated fens1
+        if id1[i] > 0 # this node is the master
+            id1[i] = mid;
+            xyzm[mid,:] = xyz1[i,:];
+            mid = mid+1;
+        else # this node is the slave
+            id1[i] = id1[-id1[i]];
+        end
     end
-  end
-  nnodes = mid-1;
-  xyzm = xyzm[1:nnodes,:];
-  # Renumber the cells
-  conns = fes.conn;
-  for i = 1:FESetModule.count(fes)
-    conn = conns[i,:];
-    conns[i,:] = id1[conn];
-  end
-  fes.conn = deepcopy(conns);
+    nnodes = mid-1;
+    xyzm = xyzm[1:nnodes,:];
+    # Renumber the cells
+    conns = fes.conn;
+    for i = 1:FESetModule.count(fes)
+        conn = conns[i,:];
+        conns[i,:] = id1[conn];
+    end
+    fes.conn = deepcopy(conns);
 
-  fens = FENodeSet(xyzm[1:nnodes,:]);
+    fens = FENodeSet(xyzm[1:nnodes,:]);
 
-  return fens,fes
+    return fens,fes
 end
 
 """
@@ -477,11 +477,11 @@ Finally, check that the mesh is valid:
 validate_mesh(fens, fes);
 """
 function renumberconn!(fes::FESetModule.FESet, new_numbering::FIntVec)
-  for i=1:size(fes.conn,1)
-    c = fes.conn[i,:];
-    fes.conn[i,:] = new_numbering[c];
-  end
-  return fes
+    for i=1:size(fes.conn,1)
+        c = fes.conn[i,:];
+        fes.conn[i,:] = new_numbering[c];
+    end
+    return fes
 end
 
 """
@@ -547,7 +547,7 @@ fixedv = Boolean array, one entry per vertex: is the vertex immovable (true)
 npass = number of passes (default 2)
 
 ## Return
-The modified  node set. 
+The modified  node set.
 """
 function meshsmoothing(fens::FENodeSet, fes::T; options...) where {T<:FESet}
     v = deepcopy(fens.xyz)
@@ -652,34 +652,34 @@ fens1,gcells1 = mirror_mesh(fens, gcells,...
           [-1,0,0], [0,0,0], @(c)c([1, 4, 3, 2, 5, 8, 7, 6]));
 """
 function mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
-  Point::FFltVec; args...) where {T<:FESet}
-  # Treat optional arguments.
-  # Simply switch the order of nodes.  Works for simplexes...
-  renumb(conn) = conn[end:-1:1];
-  for arg in args
-    sy, val = arg
-    if sy == :renumb
-      renumb = val
+    Point::FFltVec; args...) where {T<:FESet}
+    # Treat optional arguments.
+    # Simply switch the order of nodes.  Works for simplexes...
+    renumb(conn) = conn[end:-1:1];
+    for arg in args
+        sy, val = arg
+        if sy == :renumb
+            renumb = val
+        end
     end
-  end
-  # Make sure we're using a unit normal
-  Normal = Normal/norm(Normal);
-  Normal = vec(Normal)
-  # The point needs to be a row  matrix
-  Point = vec(Point)
+    # Make sure we're using a unit normal
+    Normal = Normal/norm(Normal);
+    Normal = vec(Normal)
+    # The point needs to be a row  matrix
+    Point = vec(Point)
 
-  fens1 = deepcopy(fens); # the mirrored mesh nodes
-  for i = 1:count(fens1)
-    a = fens1.xyz[i,:]
-    d = dot(vec(a-Point), Normal);
-    fens1.xyz[i,:] = a-2*d*Normal;
-  end
-  # Reconnect the cells
-  fes1=deepcopy(fes);
-  for i=1:size(fes1.conn,1)
-    fes1.conn[i,:]=renumb(fes1.conn[i,:]);
-  end
-  return fens1,fes1
+    fens1 = deepcopy(fens); # the mirrored mesh nodes
+    for i = 1:count(fens1)
+        a = fens1.xyz[i,:]
+        d = dot(vec(a-Point), Normal);
+        fens1.xyz[i,:] = a-2*d*Normal;
+    end
+    # Reconnect the cells
+    fes1=deepcopy(fes);
+    for i=1:size(fes1.conn,1)
+        fes1.conn[i,:]=renumb(fes1.conn[i,:]);
+    end
+    return fens1,fes1
 end
 
 """

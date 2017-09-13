@@ -27,10 +27,9 @@ Length, Width, Height= dimensions of the mesh in Cartesian coordinate axes,
 smallest coordinate in all three directions is  0 (origin)
 nL, nW, nH=number of elements in the three directions
 """
-
 function H8block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
-  return H8blockx(collect(linspace(0, Length, nL+1)),
-  collect(linspace(0, Width, nW+1)), collect(linspace(0, Height, nH+1)));
+    return H8blockx(collect(linspace(0, Length, nL+1)),
+    collect(linspace(0, Width, nW+1)), collect(linspace(0, Height, nH+1)));
 end
 
 
@@ -40,49 +39,49 @@ end
 Graded mesh of a 3-D block of H8 finite elements.
 """
 function H8blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec)
-  nL =length(xs)-1;
-  nW =length(ys)-1;
-  nH =length(zs)-1;
+    nL =length(xs)-1;
+    nW =length(ys)-1;
+    nH =length(zs)-1;
 
-  nnodes=(nL+1)*(nW+1)*(nH+1);
-  xyz =zeros(FFlt, nnodes, 3);
-  ncells=(nL)*(nW)*(nH);
-  conns =zeros(FInt, ncells, 8);
+    nnodes=(nL+1)*(nW+1)*(nH+1);
+    xyz =zeros(FFlt, nnodes, 3);
+    ncells=(nL)*(nW)*(nH);
+    conns =zeros(FInt, ncells, 8);
 
 
-  # first go along Length,  then Width,  and finally Height
-  function node_numbers(i, j, k, nL, nW, nH)
-    f=(k-1)*((nL+1)*(nW+1))+(j-1)*(nL+1)+i;
-    nn=[f (f+1)  f+(nL+1)+1 f+(nL+1)];
-    nn=[nn nn+((nL+1)*(nW+1))];
-  end
-
-  f=1;
-  for k=1:(nH+1)
-    for j=1:(nW+1)
-      for i=1:(nL+1)
-        xyz[f, :]=[xs[i] ys[j] zs[k]];
-        f=f+1;
-      end
+    # first go along Length,  then Width,  and finally Height
+    function node_numbers(i, j, k, nL, nW, nH)
+        f=(k-1)*((nL+1)*(nW+1))+(j-1)*(nL+1)+i;
+        nn=[f (f+1)  f+(nL+1)+1 f+(nL+1)];
+        nn=[nn nn+((nL+1)*(nW+1))];
     end
-  end
 
-  gc=1;
-  for i=1:nL
-    for j=1:nW
-      for k=1:nH
-        nn=node_numbers(i, j, k, nL, nW, nH);
-        conns[gc, :]=nn;
-        gc=gc+1;
-      end
+    f=1;
+    for k=1:(nH+1)
+        for j=1:(nW+1)
+            for i=1:(nL+1)
+                xyz[f, :]=[xs[i] ys[j] zs[k]];
+                f=f+1;
+            end
+        end
     end
-  end
-  # create the nodes
-  fens = FENodeSetModule.FENodeSet(xyz);
-  # Create the finite elements
-  fes = FESetModule.FESetH8(conns);
 
-  return fens, fes;
+    gc=1;
+    for i=1:nL
+        for j=1:nW
+            for k=1:nH
+                nn=node_numbers(i, j, k, nL, nW, nH);
+                conns[gc, :]=nn;
+                gc=gc+1;
+            end
+        end
+    end
+    # create the nodes
+    fens = FENodeSetModule.FENodeSet(xyz);
+    # Create the finite elements
+    fes = FESetModule.FESetH8(conns);
+
+    return fens, fes;
 end
 
 
@@ -285,7 +284,7 @@ function   H8toH27(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
 end
 
 """
-    bar
+    H8hexahedron(xyz::FFltMat, nL::FInt, nW::FInt, nH::FInt; blockfun=nothing)
 
 Mesh of a general hexahedron given by the location of the vertices.
 
@@ -330,60 +329,60 @@ function H8hexahedron(xyz::FFltMat, nL::FInt, nW::FInt, nH::FInt; blockfun=nothi
 end
 
 function H27block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
-  # Mesh of a 3-D block of H27 finite elements
-  #
-  # Arguments:
-  # Length, Width, Height= dimensions of the mesh in Cartesian coordinate axes,
-  # smallest coordinate in all three directions is  0 (origin)
-  # nL, nW, nH=number of elements in the three directions
-  #
-  # Range in xyz =<0, Length> x <0, Width> x <0, Height>
-  # Divided into elements: nL,  nW,  nH in the first,  second,  and
-  # third direction (x, y, z). Finite elements of type H27.
-  #
-  # Output:
-  # fens= finite element node set
-  # fes = finite element set
-  #
-  #
-  # Examples:
-  #
-  #     [fens, fes] = H27_block(2, 3, 4,  1, 2, 3);
-  #     drawmesh({fens, fes}, 'nodes', 'fes', 'facecolor', 'none'); hold on
-  #
-  # See also: H8_block,  H8_to_H27
-  #
-  fens, fes = H8block(Length, Width, Height, nL, nW, nH);
-  fens, fes = H8toH27(fens, fes);
-  return fens, fes
+    # Mesh of a 3-D block of H27 finite elements
+    #
+    # Arguments:
+    # Length, Width, Height= dimensions of the mesh in Cartesian coordinate axes,
+    # smallest coordinate in all three directions is  0 (origin)
+    # nL, nW, nH=number of elements in the three directions
+    #
+    # Range in xyz =<0, Length> x <0, Width> x <0, Height>
+    # Divided into elements: nL,  nW,  nH in the first,  second,  and
+    # third direction (x, y, z). Finite elements of type H27.
+    #
+    # Output:
+    # fens= finite element node set
+    # fes = finite element set
+    #
+    #
+    # Examples:
+    #
+    #     [fens, fes] = H27_block(2, 3, 4,  1, 2, 3);
+    #     drawmesh({fens, fes}, 'nodes', 'fes', 'facecolor', 'none'); hold on
+    #
+    # See also: H8_block,  H8_to_H27
+    #
+    fens, fes = H8block(Length, Width, Height, nL, nW, nH);
+    fens, fes = H8toH27(fens, fes);
+    return fens, fes
 end
 
 function doextrude(fens, fes::FESetQ4, nLayers, extrusionh)
-  nn1=count(fens);
-  nnt=nn1*nLayers;
-  ngc=count(fes)*nLayers;
-  hconn=zeros(FInt, ngc, 8);
-  xyz =zeros(FFlt, nn1*(nLayers+1), 3);
-  for j=1:nn1
-    xyz[j, :] =extrusionh(fens.xyz[j, :], 0);
-  end
-  for k=1:nLayers
+    nn1=count(fens);
+    nnt=nn1*nLayers;
+    ngc=count(fes)*nLayers;
+    hconn=zeros(FInt, ngc, 8);
+    xyz =zeros(FFlt, nn1*(nLayers+1), 3);
     for j=1:nn1
-      f=j+k*nn1;
-      xyz[f, :] =extrusionh(fens.xyz[j, :], k);
+        xyz[j, :] =extrusionh(fens.xyz[j, :], 0);
     end
-  end
+    for k=1:nLayers
+        for j=1:nn1
+            f=j+k*nn1;
+            xyz[f, :] =extrusionh(fens.xyz[j, :], k);
+        end
+    end
 
-  gc=1;
-  for k=1:nLayers
-    for i=1:count(fes)
-      hconn[gc, :]=[fes.conn[i, :]+(k-1)*nn1 fes.conn[i, :]+k*nn1];
-      gc=gc+1;
+    gc=1;
+    for k=1:nLayers
+        for i=1:count(fes)
+            hconn[gc, :]=[fes.conn[i, :]+(k-1)*nn1 fes.conn[i, :]+k*nn1];
+            gc=gc+1;
+        end
     end
-  end
-  efes = FESetModule.FESetH8(hconn);
-  efens = FENodeSetModule.FENodeSet(xyz);
-  return efens, efes
+    efes = FESetModule.FESetH8(hconn);
+    efens = FENodeSetModule.FENodeSet(xyz);
+    return efens, efes
 end
 
 """
@@ -392,120 +391,108 @@ end
 Extrude a mesh of quadrilaterals into a mesh of hexahedra (H8).
 """
 function H8extrudeQ4(fens::FENodeSet,  fes::FESetQ4, nLayers::FInt,
-  extrusionh::F) where {F<:Function}
-  id = vec([i for i in 1:count(fens)])
-  cn=connectednodes(fes);
-  id[cn[:]]=vec([i for i in 1:length(cn)]);
-  q4fes= deepcopy(fes);
-  updateconn!(q4fes, id);
-  q4fens = FENodeSetModule.FENodeSet(fens.xyz[cn[:], :]);
-  h8fens, h8fes= doextrude(q4fens, q4fes, nLayers, extrusionh);
-  return h8fens, h8fes
+    extrusionh::F) where {F<:Function}
+    id = vec([i for i in 1:count(fens)])
+    cn=connectednodes(fes);
+    id[cn[:]]=vec([i for i in 1:length(cn)]);
+    q4fes= deepcopy(fes);
+    updateconn!(q4fes, id);
+    q4fens = FENodeSetModule.FENodeSet(fens.xyz[cn[:], :]);
+    h8fens, h8fes= doextrude(q4fens, q4fes, nLayers, extrusionh);
+    return h8fens, h8fes
 end
 
+"""
+    H8spheren(radius::FFlt, nperradius::FInt)
+
+Create a solid mesh of 1/8 of sphere.
+
+Create a solid mesh of 1/8 of the sphere of "radius",  with nperradius
+elements per radius.
+
+"""
 function H8spheren(radius::FFlt, nperradius::FInt)
-# Create a solid mesh of 1/8 of sphere.
-#
-# Create a solid mesh of 1/8 of the sphere of "radius",  with nperradius
-# elements per radius.
-#
-# function [fens, fes]=H8_sphere_n(radius, nperradius)
-#
-# Create a mesh of 1/8 of the sphere of "radius". The  mesh will consist of
-# 4*(nperradius/2)^2 hexahedral elements.
-#
-# Output:
-# fens= finite element node set
-# fes = finite element set
-#
-# Examples:
-#     [fens, fes]=H8_sphere_n(22.3, 3);
-#     drawmesh({fens, fes}, 'fes', 'facecolor', 'red'); hold on
-#
-# See also: H8_sphere
-if (mod(nperradius, 2) != 0)
-  nperradiu = nperradius+1;
-end
-nL = ceil(FInt, nperradius/2); nW=nL; nH=nL;
-
-a=sqrt(2.0)/2.0;
-b=1.0/sqrt(3.0);
-c=0.6*a;
-d=0.6*b;
-z= 0.0;
-h= 0.5;
-o= 1.0;
-xyz= [z  z  z;
-      h  z  z;
-      c  c  z;
-      z  h  z;
-      z  z  h;
-      c  z  c;
-      d  d  d;
-      z  c  c;
-      z  z  o;
-      a  z  a;
-      o  z  z;
-      a  a  z;
-      z  o  z;
-      z  a  a;
-      b  b  b]*radius;
-conns=[1  2  3  4  5  6  7  8;
-       2  11  12  3  6  10  15  7;
-       4  3  12  13  8  7  15  14;
-       5  6  7  8  9  10  15  14];
-tolerance=radius*1.0e-6;
-
-# fens = FENodeSetModule.FENodeSet(xyz= xyz);
-#   fes = FESetModule.FESetH8(conn=conns);
-fens, fes = H8hexahedron(xyz[conns[1, :][:], :], nL, nW, nH);
-fens1, fes1 = H8hexahedron(xyz[conns[2, :][:], :], nL, nW, nH);
-fens, fes1, fes2 = mergemeshes(fens1,  fes1,  fens,  fes,  tolerance);
-fes=cat(fes1, fes2);
-fens1, fes1 = H8hexahedron(xyz[conns[3, :][:], :], nL, nW, nH);
-fens, fes1, fes2 = mergemeshes(fens1,  fes1,  fens,  fes,  tolerance);
-fes=cat(fes1, fes2);
-fens1, fes1 = H8hexahedron(xyz[conns[4, :][:], :], nL, nW, nH);
-fens, fes1, fes2 = mergemeshes(fens1,  fes1,  fens,  fes,  tolerance);
-fes=cat(fes1, fes2);
-
-xyz = deepcopy(fens.xyz);
-layer = oftype(1.0, Inf) + zeros(FFlt, size(xyz,  1), 1);
-  conn = deepcopy(fes.conn);
-  bg = meshboundary(fes);
-  l = selectelem(fens, bg; facing=true,  direction=[1. 1. 1.]);
-  cn = connectednodes(subset(bg, l))   ;
-  layer[cn] = 1;
-  for j = 1:nperradius-1
-    for k = 1:size(conn, 1)
-      ll = layer[conn[k, :]];
-      ml = minimum(ll);
-      if (ml==j)
-        ix = isinf.(ll);
-        ll[ix] = j+1;
-        layer[conn[k, :]] = ll;
-      end
+    if (mod(nperradius, 2) != 0)
+        nperradiu = nperradius+1;
     end
-  end
-  nxyz = deepcopy(xyz);
-  for j = 1:size(xyz, 1)
-    if (!isinf.(layer[j]))
-      nxyz[j, :] = nxyz[j, :]*(nperradius-layer[j]+1)/nperradius*radius/norm(nxyz[j, :]);
+    nL = ceil(FInt, nperradius/2); nW=nL; nH=nL;
+
+    a=sqrt(2.0)/2.0;
+    b=1.0/sqrt(3.0);
+    c=0.6*a;
+    d=0.6*b;
+    z= 0.0;
+    h= 0.5;
+    o= 1.0;
+    xyz =  [z  z  z;
+            h  z  z;
+            c  c  z;
+            z  h  z;
+            z  z  h;
+            c  z  c;
+            d  d  d;
+            z  c  c;
+            z  z  o;
+            a  z  a;
+            o  z  z;
+            a  a  z;
+            z  o  z;
+            z  a  a;
+            b  b  b]*radius;
+    conns = [1  2  3  4  5  6  7  8;
+            2  11  12  3  6  10  15  7;
+            4  3  12  13  8  7  15  14;
+            5  6  7  8  9  10  15  14];
+    tolerance=radius*1.0e-6;
+
+    fens, fes = H8hexahedron(xyz[conns[1, :][:], :], nL, nW, nH);
+    fens1, fes1 = H8hexahedron(xyz[conns[2, :][:], :], nL, nW, nH);
+    fens, fes1, fes2 = mergemeshes(fens1,  fes1,  fens,  fes,  tolerance);
+    fes=cat(fes1, fes2);
+    fens1, fes1 = H8hexahedron(xyz[conns[3, :][:], :], nL, nW, nH);
+    fens, fes1, fes2 = mergemeshes(fens1,  fes1,  fens,  fes,  tolerance);
+    fes=cat(fes1, fes2);
+    fens1, fes1 = H8hexahedron(xyz[conns[4, :][:], :], nL, nW, nH);
+    fens, fes1, fes2 = mergemeshes(fens1,  fes1,  fens,  fes,  tolerance);
+    fes=cat(fes1, fes2);
+
+    xyz = deepcopy(fens.xyz);
+    layer = oftype(1.0, Inf) + zeros(FFlt, size(xyz,  1), 1);
+    conn = deepcopy(fes.conn);
+    bg = meshboundary(fes);
+    l = selectelem(fens, bg; facing=true,  direction=[1. 1. 1.], dotmin = 0.01);
+    cn = connectednodes(subset(bg, l))   ;
+    layer[cn] = 1;
+    for j = 1:nperradius-1
+        for k = 1:size(conn, 1)
+            ll = layer[conn[k, :]];
+            ml = minimum(ll);
+            if (ml==j)
+                ix = isinf.(ll);
+                ll[ix] = j+1;
+                layer[conn[k, :]] = ll;
+            end
+        end
     end
-  end
-  s =  collect(linspace(0.,  1.,  length(layer)));
-  # println("s=$s")
-  # println("layer = $layer")
-  for j = 1:size(xyz, 1)
-    ell = layer[j]
-    # show(ell)
-    if (!isinf.(ell))
-      ell = Int(ell)
-      nxyz[j, :] = s[ell]*xyz[j, :] + (1-s[ell])*nxyz[j, :];
+    nxyz = deepcopy(xyz);
+    for j = 1:size(xyz, 1)
+        if (!isinf.(layer[j]))
+            nxyz[j, :] = nxyz[j, :]*(nperradius-layer[j]+1)/nperradius*radius/norm(nxyz[j, :]);
+        end
     end
-  end
-  fens.xyz = deepcopy(nxyz);
-  return fens, fes
+    s =  collect(linspace(0.,  1.,  length(layer)));
+    # println("s=$s")
+    # println("layer = $layer")
+    for j = 1:size(xyz, 1)
+        ell = layer[j]
+        # show(ell)
+        if (!isinf.(ell))
+            ell = Int(ell)
+            nxyz[j, :] = s[ell]*xyz[j, :] + (1-s[ell])*nxyz[j, :];
+        end
+    end
+    fens.xyz = deepcopy(nxyz);
+    return fens, fes
 end
 
 function H20block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
@@ -541,53 +528,53 @@ end
 Convert a mesh of hexahedra H8 to hexahedra H20.
 """
 function   H8toH20(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
-  nedges=12;
-  ec = [1   2; 2   3; 3   4; 4   1; 5   6; 6   7; 7   8; 8   5; 1   5; 2   6; 3   7; 4   8;];
-  conns = fes.conn;
-  labels = deepcopy(fes.label)
-  # Additional node numbers are numbered from here
-  newn=FENodeSetModule.count(fens)+1;
-  # make a search structure for edges
-  edges=MeshUtilModule.makecontainer();
-  for i= 1:size(conns, 1)
-    conn = conns[i, :];
-    for J = 1:nedges
-      ev=conn[ec[J, :]];
-      newn = MeshUtilModule.addhyperface!(edges,  ev,  newn);
+    nedges=12;
+    ec = [1   2; 2   3; 3   4; 4   1; 5   6; 6   7; 7   8; 8   5; 1   5; 2   6; 3   7; 4   8;];
+    conns = fes.conn;
+    labels = deepcopy(fes.label)
+    # Additional node numbers are numbered from here
+    newn=FENodeSetModule.count(fens)+1;
+    # make a search structure for edges
+    edges=MeshUtilModule.makecontainer();
+    for i= 1:size(conns, 1)
+        conn = conns[i, :];
+        for J = 1:nedges
+            ev=conn[ec[J, :]];
+            newn = MeshUtilModule.addhyperface!(edges,  ev,  newn);
+        end
     end
-  end
-  xyz1 =fens.xyz;             # Pre-existing nodes
-  # Allocate for vertex nodes plus edge nodes plus face nodes
-  xyz =zeros(FFlt, newn-1, 3);
-  xyz[1:size(xyz1, 1), :] = xyz1; # existing nodes are copied over
-  # calculate the locations of the new nodes
-  # and construct the new nodes
-  for i in keys(edges)
-    C=edges[i];
-    for J = 1:length(C)
-      ix = vec([item for item in C[J].o])
-      push!(ix,  i) # Add the anchor point as well
-      xyz[C[J].n, :] = mean(xyz[ix, :], 1);
+    xyz1 =fens.xyz;             # Pre-existing nodes
+    # Allocate for vertex nodes plus edge nodes plus face nodes
+    xyz =zeros(FFlt, newn-1, 3);
+    xyz[1:size(xyz1, 1), :] = xyz1; # existing nodes are copied over
+    # calculate the locations of the new nodes
+    # and construct the new nodes
+    for i in keys(edges)
+        C=edges[i];
+        for J = 1:length(C)
+            ix = vec([item for item in C[J].o])
+            push!(ix,  i) # Add the anchor point as well
+            xyz[C[J].n, :] = mean(xyz[ix, :], 1);
+        end
     end
-  end
-  # construct new geometry cells
-  nconns =zeros(FInt, size(conns, 1), 20);
-  nc=1;
-  for i= 1:size(conns, 1)
-    conn = conns[i, :];
-    econn=zeros(FInt, 1, nedges);
-    for J = 1:nedges
-      ev=conn[ec[J, :]];
-      h, n=MeshUtilModule.findhyperface!(edges,  ev);
-      econn[J]=n;
+    # construct new geometry cells
+    nconns =zeros(FInt, size(conns, 1), 20);
+    nc=1;
+    for i= 1:size(conns, 1)
+        conn = conns[i, :];
+        econn=zeros(FInt, 1, nedges);
+        for J = 1:nedges
+            ev=conn[ec[J, :]];
+            h, n=MeshUtilModule.findhyperface!(edges,  ev);
+            econn[J]=n;
+        end
+        nconns[nc, :] =vcat(vec(conn),  vec(econn))
+        nc= nc+ 1;
     end
-    nconns[nc, :] =vcat(vec(conn),  vec(econn))
-    nc= nc+ 1;
-  end
-  fens =FENodeSetModule.FENodeSet(xyz);
-  fes = FESetModule.FESetH20(nconns) ;
-  setlabel!(fes, labels);
-  return fens, fes;
+    fens =FENodeSetModule.FENodeSet(xyz);
+    fes = FESetModule.FESetH20(nconns) ;
+    setlabel!(fes, labels);
+    return fens, fes;
 end
 
 # Construct arrays to describe a hexahedron mesh created from voxel image.
@@ -701,21 +688,21 @@ The finite elements of each layer are labeled with the layer number, starting
 from 1.
 """
 function H8compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec)
-  tolerance = minimum(abs.(ts))/maximum(nts)/10.;
-  @assert length(ts) >= 1
-  layer = 1
-  zs = collect(linspace(0,ts[layer],nts[layer]+1))
-  fens, fes = H8blockx(xs, ys, zs);
-  setlabel!(fes, layer);
-  for layer = 2:length(ts)
+    tolerance = minimum(abs.(ts))/maximum(nts)/10.;
+    @assert length(ts) >= 1
+    layer = 1
     zs = collect(linspace(0,ts[layer],nts[layer]+1))
-    fens1, fes1 = H8blockx(xs, ys, zs);
-    setlabel!(fes1, layer);
-    fens1.xyz[:, 3] += sum(ts[1:layer-1]);
-    fens, fes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance);
-    fes = cat(fes1,fes2);
-  end
-  return fens,fes
+    fens, fes = H8blockx(xs, ys, zs);
+    setlabel!(fes, layer);
+    for layer = 2:length(ts)
+        zs = collect(linspace(0,ts[layer],nts[layer]+1))
+        fens1, fes1 = H8blockx(xs, ys, zs);
+        setlabel!(fes1, layer);
+        fens1.xyz[:, 3] += sum(ts[1:layer-1]);
+        fens, fes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance);
+        fes = cat(fes1,fes2);
+    end
+    return fens,fes
 end
 
 """

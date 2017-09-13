@@ -51,7 +51,7 @@ exteriorbfl = selectelem(fens, bdryfes, facing=true, direction=[1.0, 1.0, 0.0]);
 ```
 or
 ```
-exteriorbfl = selectelem(fens, bdryfes, facing=true, direction=dout, dotmin = 0.91);
+exteriorbfl = selectelem(fens, bdryfes, facing=true, direction=dout, dotmin = 0.99);
 ```
 where
 ```
@@ -62,6 +62,7 @@ end
 and `xyz` is the location of the centroid  of  a boundary element.
 Here the finite element is considered "facing" in the given direction if the dot
 product of its normal and the direction vector is greater than `dotmin`.
+The default value for `dotmin` is 0.9.
 
 This selection method makes sense only for elements that are  surface-like (i. e.
 for boundary mmeshes).
@@ -151,12 +152,12 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     if facing != nothing
         facing = true;
         direction = nothing
-        dottol = 1.0;
+        dotmin = 0.9;
         for arg in args
             sy, val = arg
             if sy == :direction
                 direction=val
-            elseif sy == :tolerance || sy == :dotmin # allow for obsolete keyword  to work
+            elseif (sy == :dotmin) || (sy == :tolerance)# allow for obsolete keyword  to work
                 dotmin=val
             end
         end
