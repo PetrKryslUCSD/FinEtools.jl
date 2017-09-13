@@ -50,7 +50,7 @@ piston_fes = subset(bfes,intersect(l1,l2));
 #  @async run(`"paraview.exe" $File`)
 
 # Outer spherical boundary
-louter = selectelem(fens, bfes, facing = true, direction = [1.0 1.0  1.0])
+louter = selectelem(fens, bfes, facing = true, direction = [1.0 1.0  1.0], dotmin= 0.001)
 outer_fes = subset(bfes,louter);
 # File  =   "outer_fes.vtk"
 # vtkexportmesh(File, outer_fes.conn, fens.xyz, FinEtools.MeshExportModule.Q4)

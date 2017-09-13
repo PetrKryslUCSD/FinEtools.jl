@@ -126,7 +126,8 @@ function H8sphere(radius::FFlt, nrefine::FInt)
     for i = 1:nrefine
         fens, fes = H8refine(fens, fes);
         bg = MeshModificationModule.meshboundary(fes);
-        l = MeshSelectionModule.selectelem(fens, bg, facing=true,  direction=[1, 1, 1]);
+        l = MeshSelectionModule.selectelem(fens, bg, facing=true,
+            direction=[1, 1, 1], dotmin= 0.01);
         cn = MeshSelectionModule.connectednodes(FESetModule.subset(bg, l))   ;
         for j=1:length(cn)
             fens.xyz[cn[j], :]=fens.xyz[cn[j], :]*radius/norm(fens.xyz[cn[j], :]);

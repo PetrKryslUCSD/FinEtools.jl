@@ -1070,7 +1070,7 @@ bfes  =  meshboundary(fes)
 # vtkexportmesh(File, bfes.conn, fens.xyz, FinEtools.MeshExportModule.Q4)
 #  @async run(`"paraview.exe" $File`)
 
-l = selectelem(fens,bfes,facing = true,direction = [1.0 1.0  1.0])
+l = selectelem(fens,bfes,facing = true,direction = [1.0 1.0  1.0], dotmin= 0.001)
 ex(xyz, layer) = (R+layer/nlayers*(Ro-R))*xyz/norm(xyz)
 fens1,fes1  =  H8extrudeQ4(fens, subset(bfes,l), nlayers, ex);
 fens,newfes1,fes2 =  mergemeshes(fens1, fes1, fens, fes, tolerance)
@@ -1083,7 +1083,7 @@ l2 = selectelem(fens, bfes, distance = R, from = [0.0 0.0 0.0], inflate = tolera
 piston_fes = subset(bfes,intersect(l1,l2));
 
 # Outer spherical boundary
-louter = selectelem(fens, bfes, facing = true, direction = [1.0 1.0  1.0])
+louter = selectelem(fens, bfes, facing = true, direction = [1.0 1.0  1.0], dotmin= 0.001)
 outer_fes = subset(bfes,louter);
 
 # println("Pre-processing time elapsed  =  ",time() - t0,"s")
@@ -1174,7 +1174,7 @@ function test()
     # vtkexportmesh(File, bfes.conn, fens.xyz, FinEtools.MeshExportModule.Q4)
     #  @async run(`"paraview.exe" $File`)
 
-    l = selectelem(fens,bfes,facing = true,direction = [1.0 1.0  1.0])
+    l = selectelem(fens,bfes,facing = true,direction = [1.0 1.0  1.0], dotmin= 0.001)
     ex(xyz, layer) = (R+layer/nlayers*(Ro-R))*xyz/norm(xyz)
     fens1,fes1  =  H8extrudeQ4(fens, subset(bfes,l), nlayers, ex);
     fens,newfes1,fes2 =  mergemeshes(fens1, fes1, fens, fes, tolerance)
@@ -1190,7 +1190,7 @@ function test()
     #  @async run(`"paraview.exe" $File`)
 
     # Outer spherical boundary
-    louter = selectelem(fens, bfes, facing = true, direction = [1.0 1.0  1.0])
+    louter = selectelem(fens, bfes, facing = true, direction = [1.0 1.0  1.0], dotmin= 0.001)
     outer_fes = subset(bfes,louter);
     # File  =   "outer_fes.vtk"
     # vtkexportmesh(File, outer_fes.conn, fens.xyz, FinEtools.MeshExportModule.Q4)

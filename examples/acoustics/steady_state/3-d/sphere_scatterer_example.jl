@@ -30,7 +30,7 @@ t0  =  time()
 # Hexahedral mesh
 fens, fes  =  H8spheren(R, nPerradius);
 bfes  =  meshboundary(fes)
-l = selectelem(fens, bfes, facing = true, direction = [1.0 1.0  1.0])
+l = selectelem(fens, bfes, facing = true, direction = [1.0 1.0  1.0], dotmin= 0.001)
 ex(xyz, layer) = (R+layer/nlayers*(Ro-R))*xyz/norm(xyz)
 fens,fes  =  H8extrudeQ4(fens, subset(bfes,l), nlayers, ex);
 fens1,fes1 = mirrormesh(fens, fes, [-1.0, 0.0, 0.0], [0.0, 0.0, 0.0]; renumb =  r(c) = c[[1, 4, 3, 2, 5, 8, 7, 6]])

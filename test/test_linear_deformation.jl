@@ -4786,7 +4786,8 @@ function test()
     # Select the  boundary faces, on the boundary that is clamped,  and on the part
     # of the boundary that is loaded with the transverse pressure
     bdryfes = meshboundary(fes);
-    exteriorbfl = selectelem(fens, bdryfes, facing=true, direction=[1.0, 1.0, 0.0]);
+    exteriorbfl = selectelem(fens, bdryfes, facing=true,
+        direction=[1.0, 1.0, 0.0], dotmin= 0.001);
     topbfl = selectelem(fens, bdryfes, box=[0.0, Inf, 0.0, Inf, Thickness, Thickness], inflate=tolerance);
 
     geom = NodalField(fens.xyz)
@@ -4900,7 +4901,7 @@ function test()
     # Select the  boundary faces, on the boundary that is clamped,  and on the part
     # of the boundary that is loaded with the transverse pressure
     bdryfes = meshboundary(fes);
-    exteriorbfl = selectelem(fens, bdryfes, facing=true, direction=[1.0, 1.0, 0.0]);
+    exteriorbfl = selectelem(fens, bdryfes, facing=true, direction=[1.0, 1.0, 0.0], dotmin= 0.001);
     topbfl = selectelem(fens, bdryfes, box=[0.0, Inf, 0.0, Inf, Thickness, Thickness], inflate=tolerance);
 
     geom = NodalField(fens.xyz)
