@@ -53,7 +53,7 @@ function H8blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec)
     function node_numbers(i, j, k, nL, nW, nH)
         f=(k-1)*((nL+1)*(nW+1))+(j-1)*(nL+1)+i;
         nn=[f (f+1)  f+(nL+1)+1 f+(nL+1)];
-        nn=[nn nn+((nL+1)*(nW+1))];
+        nn=[nn broadcast(+, nn, (nL+1)*(nW+1))];
     end
 
     f=1;
