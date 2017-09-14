@@ -235,7 +235,7 @@ function test()
 
   Error = 0.0
   for k=1:size(fens.xyz,1)
-    Error = Error.+abs.(Temp.values[k,1]-tempf(reshape(fens.xyz[k,:], (1,2))))
+    Error = Error .+ abs.(Temp.values[k,1] .- tempf(reshape(fens.xyz[k,:], (1,2))))
   end
   # println("Error =$Error")
   @test Error[1]<1.e-5
@@ -298,7 +298,7 @@ function test()
     femm=modeldata["regions"][1]["femm"]
     function errfh(loc,val)
         exact = truetempf(loc)
-        return ((exact-val)^2)[1]
+        return ((exact .- val)^2)[1]
     end
 
     femm.geod.integration_rule = TriRule(6)
@@ -906,7 +906,7 @@ function test()
 
   Error= 0.0
   for k=1:size(fens.xyz,1)
-    Error = Error.+abs.(Temp.values[k,1]-tempf(reshape(fens.xyz[k,:], (1,3))))
+    Error = Error .+ abs.(Temp.values[k,1] .- tempf(reshape(fens.xyz[k,:], (1,3))))
   end
   # println("Error =$Error")
 @test abs(Error[1]) < 1.0e-3
@@ -989,7 +989,7 @@ function test()
 
   Error= 0.0
   for k=1:size(fens.xyz,1)
-    Error = Error.+abs.(Temp.values[k,1]-tempf(reshape(fens.xyz[k,:], (1,3))))
+    Error = Error .+ abs.(Temp.values[k,1] .- tempf(reshape(fens.xyz[k,:], (1,3))))
   end
   # println("Error =$Error")
 @test abs(Error[1]) < 1.0e-3
@@ -1301,7 +1301,7 @@ function test()
 
   Error= 0.0
   for k=1:size(fens.xyz,1)
-    Error = Error.+abs.(Temp.values[k,1]-tempf(reshape(fens.xyz[k,:], (1,2))))
+    Error = Error .+ abs.(Temp.values[k,1] .- tempf(reshape(fens.xyz[k,:], (1,2))))
   end
   # println("Error =$Error")
 
@@ -1515,7 +1515,7 @@ function test()
 
   Error= 0.0
   for k=1:size(fens.xyz,1)
-    Error = Error.+abs.(Temp.values[k,1]-tempf(reshape(fens.xyz[k,:], (1,2))))
+    Error = Error .+ abs.(Temp.values[k,1] .- tempf(reshape(fens.xyz[k,:], (1,2))))
   end
   # println("Error =$Error")
 
@@ -1608,7 +1608,7 @@ function test()
 
   Error = 0.0
   for k=1:size(fens.xyz,1)
-    Error = Error.+abs.(Temp.values[k,1]-tempf(reshape(fens.xyz[k,:], (1,2))))
+    Error = Error .+ abs.(Temp.values[k,1] .- tempf(reshape(fens.xyz[k,:], (1,2))))
   end
   # println("Error =$Error")
   @test Error[1]<1.e-5
@@ -1699,7 +1699,7 @@ function test()
 
   Error= 0.0
   for k=1:size(fens.xyz,1)
-    Error = Error.+abs.(Temp.values[k,1]-tempf(reshape(fens.xyz[k,:], (1,3))))
+    Error = Error .+ abs.(Temp.values[k,1] .- tempf(reshape(fens.xyz[k,:], (1,3))))
   end
   # println("Error =$Error")
 @test abs(Error[1]) < 1.0e-3
@@ -1785,7 +1785,7 @@ function test()
 
   Error = 0.0
   for k=1:size(fens.xyz,1)
-    Error = Error.+abs.(Temp.values[k,1]-tempf(reshape(fens.xyz[k,:], (1,2))))
+    Error = Error .+ abs.(Temp.values[k,1] .- tempf(reshape(fens.xyz[k,:], (1,2))))
   end
   # println("Error =$Error")
   @test Error[1]<1.e-5
