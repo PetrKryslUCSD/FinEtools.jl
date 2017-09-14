@@ -2727,7 +2727,7 @@ function test()
   femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,3)), material)
   M =mass(femm, geom, u)
   d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
-  d = d .- OmegaShift;
+  d = broadcast(-, d, OmegaShift);
   fs = real(sqrt.(complex(d)))/(2*pi)
   # println("Eigenvalues: $fs [Hz]")
   @test norm(fs - [2.73674e-7, 3.00469e-7, 3.14245e-7, 3.19946e-7, 3.42634e-7, 3.56347e-7, 0.262723, 0.262723, 0.357791, 0.357791, 0.357791, 0.36088, 0.36088, 0.36088, 0.408199, 0.408397, 0.408397, 0.461756, 0.461756, 0.461756]) < 1.0e-3
