@@ -275,7 +275,7 @@ function _idi_inspector(idat, elnum, conn, xe,  out,  xq)
     # xe = coordinates of the nodes of the element
     # xq = coordinate of the quadrature point
     mindn = Inf
-    for jjj = 1:length(idat.d)
+    for jjj = 1:size(xe,1)
         idat.d[jjj]  = sum((vec(xe[jjj, :])-vec(xq)).^2);
         if (idat.d[jjj] > 0.0)
             mindn = min(mindn, idat.d[jjj])
@@ -349,10 +349,14 @@ function fieldfromintegpoints(self::FEMM,
     nne = nodesperelem(geod.fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
     inspectormethod = :invdistance
+    tonode = :default
     for (i, arg) in enumerate(context)
         sy, val = arg
         if sy == :inspectormethod
             inspectormethod = val
+        end
+        if sy == :tonode
+            tonode = val
         end
     end
     if inspectormethod == :averaging
@@ -378,6 +382,7 @@ function fieldfromintegpoints(self::FEMM,
             end
         end
     else # inverse distance
+        @assert tonode == :default
         # Container of intermediate results
         idat = InverseDistanceInspectorData(
         component,
