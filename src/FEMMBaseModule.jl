@@ -382,7 +382,7 @@ function fieldfromintegpoints(self::FEMM,
             end
         end
     else # inverse distance
-        @assert tonode == :default
+        @assert (tonode == :default) || (tonode == :meanonly)
         # Container of intermediate results
         idat = InverseDistanceInspectorData(
         component,
