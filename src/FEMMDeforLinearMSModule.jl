@@ -295,7 +295,7 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS,
     realmat = self.material
     stabmat = self.stabilization_material
     # Sort out  the output requirements
-    outputcsys = geod.mcsys; # default: report the stresses in the material coord system
+    outputcsys = deepcopy(geod.mcsys); # default: report the stresses in the material coord system
     for arg in context
         sy,  val = arg
         if sy == :outputcsys
@@ -323,6 +323,7 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS,
         # element in order for the derivatives to be consistent at all quadrature points
         loc = centroid!(self,  loc, x)
         updatecsmat!(geod.mcsys, loc, J, geod.fes.label[i]);
+        updatecsmat!(outputcsys, loc, J, geod.fes.label[i]);
         vol = 0.0; # volume of the element
         fill!(MeangradN, 0.0) # mean basis function gradients
         fill!(MeanN, 0.0) # mean basis function gradients
@@ -371,7 +372,7 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS,
     realmat = self.material
     stabmat = self.stabilization_material
     # Sort out  the output requirements
-    outputcsys = geod.mcsys; # default: report the stresses in the material coord system
+    outputcsys = deepcopy(geod.mcsys); # default: report the stresses in the material coord system
     for arg in context
         sy,  val = arg
         if sy == :outputcsys
@@ -399,6 +400,7 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS,
         # element in order for the derivatives to be consistent at all quadrature points
         loc = centroid!(self,  loc, x)
         updatecsmat!(geod.mcsys, loc, J, geod.fes.label[i]);
+        updatecsmat!(outputcsys, loc, J, geod.fes.label[i]);
         vol = 0.0; # volume of the element
         fill!(MeangradN, 0.0) # mean basis function gradients
         fill!(MeanN, 0.0) # mean basis function gradients
@@ -449,7 +451,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
     realmat = self.material
     stabmat = self.stabilization_material
     # Sort out  the output requirements
-    outputcsys = geod.mcsys; # default: report the stresses in the material coord system
+    outputcsys = deepcopy(geod.mcsys); # default: report the stresses in the material coord system
     for arg in context
         sy,  val = arg
         if sy == :outputcsys
@@ -468,6 +470,8 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
     rout =  zeros(FFlt, nstsstn(self.mr));# output -- buffer
     sqploc = deepcopy(loc)
     A = ones(FFlt, npts, 4)
+    nout = deepcopy(rout)
+    nout1 = deepcopy(nout)
     sout = deepcopy(rout)
     sout1 = deepcopy(sout)
     sstoredout = zeros(FFlt, npts, length(sout))
@@ -482,6 +486,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
         # element in order for the derivatives to be consistent at all quadrature points
         loc = centroid!(self,  loc, x)
         updatecsmat!(geod.mcsys, loc, J, geod.fes.label[i]);
+        updatecsmat!(outputcsys, loc, J, geod.fes.label[i]);
         vol = 0.0; # volume of the element
         fill!(MeangradN, 0.0) # mean basis function gradients
         fill!(MeanN, 0.0) # mean basis function gradients
@@ -504,7 +509,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
         realmat.thermalstrain!(realmat, qpthstrain, qpdT)
         # REAL Material updates the state and returns the output
         rout = realmat.update!(realmat, qpstress, rout,
-        vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
+            vec(qpstrain), qpthstrain, t, dt, loc, geod.fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(rout1) >= length(rout)) || (rout1 = zeros(length(rout)))
             rotstressvec(self.mr, rout1, rout, geod.mcsys.csmat')# To global coord sys
@@ -533,7 +538,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
         p = R \ (transpose(Q) * sstoredout)
         for nod = 1:size(x, 1)
             #  Predict the value  of the output quantity at the node
-            nout = rout + vec(reshape(vec(x[nod, :]) - vec(loc), 1, 3) * p[1:3, :])
+            nout[:] = rout + vec(reshape(vec(x[nod, :]) - vec(loc), 1, 3) * p[1:3, :])
             # Call the inspector for the node location
             idat = inspector(idat, i, conn, x, nout, x[nod, :]);
         end
@@ -541,7 +546,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
     return idat; # return the updated inspector data
 end
 
-function _iip_extraptrend_paper(self::FEMMDeforLinearAbstractMS,
+function _iip_extraptrendpaper(self::FEMMDeforLinearAbstractMS,
     geom::NodalField{FFlt},  u::NodalField{T},
     dT::NodalField{FFlt},
     felist::FIntVec,
@@ -555,7 +560,7 @@ function _iip_extraptrend_paper(self::FEMMDeforLinearAbstractMS,
     realmat = self.material
     stabmat = self.stabilization_material
     # Sort out  the output requirements
-    outputcsys = geod.mcsys; # default: report the stresses in the material coord system
+    outputcsys = deepcopy(geod.mcsys); # default: report the stresses in the material coord system
     for arg in context
         sy,  val = arg
         if sy == :outputcsys
@@ -590,6 +595,7 @@ function _iip_extraptrend_paper(self::FEMMDeforLinearAbstractMS,
         # element in order for the derivatives to be consistent at all quadrature points
         loc = centroid!(self,  loc, x) # WARNING: is this how the paper does it?
         updatecsmat!(geod.mcsys, loc, J, geod.fes.label[i]);
+        updatecsmat!(outputcsys, loc, J, geod.fes.label[i]);
         vol = 0.0; # volume of the element
         fill!(MeangradN, 0.0) # mean basis function gradients
         fill!(MeanN, 0.0) # mean basis function gradients
@@ -650,7 +656,7 @@ function _iip_extraptrend_paper(self::FEMMDeforLinearAbstractMS,
         for nod = 1:size(x, 1)
             #  Predict the value  of the output quantity at the node
             xdel = vec(@view x[nod, :]) - vec(loc)
-            @views nout = rout - sbout + vec(reshape(xdel, 1, 3) * p[1:3, :]) + p[4, :]
+            nout = rout + self.phis[i] * (- sbout + vec(reshape(xdel, 1, 3) * p[1:3, :]) + p[4, :])
             # Call the inspector for the node location
             idat = inspector(idat, i, conn, x, nout, x[nod, :]);
         end
@@ -702,7 +708,7 @@ function inspectintegpoints(self::FEMMDeforLinearAbstractMS,
         return _iip_extraptrend(self, geom, u, dT, felist,
             inspector, idat, quantity; context...);
     elseif tonode == :extraptrendpaper
-        return _iip_extraptrend_paper(self, geom, u, dT, felist,
+        return _iip_extraptrendpaper(self, geom, u, dT, felist,
             inspector, idat, quantity; context...);
     elseif tonode == :extrapmean
         return _iip_extrapmean(self, geom, u, dT, felist,
