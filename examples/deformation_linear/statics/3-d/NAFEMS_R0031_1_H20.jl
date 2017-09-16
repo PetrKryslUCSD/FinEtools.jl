@@ -70,12 +70,13 @@ sigma11Eref = 684*phun("MPa");
 # system is located at the outer corner of the strip.
 sigma13Dref=4.1*phun("MPa");
 
+Refinement = 5
 # We select 8 elements spanwise and 2 elements widthwise.  The overhang
 # of the plate is given one element.
-nL=4; nO=1; nW=1;
+nL = Refinement * 4; nO = Refinement * 1; nW = Refinement * 1;
 
 # Each layer is modeled with a single element.
-nts= 1*ones(Int, length(angles));# number of elements per layer
+nts= Refinement * ones(Int, length(angles));# number of elements per layer
 
 xs = unique(vcat(collect(linspace(0,AB/2,nL+1)),
     collect(linspace(AB/2,AB/2+OH,nO+1))))
