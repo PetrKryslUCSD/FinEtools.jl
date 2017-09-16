@@ -82,7 +82,7 @@ function test()
             println("displacement =$(thecorneru) vs -0.10215 [MM]")
 
             fld = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-                tonode = extrapolation)
+                inspectormethod = :averaging, tonode = extrapolation)
             sigyd = mean(fld.values[nl,1], 1)[1]
             println("Sigma_y =$(sigyd/phun("MPa")) vs $(sigma_yD/phun("MPa")) [MPa]")
 
