@@ -335,6 +335,9 @@ Algorithm for exporting of the stress for visualization in Paraview.
   + "quantity" = quantity to be exported (default :Cauchy)
   + "component" = which component of the quantity?
   + "outputcsys" = output coordinate system
+  + "inspectormeth" = inspector method to pass to `inspectintegpoints()`
+  + "extrap" = method for extrapolating from the quadrature points to the nodes
+    within one element
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
@@ -349,7 +352,7 @@ function exportstress(modeldata::FDataDict)
     modeldata_recognized_keys = ["fens", "regions", "geom", "u",
     "dT", "postprocessing"]
     postprocessing_recognized_keys = ["boundary_only", "file", "quantity",
-    "component", "outputcsys" ]
+    "component", "outputcsys", "inspectormethod", "tonode"]
     # Defaults
     boundary_only = false;
     ffile = "stress"
@@ -357,6 +360,8 @@ function exportstress(modeldata::FDataDict)
     quantity = :Cauchy
     component = 1
     outputcsys = nothing
+    tonode = :default
+    inspectormethod = :invdistance
     # Let's have a look at what's been specified
     postprocessing = get(modeldata, "postprocessing", nothing);
     if (postprocessing != nothing)
@@ -366,6 +371,8 @@ function exportstress(modeldata::FDataDict)
         quantity = get(postprocessing, "quantity", quantity);
         component = get(postprocessing, "component", component);
         outputcsys = get(postprocessing, "outputcsys", outputcsys);
+        inspectormethod = get(postprocessing, "inspectormethod", inspectormethod);
+        tonode = get(postprocessing, "tonode", tonode);
     end
 
     fens = get(()->error("Must get fens!"), modeldata, "fens")
@@ -376,6 +383,12 @@ function exportstress(modeldata::FDataDict)
     context = []
     if (outputcsys != nothing)
         push!(context, (:outputcsys, outputcsys))
+    end
+    if (inspectormethod != nothing)
+        push!(context, (:inspectormethod, inspectormethod))
+    end
+    if (tonode != nothing)
+        push!(context, (:tonode, tonode))
     end
 
     # Export a file for each region
