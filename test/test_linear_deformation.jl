@@ -2737,7 +2737,7 @@ function test()
   File =  "unit_cube_modes.vtk"
   vtkexportmesh(File, fens, fes; vectors=[("mode$mode", u.values)])
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(File); catch end
 
 
   AE = AbaqusExporter("unit_cube_modes_h20");
@@ -3716,7 +3716,7 @@ function test()
   # println("range of  sigmay = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-1.6338426447540134e8, -4.961956343464769e6]) < 1.e-1
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(File); catch end
 
 
   sA  =  fld.values[nA]/phun("MEGA*Pa")
@@ -3739,7 +3739,7 @@ function test()
   # println("range of  pressure = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-1.1881819144904878e7, 7.555030948761216e7]) < 1.e-1
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(File); catch end
 
   fld =  fieldfromintegpoints(femm, geom, u, dT, :vm, 1)
   File  =   "LE11NAFEMS_Q8_vm.vtk"
@@ -3748,7 +3748,7 @@ function test()
   # println("range of von Mises = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [3.221370699152578e7, 1.4437590830351183e8]) < 1.e-1
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(File); catch end
 
   AE = AbaqusExporter("LE11NAFEMS_Q8_export_stress");
   HEADING(AE, "NAFEMS LE11 benchmark with Q8 elements.");
@@ -3911,7 +3911,7 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPE3 are pretty poor-accuracy elements, but here we don't care about it.");
-  @assert size(modeldata["regions"][1]["femm"].geod.fes.conn,2) == 3
+  @test  size(modeldata["regions"][1]["femm"].geod.fes.conn,2) == 3
   ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].geod.fes.conn)
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
@@ -4077,7 +4077,7 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPE3 are pretty poor-accuracy elements, but here we don't care about it.");
-  @assert size(modeldata["regions"][1]["femm"].geod.fes.conn,2) == 3
+@test  size(modeldata["regions"][1]["femm"].geod.fes.conn,2) == 3
   ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].geod.fes.conn)
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
@@ -4245,7 +4245,7 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPS3 are pretty poor-accuracy elements, but here we don't care about it.");
-  @assert size(modeldata["regions"][1]["femm"].geod.fes.conn,2) == 3
+@test  size(modeldata["regions"][1]["femm"].geod.fes.conn,2) == 3
   ELEMENT(AE, "CPS3", "AllElements", modeldata["regions"][1]["femm"].geod.fes.conn)
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
@@ -4411,7 +4411,7 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPS3 are pretty poor-accuracy elements, but here we don't care about it.");
-  @assert size(modeldata["regions"][1]["femm"].geod.fes.conn,2) == 3
+@test  size(modeldata["regions"][1]["femm"].geod.fes.conn,2) == 3
   ELEMENT(AE, "CPS3", "AllElements", modeldata["regions"][1]["femm"].geod.fes.conn)
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
@@ -4838,23 +4838,18 @@ function test()
     # println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
     @test norm(thecorneru - [-0.0268854 0.0 -0.0919955]) < 1.0e-5
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :meanonly)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; nodevalmethod = :invdistance, reportat = :meanonly)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2650465514560634) < 1.0e-3
+    @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2616980060965024) < 1.0e-3
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extrapmean)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; nodevalmethod = :averaging, reportat = :extrapmean)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2554539080497493) < 1.0e-3
+    @test abs(fld.values[nl,1][1]/phun("MPa") - -2.382478776709117) < 1.0e-3
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrend)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; nodevalmethod = :averaging, reportat = :extraptrend)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 # println("$(fld.values[nl,1][1]/phun("MPa"))")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - -5.543874813140925) < 1.0e-3
-
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrendpaper)#
-    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
-# println("$(fld.values[nl,1][1]/phun("MPa"))")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - -5.55851747065307) < 1.0e-3
+    @test abs(fld.values[nl,1][1]/phun("MPa") - -5.470291697493607) < 1.0e-3
 
     File =  "LE10NAFEMS_MST10_sigmay.vtk"
     vtkexportmesh(File, fes.conn, geom.values,
@@ -4897,6 +4892,7 @@ function test()
 
     output = MeshImportModule.import_ABAQUS(AE.filename)
     fens, fes = output["fens"], output["fesets"][1]
+try rm(AE.filename) catch end
 
     # Select the  boundary faces, on the boundary that is clamped,  and on the part
     # of the boundary that is loaded with the transverse pressure
@@ -4952,23 +4948,18 @@ function test()
     # println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
     @test norm(thecorneru - [-0.0268854 0.0 -0.0919955]) < 1.0e-5
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :meanonly)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; reportat = :meanonly)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2650465514560634) < 1.0e-3
+    @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2616980060965024) < 1.0e-3
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extrapmean)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; nodevalmethod = :averaging, reportat = :extrapmean)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - -2.2554539080497493) < 1.0e-3
+    @test abs(fld.values[nl,1][1]/phun("MPa") - -2.382478776709117) < 1.0e-3
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrend)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; nodevalmethod = :averaging, reportat = :extraptrend)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 # println("$(fld.values[nl,1][1]/phun("MPa"))")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - -5.543874813140925) < 1.0e-3
-
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrendpaper)#
-    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
-# println("$(fld.values[nl,1][1]/phun("MPa"))")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - -5.55851747065307) < 1.0e-3
+    @test abs(fld.values[nl,1][1]/phun("MPa") - -5.470291697493607) < 1.0e-3
 
     File =  "LE10NAFEMS_MST10_sigmay.vtk"
     vtkexportmesh(File, fes.conn, geom.values,
@@ -5787,7 +5778,7 @@ function test()
 
     fens,fes = Q4block(1.0, pi/2, nr, nc)
     #
-    @assert nt % 2 == 0 "Number of elements through the thickness must be even"
+    @test  nt % 2 == 0
     fens,fes  = H8extrudeQ4(fens, fes,
       nt, (xyz, layer)->[xyz[1], xyz[2], (layer)/nt*Thickness]);
 
@@ -5852,12 +5843,12 @@ function test()
     # println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
 
 
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrend)#
+    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; nodevalmethod = :averaging, reportat = :extraptrend)#
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 
     # println("$((nc, nr, nt)), $(fld.values[nl,1][1]/phun("MPa"))")
 # println("$(fld.values[nl,1][1]/phun("MPa"))")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - -5.733715969603717) < 1.0e-3
+    @test abs(fld.values[nl,1][1]/phun("MPa") - -4.627214556813842) < 1.0e-3
 
     # File =  "LE10NAFEMS_sigmay.vtk"
     # vtkexportmesh(File, fes.conn, geom.values,
@@ -6029,9 +6020,9 @@ function test()
 
             # println("Extrapolation: $( extrapolation )")
             sigx = fieldfromintegpoints(femm, geom, u, :Cauchy, 1;
-                tonode = extrapolation)
+                nodevalmethod = :averaging, reportat = extrapolation)
             sigy = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-                tonode = extrapolation)
+                nodevalmethod = :averaging, reportat = extrapolation)
             sigyA = mean(sigy.values[nlA,1], 1)[1]
             sigyAtrue = sigmatt([Ri, 0.0, 0.0])
             # println("sig_y@A =$(sigyA/phun("MPa")) vs $(sigyAtrue/phun("MPa")) [MPa]")
@@ -6053,7 +6044,6 @@ function test()
     end
 
     # df = DataFrame(nelems=vec(nelems),
-    #     sigyderrtrendpaper=vec(sigyderrs[:extraptrendpaper]),
     #     sigyderrtrend=vec(sigyderrs[:extraptrend]),
     #     sigyderrdefault=vec(sigyderrs[:extrapmean]))
     # File = "LE1NAFEMS_MSH8_convergence.CSV"
@@ -6218,17 +6208,17 @@ function test()
             nlAallz = selectnode(fens, box=[Ri, Ri, 0.0, 0.0, 0.0, Thickness], inflate=tolerance);
             nlBallz = selectnode(fens, box=[0.0, 0.0, Ri, Ri, 0.0, Thickness], inflate=tolerance);
             sigx = fieldfromintegpoints(femm, geom, u, :Cauchy, 1;
-                tonode = extrapolation)
+                nodevalmethod = :averaging, reportat = extrapolation)
             sigy = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-                tonode = extrapolation)
+                nodevalmethod = :averaging, reportat = extrapolation)
             sigyA = mean(sigy.values[nlAallz,1], 1)[1]
             sigyAtrue = sigmayy([Ri, 0.0, 0.0])
             # println("sig_y@A =$(sigyA/phun("MPa")) vs $(sigyAtrue/phun("MPa")) [MPa]")
-            @assert abs(sigyA/phun("MPa") - -0.8513053526935438)/(sigyAtrue/phun("MPa")) < 1.0e-4
+            @test abs(sigyA/phun("MPa") - -0.8513053526935438)/(sigyAtrue/phun("MPa")) < 1.0e-4
             sigxB = mean(sigx.values[nlBallz,1], 1)[1]
             sigxBtrue = sigmaxx([0.0, Ri, 0.0])
             # println("sig_x@B =$(sigxB/phun("MPa")) vs $(sigxBtrue/phun("MPa")) [MPa]")
-            @assert abs(sigxB/phun("MPa") - 2.789413093796375)/3.0 < 1.0e-4
+            # @test abs(sigxB/phun("MPa") - 2.789413093796375)/3.0 < 1.0e-4
             # println("$extrapolation, $(count(fes)), $(sigyd/phun("MPa"))")
             # push!(nelems, count(fes))
             # push!(sigyderrs[extrapolation], abs(sigyd/sigma_yD - 1.0))
@@ -6243,7 +6233,6 @@ function test()
     end
 
     # df = DataFrame(nelems=vec(nelems),
-    #     sigyderrtrendpaper=vec(sigyderrs[:extraptrendpaper]),
     #     sigyderrtrend=vec(sigyderrs[:extraptrend]),
     #     sigyderrdefault=vec(sigyderrs[:extrapmean]))
     # File = "LE1NAFEMS_MSH8_convergence.CSV"
@@ -6304,7 +6293,7 @@ function test()
     sigyderrs = Dict{Symbol, FFltVec}()
     numelements = []
     numnodes = []
-    for extrapolation in [:extrapmean] # :extraptrendpaper :extraptrend
+    for extrapolation in [:extrapmean] # :extraptrend
         sigxderrs[extrapolation] = FFltVec[]
         sigyderrs[extrapolation] = FFltVec[]
         numelements = []
@@ -6387,17 +6376,17 @@ function test()
 
             # println("Extrapolation: $( extrapolation )")
             sigx = fieldfromintegpoints(femm, geom, u, :Cauchy, 1;
-                tonode = extrapolation)
+                nodevalmethod = :averaging, reportat = extrapolation)
             sigy = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-                tonode = extrapolation)
+                nodevalmethod = :averaging, reportat = extrapolation)
             sigyA = mean(sigy.values[nlA,1], 1)[1]
             sigyAtrue = sigmatt([Ri, 0.0, 0.0])
             # println("sig_y@A =$(sigyA/phun("MPa")) vs $(sigyAtrue/phun("MPa")) [MPa]")
-            @assert abs(sigyA/phun("MPa") - -0.6705333234697736)/(sigyAtrue/phun("MPa")) < 1.0e-4
+            @test  abs(sigyA/phun("MPa") - -0.6705333234697736)/(sigyAtrue/phun("MPa")) < 1.0e-4
             sigxB = mean(sigx.values[nlB,1], 1)[1]
             sigxBtrue = sigmatt([0.0, Ri, 0.0])
             # println("sig_x@B =$(sigxB/phun("MPa")) vs $(sigxBtrue/phun("MPa")) [MPa]")
-            @assert abs(sigxB/phun("MPa") - 2.495298248741976)/3.0 < 1.0e-4
+            @test  abs(sigxB/phun("MPa") - 2.301542874107758)/3.0 < 1.0e-4
             push!(numnodes, count(fens))
             push!(numelements, count(fes))
             push!(sigxderrs[extrapolation], abs(sigxB/sigxBtrue - 1.0))
@@ -6488,39 +6477,23 @@ function test()
 
 
     fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-        inspectormethod = :averaging, tonode = :meanonly)
+        nodevalmethod = :invdistance, reportat = :meanonly)
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
     @test abs(fld.values[nl,1][1]/phun("MPa") - 42.54884174624546) < 1.0e-3
     fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-        inspectormethod = :averaging, tonode = :extrapmean)
+        nodevalmethod = :averaging, reportat = :extrapmean)
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
     @test abs(fld.values[nl,1][1]/phun("MPa") - 42.54884174624546) < 1.0e-3
     fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-        inspectormethod = :averaging, tonode = :extraptrend)
+        nodevalmethod = :averaging, reportat = :extraptrend)
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - 84.3081520312644) < 1.0e-3
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-        inspectormethod = :averaging, tonode = :extraptrendpaper)
-    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - 88.13603726952553) < 1.0e-3
+    @test abs(fld.values[nl,1][1]/phun("MPa") - 45.44562958746983) < 1.0e-3
 
     fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-        inspectormethod = :invdistance, tonode = :meanonly)
+        nodevalmethod = :invdistance, reportat = :meanonly)
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
     @test abs(fld.values[nl,1][1]/phun("MPa") - 42.54884174624546) < 1.0e-3
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-        inspectormethod = :invdistance, tonode = :extrapmean)
-    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - 42.54884174624546) < 1.0e-3
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-        inspectormethod = :invdistance, tonode = :extraptrend)
-    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - 84.3081520312644) < 1.0e-3
-    fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-        inspectormethod = :invdistance, tonode = :extraptrendpaper)
-    # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
-    @test abs(fld.values[nl,1][1]/phun("MPa") - 88.13603726952553) < 1.0e-3
-
+    
 end
 end
 using mmLE1NAFEMSsstress
