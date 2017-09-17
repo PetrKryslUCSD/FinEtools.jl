@@ -22,11 +22,11 @@ Meyer-Piening sandwich plate
 # The second study deals with a benchmark problem proposed
 # by Meyer-Piening [14]. It involves a simply -supported rectangular
 # sandwich plate submitted to a localized pressure applied on an
-# area of 5?20 mm. The geometry of the sandwich structure is
+# area of 5x20 mm. The geometry of the sandwich structure is
 # given in Fig.13. Due to the symmetry, only one quarter of the plate
-# is meshed. The faces have different thicknesses: h 1 ¼ 0:5 mm
-# (bottom face), h 3 ¼ 0:1 mm (top face). The thickness of the core
-# is h 2 ¼ h c ¼ 11:4 mm. The material properties are given in Table 3.
+# is meshed. The faces have different thicknesses: h = 0.5 mm
+# (bottom face), h = 0.1 mm (top face). The thickness of the core
+# is h =  11.4 mm. The material properties are given in Table 3.
 # Note that this benchmark involves strong heterogeneities (very
 # different geometric and constitutive properties between core and
 # face) and local stress gradient due to the localized pressure load.
@@ -71,7 +71,7 @@ q0 = 1*phun("MPa"); #    line load
 
 # Reference deflection under the load is
 wtopref = -3.789*phun("mm"); # From [1]
-wbottomref = -3.789*phun("mm"); # Not given in [1]
+wbottomref = -2.16*phun("mm"); # Not given in [1]; guessed from the figure
 
 # The reference tensile stress at the bottom of the lowest layer is
 sigma11Eref = 684*phun("MPa");
@@ -82,9 +82,7 @@ sigma11Eref = 684*phun("MPa");
 # system is located at the outer corner of the strip.
 sigma13Dref=4.1*phun("MPa");
 
-Refinement = 5
-# We select 8 elements spanwise and 2 elements widthwise.  The overhang
-# of the plate is given one element.
+Refinement = 9
 nL = Refinement * 1; nS = nL + Refinement * 1;
 
 # Each layer is modeled with a single element.
