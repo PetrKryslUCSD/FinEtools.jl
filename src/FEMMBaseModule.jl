@@ -337,6 +337,10 @@ Input arguments
            of the material update!() method.
 `component`- component of the 'quantity' array: see the material update()
            method.
+Keyword arguments
+`nodevalmethod` = `:invdistance` (the default) or `:averaging`; 
+`reportat` = at which point should the  element quantities be reported?
+    This argument is interpreted inside the `inspectintegpoints()` method.
 Output argument
  - the new field that can be used to map values to colors and so on
 """
@@ -348,18 +352,18 @@ function fieldfromintegpoints(self::FEMM,
     # Constants
     nne = nodesperelem(geod.fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
-    inspectormethod = :invdistance
-    tonode = :default
+    nodevalmethod = :invdistance
+    reportat = :default
     for (i, arg) in enumerate(context)
         sy, val = arg
-        if sy == :inspectormethod
-            inspectormethod = val
+        if sy == :nodevalmethod
+            nodevalmethod = val
         end
-        if sy == :tonode
-            tonode = val
+        if sy == :reportat
+            reportat = val
         end
     end
-    if inspectormethod == :averaging
+    if nodevalmethod == :averaging
         # Container of intermediate results
         idat = AveragingInspectorData(
         component,
@@ -382,7 +386,8 @@ function fieldfromintegpoints(self::FEMM,
             end
         end
     else # inverse distance
-        @assert (tonode == :default) || (tonode == :meanonly)
+        @assert (reportat == :default) ||
+            (reportat == :meanonly) "Inverse-distance interpolation requires :meanonly"
         # Container of intermediate results
         idat = InverseDistanceInspectorData(
         component,

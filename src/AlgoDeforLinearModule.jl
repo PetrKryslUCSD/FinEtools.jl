@@ -352,7 +352,7 @@ function exportstress(modeldata::FDataDict)
     modeldata_recognized_keys = ["fens", "regions", "geom", "u",
     "dT", "postprocessing"]
     postprocessing_recognized_keys = ["boundary_only", "file", "quantity",
-    "component", "outputcsys", "inspectormethod", "tonode"]
+    "component", "outputcsys", "nodevalmethod", "reportat"]
     # Defaults
     boundary_only = false;
     ffile = "stress"
@@ -360,8 +360,8 @@ function exportstress(modeldata::FDataDict)
     quantity = :Cauchy
     component = 1
     outputcsys = nothing
-    tonode = :default
-    inspectormethod = :invdistance
+    reportat = :default
+    nodevalmethod = :invdistance
     # Let's have a look at what's been specified
     postprocessing = get(modeldata, "postprocessing", nothing);
     if (postprocessing != nothing)
@@ -371,8 +371,8 @@ function exportstress(modeldata::FDataDict)
         quantity = get(postprocessing, "quantity", quantity);
         component = get(postprocessing, "component", component);
         outputcsys = get(postprocessing, "outputcsys", outputcsys);
-        inspectormethod = get(postprocessing, "inspectormethod", inspectormethod);
-        tonode = get(postprocessing, "tonode", tonode);
+        nodevalmethod = get(postprocessing, "nodevalmethod", nodevalmethod);
+        reportat = get(postprocessing, "reportat", reportat);
     end
 
     fens = get(()->error("Must get fens!"), modeldata, "fens")
@@ -384,11 +384,11 @@ function exportstress(modeldata::FDataDict)
     if (outputcsys != nothing)
         push!(context, (:outputcsys, outputcsys))
     end
-    if (inspectormethod != nothing)
-        push!(context, (:inspectormethod, inspectormethod))
+    if (nodevalmethod != nothing)
+        push!(context, (:nodevalmethod, nodevalmethod))
     end
-    if (tonode != nothing)
-        push!(context, (:tonode, tonode))
+    if (reportat != nothing)
+        push!(context, (:reportat, reportat))
     end
 
     # Export a file for each region
