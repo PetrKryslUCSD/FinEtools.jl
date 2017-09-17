@@ -22,10 +22,10 @@ a = 200.0*phun("mm") # side of the square plate
 b = 600.0*phun("mm") # side of the square plate
 q0 = 1.0*phun("psi");
 # The below values come from Table 2
-h = a/4; wc_analytical = 3.65511/(100*E3s*h^3/a^4/q0);
+# h = a/4; wc_analytical = 3.65511/(100*E3s*h^3/a^4/q0);
 # h = a/10; wc_analytical = 1.16899/(100*E3s*h^3/a^4/q0);
 # h = a/50; wc_analytical = 0.66675/(100*E3s*h^3/a^4/q0);
-# h = a/100; wc_analytical = 0.65071/(100*E3s*h^3/a^4/q0);
+h = a/100; wc_analytical = 0.65071/(100*E3s*h^3/a^4/q0);
 angles =[0,90,0];
 nLayers = length(angles);
 tolerance = 0.0001*h
