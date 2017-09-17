@@ -17,7 +17,7 @@ function test()
     sigyderrs = Dict{Symbol, FFltVec}()
 
     nelems = []
-    for extrapolation in [:extraptrendpaper :extraptrend :extrapmean]
+    for extrapolation in [:extraptrend :extrapmean]
         sigyderrs[extrapolation] = FFltVec[]
         nelems = []
         for ref in 0:1:5
@@ -81,7 +81,7 @@ function test()
             println("displacement =$(thecorneru) vs -0.10215 [MM]")
 
             fld = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-                tonode = extrapolation)
+                reportat = extrapolation)
             sigyd = mean(fld.values[nl,1], 1)[1]
             println("Sigma_y =$(sigyd/phun("MPa")) vs $(sigma_yD/phun("MPa")) [MPa]")
 
@@ -97,7 +97,6 @@ function test()
     end
 
     df = DataFrame(nelems=vec(nelems),
-        sigyderrtrendpaper=vec(sigyderrs[:extraptrendpaper]),
         sigyderrtrend=vec(sigyderrs[:extraptrend]),
         sigyderrdefault=vec(sigyderrs[:extrapmean]))
     File = "LE1NAFEMS_MSH8_convergence.CSV"

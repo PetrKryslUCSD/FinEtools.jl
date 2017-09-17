@@ -176,7 +176,6 @@ cdis = mean(u.values[nE, 3])
 println("")
 println("Normalized Center deflection: $(cdis/wEref)")
 
-# extrap = :extraptrendpaper
 # # extrap = :extraptrend
 # # extrap = :extrapmean
 # inspectormeth = :averaging
@@ -185,14 +184,14 @@ inspectormeth = :invdistance
 
 modeldata["postprocessing"] = FDataDict("file"=>"NAFEMS-R0031-1-plate-sx",
     "quantity"=>:Cauchy, "component"=>1, "outputcsys"=>CSys(3),
-     "inspectormethod"=>inspectormeth, "tonode"=>extrap)
+     "nodevalmethod"=>inspectormeth, "reportat"=>extrap)
 modeldata = AlgoDeforLinearModule.exportstress(modeldata)
 s = modeldata["postprocessing"]["exported_fields"][1]
 println("sx@E = $(s.values[nE]/phun("MPa")) [MPa]")
 
 modeldata["postprocessing"] = FDataDict("file"=>"NAFEMS-R0031-1-plate-sxz",
 "quantity"=>:Cauchy, "component"=>5, "outputcsys"=>CSys(3),
- "inspectormethod"=>inspectormeth, "tonode"=>extrap)
+ "nodevalmethod"=>inspectormeth, "reportat"=>extrap)
 modeldata = AlgoDeforLinearModule.exportstress(modeldata)
 s = modeldata["postprocessing"]["exported_fields"][1]
 println("sxz@D_1 = $(s.values[nD]/phun("MPa")) [MPa]")
@@ -202,18 +201,18 @@ println("sxz@D_2 = $(s.values[nD]/phun("MPa")) [MPa]")
 
 #
 # s = fieldfromintegpoints(region1["femm"], geom, u, :Cauchy, 1;
-#     outputcsys = CSys(3), inspectormethod = inspectormeth, tonode = extrap)
+#     outputcsys = CSys(3), nodevalmethod = inspectormeth, reportat = extrap)
 # println("sx@E = $(s.values[nE]/phun("MPa")) [MPa]")
 # sx_z = s.values[n0z]/phun("MPa")
 # println("sx(z)_1 = $(sx_z)")
 #
 # s = fieldfromintegpoints(region1["femm"], geom, u, :Cauchy, 5;
-#     outputcsys = CSys(3), inspectormethod = inspectormeth, tonode = extrap)
+#     outputcsys = CSys(3), nodevalmethod = inspectormeth, reportat = extrap)
 # println("sxz@D_1 = $(s.values[nD]/phun("MPa")) [MPa]")
 # sxz_z_1 = s.values[n0z]/phun("MPa")
 # println("sxz(z)_1 = $(sxz_z_1)")
 # s = fieldfromintegpoints(region2["femm"], geom, u, :Cauchy, 5;
-#     outputcsys = CSys(3), inspectormethod = inspectormeth, tonode = extrap)
+#     outputcsys = CSys(3), nodevalmethod = inspectormeth, reportat = extrap)
 # println("sxz@D_2 = $(s.values[nD]/phun("MPa")) [MPa]")
 # sxz_z_2 = s.values[n0z]/phun("MPa")
 # println("sxz(z)_2 = $(sxz_z_2)")
@@ -235,7 +234,7 @@ println("sxz@D_2 = $(s.values[nD]/phun("MPa")) [MPa]")
 # femm.geod.fes = subset(femm.geod.fes, felist)
 # associategeometry!(femm, geom)
 # s = fieldfromintegpoints(femm, geom, u, :Cauchy, 5;
-#     outputcsys = CSys(3), inspectormethod = inspectormeth, tonode = extrap)
+#     outputcsys = CSys(3), nodevalmethod = inspectormeth, reportat = extrap)
 # println("sxz@D_1 = $(s.values[nD]/phun("MPa")) [MPa]")
 
 # felist = selectelem(fens, region2["femm"].geod.fes,

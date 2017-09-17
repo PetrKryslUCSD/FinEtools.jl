@@ -12,7 +12,7 @@ Thick0 = 0.1*phun("m")/2.0 # to account for the symmetry reduction
 
 sigyderrs = Dict{Symbol, FFltVec}()
 
-for extrapolation in [:extraptrendpaper]
+for extrapolation in [:extraptrend]
     sigyderrs[extrapolation] = FFltVec[]
     nelems = []
     for ref in 1:1
@@ -76,7 +76,7 @@ for extrapolation in [:extraptrendpaper]
         println("displacement =$(thecorneru) vs -0.10215 [MM]")
 
         fld = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-            tonode = extrapolation)
+            reportat = extrapolation)
         sigyd = mean(fld.values[nl,1], 1)[1]
         println("Sigma_y =$(sigyd/phun("MPa")) vs $(sigma_yD/phun("MPa")) [MPa]")
 
@@ -97,7 +97,6 @@ end
 # using CSV
 #
 # df = DataFrame(nelems=vec(nelems),
-#     sigyderrtrendpaper=vec(sigyderrs[:extraptrendpaper]),
 #     sigyderrtrend=vec(sigyderrs[:extraptrend]),
 #     sigyderrdefault=vec(sigyderrs[:extrapmean]))
 # File = "LE1NAFEMS_MST10_convergence.CSV"

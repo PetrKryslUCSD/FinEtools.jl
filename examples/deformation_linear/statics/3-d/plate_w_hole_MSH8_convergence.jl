@@ -48,9 +48,9 @@ function test()
     sigyderrs = Dict{Symbol, FFltVec}()
     numelements = []
     numnodes = []
-    for extrapolation in [:extraptrendpaper :extraptrend :extrapmean]
-        sigxderrs[extrapolation] = FFltVec[]
-        sigyderrs[extrapolation] = FFltVec[]
+    for extrap in [:extraptrend :extrapmean]
+        sigxderrs[extrap] = FFltVec[]
+        sigyderrs[extrap] = FFltVec[]
         numelements = []
         numnodes = []
         for ref in 0:1:5
@@ -129,11 +129,11 @@ function test()
             # thecorneru = mean(thecorneru, 1)[1]/phun("mm")
             # println("displacement = $(thecorneru) vs -0.10215 [MM]")
 
-            println("Extrapolation: $( extrapolation )")
+            println("Extrapolation: $( extrap ) ##############################")
             sigx = fieldfromintegpoints(femm, geom, u, :Cauchy, 1;
-                inspectormethod = :averaging, tonode = extrapolation)
+                nodevalmethod = :averaging, reportat = extrap)
             sigy = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-                inspectormethod = :averaging, tonode = extrapolation)
+                nodevalmethod = :averaging, reportat = extrap)
             sigyA = mean(sigy.values[nlA,1], 1)[1]
             sigyAtrue = sigmatt([Ri, 0.0, 0.0])
             println("sig_y@A =$(sigyA/phun("MPa")) vs $(sigyAtrue/phun("MPa")) [MPa]")
@@ -142,8 +142,8 @@ function test()
             println("sig_x@B =$(sigxB/phun("MPa")) vs $(sigxBtrue/phun("MPa")) [MPa]")
             push!(numnodes, count(fens))
             push!(numelements, count(fes))
-            push!(sigxderrs[extrapolation], abs(sigxB/sigxBtrue - 1.0))
-            push!(sigyderrs[extrapolation], abs(sigyA/sigyAtrue - 1.0))
+            push!(sigxderrs[extrap], abs(sigxB/sigxBtrue - 1.0))
+            push!(sigyderrs[extrap], abs(sigyA/sigyAtrue - 1.0))
             # File =  "a.vtk"
             # vtkexportmesh(File, fes.conn, geom.values,
             # FinEtools.MeshExportModule.H8; vectors=[("u", u.values)],
@@ -153,10 +153,8 @@ function test()
     end
 
     df = DataFrame(numelements=vec(numelements), numnodes=vec(numnodes),
-        sigxderrtrendpaper=vec(sigxderrs[:extraptrendpaper]),
         sigxderrtrend=vec(sigxderrs[:extraptrend]),
         sigxderrdefault=vec(sigxderrs[:extrapmean]),
-        sigyderrtrendpaper=vec(sigyderrs[:extraptrendpaper]),
         sigyderrtrend=vec(sigyderrs[:extraptrend]),
         sigyderrdefault=vec(sigyderrs[:extrapmean]))
     File = "plate_w_hole_MSH8_convergence.CSV"

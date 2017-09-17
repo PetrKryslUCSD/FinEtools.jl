@@ -1419,20 +1419,15 @@ gathervalues_asmat!(u, thecorneru, nl);
 thecorneru = thecorneru/phun("mm")
 println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
 
-fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extrapmean)#
+fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; nodevalmethod = :averaging, reportat = :extrapmean)#
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 
 println("Mean-stress: $(fld.values[nl,1][1]/phun("MPa"))")
 
-fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrend)#
+fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; nodevalmethod = :averaging, reportat = :extraptrend)#
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 
 println("Trend estimation: $(fld.values[nl,1][1]/phun("MPa"))")
-
-fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrendpaper)#
-println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
-
-println("Trend estimation (paper): $(fld.values[nl,1][1]/phun("MPa"))")
 
 File =  "LE10NAFEMS_MST10_sigmay.vtk"
 vtkexportmesh(File, fes.conn, geom.values,
@@ -1531,21 +1526,16 @@ gathervalues_asmat!(u, thecorneru, nl);
 thecorneru = thecorneru/phun("mm")
 println("displacement =$(thecorneru) [MM] as compared to reference [-0.030939, 0, -0.10488] [MM]")
 
-fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extrapmean)#
+fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; reportat = :extrapmean)#
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 
 println("Mean-stress: $(fld.values[nl,1][1]/phun("MPa"))")
 
-fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrend)#
+fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; reportat = :extraptrend)#
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
 
 println("Trend estimation: $(fld.values[nl,1][1]/phun("MPa"))")
-
-fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2; tonode = :extraptrendpaper)#
-println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yP = $(sigma_yP/phun("MPa")) [MPa]")
-
-println("Trend estimation (paper): $(fld.values[nl,1][1]/phun("MPa"))")
-
+ 
 File =  "LE10NAFEMS_MST10_sigmay.vtk"
 vtkexportmesh(File, fes.conn, geom.values,
                FinEtools.MeshExportModule.T10; vectors=[("u", u.values)],

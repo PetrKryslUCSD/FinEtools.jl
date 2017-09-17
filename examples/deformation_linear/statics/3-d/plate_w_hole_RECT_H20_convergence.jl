@@ -145,9 +145,9 @@ function test()
             nlAallz = selectnode(fens, box=[Ri, Ri, 0.0, 0.0, 0.0, Thickness], inflate=tolerance);
             nlBallz = selectnode(fens, box=[0.0, 0.0, Ri, Ri, 0.0, Thickness], inflate=tolerance);
             sigx = fieldfromintegpoints(femm, geom, u, :Cauchy, 1;
-                tonode = extrapolation)
+                reportat = extrapolation)
             sigy = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-                tonode = extrapolation)
+                reportat = extrapolation)
             sigyA = mean(sigy.values[nlAallz,1], 1)[1]
             sigyAtrue = sigmayy([Ri, 0.0, 0.0])
             println("sig_y@A =$(sigyA/phun("MPa")) vs $(sigyAtrue/phun("MPa")) [MPa]")
@@ -167,7 +167,6 @@ function test()
     end
 
     # df = DataFrame(nelems=vec(nelems),
-    #     sigyderrtrendpaper=vec(sigyderrs[:extraptrendpaper]),
     #     sigyderrtrend=vec(sigyderrs[:extraptrend]),
     #     sigyderrdefault=vec(sigyderrs[:extrapmean]))
     # File = "LE1NAFEMS_MSH8_convergence.CSV"

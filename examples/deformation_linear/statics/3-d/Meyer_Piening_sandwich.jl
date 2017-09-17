@@ -190,15 +190,14 @@ println("Top Center deflection: $(u.values[ntopcenter, 3]/phun("mm")) [mm]")
 println("Bottom Center deflection: $(u.values[nbottomcenter, 3]/phun("mm")) [mm]")
 
 # # extrap = :extrapmean
-# extrap = :extraptrendpaper
 extrap = :extraptrend
-inspectormeth = :averaging
+nodevalmeth = :averaging
 # extrap = :default
-# inspectormeth = :invdistance
+# nodevalmeth = :invdistance
 
 modeldata["postprocessing"] = FDataDict("file"=>"Meyer_Piening_sandwich-sx",
     "quantity"=>:Cauchy, "component"=>1, "outputcsys"=>CSys(3),
-     "inspectormethod"=>inspectormeth, "tonode"=>extrap)
+     "nodevalmethod"=>nodevalmeth, "reportat"=>extrap)
 modeldata = AlgoDeforLinearModule.exportstress(modeldata)
 s = modeldata["postprocessing"]["exported_fields"][1]
 sxbot = s.values[ncenterline[clo], 1]
@@ -207,12 +206,8 @@ sxcore = s.values[ncenterline[clo], 1]
 s = modeldata["postprocessing"]["exported_fields"][3]
 sxtop = s.values[ncenterline[clo], 1]
 
-# modeldata["postprocessing"] = FDataDict("file"=>"Meyer_Piening_sandwich-sxz",
-# "quantity"=>:Cauchy, "component"=>5, "outputcsys"=>CSys(3),
-#  "inspectormethod"=>inspectormeth, "tonode"=>extrap)
-# modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-# s = modeldata["postprocessing"]["exported_fields"][1]
-
+# The graph data needs to be collected by going through each layer separately.
+# Some quantities may be discontinuous between layers.
 zs = []
 sxs = []
 for (j, z) in enumerate(centerz)
@@ -233,7 +228,7 @@ for (j, z) in enumerate(centerz)
         push!(sxs, sxtop[j])
     end
 end
-println("$(zs)")
+
 df = DataFrame(zs=vec(zs), sx=vec(sxs)/phun("MPa"))
 
 File = "Meyer_Piening_sandwich-sx-$(extrap).CSV"

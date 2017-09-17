@@ -48,7 +48,7 @@ function test()
     sigyderrs = Dict{Symbol, FFltVec}()
     numelements = []
     numnodes = []
-    for extrapolation in [:extraptrendpaper :extraptrend :extrapmean]
+    for extrapolation in [:extraptrend :extrapmean]
         sigxderrs[extrapolation] = FFltVec[]
         sigyderrs[extrapolation] = FFltVec[]
         numelements = []
@@ -131,9 +131,9 @@ function test()
 
             println("Extrapolation: $( extrapolation )")
             sigx = fieldfromintegpoints(femm, geom, u, :Cauchy, 1;
-                inspectormethod = :averaging, tonode = extrapolation)
+                nodevalmethod = :averaging, reportat = extrapolation)
             sigy = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-                inspectormethod = :averaging, tonode = extrapolation)
+                nodevalmethod = :averaging, reportat = extrapolation)
             sigyA = mean(sigy.values[nlA,1], 1)[1]
             sigyAtrue = sigmatt([Ri, 0.0, 0.0])
             println("sig_y@A =$(sigyA/phun("MPa")) vs $(sigyAtrue/phun("MPa")) [MPa]")
@@ -153,10 +153,8 @@ function test()
     end
 
     df = DataFrame(numelements=vec(numelements), numnodes=vec(numnodes),
-        sigxderrtrendpaper=vec(sigxderrs[:extraptrendpaper]),
         sigxderrtrend=vec(sigxderrs[:extraptrend]),
         sigxderrdefault=vec(sigxderrs[:extrapmean]),
-        sigyderrtrendpaper=vec(sigyderrs[:extraptrendpaper]),
         sigyderrtrend=vec(sigyderrs[:extraptrend]),
         sigyderrdefault=vec(sigyderrs[:extrapmean]))
     File = "plate_w_hole_PE_MST10_convergence.CSV"

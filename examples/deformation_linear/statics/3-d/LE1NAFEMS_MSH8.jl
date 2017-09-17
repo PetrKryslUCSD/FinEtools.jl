@@ -72,29 +72,23 @@ println("$(time()-t0) [s];  displacement =$(thecorneru) [MM] as compared to refe
 
 
 fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-    inspectormethod = :averaging, tonode = :meanonly)
+    nodevalmethod = :averaging, reportat = :meanonly)
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
 fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-    inspectormethod = :averaging, tonode = :extrapmean)
+    nodevalmethod = :averaging, reportat = :extrapmean)
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
 fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-    inspectormethod = :averaging, tonode = :extraptrend)
-println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
-fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-    inspectormethod = :averaging, tonode = :extraptrendpaper)
+    nodevalmethod = :averaging, reportat = :extraptrend)
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
 
 fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-    inspectormethod = :invdistance, tonode = :meanonly)
+    nodevalmethod = :invdistance, reportat = :meanonly)
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
 fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-    inspectormethod = :invdistance, tonode = :extrapmean)
+    nodevalmethod = :invdistance, reportat = :extrapmean)
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
 fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-    inspectormethod = :invdistance, tonode = :extraptrend)
-println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
-fld= fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-    inspectormethod = :invdistance, tonode = :extraptrendpaper)
+    nodevalmethod = :invdistance, reportat = :extraptrend)
 println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
 
 println("$(n), $(fld.values[nl,1][1]/phun("MPa"))")

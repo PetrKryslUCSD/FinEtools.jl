@@ -81,7 +81,7 @@ println("")
 femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material)
 femm = associategeometry!(femm, geom)
 
-fld = fieldfromintegpoints(femm, geom, Uf, :Cauchy, 1; tonode = :extraptrend)
+fld = fieldfromintegpoints(femm, geom, Uf, :Cauchy, 1; reportat = :extraptrend)
 println("fld.values = $(fld.values)")
 
 File =  "a.vtk"
