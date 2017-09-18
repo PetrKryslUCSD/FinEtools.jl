@@ -1,5 +1,6 @@
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
+using FinEtools.MeshUtilModule
 using DataFrames
 using CSV
 
@@ -82,16 +83,18 @@ sigma11Eref = 684*phun("MPa");
 # system is located at the outer corner of the strip.
 sigma13Dref=4.1*phun("MPa");
 
-Refinement = 4
-nL = Refinement * 1; nS = nL + Refinement * 8;
+Refinement = 5
+nL = Refinement * 1;
+nSx = nL + Refinement * 2;
+nSy = 2 * nSx;
 
 # Each layer is modeled with a single element.
-nts= Refinement * [1, 4, 1];# number of elements per layer
+nts= Refinement * [1, 2, 1];# number of elements per layer
 
-xs = unique(vcat(collect(linspace(0,Lx/2,nL+1)),
-    collect(linspace(Lx/2,Sx/2,nS-nL+1))))
-ys = unique(vcat(collect(linspace(0,Ly/2,nL+1)),
-    collect(linspace(Ly/2,Sy/2,nS-nL+1))))
+xs = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Lx/2, 0.0, nL+1, 1))),
+    collect(MeshUtilModule.gradedspace(Lx/2, Sx/2, nSx-nL+1, 1))))
+ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1, 1))),
+    collect(MeshUtilModule.gradedspace(Ly/2, Sy/2, nSy-nL+1, 1))))
 
 fens,fes = H8compositeplatex(xs, ys, ts, nts)
 
