@@ -111,11 +111,11 @@ println("Solution: $(  time()-t0 )")
 modeldata["postprocessing"] = FDataDict("file"=>"fiber_reinf_cant_yn_strong",
   "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy, "component"=>5)
 modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-File = modeldata["postprocessing"]["exported_files"][1]
+File = modeldata["postprocessing"]["exported"][1]["file"]
 @async run(`"paraview.exe" $File`)
 
 # modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
-# File = modeldata["postprocessing"]["exported_files"][1]
+# File = modeldata["postprocessing"]["exported"][1]["file"]
 # @async run(`"paraview.exe" $File`)
 
 println("Done: $(  time()-t0 )")

@@ -177,15 +177,15 @@ println("Normalized Center deflection: $(cdis/wEref)")
 modeldata["postprocessing"] = FDataDict("file"=>"NAFEMS-R0031-1-plate-sx",
 "quantity"=>:Cauchy, "component"=>1, "outputcsys"=>CSys(3))
 modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-s = modeldata["postprocessing"]["exported_fields"][1]
+s = modeldata["postprocessing"]["exported"][1]["field"]
 println("sx@E = $(s.values[nE]/phun("MPa")) [MPa]")
 
 modeldata["postprocessing"] = FDataDict("file"=>"NAFEMS-R0031-1-plate-sxz",
 "quantity"=>:Cauchy, "component"=>5, "outputcsys"=>CSys(3))
 modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-s = modeldata["postprocessing"]["exported_fields"][1]
+s = modeldata["postprocessing"]["exported"][1]["field"]
 println("sxz@D = $(s.values[nD]/phun("MPa")) [MPa]")
-s = modeldata["postprocessing"]["exported_fields"][2]
+s = modeldata["postprocessing"]["exported"][2]["field"]
 println("sxz@D = $(s.values[nD]/phun("MPa")) [MPa]")
 
 println("Done")

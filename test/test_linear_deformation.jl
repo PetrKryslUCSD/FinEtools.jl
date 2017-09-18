@@ -83,8 +83,8 @@ function test()
     modeldata["postprocessing"] = FDataDict("boundary_only"=> true,
     "file"=>"LE11NAFEMS_Q8_deformation.vtk")
     modeldata = exportdeformation(modeldata)
-    # @async run(`"paraview.exe" $(modeldata["postprocessing"]["exported_files"][1])`)
-    try rm(modeldata["postprocessing"]["exported_files"][1]) catch end
+    # @async run(`"paraview.exe" $(modeldata["postprocessing"]["exported"][1]["file"])`)
+    try rm(modeldata["postprocessing"]["exported"][1]["file"]) catch end
 
     nA  = selectnode(fens,box = FFlt[1.0  1.0 0.0 0.0], inflate = tolerance);
 
@@ -96,9 +96,9 @@ function test()
     "file"=>"LE11NAFEMS_Q8_sigmay.vtk", "quantity"=>:Cauchy,
     "component"=>2)
     modeldata = exportstress(modeldata)
-    # @async run(`"paraview.exe" $(modeldata["postprocessing"]["exported_files"][1])`)
-    try rm(modeldata["postprocessing"]["exported_files"][1]) catch end
-    fld =  modeldata["postprocessing"]["exported_fields"][1]
+    # @async run(`"paraview.exe" $(modeldata["postprocessing"]["exported"][1]["file"])`)
+    try rm(modeldata["postprocessing"]["exported"][1]["file"]) catch end
+    fld =  modeldata["postprocessing"]["exported"][1]["field"]
 
     sA  =  fld.values[nA]/phun("MEGA*Pa")
     sAn  =  fld.values[nA]/sigmaA
@@ -119,8 +119,8 @@ function test()
     "file"=>"LE11NAFEMS_Q8_sigmay_ew.vtk", "quantity"=>:Cauchy,
     "component"=>2)
     modeldata = exportstresselementwise(modeldata)
-    # @async run(`"paraview.exe" $(modeldata["postprocessing"]["exported_files"][1])`)
-    try rm(modeldata["postprocessing"]["exported_files"][1]) catch end
+    # @async run(`"paraview.exe" $(modeldata["postprocessing"]["exported"][1]["file"])`)
+    try rm(modeldata["postprocessing"]["exported"][1]["file"]) catch end
 end
 end
 using mmLE11NAFEMSQ8algo2
@@ -1376,40 +1376,40 @@ function test()
   # Write out mesh with displacements
   modeldata["postprocessing"] = FDataDict("file"=>"multimaterial_beam")
   modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
-  for f in modeldata["postprocessing"]["exported_files"]
-    rm(f)
+  for exported in modeldata["postprocessing"]["exported"]
+    rm(exported["file"])
   end
 
   # Write out mesh with stresses
   modeldata["postprocessing"] = FDataDict("file"=>"multimaterial_beam_xy",
   "quantity"=> :Cauchy, "component"=> :xy)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  for f in modeldata["postprocessing"]["exported_files"]
-    rm(f)
+  for exported in modeldata["postprocessing"]["exported"]
+    rm(exported["file"])
   end
 
   # Write out mesh with stresses
   modeldata["postprocessing"] = FDataDict("file"=>"multimaterial_beam_xz",
   "quantity"=> :Cauchy, "component"=> :xz)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  for f in modeldata["postprocessing"]["exported_files"]
-    rm(f)
+  for exported in modeldata["postprocessing"]["exported"]
+    rm(exported["file"])
   end
 
   # Write out mesh with von Mises stresses
   modeldata["postprocessing"] = FDataDict("file"=>"multimaterial_beam_vm",
     "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  for f in modeldata["postprocessing"]["exported_files"]
-    rm(f)
+  for exported in modeldata["postprocessing"]["exported"]
+    rm(exported["file"])
   end
 
   # Write out mesh with von Mises stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"multimaterial_beam_vm-ew",
    "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  for f in modeldata["postprocessing"]["exported_files"]
-    rm(f)
+  for exported in modeldata["postprocessing"]["exported"]
+    rm(exported["file"])
   end
 
   true
@@ -1469,8 +1469,8 @@ function test()
     "mode"=>10)
   modeldata = FinEtools.AlgoDeforLinearModule.exportmode(modeldata)
   # @async run(`"paraview.exe" $(modeldata["postprocessing"]["file"]*"1.vtk")`)
-  for f in modeldata["postprocessing"]["exported_files"]
-    rm(f)
+  for exported in modeldata["postprocessing"]["exported"]
+    rm(exported["file"])
   end
 
   true
@@ -1890,12 +1890,12 @@ function test()
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress",
      "quantity"=>:Cauchy, "component"=>:xy)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  File = modeldata["postprocessing"]["exported_files"][1]
+  File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  for f in modeldata["postprocessing"]["exported_files"]
-    rm(f)
+  for exported in modeldata["postprocessing"]["exported"]
+    rm(exported["file"])
   end
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("$(minimum(fld.values)) $(maximum(fld.values))")
   @test norm([minimum(fld.values) maximum(fld.values)] -
     [-0.06292574794975273 0.12022571940768388]) < 1.0e-5
@@ -1974,10 +1974,10 @@ function test()
      "quantity"=>:Cauchy, "component"=>:xy)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
   # @async run(`"paraview.exe" $File`)
-  for f in modeldata["postprocessing"]["exported_files"]
-    rm(f)
+  for exported in modeldata["postprocessing"]["exported"]
+    rm(exported["file"])
   end
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("$(minimum(fld.values)) $(maximum(fld.values))")
   @test norm([minimum(fld.values) maximum(fld.values)] -
     [-0.06292574794975273 0.12022571940768388]) < 1.0e-5
@@ -2104,15 +2104,15 @@ function test()
     "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy, "component"=>5)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
   # @async run(`"paraview.exe" $File`)
-  for f in modeldata["postprocessing"]["exported_files"]
-    rm(f)
+  for exported in modeldata["postprocessing"]["exported"]
+    rm(exported["file"])
   end
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("$(minimum(fld.values)) $(maximum(fld.values))")
   @test norm([minimum(fld.values) maximum(fld.values)] - [-9990.853445671826 8228.919034163288]) < 1.e-3
 
   # modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
 
   # println("Done: $(  time()-t0 )")
@@ -2317,43 +2317,43 @@ function test()
   # Write out mesh with displacements
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8")
   modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with stresses
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8",
   "quantity"=> :Cauchy, "component"=> :xy)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with stresses
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8",
   "quantity"=> :Cauchy, "component"=> :xz)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with von Mises stresses
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8",
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  vm  = modeldata["postprocessing"]["exported_fields"][1]
+  vm  = modeldata["postprocessing"]["exported"][1]["field"]
   # println("extremes of vm, nodal: $([minimum(vm.values),   maximum(vm.values)])")
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
   @test norm([minimum(vm.values),   maximum(vm.values)]-[4.78774, 522.126]) < 0.01
 
   # Write out mesh with von Mises stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8-ew",
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  vm  = modeldata["postprocessing"]["exported_fields"][1]
+  vm  = modeldata["postprocessing"]["exported"][1]["field"]
   # println("extremes of vm, elemental: $([minimum(vm.values),   maximum(vm.values)])")
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
   @test norm([minimum(vm.values),   maximum(vm.values)]-[1.85882, 522.126]) < 0.01
 
   # Write out mesh with von Mises stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8-ew",
   "quantity"=> :Cauchy, "component"=> :xz)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
 end
 end
@@ -2408,7 +2408,7 @@ function test()
     "mode"=>10)
   modeldata=FinEtools.AlgoDeforLinearModule.exportmode(modeldata)
   # @async run(`"paraview.exe" $(modeldata["postprocessing"]["file"]*"1.vtk")`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   true
 
@@ -2482,68 +2482,68 @@ function test()
   # Write out mesh with displacements
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam")
   modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with stresses
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam",
   "quantity"=> :Cauchy, "component"=> :xy)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with stresses
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam",
   "quantity"=> :Cauchy, "component"=> :xz)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with von Mises stresses
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam",
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with von Mises stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-ew",
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  vm  = modeldata["postprocessing"]["exported_fields"][1]
+  vm  = modeldata["postprocessing"]["exported"][1]["field"]
   # println("extremes of von Mises: $([minimum(vm.values),   maximum(vm.values)])")
   @test norm([minimum(vm.values),   maximum(vm.values)] - [6.94796, 451.904]) < 1.e-3
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with von Mises stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-ew",
   "quantity"=> :Cauchy, "component"=> :xz)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with principal stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-principal-1-ew",
   "quantity"=> :princCauchy, "component"=> 1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  ps  = modeldata["postprocessing"]["exported_fields"][1]
+  ps  = modeldata["postprocessing"]["exported"][1]["field"]
   # println("extremes of first principal stress: $([minimum(ps.values),   maximum(ps.values)])")
   @test norm([minimum(ps.values),   maximum(ps.values)] - [0.493918, 459.106]) < 1.e-3
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with principal stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-principal-3-ew",
   "quantity"=> :princCauchy, "component"=> 3)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  ps  = modeldata["postprocessing"]["exported_fields"][1]
+  ps  = modeldata["postprocessing"]["exported"][1]["field"]
   # println("extremes of third principal stress: $([minimum(ps.values),   maximum(ps.values)])")
   @test norm([minimum(ps.values),   maximum(ps.values)] - [-459.106, -0.493918]) < 1.e-3
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
 
   # Write out mesh with pressure, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-press-ew",
   "quantity"=> :pressure, "component"=> 1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  ps  = modeldata["postprocessing"]["exported_fields"][1]
+  ps  = modeldata["postprocessing"]["exported"][1]["field"]
   # println("extremes of pressure: $([minimum(ps.values),   maximum(ps.values)])")
   @test norm([minimum(ps.values),   maximum(ps.values)] - [-160.396, 160.396]) < 1.e-3
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
 end
 end
@@ -2615,68 +2615,68 @@ function test()
   # Write out mesh with displacements
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam")
   modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with stresses
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam",
   "quantity"=> :Cauchy, "component"=> :xy)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with stresses
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam",
   "quantity"=> :Cauchy, "component"=> :xz)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with von Mises stresses
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam",
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with von Mises stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-ew",
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  vm  = modeldata["postprocessing"]["exported_fields"][1]
+  vm  = modeldata["postprocessing"]["exported"][1]["field"]
   # println("extremes of von Mises: $([minimum(vm.values),   maximum(vm.values)])")
   @test norm([minimum(vm.values),   maximum(vm.values)] - [6.94796, 451.904]) < 1.e-3
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with von Mises stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-ew",
   "quantity"=> :Cauchy, "component"=> :xz)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with principal stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-principal-1-ew",
   "quantity"=> :princCauchy, "component"=> 1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  ps  = modeldata["postprocessing"]["exported_fields"][1]
+  ps  = modeldata["postprocessing"]["exported"][1]["field"]
   # println("extremes of first principal stress: $([minimum(ps.values),   maximum(ps.values)])")
   @test norm([minimum(ps.values),   maximum(ps.values)] - [0.493918, 459.106]) < 1.e-3
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with principal stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-principal-3-ew",
   "quantity"=> :princCauchy, "component"=> 3)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  ps  = modeldata["postprocessing"]["exported_fields"][1]
+  ps  = modeldata["postprocessing"]["exported"][1]["field"]
   # println("extremes of third principal stress: $([minimum(ps.values),   maximum(ps.values)])")
   @test norm([minimum(ps.values),   maximum(ps.values)] - [-459.106, -0.493918]) < 1.e-3
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
 
   # Write out mesh with pressure, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-press-ew",
   "quantity"=> :pressure, "component"=> 1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  ps  = modeldata["postprocessing"]["exported_fields"][1]
+  ps  = modeldata["postprocessing"]["exported"][1]["field"]
   # println("extremes of pressure: $([minimum(ps.values),   maximum(ps.values)])")
   @test norm([minimum(ps.values),   maximum(ps.values)] - [-160.396, 160.396]) < 1.e-3
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
 end
 end
@@ -3854,52 +3854,52 @@ function test()
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew",
      "quantity"=>:Cauchy, "component"=>:xy)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of Cauchy_xy = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.07028875155067116, 0.1301698279821655]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-vm",
      "quantity"=>:vm, "component"=>1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of vm = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [0.007503804468283987, 0.33798754356331173]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-pressure",
      "quantity"=>:pressure, "component"=>1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of pressure = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.11777749217431245, 0.23457099031101358]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-princ1",
      "quantity"=>:princCauchy, "component"=>1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of princCauchy Max = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.16098150217425994, 0.24838761904231466]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-princ3",
      "quantity"=>:princCauchy, "component"=>3)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of princCauchy Min = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.4523049370669106, 0.02980811337406548]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   AE = AbaqusExporter("Cookstress_algo_stress");
   HEADING(AE, "Cook trapezoidal panel, plane stress");
@@ -4020,52 +4020,52 @@ function test()
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew",
      "quantity"=>:Cauchy, "component"=>:xy)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of Cauchy_xy = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.07028875155067116, 0.1301698279821655]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-vm",
      "quantity"=>:vm, "component"=>1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of vm = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [0.007503804468283987, 0.33798754356331173]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-pressure",
      "quantity"=>:pressure, "component"=>1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of pressure = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.11777749217431245, 0.23457099031101358]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-princ1",
      "quantity"=>:princCauchy, "component"=>1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of princCauchy Max = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.16098150217425994, 0.24838761904231466]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-princ3",
      "quantity"=>:princCauchy, "component"=>3)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of princCauchy Min = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.4523049370669106, 0.02980811337406548]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   AE = AbaqusExporter("Cookstress_algo_stress");
   HEADING(AE, "Cook trapezoidal panel, plane stress");
@@ -4187,53 +4187,53 @@ function test()
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew",
      "quantity"=>:Cauchy, "component"=>:xy)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of Cauchy_xy = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.07275125002229098, 0.1309644027374448]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-vm",
      "quantity"=>:vm, "component"=>1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of vm = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [0.014136291979824203, 0.4181381117075297]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-pressure",
      "quantity"=>:pressure, "component"=>1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of pressure = $((minimum(fld.values), maximum(fld.values)))")
   # display(norm([minimum(fld.values), maximum(fld.values)] - [-0.12996180159464202, 0.2436183072544255]))
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.08664120106309468, 0.16241220483628366]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-princ1",
      "quantity"=>:princCauchy, "component"=>1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of princCauchy Max = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.10280794467415574, 0.24831137383158813]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-princ3",
      "quantity"=>:princCauchy, "component"=>2)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of princCauchy Min = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.4398236425818378, 0.022575693063719465]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   AE = AbaqusExporter("Cookstress_algo_stress");
   HEADING(AE, "Cook trapezoidal panel, plane stress");
@@ -4354,52 +4354,52 @@ function test()
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew",
      "quantity"=>:Cauchy, "component"=>:xy)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of Cauchy_xy = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.07275125002229098, 0.1309644027374448]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-vm",
      "quantity"=>:vm, "component"=>1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of vm = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [0.014136291979824203, 0.4181381117075297]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-pressure",
      "quantity"=>:pressure, "component"=>1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of pressure = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.08664120106309468, 0.16241220483628366]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-princ1",
      "quantity"=>:princCauchy, "component"=>1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of princCauchy Max = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.10280794467415574, 0.24831137383158813]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-princ3",
      "quantity"=>:princCauchy, "component"=>2)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  fld = modeldata["postprocessing"]["exported_fields"][1]
+  fld = modeldata["postprocessing"]["exported"][1]["field"]
   # println("range of princCauchy Min = $((minimum(fld.values), maximum(fld.values)))")
   @test norm([minimum(fld.values), maximum(fld.values)] - [-0.4398236425818378, 0.022575693063719465]) < 1.0e-5
-  # File = modeldata["postprocessing"]["exported_files"][1]
+  # File = modeldata["postprocessing"]["exported"][1]["file"]
   # @async run(`"paraview.exe" $File`)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   AE = AbaqusExporter("Cookstress_algo_stress");
   HEADING(AE, "Cook trapezoidal panel, plane stress");
@@ -6493,7 +6493,7 @@ function test()
         nodevalmethod = :invdistance, reportat = :meanonly)
     # println("Sigma_y =$(fld.values[nl,1][1]/phun("MPa")) as compared to reference sigma_yD = $(sigma_yD/phun("MPa")) [MPa]")
     @test abs(fld.values[nl,1][1]/phun("MPa") - 42.54884174624546) < 1.0e-3
-    
+
 end
 end
 using mmLE1NAFEMSsstress
@@ -6787,43 +6787,43 @@ function test()
   # Write out mesh with displacements
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8")
   modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with stresses
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8",
   "quantity"=> :Cauchy, "component"=> :xy)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with stresses
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8",
   "quantity"=> :Cauchy, "component"=> :xz)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
   # Write out mesh with von Mises stresses
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8",
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-  vm  = modeldata["postprocessing"]["exported_fields"][1]
+  vm  = modeldata["postprocessing"]["exported"][1]["field"]
   # println("extremes of vm, nodal: $([minimum(vm.values),   maximum(vm.values)])")
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
   @test norm([minimum(vm.values),   maximum(vm.values)]-[4.78774, 522.126]) < 0.01
 
   # Write out mesh with von Mises stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8-ew",
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  vm  = modeldata["postprocessing"]["exported_fields"][1]
+  vm  = modeldata["postprocessing"]["exported"][1]["field"]
   # println("extremes of vm, elemental: $([minimum(vm.values),   maximum(vm.values)])")
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
   @test norm([minimum(vm.values),   maximum(vm.values)]-[1.85882, 522.126]) < 0.01
 
   # Write out mesh with von Mises stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8-ew",
   "quantity"=> :Cauchy, "component"=> :xz)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+  try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
 end
 end
@@ -6916,43 +6916,43 @@ function test()
     # Write out mesh with displacements
     modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8")
     modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
-    try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+    try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
     # Write out mesh with stresses
     modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8",
     "quantity"=> :Cauchy, "component"=> :xy, "outputcsys"=>CSys(eye(3)))
     modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-    try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+    try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
     # Write out mesh with stresses
     modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8",
     "quantity"=> :Cauchy, "component"=> :xz, "outputcsys"=>CSys(eye(3)))
     modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-    try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+    try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
     # Write out mesh with von Mises stresses
     modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8",
     "quantity"=> :vm, "outputcsys"=>CSys(eye(3)))
     modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-    vm  = modeldata["postprocessing"]["exported_fields"][1]
+    vm  = modeldata["postprocessing"]["exported"][1]["field"]
     # println("extremes of vm, nodal: $([minimum(vm.values),   maximum(vm.values)])")
-    try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+    try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
     @test norm([minimum(vm.values),   maximum(vm.values)]-[4.78774, 522.126]) < 0.01
 
     # Write out mesh with von Mises stresses, elementwise
     modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8-ew",
     "quantity"=> :vm, "outputcsys"=>CSys(eye(3)))
     modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-    vm  = modeldata["postprocessing"]["exported_fields"][1]
+    vm  = modeldata["postprocessing"]["exported"][1]["field"]
     # println("extremes of vm, elemental: $([minimum(vm.values),   maximum(vm.values)])")
-    try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+    try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
     @test norm([minimum(vm.values),   maximum(vm.values)]-[1.85882, 522.126]) < 0.01
 
     # Write out mesh with von Mises stresses, elementwise
     modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8-ew",
     "quantity"=> :Cauchy, "component"=> :xz, "outputcsys"=>CSys(eye(3)))
     modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-    try rm(modeldata["postprocessing"]["exported_files"][1]); catch end
+    try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
 end
 end

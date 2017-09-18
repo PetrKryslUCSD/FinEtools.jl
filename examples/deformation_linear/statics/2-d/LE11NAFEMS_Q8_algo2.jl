@@ -85,7 +85,7 @@ dT = modeldata["temp"]
 modeldata["postprocessing"] = FDataDict("boundary_only"=> true,
     "file"=>"LE11NAFEMS_Q8_deformation.vtk")
 modeldata = exportdeformation(modeldata)
-@async run(`"paraview.exe" $(modeldata["postprocessing"]["exported_files"][1])`)
+@async run(`"paraview.exe" $(modeldata["postprocessing"]["exported"][1]["file"])`)
 
 nA  = selectnode(fens,box = FFlt[1.0  1.0 0.0 0.0], inflate = tolerance);
 
@@ -97,8 +97,8 @@ modeldata["postprocessing"] = FDataDict("boundary_only"=> false,
     "file"=>"LE11NAFEMS_Q8_sigmay.vtk", "quantity"=>:Cauchy,
     "component"=>2)
 modeldata = exportstress(modeldata)
-@async run(`"paraview.exe" $(modeldata["postprocessing"]["exported_files"][1])`)
-fld =  modeldata["postprocessing"]["exported_fields"][1]
+@async run(`"paraview.exe" $(modeldata["postprocessing"]["exported"][1]["file"])`)
+fld =  modeldata["postprocessing"]["exported"][1]["field"]
 
 sA  =  fld.values[nA]/phun("MEGA*Pa")
 sAn  =  fld.values[nA]/sigmaA
@@ -118,6 +118,6 @@ modeldata["postprocessing"] = FDataDict("boundary_only"=> false,
       "file"=>"LE11NAFEMS_Q8_sigmay_ew.vtk", "quantity"=>:Cauchy,
       "component"=>2)
 modeldata = exportstresselementwise(modeldata)
-@async run(`"paraview.exe" $(modeldata["postprocessing"]["exported_files"][1])`)
+@async run(`"paraview.exe" $(modeldata["postprocessing"]["exported"][1]["file"])`)
 
 end

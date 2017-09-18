@@ -95,7 +95,7 @@ function  Twisted_beam()
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-ew",
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  vm  = modeldata["postprocessing"]["exported_fields"][1]
+  vm  = modeldata["postprocessing"]["exported"][1]["field"]
   println("extremes of von Mises: $([minimum(vm.values),   maximum(vm.values)])")
 
   # Write out mesh with von Mises stresses, elementwise
@@ -107,21 +107,21 @@ function  Twisted_beam()
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-principal-1-ew",
   "quantity"=> :princCauchy, "component"=> 1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  ps  = modeldata["postprocessing"]["exported_fields"][1]
+  ps  = modeldata["postprocessing"]["exported"][1]["field"]
   println("extremes of first principal stress: $([minimum(ps.values),   maximum(ps.values)])")
 
   # Write out mesh with principal stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-principal-3-ew",
   "quantity"=> :princCauchy, "component"=> 3)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  ps  = modeldata["postprocessing"]["exported_fields"][1]
+  ps  = modeldata["postprocessing"]["exported"][1]["field"]
   println("extremes of third principal stress: $([minimum(ps.values),   maximum(ps.values)])")
 
   # Write out mesh with principal stresses, elementwise
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-press-ew",
   "quantity"=> :pressure, "component"=> 1)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  ps  = modeldata["postprocessing"]["exported_fields"][1]
+  ps  = modeldata["postprocessing"]["exported"][1]["field"]
   println("extremes of pressure: $([minimum(ps.values),   maximum(ps.values)])")
 
   println("Done")

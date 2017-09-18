@@ -74,27 +74,19 @@ q0 = 1*phun("MPa"); #    line load
 wtopref = -3.789*phun("mm"); # From [1]
 wbottomref = -2.16*phun("mm"); # Not given in [1]; guessed from the figure
 
-# The reference tensile stress at the bottom of the lowest layer is
-sigma11Eref = 684*phun("MPa");
-
-# Because we model the first-quadrant quarter of the plate using
-# coordinate axes centered  at the point E  the shear at the point D is
-# positive instead of negative as in the benchmark where the coordinate
-# system is located at the outer corner of the strip.
-sigma13Dref=4.1*phun("MPa");
-
+# Select how find the mesh should be
 Refinement = 5
 nL = Refinement * 1;
-nSx = nL + Refinement * 2;
+nSx = nL + Refinement * 4;
 nSy = 2 * nSx;
 
 # Each layer is modeled with a single element.
 nts= Refinement * [1, 2, 1];# number of elements per layer
-
-xs = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Lx/2, 0.0, nL+1, 1))),
-    collect(MeshUtilModule.gradedspace(Lx/2, Sx/2, nSx-nL+1, 1))))
-ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1, 1))),
-    collect(MeshUtilModule.gradedspace(Ly/2, Sy/2, nSy-nL+1, 1))))
+strength = 1.5
+xs = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Lx/2, 0.0, nL+1, strength))),
+    collect(MeshUtilModule.gradedspace(Lx/2, Sx/2, nSx-nL+1, strength))))
+ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1, strength))),
+    collect(MeshUtilModule.gradedspace(Ly/2, Sy/2, nSy-nL+1, strength))))
 
 fens,fes = H8compositeplatex(xs, ys, ts, nts)
 
@@ -199,21 +191,21 @@ println("Top Center deflection: $(u.values[ntopcenter, 3]/phun("mm")) [mm]")
 println("Bottom Center deflection: $(u.values[nbottomcenter, 3]/phun("mm")) [mm]")
 
 # # extrap = :extrapmean
-extrap = :extraptrend
-nodevalmeth = :averaging
-# extrap = :default
-# nodevalmeth = :invdistance
+# extrap = :extraptrend
+# nodevalmeth = :averaging
+extrap = :default
+nodevalmeth = :invdistance
 
 # Normal stress in the X direction
 modeldata["postprocessing"] = FDataDict("file"=>"Meyer_Piening_sandwich-sx",
     "quantity"=>:Cauchy, "component"=>1, "outputcsys"=>CSys(3),
      "nodevalmethod"=>nodevalmeth, "reportat"=>extrap)
 modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-s = modeldata["postprocessing"]["exported_fields"][1]
+s = modeldata["postprocessing"]["exported"][1]["field"]
 sxbot = s.values[ncenterline[zclo], 1]
-s = modeldata["postprocessing"]["exported_fields"][2]
+s = modeldata["postprocessing"]["exported"][2]["field"]
 sxcore = s.values[ncenterline[zclo], 1]
-s = modeldata["postprocessing"]["exported_fields"][3]
+s = modeldata["postprocessing"]["exported"][3]["field"]
 sxtop = s.values[ncenterline[zclo], 1]
 
 # The graph data needs to be collected by going through each layer separately.
@@ -238,12 +230,12 @@ modeldata["postprocessing"] = FDataDict("file"=>"Meyer_Piening_sandwich-sxz",
     "quantity"=>:Cauchy, "component"=>5, "outputcsys"=>CSys(3),
      "nodevalmethod"=>nodevalmeth, "reportat"=>extrap)
 modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-s = modeldata["postprocessing"]["exported_fields"][1]
+s = modeldata["postprocessing"]["exported"][1]["field"]
 sxzskinbot = s.values[ninterbot[xclobot], 1]
-s = modeldata["postprocessing"]["exported_fields"][2]
+s = modeldata["postprocessing"]["exported"][2]["field"]
 sxzcoretop = s.values[nintertop[xclotop], 1]
 sxzcorebot = s.values[ninterbot[xclobot], 1]
-s = modeldata["postprocessing"]["exported_fields"][3]
+s = modeldata["postprocessing"]["exported"][3]["field"]
 sxzskintop = s.values[nintertop[xclotop], 1]
 
 df = DataFrame(xstop=vec(topx[xclotop])/phun("mm"),

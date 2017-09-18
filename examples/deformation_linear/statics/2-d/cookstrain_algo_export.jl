@@ -59,41 +59,41 @@ println("displacement =$(theutip[2]) as compared to converged $convutip")
 modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew",
    "quantity"=>:Cauchy, "component"=>:xy)
 modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-fld = modeldata["postprocessing"]["exported_fields"][1]
+fld = modeldata["postprocessing"]["exported"][1]["field"]
 println("range of Cauchy_xy = $((minimum(fld.values), maximum(fld.values)))")
-File = modeldata["postprocessing"]["exported_files"][1]
+File = modeldata["postprocessing"]["exported"][1]["file"]
 @async run(`"paraview.exe" $File`)
 
 modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-vm",
    "quantity"=>:vm, "component"=>1)
 modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-fld = modeldata["postprocessing"]["exported_fields"][1]
+fld = modeldata["postprocessing"]["exported"][1]["field"]
 println("range of vm = $((minimum(fld.values), maximum(fld.values)))")
-File = modeldata["postprocessing"]["exported_files"][1]
+File = modeldata["postprocessing"]["exported"][1]["file"]
 @async run(`"paraview.exe" $File`)
 
 modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-pressure",
    "quantity"=>:pressure, "component"=>1)
 modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-fld = modeldata["postprocessing"]["exported_fields"][1]
+fld = modeldata["postprocessing"]["exported"][1]["field"]
 println("range of pressure = $((minimum(fld.values), maximum(fld.values)))")
-File = modeldata["postprocessing"]["exported_files"][1]
+File = modeldata["postprocessing"]["exported"][1]["file"]
 @async run(`"paraview.exe" $File`)
 
 modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-princ1",
    "quantity"=>:princCauchy, "component"=>1)
 modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-fld = modeldata["postprocessing"]["exported_fields"][1]
+fld = modeldata["postprocessing"]["exported"][1]["field"]
 println("range of princCauchy Max = $((minimum(fld.values), maximum(fld.values)))")
-File = modeldata["postprocessing"]["exported_files"][1]
+File = modeldata["postprocessing"]["exported"][1]["file"]
 @async run(`"paraview.exe" $File`)
 
 modeldata["postprocessing"] = FDataDict("file"=>"cookstress-ew-princ3",
    "quantity"=>:princCauchy, "component"=>3)
 modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-fld = modeldata["postprocessing"]["exported_fields"][1]
+fld = modeldata["postprocessing"]["exported"][1]["field"]
 println("range of princCauchy Min = $((minimum(fld.values), maximum(fld.values)))")
-File = modeldata["postprocessing"]["exported_files"][1]
+File = modeldata["postprocessing"]["exported"][1]["file"]
 @async run(`"paraview.exe" $File`)
 
 AE = AbaqusExporter("Cookstress_algo_stress");

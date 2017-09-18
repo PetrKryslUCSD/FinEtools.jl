@@ -95,7 +95,7 @@ function  Twisted_beam()
   modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam-ew",
   "quantity"=> :vm)
   modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
-  vm  = modeldata["postprocessing"]["exported_fields"][1]
+  vm  = modeldata["postprocessing"]["exported"][1]["field"]
   println("extremes of von Mises: $([minimum(vm.values),   maximum(vm.values)])")
 
   # Write out mesh with von Mises stresses, elementwise
