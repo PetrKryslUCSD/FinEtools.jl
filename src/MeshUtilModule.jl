@@ -71,9 +71,10 @@ increases linearly from start to finish.
 """
 function gradedspace(start::T, finish::T, N::Int, strength=2)  where {T<:Number}
     x = linspace(0.0, 1.0, N);
-    for i = 1:strength
-        x = cumsum(x);
-    end
+    x = x.^strength
+    # for i = 1:strength
+    #     x = cumsum(x);
+    # end
     x = x/maximum(x);
     out = start .* (1-x) .+ finish .* x;
 end
