@@ -60,6 +60,25 @@ function ontosphere(xyz::FFltMat,radius::FFlt)
     return xyz;
 end
 
+"""
+    gradedspace(start::T, finish::T, N::Int)  where {T<:Number}
+
+Generate quadratic space.
+
+Generate a quadratic sequence of numbers between start and finish.
+This sequence corresponds to separation of adjacent numbers that
+increases linearly from start to finish.
+"""
+function gradedspace(start::T, finish::T, N::Int, strength=2)  where {T<:Number}
+    x = linspace(0.0, 1.0, N);
+    for i = 1:strength
+        x = cumsum(x);
+    end
+    x = x/maximum(x);
+    out = start .* (1-x) .+ finish .* x;
+end
+
+
 # function inbox(box::FFltVec,sdim::FInt,x::FFltVec)
 #     for i=1:sdim
 #         if (!inrange(box[2*i-1],box[2*i],x[i]))
