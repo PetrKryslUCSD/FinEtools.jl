@@ -5,7 +5,7 @@ Module  for generation of meshes composed of tetrahedra.
 """
 module MeshTetrahedronModule
 
-export  T4block, T4blockx, T4toT10,  T10block
+export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10compositeplatex
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -190,6 +190,65 @@ function T10block(Length::FFlt, Width::FFlt, Height::FFlt,
     fens, fes = T4block(Length, Width, Height, nL, nW, nH, orientation);
     fens, fes = T4toT10(fens, fes);
     return fens, fes
+end
+
+"""
+    T10blockx(xs::FFltMat, ys::FFltMat, zs::FFltMat, orientation::Symbol = :a)
+
+Generate a graded 10-node tetrahedral mesh  of a 3D block.
+
+10-node tetrahedra in a regular arrangement, with non-uniform given spacing
+between the nodes, with a given orientation of the diagonals.
+
+The mesh is produced by splitting each logical  rectangular cell into six
+tetrahedra.
+"""
+function T10blockx(xs::FFltMat, ys::FFltMat, zs::FFltMat, orientation::Symbol = :a)
+    fens, fes =  T4blockx(vec(xs), vec(ys), vec(zs), orientation)
+    fens, fes = T4toT10(fens, fes);
+    return fens, fes
+end
+
+function T10blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec, orientation::Symbol = :a)
+    fens, fes =  T4blockx(vec(xs), vec(ys), vec(zs), orientation)
+    fens, fes = T4toT10(fens, fes);
+    return fens, fes
+end
+
+"""
+    T10compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
+        orientation::Symbol = :a)
+
+T10 mesh for a layered block (composite plate) with specified in plane coordinates.
+
+xs,ys =Locations of the individual planes of nodes.
+ts= Array of layer thicknesses,
+nts= array of numbers of elements per layer
+
+The finite elements of each layer are labeled with the layer number, starting
+from 1.
+"""
+function T10compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
+    orientation::Symbol = :a)
+    tolerance = minimum(abs.(ts))/maximum(nts)/10.;
+    @assert length(ts) >= 1
+    @assert sum(nts) >= length(ts)
+    zs = collect(linspace(0.0, ts[1], nts[1]+1))
+    for layer = 2:length(ts)
+        oz = collect(linspace(sum(ts[1:layer-1]), sum(ts[1:layer]), nts[layer]+1))
+        zs = vcat(zs, oz[2:end])
+    end
+    fens, fes = T10blockx(xs, ys, zs, orientation);
+    List = selectelem(fens, fes, box = [-Inf Inf -Inf Inf 0.0 ts[1]],
+            inflate = tolerance)
+    fes.label[List] = 1
+    for layer = 2:length(ts)
+        List = selectelem(fens, fes,
+            box = [-Inf Inf -Inf Inf sum(ts[1:layer-1]) sum(ts[1:layer])],
+            inflate = tolerance)
+        fes.label[List] = layer
+    end
+    return fens,fes
 end
 
 end

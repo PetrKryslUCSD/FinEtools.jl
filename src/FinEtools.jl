@@ -27,8 +27,7 @@ export rotmat,  rotmat3!, skewmat!, cross3, cross3!, cross2
 
 include("CSysModule.jl")
 using FinEtools.CSysModule
-export CSys
-export updatecsmat!
+export CSys, updatecsmat!
 
 include("FESetModule.jl")
 using FinEtools.FESetModule
@@ -113,8 +112,7 @@ export  H8block,  H8blockx,  H8sphere,  H8refine, H8hexahedron, H8extrudeQ4,
 
 include("MeshTetrahedronModule.jl")
 using FinEtools.MeshTetrahedronModule
-export T4blocka, T4blockb, T4blockca, T4blockcb, T4block, T4blockx,
-    T4toT10, T10block
+export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10compositeplatex
 
 include("ForceIntensityModule.jl")
 using FinEtools.ForceIntensityModule
