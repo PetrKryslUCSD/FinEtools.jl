@@ -5,7 +5,7 @@ using DataFrames
 using CSV
 
 println("""
-Meyer-Piening sandwich plate, plain-vanilla H8
+Meyer-Piening sandwich plate, serendipity H20
 """)
 
 # Reference results from:
@@ -75,7 +75,7 @@ wtopref = -3.789*phun("mm"); # From [1]
 wbottomref = -2.16*phun("mm"); # Not given in [1]; guessed from the figure
 
 # Select how find the mesh should be
-Refinement = 5
+Refinement = 3
 nL = Refinement * 1;
 nSx = nL + Refinement * 4;
 nSy = 2 * nSx;
@@ -89,7 +89,7 @@ ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1, str
     collect(MeshUtilModule.gradedspace(Ly/2, Sy/2, nSy-nL+1, strength))))
 
 fens,fes = H8compositeplatex(xs, ys, ts, nts)
-
+fens,fes = H8toH20(fens,fes)
 
 # This is the material  model
 MR = DeforModelRed3D
@@ -238,12 +238,12 @@ sxzcorebot = s.values[ninterbot[xclobot], 1]
 s = modeldata["postprocessing"]["exported"][3]["field"]
 sxzskintop = s.values[nintertop[xclotop], 1]
 
-df = DataFrame(xstop=vec(topx[xclotop])/phun("mm"),
-sxzskintop=vec(sxzskintop[xclotop])/phun("MPa"),
-sxzcoretop=vec(sxzcoretop[xclotop])/phun("MPa"),
-xsbot=vec(botx[xclobot])/phun("mm"),
-sxzskinbot=vec(sxzskinbot[xclobot])/phun("MPa"),
-sxzcorebot=vec(sxzcorebot[xclobot])/phun("MPa"),
+df = DataFrame(xstop=vec(topx)/phun("mm"),
+sxzskintop=vec(sxzskintop)/phun("MPa"),
+sxzcoretop=vec(sxzcoretop)/phun("MPa"),
+xsbot=vec(botx)/phun("mm"),
+sxzskinbot=vec(sxzskinbot)/phun("MPa"),
+sxzcorebot=vec(sxzcorebot)/phun("MPa"),
 )
 
 File = "Meyer_Piening_sandwich-sxz-$(extrap).CSV"
