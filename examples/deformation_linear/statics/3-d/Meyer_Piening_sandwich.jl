@@ -82,8 +82,8 @@ sigma11Eref = 684*phun("MPa");
 # system is located at the outer corner of the strip.
 sigma13Dref=4.1*phun("MPa");
 
-Refinement = 9
-nL = Refinement * 1; nS = nL + Refinement * 1;
+Refinement = 5
+nL = Refinement * 2; nS = nL + Refinement * 8;
 
 # Each layer is modeled with a single element.
 nts= Refinement * ones(Int, length(angles));# number of elements per layer
@@ -174,9 +174,15 @@ geom = modeldata["geom"]
 nbottomcenter = selectnode(fens, box=[0.0 0.0 0.0 0.0 0.0 0.0], inflate=tolerance)
 ntopcenter = selectnode(fens, box=[0.0 0.0 0.0 0.0 TH TH], inflate=tolerance)
 ncenterline = selectnode(fens, box=[0.0 0.0 0.0 0.0 0.0 TH], inflate=tolerance)
+nintertop = selectnode(fens, box=[-Inf Inf 0.0 0.0 sum(ts[1:2]) sum(ts[1:2])], inflate=tolerance)
+ninterbot = selectnode(fens, box=[-Inf Inf 0.0 0.0 sum(ts[1:1]) sum(ts[1:1])], inflate=tolerance)
 
-clo = sortperm(vec(geom.values[ncenterline, 3]))
-centerz = geom.values[ncenterline[clo], 3]
+zclo = sortperm(vec(geom.values[ncenterline, 3]))
+centerz = geom.values[ncenterline[zclo], 3]
+xclotop = sortperm(vec(geom.values[nintertop, 1]))
+topx = geom.values[nintertop[xclotop], 1]
+xclobot = sortperm(vec(geom.values[ninterbot, 1]))
+botx = geom.values[ninterbot[xclobot], 1]
 
 conninbotskin = intersect(connectednodes(botskinregion["femm"].geod.fes), ncenterline)
 connincore = intersect(connectednodes(coreregion["femm"].geod.fes), ncenterline)
@@ -195,43 +201,57 @@ nodevalmeth = :averaging
 # extrap = :default
 # nodevalmeth = :invdistance
 
+# Normal stress in the X direction
 modeldata["postprocessing"] = FDataDict("file"=>"Meyer_Piening_sandwich-sx",
     "quantity"=>:Cauchy, "component"=>1, "outputcsys"=>CSys(3),
      "nodevalmethod"=>nodevalmeth, "reportat"=>extrap)
 modeldata = AlgoDeforLinearModule.exportstress(modeldata)
 s = modeldata["postprocessing"]["exported_fields"][1]
-sxbot = s.values[ncenterline[clo], 1]
+sxbot = s.values[ncenterline[zclo], 1]
 s = modeldata["postprocessing"]["exported_fields"][2]
-sxcore = s.values[ncenterline[clo], 1]
+sxcore = s.values[ncenterline[zclo], 1]
 s = modeldata["postprocessing"]["exported_fields"][3]
-sxtop = s.values[ncenterline[clo], 1]
+sxtop = s.values[ncenterline[zclo], 1]
 
 # The graph data needs to be collected by going through each layer separately.
 # Some quantities may be discontinuous between layers.
-zs = []
-sxs = []
-for (j, z) in enumerate(centerz)
-    if inbotskin[j]
-        push!(zs, z)
-        push!(sxs, sxbot[j])
-    end
-end
-for (j, z) in enumerate(centerz)
-    if incore[j]
-        push!(zs, z)
-        push!(sxs, sxcore[j])
-    end
-end
-for (j, z) in enumerate(centerz)
-    if intopskin[j]
-        push!(zs, z)
-        push!(sxs, sxtop[j])
-    end
-end
-
-df = DataFrame(zs=vec(zs), sx=vec(sxs)/phun("MPa"))
+zs = vcat(  [z for (j,z) in enumerate(centerz) if inbotskin[j]],
+            [z for (j,z) in enumerate(centerz) if incore[j]],
+            [z for (j,z) in enumerate(centerz) if intopskin[j]]
+            )
+sxs = vcat( [sxbot[j] for (j,z) in enumerate(centerz) if inbotskin[j]],
+            [sxcore[j] for (j,z) in enumerate(centerz) if incore[j]],
+            [sxtop[j] for (j,z) in enumerate(centerz) if intopskin[j]]
+            )
+df = DataFrame(zs=vec(zs)/phun("mm"), sx=vec(sxs)/phun("MPa"))
 
 File = "Meyer_Piening_sandwich-sx-$(extrap).CSV"
+CSV.write(File, df)
+
+# @async run(`"paraview.exe" $File`)
+
+# Inter laminar stress between the skin and the core
+modeldata["postprocessing"] = FDataDict("file"=>"Meyer_Piening_sandwich-sxz",
+    "quantity"=>:Cauchy, "component"=>5, "outputcsys"=>CSys(3),
+     "nodevalmethod"=>nodevalmeth, "reportat"=>extrap)
+modeldata = AlgoDeforLinearModule.exportstress(modeldata)
+s = modeldata["postprocessing"]["exported_fields"][1]
+sxzskinbot = s.values[ninterbot[xclobot], 1]
+s = modeldata["postprocessing"]["exported_fields"][2]
+sxzcoretop = s.values[nintertop[xclotop], 1]
+sxzcorebot = s.values[ninterbot[xclobot], 1]
+s = modeldata["postprocessing"]["exported_fields"][3]
+sxzskintop = s.values[nintertop[xclotop], 1]
+
+df = DataFrame(xstop=vec(topx[xclotop])/phun("mm"),
+sxzskintop=vec(sxzskintop[xclotop])/phun("MPa"),
+sxzcoretop=vec(sxzcoretop[xclotop])/phun("MPa"),
+xsbot=vec(botx[xclobot])/phun("mm"),
+sxzskinbot=vec(sxzskinbot[xclobot])/phun("MPa"),
+sxzcorebot=vec(sxzcorebot[xclobot])/phun("MPa"),
+)
+
+File = "Meyer_Piening_sandwich-sxz-$(extrap).CSV"
 CSV.write(File, df)
 
 @async run(`"paraview.exe" $File`)
