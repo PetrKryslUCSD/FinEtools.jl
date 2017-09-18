@@ -82,11 +82,11 @@ sigma11Eref = 684*phun("MPa");
 # system is located at the outer corner of the strip.
 sigma13Dref=4.1*phun("MPa");
 
-Refinement = 5
-nL = Refinement * 2; nS = nL + Refinement * 8;
+Refinement = 4
+nL = Refinement * 1; nS = nL + Refinement * 8;
 
 # Each layer is modeled with a single element.
-nts= Refinement * ones(Int, length(angles));# number of elements per layer
+nts= Refinement * [1, 4, 1];# number of elements per layer
 
 xs = unique(vcat(collect(linspace(0,Lx/2,nL+1)),
     collect(linspace(Lx/2,Sx/2,nS-nL+1))))
