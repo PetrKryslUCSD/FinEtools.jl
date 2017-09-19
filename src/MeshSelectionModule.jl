@@ -411,14 +411,14 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     allinvalue = (allin == nothing) || ((allin != nothing) && (allin))
     nodelist = selectnode(fens; args...);
     # Select elements whose nodes are in the selected node list
-    for i=1: size(fes.conn,1)
-        I = intersect(fes.conn[i,:], nodelist);
+    for i = 1:size(fes.conn,1)
+        common = intersect(vec(fes.conn[i,:]), vec(nodelist));
         if allinvalue
-            if length(I) == size(fes.conn,2)
+            if length(common) == size(fes.conn,2)
                 felist[i] =i;
             end
         else
-            if length(I) >= 1
+            if length(common) >= 1
                 felist[i] =i;
             end
         end
