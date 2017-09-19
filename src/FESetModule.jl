@@ -25,11 +25,11 @@ abstract type FESet2Manifold <: FESet end
 abstract type FESet3Manifold <: FESet end
 
 macro add_FESet_fields()
-  return esc(:(
-  nodesperelem::FInt;
-  conn::FIntMat;
-  label::FIntVec; )
-  )
+    return esc(:(
+    nodesperelem::FInt;
+    conn::FIntMat;
+    label::FIntVec; )
+    )
 end
 # show(macroexpand(:(@add_FESet_fields)))
 
@@ -65,10 +65,10 @@ The connectivity conn[j, :] lists the node  numbers  of the nodes connected
 by the jth element.
 """
 function getconn!(self::T, conn::CC, j::FInt) where {T<:FESet, CC}
-  for i=1:size(self.conn, 2)
-    conn[i]=self.conn[j, i];
-  end
-  return self
+    for i=1:size(self.conn, 2)
+        conn[i]=self.conn[j, i];
+    end
+    return self
 end
 
 """
@@ -104,7 +104,7 @@ end
 Compute the values of the basis function gradients at a given parametric coordinate.
 """
 function bfundpar(self::T,  param_coords::FFltVec)::FFltMat where {T<:FESet}
-  return privbfundpar(self, param_coords)
+    return privbfundpar(self, param_coords)
 end
 
 """
@@ -113,9 +113,9 @@ end
 Set the label of the entire finite elements set.
 """
 function setlabel!(self::T, val::FInt) where {T<:FESet}
-  self.label = zeros(FInt, size(self.conn, 1));
-  fill!(self.label, val)
-  return self
+    self.label = zeros(FInt, size(self.conn, 1));
+    fill!(self.label, val)
+    return self
 end
 
 """
@@ -124,10 +124,11 @@ end
 Set the labels of individual elements.
 """
 function setlabel!(self::T, val::FIntVec) where {T<:FESet}
-  #    Set the label of this set.
-  @assert size(self.conn, 1)==length(val) "Must get one  label per finite element connectivity"
-  self.label=zeros(FInt, size(self.conn, 1));
-  copy!(self.label, val);
+    #    Set the label of this set.
+    @assert size(self.conn, 1)==length(val) "Must get one  label per finite element connectivity"
+    self.label=zeros(FInt, size(self.conn, 1));
+    copy!(self.label, val);
+    return self
 end
 
 """
@@ -136,10 +137,10 @@ end
 Extract a subset of the finite elements from the given finite element set.
 """
 function subset(self::T, L::FIntVec) where {T<:FESet}
-  result = deepcopy(self)
-  result.conn = deepcopy(self.conn[L, :])
-  result.label = deepcopy(self.label[L])
-  return  result
+    result = deepcopy(self)
+    result.conn = deepcopy(self.conn[L, :])
+    result.label = deepcopy(self.label[L])
+    return  result
 end
 
 """
@@ -148,11 +149,11 @@ end
 Concatenate the connectivities of two FE sets.
 """
 function cat(self::T,  other::T) where {T<:FESet}
-  @assert self.nodesperelem==other.nodesperelem
-  result =deepcopy(self)
-  result.conn =[self.conn; other.conn];
-  setlabel!(result, vcat(self.label, other.label))
-  return result
+    @assert self.nodesperelem==other.nodesperelem
+    result =deepcopy(self)
+    result.conn =[self.conn; other.conn];
+    setlabel!(result, vcat(self.label, other.label))
+    return result
 end
 
 """
@@ -165,12 +166,12 @@ _into_ the  NewIDs array. After the connectivity was updated
 this is no longer true!
 """
 function updateconn!(self::T, NewIDs::FIntVec) where {T<:FESet}
-  for i=1:size(self.conn, 1)
-    for j=1:size(self.conn, 2)
-      self.conn[i, j]=NewIDs[self.conn[i, j]];
+    for i=1:size(self.conn, 1)
+        for j=1:size(self.conn, 2)
+            self.conn[i, j]=NewIDs[self.conn[i, j]];
+        end
     end
-  end
-  return self
+    return self
 end
 
 """
@@ -192,9 +193,9 @@ Evaluate the curve Jacobian.
 `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
 function Jacobian(self::T, J::FFltMat)::FFlt where {T<:FESet1Manifold}
-  sdim,  ntan = size(J);
-  @assert ntan == 1 "Expected number of tangent vectors: 1"
-  return norm(J)::FFlt;
+    sdim,  ntan = size(J);
+    @assert ntan == 1 "Expected number of tangent vectors: 1"
+    return norm(J)::FFlt;
 end
 
 """
@@ -209,9 +210,9 @@ gradNparams= matrix of gradients with respect to parametric coordinates, one per
 redJ= reduced Jacobian matrix `redJ=transpose(Rm)*J`
 """
 function gradN!(self::FESet1Manifold, gradN::FFltMat, gradNparams::FFltMat, redJ::FFltMat)
-  for r=1:size(gradN, 1)
-    gradN[r, 1]=  gradNparams[r, 1]/redJ[1, 1]
-  end
+    for r=1:size(gradN, 1)
+        gradN[r, 1]=  gradNparams[r, 1]/redJ[1, 1]
+    end
 end
 
 """
@@ -222,14 +223,14 @@ Evaluate the curve Jacobian.
 `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
 function Jacobian(self::T, J::FFltMat)::FFlt where {T<:FESet2Manifold}
-  sdim,  ntan = size(J);
-  @assert ntan == 2 "Expected number of tangent vectors: 2"
-  if sdim == ntan
-    @inbounds Jac = (J[1, 1]*J[2, 2] - J[2, 1]*J[1, 2])
-    return Jac::FFlt;# is det(J);% Compute the Jacobian
-  else
-    return norm(RotationUtilModule.cross(J[:, 1], J[:, 2]))::FFlt;
-  end
+    sdim,  ntan = size(J);
+    @assert ntan == 2 "Expected number of tangent vectors: 2"
+    if sdim == ntan
+        @inbounds Jac = (J[1, 1]*J[2, 2] - J[2, 1]*J[1, 2])
+        return Jac::FFlt;# is det(J);% Compute the Jacobian
+    else
+        return norm(RotationUtilModule.cross(J[:, 1], J[:, 2]))::FFlt;
+    end
 end
 
 """
@@ -244,17 +245,17 @@ gradNparams= matrix of gradients with respect to parametric coordinates, one per
 redJ= reduced Jacobian matrix `redJ=transpose(Rm)*J`
 """
 function gradN!(self::FESet2Manifold, gradN::FFltMat, gradNparams::FFltMat, redJ::FFltMat)
-  # This is the unrolled version that avoids allocation of a 3 x 3 matrix
-  invdet=1.0/(redJ[1, 1]*redJ[2, 2] - redJ[1, 2]*redJ[2, 1]);
-  invredJ11 =  (redJ[2, 2])*invdet;
-  invredJ12 = -(redJ[1, 2])*invdet;
-  invredJ21 = -(redJ[2, 1])*invdet;
-  invredJ22 =  (redJ[1, 1])*invdet;
-  @assert size(gradN, 1)==size(gradNparams, 1)
-  @inbounds for r=1:size(gradN, 1)
-    gradN[r, 1]= gradNparams[r, 1]*invredJ11 +gradNparams[r, 2]*invredJ21;
-    gradN[r, 2]= gradNparams[r, 1]*invredJ12 +gradNparams[r, 2]*invredJ22;
-  end
+    # This is the unrolled version that avoids allocation of a 3 x 3 matrix
+    invdet=1.0/(redJ[1, 1]*redJ[2, 2] - redJ[1, 2]*redJ[2, 1]);
+    invredJ11 =  (redJ[2, 2])*invdet;
+    invredJ12 = -(redJ[1, 2])*invdet;
+    invredJ21 = -(redJ[2, 1])*invdet;
+    invredJ22 =  (redJ[1, 1])*invdet;
+    @assert size(gradN, 1)==size(gradNparams, 1)
+    @inbounds for r=1:size(gradN, 1)
+        gradN[r, 1]= gradNparams[r, 1]*invredJ11 +gradNparams[r, 2]*invredJ21;
+        gradN[r, 2]= gradNparams[r, 1]*invredJ12 +gradNparams[r, 2]*invredJ22;
+    end
 end
 
 """
@@ -265,13 +266,13 @@ Evaluate the volume Jacobian.
 `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
 function Jacobian(self::T, J::FFltMat)::FFlt where {T<:FESet3Manifold}
-  sdim,  ntan = size(J);
-  @assert (ntan == 3) && (sdim == 3) "Expected number of tangent vectors: 3"
-  #Jac = det(J);# Compute the Jacobian
-  # The unrolled version
-  return (+J[1, 1]*(J[2, 2]*J[3, 3]-J[3, 2]*J[2, 3])
-          -J[1, 2]*(J[2, 1]*J[3, 3]-J[2, 3]*J[3, 1])
-          +J[1, 3]*(J[2, 1]*J[3, 2]-J[2, 2]*J[3, 1]) )::FFlt;
+    sdim,  ntan = size(J);
+    @assert (ntan == 3) && (sdim == 3) "Expected number of tangent vectors: 3"
+    #Jac = det(J);# Compute the Jacobian
+    # The unrolled version
+    return (+J[1, 1]*(J[2, 2]*J[3, 3]-J[3, 2]*J[2, 3])
+    -J[1, 2]*(J[2, 1]*J[3, 3]-J[2, 3]*J[3, 1])
+    +J[1, 3]*(J[2, 1]*J[3, 2]-J[2, 2]*J[3, 1]) )::FFlt;
 end
 
 """
@@ -286,25 +287,25 @@ gradNparams= matrix of gradients with respect to parametric coordinates, one per
 redJ= reduced Jacobian matrix `redJ=transpose(Rm)*J`
 """
 function gradN!(self::FESet3Manifold, gradN::FFltMat, gradNparams::FFltMat, redJ::FFltMat)
-  invdet = 1.0 / ( +redJ[1, 1]*(redJ[2, 2]*redJ[3, 3]-redJ[3, 2]*redJ[2, 3])
-  -redJ[1, 2]*(redJ[2, 1]*redJ[3, 3]-redJ[2, 3]*redJ[3, 1])
-  +redJ[1, 3]*(redJ[2, 1]*redJ[3, 2]-redJ[2, 2]*redJ[3, 1]) );
-  # This is the unrolled version that avoids allocation of a 3 x 3 matrix
-  invredJ11 =  (redJ[2, 2]*redJ[3, 3]-redJ[3, 2]*redJ[2, 3])*invdet;
-  invredJ12 = -(redJ[1, 2]*redJ[3, 3]-redJ[1, 3]*redJ[3, 2])*invdet;
-  invredJ13 =  (redJ[1, 2]*redJ[2, 3]-redJ[1, 3]*redJ[2, 2])*invdet;
-  invredJ21 = -(redJ[2, 1]*redJ[3, 3]-redJ[2, 3]*redJ[3, 1])*invdet;
-  invredJ22 =  (redJ[1, 1]*redJ[3, 3]-redJ[1, 3]*redJ[3, 1])*invdet;
-  invredJ23 = -(redJ[1, 1]*redJ[2, 3]-redJ[2, 1]*redJ[1, 3])*invdet;
-  invredJ31 =  (redJ[2, 1]*redJ[3, 2]-redJ[3, 1]*redJ[2, 2])*invdet;
-  invredJ32 = -(redJ[1, 1]*redJ[3, 2]-redJ[3, 1]*redJ[1, 2])*invdet;
-  invredJ33 =  (redJ[1, 1]*redJ[2, 2]-redJ[2, 1]*redJ[1, 2])*invdet;
-  @assert size(gradN, 1)==size(gradNparams, 1)
-  @inbounds for r=1:size(gradN, 1)
-    gradN[r, 1]= gradNparams[r, 1]*invredJ11 +gradNparams[r, 2]*invredJ21 +gradNparams[r, 3]*invredJ31;
-    gradN[r, 2]= gradNparams[r, 1]*invredJ12 +gradNparams[r, 2]*invredJ22 +gradNparams[r, 3]*invredJ32;
-    gradN[r, 3]= gradNparams[r, 1]*invredJ13 +gradNparams[r, 2]*invredJ23 +gradNparams[r, 3]*invredJ33;
-  end
+    invdet = 1.0 / ( +redJ[1, 1]*(redJ[2, 2]*redJ[3, 3]-redJ[3, 2]*redJ[2, 3])
+    -redJ[1, 2]*(redJ[2, 1]*redJ[3, 3]-redJ[2, 3]*redJ[3, 1])
+    +redJ[1, 3]*(redJ[2, 1]*redJ[3, 2]-redJ[2, 2]*redJ[3, 1]) );
+    # This is the unrolled version that avoids allocation of a 3 x 3 matrix
+    invredJ11 =  (redJ[2, 2]*redJ[3, 3]-redJ[3, 2]*redJ[2, 3])*invdet;
+    invredJ12 = -(redJ[1, 2]*redJ[3, 3]-redJ[1, 3]*redJ[3, 2])*invdet;
+    invredJ13 =  (redJ[1, 2]*redJ[2, 3]-redJ[1, 3]*redJ[2, 2])*invdet;
+    invredJ21 = -(redJ[2, 1]*redJ[3, 3]-redJ[2, 3]*redJ[3, 1])*invdet;
+    invredJ22 =  (redJ[1, 1]*redJ[3, 3]-redJ[1, 3]*redJ[3, 1])*invdet;
+    invredJ23 = -(redJ[1, 1]*redJ[2, 3]-redJ[2, 1]*redJ[1, 3])*invdet;
+    invredJ31 =  (redJ[2, 1]*redJ[3, 2]-redJ[3, 1]*redJ[2, 2])*invdet;
+    invredJ32 = -(redJ[1, 1]*redJ[3, 2]-redJ[3, 1]*redJ[1, 2])*invdet;
+    invredJ33 =  (redJ[1, 1]*redJ[2, 2]-redJ[2, 1]*redJ[1, 2])*invdet;
+    @assert size(gradN, 1)==size(gradNparams, 1)
+    @inbounds for r=1:size(gradN, 1)
+        gradN[r, 1]= gradNparams[r, 1]*invredJ11 +gradNparams[r, 2]*invredJ21 +gradNparams[r, 3]*invredJ31;
+        gradN[r, 2]= gradNparams[r, 1]*invredJ12 +gradNparams[r, 2]*invredJ22 +gradNparams[r, 3]*invredJ32;
+        gradN[r, 3]= gradNparams[r, 1]*invredJ13 +gradNparams[r, 2]*invredJ23 +gradNparams[r, 3]*invredJ33;
+    end
 end
 
 
@@ -345,16 +346,16 @@ end
 Type for sets of curve-like of finite elements with two nodes.
 """
 mutable struct FESetL2 <: FESet1Manifold
-  @add_FESet_fields
+    @add_FESet_fields
 
-  function    FESetL2(conn::FIntMat=[])
-    nodesperelem::FInt  = 2
-    @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-    # Need to make a COPY of the input arrays
-    self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-    setlabel!(self, 0)
-    return self
-  end
+    function    FESetL2(conn::FIntMat=[])
+        nodesperelem::FInt  = 2
+        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
+        # Need to make a COPY of the input arrays
+        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
+        setlabel!(self, 0)
+        return self
+    end
 end
 
 privbfun(self::FESetL2,  param_coords::FFltVec) = reshape([(1. - param_coords[1]); (1. + param_coords[1])] / 2.0, 2, 1) # make sure this is a matrix
@@ -413,16 +414,16 @@ end
 Type for sets of surface-like of triangular finite elements with three nodes.
 """
 mutable struct FESetT3 <: FESet2Manifold
-  @add_FESet_fields
+    @add_FESet_fields
 
-  function  FESetT3( conn::FIntMat=[])
-    nodesperelem::FInt  = 3
-    @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-    # Need to make a COPY of the input arrays
-    self = new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-    setlabel!(self, 0)
-    return self
-  end
+    function  FESetT3( conn::FIntMat=[])
+        nodesperelem::FInt  = 3
+        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
+        # Need to make a COPY of the input arrays
+        self = new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
+        setlabel!(self, 0)
+        return self
+    end
 end
 
 function privbfun(self::FESetT3,  param_coords::FFltVec)
@@ -451,16 +452,16 @@ end
 Type for sets of surface-like of quadrilateral finite elements with four nodes.
 """
 mutable struct FESetQ4 <: FESet2Manifold
-  @add_FESet_fields
+    @add_FESet_fields
 
-  function    FESetQ4(conn::FIntMat=[])
-    nodesperelem::FInt  = 4
-    @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-    # Need to make a COPY of the input arrays
-    self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-    setlabel!(self, 0)
-    return self
-  end
+    function    FESetQ4(conn::FIntMat=[])
+        nodesperelem::FInt  = 4
+        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
+        # Need to make a COPY of the input arrays
+        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
+        setlabel!(self, 0)
+        return self
+    end
 end
 
 function privbfun(self::FESetQ4,  param_coords::FFltVec)
@@ -496,16 +497,16 @@ end
 Type for sets of surface-like of quadrilateral finite elements with nine nodes.
 """
 mutable struct FESetQ9 <: FESet2Manifold
-  @add_FESet_fields
+    @add_FESet_fields
 
-  function    FESetQ9(conn::FIntMat=[])
-    nodesperelem::FInt  = 9
-    @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-    # Need to make a COPY of the input arrays
-    self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-    setlabel!(self, 0)
-    return self
-  end
+    function    FESetQ9(conn::FIntMat=[])
+        nodesperelem::FInt  = 9
+        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
+        # Need to make a COPY of the input arrays
+        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
+        setlabel!(self, 0)
+        return self
+    end
 end
 
 function privbfun(self::FESetQ9,  param_coords::FFltVec)
@@ -548,16 +549,16 @@ end
 Type for sets of surface-like of quadrilateral finite elements with eight nodes.
 """
 mutable struct FESetQ8 <: FESet2Manifold
-  @add_FESet_fields
+    @add_FESet_fields
 
-  function    FESetQ8(conn::FIntMat=[])
-    nodesperelem::FInt  = 8
-    @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-    # Need to make a COPY of the input arrays
-    self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-    setlabel!(self, 0)
-    return self
-  end
+    function    FESetQ8(conn::FIntMat=[])
+        nodesperelem::FInt  = 8
+        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
+        # Need to make a COPY of the input arrays
+        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
+        setlabel!(self, 0)
+        return self
+    end
 end
 
 function privbfun(self::FESetQ8,  param_coords::FFltVec)
@@ -616,16 +617,16 @@ end
 Type for sets of surface-like of triangular finite elements with six nodes.
 """
 mutable struct FESetT6 <: FESet2Manifold
-  @add_FESet_fields
+    @add_FESet_fields
 
-  function    FESetT6(conn::FIntMat=[])
-    nodesperelem::FInt  = 6
-    @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-    # Need to make a COPY of the input arrays
-    self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-    setlabel!(self, 0)
-    return self
-  end
+    function    FESetT6(conn::FIntMat=[])
+        nodesperelem::FInt  = 6
+        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
+        # Need to make a COPY of the input arrays
+        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
+        setlabel!(self, 0)
+        return self
+    end
 end
 
 function privbfun(self::FESetT6,  param_coords::FFltVec)
@@ -672,16 +673,16 @@ end
 Type for sets of volume-like of hexahedral finite elements with eight nodes.
 """
 mutable struct FESetH8 <: FESet3Manifold
-  @add_FESet_fields
+    @add_FESet_fields
 
-  function    FESetH8(conn::FIntMat=[])
-    nodesperelem::FInt  = 8
-    @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-    # Need to make a COPY of the input arrays
-    self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-    setlabel!(self, 0)
-    return self
-  end
+    function    FESetH8(conn::FIntMat=[])
+        nodesperelem::FInt  = 8
+        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
+        # Need to make a COPY of the input arrays
+        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
+        setlabel!(self, 0)
+        return self
+    end
 end
 
 function privbfun(self::FESetH8,  param_coords::FFltVec)
@@ -737,15 +738,15 @@ end
 Type for sets of volume-like of hexahedral finite elements with 20 nodes.
 """
 mutable struct FESetH20 <: FESet3Manifold
-  @add_FESet_fields
+    @add_FESet_fields
 
-  function    FESetH20(conn::FIntMat=[])
-    nodesperelem::FInt  = 20
-    @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-    self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-    setlabel!(self, 0)
-    return self
-  end
+    function    FESetH20(conn::FIntMat=[])
+        nodesperelem::FInt  = 20
+        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
+        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
+        setlabel!(self, 0)
+        return self
+    end
 end
 
 function privbfun(self::FESetH20,  param_coords::FFltVec)
@@ -879,15 +880,15 @@ end
 Type for sets of volume-like of hexahedral finite elements with 27 nodes.
 """
 mutable struct FESetH27 <: FESet3Manifold
-  @add_FESet_fields
+    @add_FESet_fields
 
-  function    FESetH27(conn::FIntMat=[])
-    nodesperelem::FInt  = 27
-    @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-    self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-    setlabel!(self, 0)
-    return self
-  end
+    function    FESetH27(conn::FIntMat=[])
+        nodesperelem::FInt  = 27
+        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
+        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
+        setlabel!(self, 0)
+        return self
+    end
 end
 
 function privbfun(self::FESetH27,  param_coords::FFltVec)
@@ -998,16 +999,16 @@ end
 Type for sets of volume-like of tetrahedral finite elements with four nodes.
 """
 mutable struct FESetT4 <: FESet3Manifold
-  @add_FESet_fields
+    @add_FESet_fields
 
-  function    FESetT4(conn::FIntMat=[])
-    nodesperelem::FInt  = 4
-    @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-    # Need to make a COPY of the input arrays
-    self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-    setlabel!(self, 0)
-    return self
-  end
+    function    FESetT4(conn::FIntMat=[])
+        nodesperelem::FInt  = 4
+        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
+        # Need to make a COPY of the input arrays
+        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
+        setlabel!(self, 0)
+        return self
+    end
 end
 
 function privbfun(self::FESetT4,  param_coords::FFltVec)
@@ -1042,16 +1043,16 @@ end
 Type for sets of volume-like of tetrahedral finite elements with 10 nodes.
 """
 mutable struct FESetT10 <: FESet3Manifold
-  @add_FESet_fields
+    @add_FESet_fields
 
-  function FESetT10(conn::FIntMat=[])
-    nodesperelem::FInt  = 10
-    @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-    # Need to make a COPY of the input arrays
-    self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-    setlabel!(self, 0)
-    return self
-  end
+    function FESetT10(conn::FIntMat=[])
+        nodesperelem::FInt  = 10
+        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
+        # Need to make a COPY of the input arrays
+        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
+        setlabel!(self, 0)
+        return self
+    end
 end
 
 function privbfun(self::FESetT10,  param_coords::FFltVec)
