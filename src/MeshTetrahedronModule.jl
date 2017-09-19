@@ -239,14 +239,10 @@ function T10compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
         zs = vcat(zs, oz[2:end])
     end
     fens, fes = T4blockx(xs, ys, zs, orientation);
-    display(fens)
-    println("aafter block ")
     List = selectelem(fens, fes, box = [-Inf Inf -Inf Inf 0.0 ts[1]],
             inflate = tolerance)
     fes.label[List] = 1
-    println("$(length(ts))")
     for layer = 2:length(ts)
-        println("layer = $( layer ), box = $( [-Inf Inf -Inf Inf sum(ts[1:layer-1]) sum(ts[1:layer])])")
         List = selectelem(fens, fes,
             box = [-Inf Inf -Inf Inf sum(ts[1:layer-1]) sum(ts[1:layer])],
             inflate = tolerance)
