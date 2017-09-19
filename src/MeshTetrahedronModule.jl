@@ -82,9 +82,9 @@ function T4blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec, orientation::Symbol)
     elseif (orientation==:cb)
         t4ia = [7  3  6  8; 5  8  6  1; 2  3  1  6; 4  1  3  8; 6  3  1  8];
         t4ib = [8  4  7  5; 6  7  2  5; 3  4  2  7; 1  2  4  5; 7  4  2  5];
-      else
+    else
         error("Unknown orientation")
-      end
+    end
     f=1;
     for k=1:(nH+1)
         for j=1:(nW+1)
@@ -226,7 +226,7 @@ ts= Array of layer thicknesses,
 nts= array of numbers of elements per layer
 
 The finite elements of each layer are labeled with the layer number, starting
-from 1.
+from 1 at the bottom.
 """
 function T10compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
     orientation::Symbol = :a)
@@ -239,10 +239,14 @@ function T10compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
         zs = vcat(zs, oz[2:end])
     end
     fens, fes = T10blockx(xs, ys, zs, orientation);
+    display(fens)
+    println("aafter block ")
     List = selectelem(fens, fes, box = [-Inf Inf -Inf Inf 0.0 ts[1]],
             inflate = tolerance)
     fes.label[List] = 1
+    println("$(length(ts))")
     for layer = 2:length(ts)
+        println("layer = $( layer ), box = $( [-Inf Inf -Inf Inf sum(ts[1:layer-1]) sum(ts[1:layer])])")
         List = selectelem(fens, fes,
             box = [-Inf Inf -Inf Inf sum(ts[1:layer-1]) sum(ts[1:layer])],
             inflate = tolerance)
