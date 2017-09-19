@@ -115,6 +115,7 @@ Set the label of the entire finite elements set.
 function setlabel!(self::T, val::FInt) where {T<:FESet}
   self.label = zeros(FInt, size(self.conn, 1));
   fill!(self.label, val)
+  return self
 end
 
 """
