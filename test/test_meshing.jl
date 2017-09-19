@@ -1100,3 +1100,53 @@ end
 end
 using mMeyer_Piening_3
 mMeyer_Piening_3.test()
+
+module mmtetblocksmm
+using FinEtools
+using Base.Test
+function test()
+    A = 5.0*phun("mm") # length  of loaded rectangle
+    B = 20.0*phun("mm") # length  of loaded rectangle
+    C = 100.0*phun("mm") # span of the plate
+
+    # Select how find the mesh should be
+    Refinement = 5
+    nA, nB, nC = Refinement * 1, Refinement * 2, Refinement * 1;
+    xs = reshape(collect(linspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linspace(0.0, A, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linspace(0.0, A, nC + 1)), nC + 1, 1)
+    fens,fes = T10blockx(xs, ys, zs, :b)
+    # println("$(count(fens))")
+    # println("$(count(fes))")
+    @test count(fens) == 2541
+    @test count(fes) == 1500
+
+    fens,fes = T10blockx(xs, ys, zs, :a)
+    # println("$(count(fens))")
+    # println("$(count(fes))")
+    @test count(fens) == 2541
+    @test count(fes) == 1500
+
+
+    fens,fes = T10blockx(vec(xs), vec(ys), vec(zs), :a)
+    # println("$(count(fens))")
+    # println("$(count(fes))")
+    @test count(fens) == 2541
+    @test count(fes) == 1500
+
+
+    fens,fes = T4blockx(xs, ys, zs, :ca)
+    # println("$(count(fens))")
+    # println("$(count(fes))")
+    @test count(fens) == 396
+    @test count(fes) == 1250
+
+    fens,fes = T4blockx(vec(xs), vec(ys), vec(zs), :ca)
+    @test count(fens) == 396
+    @test count(fes) == 1250
+
+    return true
+end
+end
+using mmtetblocksmm
+mmtetblocksmm.test()
