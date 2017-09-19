@@ -175,7 +175,9 @@ function  T4toT10(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetT4)
         nconn[nc, :] = vcat(vec(conn),   vec(econn))
         nc= nc+ 1;
     end
+    labels = deepcopy(fes.label)
     fes = FESetModule.FESetT10(nconn);
+    fes = setlabel!(fes, labels)
     return fens, fes;
 end
 
