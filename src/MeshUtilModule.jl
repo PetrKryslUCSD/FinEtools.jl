@@ -76,7 +76,7 @@ function gradedspace(start::T, finish::T, N::Int, strength=2)  where {T<:Number}
     #     x = cumsum(x);
     # end
     x = x/maximum(x);
-    out = start .* (1-x) .+ finish .* x;
+    out = start .* (1.0 .- x) .+ finish .* x;
 end
 
 
