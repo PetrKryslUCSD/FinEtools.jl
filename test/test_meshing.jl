@@ -203,6 +203,7 @@ function test()
   # @async run(`"paraview.exe" $File`)
   try rm(File) catch end
 
+  try rm(AE.filename) catch end
 end
 end
 using mAbaqusmmiimportmmm
@@ -574,7 +575,7 @@ function test()
   MeshExportModule.vtkexportmesh(File, fens, fes)
   # @async run(`"paraview.exe" $File`)
   try rm(File) catch end
-
+  try rm(AE.filename) catch end
 end
 end
 using mAbaqusmmiimport_1m
