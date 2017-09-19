@@ -999,106 +999,104 @@ end
 using mMeyer_Piening_1
 mMeyer_Piening_1.test()
 
-# module mMeyer_Piening_2
-# using FinEtools
-# using FinEtools.MeshUtilModule
-# using Base.Test
-# function test()
-#
-#     # Reference results from:
-#     # [1] Application of the Elasticity Solution
-#     # to Linear Sandwich Beam, Plate
-#     # and Shell Analyses
-#     # H.-R. MEYER -PIENING
-#     # Journal of SANDWICH STRUCTURES AND MATERIALS , Vol. 6—July 2004
-#
-#     Lx = 5.0*phun("mm") # length  of loaded rectangle
-#     Ly = 20.0*phun("mm") # length  of loaded rectangle
-#     Sx = 100.0*phun("mm") # span of the plate
-#     Sy = 200.0*phun("mm") # span of the plate
-#
-#     # Here we define the layout and the thicknesses of the layers.
-#     angles = vec([0.0 0.0 0.0]);
-#     ts = vec([0.5  11.4  0.1])*phun("mm"); # layer thicknesses
-#     TH = sum(ts); # total thickness of the plate
-#
-#     tolerance = 0.0001*TH
-#
-#     # Select how find the mesh should be
-#     Refinement = 5
-#     nL = Refinement * 1;
-#     nSx = nL + Refinement * 4;
-#     nSy = 2 * nSx;
-#
-#     # Each layer is modeled with a single element.
-#     nts= Refinement * [1, 2, 1];# number of elements per layer
-#     strength = 1.5
-#     xs = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Lx/2, 0.0, nL+1, strength))),
-#         collect(MeshUtilModule.gradedspace(Lx/2, Sx/2, nSx-nL+1, strength))))
-#     ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1, strength))),
-#         collect(MeshUtilModule.gradedspace(Ly/2, Sy/2, nSy-nL+1, strength))))
-#
-#     fens,fes = T10compositeplatex(xs, ys, ts, nts)
-#     display(fens)
-#     display(fes)
-#     # @test count(fens) == 27846
-#     # @test count(fes) == 25000
-#     rls = selectelem(fens, fes, label = 3)
-#     # @test length(rls) == 6250
-#     println("$(length(rls))")
-# end
-# end
-# using mMeyer_Piening_2
-# mMeyer_Piening_2.test()
-#
-# module mMeyer_Piening_3
-# using FinEtools
-# using FinEtools.MeshUtilModule
-# using Base.Test
-# function test()
-#
-#     # Reference results from:
-#     # [1] Application of the Elasticity Solution
-#     # to Linear Sandwich Beam, Plate
-#     # and Shell Analyses
-#     # H.-R. MEYER -PIENING
-#     # Journal of SANDWICH STRUCTURES AND MATERIALS , Vol. 6—July 2004
-#
-#     Lx = 5.0*phun("mm") # length  of loaded rectangle
-#     Ly = 20.0*phun("mm") # length  of loaded rectangle
-#     Sx = 100.0*phun("mm") # span of the plate
-#     Sy = 200.0*phun("mm") # span of the plate
-#
-#     # Here we define the layout and the thicknesses of the layers.
-#     angles = vec([0.0 0.0 0.0]);
-#     ts = vec([0.5  11.4  0.1])*phun("mm"); # layer thicknesses
-#     TH = sum(ts); # total thickness of the plate
-#
-#     tolerance = 0.0001*TH
-#
-#     # Select how find the mesh should be
-#     Refinement = 5
-#     nL = Refinement * 1;
-#     nSx = nL + Refinement * 4;
-#     nSy = 2 * nSx;
-#
-#     # Each layer is modeled with a single element.
-#     nts= Refinement * [1, 2, 1];# number of elements per layer
-#     strength = 1.5
-#     xs = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Lx/2, 0.0, nL+1, strength))),
-#         collect(MeshUtilModule.gradedspace(Lx/2, Sx/2, nSx-nL+1, strength))))
-#     ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1, strength))),
-#         collect(MeshUtilModule.gradedspace(Ly/2, Sy/2, nSy-nL+1, strength))))
-#
-#     fens,fes = T10compositeplatex(xs, ys, ts, nts, :b)
-#     display(fens)
-#     display(fes)
-#     # @test count(fens) == 27846
-#     # @test count(fes) == 25000
-#     rls = selectelem(fens, fes, label = 2)
-#     # @test length(rls) == 6250
-#     println("$(length(rls))")
-# end
-# end
-# using mMeyer_Piening_3
-# mMeyer_Piening_3.test()
+
+module mMeyer_Piening_2
+using FinEtools
+using FinEtools.MeshUtilModule
+using Base.Test
+function test()
+
+    # Reference results from:
+    # [1] Application of the Elasticity Solution
+    # to Linear Sandwich Beam, Plate
+    # and Shell Analyses
+    # H.-R. MEYER -PIENING
+    # Journal of SANDWICH STRUCTURES AND MATERIALS , Vol. 6—July 2004
+
+    Lx = 5.0*phun("mm") # length  of loaded rectangle
+    Ly = 20.0*phun("mm") # length  of loaded rectangle
+    Sx = 100.0*phun("mm") # span of the plate
+    Sy = 200.0*phun("mm") # span of the plate
+
+    # Here we define the layout and the thicknesses of the layers.
+    angles = vec([0.0 0.0 0.0]);
+    ts = vec([0.5  11.4  0.1])*phun("mm"); # layer thicknesses
+    TH = sum(ts); # total thickness of the plate
+
+    tolerance = 0.0001*TH
+
+    # Select how find the mesh should be
+    Refinement = 5
+    nL = Refinement * 1;
+    nSx = nL + Refinement * 4;
+    nSy = 2 * nSx;
+
+    # Each layer is modeled with a single element.
+    nts= Refinement * [1, 2, 1];# number of elements per layer
+    strength = 1.5
+    xs = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Lx/2, 0.0, nL+1, strength))),
+        collect(MeshUtilModule.gradedspace(Lx/2, Sx/2, nSx-nL+1, strength))))
+    ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1, strength))),
+        collect(MeshUtilModule.gradedspace(Ly/2, Sy/2, nSy-nL+1, strength))))
+
+    fens,fes = T10compositeplatex(xs, ys, ts, nts)
+
+    @test count(fens) == 211191
+    @test count(fes) == 150000
+    rls = selectelem(fens, fes, label = 3)
+    @test length(rls) == 37500
+end
+end
+using mMeyer_Piening_2
+mMeyer_Piening_2.test()
+
+
+module mMeyer_Piening_3
+using FinEtools
+using FinEtools.MeshUtilModule
+using Base.Test
+function test()
+
+    # Reference results from:
+    # [1] Application of the Elasticity Solution
+    # to Linear Sandwich Beam, Plate
+    # and Shell Analyses
+    # H.-R. MEYER -PIENING
+    # Journal of SANDWICH STRUCTURES AND MATERIALS , Vol. 6—July 2004
+
+    Lx = 5.0*phun("mm") # length  of loaded rectangle
+    Ly = 20.0*phun("mm") # length  of loaded rectangle
+    Sx = 100.0*phun("mm") # span of the plate
+    Sy = 200.0*phun("mm") # span of the plate
+
+    # Here we define the layout and the thicknesses of the layers.
+    angles = vec([0.0 0.0 0.0]);
+    ts = vec([0.5  11.4  0.1])*phun("mm"); # layer thicknesses
+    TH = sum(ts); # total thickness of the plate
+
+    tolerance = 0.0001*TH
+
+    # Select how find the mesh should be
+    Refinement = 5
+    nL = Refinement * 1;
+    nSx = nL + Refinement * 4;
+    nSy = 2 * nSx;
+
+    # Each layer is modeled with a single element.
+    nts= Refinement * [1, 2, 1];# number of elements per layer
+    strength = 1.5
+    xs = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Lx/2, 0.0, nL+1, strength))),
+        collect(MeshUtilModule.gradedspace(Lx/2, Sx/2, nSx-nL+1, strength))))
+    ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1, strength))),
+        collect(MeshUtilModule.gradedspace(Ly/2, Sy/2, nSy-nL+1, strength))))
+
+    fens,fes = T10compositeplatex(xs, ys, ts, nts, :b)
+
+    @test count(fens) == 211191
+    @test count(fes) == 150000
+    rls = selectelem(fens, fes, label = 3)
+    @test length(rls) == 37500
+end
+end
+using mMeyer_Piening_3
+mMeyer_Piening_3.test()
