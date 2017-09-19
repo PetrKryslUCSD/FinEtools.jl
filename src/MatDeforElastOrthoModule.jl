@@ -383,7 +383,7 @@ function update2dstrn!(self::MatDeforElastOrtho,  stress::FFltVec, output::FFltV
     (length(output) >= 3) || (output = zeros(3)) # make sure we can store it
     t = zeros(FFlt, 3,3)
     sz = dot(self.D[3, 1:2], strain[1:2]-thstrain[1:2])-self.D[3,3]*thstrain[4];
-    t = stress4vto3x3t!(t, vcat(stress[[1,2,3]], sz));
+    t = stress4vto3x3t!(t, vcat(stress[1:3], [sz]));
     ep = eig(t);
     (length(output) >= 3) || (output = zeros(3)) # make sure we can store it
     copy!(output,  sort(ep[1], rev=true));
@@ -478,7 +478,7 @@ function update2daxi!(self::MatDeforElastOrtho,  stress::FFltVec, output::FFltVe
     output[1] = -sum(stress[[1,2,3]])/3.
   elseif quantity == :princCauchy || quantity == :princcauchy
     t = zeros(FFlt,3,3)
-    t = stress4vto3x3t!(stress,t);
+    t = stress4vto3x3t!(t, stress[[1,2,4,3]]);
     ep = eig(t);
     (length(output) >= 3) || (output = zeros(3)) # make sure we can store it
     copy!(output,  sort(ep[1], rev=true));
