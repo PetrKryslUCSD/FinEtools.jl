@@ -13,11 +13,16 @@ export AbaqusExporter, close, HEADING, COMMENT, PART, END_PART,
     SURFACE_SECTION, STEP_PERTURBATION_STATIC, STEP_FREQUENCY,
     STEP_PERTURBATION_BUCKLE, BOUNDARY, DLOAD, CLOAD, TEMPERATURE,
     END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
+export savecvs
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
 using FinEtools.FENodeSetModule
 import Base.close
+
+################################################################################
+# VTK export
+################################################################################
 
 const P1=1
 const L2=3
@@ -194,10 +199,15 @@ function vtkexportmesh(theFile::String, Connectivity, Points, Cell_type;
     return true
 end
 
+
+################################################################################
+# Abaqus export
+################################################################################
+
 """
     AbaqusExporter
 
-Export mesh to Abaqus.  
+Export mesh to Abaqus.
 """
 mutable struct AbaqusExporter
   filename::AbstractString
@@ -724,6 +734,42 @@ Close  the strain opened by the exporter.
 """
 function close(self::AbaqusExporter)
   close(self.ios)
+end
+
+
+################################################################################
+# CSV export
+################################################################################
+
+"""
+    savecvs(name::String; kwargs...)
+
+Save arrays as a CSV file.
+"""
+function savecvs(name::String; kwargs...)
+    colnames = Symbol[k for (k,v) in kwargs]
+    columns = Any[v for (k,v) in kwargs]
+    ncol = length(colnames)
+    nrow = length(columns[1])
+    if !ismatch(r"^.*\.csv$", name)
+        name = name * ".csv"
+    end
+    open(name, "w") do fid
+        for (j, c) in enumerate(colnames)
+            print(fid, "\"", c, "\"")
+            j < ncol && print(fid, ",")
+        end
+        print(fid, "\n")
+        for r = 1:nrow
+            for j = 1:ncol
+                print(fid, columns[j][r])
+                j < ncol && print(fid, ",")
+            end
+            print(fid, "\n")
+        end
+        print(fid, "\n")
+    end
+    return true
 end
 
 end

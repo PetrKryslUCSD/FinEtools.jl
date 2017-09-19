@@ -1200,3 +1200,15 @@ end
 end
 using mboundary15
 mboundary15.test()
+
+module mmmCSVm
+using FinEtools
+using FinEtools.MeshExportModule
+using Base.Test
+function test()
+    @test savecvs("a", a = rand(3), b = rand(3))
+    rm( "a.csv")
+end
+end
+using mmmCSVm
+mmmCSVm.test()
