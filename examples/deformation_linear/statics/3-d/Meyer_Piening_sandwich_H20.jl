@@ -1,8 +1,6 @@
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshUtilModule
-using DataFrames
-using CSV
 
 println("""
 Meyer-Piening sandwich plate, serendipity H20
@@ -37,7 +35,7 @@ Meyer-Piening sandwich plate, serendipity H20
 # Proceedings of the Fifth International Conference On Sandwich Constructions,
 # September 5–7, vol. I, Zurich, Switzerland, 2000, pp. 37–48.
 
-
+filebase = "Meyer-Piening-sandwich-H20"
 
 t0 = time()
 # Orthotropic material for the SKIN
@@ -83,10 +81,12 @@ nSy = 2 * nSx;
 # Each layer is modeled with a single element.
 nts= Refinement * [1, 2, 1];# number of elements per layer
 strength = 1.5
-xs = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Lx/2, 0.0, nL+1, strength))),
-    collect(MeshUtilModule.gradedspace(Lx/2, Sx/2, nSx-nL+1, strength))))
-ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1, strength))),
-    collect(MeshUtilModule.gradedspace(Ly/2, Sy/2, nSy-nL+1, strength))))
+sp = (a, b, n) -> MeshUtilModule.gradedspace(a, b, n, strength)
+sp = (a, b, n) -> linspace(a, b, n)
+xs = unique(vcat(reverse(collect(sp(Lx/2, 0.0, nL+1))),
+    collect(sp(Lx/2, Sx/2, nSx-nL+1))))
+ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1))),
+    collect(sp(Ly/2, Sy/2, nSy-nL+1))))
 
 fens,fes = H8compositeplatex(xs, ys, ts, nts)
 fens,fes = H8toH20(fens,fes)
@@ -109,8 +109,8 @@ function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label:
     rotmat3!(csmatout, angles[fe_label]/180.0*pi* [0.0; 0.0; 1.0]);
 end
 
-# The vvolume integrals are evaluated using this rule
-gr = GaussRule(3, 2)
+# The volume integrals are evaluated using this rule
+gr = GaussRule(3, 3)
 
 # We will create two regions, one for the skin,
 # and one for the core.
@@ -149,7 +149,7 @@ bfes = meshboundary(fes)
 # Z = thickness
 tl = selectelem(fens, bfes, box = [0.0 Lx/2 0 Ly/2 TH TH], inflate=tolerance)
 Trac = FDataDict("traction_vector"=>vec([0.0; 0.0; -q0]),
-    "femm"=>FEMMBase(GeoD(subset(bfes, tl), GaussRule(2, 2))))
+    "femm"=>FEMMBase(GeoD(subset(bfes, tl), GaussRule(3, 3))))
 
 modeldata = FDataDict("fens"=>fens,
  "regions"=>[botskinregion, coreregion, topskinregion],
@@ -158,7 +158,7 @@ modeldata = FDataDict("fens"=>fens,
  )
 modeldata = AlgoDeforLinearModule.linearstatics(modeldata)
 
-modeldata["postprocessing"] = FDataDict("file"=>"Meyer_Piening_sandwich")
+modeldata["postprocessing"] = FDataDict("file"=>filebase * "-u")
 modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
 
 u = modeldata["u"]
@@ -173,11 +173,17 @@ nintertop = selectnode(fens, box=[-Inf Inf 0.0 0.0 sum(ts[1:2]) sum(ts[1:2])], i
 ninterbot = selectnode(fens, box=[-Inf Inf 0.0 0.0 sum(ts[1:1]) sum(ts[1:1])], inflate=tolerance)
 
 zclo = sortperm(vec(geom.values[ncenterline, 3]))
-centerz = geom.values[ncenterline[zclo], 3]
+ncenterline = ncenterline[zclo]
+centerz = geom.values[ncenterline, 3]
+zclo = nothing
+
 xclotop = sortperm(vec(geom.values[nintertop, 1]))
-topx = geom.values[nintertop[xclotop], 1]
+nintertop = nintertop[xclotop]
+topx = geom.values[nintertop, 1]
 xclobot = sortperm(vec(geom.values[ninterbot, 1]))
-botx = geom.values[ninterbot[xclobot], 1]
+ninterbot = ninterbot[xclobot]
+botx = geom.values[ninterbot, 1]
+xclotop = xclobot = nothing
 
 conninbotskin = intersect(connectednodes(botskinregion["femm"].geod.fes), ncenterline)
 connincore = intersect(connectednodes(coreregion["femm"].geod.fes), ncenterline)
@@ -197,16 +203,16 @@ extrap = :default
 nodevalmeth = :invdistance
 
 # Normal stress in the X direction
-modeldata["postprocessing"] = FDataDict("file"=>"Meyer_Piening_sandwich-sx",
+modeldata["postprocessing"] = FDataDict("file"=>filebase * "-sx",
     "quantity"=>:Cauchy, "component"=>1, "outputcsys"=>CSys(3),
      "nodevalmethod"=>nodevalmeth, "reportat"=>extrap)
 modeldata = AlgoDeforLinearModule.exportstress(modeldata)
 s = modeldata["postprocessing"]["exported"][1]["field"]
-sxbot = s.values[ncenterline[zclo], 1]
+sxbot = s.values[ncenterline, 1]
 s = modeldata["postprocessing"]["exported"][2]["field"]
-sxcore = s.values[ncenterline[zclo], 1]
+sxcore = s.values[ncenterline, 1]
 s = modeldata["postprocessing"]["exported"][3]["field"]
-sxtop = s.values[ncenterline[zclo], 1]
+sxtop = s.values[ncenterline, 1]
 
 # The graph data needs to be collected by going through each layer separately.
 # Some quantities may be discontinuous between layers.
@@ -218,36 +224,32 @@ sxs = vcat( [sxbot[j] for (j,z) in enumerate(centerz) if inbotskin[j]],
             [sxcore[j] for (j,z) in enumerate(centerz) if incore[j]],
             [sxtop[j] for (j,z) in enumerate(centerz) if intopskin[j]]
             )
-df = DataFrame(zs=vec(zs)/phun("mm"), sx=vec(sxs)/phun("MPa"))
 
-File = "Meyer_Piening_sandwich-sx-$(extrap).CSV"
-CSV.write(File, df)
+File = filebase * "-sx-$(extrap).CSV"
+savecsv(File, zs=vec(zs)/phun("mm"), sx=vec(sxs)/phun("MPa"))
 
 # @async run(`"paraview.exe" $File`)
 
 # Inter laminar stress between the skin and the core
-modeldata["postprocessing"] = FDataDict("file"=>"Meyer_Piening_sandwich-sxz",
+modeldata["postprocessing"] = FDataDict("file"=>filebase * "-sxz",
     "quantity"=>:Cauchy, "component"=>5, "outputcsys"=>CSys(3),
      "nodevalmethod"=>nodevalmeth, "reportat"=>extrap)
 modeldata = AlgoDeforLinearModule.exportstress(modeldata)
 s = modeldata["postprocessing"]["exported"][1]["field"]
-sxzskinbot = s.values[ninterbot[xclobot], 1]
+sxzskinbot = s.values[ninterbot, 1]
 s = modeldata["postprocessing"]["exported"][2]["field"]
-sxzcoretop = s.values[nintertop[xclotop], 1]
-sxzcorebot = s.values[ninterbot[xclobot], 1]
+sxzcoretop = s.values[nintertop, 1]
+sxzcorebot = s.values[ninterbot, 1]
 s = modeldata["postprocessing"]["exported"][3]["field"]
-sxzskintop = s.values[nintertop[xclotop], 1]
+sxzskintop = s.values[nintertop, 1]
 
-df = DataFrame(xstop=vec(topx)/phun("mm"),
-sxzskintop=vec(sxzskintop)/phun("MPa"),
-sxzcoretop=vec(sxzcoretop)/phun("MPa"),
-xsbot=vec(botx)/phun("mm"),
-sxzskinbot=vec(sxzskinbot)/phun("MPa"),
-sxzcorebot=vec(sxzcorebot)/phun("MPa"),
-)
-
-File = "Meyer_Piening_sandwich-sxz-$(extrap).CSV"
-CSV.write(File, df)
+File = filebase * "-sxz-$(extrap).CSV"
+savecsv(File, xstop=vec(topx)/phun("mm"),
+    sxzskintop=vec(sxzskintop)/phun("MPa"),
+    sxzcoretop=vec(sxzcoretop)/phun("MPa"),
+    xsbot=vec(botx)/phun("mm"),
+    sxzskinbot=vec(sxzskinbot)/phun("MPa"),
+    sxzcorebot=vec(sxzcorebot)/phun("MPa"))
 
 @async run(`"paraview.exe" $File`)
 
