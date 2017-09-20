@@ -82,7 +82,7 @@ export AbaqusExporter, close, HEADING, COMMENT, PART, END_PART,
     SURFACE_SECTION, STEP_PERTURBATION_STATIC, STEP_FREQUENCY,
     STEP_PERTURBATION_BUCKLE, BOUNDARY, DLOAD, CLOAD, TEMPERATURE,
     END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
-export savecvs
+export savecsv
 
 include("MeshImportModule.jl")
 using FinEtools.MeshImportModule

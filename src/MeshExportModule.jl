@@ -13,7 +13,7 @@ export AbaqusExporter, close, HEADING, COMMENT, PART, END_PART,
     SURFACE_SECTION, STEP_PERTURBATION_STATIC, STEP_FREQUENCY,
     STEP_PERTURBATION_BUCKLE, BOUNDARY, DLOAD, CLOAD, TEMPERATURE,
     END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
-export savecvs
+export savecsv
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -742,11 +742,11 @@ end
 ################################################################################
 
 """
-    savecvs(name::String; kwargs...)
+    savecsv(name::String; kwargs...)
 
 Save arrays as a CSV file.
 """
-function savecvs(name::String; kwargs...)
+function savecsv(name::String; kwargs...)
     colnames = Symbol[k for (k,v) in kwargs]
     columns = Any[v for (k,v) in kwargs]
     ncol = length(colnames)

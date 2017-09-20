@@ -1206,7 +1206,7 @@ using FinEtools
 using FinEtools.MeshExportModule
 using Base.Test
 function test()
-    @test savecvs("a", a = rand(3), b = rand(3))
+    @test savecsv("a", a = rand(3), b = rand(3))
     rm( "a.csv")
 end
 end
