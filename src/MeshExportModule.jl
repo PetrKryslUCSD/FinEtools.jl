@@ -751,7 +751,8 @@ function savecsv(name::String; kwargs...)
     columns = Any[v for (k,v) in kwargs]
     ncol = length(colnames)
     nrow = length(columns[1])
-    if !ismatch(r"^.*\.csv$", name)
+    if !ismatch(r"^.*\.csv$", name) &&
+        !ismatch(r"^.*\.CSV$", name)
         name = name * ".csv"
     end
     open(name, "w") do fid
