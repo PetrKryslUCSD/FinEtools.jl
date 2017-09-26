@@ -10,6 +10,7 @@ import Base.cat
 
 export FESet,  FESet0Manifold,  FESet1Manifold,  FESet2Manifold,  FESet3Manifold
 export manifdim, nodesperelem, count, getconn!, setlabel!, subset, cat, updateconn!
+export bfun, bfundpar, map2parametric, inparametric
 export FESetP1
 export FESetL2, FESetL3
 export FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6
@@ -175,6 +176,53 @@ function updateconn!(self::T, NewIDs::FIntVec) where {T<:FESet}
 end
 
 """
+    inparametric(self::FESet, param_coords::FFltVec)
+
+Are given parametric coordinates inside the element parametric domain?
+
+Returns a Boolean: is the point inside, true or false?
+"""
+function inparametric(self::T, param_coords::FFltVec; tolerance = 0.0) where {T<:FESet}
+    return privinparametric(self, param_coords, tolerance)
+end
+
+"""
+    map2parametric(self::T, x::FFltMat, pt::FFltVec;
+        Tolerance = 0.001, maxiter =5) where {T<:FESet}
+
+Map a spatial location to parametric coordinates.
+
+`x`=array of spatial coordinates of the nodes, size(x) = nbfuns x dim,
+`c`= spatial location
+Returns
+Returns a row array of parametric coordinates if the solution was
+successful, otherwise NaN are returned.
+"""
+function map2parametric(self::T, x::FFltMat, pt::FFltVec;
+    Tolerance = 0.001, maxiter =5) where {T<:FESet}
+    sdim = size(x, 2); # number of space dimensions
+    mdim = manifdim(self); # manifold dimension of the element
+    ppc = zeros(mdim);
+    pc = deepcopy(ppc);
+    J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
+    loc = zeros(FFlt, 1, sdim); # point location -- used as a buffer
+    success = true
+    for i = 1:maxiter
+        gradNparams = privbfundpar(self, pc);
+        At_mul_B!(J, x, gradNparams); # calculate the Jacobian matrix
+        N = privbfun(self, pc);
+        At_mul_B!(loc, N, x);# Iterated point location
+        pc[:] = ppc .- (J\(vec(loc) - pt))
+        if (norm(pc-ppc) < Tolerance)
+            return pc, success;
+        end
+        ppc[:] = pc[:];
+    end
+    success = false
+    return pc, success;
+end
+
+"""
     Jacobian(self::T, J::FFltMat)::FFlt where {T<:FESet1Manifold}
 
 Evaluate the curve Jacobian.
@@ -308,7 +356,8 @@ function gradN!(self::FESet3Manifold, gradN::FFltMat, gradNparams::FFltMat, redJ
     end
 end
 
-
+################################################################################
+################################################################################
 
 """
     FESetP1
@@ -340,6 +389,15 @@ function privboundaryfe(self::FESetP1)
     return None;
 end
 
+function privinparametric(self::FESetP1, param_coords::FFltVec, tolerance::FFlt)
+    s = intersect(find(v -> v >= -tolerance, param_coords),
+                  find(v -> v <= 1.0 + tolerance, param_coords));
+    return  (length(s) == length(param_coords));
+end
+
+################################################################################
+################################################################################
+
 """
     FESetL2
 
@@ -369,6 +427,15 @@ end
 function privboundaryfe(self::FESetL2)
     return FESetP1;
 end
+
+function privinparametric(self::FESetL2, param_coords::FFltVec, tolerance::FFlt)
+    s = intersect(find(v -> v >= -tolerance, param_coords),
+                  find(v -> v <= 1.0 + tolerance, param_coords));
+    return  (length(s) == length(param_coords));
+end
+
+################################################################################
+################################################################################
 
 """
     FESetL3
@@ -408,6 +475,15 @@ function privboundaryfe(self::FESetL3)
     return FESetP1;
 end
 
+function privinparametric(self::FESetL3, param_coords::FFltVec, tolerance::FFlt)
+    s = intersect(find(v -> v >= -tolerance, param_coords),
+                  find(v -> v <= 1.0 + tolerance, param_coords));
+    return  (length(s) == length(param_coords));
+end
+
+################################################################################
+################################################################################
+
 """
     FESetT3
 
@@ -445,6 +521,15 @@ function privboundaryfe(self::FESetT3)
     return FESetL2;
 end
 
+function privinparametric(self::FESetT3, param_coords::FFltVec, tolerance::FFlt)
+    s = intersect(find(v -> v >= -tolerance, param_coords),
+                  find(v -> v <= 1.0 + tolerance, param_coords));
+    return  (length(s) == length(param_coords)) &&
+        (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance);
+end
+
+################################################################################
+################################################################################
 
 """
     FESetQ4
@@ -490,6 +575,15 @@ function privboundaryfe(self::FESetQ4)
     # Get  the constructor of the class of the  boundary finite element.
     return FESetL2;
 end
+
+function privinparametric(self::FESetQ4, param_coords::FFltVec, tolerance::FFlt)
+    s = intersect(find(v -> v >= -tolerance, param_coords),
+                  find(v -> v <= 1.0 + tolerance, param_coords));
+    return  (length(s) == length(param_coords));
+end
+
+################################################################################
+################################################################################
 
 """
     FESetQ9
@@ -542,6 +636,15 @@ end
 function privboundaryfe(self::FESetQ9)
     return FESetL3;
 end
+
+function privinparametric(self::FESetQ9, param_coords::FFltVec, tolerance::FFlt)
+    s = intersect(find(v -> v >= -tolerance, param_coords),
+                  find(v -> v <= 1.0 + tolerance, param_coords));
+    return  (length(s) == length(param_coords));
+end
+
+################################################################################
+################################################################################
 
 """
     FESetQ8
@@ -611,6 +714,15 @@ function privboundaryfe(self::FESetQ8)
     return FESetL3;
 end
 
+function privinparametric(self::FESetQ8, param_coords::FFltVec, tolerance::FFlt)
+    s = intersect(find(v -> v >= -tolerance, param_coords),
+                  find(v -> v <= 1.0 + tolerance, param_coords));
+    return  (length(s) == length(param_coords));
+end
+
+################################################################################
+################################################################################
+
 """
     FESetT6
 
@@ -666,6 +778,16 @@ function privboundaryfe(self::FESetT6)
     # Get  the constructor of the class of the  boundary finite element.
     return FESetL3;
 end
+
+function privinparametric(self::FESetT6, param_coords::FFltVec, tolerance::FFlt)
+    s = intersect(find(v -> v >= -tolerance, param_coords),
+                  find(v -> v <= 1.0 + tolerance, param_coords));
+    return  (length(s) == length(param_coords)) &&
+      (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance);
+end
+
+################################################################################
+################################################################################
 
 """
     FESetH8
@@ -731,6 +853,15 @@ function privboundaryfe(self::FESetH8)
     # Get  the constructor of the class of the  boundary finite element.
     return FESetQ4;
 end
+
+function privinparametric(self::FESetH8, param_coords::FFltVec, tolerance::FFlt)
+    s = intersect(find(v -> v >= -tolerance, param_coords),
+                  find(v -> v <= 1.0 + tolerance, param_coords));
+    return  (length(s) == length(param_coords));
+end
+
+################################################################################
+################################################################################
 
 """
     FESetH20
@@ -874,6 +1005,15 @@ function privboundaryfe(self::FESetH20)
     return FESetQ8;
 end
 
+function privinparametric(self::FESetH20, param_coords::FFltVec, tolerance::FFlt)
+    s = intersect(find(v -> v >= -tolerance, param_coords),
+                  find(v -> v <= 1.0 + tolerance, param_coords));
+    return  (length(s) == length(param_coords));
+end
+
+################################################################################
+################################################################################
+
 """
     FESetH27
 
@@ -993,6 +1133,15 @@ function privboundaryfe(self::FESetH27)
     return FESetQ9;
 end
 
+function privinparametric(self::FESetH27, param_coords::FFltVec, tolerance::FFlt)
+    s = intersect(find(v -> v >= -tolerance, param_coords),
+                  find(v -> v <= 1.0 + tolerance, param_coords));
+    return  (length(s) == length(param_coords));
+end
+
+################################################################################
+################################################################################
+
 """
     FESetT4
 
@@ -1036,6 +1185,16 @@ end
 function privboundaryfe(self::FESetT4)
     return FESetT3;
 end
+
+function privinparametric(self::FESetT4, param_coords::FFltVec, tolerance::FFlt)
+    s = intersect(find(v -> v >= -tolerance, param_coords),
+                  find(v -> v <= 1.0 + tolerance, param_coords));
+    return  (length(s) == length(param_coords)) &&
+      (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance);
+end
+
+################################################################################
+################################################################################
 
 """
     FESetT10
@@ -1096,6 +1255,16 @@ end
 function privboundaryfe(self::FESetT10)
     return FESetT6;
 end
+
+function privinparametric(self::FESetT10, param_coords::FFltVec, tolerance::FFlt)
+    s = intersect(find(v -> v >= -tolerance, param_coords),
+                  find(v -> v <= 1.0 + tolerance, param_coords));
+    return  (length(s) == length(param_coords)) &&
+      (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance);
+end
+
+################################################################################
+################################################################################
 
 end
 

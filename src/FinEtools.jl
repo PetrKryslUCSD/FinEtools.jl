@@ -12,7 +12,7 @@ export FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec
 
 include("BoxModule.jl")
 using FinEtools.BoxModule
-export inbox, updatebox!, boundingbox, inflatebox!, boxesoverlap
+export inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap
 
 include("MatrixUtilityModule.jl")
 
@@ -31,12 +31,13 @@ export CSys, updatecsmat!
 
 include("FESetModule.jl")
 using FinEtools.FESetModule
-export FESet, FESet0Manifold, FESet1Manifold, FESet2Manifold, FESet3Manifold
-export manifdim, nodesperelem, count, getconn!, setotherdimension!, setlabel!,
-    subset, cat, updateconn!
-export FESetP1, FESetL2, FESetL3, FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6,
-    FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
-
+export FESet,  FESet0Manifold,  FESet1Manifold,  FESet2Manifold,  FESet3Manifold
+export manifdim, nodesperelem, count, getconn!, setlabel!, subset, cat, updateconn!
+export bfun, bfundpar, map2parametric, inparametric
+export FESetP1
+export FESetL2, FESetL3
+export FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6
+export FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
 
 include("FENodeSetModule.jl")
 using FinEtools.FENodeSetModule
@@ -90,12 +91,12 @@ using FinEtools.MeshImportModule
 include("MeshModificationModule.jl")
 using FinEtools.MeshModificationModule
 export meshboundary, fusenodes, compactnodes, mergemeshes, mergenmeshes,
-mergenodes, renumberconn!, meshsmoothing, mirrormesh, nodepartitioning
+    mergenodes, renumberconn!, meshsmoothing, mirrormesh, nodepartitioning
 
 include("MeshQuadrilateralModule.jl")
 using FinEtools.MeshQuadrilateralModule
 export Q4annulus, Q8annulus, Q4quadrilateral, Q4elliphole, Q4block, Q4blockx,
-Q8block, Q4toQ8, Q4refine
+    Q8block, Q4toQ8, Q4refine
 
 include("MeshLineModule.jl")
 using FinEtools.MeshLineModule
@@ -130,16 +131,16 @@ export MatAcoustFluid
 include("DeforModelRedModule.jl")
 using FinEtools.DeforModelRedModule
 export DeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,
-DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D
+    DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D
 export nstrains, stresscomponentmap, Blmat!
 
 include("MatDeforModule.jl")
 using FinEtools.MatDeforModule
 export MatDefor
 export strain2x2tto3v!, strain3vto2x2t!, strain3x3tto6v!, strain6vto3x3t!,
-strain9vto3x3t!, strain3x3tto9v!, strain9vto6v!, strain6vto9v!
+    strain9vto3x3t!, strain3x3tto9v!, strain9vto6v!, strain6vto9v!
 export stress2x2to3v!,  stress3vto2x2t!, stress3vto3x3t!, stress4vto3x3t!,
-stress6vto3x3t!, stress3x3tto6v!, stress9vto6v!,  stress6vto9v!
+    stress6vto3x3t!, stress3x3tto6v!, stress9vto6v!,  stress6vto9v!
 export rotstressvec
 
 include("MatDeforElastIsoModule.jl")
@@ -170,8 +171,9 @@ export Jacobianpoint, Jacobiancurve, Jacobiansurface, Jacobianvolume, Jacobianmd
 include("FEMMBaseModule.jl")
 using FinEtools.FEMMBaseModule
 export FEMMAbstractBase, FEMMBase
-export associategeometry!, integratefieldfunction, integratefunction, distribloads,
- connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints
+export associategeometry!, integratefieldfunction, integratefunction,
+    transfernodalfield!, distribloads, connectionmatrix,
+    fieldfromintegpoints, elemfieldfromintegpoints
 
 include("FEMMHeatDiffModule.jl")
 using FinEtools.FEMMHeatDiffModule
@@ -187,7 +189,7 @@ include("FEMMAcoustModule.jl")
 using FinEtools.FEMMAcoustModule
 export FEMMAcoust
 export acousticmass, nzebcloadsacousticmass,
-acousticstiffness, nzebcloadsacousticstiffness
+    acousticstiffness, nzebcloadsacousticstiffness
 
 include("FEMMAcoustSurfModule.jl")
 using FinEtools.FEMMAcoustSurfModule
@@ -198,7 +200,7 @@ include("FEMMDeforLinearBaseModule.jl")
 using FinEtools.FEMMDeforLinearBaseModule
 export FEMMDeforLinearAbstract
 export stiffness, nzebcloadsstiffness, thermalstrainloads, mass,
-inspectintegpoints
+    inspectintegpoints
 
 include("FEMMDeforLinearModule.jl")
 using FinEtools.FEMMDeforLinearModule
