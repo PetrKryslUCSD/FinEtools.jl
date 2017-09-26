@@ -5,7 +5,7 @@ Module for working with bounding boxes.
 """
 module BoxModule
 
-export inbox, updatebox!, boundingbox, inflatebox!, boxesoverlap
+export inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap
 
 using FinEtools
 using FinEtools.FTypesModule
@@ -32,6 +32,22 @@ end
 
 function inbox(box::AbstractVector, x::AbstractArray)
     return inbox(box, vec(x))
+end
+
+"""
+    initbox!(box::AbstractVector, x::AbstractVector)
+
+Initialize a bounding box with a single point.
+"""
+function initbox!(box::AbstractVector, x::AbstractVector)
+    sdim = length(x)
+    if length(box) < 2*sdim
+        box = Array{FFlt}(2*sdim)
+    end
+    for i = 1:sdim
+        box[2*i-1] = box[2*i] = x[i];
+    end
+    return box
 end
 
 """
@@ -86,7 +102,7 @@ function boundingbox(x::AbstractArray)
     return updatebox!(Array{FFlt}(0), x)
 end
 
-function inflatebox!(box::AbstractVector, inflatevalue)
+function inflatebox!(box::AbstractVector, inflatevalue::Number)
     abox = deepcopy(box)
     sdim = Int(length(box)/2);
     for i=1:sdim
