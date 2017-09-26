@@ -124,20 +124,24 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     # product of its normal and the direction vector is greater than tolerance.
 
     # Extract arguments
-    allin= nothing; flood= nothing; facing= nothing; label= nothing;
-    nearestto= nothing; smoothpatch= nothing; startnode = 0; dotmin = 0.01
+    allin = nothing; flood = nothing; facing = nothing; label = nothing;
+    # nearestto = nothing; smoothpatch = nothing;
+    startnode = 0; dotmin = 0.01
+    overlappingbox = nothing
     for arg in args
         sy, val = arg
         if sy == :flood
-            flood=val
+            flood = val
         elseif sy == :facing
-            facing=val
+            facing = val
         elseif sy == :label
-            label=val
+            label = val
+        elseif sy == :overlappingbox
+            overlappingbox = val
         elseif sy == :nearestto
-            nearestto=val
+            nearestto = val
         elseif sy == :allin
-            allin=val
+            allin = val
         end
     end
 
@@ -145,7 +149,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
         for arg in args
             sy, val = arg
             if sy == :startnode
-                startnode=val
+                startnode = val
             end
         end
     end
@@ -157,9 +161,9 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
         for arg in args
             sy, val = arg
             if sy == :direction
-                direction=val
+                direction = val
             elseif (sy == :dotmin) || (sy == :tolerance)# allow for obsolete keyword  to work
-                dotmin=val
+                dotmin = val
             end
         end
     end
@@ -177,25 +181,30 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     #         error('Need the number of the starting finite element');
     #     end
     # end
-    # if isfield(options,'overlapping_box')
+
+    # if overlappingbox != nothing
     #     overlapping_box = true;
-    #     box=options.overlapping_box;
-    #     bounding_boxes =[];# precomputed bounding boxes of fes can be passed in
-    #     if isfield(options,'bounding_boxes')
-    #         bounding_boxes = options.bounding_boxes;
-    #     end
-    #     inflate =0;
-    #     if isfield(options,'inflate')
-    #         inflate = (options.inflate);
-    #     end
-    #     box = inflate_box (box, inflate);
+    #     # box=options.overlapping_box;
+    #     # bounding_boxes =[];# precomputed bounding boxes of fes can be passed in
+    #     # if isfield(options,'bounding_boxes')
+    #     #     bounding_boxes = options.bounding_boxes;
+    #     # end
+    #     # inflate = 0;
+    #     # if isfield(options,'inflate')
+    #     #     inflate = (options.inflate);
+    #     # end
+    #     # box = inflate_box (box, inflate);
     # end
+
     # if isfield(options, 'nearestto')
     #     nearestto = true;
     #     locations = options.nearestto;
     # end
 
-    felist=zeros(FInt,size(fes.conn,1));
+    # The  elements of disarray are flipped from zero  when the element satisfies
+    # the search condition.. This list is  eventually purged of the zero elements and
+    # returned.
+    felist = zeros(FInt,size(fes.conn,1));
 
     #     Select based on fe label
     if label!= nothing
@@ -313,27 +322,18 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     #   end
 
 
-    #   # Select all FEs whose bounding box overlaps given box
-    #   if (overlapping_box)
-    #     felist= [];
-    #     xs =fens.xyz;
-    #     conns=fes.conn;
-    #     if (isempty(bounding_boxes))
-    #       bounding_boxes =zeros(size(conns,1),length(box));
-    #       for i=1: size(conns,1)
-    #         conn=conns(i,:);
-    #         xyz =xs(conn,:);
-    #         bounding_boxes(i,:)= bounding_box(xyz);
-    #       end
-    #     end
-    #     for i=1: size(conns,1)
-    #       if (boxes_overlap (box,bounding_boxes(i,:)))
-    #         felist(end+1)=i;
-    #       end
-    #     end
-    #     felist =unique(felist);
-    #     return;
-    #   end
+    # Select all FEs whose bounding box overlaps given box
+    if (overlappingbox != nothing)
+        bbox = zeros(2 * size(fens.xyz, 2))
+        for i = 1:size(fes.conn,1)
+            bbox = initbox!(bbox, vec(fens.xyz[fes.conn[i, 1], :]))
+            bbox = updatebox!(bbox, fens.xyz[fes.conn[i, 2:end], :])
+            if boxesoverlap(overlappingbox, bbox)
+                felist[i]=i; # this element overlaps the box
+            end
+        end
+        return  felist[find(felist)]; # return the nonzero element numbers
+    end
 
 
     #   # get the fe nearest to the supplied point
@@ -476,19 +476,19 @@ function vselect(v::FFltMat; args...)
     for arg in args
         sy, val = arg
         if sy == :box
-            box=val
+            box = val
         elseif sy == :distance
-            distance=val
+            distance = val
         elseif sy == :from
-            from=val
+            from = val
         elseif sy == :plane
-            plane=val
+            plane = val
         elseif sy == :thickness
-            thickness=val
+            thickness = val
         elseif sy == :nearestto
-            nearestto=val
+            nearestto = val
         elseif sy == :inflate
-            inflate=val
+            inflate = val
         end
     end
 
