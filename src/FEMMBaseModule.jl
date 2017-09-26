@@ -6,14 +6,16 @@ Module for comments/base operations on interiors and boundaries of domains.
 module FEMMBaseModule
 
 export FEMMAbstractBase, FEMMBase
-export associategeometry!, integratefieldfunction, integratefunction, distribloads,
- connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints
+export associategeometry!, integratefieldfunction, integratefunction,
+    transfernodalfield!, distribloads, connectionmatrix,
+    fieldfromintegpoints, elemfieldfromintegpoints
 
 using FinEtools
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
 using FinEtools.IntegRuleModule
 using FinEtools.NodalFieldModule
+using FinEtools.MeshSelectionModule: vselect
 using FinEtools.ForceIntensityModule
 using FinEtools.CSysModule
 using FinEtools.GeoDModule
@@ -162,6 +164,56 @@ function integratefunction(self::FEMMAbstractBase,
         end
     end
     return result
+end
+
+"""
+    transfernodalfield!(ff::NodalField{T}, fensf::FENodeSet,
+        fc::NodalField{T}, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
+        )  where {T<:Number}
+
+Transfer a nodal field from a coarse mesh to a finer one.
+`ff` = the fine-mesh field (modified and also returned)
+`fensf` = finite element node set for the fine-mesh
+`fc` = the coarse-mesh field
+`fensc` = finite element node set for the fine-mesh,
+`fesc` = finite element set for the coarse mesh
+`tolerance` = tolerance in physical space for searches of the adjacent nodes
+"""
+function transfernodalfield!(ff::NodalField{T}, fensf::FENodeSet,
+    fc::NodalField{T}, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
+    )  where {T<:Number}
+    nodebox = initbox!([], vec(fensc.xyz[1, :]))
+    for i = 1:count(fensf)
+        nl = vselect(fensc.xyz; nearestto = fensf.xyz[i, :])
+        # For each node in the fine field try to find one in  the coarse field
+        if !isempty(nl) && norm(fensf.xyz[i, :] - fensc.xyz[nl[1], :]) < tolerance
+            # These nodes correspond in the  refined  and coarse mesh
+            ff.values[i, :] = fc.values[nl[1], :]
+        else
+            # Obviously, some nodes in the fine mesh are not located "at" the
+            # location of a coarse-mesh node. Then we have to search which
+            # element they fall into.
+            nodebox = initbox!(nodebox, vec(fensf.xyz[i, :]))
+            nodebox = inflatebox!(nodebox, tolerance)
+            el = selectelem(fensc, fesc; overlappingbox = nodebox)
+            foundone = false
+            for e = el
+                c = view(fesc.conn, e, :)
+                pc, success = map2parametric(fesc, fensc.xyz[c, :],
+                    vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
+                @assert success # this shouldn't be tripped; normally we succeed
+                if  inparametric(fesc, pc; tolerance = 0.001) # coarse mesh element encloses the node
+                    N = bfun(fesc,  pc)
+                    ff.values[i, :] = transpose(N) * fc.values[c, :]
+                    foundone = true
+                    break
+                end
+            end
+            # Now if we were not successful, we must report error
+            @assert foundone
+        end
+    end
+    return ff
 end
 
 """
@@ -338,7 +390,7 @@ Input arguments
 `component`- component of the 'quantity' array: see the material update()
            method.
 Keyword arguments
-`nodevalmethod` = `:invdistance` (the default) or `:averaging`; 
+`nodevalmethod` = `:invdistance` (the default) or `:averaging`;
 `reportat` = at which point should the  element quantities be reported?
     This argument is interpreted inside the `inspectintegpoints()` method.
 Output argument
