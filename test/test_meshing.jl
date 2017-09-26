@@ -1151,3 +1151,113 @@ end
 end
 using mmtetblocksmm
 mmtetblocksmm.test()
+
+module momap2para1
+using FinEtools
+using Base.Test
+function test()
+    X = [-1.0 -1.0; 2.0 0.4; 1.0 2.3; -2.0 1.0]
+    fens = FENodeSet(X);
+    fes = FESetQ4(reshape([1 2 3 4], 1, 4))
+    pt = [0.1 0.2]
+    pc, success = map2parametric(fes, fens.xyz[fes.conn[1, :], :], vec(pt))
+    N = bfun(fes,  pc)
+    pt1 = transpose(N) * fens.xyz[fes.conn[1, :], :]
+    # println("pt = $(pt)")
+    # println("pt1 = $(pt1)")
+    @test norm(pt - pt1) < 1.0e-7
+end
+end
+using momap2para1
+momap2para1.test()
+
+module momap2para2
+using FinEtools
+using Base.Test
+function test()
+    X = [-1.0 -1.0; 2.0 0.4; 1.0 2.3; -2.0 1.0]
+    fens = FENodeSet(X);
+    fes = FESetQ4(reshape([1 2 3 4], 1, 4))
+    pt = [3.1 0.2]
+    pc, success = map2parametric(fes, fens.xyz[fes.conn[1, :], :], vec(pt);
+        Tolerance = 0.000001, maxiter =7)
+    # println("pc = $(pc)")
+    N = bfun(fes,  pc)
+    pt1 = transpose(N) * fens.xyz[fes.conn[1, :], :]
+    # println("pt = $(pt)")
+    # println("pt1 = $(pt1)")
+    @test norm(pt - pt1) < 1.0e-7
+    isin = inparametric(fes, pc)
+    # println("isin = $(isin)")
+    @test !isin
+end
+end
+using momap2para2
+momap2para2.test()
+
+module momap2para3
+using FinEtools
+using FinEtools.MeshSelectionModule: vselect
+using FinEtools.MeshExportModule
+using Base.Test
+
+
+
+function test()
+    A = 50.0*phun("m") # length  of loaded rectangle
+    B = 200.0*phun("m") # length  of loaded rectangle
+    C = 100.0*phun("m") # span of the plate
+
+    # Select how find the mesh should be
+    Refinement = 2
+    nA, nB, nC = Refinement * 1, Refinement * 2, Refinement * 4;
+    xs = reshape(collect(linspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linspace(0.0, C, nC + 1)), nC + 1, 1)
+    fensc,fesc = T10blockx(xs, ys, zs, :b)
+    fc = NodalField(zeros(count(fensc), 1))
+    for i = 1:count(fensc)
+        x, y, z = fensc.xyz[i, :]
+        fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+    end
+    File = "momap2para3-coarse.vtk"
+    MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+
+    Refinement = Refinement + 1
+    nA, nB, nC = Refinement * 1, Refinement * 2, Refinement * 4;
+    xs = reshape(collect(linspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linspace(0.0, C, nC + 1)), nC + 1, 1)
+    fensf,fesf = T10blockx(xs, ys, zs, :b)
+    ff = NodalField(zeros(count(fensf), 1))
+    tolerance = min(A/nA, B/nB, C/nC)/1000.0
+
+    referenceff = NodalField(zeros(count(fensf), 1))
+    for i = 1:count(fensf)
+        x, y, z = fensf.xyz[i, :]
+        referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+    end
+    File = "momap2para3-reference.vtk"
+    MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+
+    ff = transfernodalfield!(ff, fensf, fc, fensc, fesc, tolerance)
+    File = "momap2para3-fine.vtk"
+    MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("ff", ff.values)])
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+
+    diffff = NodalField(referenceff.values - ff.values)
+    femm  = FEMMBase(GeoD(fesf, SimplexRule(3, 4)))
+    geom = NodalField(fensf.xyz)
+    error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
+    ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
+    println("error/ref = $(error/ref)")
+    @test abs(error/ref - 0.02541369940759616) < 1.0e-4
+end
+end
+using momap2para3
+momap2para3.test()
