@@ -390,8 +390,8 @@ function privboundaryfe(self::FESetP1)
 end
 
 function privinparametric(self::FESetP1, param_coords::FFltVec, tolerance::FFlt)
-    s = intersect(find(v -> v >= -tolerance, param_coords),
-                  find(v -> v <= 1.0 + tolerance, param_coords));
+    s = find(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)),
+        param_coords);
     return  (length(s) == length(param_coords));
 end
 
@@ -429,8 +429,8 @@ function privboundaryfe(self::FESetL2)
 end
 
 function privinparametric(self::FESetL2, param_coords::FFltVec, tolerance::FFlt)
-    s = intersect(find(v -> v >= -tolerance, param_coords),
-                  find(v -> v <= 1.0 + tolerance, param_coords));
+    s = find(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)),
+        param_coords);
     return  (length(s) == length(param_coords));
 end
 
@@ -476,8 +476,8 @@ function privboundaryfe(self::FESetL3)
 end
 
 function privinparametric(self::FESetL3, param_coords::FFltVec, tolerance::FFlt)
-    s = intersect(find(v -> v >= -tolerance, param_coords),
-                  find(v -> v <= 1.0 + tolerance, param_coords));
+    s = find(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)),
+        param_coords);
     return  (length(s) == length(param_coords));
 end
 
@@ -522,8 +522,8 @@ function privboundaryfe(self::FESetT3)
 end
 
 function privinparametric(self::FESetT3, param_coords::FFltVec, tolerance::FFlt)
-    s = intersect(find(v -> v >= -tolerance, param_coords),
-                  find(v -> v <= 1.0 + tolerance, param_coords));
+    s = find(v -> (v >= (-tolerance)) && (v <= (+1.0 + tolerance)),
+        param_coords);
     return  (length(s) == length(param_coords)) &&
         (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance);
 end
@@ -577,8 +577,8 @@ function privboundaryfe(self::FESetQ4)
 end
 
 function privinparametric(self::FESetQ4, param_coords::FFltVec, tolerance::FFlt)
-    s = intersect(find(v -> v >= -tolerance, param_coords),
-                  find(v -> v <= 1.0 + tolerance, param_coords));
+    s = find(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)),
+        param_coords);
     return  (length(s) == length(param_coords));
 end
 
@@ -638,8 +638,8 @@ function privboundaryfe(self::FESetQ9)
 end
 
 function privinparametric(self::FESetQ9, param_coords::FFltVec, tolerance::FFlt)
-    s = intersect(find(v -> v >= -tolerance, param_coords),
-                  find(v -> v <= 1.0 + tolerance, param_coords));
+    s = find(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)),
+        param_coords);
     return  (length(s) == length(param_coords));
 end
 
@@ -715,8 +715,8 @@ function privboundaryfe(self::FESetQ8)
 end
 
 function privinparametric(self::FESetQ8, param_coords::FFltVec, tolerance::FFlt)
-    s = intersect(find(v -> v >= -tolerance, param_coords),
-                  find(v -> v <= 1.0 + tolerance, param_coords));
+    s = find(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)),
+        param_coords);
     return  (length(s) == length(param_coords));
 end
 
@@ -780,8 +780,8 @@ function privboundaryfe(self::FESetT6)
 end
 
 function privinparametric(self::FESetT6, param_coords::FFltVec, tolerance::FFlt)
-    s = intersect(find(v -> v >= -tolerance, param_coords),
-                  find(v -> v <= 1.0 + tolerance, param_coords));
+    s = find(v -> (v >= (-tolerance)) && (v <= (+1.0 + tolerance)),
+        param_coords);
     return  (length(s) == length(param_coords)) &&
       (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance);
 end
@@ -855,8 +855,8 @@ function privboundaryfe(self::FESetH8)
 end
 
 function privinparametric(self::FESetH8, param_coords::FFltVec, tolerance::FFlt)
-    s = intersect(find(v -> v >= -tolerance, param_coords),
-                  find(v -> v <= 1.0 + tolerance, param_coords));
+    s = find(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)),
+        param_coords);
     return  (length(s) == length(param_coords));
 end
 
@@ -1006,8 +1006,8 @@ function privboundaryfe(self::FESetH20)
 end
 
 function privinparametric(self::FESetH20, param_coords::FFltVec, tolerance::FFlt)
-    s = intersect(find(v -> v >= -tolerance, param_coords),
-                  find(v -> v <= 1.0 + tolerance, param_coords));
+    s = find(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)),
+        param_coords);
     return  (length(s) == length(param_coords));
 end
 
@@ -1134,8 +1134,8 @@ function privboundaryfe(self::FESetH27)
 end
 
 function privinparametric(self::FESetH27, param_coords::FFltVec, tolerance::FFlt)
-    s = intersect(find(v -> v >= -tolerance, param_coords),
-                  find(v -> v <= 1.0 + tolerance, param_coords));
+    s = find(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)),
+        param_coords);
     return  (length(s) == length(param_coords));
 end
 
@@ -1187,8 +1187,8 @@ function privboundaryfe(self::FESetT4)
 end
 
 function privinparametric(self::FESetT4, param_coords::FFltVec, tolerance::FFlt)
-    s = intersect(find(v -> v >= -tolerance, param_coords),
-                  find(v -> v <= 1.0 + tolerance, param_coords));
+    s = find(v -> (v >= (-tolerance)) && (v <= (+1.0 + tolerance)),
+        param_coords);
     return  (length(s) == length(param_coords)) &&
       (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance);
 end
@@ -1257,8 +1257,8 @@ function privboundaryfe(self::FESetT10)
 end
 
 function privinparametric(self::FESetT10, param_coords::FFltVec, tolerance::FFlt)
-    s = intersect(find(v -> v >= -tolerance, param_coords),
-                  find(v -> v <= 1.0 + tolerance, param_coords));
+    s = find(v -> (v >= (-tolerance)) && (v <= (+1.0 + tolerance)),
+        param_coords);
     return  (length(s) == length(param_coords)) &&
       (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance);
 end
