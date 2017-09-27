@@ -256,8 +256,10 @@ On hold.  07/22/2017
 -- Atom packages
 Julia-client
 language-Julia
-Minimap
+minimap
 auto-indent
+split-diff
+simple-drag-drop-text
 
 -- Atom themes:
 "behave" is an excellent dark theme:  very easy on the eyes
@@ -303,3 +305,6 @@ Implemented: 09/09/2017
 
 -- Mesh import: return dictionary of output data
 Implemented: 09/09/2017
+
+-- Running Julia in  the git bash terminal (mintty) is an excellent alternative:
+the shell mode works.
