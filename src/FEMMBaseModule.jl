@@ -210,6 +210,22 @@ function transfernodalfield!(ff::NodalField{T}, fensf::FENodeSet,
                 end
             end
             # Now if we were not successful, we must report error
+            # if !foundone
+            #     for e = el
+            #         c = view(fesc.conn, e, :)
+            #         pc, success = map2parametric(fesc, fensc.xyz[c, :],
+            #             vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
+            #         println("pc = $(pc)")
+            #         @assert success # this shouldn't be tripped; normally we succeed
+            #         println("sum(pc) = $(sum(pc))")
+            #         if  inparametric(fesc, pc; tolerance = 0.001) # coarse mesh element encloses the node
+            #             N = bfun(fesc,  pc)
+            #             ff.values[i, :] = transpose(N) * fc.values[c, :]
+            #             foundone = true
+            #             break
+            #         end
+            #     end
+            # end
             @assert foundone
         end
     end
