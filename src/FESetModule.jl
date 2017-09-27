@@ -10,7 +10,7 @@ import Base.cat
 
 export FESet,  FESet0Manifold,  FESet1Manifold,  FESet2Manifold,  FESet3Manifold
 export manifdim, nodesperelem, count, getconn!, setlabel!, subset, cat, updateconn!
-export bfun, bfundpar, map2parametric, inparametric
+export bfun, bfundpar, map2parametric, inparametric, centroidparametric
 export FESetP1
 export FESetL2, FESetL3
 export FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6
@@ -223,6 +223,15 @@ function map2parametric(self::T, x::FFltMat, pt::FFltVec;
 end
 
 """
+    centroidparametric(self::T) where {T<:FESet}
+
+Return the parametric coordinates  of the centroid of the element.
+"""
+function centroidparametric(self::T) where {T<:FESet}
+    return privcentroidparametric(self)
+end
+
+"""
     Jacobian(self::T, J::FFltMat)::FFlt where {T<:FESet1Manifold}
 
 Evaluate the curve Jacobian.
@@ -395,6 +404,10 @@ function privinparametric(self::FESetP1, param_coords::FFltVec, tolerance::FFlt)
     return  (length(s) == length(param_coords));
 end
 
+function privcentroidparametric(self::FESetP1)
+    return vec([0.0])
+end
+
 ################################################################################
 ################################################################################
 
@@ -432,6 +445,10 @@ function privinparametric(self::FESetL2, param_coords::FFltVec, tolerance::FFlt)
     s = find(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)),
         param_coords);
     return  (length(s) == length(param_coords));
+end
+
+function privcentroidparametric(self::FESetL2)
+    return vec([0.0])
 end
 
 ################################################################################
@@ -481,6 +498,10 @@ function privinparametric(self::FESetL3, param_coords::FFltVec, tolerance::FFlt)
     return  (length(s) == length(param_coords));
 end
 
+function privcentroidparametric(self::FESetL3)
+    return vec([0.0])
+end
+
 ################################################################################
 ################################################################################
 
@@ -526,6 +547,10 @@ function privinparametric(self::FESetT3, param_coords::FFltVec, tolerance::FFlt)
         param_coords);
     return  (length(s) == length(param_coords)) &&
         (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance);
+end
+
+function privcentroidparametric(self::FESetT3)
+    return vec([1.0/3 1.0/3])
 end
 
 ################################################################################
@@ -580,6 +605,10 @@ function privinparametric(self::FESetQ4, param_coords::FFltVec, tolerance::FFlt)
     s = find(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)),
         param_coords);
     return  (length(s) == length(param_coords));
+end
+
+function privcentroidparametric(self::FESetQ4)
+    return vec([0.0 0.0])
 end
 
 ################################################################################
@@ -641,6 +670,10 @@ function privinparametric(self::FESetQ9, param_coords::FFltVec, tolerance::FFlt)
     s = find(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)),
         param_coords);
     return  (length(s) == length(param_coords));
+end
+
+function privcentroidparametric(self::FESetQ9)
+    return vec([0.0 0.0])
 end
 
 ################################################################################
@@ -720,6 +753,10 @@ function privinparametric(self::FESetQ8, param_coords::FFltVec, tolerance::FFlt)
     return  (length(s) == length(param_coords));
 end
 
+function privcentroidparametric(self::FESetQ8)
+    return vec([0.0 0.0])
+end
+
 ################################################################################
 ################################################################################
 
@@ -784,6 +821,10 @@ function privinparametric(self::FESetT6, param_coords::FFltVec, tolerance::FFlt)
         param_coords);
     return  (length(s) == length(param_coords)) &&
       (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance);
+end
+
+function privcentroidparametric(self::FESetT6)
+    return vec([1.0/3 1.0/3])
 end
 
 ################################################################################
@@ -858,6 +899,10 @@ function privinparametric(self::FESetH8, param_coords::FFltVec, tolerance::FFlt)
     s = find(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)),
         param_coords);
     return  (length(s) == length(param_coords));
+end
+
+function privcentroidparametric(self::FESetH8)
+    return vec([0.0 0.0 0.0])
 end
 
 ################################################################################
@@ -1011,6 +1056,10 @@ function privinparametric(self::FESetH20, param_coords::FFltVec, tolerance::FFlt
     return  (length(s) == length(param_coords));
 end
 
+function privcentroidparametric(self::FESetH20)
+    return vec([0.0 0.0 0.0])
+end
+
 ################################################################################
 ################################################################################
 
@@ -1139,6 +1188,10 @@ function privinparametric(self::FESetH27, param_coords::FFltVec, tolerance::FFlt
     return  (length(s) == length(param_coords));
 end
 
+function privcentroidparametric(self::FESetH27)
+    return vec([0.0 0.0 0.0])
+end
+
 ################################################################################
 ################################################################################
 
@@ -1191,6 +1244,10 @@ function privinparametric(self::FESetT4, param_coords::FFltVec, tolerance::FFlt)
         param_coords);
     return  (length(s) == length(param_coords)) &&
       (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance);
+end
+
+function privcentroidparametric(self::FESetT4)
+    return vec([1.0/4 1.0/4 1.0/4])
 end
 
 ################################################################################
@@ -1261,6 +1318,10 @@ function privinparametric(self::FESetT10, param_coords::FFltVec, tolerance::FFlt
         param_coords);
     return  (length(s) == length(param_coords)) &&
       (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance);
+end
+
+function privcentroidparametric(self::FESetT10)
+    return vec([1.0/4 1.0/4 1.0/4])
 end
 
 ################################################################################

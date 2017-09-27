@@ -7,7 +7,7 @@ module FEMMBaseModule
 
 export FEMMAbstractBase, FEMMBase
 export associategeometry!, integratefieldfunction, integratefunction,
-    transfernodalfield!, distribloads, connectionmatrix,
+    transferfield!, distribloads, connectionmatrix,
     fieldfromintegpoints, elemfieldfromintegpoints
 
 using FinEtools
@@ -57,14 +57,14 @@ end
 
 """
     integratefieldfunction(self::FEMMAbstractBase,
-      geom::NodalField{FFlt},  afield::NodalField{T},
-      fh::F,  initial::R;  m::FInt=-1)  where {T<:Number,R, F<:Function}
+        geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R;
+        m::FInt=-1) where {T<:Number, FL<:NodalField{T}, R, F<:Function}
 
 Integrate a nodal-field function over the discrete manifold.
 """
 function integratefieldfunction(self::FEMMAbstractBase,
-    geom::NodalField{FFlt},  afield::NodalField{T},
-    fh::F,  initial::R;  m::FInt=-1)  where {T<:Number, R, F<:Function}
+    geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R;
+    m::FInt=-1) where {T<:Number, FL<:NodalField{T}, R, F<:Function}
     geod = self.geod                # finite elements
     # Constants
     nfes = count(geod.fes); # number of finite elements in the set
@@ -96,6 +96,50 @@ function integratefieldfunction(self::FEMMAbstractBase,
             At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
             Jac = Jacobianmdim(geod, J, loc, conn,  Ns[j], m);
             result = result + fh(loc,val)*Jac*w[j];
+        end
+    end
+    return result
+end
+
+"""
+    integratefieldfunction(self::FEMMAbstractBase,
+        geom::NodalField{FFlt},  afield::FL, fh::F, initial::R;
+        m::FInt=-1) where {T<:Number, FL<:ElementalField{T}, R, F<:Function}
+
+Integrate a elemental-field function over the discrete manifold.
+"""
+function integratefieldfunction(self::FEMMAbstractBase,
+    geom::NodalField{FFlt},  afield::FL, fh::F, initial::R;
+    m::FInt=-1) where {T<:Number, FL<:ElementalField{T}, R, F<:Function}
+    geod = self.geod                # finite elements
+    # Constants
+    nfes = count(geod.fes); # number of finite elements in the set
+    ndn = ndofs(afield); # number of degrees of freedom per node
+    nne = nodesperelem(geod.fes); # number of nodes per element
+    sdim = ndofs(geom);            # number of space dimensions
+    mdim = manifdim(geod.fes);     # manifold dimension of the element
+    # Precompute basis f. values + basis f. gradients wrt parametric coor
+    npts, Ns, gradNparams, w, pc = integrationdata(geod);
+    conn = zeros(FInt,nne,1); # element nodes -- used as a buffer
+    x = zeros(FFlt,nne,sdim); # array of node coordinates -- used as a buffer
+    a = zeros(FFlt,nne,ndn); # array of field DOFS-- used as a buffer
+    loc = zeros(FFlt,1,sdim); # quadrature point location -- used as a buffer
+    J = eye(FFlt,sdim,mdim); # Jacobian matrix -- used as a buffer
+    if m >= 0
+        # Either the manifold dimension was supplied
+    else
+        m = mdim;# ...Or it is implied
+    end
+    result = initial;           # initial value for the result
+    for i=1:count(geod.fes) #Now loop over all fes in the block
+        getconn!(geod.fes, conn, i);
+        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
+        gathervalues_asmat!(afield, a, [i]);# retrieve element dofs
+        for j = 1:npts #Loop over all integration points
+            At_mul_B!(loc, Ns[j], x);# Quadrature point location
+            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
+            Jac = Jacobianmdim(geod, J, loc, conn,  Ns[j], m);
+            result = result + fh(loc, a)*Jac*w[j];
         end
     end
     return result
@@ -167,9 +211,9 @@ function integratefunction(self::FEMMAbstractBase,
 end
 
 """
-    transfernodalfield!(ff::NodalField{T}, fensf::FENodeSet,
-        fc::NodalField{T}, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
-        )  where {T<:Number}
+    transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
+        fc::F, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
+        )  where {T<:Number, F<:NodalField{T}}
 
 Transfer a nodal field from a coarse mesh to a finer one.
 `ff` = the fine-mesh field (modified and also returned)
@@ -179,9 +223,10 @@ Transfer a nodal field from a coarse mesh to a finer one.
 `fesc` = finite element set for the coarse mesh
 `tolerance` = tolerance in physical space for searches of the adjacent nodes
 """
-function transfernodalfield!(ff::NodalField{T}, fensf::FENodeSet,
-    fc::NodalField{T}, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
-    )  where {T<:Number}
+function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
+    fc::F, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
+    )  where {T<:Number, F<:NodalField{T}}
+    @assert count(fensf) == nents(ff)
     nodebox = initbox!([], vec(fensc.xyz[1, :]))
     for i = 1:count(fensf)
         nl = vselect(fensc.xyz; nearestto = fensf.xyz[i, :])
@@ -200,7 +245,7 @@ function transfernodalfield!(ff::NodalField{T}, fensf::FENodeSet,
             for e = el
                 c = view(fesc.conn, e, :)
                 pc, success = map2parametric(fesc, fensc.xyz[c, :],
-                    vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
+                vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
                 @assert success # this shouldn't be tripped; normally we succeed
                 if  inparametric(fesc, pc; tolerance = 0.001) # coarse mesh element encloses the node
                     N = bfun(fesc,  pc)
@@ -209,25 +254,59 @@ function transfernodalfield!(ff::NodalField{T}, fensf::FENodeSet,
                     break
                 end
             end
-            # Now if we were not successful, we must report error
-            # if !foundone
-            #     for e = el
-            #         c = view(fesc.conn, e, :)
-            #         pc, success = map2parametric(fesc, fensc.xyz[c, :],
-            #             vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
-            #         println("pc = $(pc)")
-            #         @assert success # this shouldn't be tripped; normally we succeed
-            #         println("sum(pc) = $(sum(pc))")
-            #         if  inparametric(fesc, pc; tolerance = 0.001) # coarse mesh element encloses the node
-            #             N = bfun(fesc,  pc)
-            #             ff.values[i, :] = transpose(N) * fc.values[c, :]
-            #             foundone = true
-            #             break
-            #         end
-            #     end
-            # end
             @assert foundone
         end
+    end
+    return ff
+end
+
+"""
+    transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
+        fc::F, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
+        )  where {T<:Number, F<:ElementalField{T}}
+
+Transfer a elemental field from a coarse mesh to a finer one.
+`ff` = the fine-mesh field (modified and also returned)
+`fensf` = finite element node set for the fine-mesh
+`fc` = the coarse-mesh field
+`fensc` = finite element node set for the fine-mesh,
+`fesc` = finite element set for the coarse mesh
+`tolerance` = tolerance in physical space for searches of the adjacent nodes
+"""
+function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
+    fc::F, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
+    )  where {T<:Number, F<:ElementalField{T}}
+    @assert count(fesf) == nents(ff)
+    nodebox = initbox!([], vec(fensc.xyz[1, :]))
+    centroidpc = centroidparametric(fesf)
+    N = bfun(fesf, centroidpc)
+    NT = transpose(N)
+    for i = 1:count(fesf) # For all finite elements in the fine mesh
+        c = view(fesf.conn, i, :)
+        centroid = NT * fensf.xyz[c, :]
+        nodebox = initbox!(nodebox, vec(centroid))
+        nodebox = inflatebox!(nodebox, tolerance)
+        el = selectelem(fensc, fesc; overlappingbox = nodebox)
+        foundone = false
+        for e = el
+            c = view(fesc.conn, e, :)
+            pc, success = map2parametric(fesc, fensc.xyz[c, :],
+                vec(centroid); Tolerance = 0.000001, maxiter =9)
+            # if !success
+            # println("pc = $(pc)")
+            # N1 = bfun(fesf, pc)
+            # p = transpose(N1) * fensc.xyz[view(fesc.conn, e, :), :]
+            # println("p = $(p)")
+            # println("centroid = $(centroid)")
+            # end
+            # @assert success # this shouldn't be tripped; normally we succeed
+            if success &&  inparametric(fesc, pc; tolerance = 0.001) # coarse mesh element encloses the centroid
+                ff.values[i, :] = fc.values[e, :]
+                foundone = true
+                break
+            end
+        end
+        @assert foundone
     end
     return ff
 end

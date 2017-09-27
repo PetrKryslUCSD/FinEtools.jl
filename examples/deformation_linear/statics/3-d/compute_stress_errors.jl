@@ -52,7 +52,7 @@ function calculateerrors(coarse, fine)
     fieldc = uc
     fieldt = NodalField(zeros(size(fieldf.values)))
 
-    fieldt = transfernodalfield!(fieldt, fensf, fieldc, fensc, fesc, tolerance)
+    fieldt = transferfield!(fieldt, fensf, fesf, ieldc, fensc, fesc, tolerance)
 
     diffff = NodalField(fieldf.values - fieldt.values)
     geom = NodalField(fensf.xyz)
@@ -71,7 +71,7 @@ function calculateerrors(coarse, fine)
         fieldc = stressfieldsc[i]
         fieldt = NodalField(zeros(size(fieldf.values)))
 
-        fieldt = transfernodalfield!(fieldt, fensf, fieldc, fensc, fesc, tolerance)
+        fieldt = transferfield!(fieldt, fensf, fesf, fieldc, fensc, fesc, tolerance)
 
         diffff = NodalField(fieldf.values - fieldt.values)
         geom = NodalField(fensf.xyz)

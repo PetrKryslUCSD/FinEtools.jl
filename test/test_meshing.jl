@@ -1244,7 +1244,7 @@ function test()
     # @async run(`"paraview.exe" $File`)
     try rm(File) catch end
 
-    ff = transfernodalfield!(ff, fensf, fc, fensc, fesc, tolerance)
+    ff = transferfield!(ff, fensf, fesf, fc, fensc, fesc, tolerance)
     File = "momap2para3-fine.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("ff", ff.values)])
     # @async run(`"paraview.exe" $File`)
@@ -1255,9 +1255,85 @@ function test()
     geom = NodalField(fensf.xyz)
     error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
     ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
-    println("error/ref = $(error/ref)")
+    # println("error/ref = $(error/ref)")
     @test abs(error/ref - 0.02541369940759616) < 1.0e-4
 end
 end
 using momap2para3
 momap2para3.test()
+
+module momap2para4
+using FinEtools
+using FinEtools.MeshSelectionModule: vselect
+using FinEtools.MeshExportModule
+using Base.Test
+
+
+
+function test()
+    A = 50.0*phun("m") # length  of loaded rectangle
+    B = 200.0*phun("m") # length  of loaded rectangle
+    C = 100.0*phun("m") # span of the plate
+
+    # Select how find the mesh should be
+    Refinement = 2
+    nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
+    xs = reshape(collect(linspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linspace(0.0, C, nC + 1)), nC + 1, 1)
+    fensc,fesc = T10blockx(xs, ys, zs, :b)
+
+    centroidpc = centroidparametric(fesc)
+    N = bfun(fesc, centroidpc)
+    NT = transpose(N)
+
+    fc = ElementalField(zeros(count(fesc), 1))
+    for i = 1:count(fesc)
+        c = view(fesc.conn, i, :)
+        centroid = NT * fensc.xyz[c, :]
+        x, y, z = centroid
+        fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+    end
+    File = "momap2para3-coarse.vtk"
+    MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+
+    Refinement = Refinement + 1
+    nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
+    xs = reshape(collect(linspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linspace(0.0, C, nC + 1)), nC + 1, 1)
+    fensf,fesf = T10blockx(xs, ys, zs, :b)
+    tolerance = min(A/nA, B/nB, C/nC)/1000.0
+
+    ff = ElementalField(zeros(count(fesf), 1))
+    referenceff = ElementalField(zeros(count(fesf), 1))
+    for i = 1:count(fesf)
+        c = view(fesf.conn, i, :)
+        centroid = NT * fensf.xyz[c, :]
+        x, y, z = centroid
+        referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+    end
+    File = "momap2para3-reference.vtk"
+    MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+
+    ff = transferfield!(ff, fensf, fesf, fc, fensc, fesc, tolerance)
+    File = "momap2para3-fine.vtk"
+    MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("ff", ff.values)])
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+
+    diffff = ElementalField(referenceff.values - ff.values)
+    femm  = FEMMBase(GeoD(fesf, SimplexRule(3, 4)))
+    geom = NodalField(fensf.xyz)
+    error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
+    ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
+    # println("error/ref = $(error/ref)")
+    @test abs(error/ref - 0.19808425992688541) < 1.0e-4
+end
+end
+using momap2para4
+momap2para4.test()

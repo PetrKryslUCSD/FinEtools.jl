@@ -33,7 +33,7 @@ include("FESetModule.jl")
 using FinEtools.FESetModule
 export FESet,  FESet0Manifold,  FESet1Manifold,  FESet2Manifold,  FESet3Manifold
 export manifdim, nodesperelem, count, getconn!, setlabel!, subset, cat, updateconn!
-export bfun, bfundpar, map2parametric, inparametric
+export bfun, bfundpar, map2parametric, inparametric, centroidparametric
 export FESetP1
 export FESetL2, FESetL3
 export FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6
@@ -172,7 +172,7 @@ include("FEMMBaseModule.jl")
 using FinEtools.FEMMBaseModule
 export FEMMAbstractBase, FEMMBase
 export associategeometry!, integratefieldfunction, integratefunction,
-    transfernodalfield!, distribloads, connectionmatrix,
+    transferfield!, distribloads, connectionmatrix,
     fieldfromintegpoints, elemfieldfromintegpoints
 
 include("FEMMHeatDiffModule.jl")
