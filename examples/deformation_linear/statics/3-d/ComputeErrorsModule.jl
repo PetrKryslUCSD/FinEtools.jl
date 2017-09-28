@@ -105,10 +105,11 @@ function process(File)
 
     csvFile = File * "_errors" * ".CSV"
     savecsv(File * "_errors" * ".CSV",
-    elementsizes=vec(elementsizes[1:end-1]),
-    elementsizes2=vec(elementsizes[1:end-1].^2),
-    u_normerror=vec(displacementerrornorm ./ displacementsolnorm),
-    s_normerror=vec(stresserrornorm ./ stresssolnorm),
+        elementsizes=vec(elementsizes[1:end-1]),
+        elementsizes2=vec(elementsizes[1:end-1].^2),
+        elementsizes3=vec(elementsizes[1:end-1].^3),
+        u_normerror=vec(displacementerrornorm ./ displacementsolnorm),
+        s_normerror=vec(stresserrornorm ./ stresssolnorm),
     )
 
     @async run(`"paraview.exe" $csvFile`)
