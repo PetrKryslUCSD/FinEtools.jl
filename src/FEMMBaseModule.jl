@@ -247,7 +247,7 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
                 pc, success = map2parametric(fesc, fensc.xyz[c, :],
                 vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
                 @assert success # this shouldn't be tripped; normally we succeed
-                if  inparametric(fesc, pc; tolerance = 0.001) # coarse mesh element encloses the node
+                if  inparametric(fesc, pc; tolerance = 0.01) # coarse mesh element encloses the node
                     N = bfun(fesc,  pc)
                     ff.values[i, :] = transpose(N) * fc.values[c, :]
                     foundone = true
