@@ -9,6 +9,7 @@ function calculateerrors!(coarse, fine, finest)
     fesc = coarse["fes"]
     stressfieldsc = coarse["stressfields"]
     uc = coarse["u"]
+    tolerance = coarse["tolerance"]
 
     # Load fine-mesh data
     fensf = fine["fens"]
@@ -25,7 +26,7 @@ function calculateerrors!(coarse, fine, finest)
     stressfieldsfst = finest["stressfields"]
     geomfst = finest["geom"]
     ufst = finest["u"]
-    tolerance = fine["tolerance"]
+    #tolerance = fine["tolerance"]
 
     # (a) Displacement
     # Transfer the result from the coarse mesh to the fine-mesh
