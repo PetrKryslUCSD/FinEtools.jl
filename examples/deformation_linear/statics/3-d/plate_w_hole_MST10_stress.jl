@@ -109,7 +109,7 @@ function test()
             "geom"=>geom,
             "u"=>u,
             "femm"=>femm,
-            "stressfields"=>stressfields,
+            "stressfields"=>[stressfields],
             "tolerance"=>tolerance)
         )
     end # for ref in 0:1:5
