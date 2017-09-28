@@ -410,7 +410,7 @@ end
 
 
 struct InverseDistanceInspectorData
-    component::Int
+    component::FIntVec
     d::FFltVec # nodesperelem(geod.fes)
     sum_inv_dist::FFltVec # nnodes(geom)
     sum_quant_inv_dist::FFltMat # nnodes(geom) x length(component)
@@ -442,7 +442,7 @@ end
 
 
 struct AveragingInspectorData
-    component::Int
+    component::FIntVec
     d::FFltVec # nodesperelem(geod.fes)
     ncontrib::FIntVec # nnodes(geom)
     sum_quant::FFltMat # nnodes(geom) x length(component)
@@ -493,7 +493,7 @@ Output argument
 """
 function fieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
-    dT::NodalField{FFlt},  quantity::Symbol,  component::FInt;
+    dT::NodalField{FFlt},  quantity::Symbol,  component::FIntVec;
     context...) where {FEMM<:FEMMAbstractBase, T<:Number}
     geod = self.geod
     # Constants
@@ -563,10 +563,26 @@ end
 
 function fieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
-    quantity::Symbol,  component::FInt;
+    dT::NodalField{FFlt},  quantity::Symbol,  component::FInt;
+    context...) where {FEMM<:FEMMAbstractBase, T<:Number}
+    return fieldfromintegpoints(self, geom, u, dT, quantity, [component];
+        context...)
+end
+
+function fieldfromintegpoints(self::FEMM,
+    geom::NodalField{FFlt},  u::NodalField{T},
+    quantity::Symbol,  component::FIntVec;
     context...) where {FEMM<:FEMMAbstractBase, T<:Number}
     dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
     return fieldfromintegpoints(self, geom, u, dT, quantity, component; context...)
+end
+
+function fieldfromintegpoints(self::FEMM,
+    geom::NodalField{FFlt},  u::NodalField{T},
+    quantity::Symbol,  component::FInt;
+    context...) where {FEMM<:FEMMAbstractBase, T<:Number}
+    dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
+    return fieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
 end
 
 
@@ -596,7 +612,7 @@ Output argument
 """
 function elemfieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
-    dT::NodalField{FFlt},  quantity::Symbol,  component::FInt;
+    dT::NodalField{FFlt},  quantity::Symbol,  component::FIntVec;
     context...) where {FEMM<:FEMMAbstractBase, T<:Number}
     geod = self.geod
     # Constants
@@ -637,7 +653,23 @@ end
 
 function elemfieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
+    dT::NodalField{FFlt},  quantity::Symbol,  component::FInt;
+    context...) where {FEMM<:FEMMAbstractBase, T<:Number}
+    return elemfieldfromintegpoints(self,
+        geom, u, dT,  quantity,  [component]; context...)
+end
+
+function elemfieldfromintegpoints(self::FEMM,
+    geom::NodalField{FFlt},  u::NodalField{T},
     quantity::Symbol,  component::FInt; context...) where {FEMM<:FEMMAbstractBase,
+    T<:Number}
+    dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
+    return elemfieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
+end
+
+function elemfieldfromintegpoints(self::FEMM,
+    geom::NodalField{FFlt},  u::NodalField{T},
+    quantity::Symbol,  component::FIntVec; context...) where {FEMM<:FEMMAbstractBase,
     T<:Number}
     dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
     return elemfieldfromintegpoints(self, geom, u, dT, quantity, component; context...)
