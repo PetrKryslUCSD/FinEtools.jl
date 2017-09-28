@@ -2,7 +2,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using ComputeErrorsModule
 
-elementtag = "MST10"
+elementtag = "T10"
 println("""
 Cantilever example.  Isotropic material.
 ############### $(elementtag) ###############
@@ -62,7 +62,7 @@ for n = [1 2 4 8 16]
 
     gr = SimplexRule(3, 4)
 
-    region = FDataDict("femm"=>FEMMDeforLinearMST10(MR,
+    region = FDataDict("femm"=>FEMMDeforLinear(MR,
     GeoD(fes, gr), material))
 
     lx0 = selectnode(fens, box=[0.0 0.0 -Inf Inf -Inf Inf], inflate=tolerance)
@@ -94,13 +94,13 @@ for n = [1 2 4 8 16]
     println(" Normalized deflection: $(utip/uz_ref)")
 
     modeldata["postprocessing"] = FDataDict("file"=>"fiber_reinf_cant_iso_stresses_$(elementtag)",
-    "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy,
-    "component"=>[5])
+        "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy,
+        "component"=>[5])
     modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
 
     modeldata["postprocessing"] = FDataDict("file"=>"fiber_reinf_cant_iso_stresses_$(elementtag)",
-    "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy,
-    "component"=>collect(1:6))
+        "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy,
+        "component"=>collect(1:6))
     modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
     stressfields = ElementalField[modeldata["postprocessing"]["exported"][1]["field"]]
 
