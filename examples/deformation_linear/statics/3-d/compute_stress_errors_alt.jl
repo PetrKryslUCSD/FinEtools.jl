@@ -2,7 +2,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using JLD
 
-function calculateerrors(coarse, fine)
+function calculateerrors(coarse, benchmark)
     # Load coarse-mesh data
     File = coarse
     fensc = jldopen(File, "r") do file
@@ -18,26 +18,24 @@ function calculateerrors(coarse, fine)
         read(file, "u")
     end
 
-    # Load fine-mesh data
-    File = fine
-    fensf = jldopen(File, "r") do file
+
+    # Load benchmark-mesh data
+    File = benchmark
+    fensb = jldopen(File, "r") do file
         read(file, "fens")
     end
-    fesf = jldopen(File, "r") do file
+    fesb = jldopen(File, "r") do file
         read(file, "fes")
     end
-    stressfieldsf = jldopen(File, "r") do file
+    stressfieldsb = jldopen(File, "r") do file
         read(file, "stressfields")
     end
-    geomf = jldopen(File, "r") do file
+    geomb = jldopen(File, "r") do file
         read(file, "geom")
     end
-    uf = jldopen(File, "r") do file
+    ub = jldopen(File, "r") do file
         read(file, "u")
     end
-    # femmf = jldopen(File, "r") do file
-    #     read(file, "femm")
-    # end
     integrationrule = jldopen(File, "r") do file
         read(file, "integrationrule")
     end
@@ -48,18 +46,18 @@ function calculateerrors(coarse, fine)
     # (a) Displacement
     # Transfer the result from the coarse mesh to the fine-mesh
     displacement = FDataDict()
-    fieldf = uf
+    fieldb = ub
     fieldc = uc
-    fieldt = NodalField(zeros(size(fieldf.values)))
+    fieldt = NodalField(zeros(size(fieldb.values)))
 
-    fieldt = transferfield!(fieldt, fensf, fesf, fieldc, fensc, fesc, tolerance)
+    fieldt = transferfield!(fieldt, fensb, fesb, fieldc, fensc, fesc, tolerance)
 
-    diffff = NodalField(fieldf.values - fieldt.values)
-    geom = NodalField(fensf.xyz)
-    femmf = FEMMBase(GeoD(fesf, integrationrule))
-    normerror = integratefieldfunction(femmf, geomf, diffff, (x, v) -> norm(v)^2, 0.0)
+    diffff = NodalField(fieldb.values - fieldt.values)
+    geomb = NodalField(fensb.xyz)
+    femmb = FEMMBase(GeoD(fesb, integrationrule))
+    normerror = integratefieldfunction(femmb, geomb, diffff, (x, v) -> norm(v)^2, 0.0)
     normerror = sqrt(normerror)
-    normref = integratefieldfunction(femmf, geomf, fieldf, (x, v) -> norm(v)^2, 0.0)
+    normref = integratefieldfunction(femmb, geomb, fieldb, (x, v) -> norm(v)^2, 0.0)
     normref = sqrt(normref)
     println("|error|/|ref| = $(normerror/normref)")
     displacement["normerror"] = normerror
@@ -68,20 +66,20 @@ function calculateerrors(coarse, fine)
     # (b) Stresses
     # Transfer the result from the coarse mesh to the fine-mesh
     stress = FDataDict[]
-    for i = 1:length(stressfieldsf)
-        fieldf = stressfieldsf[i]
+    for i = 1:length(stressfieldsb)
+        fieldb = stressfieldsb[i]
         fieldc = stressfieldsc[i]
-        fieldt = deepcopy(fieldf)
+        fieldt = deepcopy(fieldb)
 
-        fieldt = transferfield!(fieldt, fensf, fesf, fieldc, fensc, fesc, tolerance)
+        fieldt = transferfield!(fieldt, fensb, fesb, fieldc, fensc, fesc, tolerance)
 
-        diffff = deepcopy(fieldf)
-        diffff.values[:] = fieldf.values - fieldt.values
-        geom = NodalField(fensf.xyz)
-        femmf = FEMMBase(GeoD(fesf, integrationrule))
-        normerror = integratefieldfunction(femmf, geomf, diffff, (x, v) -> norm(v)^2, 0.0)
+        diffff = deepcopy(fieldb)
+        diffff.values[:] = fieldb.values - fieldt.values
+        geomb = NodalField(fensb.xyz)
+        femmb = FEMMBase(GeoD(fesb, integrationrule))
+        normerror = integratefieldfunction(femmb, geomb, diffff, (x, v) -> norm(v)^2, 0.0)
         normerror = sqrt(normerror)
-        normref = integratefieldfunction(femmf, geomf, fieldf, (x, v) -> norm(v)^2, 0.0)
+        normref = integratefieldfunction(femmb, geomb, fieldb, (x, v) -> norm(v)^2, 0.0)
         normref = sqrt(normref)
         println("|error|/|ref| = $(normerror/normref)")
         push!(stress, FDataDict())
@@ -119,13 +117,13 @@ stresserror = []
 ns =  [1 2 4 8]
 for n = ns
     coarse = "fiber_reinf_cant_iso_stressesn=$(n).jld"
-    fine = "fiber_reinf_cant_iso_stressesn=$(2*n).jld"
-    displacement, stress = calculateerrors(coarse, fine)
+    benchmark = "fiber_reinf_cant_iso_stressesn=16.jld"
+    displacement, stress = calculateerrors(coarse, benchmark)
     push!(displacementerror, displacement["normerror"]/displacement["normref"])
     push!(stresserror, stress[1]["normerror"]/stress[1]["normref"])
 end
-
-println("stress[1]["normref"] = $(stress[1]["normref"])")
+#
+# println("stress[1]["normref"] = $(stress[1]["normref"])")
 
 
 File = "fiber_reinf_cant_iso_stresses_errors" * ".CSV"
