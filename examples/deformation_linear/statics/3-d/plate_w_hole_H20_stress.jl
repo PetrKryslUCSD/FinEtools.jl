@@ -1,4 +1,4 @@
-module mplate_w_hole_MST10m_stress
+module mplate_w_hole_H20_stress
 using FinEtools
 using FinEtools.MeshExportModule
 using ComputeErrorsModule
@@ -49,7 +49,7 @@ function test()
         Thickness = H/2^ref
         tolerance = Thickness/2^ref/1000.; # Geometrical tolerance
 
-        fens,fes = T10block(1.0, pi/2, Thickness, 2^ref*nRadial, 2^ref*nCircumferential, 2^ref*nThickness)
+        fens,fes = H20block(1.0, pi/2, Thickness, 2^ref*nRadial, 2^ref*nCircumferential, 2^ref*nThickness)
 
         bdryfes = meshboundary(fes);
         icl = selectelem(fens, bdryfes, box=[1.0, 1.0, 0.0, pi/2, 0.0, Thickness], inflate=tolerance);
@@ -75,7 +75,7 @@ function test()
 
         applyebc!(u)
         numberdofs!(u)
-        el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), TriRule(3)))
+        el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), GaussRule(2, 3)))
         function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
             local r = sqrt(XYZ[1]^2 + XYZ[2]^2)
             nx = XYZ[1]/r; ny = XYZ[2]/r
@@ -91,7 +91,7 @@ function test()
 
         material = MatDeforElastIso(MR, E, nu)
 
-        femm = FEMMDeforLinearMST10(MR, GeoD(fes, TetRule(4)), material)
+        femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3, 2)), material)
 
         # The geometry field now needs to be associated with the FEMM
         femm = associategeometry!(femm, geom)
@@ -115,7 +115,7 @@ function test()
         )
     end # for ref in 0:1:5
 
-    File = "mplate_w_hole_MST10m_stress"
+    File = "mplate_w_hole_H20m_stress"
     open(File * ".jls", "w") do file
         serialize(file, convergencestudy)
     end
@@ -125,5 +125,5 @@ end
 
 end # module
 
-using mplate_w_hole_MST10m_stress
-mplate_w_hole_MST10m_stress.test()
+using mplate_w_hole_H20_stress
+mplate_w_hole_H20_stress.test()

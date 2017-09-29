@@ -1,4 +1,4 @@
-module mplate_w_hole_MST10m_stress
+module mplate_w_hole_T10_stress
 using FinEtools
 using FinEtools.MeshExportModule
 using ComputeErrorsModule
@@ -91,7 +91,7 @@ function test()
 
         material = MatDeforElastIso(MR, E, nu)
 
-        femm = FEMMDeforLinearMST10(MR, GeoD(fes, TetRule(4)), material)
+        femm = FEMMDeforLinear(MR, GeoD(fes, TetRule(4)), material)
 
         # The geometry field now needs to be associated with the FEMM
         femm = associategeometry!(femm, geom)
@@ -115,7 +115,7 @@ function test()
         )
     end # for ref in 0:1:5
 
-    File = "mplate_w_hole_MST10m_stress"
+    File = "mplate_w_hole_T10m_stress"
     open(File * ".jls", "w") do file
         serialize(file, convergencestudy)
     end
@@ -125,5 +125,5 @@ end
 
 end # module
 
-using mplate_w_hole_MST10m_stress
-mplate_w_hole_MST10m_stress.test()
+using mplate_w_hole_T10_stress
+mplate_w_hole_T10_stress.test()
