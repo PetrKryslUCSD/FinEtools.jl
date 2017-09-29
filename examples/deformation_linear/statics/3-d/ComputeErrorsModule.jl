@@ -103,6 +103,16 @@ function process(File)
     println("stresserrornorm = $(stresserrornorm)")
     println("stresssolnorm = $(stresssolnorm)")
 
+    f = log.(vec(displacementerrornorm ./ displacementsolnorm))
+    A = hcat(log.(vec(elementsizes[1:end-1])), ones(size(f)))
+    p = A \ f
+    println("Displacement linear fit: p = $(p)")
+
+    f = log.(vec(stresserrornorm ./ stresssolnorm))
+    A = hcat(log.(vec(elementsizes[1:end-1])), ones(size(f)))
+    p = A \ f
+    println("Stress linear fit: p = $(p)")
+
     csvFile = File * "_errors" * ".CSV"
     savecsv(File * "_errors" * ".CSV",
         elementsizes=vec(elementsizes[1:end-1]),
