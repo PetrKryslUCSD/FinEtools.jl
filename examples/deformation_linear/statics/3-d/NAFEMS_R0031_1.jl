@@ -44,6 +44,7 @@ CTE2 = 2.0e-5
 CTE3 = 2.0e-5
 
 AB = 30.0*phun("mm") # span between simple supports
+CD = 4.0*phun("mm") # distance between the point D and the center
 OH = 10.0*phun("mm") # overhang
 W = 10.0*phun("mm") # width of the strip
 
@@ -69,7 +70,7 @@ sigma11Eref = 684*phun("MPa");
 # system is located at the outer corner of the strip.
 sigma13Dref=4.1*phun("MPa");
 
-Refinement = 9
+Refinement = 10
 # We select 8 elements spanwise and 2 elements widthwise.  The overhang
 # of the plate is given one element.
 nL = Refinement * 4; nO = Refinement * 1; nW = Refinement * 1;
@@ -77,8 +78,9 @@ nL = Refinement * 4; nO = Refinement * 1; nW = Refinement * 1;
 # Each layer is modeled with a single element.
 nts= Refinement * ones(Int, length(angles));# number of elements per layer
 
-xs = unique(vcat(collect(linspace(0,AB/2,nL+1)),
+xs = unique(vcat(collect(linspace(0,AB/2,nL+1)), [CD],
     collect(linspace(AB/2,AB/2+OH,nO+1))))
+xs = xs[sortperm(xs)]
 ys = collect(linspace(0,W/2,nW+1));
 
 fens,fes = H8compositeplatex(xs, ys, ts, nts)
@@ -167,7 +169,7 @@ geom = modeldata["geom"]
 # nodes located at the appropriate points.
 nE = selectnode(fens, box=[0.0 0.0 0.0 0.0 0.0 0.0], inflate=tolerance)
 nC = selectnode(fens, box=[0.0 0.0 0.0 0.0 TH TH], inflate=tolerance)
-nD = selectnode(fens, box=[0.0 0.0 0.0 0.0 ts[1] ts[1]], inflate=tolerance)
+nD = selectnode(fens, box=[CD CD 0.0 0.0 ts[1] ts[1]], inflate=tolerance)
 n0z = selectnode(fens, box=[0.0 0.0 0.0 0.0 0.0 TH], inflate=tolerance)
 ix = sortperm(geom.values[n0z, 3])
 # println("ix = $(ix)")
@@ -176,11 +178,11 @@ cdis = mean(u.values[nE, 3])
 println("")
 println("Normalized Center deflection: $(cdis/wEref)")
 
-# # extrap = :extraptrend
+extrap = :extraptrend
 # # extrap = :extrapmean
-# inspectormeth = :averaging
-extrap = :default
-inspectormeth = :invdistance
+inspectormeth = :averaging
+# extrap = :default
+# inspectormeth = :invdistance
 
 modeldata["postprocessing"] = FDataDict("file"=>"NAFEMS-R0031-1-plate-sx",
     "quantity"=>:Cauchy, "component"=>1, "outputcsys"=>CSys(3),
