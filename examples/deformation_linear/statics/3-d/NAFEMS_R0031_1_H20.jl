@@ -33,10 +33,9 @@ Laminated Strip Under Three-Point Bending
 t0 = time()
 # Orthotropic material parameters of the material of the layers
 E1s = 100.0*phun("GPa")
-E2s = 5.0*phun("GPa")
-E3s = E2s
+E2s = E3s = 5.0*phun("GPa")
 nu12s = 0.4
-nu13s = 0.02
+nu13s = 0.3
 nu23s = 0.3
 G12s = 3.0*phun("GPa")
 G13s = G23s = 2.0*phun("GPa")
@@ -45,6 +44,7 @@ CTE2 = 2.0e-5
 CTE3 = 2.0e-5
 
 AB = 30.0*phun("mm") # span between simple supports
+CD = 4.0*phun("mm") # distance between the point D and the center
 OH = 10.0*phun("mm") # overhang
 W = 10.0*phun("mm") # width of the strip
 
@@ -70,7 +70,7 @@ sigma11Eref = 684*phun("MPa");
 # system is located at the outer corner of the strip.
 sigma13Dref=4.1*phun("MPa");
 
-Refinement = 5
+Refinement = 8
 # We select 8 elements spanwise and 2 elements widthwise.  The overhang
 # of the plate is given one element.
 nL = Refinement * 4; nO = Refinement * 1; nW = Refinement * 1;
@@ -78,8 +78,9 @@ nL = Refinement * 4; nO = Refinement * 1; nW = Refinement * 1;
 # Each layer is modeled with a single element.
 nts= Refinement * ones(Int, length(angles));# number of elements per layer
 
-xs = unique(vcat(collect(linspace(0,AB/2,nL+1)),
+xs = unique(vcat(collect(linspace(0,AB/2,nL+1)), [CD],
     collect(linspace(AB/2,AB/2+OH,nO+1))))
+xs = xs[sortperm(xs)]
 ys = collect(linspace(0,W/2,nW+1));
 
 fens,fes = H8compositeplatex(xs, ys, ts, nts)
@@ -161,14 +162,14 @@ modeldata = AlgoDeforLinearModule.linearstatics(modeldata)
 modeldata["postprocessing"] = FDataDict("file"=>"NAFEMS-R0031-1-plate")
 modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
 
+u = modeldata["u"]
+geom = modeldata["geom"]
+
 # The results of the displacement and stresses will be reported at
 # nodes located at the appropriate points.
 nE = selectnode(fens, box=[0.0 0.0 0.0 0.0 0.0 0.0], inflate=tolerance)
 nC = selectnode(fens, box=[0.0 0.0 0.0 0.0 TH TH], inflate=tolerance)
-nD = selectnode(fens, box=[0.0 0.0 0.0 0.0 ts[1] ts[1]], inflate=tolerance)
-
-u = modeldata["u"]
-geom = modeldata["geom"]
+nD = selectnode(fens, box=[CD CD 0.0 0.0 ts[1] ts[1]], inflate=tolerance)
 
 cdis = mean(u.values[nE, 3])
 println("")

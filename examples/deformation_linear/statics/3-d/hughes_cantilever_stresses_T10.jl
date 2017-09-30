@@ -27,7 +27,7 @@ tolerance = 0.00001*c
 convergencestudy = FDataDict[]
 for n = [1 2 4 8] #
 
-    nL = 4*n # number of elements lengthwise
+    nL = 3*n # number of elements lengthwise
     nc = 2*n # number of elements through the wwith
     nh = n # number of elements through the thickness
     xs = collect(linspace(0.0, L, nL+1))
