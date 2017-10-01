@@ -100,11 +100,11 @@ export Q8block, Q4toQ8, Q8annulus, Q8blockx
 
 include("MeshLineModule.jl")
 using FinEtools.MeshLineModule
-export L2block, L2blockx
+export L2block, L2blockx, L3blockx
 
 include("MeshTriangleModule.jl")
 using FinEtools.MeshTriangleModule
-export  T3blockx, T3block,  T3toT6,  T6block,  Q4toT3,  T3refine, T6blockx 
+export  T3blockx, T3block,  T3toT6,  T6block,  Q4toT3,  T3refine, T6blockx
 
 include("MeshHexahedronModule.jl")
 using FinEtools.MeshHexahedronModule
