@@ -1871,7 +1871,7 @@ Meshing = T3blockx
     geom = NodalField(fensf.xyz)
     error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
     ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
-    println("error/ref = $(error/ref)")
+    # println("error/ref = $(error/ref)")
     @test abs(error/ref -  0.19654730310399787) < 1.0e-4
 end
 end
@@ -2048,8 +2048,8 @@ Meshing = L3blockx
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
     xs = collect(linspace(0.0, A, nA + 1))
     fensc,fesc = Meshing(xs)
-    println("fensc = $(fensc)")
-println("fesc = $(fesc)")
+#     println("fensc = $(fensc)")
+# println("fesc = $(fesc)")
 
     centroidpc = centroidparametric(fesc)
     N = bfun(fesc, centroidpc)
@@ -2103,3 +2103,26 @@ end
 end
 using momap2para14
 momap2para14.test()
+
+module mpointmm1
+using FinEtools
+using Base.Test
+function test()
+    x::FFltMat = eye(FFlt, 4, 3)
+    fes = FESetP1(reshape([1 2 4 3], 4, 1))
+    pt::FFltVec = x[4, :]
+    pc, success = map2parametric(fes, reshape(x[4, :], 1, 3), pt)
+    @test success
+    @test pc[1] == 00.0
+    pc, success = map2parametric(fes, reshape(x[2, :], 1, 3), pt)
+    @test !success
+
+    c = centroidparametric(fes)
+    @test c[1] == 0.0
+
+    b = inparametric(fes, [0.0], tolerance = 0.001)
+    @test b
+end
+end
+using mpointmm1
+mpointmm1.test()

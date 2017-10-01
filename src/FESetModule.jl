@@ -195,7 +195,8 @@ Map a spatial location to parametric coordinates.
 `x`=array of spatial coordinates of the nodes, size(x) = nbfuns x dim,
 `c`= spatial location
 Returns
-Returns a row array of parametric coordinates if the solution was
+`success` = Boolean flag, true if successful, false otherwise.
+`pc` = Returns a row array of parametric coordinates if the solution was
 successful, otherwise NaN are returned.
 """
 function map2parametric(self::T, x::FFltMat, pt::FFltVec;
@@ -389,23 +390,22 @@ end
 privbfun(self::FESetP1,  param_coords::FFltVec) = reshape([1.0], 1, 1) # make sure this is a matrix
 privbfundpar(self::FESetP1,  param_coords::FFltVec) = zeros(1, 0)
 
-function privboundaryconn(self::FESetP1)
-    # Get boundary connectivity.
-    return [];
-end
-
-function privboundaryfe(self::FESetP1)
-    return None;
-end
 
 function privinparametric(self::FESetP1, param_coords::FFltVec, tolerance::FFlt)
-    s = find(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)),
-        param_coords);
-    return  (length(s) == length(param_coords));
+    return  param_coords[1] == 0.0;
 end
 
 function privcentroidparametric(self::FESetP1)
     return vec([0.0])
+end
+
+function map2parametric(self::FESetP1, x::FFltMat, pt::FFltVec;
+    Tolerance = 0.001, maxiter =5)
+    success = false; pc = [0.0]
+    if norm(vec(x) - pt) < Tolerance
+        success = true
+    end
+    return pc, success;
 end
 
 ################################################################################
