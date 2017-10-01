@@ -95,8 +95,8 @@ export meshboundary, fusenodes, compactnodes, mergemeshes, mergenmeshes,
 
 include("MeshQuadrilateralModule.jl")
 using FinEtools.MeshQuadrilateralModule
-export Q4annulus, Q8annulus, Q4quadrilateral, Q4elliphole, Q4block, Q4blockx,
-    Q8block, Q4toQ8, Q4refine
+export Q4annulus, Q4quadrilateral, Q4elliphole, Q4block, Q4blockx, Q4refine
+export Q8block, Q4toQ8, Q8annulus, Q8blockx
 
 include("MeshLineModule.jl")
 using FinEtools.MeshLineModule
@@ -104,13 +104,13 @@ export L2block, L2blockx
 
 include("MeshTriangleModule.jl")
 using FinEtools.MeshTriangleModule
-export T3blockx, T3blockx, T3block, T3toT6, T6block, Q4toT3, T3refine, Q4toT3
+export  T3blockx, T3block,  T3toT6,  T6block,  Q4toT3,  T3refine, T6blockx 
 
 include("MeshHexahedronModule.jl")
 using FinEtools.MeshHexahedronModule
 export  H8block,  H8blockx,  H8sphere,  H8refine, H8hexahedron, H8extrudeQ4,
     H8spheren, H8voximg,  H8compositeplatex, H8elliphole, H8toH27,  H27block,
-    H20block,  H8toH20
+    H20block,  H8toH20, H20blockx, H27blockx
 
 include("MeshTetrahedronModule.jl")
 using FinEtools.MeshTetrahedronModule
