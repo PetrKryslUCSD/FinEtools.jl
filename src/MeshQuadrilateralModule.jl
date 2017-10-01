@@ -5,8 +5,8 @@ Module  for generation of meshes composed of quadrilaterals.
 """
 module MeshQuadrilateralModule
 
-export  Q4annulus,  Q4quadrilateral,  Q4elliphole,  Q4block,  Q4blockx,  Q4refine
-export Q8block,  Q4toQ8,  Q8annulus
+export Q4annulus, Q4quadrilateral, Q4elliphole, Q4block, Q4blockx, Q4refine
+export Q8block, Q4toQ8, Q8annulus, Q8blockx
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -246,6 +246,16 @@ function Q4toQ8(fens::FENodeSet, fes::FESetQ4)
     fens = FENodeSet(xyz);
     fes = FESetQ8(nconns);
     return fens, fes
+end
+
+"""
+    Q8blockx(xs::FFltVec, ys::FFltVec)
+
+Graded mesh of a 2-D block of Q8 finite elements.
+"""
+function Q8blockx(xs::FFltVec, ys::FFltVec)
+    fens, fes = Q4blockx(xs, ys);
+    fens, fes = Q4toQ8(fens, fes);
 end
 
 """

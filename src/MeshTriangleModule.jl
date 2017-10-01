@@ -5,7 +5,7 @@ Module  for generation of meshes composed of triangles.
 """
 module MeshTriangleModule
 
-export  T3blockx, T3block,  T3toT6,  T6block,  Q4toT3,  T3refine
+export  T3blockx, T3block,  T3toT6,  T6block,  Q4toT3,  T3refine, T6blockx
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -138,6 +138,16 @@ Mesh of a rectangle of T6 elements.
 function T6block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, orientation::Symbol=:a)
     fens,fes = T3block(Length,Width,nL,nW,orientation);
     fens,fes = T3toT6(fens,fes);
+end
+
+"""
+    T6blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol=:a)
+
+Graded mesh of a 2-D block of T6 finite elements.
+"""
+function T6blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol=:a)
+    fens, fes = T3blockx(xs, ys, orientation);
+    fens, fes = T3toT6(fens, fes);
 end
 
 """

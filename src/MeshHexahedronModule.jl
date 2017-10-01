@@ -7,7 +7,7 @@ module MeshHexahedronModule
 
 export  H8block,  H8blockx,  H8sphere,  H8refine, H8hexahedron, H8extrudeQ4,
     H8spheren, H8voximg,  H8compositeplatex, H8elliphole, H8toH27,  H27block,
-    H20block,  H8toH20
+    H20block,  H8toH20, H20blockx, H27blockx
 
 
 using FinEtools.FTypesModule
@@ -358,6 +358,16 @@ function H27block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, n
     return fens, fes
 end
 
+"""
+    H27blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec)
+
+Graded mesh of a 3-D block of H27 finite elements.
+"""
+function H27blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec)
+    fens, fes = H8blockx(xs, ys, zs);
+    fens, fes = H8toH27(fens, fes);
+end
+
 function doextrude(fens, fes::FESetQ4, nLayers, extrusionh)
     nn1=count(fens);
     nnt=nn1*nLayers;
@@ -520,6 +530,16 @@ function H20block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, n
     # See also: H8_block,  H8_to_H20
     #
     fens, fes = H8block(Length, Width, Height, nL, nW, nH);
+    fens, fes = H8toH20(fens, fes);
+end
+
+"""
+    H20blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec)
+
+Graded mesh of a 3-D block of H20 finite elements.
+"""
+function H20blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec)
+    fens, fes = H8blockx(xs, ys, zs);
     fens, fes = H8toH20(fens, fes);
 end
 
