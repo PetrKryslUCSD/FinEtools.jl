@@ -12,6 +12,8 @@
 
 ## News
 
+- 10/03/2017: At this point the toolkit  is committed to version 0.7. Breaking changes mean that  tests no longer pass with 0.6.
+
 - 08/04/2017: Several Jupyter notebook tutorials are now available. Abaqus mesh import is now also implemented (for continuum elements). Initial implementation  of mean-strain hexahedra and tetrahedra has been completed.
 
 - 07/23/2017: Export of the finite element model to Abaqus  CAE (from Daussault Systems)
@@ -24,7 +26,7 @@ Since  this package is not registered, please use cloning:
 ```julia
 Pkg.clone("https://github.com/PetrKryslUCSD/FinEtools.jl")
 ```
-Only version 0.6 and the nightly builds of Julia  are supported.
+Only version 0.7 (the nightly) builds of Julia  are supported.
 
 ## Testing
 
