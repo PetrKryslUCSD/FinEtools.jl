@@ -1,7 +1,6 @@
 module mTEST13H_vib
 using FinEtools
 using FinEtools.AlgoDeforLinearModule: ssit
-using Base.Test
 function test()
     # Harmonic forced vibration problem is solved for a homogeneous square plate,
     # simply-supported on the circumference.

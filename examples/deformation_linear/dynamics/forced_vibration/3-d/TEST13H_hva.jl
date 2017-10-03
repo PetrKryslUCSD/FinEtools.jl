@@ -3,7 +3,6 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule: ssit
 using DataFrames
 using CSV
-using Base.Test
 function test()
     # Harmonic forced vibration problem is solved for a homogeneous square plate,
     # simply-supported on the circumference.

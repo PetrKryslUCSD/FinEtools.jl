@@ -2,7 +2,6 @@ module mbar2
 using FinEtools
 using FinEtools.FENodeSetModule
 using FinEtools.MeshExportModule
-using Base.Test
 function test()
     # Planar truss  structure loaded with concentrated forces  at some nodes.
     # The nodal displacements should be

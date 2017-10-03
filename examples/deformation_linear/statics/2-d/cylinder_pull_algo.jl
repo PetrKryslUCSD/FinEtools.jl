@@ -1,7 +1,6 @@
 module mocylpullFun
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Base.Test
 function test()
 
     # Cylinder  pulled by enforced displacement, axially symmetric model

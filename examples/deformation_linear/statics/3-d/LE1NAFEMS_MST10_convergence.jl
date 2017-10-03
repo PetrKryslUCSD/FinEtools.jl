@@ -3,7 +3,6 @@ using FinEtools
 using FinEtools.MeshExportModule
 using DataFrames
 using CSV
-using Base.Test
 function test()
 
     println("LE1NAFEMS, 3D version. MST10"        )

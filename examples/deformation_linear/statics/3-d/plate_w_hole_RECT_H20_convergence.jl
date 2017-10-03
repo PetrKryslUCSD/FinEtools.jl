@@ -4,7 +4,6 @@ using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule: import_ABAQUS
 # using DataFrames
 # using CSV
-using Base.Test
 function test()
     E = 210000*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
