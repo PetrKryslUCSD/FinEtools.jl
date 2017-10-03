@@ -214,7 +214,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
                 felist[i] =i;   # matched this element
             end
         end
-        return  felist[find(felist)]; # return the nonzero element numbers
+        return  felist[find(x->x!=0, felist)]; # return the nonzero element numbers
     end
 
     # Select by flooding
@@ -277,7 +277,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
                 felist[i]=i;
             end
         end
-        return  felist[find(felist)]; # return the nonzero element numbers
+        return  felist[find(x->x!=0, felist)]; # return the nonzero element numbers
     end
 
 
@@ -332,7 +332,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
                 felist[i]=i; # this element overlaps the box
             end
         end
-        return  felist[find(felist)]; # return the nonzero element numbers
+        return  felist[find(x->x!=0, felist)]; # return the nonzero element numbers
     end
 
 
@@ -423,7 +423,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
             end
         end
     end
-    return felist[find(felist)]; # return the nonzero element numbers
+    return felist[find(x->x!=0, felist)]; # return the nonzero element numbers
 
 end
 
