@@ -1,6 +1,6 @@
 module mmmvvoxelmm1
 using FinEtools
-using Base.Test
+using Test
 function test()
     V = VoxelBoxVolume(Int, 5*[5,6,7], [4.0, 4.0, 5.0])
 
@@ -17,12 +17,12 @@ function test()
     @test (V.data[15,16,15]==1)
 end
 end
-using mmmvvoxelmm1
+using .mmmvvoxelmm1
 mmmvvoxelmm1.test()
 
 module mmmvvoxelmm2
 using FinEtools
-using Base.Test
+using Test
 function test()
     V = VoxelBoxVolume(Int, 5*[5,6,7], [4.0, 4.0, 5.0])
 
@@ -41,12 +41,12 @@ function test()
     @test (V.data[1,1,12]==1)
 end
 end
-using mmmvvoxelmm2
+using .mmmvvoxelmm2
 mmmvvoxelmm2.test()
 
 module mmmvvoxelmm3
 using FinEtools
-using Base.Test
+using Test
 function test()
     V = VoxelBoxVolume(Int, 15*[5,6,7], [4.0, 4.0, 5.0])
 
@@ -68,13 +68,13 @@ function test()
     # @test (V.data[1,1,12]==1)
 end
 end
-using mmmvvoxelmm3
+using .mmmvvoxelmm3
 mmmvvoxelmm3.test()
 
 
 module mmmvvoxelmm4
 using FinEtools
-using Base.Test
+using Test
 function test()
     V = VoxelBoxVolume(Int, 5*[5,6,7], [4.0, 4.0, 5.0])
 
@@ -95,13 +95,13 @@ function test()
     @test (V.data[13,15,20]==1)
 end
 end
-using mmmvvoxelmm4
+using .mmmvvoxelmm4
 mmmvvoxelmm4.test()
 
 
 module mmmvvoxelmm5
 using FinEtools
-using Base.Test
+using Test
 function test()
     V = VoxelBoxVolume(Int, 15*[5,6,7], [4.0, 4.0, 5.0])
 
@@ -127,12 +127,12 @@ function test()
     @test (V.data[35,45,50]==2)
 end
 end
-using mmmvvoxelmm5
+using .mmmvvoxelmm5
 mmmvvoxelmm5.test()
 
 module mmmvvoxelmm6
 using FinEtools
-using Base.Test
+using Test
 function test()
     raw = zeros(UInt8, 13, 14, 15)
     raw[5:7, 2:13, 12:14] = 1
@@ -151,12 +151,12 @@ function test()
     @test (V.data[12,10,5]==0)
 end
 end
-using mmmvvoxelmm6
+using .mmmvvoxelmm6
 mmmvvoxelmm6.test()
 
 module mmmvvoxelmm7
 using FinEtools
-using Base.Test
+using Test
 function test()
     raw = zeros(UInt8, 13, 14, 15)
     V = VoxelBoxVolume(raw, [4.0, 4.0, 5.0])
@@ -176,12 +176,12 @@ function test()
     @test (V.data[12,10,5]==2)
 end
 end
-using mmmvvoxelmm7
+using .mmmvvoxelmm7
 mmmvvoxelmm7.test()
 
 module mmmvvoxelmm8
 using FinEtools
-using Base.Test
+using Test
 function test()
     raw = zeros(UInt8, 13, 14, 15)
     V = VoxelBoxVolume(raw, [4.0, 4.0, 5.0])
@@ -198,12 +198,12 @@ function test()
     try rm(File) catch end
 end
 end
-using mmmvvoxelmm8
+using .mmmvvoxelmm8
 mmmvvoxelmm8.test()
 
 module mmmvvoxelmm9
 using FinEtools
-using Base.Test
+using Test
 function test()
     raw = zeros(UInt8, 13, 14, 15)
     fill!(raw, 2)
@@ -230,12 +230,12 @@ function test()
     # @test (V.data[12,10,5]==2)
 end
 end
-using mmmvvoxelmm9
+using .mmmvvoxelmm9
 mmmvvoxelmm9.test()
 
 module mvoxelmm12
 using FinEtools
-using Base.Test
+using Test
 function test()
     V = VoxelBoxVolume(Int, 5*[5,6,7], [4.0, 4.0, 5.0])
 
@@ -255,12 +255,12 @@ function test()
     @test (V.data[1,1,12]==2)
 end
 end
-using mvoxelmm12
+using .mvoxelmm12
 mvoxelmm12.test()
 
 module mvoxelmm13
 using FinEtools
-using Base.Test
+using Test
 function test()
     V = VoxelBoxVolume(Int, 7*[5,6,7], [4.0, 4.0, 5.0])
 
@@ -287,5 +287,5 @@ function test()
     @test (V.data[end,end,end] != 0)
 end
 end
-using mvoxelmm13
+using .mvoxelmm13
 mvoxelmm13.test()

@@ -1,7 +1,7 @@
 
 module mmrrigid
 using FinEtools
-using Base.Test
+using Test
 function test()
 
 # println("""
@@ -59,13 +59,13 @@ try rm(File) catch end
 true
 end
 end
-using mmrrigid
+using .mmrrigid
 mmrrigid.test()
 
 module fahyL2example
 
 using FinEtools
-using Base.Test
+using Test
 
 function test()
 # println("""
@@ -131,12 +131,12 @@ fs = real(sqrt.(complex(d)))/(2*pi)
   true
 end
 end
-using fahyL2example
+using .fahyL2example
 fahyL2example.test()
 
 module mmfahyH8example
 using FinEtools
-using Base.Test
+using Test
 function test()
 
 # println("""
@@ -189,12 +189,12 @@ fs = real(sqrt.(complex(d)))/(2*pi)
   true
 end
 end
-using mmfahyH8example
+using .mmfahyH8example
 mmfahyH8example.test()
 
 module mmfahyH27example
 using FinEtools
-using Base.Test
+using Test
 function test()
 
 # println("""
@@ -248,12 +248,12 @@ fs = real(sqrt.(complex(d)))/(2*pi)
   true
 end
 end
-using mmfahyH27example
+using .mmfahyH27example
 mmfahyH27example.test()
 
 module mstraight_duct_H8_1
 using FinEtools
-using Base.Test
+using Test
 function test()
     t0  =  time()
 
@@ -336,12 +336,12 @@ function test()
 
 end
 end
-using mstraight_duct_H8_1
+using .mstraight_duct_H8_1
 mstraight_duct_H8_1.test()
 
 module mmsphere_dipole_1
 using FinEtools
-using Base.Test
+using Test
 function test()
 
 # println("The interior sphere accelerates in the positive x-direction, generating
@@ -458,12 +458,12 @@ try rm(File) catch end
 true
 end
 end
-using mmsphere_dipole_1
+using .mmsphere_dipole_1
 mmsphere_dipole_1.test()
 
 module mstraight_duct_T10_examplem
 using FinEtools
-using Base.Test
+using Test
 function test()
 
 t0  =  time()
@@ -541,12 +541,12 @@ try rm(File) catch end
 true
 end
 end
-using mstraight_duct_T10_examplem
+using .mstraight_duct_T10_examplem
 mstraight_duct_T10_examplem.test()
 
 module mmiintegrationmm
 using FinEtools
-using Base.Test
+using Test
 function test()
 rho = 1000.0*phun("kg/m^3");# mass density of water
 c  = 1.4491e+3*phun("m/s");# sound speed in water
@@ -604,12 +604,12 @@ mass =  V*rhos;
 Inertia = I*rhos;
 end
 end
-using mmiintegrationmm
+using .mmiintegrationmm
 mmiintegrationmm.test()
 
 module mmtransientsphere
 using FinEtools
-using Base.Test
+using Test
 function test()
   # println("The interior sphere accelerates in the alternately in the positive
   # and negative x-direction, generating positive pressure ahead of it, negative
@@ -728,12 +728,12 @@ function test()
 
 end
 end
-using mmtransientsphere
+using .mmtransientsphere
 mmtransientsphere.test()
 
 module mmhhemispheremm
 using FinEtools
-using Base.Test
+using Test
 function test()
 
   # println("Rigid movable hemisphere in  water. Time-dependent simulation.
@@ -1036,12 +1036,12 @@ function test()
 
 end
 end
-using mmhhemispheremm
+using .mmhhemispheremm
 mmhhemispheremm.test()
 
 module mmbbaffledmm
 using FinEtools
-using Base.Test
+using Test
 function test()
 rho = 1.21*phun("kg/m^3");# mass density
 c  = 343.0*phun("m/s");# sound speed
@@ -1136,12 +1136,12 @@ P = modeldata["P"]
 true
 end
 end
-using mmbbaffledmm
+using .mmbbaffledmm
 mmbbaffledmm.test()
 
 module mmtransientmm1mm
 using FinEtools
-using Base.Test
+using Test
 function test()
     rho = 1.21*phun("kg/m^3");# mass density
     c  = 343.0*phun("m/s");# sound speed
@@ -1273,13 +1273,13 @@ function test()
 @test abs(Pnh[end]-221.11319820621947) < 1.0e-3
 end
 end
-using mmtransientmm1mm
+using .mmtransientmm1mm
 mmtransientmm1mm.test()
 
 module mmAnnularmm
 using FinEtools
 using FinEtools.AlgoAcoustModule
-using Base.Test
+using Test
 function test()
 
 
@@ -1341,5 +1341,5 @@ function test()
 
 end
 end
-using mmAnnularmm
+using .mmAnnularmm
 mmAnnularmm.test()

@@ -1,6 +1,6 @@
 module mmmmPoiss_06122017
 using FinEtools
-using Base.Test
+using Test
 function test()
 
   # println("""
@@ -81,12 +81,12 @@ function test()
   true
 end
 end
-using mmmmPoiss_06122017
+using .mmmmPoiss_06122017
 mmmmPoiss_06122017.test()
 
 module mmmmannulus_Q4_example_algo
 using FinEtools
-using Base.Test
+using Test
 function test()
   # println("""
   # Annular region, ingoing and outgoing flux. Temperature at one node prescribed.
@@ -158,12 +158,12 @@ function test()
 end
 
 end
-using mmmmannulus_Q4_example_algo
+using .mmmmannulus_Q4_example_algo
 mmmmannulus_Q4_example_algo.test()
 
 module mmmmmPoisson_FE_Q4_1
 using FinEtools
-using Base.Test
+using Test
 function test()
   # println("""
   #
@@ -228,7 +228,7 @@ function test()
   # println("Total time elapsed = $(time() - t0) [s]")
   # println("Solution time elapsed = $(time() - t1) [s]")
 
-  # using MeshExportModule
+  # using .meshExportModule
 
   # File =  "a.vtk"
   # MeshExportModule.vtkexportmesh (File, fes.conn, [geom.values Temp.values], MeshExportModule.Q4; scalars=Temp.values, scalars_name ="Temperature")
@@ -243,12 +243,12 @@ function test()
   true
 end
 end
-using mmmmmPoisson_FE_Q4_1
+using .mmmmmPoisson_FE_Q4_1
 mmmmmPoisson_FE_Q4_1.test()
 
 module mmmmmPoisson_FE_example_algo
 using FinEtools
-using Base.Test
+using Test
 function test()
     A= 1.0
     thermal_conductivity = eye(2,2); # conductivity matrix
@@ -309,12 +309,12 @@ function test()
 
 end
 end
-using mmmmmPoisson_FE_example_algo
+using .mmmmmPoisson_FE_example_algo
 mmmmmPoisson_FE_example_algo.test()
 
 module mmmmmPoissonRm2
 using FinEtools
-using Base.Test
+using Test
 function test()
   # println("""
   # Heat conduction example described by Amuthan A. Ramabathiran
@@ -390,12 +390,12 @@ function test()
 
 end
 end
-using mmmmmPoissonRm2
+using .mmmmmPoissonRm2
 mmmmmPoissonRm2.test()
 
 module mmmmmmmmmNAFEMSm
 using FinEtools
-using Base.Test
+using Test
 function test()
   ## Two-dimensional heat transfer with convection: convergence study
   #
@@ -569,12 +569,12 @@ function test()
 
 end
 end
-using mmmmmmmmmNAFEMSm
+using .mmmmmmmmmNAFEMSm
 mmmmmmmmmNAFEMSm.test()
 
 module mmmmmmconvergence
 using FinEtools
-using Base.Test
+using Test
 function test()
   ## Two-dimensional heat transfer with convection: convergence study
   #
@@ -746,12 +746,12 @@ function test()
 
 end
 end
-using mmmmmmconvergence
+using .mmmmmmconvergence
 mmmmmmconvergence.test()
 
 module mmmPoissonmmmt4mmmm
 using FinEtools
-using Base.Test
+using Test
 function test()
 
   t0 = time()
@@ -829,12 +829,12 @@ function test()
 @test abs(Error[1]) < 1.0e-3
 end
 end
-using mmmPoissonmmmt4mmmm
+using .mmmPoissonmmmt4mmmm
 mmmPoissonmmmt4mmmm.test()
 
 module mmmPoissonmmmt10mm
 using FinEtools
-using Base.Test
+using Test
 function test()
 
   t0 = time()
@@ -912,12 +912,12 @@ function test()
 @test abs(Error[1]) < 1.0e-3
 end
 end
-using mmmPoissonmmmt10mm
+using .mmmPoissonmmmt10mm
 mmmPoissonmmmt10mm.test()
 
 module mmmPoissonmmh8mm
 using FinEtools
-using Base.Test
+using Test
 function test()
 
   t0 = time()
@@ -995,12 +995,12 @@ function test()
 @test abs(Error[1]) < 1.0e-3
 end
 end
-using mmmPoissonmmh8mm
+using .mmmPoissonmmh8mm
 mmmPoissonmmh8mm.test()
 
 module mmmmmactuatormmh8m
 using FinEtools
-using Base.Test
+using Test
 function test()
   # MEMS actuator.   Thermal analysis.
   x0 =  0.0*phun("micro*m");
@@ -1111,12 +1111,12 @@ function test()
 @test abs(maximum(T_i)-1380.5883006341187) < 1.0e-3
 end
 end
-using mmmmmactuatormmh8m
+using .mmmmmactuatormmh8m
 mmmmmactuatormmh8m.test()
 
 module mmmmmactuatormmmmmmmm
 using FinEtools
-using Base.Test
+using Test
 function test()
   # MEMS actuator.   Thermal analysis.
   x0 =  0.0*phun("micro*m");
@@ -1229,12 +1229,12 @@ function test()
 @test abs(maximum(T_i)-1382.089817533287) < 1.0e-3
 end
 end
-using mmmmmactuatormmmmmmmm
+using .mmmmmactuatormmmmmmmm
 mmmmmactuatormmmmmmmm.test()
 
 module mmmmPoiss_07082017
 using FinEtools
-using Base.Test
+using Test
 function test()
 
   # println("""
@@ -1314,12 +1314,12 @@ function test()
   true
 end
 end
-using mmmmPoiss_07082017
+using .mmmmPoiss_07082017
 mmmmPoiss_07082017.test()
 
 module mmmmmAnnularQ8mmmmm
 using FinEtools
-using Base.Test
+using Test
 function test()
 
   # println("""
@@ -1390,12 +1390,12 @@ function test()
 
 end
 end
-using mmmmmAnnularQ8mmmmm
+using .mmmmmAnnularQ8mmmmm
 mmmmmAnnularQ8mmmmm.test()
 
 module mmpnpConcreteColumnsymb_conv
 using FinEtools
-using Base.Test
+using Test
 function test()
   a=2.5; dy=a/2*sin(15/180*pi); dx=a/2*cos(15/180*pi); Q=4.5; k=1.8; Dz=1.0;
   h= 5.;
@@ -1440,13 +1440,13 @@ function test()
               1.16556] - Temp.values) < 1.0e-3
 end
 end
-using mmpnpConcreteColumnsymb_conv
+using .mmpnpConcreteColumnsymb_conv
 mmpnpConcreteColumnsymb_conv.test()
 
 module mmmmPoiss_08082017
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
 
   # println("""
@@ -1529,14 +1529,14 @@ function test()
   true
 end
 end
-using mmmmPoiss_08082017
+using .mmmmPoiss_08082017
 mmmmPoiss_08082017.test()
 
 
 module mmmmmPoisson_FE_Q8_2
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
   # println("""
   #
@@ -1601,7 +1601,7 @@ function test()
   # println("Total time elapsed = $(time() - t0) [s]")
   # println("Solution time elapsed = $(time() - t1) [s]")
 
-  # using MeshExportModule
+  # using .meshExportModule
 
   # File =  "a.vtk"
   # MeshExportModule.vtkexportmesh (File, fes.conn, [geom.values Temp.values], MeshExportModule.Q4; scalars=Temp.values, scalars_name ="Temperature")
@@ -1621,13 +1621,13 @@ function test()
   true
 end
 end
-using mmmmmPoisson_FE_Q8_2
+using .mmmmmPoisson_FE_Q8_2
 mmmmmPoisson_FE_Q8_2.test()
 
 
 module mmmPoissonmmmt10m2m
 using FinEtools
-using Base.Test
+using Test
 function test()
 
   t0 = time()
@@ -1705,14 +1705,14 @@ function test()
 @test abs(Error[1]) < 1.0e-3
 end
 end
-using mmmPoissonmmmt10m2m
+using .mmmPoissonmmmt10m2m
 mmmPoissonmmmt10m2m.test()
 
 
 module mPoisson_FE_Q4toT3_2
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
   # println("""
   #
@@ -1778,7 +1778,7 @@ function test()
   # println("Total time elapsed = $(time() - t0) [s]")
   # println("Solution time elapsed = $(time() - t1) [s]")
 
-  # using MeshExportModule
+  # using .meshExportModule
 
   # File =  "a.vtk"
   # MeshExportModule.vtkexportmesh (File, fes.conn, [geom.values Temp.values], MeshExportModule.Q4; scalars=Temp.values, scalars_name ="Temperature")
@@ -1798,14 +1798,14 @@ function test()
   true
 end
 end
-using mPoisson_FE_Q4toT3_2
+using .mPoisson_FE_Q4toT3_2
 mPoisson_FE_Q4toT3_2.test()
 
 
 module mPoisson_FE_T3_orientations
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
     for orientation in [:a :b]
 
@@ -1872,7 +1872,7 @@ function test()
         # println("Total time elapsed = $(time() - t0) [s]")
         # println("Solution time elapsed = $(time() - t1) [s]")
 
-        # using MeshExportModule
+        # using .meshExportModule
 
         # File =  "a.vtk"
         # MeshExportModule.vtkexportmesh (File, fes.conn, [geom.values Temp.values], MeshExportModule.Q4; scalars=Temp.values, scalars_name ="Temperature")
@@ -1892,12 +1892,12 @@ function test()
     end
 end
 end
-using mPoisson_FE_T3_orientations
+using .mPoisson_FE_T3_orientations
 mPoisson_FE_T3_orientations.test()
 
 module mmT129b_l2_uqm
 using FinEtools
-using Base.Test
+using Test
 function test()
     L = 6.0;
     kappa = reshape([4.0], 1, 1);
@@ -1937,13 +1937,13 @@ function test()
 @test abs(maximum(U)-0.1102) < 1.0e-4
 end
 end
-using mmT129b_l2_uqm
+using .mmT129b_l2_uqm
 mmT129b_l2_uqm.test()
 
 module mmannulusconv1
 using FinEtools
 using FinEtools.AlgoHeatDiffModule
-using Base.Test
+using Test
 function test()
 
 
@@ -2008,5 +2008,5 @@ function test()
 
 end
 end
-using mmannulusconv1
+using .mmannulusconv1
 mmannulusconv1.test()

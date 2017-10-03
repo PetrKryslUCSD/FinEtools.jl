@@ -1,6 +1,6 @@
 module mmiscellaneous1mmm
 using FinEtools
-using Base.Test
+using Test
 function test()
   rho=1.21*1e-9;# mass density
   c =345.0*1000;# millimeters per second
@@ -15,12 +15,12 @@ function test()
   @test bfes.conn == [1 2; 5 1; 2 3; 3 4; 4 8; 9 5; 8 12; 10 9; 11 10; 12 11]
 end
 end
-using mmiscellaneous1mmm
+using .mmiscellaneous1mmm
 mmiscellaneous1mmm.test()
 
 module mstressconversionm
 using FinEtools
-using Base.Test
+using Test
 function test()
   symmtens(N) = begin t=rand(N, N); t = (t+t')/2.0; end
   t = symmtens(2)
@@ -83,12 +83,12 @@ function test()
 
 end
 end
-using mstressconversionm
+using .mstressconversionm
 mstressconversionm.test()
 
 module mmtwistedeexportmm
 using FinEtools
-using Base.Test
+using Test
 using FinEtools.MeshExportModule
 function test()
   E = 0.29e8;
@@ -174,13 +174,13 @@ function test()
   true
 end
 end
-using mmtwistedeexportmm
+using .mmtwistedeexportmm
 mmtwistedeexportmm.test()
 
 
 module mmtwistedeexport2mm
 using FinEtools
-using Base.Test
+using Test
 using FinEtools.MeshExportModule
 function test()
   E = 0.29e8;
@@ -266,13 +266,13 @@ function test()
   true
 end
 end
-using mmtwistedeexport2mm
+using .mmtwistedeexport2mm
 mmtwistedeexport2mm.test()
 
 module mrichmmm
 using FinEtools
 using FinEtools.AlgoBaseModule
-using Base.Test
+using Test
 function test()
   xs = [93.0734, 92.8633, 92.7252]
     hs = [0.1000, 0.0500, 0.0250]
@@ -288,12 +288,12 @@ function test()
 
 end
 end
-using mrichmmm
+using .mrichmmm
 mrichmmm.test()
 
 module mmmeasurementm1
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -308,12 +308,12 @@ function test()
     @test abs(V - W*L*t)/V < 1.0e-5
 end
 end
-using mmmeasurementm1
+using .mmmeasurementm1
 mmmeasurementm1.test()
 
 module mmmeasurementm2
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -328,13 +328,13 @@ function test()
     @test abs(S - 2*(W*L + L*t + W*t))/S < 1.0e-5
 end
 end
-using mmmeasurementm2
+using .mmmeasurementm2
 mmmeasurementm2.test()
 
 
 module mmmeasurementm3
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -349,13 +349,13 @@ function test()
     @test abs(S - 2*(W + L))/S < 1.0e-5
 end
 end
-using mmmeasurementm3
+using .mmmeasurementm3
 mmmeasurementm3.test()
 
 
 module mmmeasurementm4
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -370,13 +370,13 @@ function test()
     @test abs(S - 2)/S < 1.0e-5
 end
 end
-using mmmeasurementm4
+using .mmmeasurementm4
 mmmeasurementm4.test()
 
 
 module mmmeasurementm5
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -393,13 +393,13 @@ function test()
 
 end
 end
-using mmmeasurementm5
+using .mmmeasurementm5
 mmmeasurementm5.test()
 
 
 module mmmeasurementm6
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -416,13 +416,13 @@ function test()
 
 end
 end
-using mmmeasurementm6
+using .mmmeasurementm6
 mmmeasurementm6.test()
 
 
 module mmmeasurementm7
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -439,12 +439,12 @@ function test()
     @test abs(S - 2*pi*L)/S < 1.0e-5
 end
 end
-using mmmeasurementm7
+using .mmmeasurementm7
 mmmeasurementm7.test()
 
 module mmmeasurementm8
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -461,12 +461,12 @@ function test()
     @test abs(S - t)/S < 1.0e-5
 end
 end
-using mmmeasurementm8
+using .mmmeasurementm8
 mmmeasurementm8.test()
 
 module mmmeasurementm9
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -483,12 +483,12 @@ function test()
     @test abs(S - t*W)/S < 1.0e-5
 end
 end
-using mmmeasurementm9
+using .mmmeasurementm9
 mmmeasurementm9.test()
 
 module mmmeasurementm10
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -505,12 +505,12 @@ axisymmetric = true
     @test abs(S - 2*pi*L*W)/S < 1.0e-5
 end
 end
-using mmmeasurementm10
+using .mmmeasurementm10
 mmmeasurementm10.test()
 
 module mmmeasurementm11
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -527,12 +527,12 @@ axisymmetric = true
     @test abs(S - 2*pi*L*W*t)/S < 1.0e-5
 end
 end
-using mmmeasurementm11
+using .mmmeasurementm11
 mmmeasurementm11.test()
 
 module mmmeasurementm12
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -549,12 +549,12 @@ axisymmetric = false
     @test abs(S - L*W*t)/S < 1.0e-5
 end
 end
-using mmmeasurementm12
+using .mmmeasurementm12
 mmmeasurementm12.test()
 
 module mmpartitioning1m
 using FinEtools
-using Base.Test
+using Test
 function test()
     a = 10. # radius of the hole
     nC = 20
@@ -574,13 +574,13 @@ function test()
     4]) < 1.e-5
 end
 end
-using mmpartitioning1m
+using .mmpartitioning1m
 mmpartitioning1m.test()
 
 
 module mmpartitioning2m
 using FinEtools
-using Base.Test
+using Test
 function test()
     H = 100. # strip width
     a = 10. # radius of the hole
@@ -599,12 +599,12 @@ function test()
     2]) < 1.e-5
 end
 end
-using mmpartitioning2m
+using .mmpartitioning2m
 mmpartitioning2m.test()
 
 module mmboxm1
 using FinEtools
-using Base.Test
+using Test
 function test()
     a = [0.431345 0.611088 0.913161;
     0.913581 0.459229 0.82186;
@@ -637,13 +637,13 @@ function test()
     @test boxesoverlap(b5, b4)
 end
 end
-using mmboxm1
+using .mmboxm1
 mmboxm1.test()
 
 
 module mmMeasurement_1
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -661,12 +661,12 @@ function test()
 
 end
 end
-using mmMeasurement_1
+using .mmMeasurement_1
 mmMeasurement_1.test()
 
 module mphunm2
 using FinEtools
-using Base.Test
+using Test
 function test()
     for btu in [:SEC :MIN :HR :DY :YR :WK]
         t = 0.333*phun(base_time_units = btu, "s")
@@ -676,12 +676,12 @@ function test()
     end
 end
 end
-using mphunm2
+using .mphunm2
 mphunm2.test()
 
 module mphunm3
 using FinEtools
-using Base.Test
+using Test
 function test()
     for sou in [:SI :US :IMPERIAL :CGS :SIMM]
         t = 0.333*phun(system_of_units = sou, "s")
@@ -691,13 +691,13 @@ function test()
     end
 end
 end
-using mphunm3
+using .mphunm3
 mphunm3.test()
 
 
 module mxmeasurementm1
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -712,12 +712,12 @@ function test()
     @test abs(V - W*L*t)/V < 1.0e-5
 end
 end
-using mxmeasurementm1
+using .mxmeasurementm1
 mxmeasurementm1.test()
 
 module mxmeasurementm2
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -733,13 +733,13 @@ bfes = meshboundary(fes)
     @test abs(V - 2*(W*L+L*t+W*t))/V < 1.0e-5
 end
 end
-using mxmeasurementm2
+using .mxmeasurementm2
 mxmeasurementm2.test()
 
 module mxmeasurementm3
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
     W = 4.1;
     L = 12.;
@@ -777,13 +777,13 @@ function test()
     @test abs((S20-S27)/S20) < 1.0e-5
 end
 end
-using mxmeasurementm3
+using .mxmeasurementm3
 mxmeasurementm3.test()
 
 module mxmeasurementm4
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
     W = 4.1;
     L = 12.;
@@ -819,13 +819,13 @@ function test()
     @test abs((V20-V27)/V20) < 1.0e-5
 end
 end
-using mxmeasurementm4
+using .mxmeasurementm4
 mxmeasurementm4.test()
 
 module mmmiscellaneous2
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
   rho=1.21*1e-9;# mass density
   c =345.0*1000;# millimeters per second
@@ -844,13 +844,13 @@ function test()
   @test bfes.conn == [1 2; 5 1; 2 3; 3 4; 4 8; 9 5; 8 12; 10 9; 11 10; 12 11]
 end
 end
-using mmmiscellaneous2
+using .mmmiscellaneous2
 mmmiscellaneous2.test()
 
 module mmmiscellaneous3
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
   rho=1.21*1e-9;# mass density
   c =345.0*1000;# millimeters per second
@@ -876,12 +876,12 @@ function test()
   @test vec(bfes.conn) == vec([1 5])
 end
 end
-using mmmiscellaneous3
+using .mmmiscellaneous3
 mmmiscellaneous3.test()
 
 module mmmfieldmm1
 using FinEtools
-using Base.Test
+using Test
 function test()
     W = 4.1;
     L = 12.;
@@ -907,13 +907,13 @@ function test()
     @test norm(u.dofnums[2,:]) > 0.0
 end
 end
-using mmmfieldmm1
+using .mmmfieldmm1
 mmmfieldmm1.test()
 
 module mmcrossm
 using FinEtools
 using FinEtools.RotationUtilModule
-using Base.Test
+using Test
 function test()
     a = vec([0.1102, -0.369506, -0.0167305])
     b = vec([0.0824301, -0.137487, 0.351721])
@@ -937,12 +937,12 @@ function test()
     @test norm(c - 0.0201989092) < 1.0e-6
 end
 end
-using mmcrossm
+using .mmcrossm
 mmcrossm.test()
 
 module mstresscomponentmap
 using FinEtools
-using Base.Test
+using Test
 function test()
     MR = DeforModelRed1D
     @test stresscomponentmap(MR)[:x] == 1
@@ -951,14 +951,14 @@ function test()
     @test stresscomponentmap(MR)[:zz] == 3
 end
 end
-using mstresscomponentmap
+using .mstresscomponentmap
 mstresscomponentmap.test()
 
 module mgen_iso_csmat1
 using FinEtools
 using FinEtools.FESetModule
 using FinEtools.CSysModule
-using Base.Test
+using Test
 function test()
     L = 2.0
     nl = 1
@@ -975,7 +975,7 @@ function test()
     @test norm(csmatout - [0.894427; 0.0; 0.447214]) < 1.0e-5
 end
 end
-using mgen_iso_csmat1
+using .mgen_iso_csmat1
 mgen_iso_csmat1.test()
 
 module mgen_iso_csmat2
@@ -983,7 +983,7 @@ using FinEtools
 using FinEtools.FESetModule
 using FinEtools.CSysModule
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
     L = 2.0
     nl = 1
@@ -1003,12 +1003,12 @@ function test()
     @test norm(csmatout - [0.970143 0.0291979; 0.0 0.992727; 0.242536 -0.116791]) < 1.0e-5
 end
 end
-using mgen_iso_csmat2
+using .mgen_iso_csmat2
 mgen_iso_csmat2.test()
 
 module mmfieldx1
 using FinEtools
-using Base.Test
+using Test
 function test()
     f = NodalField(zeros(5, 1))
     setebc!(f, [3,4], true, 1;        val=7.0)
@@ -1042,13 +1042,13 @@ function test()
     @test (dest[1,1] == 0.0) && (dest[2,1] == 8.2)
 end
 end
-using mmfieldx1
+using .mmfieldx1
 mmfieldx1.test()
 
 
 module mmconnection1
 using FinEtools
-using Base.Test
+using Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -1057,19 +1057,19 @@ function test()
     fens,fes  = H8block(h,l,2.0*pi,nh,nl,nc)
     femm = FEMMBase(GeoD(fes, GaussRule(3, 2)))
     C = connectionmatrix(femm, count(fens))
-    Degree = [length(find(C[j,:])) for j in 1:size(C, 1)]
+    Degree = [length(find(x->x!=0, C[j,:])) for j in 1:size(C, 1)]
     # println("Maximum degree  = $(maximum(Degree))")
     # println("Minimum degree  = $(minimum(Degree))")
     @test maximum(Degree) == 27
     @test minimum(Degree) == 8
 end
 end
-using mmconnection1
+using .mmconnection1
 mmconnection1.test()
 
 module mmquadrature3
 using FinEtools
-using Base.Test
+using Test
 function test()
     gr = GaussRule(1,1)
     @test gr.param_coords[1] == 0.0
@@ -1081,12 +1081,12 @@ function test()
     @test_throws ErrorException tr = TetRule(3)
 end
 end
-using mmquadrature3
+using .mmquadrature3
 mmquadrature3.test()
 
 module mmmatchingmm
 using FinEtools.AlgoBaseModule: FDataDict, dcheck!
-using Base.Test
+using Test
 function test()
     d = FDataDict("postp"=>true, "preprocessing"=>nothing)
     recognized_keys = ["postprocessing", "something",  "else"]
@@ -1095,14 +1095,14 @@ function test()
     @test !isempty(notmatched)
 end
 end
-using mmmatchingmm
+using .mmmatchingmm
 mmmatchingmm.test()
 
 
 module mboundary13
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
     xs = collect(linspace( 1.0, 3.0, 4))
     ys = collect(linspace(-1.0, 5.0, 5))
@@ -1127,14 +1127,14 @@ function test()
 
 end
 end
-using mboundary13
+using .mboundary13
 mboundary13.test()
 
 
 module mboundary14
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
     xs = collect(linspace( 1.0, 3.0, 4))
     ys = collect(linspace(-1.0, 5.0, 5))
@@ -1160,14 +1160,14 @@ function test()
 
 end
 end
-using mboundary14
+using .mboundary14
 mboundary14.test()
 
 
 module mboundary15
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
     xs = collect(linspace( 1.0, 3.0, 4))
     ys = collect(linspace(-1.0, 5.0, 5))
@@ -1198,17 +1198,17 @@ function test()
 
 end
 end
-using mboundary15
+using .mboundary15
 mboundary15.test()
 
 module mmmCSVm
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
     @test savecsv("a", a = rand(3), b = rand(3))
     rm( "a.csv")
 end
 end
-using mmmCSVm
+using .mmmCSVm
 mmmCSVm.test()

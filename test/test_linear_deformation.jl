@@ -2,7 +2,7 @@ module mmLE11NAFEMSQ8algo2
 using FinEtools
 using FinEtools.AlgoDeforLinearModule: linearstatics, exportdeformation,
 exportstress, exportstresselementwise
-using Base.Test
+using Test
 function test()
     # NAFEMS LE11 benchmark with Q8 elements.
     # # This is a test recommended by the National Agency for Finite Element
@@ -123,13 +123,13 @@ function test()
     try rm(modeldata["postprocessing"]["exported"][1]["file"]) catch end
 end
 end
-using mmLE11NAFEMSQ8algo2
+using .mmLE11NAFEMSQ8algo2
 mmLE11NAFEMSQ8algo2.test()
 
 
 module sscratch_06112017
 using FinEtools
-using Base.Test
+using Test
 
 function test()
   ## Solid cylinder/taper/sphere—-temperature loading; quadratic brick mesh
@@ -379,11 +379,11 @@ function test()
   # Benchmark manual lists very similar numbers.
 end
 end
-using sscratch_06112017
+using .sscratch_06112017
 sscratch_06112017.test()
 
 module cookstress_1
-using Base.Test
+using Test
 using FinEtools
 using FinEtools.MeshExportModule
 
@@ -446,14 +446,14 @@ function test()
   @test abs(theutip[2]-23.8155)/23.8155 < 1.e-3 # FinEALE solution
 end
 end
-using cookstress_1
+using .cookstress_1
 cookstress_1.test()
 
 
 module scratch1_06092017
 
 using FinEtools
-using Base.Test
+using Test
 
 mutable struct MyIData
   c::FInt
@@ -644,13 +644,13 @@ function test()
   # it can be very accurate as well.
 end
 end
-using scratch1_06092017
+using .scratch1_06092017
 scratch1_06092017.test()
 
 module scratch2_06102017
 
 using FinEtools
-using Base.Test
+using Test
 
 function test()
   # println("""
@@ -700,14 +700,14 @@ function test()
 end
 end
 
-using scratch2_06102017
+using .scratch2_06102017
 scratch2_06102017.test()
 
 module mxxxx1_06102017
 
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Base.Test
+using Test
 
 # println("""
 # The initially twisted cantilever beam is one of the standard test
@@ -828,7 +828,7 @@ function test()
 end
 
 end
-using mxxxx1_06102017
+using .mxxxx1_06102017
 mxxxx1_06102017.test()
 
 
@@ -836,7 +836,7 @@ mxxxx1_06102017.test()
 
 module mx_06112017
 using FinEtools
-using Base.Test
+using Test
 function test()
   ## Solid cylinder/taper/sphere—-temperature loading; quadratic brick mesh
   #
@@ -1086,14 +1086,14 @@ function test()
 end
 
 end
-using mx_06112017
+using .mx_06112017
 mx_06112017.test()
 
 
 module my_06112017
 
 using FinEtools
-using Base.Test
+using Test
 function test()
   # NAFEMS LE11 benchmark with Q8 elements.
   # # This is a test recommended by the National Agency for Finite Element
@@ -1206,13 +1206,13 @@ function test()
 end
 
 end
-using my_06112017
+using .my_06112017
 my_06112017.test()
 
 module mmmZenkourm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Base.Test
+using Test
 function test()
 
 
@@ -1308,13 +1308,13 @@ function test()
 
 end
 end
-using mmmZenkourm
+using .mmmZenkourm
 mmmZenkourm.test()
 
 module mmmultimaterial_beam_xz
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Base.Test
+using Test
 function test()
   # println("""
   # Multi-material beam. Rubber-like and metal-like halfs,
@@ -1416,12 +1416,12 @@ function test()
 
 end
 end
-using mmmultimaterial_beam_xz
+using .mmmultimaterial_beam_xz
 mmmultimaterial_beam_xz.test()
 
 module mmmmunitmccubemm
 using FinEtools
-using Base.Test
+using Test
 
 function test()
 
@@ -1476,12 +1476,12 @@ function test()
   true
 end
 end
-using mmmmunitmccubemm
+using .mmmmunitmccubemm
 mmmmunitmccubemm.test()
 
 module mmpipemmPSmmm
 using FinEtools
-using Base.Test
+using Test
 
 mutable struct MyIData
     c::FInt
@@ -1723,12 +1723,12 @@ idat = inspectintegpoints(femm, geom, u, collect(1:count(fes)),
 # gui()
 end
 end
-using mmpipemmPSmmm
+using .mmpipemmPSmmm
 mmpipemmPSmmm.test()
 
 module mmOrthotropicmm
 using FinEtools
-using Base.Test
+using Test
 function test()
 
   # Orthotropic balloon inflation, axially symmetric model
@@ -1823,13 +1823,13 @@ function test()
 
 end
 end
-using mmOrthotropicmm
+using .mmOrthotropicmm
 mmOrthotropicmm.test()
 
 module mmCookmm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Base.Test
+using Test
 function test()
   # println("Cook plane stress, with quadratic triangles.")
   E = 1.0;
@@ -1901,14 +1901,14 @@ function test()
     [-0.06292574794975273 0.12022571940768388]) < 1.0e-5
 end
 end
-using mmCookmm
+using .mmCookmm
 mmCookmm.test()
 
 module mCookmmfakeorthom
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
   # println("Cook plane stress, with quadratic triangles. With orthotropic  material model.")
   E = 1.0;
@@ -1984,13 +1984,13 @@ function test()
 
 end
 end
-using mCookmmfakeorthom
+using .mCookmmfakeorthom
 mCookmmfakeorthom.test()
 
 module mmCanttronglymm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Base.Test
+using Test
 function test()
   # println("""
   # Cantilever example.  Strongly orthotropic material. Orientation "y".
@@ -2120,13 +2120,13 @@ function test()
 
 end
 end
-using mmCanttronglymm
+using .mmCanttronglymm
 mmCanttronglymm.test()
 
 module mmmNAFEMS_R0031_3m
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Base.Test
+using Test
 function test()
   # println("""
   # NAFEMS publication R0031/3 Composite plate test.
@@ -2234,14 +2234,14 @@ function test()
 
 end
 end
-using mmmNAFEMS_R0031_3m
+using .mmmNAFEMS_R0031_3m
 mmmNAFEMS_R0031_3m.test()
 
 module mmtwistedmsh8mmm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 
-using Base.Test
+using Test
 function test()
 
   # println("""
@@ -2357,12 +2357,12 @@ function test()
 
 end
 end
-using mmtwistedmsh8mmm
+using .mmtwistedmsh8mmm
 mmtwistedmsh8mmm.test()
 
 module mmunitmmccubemmvibrationmmms
 using FinEtools
-using Base.Test
+using Test
 function test()
 
   # println("""
@@ -2414,12 +2414,12 @@ function test()
 
 end
 end
-using mmunitmmccubemmvibrationmmms
+using .mmunitmmccubemmvibrationmmms
 mmunitmmccubemmvibrationmmms.test()
 
 module mmtwistedbeamisomm
 using FinEtools
-using Base.Test
+using Test
 using FinEtools.AlgoDeforLinearModule
 function test()
   E = 0.29e8;
@@ -2547,12 +2547,12 @@ function test()
 
 end
 end
-using mmtwistedbeamisomm
+using .mmtwistedbeamisomm
 mmtwistedbeamisomm.test()
 
 module mmtwistedbeamoorthomm
 using FinEtools
-using Base.Test
+using Test
 using FinEtools.AlgoDeforLinearModule
 function test()
   E = 0.29e8;
@@ -2680,13 +2680,13 @@ function test()
 
 end
 end
-using mmtwistedbeamoorthomm
+using .mmtwistedbeamoorthomm
 mmtwistedbeamoorthomm.test()
 
 module muunit_cube_modes_exportmmm
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
 
 
@@ -2772,12 +2772,12 @@ function test()
   rm("unit_cube_modes_h20.inp")
 end
 end
-using muunit_cube_modes_exportmmm
+using .muunit_cube_modes_exportmmm
 muunit_cube_modes_exportmmm.test()
 
 module mmpipemmPSmorthom
 using FinEtools
-using Base.Test
+using Test
 
 mutable struct MyIData
     c::FInt
@@ -3019,12 +3019,12 @@ idat = inspectintegpoints(femm, geom, u, collect(1:count(fes)),
 # gui()
 end
 end
-using mmpipemmPSmorthom
+using .mmpipemmPSmorthom
 mmpipemmPSmorthom.test()
 
 module scratch1_06092017_ortho
 using FinEtools
-using Base.Test
+using Test
 
 mutable struct MyIData
   c::FInt
@@ -3215,12 +3215,12 @@ function test()
   # it can be very accurate as well.
 end
 end
-using scratch1_06092017_ortho
+using .scratch1_06092017_ortho
 scratch1_06092017_ortho.test()
 
 module mmLE11Q8mm
 using FinEtools
-using Base.Test
+using Test
 function test()
 
   # NAFEMS LE11 benchmark with Q8 elements.
@@ -3332,12 +3332,12 @@ function test()
 
 end
 end
-using mmLE11Q8mm
+using .mmLE11Q8mm
 mmLE11Q8mm.test()
 
 module mmLE11Q8mmortho
 using FinEtools
-using Base.Test
+using Test
 function test()
 
   # NAFEMS LE11 benchmark with Q8 elements.
@@ -3450,12 +3450,12 @@ function test()
 
 end
 end
-using mmLE11Q8mmortho
+using .mmLE11Q8mmortho
 mmLE11Q8mmortho.test()
 
 module mLE11Q8aximmm
 using FinEtools
-using Base.Test
+using Test
 function test()
   # NAFEMS LE11 benchmark with Q8 elements.
   # # This is a test recommended by the National Agency for Finite Element
@@ -3617,13 +3617,13 @@ function test()
 
 end
 end
-using mLE11Q8aximmm
+using .mLE11Q8aximmm
 mLE11Q8aximmm.test()
 
 
 module mLE11Q8aximorthom
 using FinEtools
-using Base.Test
+using Test
 function test()
   # NAFEMS LE11 benchmark with Q8 elements.
   # # This is a test recommended by the National Agency for Finite Element
@@ -3785,14 +3785,14 @@ function test()
 
 end
 end
-using mLE11Q8aximorthom
+using .mLE11Q8aximorthom
 mLE11Q8aximorthom.test()
 
 module mmmCookmmstrainmmisommm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
 
 
@@ -3951,14 +3951,14 @@ function test()
   rm(AE.filename)
 end
 end
-using mmmCookmmstrainmmisommm
+using .mmmCookmmstrainmmisommm
 mmmCookmmstrainmmisommm.test()
 
 module mmmCookmmstrainmorthommm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
 
 
@@ -4117,7 +4117,7 @@ function test()
   rm(AE.filename)
 end
 end
-using mmmCookmmstrainmorthommm
+using .mmmCookmmstrainmorthommm
 mmmCookmmstrainmorthommm.test()
 
 
@@ -4125,7 +4125,7 @@ module mmmCookmstressmorthommm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
 
 
@@ -4285,14 +4285,14 @@ function test()
   rm(AE.filename)
 end
 end
-using mmmCookmstressmorthommm
+using .mmmCookmstressmorthommm
 mmmCookmstressmorthommm.test()
 
 module mmmCookmstressisommm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
 
 
@@ -4451,14 +4451,14 @@ function test()
   rm(AE.filename)
 end
 end
-using mmmCookmstressisommm
+using .mmmCookmstressisommm
 mmmCookmstressisommm.test()
 
 module mmLE10expimpmm
 using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
-using Base.Test
+using Test
 function test()
 
 
@@ -4969,14 +4969,14 @@ try rm(AE.filename) catch end
     try rm(File) catch end
 end
 end
-using mmLE10expimpmm
+using .mmLE10expimpmm
 mmLE10expimpmm.test()
 
 
 module mmtruncatedmfreem1
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Base.Test
+using Test
 function test()
     # println("""
     # Vibration modes of truncated cylindrical shell.
@@ -5069,12 +5069,12 @@ function test()
 
 end
 end
-using mmtruncatedmfreem1
+using .mmtruncatedmfreem1
 mmtruncatedmfreem1.test()
 
 module mmFV32mm1
 using FinEtools
-using Base.Test
+using Test
 function test()
     # println("""
     # FV32: Cantilevered tapered membrane
@@ -5144,13 +5144,13 @@ function test()
     try rm(modeldata["postprocessing"]["file"]*"1.vtk") catch end
 end
 end
-using mmFV32mm1
+using .mmFV32mm1
 mmFV32mm1.test()
 
 module mmtruncatedmfreem2
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Base.Test
+using Test
 function test()
     # println("""
     # Vibration modes of truncated cylindrical shell.
@@ -5243,13 +5243,13 @@ function test()
 
 end
 end
-using mmtruncatedmfreem2
+using .mmtruncatedmfreem2
 mmtruncatedmfreem2.test()
 
 module mfiber_reinf_cant_yn_strong_Abaqus
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Base.Test
+using Test
 function test()
 
 
@@ -5405,12 +5405,12 @@ try rm(AE.filename); catch end
 true
 end
 end
-using mfiber_reinf_cant_yn_strong_Abaqus
+using .mfiber_reinf_cant_yn_strong_Abaqus
 mfiber_reinf_cant_yn_strong_Abaqus.test()
 
 module mmorthoballoonpenaltymm
 using FinEtools
-using Base.Test
+using Test
 function test()
 
     # Orthotropic balloon inflation, axially symmetric model
@@ -5501,12 +5501,12 @@ function test()
 
 end
 end
-using mmorthoballoonpenaltymm
+using .mmorthoballoonpenaltymm
 mmorthoballoonpenaltymm.test()
 
 module mocylpull1
 using FinEtools
-using Base.Test
+using Test
 function test()
     # Cylinder  pulled by enforced displacement, axially symmetric model
 
@@ -5584,7 +5584,7 @@ function test()
     # @async run(`"paraview.exe" $File`)
 end
 end
-using mocylpull1
+using .mocylpull1
 mocylpull1.test()
 
 
@@ -5592,7 +5592,7 @@ module mbar1
 using FinEtools
 using FinEtools.FENodeSetModule
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
     Area = 2.0*phun("in^2")
     E = 30e6*phun("psi") # Young's modulus
@@ -5655,14 +5655,14 @@ function test()
 
 end
 end
-using mbar1
+using .mbar1
 mbar1.test()
 
 module mbar2
 using FinEtools
 using FinEtools.FENodeSetModule
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
     Area = 1.5
     E = 1.0e7 # Young's modulus
@@ -5737,13 +5737,13 @@ function test()
 
 end
 end
-using mbar2
+using .mbar2
 mbar2.test()
 
 module mmmLE10expiAbaqus2mmmm
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
 
 
@@ -5891,7 +5891,7 @@ function test()
 
 end
 end
-using mmmLE10expiAbaqus2mmmm
+using .mmmLE10expiAbaqus2mmmm
 mmmLE10expiAbaqus2mmmm.test()
 
 module mplate_w_hole_RECT_MSH8m
@@ -5899,7 +5899,7 @@ using FinEtools
 using FinEtools.MeshExportModule
 # using DataFrames
 # using CSV
-using Base.Test
+using Test
 function test()
     E = 210000*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6052,7 +6052,7 @@ function test()
 
 end
 end
-using mplate_w_hole_RECT_MSH8m
+using .mplate_w_hole_RECT_MSH8m
 mplate_w_hole_RECT_MSH8m.test()
 
 module mplate_w_hole_RECT_H20m
@@ -6061,7 +6061,7 @@ using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule: import_ABAQUS
 # using DataFrames
 # using CSV
-using Base.Test
+using Test
 function test()
     E = 210000*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6241,14 +6241,14 @@ function test()
 
 end
 end
-using mplate_w_hole_RECT_H20m
+using .mplate_w_hole_RECT_H20m
 mplate_w_hole_RECT_H20m.test()
 
 
 module mplate_w_hole_MST10m
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
     E = 2.4*phun("MEGA*PA");# 210e3 MPa
     nu = 0.49995;
@@ -6401,12 +6401,12 @@ function test()
 
 end
 end
-using mplate_w_hole_MST10m
+using .mplate_w_hole_MST10m
 mplate_w_hole_MST10m.test()
 
 module mmLE1NAFEMSsstress
 using FinEtools
-using Base.Test
+using Test
 function test()
     E = 210e3*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6496,13 +6496,13 @@ function test()
 
 end
 end
-using mmLE1NAFEMSsstress
+using .mmLE1NAFEMSsstress
 mmLE1NAFEMSsstress.test()
 
 module mocylpullFun
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Base.Test
+using Test
 function test()
 
     # Cylinder  pulled by enforced displacement, axially symmetric model
@@ -6580,13 +6580,13 @@ function test()
     # @async run(`"paraview.exe" $File`)
 end
 end
-using mocylpullFun
+using .mocylpullFun
 mocylpullFun.test()
 
 module mmLE11malgo
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Base.Test
+using Test
 function test()
 
 
@@ -6697,14 +6697,14 @@ function test()
 
 end
 end
-using mmLE11malgo
+using .mmLE11malgo
 mmLE11malgo.test()
 
 module mmtwistedmsh8ort
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 
-using Base.Test
+using Test
 function test()
 
   # println("""
@@ -6827,14 +6827,14 @@ function test()
 
 end
 end
-using mmtwistedmsh8ort
+using .mmtwistedmsh8ort
 mmtwistedmsh8ort.test()
 
 module mmtwistedmsh9ort
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 
-using Base.Test
+using Test
 function test()
 
     # println("""
@@ -6956,12 +6956,12 @@ function test()
 
 end
 end
-using mmtwistedmsh9ort
+using .mmtwistedmsh9ort
 mmtwistedmsh9ort.test()
 
 module mocylpull13
 using FinEtools
-using Base.Test
+using Test
 function test()
     # Cylinder  compressed by enforced displacement, axially symmetric model
 
@@ -7040,12 +7040,12 @@ function test()
     # @async run(`"paraview.exe" $File`)
 end
 end
-using mocylpull13
+using .mocylpull13
 mocylpull13.test()
 
 module mocylpull14
 using FinEtools
-using Base.Test
+using Test
 function test()
     # Cylinder  compressed by enforced displacement, axially symmetric model
 
@@ -7124,5 +7124,5 @@ function test()
     # @async run(`"paraview.exe" $File`)
 end
 end
-using mocylpull14
+using .mocylpull14
 mocylpull14.test()

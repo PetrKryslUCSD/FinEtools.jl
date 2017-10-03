@@ -1,6 +1,6 @@
 module miscellaneous2mm
 using FinEtools
-using Base.Test
+using Test
 function test()
   rho=1.21*1e-9;# mass density
   c =345.0*1000;# millimeters per second
@@ -15,13 +15,13 @@ function test()
   @test bfes.conn == [1 2; 5 1; 2 3; 3 4; 4 8; 9 5; 8 12; 10 9; 11 10; 12 11]
 end
 end
-using miscellaneous2mm
+using .miscellaneous2mm
 miscellaneous2mm.test()
 
 module mmmQ4blockneous2mm
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
   rho=1.21*1e-9;# mass density
   c =345.0*1000;# millimeters per second
@@ -39,14 +39,14 @@ function test()
   # @async run(`"paraview.exe" $File`)
 end
 end
-using mmmQ4blockneous2mm
+using .mmmQ4blockneous2mm
 mmmQ4blockneous2mm.test()
 
 module miimportexportm
 using FinEtools
 using FinEtools.MeshImportModule
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
   output = MeshImportModule.import_NASTRAN(dirname(@__FILE__) * "/" * "Slot-coarser.nas";
     allocationchunk = 13)
@@ -59,14 +59,14 @@ function test()
   # @async run(`"paraview.exe" $File`)
 end
 end
-using miimportexportm
+using .miimportexportm
 miimportexportm.test()
 
 module miimportexportm2
 using FinEtools
 using FinEtools.MeshImportModule
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
   output = MeshImportModule.import_NASTRAN(dirname(@__FILE__) * "/" * "Slot-coarser-2.nas";
     allocationchunk = 13)
@@ -79,12 +79,12 @@ function test()
   # @async run(`"paraview.exe" $File`)
 end
 end
-using miimportexportm2
+using .miimportexportm2
 miimportexportm2.test()
 
 module mmmLshapemmm
 using FinEtools
-using Base.Test
+using Test
 function test()
   # println("""
   # Meshing  for an L-shaped membrane.
@@ -116,14 +116,14 @@ function test()
   true
 end
 end
-using mmmLshapemmm
+using .mmmLshapemmm
 mmmLshapemmm.test()
 
 module mAbaqusmmiimportmmm
 using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
-using Base.Test
+using Test
 function test()
   ## Solid cylinder/taper/sphere—-temperature loading; quadratic brick mesh
 
@@ -206,12 +206,12 @@ function test()
   try rm(AE.filename) catch end
 end
 end
-using mAbaqusmmiimportmmm
+using .mAbaqusmmiimportmmm
 mAbaqusmmiimportmmm.test()
 
 module mmsmoothingm1
 using FinEtools
-using Base.Test
+using Test
 function test()
 
     # println("""
@@ -257,13 +257,13 @@ function test()
     true
 end
 end
-using mmsmoothingm1
+using .mmsmoothingm1
 mmsmoothingm1.test()
 
 
 module mmsmoothingm2
 using FinEtools
-using Base.Test
+using Test
 function test()
 
     # println("""
@@ -309,12 +309,12 @@ function test()
     true
 end
 end
-using mmsmoothingm2
+using .mmsmoothingm2
 mmsmoothingm2.test()
 
 module mmbracketmm
 using FinEtools
-using Base.Test
+using Test
 function test()
 
     V = VoxelBoxVolume(Int, 6*[5,6,7], [4.0, 4.0, 5.0])
@@ -335,12 +335,12 @@ function test()
     try rm(File) catch end
 end
 end
-using mmbracketmm
+using .mmbracketmm
 mmbracketmm.test()
 
 module mmmMergem1
 using FinEtools
-using Base.Test
+using Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -384,13 +384,13 @@ function test()
     # @async run(`"paraview.exe" $File`)
 end
 end
-using mmmMergem1
+using .mmmMergem1
 mmmMergem1.test()
 
 
 module mmmMergem2
 using FinEtools
-using Base.Test
+using Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -434,13 +434,13 @@ function test()
     # @async run(`"paraview.exe" $File`)
 end
 end
-using mmmMergem2
+using .mmmMergem2
 mmmMergem2.test()
 
 
 module mmmMergem3
 using FinEtools
-using Base.Test
+using Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -484,7 +484,7 @@ function test()
     # @async run(`"paraview.exe" $File`)
 end
 end
-using mmmMergem3
+using .mmmMergem3
 mmmMergem3.test()
 
 
@@ -492,7 +492,7 @@ module mAbaqusmmiimport_1m
 using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
-using Base.Test
+using Test
 function test()
 
 
@@ -578,13 +578,13 @@ function test()
   try rm(AE.filename) catch end
 end
 end
-using mAbaqusmmiimport_1m
+using .mAbaqusmmiimport_1m
 mAbaqusmmiimport_1m.test()
 
 
 module mmfflood1
 using FinEtools
-using Base.Test
+using Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -630,13 +630,13 @@ function test()
     # try rm(File) catch end
 end
 end
-using mmfflood1
+using .mmfflood1
 mmfflood1.test()
 
 
 module mmfflood2
 using FinEtools
-using Base.Test
+using Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -683,14 +683,14 @@ function test()
     # @async run(`"paraview.exe" $File`)
 end
 end
-using mmfflood2
+using .mmfflood2
 mmfflood2.test()
 
 module mt4orientation2
 using FinEtools
 using FinEtools.MeshImportModule
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
     xs = collect(linspace(0.0, 2.0, 5))
     ys = collect(linspace(0.0, 1.0, 6).^2)
@@ -711,14 +711,14 @@ function test()
     # @async run(`"paraview.exe" $File`)
 end
 end
-using mt4orientation2
+using .mt4orientation2
 mt4orientation2.test()
 
 module mmAbaqusexport3
 using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
-using Base.Test
+using Test
 function test()
   ## Solid cylinder/taper/sphere—-temperature loading; quadratic brick mesh
 
@@ -805,14 +805,14 @@ function test()
 
 end
 end
-using mmAbaqusexport3
+using .mmAbaqusexport3
 mmAbaqusexport3.test()
 
 
 module mttriangles13
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
     xs = collect(linspace( 1.0, 3.0, 4))
     ys = collect(linspace(-1.0, 3.0, 4))
@@ -828,13 +828,13 @@ function test()
 
 end
 end
-using mttriangles13
+using .mttriangles13
 mttriangles13.test()
 
 module mttriangles14
 using FinEtools
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 function test()
     xs = collect(linspace( 1.0, 3.0, 4))
     ys = collect(linspace(-1.0, 3.0, 5))
@@ -852,13 +852,13 @@ function test()
 
 end
 end
-using mttriangles14
+using .mttriangles14
 mttriangles14.test()
 
 module mselecte1
 using FinEtools
 
-using Base.Test
+using Test
 function test()
 
     # println("""
@@ -917,14 +917,14 @@ function test()
     # @async run(`"paraview.exe" $File`)
 end
 end
-using mselecte1
+using .mselecte1
 mselecte1.test()
 
 
 module mselecte2
 using FinEtools
 
-using Base.Test
+using Test
 function test()
 
     W = 10.0;
@@ -948,13 +948,13 @@ function test()
     # @async run(`"paraview.exe" $File`)
 end
 end
-using mselecte2
+using .mselecte2
 mselecte2.test()
 
 module mMeyer_Piening_1
 using FinEtools
 using FinEtools.MeshUtilModule
-using Base.Test
+using Test
 function test()
 
     # Reference results from:
@@ -997,14 +997,14 @@ function test()
     @test length(rls) == 6250
 end
 end
-using mMeyer_Piening_1
+using .mMeyer_Piening_1
 mMeyer_Piening_1.test()
 
 
 module mMeyer_Piening_2
 using FinEtools
 using FinEtools.MeshUtilModule
-using Base.Test
+using Test
 function test()
 
     # Reference results from:
@@ -1048,14 +1048,14 @@ function test()
     @test length(rls) == 37500
 end
 end
-using mMeyer_Piening_2
+using .mMeyer_Piening_2
 mMeyer_Piening_2.test()
 
 
 module mMeyer_Piening_3
 using FinEtools
 using FinEtools.MeshUtilModule
-using Base.Test
+using Test
 function test()
 
     # Reference results from:
@@ -1099,12 +1099,12 @@ function test()
     @test length(rls) == 37500
 end
 end
-using mMeyer_Piening_3
+using .mMeyer_Piening_3
 mMeyer_Piening_3.test()
 
 module mmtetblocksmm
 using FinEtools
-using Base.Test
+using Test
 function test()
     A = 5.0*phun("mm") # length  of loaded rectangle
     B = 20.0*phun("mm") # length  of loaded rectangle
@@ -1149,12 +1149,12 @@ function test()
     return true
 end
 end
-using mmtetblocksmm
+using .mmtetblocksmm
 mmtetblocksmm.test()
 
 module momap2para1
 using FinEtools
-using Base.Test
+using Test
 function test()
     X = [-1.0 -1.0; 2.0 0.4; 1.0 2.3; -2.0 1.0]
     fens = FENodeSet(X);
@@ -1168,12 +1168,12 @@ function test()
     @test norm(pt - pt1) < 1.0e-7
 end
 end
-using momap2para1
+using .momap2para1
 momap2para1.test()
 
 module momap2para2
 using FinEtools
-using Base.Test
+using Test
 function test()
     X = [-1.0 -1.0; 2.0 0.4; 1.0 2.3; -2.0 1.0]
     fens = FENodeSet(X);
@@ -1192,14 +1192,14 @@ function test()
     @test !isin
 end
 end
-using momap2para2
+using .momap2para2
 momap2para2.test()
 
 module momap2para3
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 
 
 
@@ -1259,14 +1259,14 @@ function test()
     @test abs(error/ref - 0.02541369940759616) < 1.0e-4
 end
 end
-using momap2para3
+using .momap2para3
 momap2para3.test()
 
 module momap2para4
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 
 
 
@@ -1335,14 +1335,14 @@ function test()
     @test abs(error/ref - 0.19808425992688541) < 1.0e-4
 end
 end
-using momap2para4
+using .momap2para4
 momap2para4.test()
 
 module momap2para5
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 
 
 
@@ -1412,7 +1412,7 @@ Meshing = T4blockx
     @test abs(error/ref - 0.19808425992688541) < 1.0e-4
 end
 end
-using momap2para5
+using .momap2para5
 momap2para5.test()
 
 
@@ -1420,7 +1420,7 @@ module momap2para6
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 
 
 
@@ -1490,14 +1490,14 @@ Meshing = H20blockx
     @test abs(error/ref - 0.3602708839379691) < 1.0e-4
 end
 end
-using momap2para6
+using .momap2para6
 momap2para6.test()
 
 module momap2para7
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 
 
 
@@ -1567,14 +1567,14 @@ Meshing = H8blockx
     @test abs(error/ref - 0.36027088393796847) < 1.0e-4
 end
 end
-using momap2para7
+using .momap2para7
 momap2para7.test()
 
 module momap2para8
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 
 
 
@@ -1644,7 +1644,7 @@ Meshing = H27blockx
     @test abs(error/ref - 0.3602708839379695) < 1.0e-4
 end
 end
-using momap2para8
+using .momap2para8
 momap2para8.test()
 
 
@@ -1652,7 +1652,7 @@ module momap2para9
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 
 
 
@@ -1721,7 +1721,7 @@ Meshing = Q4blockx
     @test abs(error/ref - 0.32348898713315494) < 1.0e-4
 end
 end
-using momap2para9
+using .momap2para9
 momap2para9.test()
 
 
@@ -1729,7 +1729,7 @@ module momap2para10
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 
 
 
@@ -1798,7 +1798,7 @@ Meshing = Q8blockx
     @test abs(error/ref - 0.32348898713315494) < 1.0e-4
 end
 end
-using momap2para10
+using .momap2para10
 momap2para10.test()
 
 
@@ -1806,7 +1806,7 @@ module momap2para11
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 
 
 
@@ -1875,7 +1875,7 @@ Meshing = T3blockx
     @test abs(error/ref -  0.19654730310399787) < 1.0e-4
 end
 end
-using momap2para11
+using .momap2para11
 momap2para11.test()
 
 
@@ -1883,7 +1883,7 @@ module momap2para12
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 
 
 
@@ -1952,7 +1952,7 @@ Meshing = T6blockx
     @test abs(error/ref -  0.19654730310399787) < 1.0e-4
 end
 end
-using momap2para12
+using .momap2para12
 momap2para12.test()
 
 
@@ -1960,7 +1960,7 @@ module momap2para13
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 
 
 
@@ -2026,14 +2026,14 @@ Meshing = L2blockx
     @test abs(error/ref -  0.23860709149331033) < 1.0e-4
 end
 end
-using momap2para13
+using .momap2para13
 momap2para13.test()
 
 module momap2para14
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Base.Test
+using Test
 
 
 
@@ -2101,12 +2101,12 @@ Meshing = L3blockx
     @test abs(error/ref -  0.23860709149331033) < 1.0e-4
 end
 end
-using momap2para14
+using .momap2para14
 momap2para14.test()
 
 module mpointmm1
 using FinEtools
-using Base.Test
+using Test
 function test()
     x::FFltMat = eye(FFlt, 4, 3)
     fes = FESetP1(reshape([1 2 4 3], 4, 1))
@@ -2124,5 +2124,33 @@ function test()
     @test b
 end
 end
-using mpointmm1
+using .mpointmm1
 mpointmm1.test()
+
+module ml314
+using FinEtools
+using FinEtools.MeshSelectionModule: vselect
+using FinEtools.MeshExportModule
+using Test
+
+
+
+function test()
+    A = 50.0*phun("m") # length  of loaded rectangle
+    B = 200.0*phun("m") # length  of loaded rectangle
+    C = 100.0*phun("m") # span of the plate
+
+Meshing = L3blockx
+    # Select how find the mesh should be
+    Refinement = 2
+    nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
+    xs = collect(linspace(0.0, A, nA + 1))
+    fensc,fesc = Meshing(xs)
+    bfes = meshboundary(fesc)
+    @test count(bfes) == 2
+
+
+end
+end
+using .ml314
+ml314.test()
