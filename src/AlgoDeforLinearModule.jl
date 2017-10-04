@@ -96,6 +96,9 @@ function linearstatics(modeldata::FDataDict)
     # Construct the temperature field
     temp = NodalField(zeros(nnodes(geom), 1))
 
+    modeldata["timing"] = FDataDict()
+
+    tstart = time()
     # Apply the essential boundary conditions on the displacement field
     essential_bcs = get(modeldata, "essential_bcs", nothing);
     if (essential_bcs != nothing)
@@ -122,10 +125,11 @@ function linearstatics(modeldata::FDataDict)
 
     # Number the equations
     numberdofs!(u)           #,Renumbering_options); # NOT DONE <<<<<<<<<<<<<<<<<
+    modeldata["timing"]["essential_bcs"] = time() - tstart
 
+    tstart = time()
     # Initialize the heat loads vector
     F = zeros(FFlt,u.nfreedofs);
-
     # Construct the system stiffness matrix
     K = spzeros(u.nfreedofs,u.nfreedofs); # (all zeros, for the moment)
     regions = get(()->error("Must get region list!"), modeldata, "regions")
@@ -143,6 +147,7 @@ function linearstatics(modeldata::FDataDict)
             F = F + nzebcloadsstiffness(femm, geom, u);
         end
     end
+    modeldata["timing"]["stiffness"] = time() - tstart
 
     # # Process the body load
     # body_load = get(modeldata, "body_load", nothing);
@@ -158,6 +163,7 @@ function linearstatics(modeldata::FDataDict)
     #     clear body_load fi  femm
     # end
 
+    tstart = time()
     # Process the traction boundary condition
     traction_bcs = get(modeldata, "traction_bcs", nothing);
     if (traction_bcs != nothing)
@@ -174,7 +180,9 @@ function linearstatics(modeldata::FDataDict)
             F = F + distribloads(femm, geom, u, fi, 2);
         end
     end
+    modeldata["timing"]["traction_bcs"] = time() - tstart
 
+    tstart = time()
     # Process the thermal strain  loading
     temperature_change = get(modeldata, "temperature_change", nothing);
     if (temperature_change != nothing)
@@ -197,6 +205,7 @@ function linearstatics(modeldata::FDataDict)
             F = F + thermalstrainloads(femm, geom, u, temp)
         end
     end
+    modeldata["timing"]["temperature_change"] = time() - tstart
 
     # # Process the nodal force boundary condition
     # if (isfield(model_data.boundary_conditions, 'nodal_force' ))
@@ -227,10 +236,12 @@ function linearstatics(modeldata::FDataDict)
     #     clear Kmpc Fmpc
     # end
 
+    tstart = time()
     # Solve the system of linear algebraic equations
     K = cholfact(K);
     U = K\F;
     scattersysvec!(u, U[:])
+    modeldata["timing"]["solution"] = time() - tstart
 
 
     # Update the model data
