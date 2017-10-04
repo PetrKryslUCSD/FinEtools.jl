@@ -50,9 +50,13 @@ numnodesmap = Dict{Int, Int}(P1=>1, L2=>2, T3=>3,
 
 Export mesh to a VTK 1.0 file as an unstructured grid.
 
-opts = keyword argument list, where
-scalars = array of tuples, (name, data)
-vectors = array of tuples, (name, data)
+`opts` = keyword argument list, where
+`scalars` = array of tuples, (name, data)
+`vectors` = array of tuples, (name, data)
+
+For the `scalars`: If `data` is a vector, that data is exported as a single field.
+On the other hand, if it is an 2d array, each column is exported  as a separate field.
+
 """
 function vtkexportmesh(theFile::String, fens::FENodeSet, fes::T;
     opts...) where {T<:FESet}
@@ -62,10 +66,16 @@ end
 
 """
     vtkexportmesh(theFile::String, Connectivity, Points, Cell_type;
-      vectors=nothing, vectors_name ="vectors",
-      scalars=nothing, scalars_name ="scalars")
+        vectors=nothing, scalars=nothing)
 
 Export mesh to a VTK 1.0 file as an unstructured grid.
+
+`opts` = keyword argument list, where
+`scalars` = array of tuples, (name, data)
+`vectors` = array of tuples, (name, data)
+
+For the `scalars`: If `data` is a vector, that data is exported as a single field.
+On the other hand, if it is an 2d array, each column is exported  as a separate field.
 """
 function vtkexportmesh(theFile::String, Connectivity, Points, Cell_type;
     vectors=nothing, scalars=nothing)
@@ -129,10 +139,20 @@ function vtkexportmesh(theFile::String, Connectivity, Points, Cell_type;
                     print(fid,"POINT_DATA ",size(data, 1),"\n");
                     did_point_data = true
                 end
-                print(fid,"SCALARS ", name," double\n");
-                print(fid,"LOOKUP_TABLE default\n");
-                for j= 1:size(data,  1)
-                    print(fid,data[j],"\n");
+                if size(data, 2) > 1 # there are multiple scalar fields here
+                    for i = 1:size(data, 2)
+                        print(fid,"SCALARS ", name * "$(i)"," double\n");
+                        print(fid,"LOOKUP_TABLE default\n");
+                        for j= 1:size(data,  1)
+                            print(fid,data[j, i],"\n");
+                        end
+                    end
+                else  # there's just one scalar field here
+                    print(fid,"SCALARS ", name," double\n");
+                    print(fid,"LOOKUP_TABLE default\n");
+                    for j= 1:size(data,  1)
+                        print(fid,data[j],"\n");
+                    end
                 end
                 print(fid,"\n");
             elseif (size(data, 1) == size(Connectivity, 1)) # cell data
@@ -185,10 +205,20 @@ function vtkexportmesh(theFile::String, Connectivity, Points, Cell_type;
                     print(fid,"CELL_DATA ",size(data, 1),"\n");
                     did_cell_data = true
                 end
-                print(fid,"SCALARS ", name," double\n");
-                print(fid,"LOOKUP_TABLE default\n");
-                for j= 1:size(data,  1)
-                    print(fid, data[j],"\n");
+                if size(data, 2) > 1 # there are multiple scalar fields here
+                    for i = 1:size(data, 2)
+                        print(fid,"SCALARS ", name * "$(i)"," double\n");
+                        print(fid,"LOOKUP_TABLE default\n");
+                        for j= 1:size(data,  1)
+                            print(fid,data[j, i],"\n");
+                        end
+                    end
+                else  # there's just one scalar field here
+                    print(fid,"SCALARS ", name," double\n");
+                    print(fid,"LOOKUP_TABLE default\n");
+                    for j= 1:size(data,  1)
+                        print(fid,data[j],"\n");
+                    end
                 end
                 print(fid,"\n");
             end
