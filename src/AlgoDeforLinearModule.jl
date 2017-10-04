@@ -416,6 +416,7 @@ function exportstress(modeldata::FDataDict)
         else
             componentnum = component
         end
+        componentname = length(componentnum) > 1 ? "" : "$(componentnum)"
         # Note that we are creating a field  separately for each region.  This is
         # important  for the following reason: if the regions were of different
         # materials, or if they were of the same material but with different material
@@ -431,11 +432,11 @@ function exportstress(modeldata::FDataDict)
         if boundary_only
             bfes = meshboundary(femm.geod.fes);
             vtkexportmesh(rfile, fens, bfes;
-            scalars=[(string(quantity)*string(component), fld.values)],
+            scalars=[(string(quantity)*componentname, fld.values)],
             vectors=[("u", u.values)])
         else
             vtkexportmesh(rfile, fens, femm.geod.fes;
-            scalars=[(string(quantity)*string(component), fld.values)],
+            scalars=[(string(quantity)*componentname, fld.values)],
             vectors=[("u", u.values)])
         end
         ed = FDataDict("file"=>rfile, "field"=>fld, "region"=>i,
@@ -523,6 +524,7 @@ function exportstresselementwise(modeldata::FDataDict)
         else
             componentnum = component
         end
+        componentname = length(componentnum) > 1 ? "" : "$(componentnum)"
         # Note that we are creating a field  separately for each region.  This is
         # important  for the following reason: if the regions were of different
         # materials, or if they were of the same material but with different material
@@ -538,11 +540,11 @@ function exportstresselementwise(modeldata::FDataDict)
         if boundary_only
             bfes = meshboundary(femm.geod.fes);
             vtkexportmesh(rfile, fens, bfes;
-            scalars=[(string(quantity)*string(component), fld.values)],
+            scalars=[(string(quantity)*componentname, fld.values)],
             vectors=[("u", u.values)])
         else
             vtkexportmesh(rfile, fens, femm.geod.fes;
-            scalars=[(string(quantity)*string(component), fld.values)],
+            scalars=[(string(quantity)*componentname, fld.values)],
             vectors=[("u", u.values)])
         end
         ed = FDataDict("file"=>rfile, "field"=>fld, "region"=>i,
