@@ -1,6 +1,6 @@
 module mmmmPoiss_06122017
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
   # println("""
@@ -86,7 +86,7 @@ mmmmPoiss_06122017.test()
 
 module mmmmannulus_Q4_example_algo
 using FinEtools
-using Test
+using Compat.Test
 function test()
   # println("""
   # Annular region, ingoing and outgoing flux. Temperature at one node prescribed.
@@ -163,7 +163,7 @@ mmmmannulus_Q4_example_algo.test()
 
 module mmmmmPoisson_FE_Q4_1
 using FinEtools
-using Test
+using Compat.Test
 function test()
   # println("""
   #
@@ -248,7 +248,7 @@ mmmmmPoisson_FE_Q4_1.test()
 
 module mmmmmPoisson_FE_example_algo
 using FinEtools
-using Test
+using Compat.Test
 function test()
     A= 1.0
     thermal_conductivity = eye(2,2); # conductivity matrix
@@ -314,7 +314,7 @@ mmmmmPoisson_FE_example_algo.test()
 
 module mmmmmPoissonRm2
 using FinEtools
-using Test
+using Compat.Test
 function test()
   # println("""
   # Heat conduction example described by Amuthan A. Ramabathiran
@@ -395,7 +395,7 @@ mmmmmPoissonRm2.test()
 
 module mmmmmmmmmNAFEMSm
 using FinEtools
-using Test
+using Compat.Test
 function test()
   ## Two-dimensional heat transfer with convection: convergence study
   #
@@ -574,7 +574,7 @@ mmmmmmmmmNAFEMSm.test()
 
 module mmmmmmconvergence
 using FinEtools
-using Test
+using Compat.Test
 function test()
   ## Two-dimensional heat transfer with convection: convergence study
   #
@@ -751,7 +751,7 @@ mmmmmmconvergence.test()
 
 module mmmPoissonmmmt4mmmm
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
   t0 = time()
@@ -834,7 +834,7 @@ mmmPoissonmmmt4mmmm.test()
 
 module mmmPoissonmmmt10mm
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
   t0 = time()
@@ -917,7 +917,7 @@ mmmPoissonmmmt10mm.test()
 
 module mmmPoissonmmh8mm
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
   t0 = time()
@@ -1000,7 +1000,7 @@ mmmPoissonmmh8mm.test()
 
 module mmmmmactuatormmh8m
 using FinEtools
-using Test
+using Compat.Test
 function test()
   # MEMS actuator.   Thermal analysis.
   x0 =  0.0*phun("micro*m");
@@ -1116,7 +1116,7 @@ mmmmmactuatormmh8m.test()
 
 module mmmmmactuatormmmmmmmm
 using FinEtools
-using Test
+using Compat.Test
 function test()
   # MEMS actuator.   Thermal analysis.
   x0 =  0.0*phun("micro*m");
@@ -1234,7 +1234,7 @@ mmmmmactuatormmmmmmmm.test()
 
 module mmmmPoiss_07082017
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
   # println("""
@@ -1319,7 +1319,7 @@ mmmmPoiss_07082017.test()
 
 module mmmmmAnnularQ8mmmmm
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
   # println("""
@@ -1395,7 +1395,7 @@ mmmmmAnnularQ8mmmmm.test()
 
 module mmpnpConcreteColumnsymb_conv
 using FinEtools
-using Test
+using Compat.Test
 function test()
   a=2.5; dy=a/2*sin(15/180*pi); dx=a/2*cos(15/180*pi); Q=4.5; k=1.8; Dz=1.0;
   h= 5.;
@@ -1446,7 +1446,7 @@ mmpnpConcreteColumnsymb_conv.test()
 module mmmmPoiss_08082017
 using FinEtools
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
 
   # println("""
@@ -1536,7 +1536,7 @@ mmmmPoiss_08082017.test()
 module mmmmmPoisson_FE_Q8_2
 using FinEtools
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
   # println("""
   #
@@ -1627,7 +1627,7 @@ mmmmmPoisson_FE_Q8_2.test()
 
 module mmmPoissonmmmt10m2m
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
   t0 = time()
@@ -1712,7 +1712,7 @@ mmmPoissonmmmt10m2m.test()
 module mPoisson_FE_Q4toT3_2
 using FinEtools
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
   # println("""
   #
@@ -1805,7 +1805,7 @@ mPoisson_FE_Q4toT3_2.test()
 module mPoisson_FE_T3_orientations
 using FinEtools
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
     for orientation in [:a :b]
 
@@ -1897,7 +1897,7 @@ mPoisson_FE_T3_orientations.test()
 
 module mmT129b_l2_uqm
 using FinEtools
-using Test
+using Compat.Test
 function test()
     L = 6.0;
     kappa = reshape([4.0], 1, 1);
@@ -1943,7 +1943,7 @@ mmT129b_l2_uqm.test()
 module mmannulusconv1
 using FinEtools
 using FinEtools.AlgoHeatDiffModule
-using Test
+using Compat.Test
 function test()
 
 

@@ -1,7 +1,7 @@
 
 module mmrrigid
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
 # println("""
@@ -65,7 +65,7 @@ mmrrigid.test()
 module fahyL2example
 
 using FinEtools
-using Test
+using Compat.Test
 
 function test()
 # println("""
@@ -136,7 +136,7 @@ fahyL2example.test()
 
 module mmfahyH8example
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
 # println("""
@@ -194,7 +194,7 @@ mmfahyH8example.test()
 
 module mmfahyH27example
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
 # println("""
@@ -253,7 +253,7 @@ mmfahyH27example.test()
 
 module mstraight_duct_H8_1
 using FinEtools
-using Test
+using Compat.Test
 function test()
     t0  =  time()
 
@@ -341,7 +341,7 @@ mstraight_duct_H8_1.test()
 
 module mmsphere_dipole_1
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
 # println("The interior sphere accelerates in the positive x-direction, generating
@@ -463,7 +463,7 @@ mmsphere_dipole_1.test()
 
 module mstraight_duct_T10_examplem
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
 t0  =  time()
@@ -546,7 +546,7 @@ mstraight_duct_T10_examplem.test()
 
 module mmiintegrationmm
 using FinEtools
-using Test
+using Compat.Test
 function test()
 rho = 1000.0*phun("kg/m^3");# mass density of water
 c  = 1.4491e+3*phun("m/s");# sound speed in water
@@ -609,7 +609,7 @@ mmiintegrationmm.test()
 
 module mmtransientsphere
 using FinEtools
-using Test
+using Compat.Test
 function test()
   # println("The interior sphere accelerates in the alternately in the positive
   # and negative x-direction, generating positive pressure ahead of it, negative
@@ -733,7 +733,7 @@ mmtransientsphere.test()
 
 module mmhhemispheremm
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
   # println("Rigid movable hemisphere in  water. Time-dependent simulation.
@@ -1041,7 +1041,7 @@ mmhhemispheremm.test()
 
 module mmbbaffledmm
 using FinEtools
-using Test
+using Compat.Test
 function test()
 rho = 1.21*phun("kg/m^3");# mass density
 c  = 343.0*phun("m/s");# sound speed
@@ -1141,7 +1141,7 @@ mmbbaffledmm.test()
 
 module mmtransientmm1mm
 using FinEtools
-using Test
+using Compat.Test
 function test()
     rho = 1.21*phun("kg/m^3");# mass density
     c  = 343.0*phun("m/s");# sound speed
@@ -1279,7 +1279,7 @@ mmtransientmm1mm.test()
 module mmAnnularmm
 using FinEtools
 using FinEtools.AlgoAcoustModule
-using Test
+using Compat.Test
 function test()
 
 

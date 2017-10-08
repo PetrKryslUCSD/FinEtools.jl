@@ -1,6 +1,6 @@
 module mmmvvoxelmm1
 using FinEtools
-using Test
+using Compat.Test
 function test()
     V = VoxelBoxVolume(Int, 5*[5,6,7], [4.0, 4.0, 5.0])
 
@@ -22,7 +22,7 @@ mmmvvoxelmm1.test()
 
 module mmmvvoxelmm2
 using FinEtools
-using Test
+using Compat.Test
 function test()
     V = VoxelBoxVolume(Int, 5*[5,6,7], [4.0, 4.0, 5.0])
 
@@ -46,7 +46,7 @@ mmmvvoxelmm2.test()
 
 module mmmvvoxelmm3
 using FinEtools
-using Test
+using Compat.Test
 function test()
     V = VoxelBoxVolume(Int, 15*[5,6,7], [4.0, 4.0, 5.0])
 
@@ -74,7 +74,7 @@ mmmvvoxelmm3.test()
 
 module mmmvvoxelmm4
 using FinEtools
-using Test
+using Compat.Test
 function test()
     V = VoxelBoxVolume(Int, 5*[5,6,7], [4.0, 4.0, 5.0])
 
@@ -101,7 +101,7 @@ mmmvvoxelmm4.test()
 
 module mmmvvoxelmm5
 using FinEtools
-using Test
+using Compat.Test
 function test()
     V = VoxelBoxVolume(Int, 15*[5,6,7], [4.0, 4.0, 5.0])
 
@@ -132,7 +132,7 @@ mmmvvoxelmm5.test()
 
 module mmmvvoxelmm6
 using FinEtools
-using Test
+using Compat.Test
 function test()
     raw = zeros(UInt8, 13, 14, 15)
     raw[5:7, 2:13, 12:14] = 1
@@ -156,7 +156,7 @@ mmmvvoxelmm6.test()
 
 module mmmvvoxelmm7
 using FinEtools
-using Test
+using Compat.Test
 function test()
     raw = zeros(UInt8, 13, 14, 15)
     V = VoxelBoxVolume(raw, [4.0, 4.0, 5.0])
@@ -181,7 +181,7 @@ mmmvvoxelmm7.test()
 
 module mmmvvoxelmm8
 using FinEtools
-using Test
+using Compat.Test
 function test()
     raw = zeros(UInt8, 13, 14, 15)
     V = VoxelBoxVolume(raw, [4.0, 4.0, 5.0])
@@ -203,7 +203,7 @@ mmmvvoxelmm8.test()
 
 module mmmvvoxelmm9
 using FinEtools
-using Test
+using Compat.Test
 function test()
     raw = zeros(UInt8, 13, 14, 15)
     fill!(raw, 2)
@@ -235,7 +235,7 @@ mmmvvoxelmm9.test()
 
 module mvoxelmm12
 using FinEtools
-using Test
+using Compat.Test
 function test()
     V = VoxelBoxVolume(Int, 5*[5,6,7], [4.0, 4.0, 5.0])
 
@@ -260,7 +260,7 @@ mvoxelmm12.test()
 
 module mvoxelmm13
 using FinEtools
-using Test
+using Compat.Test
 function test()
     V = VoxelBoxVolume(Int, 7*[5,6,7], [4.0, 4.0, 5.0])
 

@@ -2,7 +2,7 @@ module mmLE11NAFEMSQ8algo2
 using FinEtools
 using FinEtools.AlgoDeforLinearModule: linearstatics, exportdeformation,
 exportstress, exportstresselementwise
-using Test
+using Compat.Test
 function test()
     # NAFEMS LE11 benchmark with Q8 elements.
     # # This is a test recommended by the National Agency for Finite Element
@@ -129,7 +129,7 @@ mmLE11NAFEMSQ8algo2.test()
 
 module sscratch_06112017
 using FinEtools
-using Test
+using Compat.Test
 
 function test()
   ## Solid cylinder/taper/sphere—-temperature loading; quadratic brick mesh
@@ -383,7 +383,7 @@ using .sscratch_06112017
 sscratch_06112017.test()
 
 module cookstress_1
-using Test
+using Compat.Test
 using FinEtools
 using FinEtools.MeshExportModule
 
@@ -453,7 +453,7 @@ cookstress_1.test()
 module scratch1_06092017
 
 using FinEtools
-using Test
+using Compat.Test
 
 mutable struct MyIData
   c::FInt
@@ -650,7 +650,7 @@ scratch1_06092017.test()
 module scratch2_06102017
 
 using FinEtools
-using Test
+using Compat.Test
 
 function test()
   # println("""
@@ -707,7 +707,7 @@ module mxxxx1_06102017
 
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Test
+using Compat.Test
 
 # println("""
 # The initially twisted cantilever beam is one of the standard test
@@ -836,7 +836,7 @@ mxxxx1_06102017.test()
 
 module mx_06112017
 using FinEtools
-using Test
+using Compat.Test
 function test()
   ## Solid cylinder/taper/sphere—-temperature loading; quadratic brick mesh
   #
@@ -1093,7 +1093,7 @@ mx_06112017.test()
 module my_06112017
 
 using FinEtools
-using Test
+using Compat.Test
 function test()
   # NAFEMS LE11 benchmark with Q8 elements.
   # # This is a test recommended by the National Agency for Finite Element
@@ -1212,7 +1212,7 @@ my_06112017.test()
 module mmmZenkourm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Test
+using Compat.Test
 function test()
 
 
@@ -1314,7 +1314,7 @@ mmmZenkourm.test()
 module mmmultimaterial_beam_xz
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Test
+using Compat.Test
 function test()
   # println("""
   # Multi-material beam. Rubber-like and metal-like halfs,
@@ -1421,7 +1421,7 @@ mmmultimaterial_beam_xz.test()
 
 module mmmmunitmccubemm
 using FinEtools
-using Test
+using Compat.Test
 
 function test()
 
@@ -1481,7 +1481,7 @@ mmmmunitmccubemm.test()
 
 module mmpipemmPSmmm
 using FinEtools
-using Test
+using Compat.Test
 
 mutable struct MyIData
     c::FInt
@@ -1728,7 +1728,7 @@ mmpipemmPSmmm.test()
 
 module mmOrthotropicmm
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
   # Orthotropic balloon inflation, axially symmetric model
@@ -1829,7 +1829,7 @@ mmOrthotropicmm.test()
 module mmCookmm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Test
+using Compat.Test
 function test()
   # println("Cook plane stress, with quadratic triangles.")
   E = 1.0;
@@ -1908,7 +1908,7 @@ module mCookmmfakeorthom
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
   # println("Cook plane stress, with quadratic triangles. With orthotropic  material model.")
   E = 1.0;
@@ -1990,7 +1990,7 @@ mCookmmfakeorthom.test()
 module mmCanttronglymm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Test
+using Compat.Test
 function test()
   # println("""
   # Cantilever example.  Strongly orthotropic material. Orientation "y".
@@ -2126,7 +2126,7 @@ mmCanttronglymm.test()
 module mmmNAFEMS_R0031_3m
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Test
+using Compat.Test
 function test()
   # println("""
   # NAFEMS publication R0031/3 Composite plate test.
@@ -2241,7 +2241,7 @@ module mmtwistedmsh8mmm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 
-using Test
+using Compat.Test
 function test()
 
   # println("""
@@ -2362,7 +2362,7 @@ mmtwistedmsh8mmm.test()
 
 module mmunitmmccubemmvibrationmmms
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
   # println("""
@@ -2419,7 +2419,7 @@ mmunitmmccubemmvibrationmmms.test()
 
 module mmtwistedbeamisomm
 using FinEtools
-using Test
+using Compat.Test
 using FinEtools.AlgoDeforLinearModule
 function test()
   E = 0.29e8;
@@ -2552,7 +2552,7 @@ mmtwistedbeamisomm.test()
 
 module mmtwistedbeamoorthomm
 using FinEtools
-using Test
+using Compat.Test
 using FinEtools.AlgoDeforLinearModule
 function test()
   E = 0.29e8;
@@ -2686,7 +2686,7 @@ mmtwistedbeamoorthomm.test()
 module muunit_cube_modes_exportmmm
 using FinEtools
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
 
 
@@ -2777,7 +2777,7 @@ muunit_cube_modes_exportmmm.test()
 
 module mmpipemmPSmorthom
 using FinEtools
-using Test
+using Compat.Test
 
 mutable struct MyIData
     c::FInt
@@ -3024,7 +3024,7 @@ mmpipemmPSmorthom.test()
 
 module scratch1_06092017_ortho
 using FinEtools
-using Test
+using Compat.Test
 
 mutable struct MyIData
   c::FInt
@@ -3220,7 +3220,7 @@ scratch1_06092017_ortho.test()
 
 module mmLE11Q8mm
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
   # NAFEMS LE11 benchmark with Q8 elements.
@@ -3337,7 +3337,7 @@ mmLE11Q8mm.test()
 
 module mmLE11Q8mmortho
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
   # NAFEMS LE11 benchmark with Q8 elements.
@@ -3455,7 +3455,7 @@ mmLE11Q8mmortho.test()
 
 module mLE11Q8aximmm
 using FinEtools
-using Test
+using Compat.Test
 function test()
   # NAFEMS LE11 benchmark with Q8 elements.
   # # This is a test recommended by the National Agency for Finite Element
@@ -3623,7 +3623,7 @@ mLE11Q8aximmm.test()
 
 module mLE11Q8aximorthom
 using FinEtools
-using Test
+using Compat.Test
 function test()
   # NAFEMS LE11 benchmark with Q8 elements.
   # # This is a test recommended by the National Agency for Finite Element
@@ -3792,7 +3792,7 @@ module mmmCookmmstrainmmisommm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
 
 
@@ -3958,7 +3958,7 @@ module mmmCookmmstrainmorthommm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
 
 
@@ -4125,7 +4125,7 @@ module mmmCookmstressmorthommm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
 
 
@@ -4292,7 +4292,7 @@ module mmmCookmstressisommm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
 
 
@@ -4458,7 +4458,7 @@ module mmLE10expimpmm
 using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
-using Test
+using Compat.Test
 function test()
 
 
@@ -4976,7 +4976,7 @@ mmLE10expimpmm.test()
 module mmtruncatedmfreem1
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Test
+using Compat.Test
 function test()
     # println("""
     # Vibration modes of truncated cylindrical shell.
@@ -5074,7 +5074,7 @@ mmtruncatedmfreem1.test()
 
 module mmFV32mm1
 using FinEtools
-using Test
+using Compat.Test
 function test()
     # println("""
     # FV32: Cantilevered tapered membrane
@@ -5150,7 +5150,7 @@ mmFV32mm1.test()
 module mmtruncatedmfreem2
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Test
+using Compat.Test
 function test()
     # println("""
     # Vibration modes of truncated cylindrical shell.
@@ -5249,7 +5249,7 @@ mmtruncatedmfreem2.test()
 module mfiber_reinf_cant_yn_strong_Abaqus
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Test
+using Compat.Test
 function test()
 
 
@@ -5410,7 +5410,7 @@ mfiber_reinf_cant_yn_strong_Abaqus.test()
 
 module mmorthoballoonpenaltymm
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
     # Orthotropic balloon inflation, axially symmetric model
@@ -5506,7 +5506,7 @@ mmorthoballoonpenaltymm.test()
 
 module mocylpull1
 using FinEtools
-using Test
+using Compat.Test
 function test()
     # Cylinder  pulled by enforced displacement, axially symmetric model
 
@@ -5592,7 +5592,7 @@ module mbar1
 using FinEtools
 using FinEtools.FENodeSetModule
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
     Area = 2.0*phun("in^2")
     E = 30e6*phun("psi") # Young's modulus
@@ -5662,7 +5662,7 @@ module mbar2
 using FinEtools
 using FinEtools.FENodeSetModule
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
     Area = 1.5
     E = 1.0e7 # Young's modulus
@@ -5743,7 +5743,7 @@ mbar2.test()
 module mmmLE10expiAbaqus2mmmm
 using FinEtools
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
 
 
@@ -5899,7 +5899,7 @@ using FinEtools
 using FinEtools.MeshExportModule
 # using DataFrames
 # using CSV
-using Test
+using Compat.Test
 function test()
     E = 210000*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6061,7 +6061,7 @@ using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule: import_ABAQUS
 # using DataFrames
 # using CSV
-using Test
+using Compat.Test
 function test()
     E = 210000*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6248,7 +6248,7 @@ mplate_w_hole_RECT_H20m.test()
 module mplate_w_hole_MST10m
 using FinEtools
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
     E = 2.4*phun("MEGA*PA");# 210e3 MPa
     nu = 0.49995;
@@ -6406,7 +6406,7 @@ mplate_w_hole_MST10m.test()
 
 module mmLE1NAFEMSsstress
 using FinEtools
-using Test
+using Compat.Test
 function test()
     E = 210e3*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6502,7 +6502,7 @@ mmLE1NAFEMSsstress.test()
 module mocylpullFun
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Test
+using Compat.Test
 function test()
 
     # Cylinder  pulled by enforced displacement, axially symmetric model
@@ -6586,7 +6586,7 @@ mocylpullFun.test()
 module mmLE11malgo
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-using Test
+using Compat.Test
 function test()
 
 
@@ -6704,7 +6704,7 @@ module mmtwistedmsh8ort
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 
-using Test
+using Compat.Test
 function test()
 
   # println("""
@@ -6834,7 +6834,7 @@ module mmtwistedmsh9ort
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 
-using Test
+using Compat.Test
 function test()
 
     # println("""
@@ -6961,7 +6961,7 @@ mmtwistedmsh9ort.test()
 
 module mocylpull13
 using FinEtools
-using Test
+using Compat.Test
 function test()
     # Cylinder  compressed by enforced displacement, axially symmetric model
 
@@ -7045,7 +7045,7 @@ mocylpull13.test()
 
 module mocylpull14
 using FinEtools
-using Test
+using Compat.Test
 function test()
     # Cylinder  compressed by enforced displacement, axially symmetric model
 

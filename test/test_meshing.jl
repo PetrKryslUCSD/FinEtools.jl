@@ -1,6 +1,6 @@
 module miscellaneous2mm
 using FinEtools
-using Test
+using Compat.Test
 function test()
   rho=1.21*1e-9;# mass density
   c =345.0*1000;# millimeters per second
@@ -21,7 +21,7 @@ miscellaneous2mm.test()
 module mmmQ4blockneous2mm
 using FinEtools
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
   rho=1.21*1e-9;# mass density
   c =345.0*1000;# millimeters per second
@@ -46,7 +46,7 @@ module miimportexportm
 using FinEtools
 using FinEtools.MeshImportModule
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
   output = MeshImportModule.import_NASTRAN(dirname(@__FILE__) * "/" * "Slot-coarser.nas";
     allocationchunk = 13)
@@ -66,7 +66,7 @@ module miimportexportm2
 using FinEtools
 using FinEtools.MeshImportModule
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
   output = MeshImportModule.import_NASTRAN(dirname(@__FILE__) * "/" * "Slot-coarser-2.nas";
     allocationchunk = 13)
@@ -84,7 +84,7 @@ miimportexportm2.test()
 
 module mmmLshapemmm
 using FinEtools
-using Test
+using Compat.Test
 function test()
   # println("""
   # Meshing  for an L-shaped membrane.
@@ -123,7 +123,7 @@ module mAbaqusmmiimportmmm
 using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
-using Test
+using Compat.Test
 function test()
   ## Solid cylinder/taper/sphere—-temperature loading; quadratic brick mesh
 
@@ -211,7 +211,7 @@ mAbaqusmmiimportmmm.test()
 
 module mmsmoothingm1
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
     # println("""
@@ -263,7 +263,7 @@ mmsmoothingm1.test()
 
 module mmsmoothingm2
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
     # println("""
@@ -314,7 +314,7 @@ mmsmoothingm2.test()
 
 module mmbracketmm
 using FinEtools
-using Test
+using Compat.Test
 function test()
 
     V = VoxelBoxVolume(Int, 6*[5,6,7], [4.0, 4.0, 5.0])
@@ -340,7 +340,7 @@ mmbracketmm.test()
 
 module mmmMergem1
 using FinEtools
-using Test
+using Compat.Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -390,7 +390,7 @@ mmmMergem1.test()
 
 module mmmMergem2
 using FinEtools
-using Test
+using Compat.Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -440,7 +440,7 @@ mmmMergem2.test()
 
 module mmmMergem3
 using FinEtools
-using Test
+using Compat.Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -492,7 +492,7 @@ module mAbaqusmmiimport_1m
 using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
-using Test
+using Compat.Test
 function test()
 
 
@@ -584,7 +584,7 @@ mAbaqusmmiimport_1m.test()
 
 module mmfflood1
 using FinEtools
-using Test
+using Compat.Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -636,7 +636,7 @@ mmfflood1.test()
 
 module mmfflood2
 using FinEtools
-using Test
+using Compat.Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -690,7 +690,7 @@ module mt4orientation2
 using FinEtools
 using FinEtools.MeshImportModule
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
     xs = collect(linspace(0.0, 2.0, 5))
     ys = collect(linspace(0.0, 1.0, 6).^2)
@@ -718,7 +718,7 @@ module mmAbaqusexport3
 using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
-using Test
+using Compat.Test
 function test()
   ## Solid cylinder/taper/sphere—-temperature loading; quadratic brick mesh
 
@@ -812,7 +812,7 @@ mmAbaqusexport3.test()
 module mttriangles13
 using FinEtools
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
     xs = collect(linspace( 1.0, 3.0, 4))
     ys = collect(linspace(-1.0, 3.0, 4))
@@ -834,7 +834,7 @@ mttriangles13.test()
 module mttriangles14
 using FinEtools
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 function test()
     xs = collect(linspace( 1.0, 3.0, 4))
     ys = collect(linspace(-1.0, 3.0, 5))
@@ -858,7 +858,7 @@ mttriangles14.test()
 module mselecte1
 using FinEtools
 
-using Test
+using Compat.Test
 function test()
 
     # println("""
@@ -924,7 +924,7 @@ mselecte1.test()
 module mselecte2
 using FinEtools
 
-using Test
+using Compat.Test
 function test()
 
     W = 10.0;
@@ -954,7 +954,7 @@ mselecte2.test()
 module mMeyer_Piening_1
 using FinEtools
 using FinEtools.MeshUtilModule
-using Test
+using Compat.Test
 function test()
 
     # Reference results from:
@@ -1004,7 +1004,7 @@ mMeyer_Piening_1.test()
 module mMeyer_Piening_2
 using FinEtools
 using FinEtools.MeshUtilModule
-using Test
+using Compat.Test
 function test()
 
     # Reference results from:
@@ -1055,7 +1055,7 @@ mMeyer_Piening_2.test()
 module mMeyer_Piening_3
 using FinEtools
 using FinEtools.MeshUtilModule
-using Test
+using Compat.Test
 function test()
 
     # Reference results from:
@@ -1104,7 +1104,7 @@ mMeyer_Piening_3.test()
 
 module mmtetblocksmm
 using FinEtools
-using Test
+using Compat.Test
 function test()
     A = 5.0*phun("mm") # length  of loaded rectangle
     B = 20.0*phun("mm") # length  of loaded rectangle
@@ -1154,7 +1154,7 @@ mmtetblocksmm.test()
 
 module momap2para1
 using FinEtools
-using Test
+using Compat.Test
 function test()
     X = [-1.0 -1.0; 2.0 0.4; 1.0 2.3; -2.0 1.0]
     fens = FENodeSet(X);
@@ -1173,7 +1173,7 @@ momap2para1.test()
 
 module momap2para2
 using FinEtools
-using Test
+using Compat.Test
 function test()
     X = [-1.0 -1.0; 2.0 0.4; 1.0 2.3; -2.0 1.0]
     fens = FENodeSet(X);
@@ -1199,7 +1199,7 @@ module momap2para3
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 
 
 
@@ -1266,7 +1266,7 @@ module momap2para4
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 
 
 
@@ -1342,7 +1342,7 @@ module momap2para5
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 
 
 
@@ -1420,7 +1420,7 @@ module momap2para6
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 
 
 
@@ -1497,7 +1497,7 @@ module momap2para7
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 
 
 
@@ -1574,7 +1574,7 @@ module momap2para8
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 
 
 
@@ -1652,7 +1652,7 @@ module momap2para9
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 
 
 
@@ -1729,7 +1729,7 @@ module momap2para10
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 
 
 
@@ -1806,7 +1806,7 @@ module momap2para11
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 
 
 
@@ -1883,7 +1883,7 @@ module momap2para12
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 
 
 
@@ -1960,7 +1960,7 @@ module momap2para13
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 
 
 
@@ -2033,7 +2033,7 @@ module momap2para14
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 
 
 
@@ -2106,7 +2106,7 @@ momap2para14.test()
 
 module mpointmm1
 using FinEtools
-using Test
+using Compat.Test
 function test()
     x::FFltMat = eye(FFlt, 4, 3)
     fes = FESetP1(reshape([1 2 4 3], 4, 1))
@@ -2131,7 +2131,7 @@ module ml314
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Test
+using Compat.Test
 
 
 
