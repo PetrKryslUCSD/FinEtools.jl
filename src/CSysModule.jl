@@ -15,10 +15,10 @@ using FinEtools.RotationUtilModule
 Type for coordinate system transformations.
 """
 struct CSys{F<:Function}
-  isconstant::Bool
-  isidentity::Bool
-  updatebuffer!::F # function to update the coordinate system matrix
-  csmat::FFltMat # the coordinate system matrix (buffer); see
+    isconstant::Bool
+    isidentity::Bool
+    updatebuffer!::F # function to update the coordinate system matrix
+    csmat::FFltMat # the coordinate system matrix (buffer); see
 end
 
 
@@ -36,8 +36,8 @@ where
 curves  in the element, `fe_label`= finite element label.
 """
 function CSys(sdim::FInt, mdim::FInt, computecsmat::F) where {F<:Function}
-  csmat = Array{FFlt}(sdim, mdim); # Allocate buffer, in preparation for the first call
-  return CSys(false, false, computecsmat, csmat);
+    csmat = Array{FFlt}(sdim, mdim); # Allocate buffer, in preparation for the first call
+    return CSys(false, false, computecsmat, csmat);
 end
 
 """
@@ -46,10 +46,10 @@ end
 Construct ccoordinate system when the rotation matrix is given.
 """
 function CSys(csmat::FFltMat)
-  function updatebuffer!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    return csmatout # nothing to be done here, the matrix is already in the buffer
-  end
-  return CSys(true, false, updatebuffer!, deepcopy(csmat));# fill the buffer with the given matrix
+    function updatebuffer!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+        return csmatout # nothing to be done here, the matrix is already in the buffer
+    end
+    return CSys(true, false, updatebuffer!, deepcopy(csmat));# fill the buffer with the given matrix
 end
 
 """
@@ -61,7 +61,7 @@ rotation matrix is the identity.
 `dim` = is the space dimension.
 """
 function CSys(dim::FInt)
-  return CSys(eye(dim, dim));
+    return CSys(eye(dim, dim));
 end
 
 """
@@ -103,8 +103,8 @@ After this function returns, the coordinate system matrix can be retrieved
 from the buffer `self.csmat`.
 """
 function updatecsmat!(self::CSys, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-  self.updatebuffer!(self.csmat, XYZ, tangents, fe_label)
-  return self.csmat
+    self.updatebuffer!(self.csmat, XYZ, tangents, fe_label)
+    return self.csmat
 end
 
 """
