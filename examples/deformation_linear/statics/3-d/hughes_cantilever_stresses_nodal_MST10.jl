@@ -41,8 +41,7 @@ for n = [1 2 4 8] #
     sshear0 = selectelem(fens, bfes; facing=true, direction = [-1.0 0.0 0.0])
 
     MR = DeforModelRed3D
-    material = MatDeforElastIso(MR,
-    0.0, E, nu, CTE)
+    material = MatDeforElastIso(MR,   0.0, E, nu, CTE)
 
     # Material orientation matrix
     csmat = eye(3, 3)
@@ -51,7 +50,7 @@ for n = [1 2 4 8] #
         copy!(csmatout, csmat)
     end
 
-    gr = SimplexRule(3, 4)
+    gr = SimplexRule(3, 4) # rule for tetrahedral meshes
 
     region = FDataDict("femm"=>FEMMDeforLinearMST10(MR,
     GeoD(fes, gr), material))
@@ -81,16 +80,16 @@ for n = [1 2 4 8] #
     end
 
     Trac0 = FDataDict("traction_vector"=>getfrc0!,
-    "femm"=>FEMMBase(GeoD(subset(bfes, sshear0), SimplexRule(2, 3))))
+        "femm"=>FEMMBase(GeoD(subset(bfes, sshear0), SimplexRule(2, 3))))
     TracL = FDataDict("traction_vector"=>getfrcL!,
-    "femm"=>FEMMBase(GeoD(subset(bfes, sshearL), SimplexRule(2, 3))))
+        "femm"=>FEMMBase(GeoD(subset(bfes, sshearL), SimplexRule(2, 3))))
 
     modeldata = FDataDict("fens"=>fens,
-    "regions"=>[region],
-    "essential_bcs"=>[ex01, ex02, ex03, ex04, ey01],
-    "traction_bcs"=>[Trac0, TracL],
-    "temperature_change"=>FDataDict("temperature"=>0.0)
-    )
+        "regions"=>[region],
+        "essential_bcs"=>[ex01, ex02, ex03, ex04, ey01],
+        "traction_bcs"=>[Trac0, TracL],
+        "temperature_change"=>FDataDict("temperature"=>0.0)
+        )
     modeldata = AlgoDeforLinearModule.linearstatics(modeldata)
 
     u = modeldata["u"]
@@ -100,7 +99,7 @@ for n = [1 2 4 8] #
     utip = mean(u.values[Tipl, 3])
     println("Deflection: $(utip)")
  
-    modeldata["postprocessing"] = FDataDict("file"=>"hughes_cantilever_stresses_$(elementtag)",
+    modeldata["postprocessing"] = FDataDict("file"=>"hughes_cantilever_stresses_nodal_$(elementtag)",
         "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy,
         "component"=>collect(1:6), "nodevalmethod"=>:averaging, "reportat"=>:extraptrend)
     modeldata = AlgoDeforLinearModule.exportstress(modeldata)
@@ -119,7 +118,7 @@ for n = [1 2 4 8] #
         )
 end
 
-File = "hughes_cantilever_stresses_$(elementtag)"
+File = "hughes_cantilever_stresses_nodal_$(elementtag)"
 open(File * ".jls", "w") do file
     serialize(file, convergencestudy)
 end

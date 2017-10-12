@@ -100,7 +100,7 @@ for n = [1 2 4 8] #
     utip = mean(u.values[Tipl, 3])
     println("Deflection: $(utip)")
 
-    modeldata["postprocessing"] = FDataDict("file"=>"hughes_cantilever_stresses_$(elementtag)",
+    modeldata["postprocessing"] = FDataDict("file"=>"hughes_cantilever_stresses_nodal_$(elementtag)",
         "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy,
         "component"=>collect(1:6))
     modeldata = AlgoDeforLinearModule.exportstress(modeldata)
@@ -119,7 +119,7 @@ for n = [1 2 4 8] #
         )
 end
 
-File = "hughes_cantilever_stresses_$(elementtag)"
+File = "hughes_cantilever_stresses_nodal_$(elementtag)"
 open(File * ".jls", "w") do file
     serialize(file, convergencestudy)
 end
