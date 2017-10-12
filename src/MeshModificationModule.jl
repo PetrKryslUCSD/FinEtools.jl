@@ -734,7 +734,7 @@ function nodepartitioning(fens::FENodeSet, npartitions = 2)
         return c
     end
 
-    nlevels = ceil(Int(log(npartitions)/log(2)))
+    nlevels = Int(round(ceil(log(npartitions)/log(2))))
     X = deepcopy(fens.xyz)
     ptng = ones(FInt, size(X,1))
     return  inertialcut(ptng, X, nlevels)
