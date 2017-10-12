@@ -1212,3 +1212,62 @@ end
 end
 using .mmmCSVm
 mmmCSVm.test()
+
+
+module mxmeasurementm3a1
+using FinEtools
+using FinEtools.MeshExportModule
+using Compat.Test
+function test()
+    W = 4.1;
+    L = 12.;
+    t =  5.32;
+    a = 0.4
+    nl, nt, nw = 6, 8, 9;
+
+    fens,fes  = H20block(L,W,t, nl,nw,nt)
+    # println("Mesh: $(count(fes))")
+    for ixxxx = 1:count(fens)
+        x,y,z = fens.xyz[ixxxx, :]
+        fens.xyz[ixxxx, :] = [x+a*sin(y) y+x/10*a*sin(z) z+y*a*sin(x)]
+    end
+    geom  =  NodalField(fens.xyz)
+    # File = "mesh.vtk"
+    # MeshExportModule.vtkexportmesh(File, fens, fes)
+    # @async run(`"paraview.exe" $File`)
+
+    femm  =  FEMMBase(GeoD(fes, GaussRule(3, 4)))
+    V20 = integratefunction(femm, geom, (x) ->  1.0)
+
+    subregion1list = selectelem(fens, fes, box = [0.0 L/2 -Inf Inf -Inf Inf], inflate = t/1000)
+    subregion2list = setdiff(1:count(fes), subregion1list)
+    # println("Sub mesh 1: $(length(subregion1list))")
+    # println("Sub mesh 2: $(length(subregion2list))")
+
+    fes1 = subset(fes, subregion1list)
+    connected1 = findunconnnodes(fens, fes1);
+    fens1, new_numbering1 = compactnodes(fens, connected1);
+    fes1 = renumberconn!(fes1, new_numbering1);
+    present = find(x -> x > 0, new_numbering1)
+    geom1  =  NodalField(fens.xyz[present, :])
+
+    fes2 = subset(fes, subregion2list)
+    connected2 = findunconnnodes(fens, fes2);
+    fens2, new_numbering2 = compactnodes(fens, connected2);
+    fes2 = renumberconn!(fes2, new_numbering2);
+    present = find(x -> x > 0, new_numbering2)
+    geom2  =  NodalField(fens.xyz[present, :])
+
+    femm1  =  FEMMBase(GeoD(fes1, GaussRule(3, 4)))
+    V20p = integratefunction(femm1, geom1, (x) ->  1.0)
+    femm2  =  FEMMBase(GeoD(fes2, GaussRule(3, 4)))
+    V20p += integratefunction(femm2, geom2, (x) ->  1.0)
+    # println("V20p = $(V20p)")
+    # println("V20 = $(V20)")
+
+    @test abs(V20 - V20p)/V20 < 1.0e-6
+
+end
+end
+using .mxmeasurementm3a1
+mxmeasurementm3a1.test()
