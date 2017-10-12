@@ -228,37 +228,99 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
     )  where {T<:Number, F<:NodalField{T}}
     @assert count(fensf) == nents(ff)
     nodebox = initbox!([], vec(fensc.xyz[1, :]))
-    for i = 1:count(fensf)
-        nl = vselect(fensc.xyz; nearestto = fensf.xyz[i, :])
-        # For each node in the fine field try to find one in  the coarse field
-        if !isempty(nl) && norm(fensf.xyz[i, :] - fensc.xyz[nl[1], :]) < tolerance
-            # These nodes correspond in the  refined  and coarse mesh
-            ff.values[i, :] = fc.values[nl[1], :]
-        else
-            # Obviously, some nodes in the fine mesh are not located "at" the
-            # location of a coarse-mesh node. Then we have to search which
-            # element they fall into.
-            nodebox = initbox!(nodebox, vec(fensf.xyz[i, :]))
-            nodebox = inflatebox!(nodebox, tolerance)
-            el = selectelem(fensc, fesc; overlappingbox = nodebox)
-            foundone = false
-            for e = el
-                c = view(fesc.conn, e, :)
-                pc, success = map2parametric(fesc, fensc.xyz[c, :],
-                vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
-                @assert success # this shouldn't be tripped; normally we succeed
-                if  inparametric(fesc, pc; tolerance = 0.01) # coarse mesh element encloses the node
-                    N = bfun(fesc,  pc)
-                    ff.values[i, :] = transpose(N) * fc.values[c, :]
-                    foundone = true
-                    break
+    # Find out how many partitions of the nodes on the fine mesh we should use
+    npartitions = max(2, Int(round(count(fensf)/100)))
+    # Partition the nodes of the fine mesh
+    npf = nodepartitioning(fensf, npartitions)
+    partitionnumbers = unique(npf)
+    npartitions = length(partitionnumbers)
+    # Go through all the partitions
+    for p = 1:npartitions
+        pnl = find(x -> x == partitionnumbers[p], npf) # subset of fine-mesh nodes
+        # Find the bounding box
+        subbox = boundingbox(fensf.xyz[pnl, :])
+        tol = 2*tolerance # increase the box a bit
+        # Construct a sub mesh of the coarse mesh that covers the nodes from this partition
+        sublist = selectelem(fensc, fesc, overlappingbox = subbox, inflate = tol)
+        fescsub = subset(fesc, sublist)
+        connected = findunconnnodes(fensc, fescsub);
+        fenscsub, newnumber = compactnodes(fensc, connected); # nodes of the sub mesh
+        fescsub = renumberconn!(fescsub, newnumber); # elements of the sub mesh
+        present = find(x -> x > 0, newnumber)
+        fcsub  =  NodalField(fc.values[present, :]) # reduce the coarse-mesh field to the sub mesh
+        # Now we can find the values at the nodes of the subset of the fine mesh 
+        # working only with the sub mesh of the coarse mesh
+        for i in pnl # for all nodes in the subset
+            nl = vselect(fenscsub.xyz; nearestto = fensf.xyz[i, :])
+            # For each node in the fine field try to find one in  the coarse field
+            if !isempty(nl) && norm(fensf.xyz[i, :] - fenscsub.xyz[nl[1], :]) < tolerance
+                # These nodes correspond in the  refined  and coarse mesh
+                ff.values[i, :] = fcsub.values[nl[1], :]
+            else
+                # Obviously, some nodes in the fine mesh are not located "at" the
+                # location of a coarse-mesh node. Then we have to search which
+                # element they fall into.
+                nodebox = initbox!(nodebox, vec(fensf.xyz[i, :]))
+                nodebox = inflatebox!(nodebox, tolerance)
+                el = selectelem(fenscsub, fescsub; overlappingbox = nodebox)
+                foundone = false
+                for e = el
+                    c = view(fescsub.conn, e, :)
+                    pc, success = map2parametric(fescsub, fenscsub.xyz[c, :],
+                    vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
+                    @assert success # this shouldn't be tripped; normally we succeed
+                    if  inparametric(fescsub, pc; tolerance = 0.01) # coarse mesh element encloses the node
+                        N = bfun(fescsub,  pc)
+                        ff.values[i, :] = transpose(N) * fcsub.values[c, :]
+                        foundone = true
+                        break
+                    end
                 end
+                @assert foundone
             end
-            @assert foundone
         end
     end
+    
     return ff
 end
+
+# Old, non-performing version. It can get very expensive for large meshes.
+# function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
+#     fc::F, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
+#     )  where {T<:Number, F<:NodalField{T}}
+#     @assert count(fensf) == nents(ff)
+#     nodebox = initbox!([], vec(fensc.xyz[1, :]))
+#     for i = 1:count(fensf)
+#         nl = vselect(fensc.xyz; nearestto = fensf.xyz[i, :])
+#         # For each node in the fine field try to find one in  the coarse field
+#         if !isempty(nl) && norm(fensf.xyz[i, :] - fensc.xyz[nl[1], :]) < tolerance
+#             # These nodes correspond in the  refined  and coarse mesh
+#             ff.values[i, :] = fc.values[nl[1], :]
+#         else
+#             # Obviously, some nodes in the fine mesh are not located "at" the
+#             # location of a coarse-mesh node. Then we have to search which
+#             # element they fall into.
+#             nodebox = initbox!(nodebox, vec(fensf.xyz[i, :]))
+#             nodebox = inflatebox!(nodebox, tolerance)
+#             el = selectelem(fensc, fesc; overlappingbox = nodebox)
+#             foundone = false
+#             for e = el
+#                 c = view(fesc.conn, e, :)
+#                 pc, success = map2parametric(fesc, fensc.xyz[c, :],
+#                 vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
+#                 @assert success # this shouldn't be tripped; normally we succeed
+#                 if  inparametric(fesc, pc; tolerance = 0.01) # coarse mesh element encloses the node
+#                     N = bfun(fesc,  pc)
+#                     ff.values[i, :] = transpose(N) * fc.values[c, :]
+#                     foundone = true
+#                     break
+#                 end
+#             end
+#             @assert foundone
+#         end
+#     end
+#     return ff
+# end
 
 """
     transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
