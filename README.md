@@ -12,9 +12,9 @@
 
 ## News
 
-- 10/03/2017: At this point the toolkit  is committed to version 0.7. Breaking changes mean that  tests no longer pass with 0.6.
+- 10/12/2017: Evaluation of global error norms implemented.
 
-- 08/04/2017: Several Jupyter notebook tutorials are now available. Abaqus mesh import is now also implemented (for continuum elements). Initial implementation  of mean-strain hexahedra and tetrahedra has been completed.
+- 08/04/2017: Several Jupyter notebook tutorials are now available. Abaqus mesh import is now also implemented (for continuum elements). Initial implementation  of high-performance mean-strain hexahedra and tetrahedra has been completed.
 
 - 07/23/2017: Export of the finite element model to Abaqus  CAE (from Daussault Systems)
 has been implemented. The FinEtools package can of course  handle the finite element calculations that the export enables, but the point is to have an independent verification of the results. Export of continuum-element meshes for  vibration and static stress analysis  is currently included.
