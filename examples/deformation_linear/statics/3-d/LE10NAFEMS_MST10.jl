@@ -22,12 +22,10 @@ Be =2.75*phun("m"); # Minor radius of the exterior ellipse
 Ai =2.0*phun("m"); # Major radius of the interior ellipse
 Bi =1.0*phun("m"); # Minor radius of the interior ellipse
 Thickness = 0.6*phun("m")
-nc = 6; # number of elements per side
-nr = 5; # number of elements per side
-nt = 2; # number of elements through the thickness
-# nc = 20; # number of elements per side
-# nr = 20; # number of elements per side
-# nt = 10; # number of elements through the thickness
+ref = 3
+nc = 2^ref*6; # number of elements per side
+nr = 2^ref*5; # number of elements per side
+nt = 2^ref*2; # number of elements through the thickness
 tolerance = Thickness/nt/1000.; # Geometrical tolerance
 
 @assert nt % 2 == 0 "Number of elements through the thickness must be even"
