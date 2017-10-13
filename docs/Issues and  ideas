@@ -333,3 +333,20 @@ Key bindings:
 
 -- Speed up the elementwise-field transfer the same way it's been done for the nodal fields.
 (Using a search structure based on partitioning and sub- meshes.)
+
+-- Atom platformio terminal:  set Auto run command to
+/c/Users/PetrKrysl/AppData/Local/Julia-0.7.0-DEV/bin/julia.exe
+set Show override to
+C:\Program Files\Git\bin\bash.exe
+
+-- Key bindings
+
+'atom-text-editor':
+  'ctrl-space': 'autocomplete-plus:activate'
+
+'.platform-win32 .find-and-replace, .platform-linux .find-and-replace':
+  'alt-shift-ctrl-r': 'find-and-replace:replace-next'
+
+'.platform-linux atom-workspace, .platform-win32 atom-workspace':
+  'alt-ctrl-shift-enter': 'platformio-ide-terminal:insert-selected-text'
+  
