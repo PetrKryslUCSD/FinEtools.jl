@@ -10,7 +10,11 @@ using FinEtools.FTypesModule
 export FDataDict
 export dcheck!, richextrapol
 
-# Type for the model-data packaging system (used by all FinEtools algorithms)
+"""
+    FDataDict = Dict{String, Any}
+
+Type for the model-data packaging system (used by all FinEtools algorithms).  
+"""
 const FDataDict = Dict{String, Any}
 
 function keymatch(key::String, allowed_keys::Array{String})
