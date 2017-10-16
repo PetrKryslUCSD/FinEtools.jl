@@ -339,7 +339,7 @@ Key bindings:
 set Show override to
 C:\Program Files\Git\bin\bash.exe
 
--- Key bindings
+-- Key bindings for Atom
 
 'atom-text-editor':
   'ctrl-space': 'autocomplete-plus:activate'
@@ -349,4 +349,3 @@ C:\Program Files\Git\bin\bash.exe
 
 '.platform-linux atom-workspace, .platform-win32 atom-workspace':
   'alt-ctrl-shift-enter': 'platformio-ide-terminal:insert-selected-text'
-  
