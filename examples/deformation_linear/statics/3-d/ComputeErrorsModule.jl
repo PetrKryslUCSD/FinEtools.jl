@@ -43,7 +43,7 @@ function calculateerrors!(coarse, fine, finest)
     errornorm = sqrt(errornorm)
     solnorm = integratefieldfunction(femmfst, geomfst, fieldfst, (x, v) -> norm(v)^2, 0.0)
     solnorm = sqrt(solnorm)
-    println("|error|/|ref| = $(errornorm/solnorm)")
+    println("Displacement |error|/|ref| = $(errornorm/solnorm)")
     coarse["displacement_errornorm"] = errornorm
     coarse["displacement_solnorm"] = solnorm
 
@@ -66,7 +66,7 @@ function calculateerrors!(coarse, fine, finest)
     errornorm = sqrt(errornorm)
     solnorm = integratefieldfunction(femmfst, geomfst, fieldfst, (x, v) -> norm(v)^2, 0.0)
     solnorm = sqrt(solnorm)
-    println("|error|/|ref| = $(errornorm/solnorm)")
+    println("Stress |error|/|ref| = $(errornorm/solnorm)")
     push!(stress, FDataDict())
     coarse["stress_errornorm"] = errornorm
     coarse["stress_solnorm"] = solnorm
