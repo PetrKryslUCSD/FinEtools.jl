@@ -37,14 +37,10 @@ ts = T/nLayers * ones(nLayers); # layer thicknesses
 
 tolerance = 0.0001*T
 
-# Reference deflection under the load is
-wtopref = -3.789*phun("mm"); # From [1]
-wbottomref = -2.16*phun("mm"); # Not given in [1]; guessed from the figure
-
 # Select how find the mesh should be
 Refinement = 1
-nL, nh = Refinement*40, Refinement*1;
-nts= Refinement * 8 * ones(Int, nLayers);# number of elements per layer
+nL, nh = Refinement * 2 * 4, Refinement*1;
+nts= Refinement * 2 * ones(Int, nLayers);# number of elements per layer
 
 xs = collect(linspace(0.0, L, nL+1))
 ys = collect(linspace(0.0, h, nh+1))
@@ -120,45 +116,36 @@ geom = modeldata["geom"]
 # The results of the displacement and stresses will be reported at
 # nodes located at the appropriate points.
 ntopcenter = selectnode(fens, box=[L/2 L/2 0.0 h T T], inflate=tolerance)
-# ntopcenter = selectnode(fens, box=[0.0 0.0 0.0 0.0 TH TH], inflate=tolerance)
-# ncenterline = selectnode(fens, box=[0.0 0.0 0.0 0.0 0.0 TH], inflate=tolerance)
-# nintertop = selectnode(fens, box=[-Inf Inf 0.0 0.0 sum(ts[1:2]) sum(ts[1:2])], inflate=tolerance)
-# ninterbot = selectnode(fens, box=[-Inf Inf 0.0 0.0 sum(ts[1:1]) sum(ts[1:1])], inflate=tolerance)
+ncenterline = selectnode(fens, box=[L/2 L/2 0.0 0.0 0.0 T], inflate=tolerance)
+nx0line = selectnode(fens, box=[0.0 0.0 0.0 0.0 0.0 T], inflate=tolerance)
 
-# zclo = sortperm(vec(geom.values[ncenterline, 3]))
-# ncenterline = ncenterline[zclo]
-# centerz = geom.values[ncenterline, 3]
-# zclo = nothing
+zclo = sortperm(vec(geom.values[ncenterline, 3]))
+ncenterline = ncenterline[zclo]
+centerz = geom.values[ncenterline, 3]
 
-# xclotop = sortperm(vec(geom.values[nintertop, 1]))
-# nintertop = nintertop[xclotop]
-# topx = geom.values[nintertop, 1]
-# xclobot = sortperm(vec(geom.values[ninterbot, 1]))
-# ninterbot = ninterbot[xclobot]
-# botx = geom.values[ninterbot, 1]
-# xclotop = xclobot = nothing
-
-# conninbotskin = intersect(connectednodes(botskinregion["femm"].geod.fes), ncenterline)
-# connincore = intersect(connectednodes(coreregion["femm"].geod.fes), ncenterline)
-# connintopskin = intersect(connectednodes(topskinregion["femm"].geod.fes), ncenterline)
-# inbotskin = [n in conninbotskin for n in ncenterline]
-# incore = [n in connincore for n in ncenterline]
-# intopskin = [n in connintopskin for n in ncenterline]
 
 println("")
 println("Top Center deflection: $(mean(u.values[ntopcenter, 3], 1)/phun("in")) [in]")
 
-# # # extrap = :extrapmean
-# extrap = :extraptrend
-# nodevalmeth = :averaging
-# # extrap = :default
-# # nodevalmeth = :invdistance
+# # extrap = :extrapmean
+extrap = :extraptrend
+nodevalmeth = :averaging
+# extrap = :default
+# nodevalmeth = :invdistance
 
-# # Normal stress in the X direction
-# modeldata["postprocessing"] = FDataDict("file"=>filebase * "-sx",
-# "quantity"=>:Cauchy, "component"=>1, "outputcsys"=>CSys(3),
-# "nodevalmethod"=>nodevalmeth, "reportat"=>extrap)
-# modeldata = AlgoDeforLinearModule.exportstress(modeldata)
+# Compute  all stresses
+modeldata["postprocessing"] = FDataDict("file"=>filebase * "-s",
+"quantity"=>:Cauchy, "component"=>collect(1:6), "outputcsys"=>CSys(3),
+"nodevalmethod"=>nodevalmeth, "reportat"=>extrap)
+modeldata = AlgoDeforLinearModule.exportstress(modeldata)
+
+
+inregion = []
+for layer = 1:nLayers
+    alist = intersect(connectednodes(modeldata["regions"][layer]["femm"].geod.fes), ncenterline)
+    push!(inregion, [n in alist for n in ncenterline])
+end
+
 # s = modeldata["postprocessing"]["exported"][1]["field"]
 # sxbot = s.values[ncenterline, 1]
 # s = modeldata["postprocessing"]["exported"][2]["field"]
@@ -166,21 +153,26 @@ println("Top Center deflection: $(mean(u.values[ntopcenter, 3], 1)/phun("in")) [
 # s = modeldata["postprocessing"]["exported"][3]["field"]
 # sxtop = s.values[ncenterline, 1]
 
-# # The graph data needs to be collected by going through each layer separately.
-# # Some quantities may be discontinuous between layers.
-# zs = vcat(  [z for (j,z) in enumerate(centerz) if inbotskin[j]],
-# [z for (j,z) in enumerate(centerz) if incore[j]],
-# [z for (j,z) in enumerate(centerz) if intopskin[j]]
-# )
-# sxs = vcat( [sxbot[j] for (j,z) in enumerate(centerz) if inbotskin[j]],
-# [sxcore[j] for (j,z) in enumerate(centerz) if incore[j]],
-# [sxtop[j] for (j,z) in enumerate(centerz) if intopskin[j]]
-# )
+# The graph data needs to be collected by going through each layer separately.
+# Some quantities may be discontinuous between layers.
+zs = FFlt[]
+for layer = 1:nLayers
+    zs = vcat(zs, [z for (j,z) in enumerate(centerz) if inregion[layer][j]])
+end
 
-# File = filebase * "-sx-$(extrap).CSV"
-# savecsv(File, zs=vec(zs)/phun("mm"), sx=vec(sxs)/phun("MPa"))
+component = 1
+sigs = FFlt[]
+for layer = 1:nLayers
+    s = modeldata["postprocessing"]["exported"][layer]["field"]
+    sv = s.values[ncenterline, component]
+    sigs = vcat(sigs, [sv[j] for (j,z) in enumerate(centerz) if inregion[layer][j]])
+end
 
-# # @async run(`"paraview.exe" $File`)
+
+File = filebase * "-s$(component)-$(extrap).CSV"
+savecsv(File, zs=vec(zs)/T, sx=vec(sigs)/q0)
+
+@async run(`"paraview.exe" $File`)
 
 # # Inter laminar stress between the skin and the core
 # modeldata["postprocessing"] = FDataDict("file"=>filebase * "-sxz",
