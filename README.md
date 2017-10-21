@@ -12,6 +12,8 @@
 
 ## News
 
+- 10/21/2017: Global RMS there are norms can now be evaluated for multi-region  models.
+
 - 10/12/2017: Evaluation of global error norms implemented.
 
 - 08/04/2017: Several Jupyter notebook tutorials are now available. Abaqus mesh import is now also implemented (for continuum elements). Initial implementation  of high-performance mean-strain hexahedra and tetrahedra has been completed.
