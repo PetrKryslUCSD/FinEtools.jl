@@ -146,13 +146,6 @@ for layer = 1:nLayers
     push!(inregion, [n in alist for n in ncenterline])
 end
 
-# s = modeldata["postprocessing"]["exported"][1]["field"]
-# sxbot = s.values[ncenterline, 1]
-# s = modeldata["postprocessing"]["exported"][2]["field"]
-# sxcore = s.values[ncenterline, 1]
-# s = modeldata["postprocessing"]["exported"][3]["field"]
-# sxtop = s.values[ncenterline, 1]
-
 # The graph data needs to be collected by going through each layer separately.
 # Some quantities may be discontinuous between layers.
 zs = FFlt[]
@@ -173,29 +166,6 @@ File = filebase * "-s$(component)-$(extrap).CSV"
 savecsv(File, zs=vec(zs)/T, sx=vec(sigs)/q0)
 
 @async run(`"paraview.exe" $File`)
-
-# # Inter laminar stress between the skin and the core
-# modeldata["postprocessing"] = FDataDict("file"=>filebase * "-sxz",
-# "quantity"=>:Cauchy, "component"=>5, "outputcsys"=>CSys(3),
-# "nodevalmethod"=>nodevalmeth, "reportat"=>extrap)
-# modeldata = AlgoDeforLinearModule.exportstress(modeldata)
-# s = modeldata["postprocessing"]["exported"][1]["field"]
-# sxzskinbot = s.values[ninterbot, 1]
-# s = modeldata["postprocessing"]["exported"][2]["field"]
-# sxzcoretop = s.values[nintertop, 1]
-# sxzcorebot = s.values[ninterbot, 1]
-# s = modeldata["postprocessing"]["exported"][3]["field"]
-# sxzskintop = s.values[nintertop, 1]
-
-# File = filebase * "-sxz-$(extrap).CSV"
-# savecsv(File, xstop=vec(topx)/phun("mm"),
-# sxzskintop=vec(sxzskintop)/phun("MPa"),
-# sxzcoretop=vec(sxzcoretop)/phun("MPa"),
-# xsbot=vec(botx)/phun("mm"),
-# sxzskinbot=vec(sxzskinbot)/phun("MPa"),
-# sxzcorebot=vec(sxzcorebot)/phun("MPa"))
-
-# @async run(`"paraview.exe" $File`)
 
 println("Done")
 true
