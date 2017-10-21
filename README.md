@@ -12,7 +12,7 @@
 
 ## News
 
-- 10/21/2017: Global RMS there are norms can now be evaluated for multi-region  models.
+- 10/21/2017: Global RMS error norms can now be evaluated for multi-region  models.
 
 - 10/12/2017: Evaluation of global error norms implemented.
 
