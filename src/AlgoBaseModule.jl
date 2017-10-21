@@ -6,9 +6,10 @@ Module for base  algorithms.
 module AlgoBaseModule
 
 using FinEtools.FTypesModule
+using FinEtools.FEMMBaseModule
 
 export FDataDict
-export dcheck!, richextrapol
+#export dcheck!, richextrapol, fieldnorm, fielddiffnorm, evalconvergencestudy
 
 """
     FDataDict = Dict{String, Any}
@@ -17,7 +18,7 @@ Type for the model-data packaging system (used by all FinEtools algorithms).
 """
 const FDataDict = Dict{String, Any}
 
-function keymatch(key::String, allowed_keys::Array{String})
+function _keymatch(key::String, allowed_keys::Array{String})
     matched_key = nothing
     for  j = 1:length(allowed_keys)
         m = match(Regex("^$key"), allowed_keys[j])
@@ -32,7 +33,7 @@ end
 function dcheck!(d::FDataDict, recognized_keys::Array{String})
     notmatched = Array{String}(0)
     for  key in keys(d)
-        matched_key = keymatch(key, recognized_keys)
+        matched_key = _keymatch(key, recognized_keys)
         if matched_key == nothing
             push!(notmatched, "Key \"$key\" not matched")
         else
@@ -79,5 +80,101 @@ function richextrapol(solns::FFltVec, params::FFltVec)
     return solnestim, beta, c, residual
 end
 
+
+"""
+    fieldnorm(modeldata)
+
+Compute norm of the target field.  
+
+`modeldata` = data dictionary, mandatory keys:
+    - "fens" = finite element node set
+    - "regions" = array of regions
+    - "targetfields" = array of fields, one for each region
+    - "geom" = geometry field
+"""
+function fieldnorm(modeldata)
+    fens = modeldata["fens"]
+    regions = modeldata["regions"]
+    targetfields = modeldata["targetfields"]
+    geom = modeldata["geom"]
+
+    @assert length(regions) == length(targetfields)
+
+    fnorm = 0.0 # Initialize the norm of the difference
+    for i = 1:length(regions)
+        # Compute the addition to the norm of the field
+        fnorm += integratefieldfunction(regions[i]["femm"], geom, targetfields[i], (x, v) -> norm(v)^2, 0.0)
+    end
+
+    return fnorm
+end
+
+"""
+    fielddiffnorm(modeldatacoarse, modeldatafine)
+
+Compute norm of the difference of the target fields.  
+"""
+function fielddiffnorm(modeldatacoarse, modeldatafine)
+    # Load coarse-mesh data
+    fenscoarse = modeldatacoarse["fens"]
+    regionscoarse = modeldatacoarse["regions"]
+    targetfieldscoarse = modeldatacoarse["targetfields"]
+
+    # Load fine-mesh data
+    fensfine = modeldatafine["fens"]
+    regionsfine = modeldatafine["regions"]
+    targetfieldsfine = modeldatafine["targetfields"]
+    geometricaltolerance = modeldatafine["geometricaltolerance"]
+    geom = modeldatafine["geom"]
+
+    @assert length(regionscoarse) == length(regionsfine)
+    @assert length(regionscoarse) == length(targetfieldscoarse)
+    @assert length(regionsfine) == length(targetfieldsfine)
+
+    diffnorm = 0.0 # Initialize the norm of the difference
+    for i = 1:length(regionscoarse)
+        # Transfer the result from the coarse mesh to the fine-mesh
+        ffine = targetfieldsfine[i]
+        fcoarse = targetfieldscoarse[i]
+        fcoarsetransferred = deepcopy(ffine)
+        fcoarsetransferred = transferfield!(fcoarsetransferred,
+            fensfine, regionsfine[i]["femm"].geod.fes, fcoarse,
+            fenscoarse, regionscoarse[i]["femm"].geod.fes, geometricaltolerance)
+        # Form the difference  field
+        diffff = deepcopy(fcoarsetransferred)
+        diffff.values[:] = ffine.values - fcoarsetransferred.values
+        # Compute the addition to the norm of the difference
+        diffnorm += integratefieldfunction(regionsfine[i]["femm"], geom, diffff, (x, v) -> norm(v)^2, 0.0)
+    end
+
+    return diffnorm
+end
+
+"""
+    evalconvergencestudy(modeldatasequence, File)
+
+Evaluate a convergence study from a model-data sequence.  
+"""
+function evalconvergencestudy(modeldatasequence)
+    # Find the element sizes
+    elementsizes = [md["elementsize"] for md in modeldatasequence]
+    
+    # The  finest solution will provide the norm used in the normalization of the errors
+    finestsolnorm = fieldnorm(modeldatasequence[end])
+    # Compute the approximate errors  as the differences of successive solutions
+    diffnorms = FFlt[]
+    for i = 1:(length(modeldatasequence) - 1)
+        push!(diffnorms, fielddiffnorm(modeldatasequence[i], modeldatasequence[i + 1]))
+    end
+    # Normalize the errors
+    errornorms = diffnorms ./ finestsolnorm
+    # Compute the convergence rate
+    f = log.(vec(errornorms))
+    A = hcat(log.(vec(elementsizes[1:end-1])), ones(size(f)))
+    p = A \ f
+    convergencerate = p[1]
+
+    return elementsizes, errornorms, convergencerate
+end
 
 end
