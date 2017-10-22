@@ -106,7 +106,7 @@ function fieldnorm(modeldata)
         fnorm += integratefieldfunction(regions[i]["femm"], geom, targetfields[i], (x, v) -> norm(v)^2, 0.0)
     end
 
-    return fnorm
+    return sqrt(fnorm)
 end
 
 """
@@ -147,7 +147,7 @@ function fielddiffnorm(modeldatacoarse, modeldatafine)
         diffnorm += integratefieldfunction(regionsfine[i]["femm"], geom, diffff, (x, v) -> norm(v)^2, 0.0)
     end
 
-    return diffnorm
+    return sqrt(diffnorm)
 end
 
 """
