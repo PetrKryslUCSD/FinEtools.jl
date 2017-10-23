@@ -87,7 +87,7 @@ function make_stabilization_material(material::M) where {M}
         end
     else
         if :E1 in ns
-            E = min(material.E1, material.E2, material.E3)
+            E = mean([material.E1, material.E2, material.E3])
             nu = min(material.nu12, material.nu13, material.nu23)
         else
             error("No clues on how to construct the stabilization material")
@@ -619,7 +619,7 @@ end
 
 end
 
-# The alternative formulation of the extrapolation procedure  (slight difference with respect to the one in the paper)
+# The alternative formulation of the extrapolation procedure  (slight difference with respect to the one in the paper).
 # function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
 #     geom::NodalField{FFlt},  u::NodalField{T},
 #     dT::NodalField{FFlt},
