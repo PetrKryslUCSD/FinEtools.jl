@@ -2,6 +2,34 @@ module TetRemeshingModule
 
 using FinEtools
 using FinEtools.FENodeToFEMapModule
+using FinEtools.MeshTetrahedronModule
+
+function dumparray(a::Array{T,1}, afile) where {T}
+    fid=open(afile * ".csv","w");
+    if (fid==-1)
+        error("Could not open " * afile)
+        return nothing
+    end
+    for i= 1:size(a, 1)
+        print(fid,a[i],"\n");
+    end
+    fid=close(fid);
+end
+
+function dumparray(a::Array{T,2}, afile) where {T}
+    fid=open(afile * ".csv","w");
+    if (fid==-1)
+        error("Could not open " * afile)
+        return nothing
+    end
+    for i= 1:size(a, 1)
+        for j= 1:size(a,2)-1
+            print(fid,a[i,j],",");
+        end
+        print(fid,a[i,end],",\n");
+    end
+    fid=close(fid);
+end
 
 """
     coarsen(t::Array{Int, 2}, v::Array{Float64, 2}, tmid::Vector{Int}, options)
@@ -39,8 +67,7 @@ vertex_weight= weight of vertices, one per  vertex; weight <= 1.0 is ignored,
 ## Output
 t,v,tmid = new arrays
 """
-
-function coarsen(t::Array{Int, 2}, v::Array{Float64, 2}, tmid::Vector{Int}; bv::Vector{Bool} = [], desired_ts::Number = 0.0, stretch::Number = 1.25, nblayer::Int = 1, surface_coarsening::Bool = false, preserve_thin::Bool = false, vertex_weight::Vector{Number} = [])
+function coarsen(t::Array{Int, 2}, v::Array{Float64, 2}, tmid::Vector{Int}; bv::Vector{Bool} = Bool[], desired_ts::Number = 0.0, stretch::Number = 1.25, nblayer::Int = 1, surface_coarsening::Bool = false, preserve_thin::Bool = false, vertex_weight::Vector{Float64} = Float64[])
     if length(bv) == size(v, 1)
         vlayer = [i == true ? 1 : 0 for i in bv]
     else 
@@ -115,7 +142,7 @@ function coarsen(t::Array{Int, 2}, v::Array{Float64, 2}, tmid::Vector{Int}; bv::
     end
     currvlayer = currvlayer +1;
     # Compute the desired mesh size at a given layer
-    desiredes = zeros(currvlayer,1);
+    desiredes = zeros(currvlayer);
     desiredes[1] = desired_ts;
     for layer =2:currvlayer
         s=0; finalr = 0
@@ -133,15 +160,21 @@ function coarsen(t::Array{Int, 2}, v::Array{Float64, 2}, tmid::Vector{Int}; bv::
     # Initialize edge lengths, edge vertex counts
     es = zeros(size(e,1));
     elayer = zeros(Int, size(e,1));
-    es = edge_length(collect(1:size(e,1)));
-    elayer = minimum(hcat(vlayer[e[:,1]],vlayer[e[:,2]]), 2)
+    es = edgelengths(collect(1:size(e,1)), v, e, vertex_weight);
+    elayer = vec(minimum(hcat(vlayer[e[:,1]],vlayer[e[:,2]]), 2))
     minne = 200;    maxne = 400;# 36
     
+    dumparray(es, "es")
+    dumparray(elayer, "elayer")
+    dumparray(desiredes, "desiredes")
+    dumparray(v2t, "v2t")
+    dumparray(v2e, "v2e")
+    # Let's get down to business
     Faile =  Int[];
     pass =1;
     while true
         availe, currvlayer = availelist(elayer, currvlayer, minne, maxne, es, nblayer, desiredes, Faile);
-        print("%d.", currvlayer)
+        print(currvlayer, ".")
         if (mod(pass,20) == 0)
             print("\n")
         end
@@ -152,7 +185,7 @@ function coarsen(t::Array{Int, 2}, v::Array{Float64, 2}, tmid::Vector{Int}; bv::
             eL = sortedelist(elayer, es, desiredes, availe);
             Change =  false; 
             for i=1:length(eL)
-                if (collapseedge!(e, eL[i]))
+                if (collapseedge!(e, es, elayer, vlayer, t, v, v2t, v2e, vertex_weight, eL[i]))
                     Change = true;  break; 
                 end
                 push!(Faile, eL[i]); # do I never clean up Faile?
@@ -164,13 +197,13 @@ function coarsen(t::Array{Int, 2}, v::Array{Float64, 2}, tmid::Vector{Int}; bv::
         pass = pass + 1;
     end
     # # Cleanup
-    fprintf(1,['\n'])
+    print("\n")
     
     t,v,tmid =  delete_ent(t,v,tmid);
     
 end
 
-function collapseedge!(e::Array{Int, 2}, es::Vector{Number}, elayer::Vector{Int}, t::Array{Int, 2}, v::Array{Float64, 2}, v2t::Vector{Vector{Int}}, v2e::Vector{Vector{Int}}, vertex_weight::Vector{Number}, dei::Int)
+function collapseedge!(e::Array{Int, 2}, es::Vector{Float64}, elayer::Vector{Int}, vlayer::Vector{Int}, t::Array{Int, 2}, v::Array{Float64, 2}, v2t::Vector{Vector{Int}}, v2e::Vector{Vector{Int}}, vertex_weight::Vector{Float64}, dei::Int)
     result = false;
     # if the operation would result in inverted tetrahedra, cancel it
     de = e[dei, [1,2]];
@@ -242,7 +275,7 @@ function collapseedge!(e::Array{Int, 2}, es::Vector{Number}, elayer::Vector{Int}
     return  true;
 end
 
-function edge_length(ens::Vector{Int}, v::Array{Float64, 2}, e::Array{Int, 2}, vertex_weight::Vector{Number})
+function edgelengths(ens::Vector{Int}, v::Array{Float64, 2}, e::Array{Int, 2}, vertex_weight::Vector{Float64})
     eLengths = zeros(length(ens))
     for i = 1:length(ens)
         en = ens[i]
@@ -252,38 +285,38 @@ function edge_length(ens::Vector{Int}, v::Array{Float64, 2}, e::Array{Int, 2}, v
 end
 
 # Length of the edge between 2 vertices
-function elength(p1::Vector{Number}, p2::Vector{Number}, vw1::Number, vw2::Number)
+function elength(p1::Vector{T}, p2::Vector{T}, vw1::T, vw2::T) where {T}
     p = p2 - p1;
-    return max(vw1, vw2) * sqrt(sum(p.^2,1));
+    return max(vw1, vw2) * norm(p);
 end
 
-function sortedelist(elayer, es, desiredes, availe)
-    eList = 0*availe;
+function sortedelist(elayer::Vector{Int}, es::Vector{Float64}, desiredes::Vector{Float64}, availe::Vector{Int})
+    eList = deepcopy(availe); fill!(eList, 0)
     n=0;
     for i11=1:length(availe)
-        k11=availe(i11);
-        if (elayer(k11) >0)
-            if  (es(k11)<desiredes(elayer(k11)))
-                n=n+1; eList(n) =k11;
+        k11=availe[i11];
+        if (elayer[k11] >0)
+            if  es[k11] < desiredes[elayer[k11]]
+                n=n+1; eList[n] =k11;
             end
         end
     end
     return eList[1:n];
 end
 
-function availelist(elayer,currvlayer,minnt,maxnt,es,nblayer,desiredes,Faile)
-    eList= [];
+function availelist(elayer::Vector{Int}, currvlayer::Int, minnt::Int, maxnt::Int, es::Vector{Float64}, nblayer::Int, desiredes::Vector{Float64}, Faile::Vector{Int})
+    eList= []; newcurrvlayer = 0
     for layer = currvlayer:-1:nblayer+1 # This can be changed to allow for more or less coarsening
-        availe = setdiff(find(elayer>=layer), Faile);
+        availe = setdiff(find(p -> layer <= p, elayer), Faile);
         eList = sortedelist(elayer, es, desiredes, availe);
-        if (length[eList] >=minnt)
+        newcurrvlayer = layer;
+        if (length(eList) >= minnt)
             break;
         end
     end
     availe = eList;
     availe = availe[1:min(length(availe), maxnt)];
-    currvlayer = layer;
-    return availe, currvlayer
+    return availe, newcurrvlayer
 end
 
 
@@ -329,12 +362,12 @@ in a negative volume  for any of the tetrahedra connected to `whichv`.
 This is a heavily used function, and hence speed and absence of
 memory allocation is at a premium.
 """
-function anynegvol(t, v, whichv, v1)
+function anynegvol(t::Array{Int,2}, v::Array{Float64,2}, whichv::Int, v1::Array{Float64,1})
     Volume6 = 0.0
     for iS1 = 1:size(t,1)
         i1, i2, i3, i4 = t[iS1,:]; # nodes of the tetrahedron
         if (i1 == whichv) 
-            @inbounds let
+            @inbounds Volume6 = let
                 A1 = v[i2,1]-v1[1]; 
                 A2 = v[i2,2]-v1[2]; 
                 A3 = v[i2,3]-v1[3]; 
@@ -344,11 +377,11 @@ function anynegvol(t, v, whichv, v1)
                 C1 = v[i4,1]-v1[1]; 
                 C2 = v[i4,2]-v1[2]; 
                 C3 = v[i4,3]-v1[3]; 
+                ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3)
             end
-            Volume6 = ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
         end
         if (i2 == whichv) 
-            @inbounds let
+            @inbounds Volume6 = let
                 A1 = v1[1]-v[i1,1]; 
                 A2 = v1[2]-v[i1,2]; 
                 A3 = v1[3]-v[i1,3]; 
@@ -358,11 +391,11 @@ function anynegvol(t, v, whichv, v1)
                 C1 = v[i4,1]-v[i1,1]; 
                 C2 = v[i4,2]-v[i1,2]; 
                 C3 = v[i4,3]-v[i1,3]; 
+                ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3)
             end
-            Volume6 = ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
         end
         if (i3 == whichv) 
-            @inbounds let
+            @inbounds Volume6 = let
                 A1 = v[i2,1]-v[i1,1]; 
                 A2 = v[i2,2]-v[i1,2]; 
                 A3 = v[i2,3]-v[i1,3]; 
@@ -372,11 +405,11 @@ function anynegvol(t, v, whichv, v1)
                 C1 = v[i4,1]-v[i1,1]; 
                 C2 = v[i4,2]-v[i1,2]; 
                 C3 = v[i4,3]-v[i1,3]; 
+                ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3)
             end
-            Volume6 = ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
         end
         if (i4 == whichv) 
-            @inbounds let
+            @inbounds Volume6 = let
                 A1 = v[i2,1]-v[i1,1]; 
                 A2 = v[i2,2]-v[i1,2]; 
                 A3 = v[i2,3]-v[i1,3]; 
@@ -386,8 +419,8 @@ function anynegvol(t, v, whichv, v1)
                 C1 = v1[1]-v[i1,1]; 
                 C2 = v1[2]-v[i1,2]; 
                 C3 = v1[3]-v[i1,3]; 
+                ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3)
             end
-            Volume6 = ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
         end
         if (Volume6 < 0)
              return true;
@@ -396,8 +429,8 @@ function anynegvol(t, v, whichv, v1)
     return false;
 end
 
-function delete_ent(t,v,tmid)
-    nn = zeros(size(v,1));
+function delete_ent(t::Array{Int,2}, v::Array{Float64,2}, tmid::Array{Int,1})
+    nn = zeros(Int, size(v,1));
     nv = deepcopy(v);
     k=1;
     for i=1:size(v,1)
@@ -408,13 +441,13 @@ function delete_ent(t,v,tmid)
         end
     end
     nnv=k-1;
-    outv = nv[1:nnv,:];
+    v = nv[1:nnv,:];
     # delete connectivities of collapsed tetrahedra, and renumber nodes
     nt = deepcopy(t); fill!(nt, 0)
     ntmid = deepcopy(tmid); fill!(ntmid, 0)
     k=1;
     for i=1:size(t,1)
-        if (t[i,:] != 0)# not deleted
+        if (t[i,1] != 0)# not deleted
             if (!isempty(find(p -> p == 0, nn[t[i,:]])))
                 # error('Referring to deleted vertex')
                 t[i,:] = 0;
@@ -430,7 +463,7 @@ function delete_ent(t,v,tmid)
     # delete unconnected vertices
     uv = unique(vec(t));
     if (length(uv) != size(v,1)) # there may be unconnected vertices
-        nn = zeros(size(v,1),1);
+        nn = zeros(Int, size(v,1),1);
         nn[uv] = collect(1:length(uv));
         nv = deepcopy(v);
         for i=1:size(v,1)
