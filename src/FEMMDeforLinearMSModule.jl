@@ -25,7 +25,6 @@ using FinEtools.AssemblyModule
 using FinEtools.DeforModelRedModule
 using FinEtools.MatDeforModule
 using FinEtools.MatDeforElastIsoModule
-using FinEtools.FENodeToFEMapModule
 using FinEtools.MatrixUtilityModule.add_btdb_ut_only!
 using FinEtools.MatrixUtilityModule.complete_lt!
 using FinEtools.MatrixUtilityModule.mv_product!
