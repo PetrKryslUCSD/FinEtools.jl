@@ -6,7 +6,8 @@ Module for mesh modification operations.
 module MeshModificationModule
 
 export  meshboundary,  fusenodes,  compactnodes,  mergemeshes,  mergenmeshes,
-  mergenodes,  renumberconn!,  meshsmoothing,  mirrormesh, nodepartitioning
+    mergenodes,  renumberconn!,  meshsmoothing,  mirrormesh, nodepartitioning, 
+    interior2boundary
 
 using FinEtools.FTypesModule
 using FinEtools.FENodeSetModule
@@ -15,7 +16,20 @@ using Base.Sort
 using Base.Order
 
 """
-    meshboundary(fes::T) where {T<:FESet}
+    interior2boundary(interiorconn::Array{Int, 2}, extractb::Array{Int, 2})
+
+Extract the boundary connectivity from the connectivity of the interior.
+"""
+function interior2boundary(interiorconn::Array{Int, 2}, extractb::Array{Int, 2})
+    hypf = interiorconn[:, extractb[1, :]]
+    for i = 2:size(extractb, 1)
+        hypf = vcat(hypf, interiorconn[:, extractb[i, :]])
+    end
+    return myunique2(hypf);
+end
+
+"""
+meshboundary(fes::T) where {T<:FESet}
 
 Extract the boundary finite elements from a mesh.
 
@@ -24,10 +38,9 @@ supplied list of finite elements of manifold dimension (n).
 """
 function meshboundary(fes::T) where {T<:FESet}
     # Form all hyperfaces, non-duplicates are boundary cells
-    hypf= FESetModule.boundaryconn(fes);    # get the connectivity of the boundary elements
+    hypf = FESetModule.boundaryconn(fes);    # get the connectivity of the boundary elements
     bdryconn = myunique2(hypf);
     make = FESetModule.boundaryfe(fes);     # get the function that can make a boundary element
-
     return make(bdryconn);
 end
 

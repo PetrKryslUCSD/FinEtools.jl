@@ -5,7 +5,7 @@ Module  for generation of meshes composed of tetrahedra.
 """
 module MeshTetrahedronModule
 
-export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10compositeplatex
+export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10compositeplatex, T4meshedges
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -251,6 +251,99 @@ function T10compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
         fes.label[List] = layer
     end
     return T4toT10(fens, fes)
+end
+
+"""
+    tetv(X)
+
+Compute the volume of a tetrahedron.  
+
+```
+X = [0  4  3
+9  2  4
+6  1  7
+0  1  5] # for these points the volume is 10.0
+tetv(X)
+```
+"""
+function tetv(X::FFltMat)
+    local one6th = 1.0/6
+    # @assert size(X, 1) == 4
+    # @assert size(X, 2) == 3
+    @inbounds let
+        A1 = X[2,1]-X[1,1]; 
+        A2 = X[2,2]-X[1,2]; 
+        A3 = X[2,3]-X[1,3]; 
+        B1 = X[3,1]-X[1,1]; 
+        B2 = X[3,2]-X[1,2]; 
+        B3 = X[3,3]-X[1,3]; 
+        C1 = X[4,1]-X[1,1]; 
+        C2 = X[4,2]-X[1,2]; 
+        C3 = X[4,3]-X[1,3]; 
+        return one6th * ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
+    end
+end
+
+"""
+    tetv1times6(v, i1, i2, i3, i4)
+
+Compute 6 times the volume of the tetrahedron.  
+"""
+function tetv1times6(v::FFltMat, i1::Int, i2::Int, i3::Int, i4::Int)
+    # local one6th = 1.0/6
+    # @assert size(X, 1) == 4
+    # @assert size(X, 2) == 3
+    @inbounds let
+        A1 = v[i2,1]-v[i1,1]; 
+        A2 = v[i2,2]-v[i1,2]; 
+        A3 = v[i2,3]-v[i1,3]; 
+        B1 = v[i3,1]-v[i1,1]; 
+        B2 = v[i3,2]-v[i1,2]; 
+        B3 = v[i3,3]-v[i1,3]; 
+        C1 = v[i4,1]-v[i1,1]; 
+        C2 = v[i4,2]-v[i1,2]; 
+        C3 = v[i4,3]-v[i1,3]; 
+        return ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
+    end
+end
+
+"""
+    T4meshedges(t::Array{Int, 2})
+
+Compute all the edges of the 4-node triangulation.  
+"""
+function T4meshedges(t::Array{Int, 2})
+    @assert size(t, 2) == 4
+    ec = [  1  2
+            2  3
+            3  1
+            4  1
+            4  2
+            4  3];
+    e = vcat(t[:,ec[1,:]], t[:,ec[2,:]], t[:,ec[3,:]], t[:,ec[4,:]], t[:,ec[5,:]], t[:,ec[6,:]])
+    e = sort(e, 2);
+    ix = sortperm(e[:,1]);
+    e = e[ix,:];
+    ue = deepcopy(e)
+    i = 1;
+    n=1;
+    while n <= size(e,1)
+        c = ue[n,1];
+        m = n+1;
+        while m <= size(e,1)
+            if (ue[m,1] != c)
+                break; 
+            end
+            m = m+1;
+        end
+        us = unique(ue[n:m-1,2], 1);
+        ls =length(us);
+        e[i:i+ls-1,1] = c;
+        e[i:i+ls-1,2] = sort(us);
+        i = i+ls;
+        n = m;
+    end
+    e = e[1:i-1,:];
 end
 
 end
