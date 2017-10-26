@@ -5,7 +5,7 @@ using Main.TetRemeshingModule
 L= 0.3; 
 W = 0.3;
 a = 0.15;
-nL=6; nW=6; na=6;
+nL=76; nW=76; na=56;
 
 fens,fes = T4block(a,L,W,nL,nW,na,:a);
 t = deepcopy(fes.conn);
@@ -19,11 +19,21 @@ bv = zeros(Bool, size(v,1));
 bv[f] = true;
 
 println("Mesh size: initial = $(size(t,1))")
+t0 = time()
 
 t, v, tmid = TetRemeshingModule.coarsen(t, v, tmid; bv = bv, desired_ts = desired_ts);
 
-println("Mesh size: final = $(size(t,1))")
+println("Mesh size: final = $(size(t,1)) [$(time() - t0) sec]")
 
-# File = "test1.vtk"
-# MeshExportModule.vtkexportmesh(File, t, v, MeshExportModule.T4)
-# @async run(`"paraview.exe" $File`)
+fens.xyz = deepcopy(v)
+fes.conn = deepcopy(t)
+setlabel!(fes, tmid)
+geom  =  NodalField(fens.xyz)
+
+femm  =  FEMMBase(GeoD(fes, SimplexRule(3, 1)))
+V = integratefunction(femm, geom, (x) ->  1.0)
+println("V = $(V) compared to $(L * W * a)")
+
+File = "test1.vtk"
+MeshExportModule.vtkexportmesh(File, t, v, MeshExportModule.T4)
+@async run(`"paraview.exe" $File`)

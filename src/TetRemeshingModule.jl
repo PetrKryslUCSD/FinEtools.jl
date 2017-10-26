@@ -3,6 +3,10 @@ module TetRemeshingModule
 using FinEtools
 using FinEtools.FENodeToFEMapModule
 using FinEtools.MeshTetrahedronModule
+import Base.length
+import Base.push!
+import Base.getindex
+import Base.copy!
 
 function dumparray(a::Array{T,1}, afile) where {T}
     fid=open(afile * ".csv","w");
@@ -29,6 +33,44 @@ function dumparray(a::Array{T,2}, afile) where {T}
         print(fid,a[i,end],",\n");
     end
     fid=close(fid);
+end
+
+
+mutable struct _IntegerBuffer
+    a::Array{Int,1}
+    pa::Int
+end
+
+function push!(b::_IntegerBuffer, i::Int)
+    b.pa = b.pa + 1 
+    b.a[b.pa] = i 
+    return b
+end
+
+function empty!(b::_IntegerBuffer)
+    b.pa = 0
+    return b
+end
+
+function trim!(b::_IntegerBuffer, i::Int)
+    b.pa = i
+    return b
+end
+
+length(b::_IntegerBuffer) = b.pa
+
+function getindex(b::_IntegerBuffer, i::Int)
+    @assert i <= length(b)
+    return b.a[i]
+end 
+
+function copy!(d::_IntegerBuffer, s::_IntegerBuffer)
+    @assert length(d.a) == length(s.a)
+    empty!(d)
+    for i = 1:length(s) # @inbounds 
+        push!(d, s.a[i])
+    end
+    return d
 end
 
 """
@@ -69,9 +111,9 @@ t,v,tmid = new arrays
 """
 function coarsen(t::Array{Int, 2}, v::Array{Float64, 2}, tmid::Vector{Int}; bv::Vector{Bool} = Bool[], desired_ts::Number = 0.0, stretch::Number = 1.25, nblayer::Int = 1, surface_coarsening::Bool = false, preserve_thin::Bool = false, vertex_weight::Vector{Float64} = Float64[])
     if length(bv) == size(v, 1)
-        vlayer = [i == true ? 1 : 0 for i in bv]
+        vlayer = Int[i == true ? 1 : 0 for i in bv]
     else 
-        vlayer = []
+        vlayer = Int[]
     end 
     if length(vertex_weight) != size(v, 1)
         vertex_weight = ones(size(v, 1))
@@ -162,53 +204,57 @@ function coarsen(t::Array{Int, 2}, v::Array{Float64, 2}, tmid::Vector{Int}; bv::
     elayer = zeros(Int, size(e,1));
     es = edgelengths(collect(1:size(e,1)), v, e, vertex_weight);
     elayer = vec(minimum(hcat(vlayer[e[:,1]],vlayer[e[:,2]]), 2))
+    everfailed = zeros(Bool, size(e,1));
     minne = 200;    maxne = 400;# 36
+    availe = _IntegerBuffer(zeros(Int, size(e,1)), 0) # Flexible  buffer to avoid allocations
+    selist = _IntegerBuffer(zeros(Int, size(e,1)), 0) # Flexible  buffer to avoid allocations
     
     # Let's get down to business
-    Faile =  Int[];
+    previouscurrvlayer = 0
     pass =1;
     while true
-        availe, currvlayer = availelist(elayer, currvlayer, minne, maxne, es, nblayer, desiredes, Faile);
-        print(currvlayer, ".")
-        if (mod(pass,20) == 0)
-            print("\n")
-        end
+        availe, currvlayer = availelist!(availe, selist, elayer, currvlayer, minne, maxne, es, nblayer, desiredes, everfailed);
+        if currvlayer != previouscurrvlayer
+            print(currvlayer, ".")
+            if (mod(pass,40) == 0)
+                print("\n")
+            end
+        end 
         if (length(availe)==0)  
             break; # Done. Hallelujah!
         end 
         while true
-            eL = sortedelist(elayer, es, desiredes, availe);
+            selist = sortedelist!(selist, elayer, es, desiredes, availe);
             Change =  false; 
-            for i=1:length(eL)
-                if (collapseedge!(e, es, elayer, vlayer, t, v, v2t, v2e, vertex_weight, eL[i]))
+            for i=1:length(selist)
+                if (collapseedge!(e, es, elayer, vlayer, t, v, v2t, v2e, vertex_weight, selist[i]))
                     Change = true;  break; 
                 end
-                push!(Faile, eL[i]); # do I never clean up Faile?
+                everfailed[selist[i]] = true; # the collapse failed for this edge
             end
             if  (!Change)
                 break;
             end
         end
-        pass = pass + 1;
+        pass = pass + 1; previouscurrvlayer = currvlayer
     end
-    # # Cleanup
     print("\n")
     
-    t,v,tmid =  delete_ent(t,v,tmid);
+    t,v,tmid =  cleanoutput(t,v,tmid);
     
 end
 
 function collapseedge!(e::Array{Int, 2}, es::Vector{Float64}, elayer::Vector{Int}, vlayer::Vector{Int}, t::Array{Int, 2}, v::Array{Float64, 2}, v2t::Vector{Vector{Int}}, v2e::Vector{Vector{Int}}, vertex_weight::Vector{Float64}, dei::Int)
     result = false;
     # if the operation would result in inverted tetrahedra, cancel it
-    de = e[dei, [1,2]];
-    if anynegvol(t[v2t[de[2]],:], v, de[2], v[de[1],:])
-        de = e[dei, [2,1]];# Try the edge the other way
-        if anynegvol(t[v2t[de[2]],:], v, de[2], v[de[1],:])
+    de1, de2 = e[dei, 1], e[dei, 2];
+    if anynegvol(t[v2t[de2],:], v, de2, de1)
+        de1, de2 = e[dei, 2], e[dei, 1];;# Try the edge the other way
+        if anynegvol(t[v2t[de2],:], v, de2, de1)
             return false; # the collapse failed
         end
     end
-    vi1 = de[1]; vi2 = de[2];
+    vi1 = de1; vi2 = de2; # the kept Vertex,  and the replaced Vertex
     # Modify t: switch the references to the replaced vertex vi2
     mtl = unique(vcat(v2t[vi1],v2t[vi2]));
     for k = 1:length(mtl)
@@ -232,13 +278,6 @@ function collapseedge!(e::Array{Int, 2}, es::Vector{Float64}, elayer::Vector{Int
     vl = unique(vec(t[dtl,:])); # vertices incident on the collapsed tetrahedra
     for i=1:length(vl) # Delete the collapsed tetrahedra
         filter!(p -> !(p in dtl), v2t[vl[i]])
-        # alist = Int[]
-        # for ti = 1:length(v2t[vl[i]])
-        #     if !(v2t[vl[i]][ti] in dtl)
-        #         push!(alist, v2t[vl[i]][ti])
-        #     end 
-        # end
-        # v2t[vl[i]] = alist
     end
     # Delete edges which are merged by the collapse
     del = v2e[vi2]; # vi2 is the vertex that is to be deleted
@@ -255,10 +294,10 @@ function collapseedge!(e::Array{Int, 2}, es::Vector{Float64}, elayer::Vector{Int
     e[dei,:] .= 0;# Mark deleted edge
     # Update the vertex-2-tet  map
     v2t[vi1]= setdiff(mtl, dtl);
-    v2t[vi2]= [];# this vertex is gone
+    v2t[vi2]= Int[];# this vertex is gone
     # Update the vertex-2-edge  map
     v2e[vi1]= setdiff(mel, dei);
-    v2e[vi2]= [];# this vertex is gone
+    v2e[vi2]= Int[];# this vertex is gone
     #     v(vi1,:) = nv1;# new vertex location
     v[vi2,:] .= Inf;# Indicate invalid vertex
     # update edge lengths
@@ -268,7 +307,7 @@ function collapseedge!(e::Array{Int, 2}, es::Vector{Float64}, elayer::Vector{Int
             es[i] = Inf;# indicate the deleted edge
             elayer[i] = 0;
         else
-            es[i] = elength(v[e[i,1],:], v[e[i,2],:], vertex_weight[e[i,1]], vertex_weight[e[i,2]])
+            es[i] = elength(v, vertex_weight, e[i,1], e[i,2])
             elayer[i] = minimum(vlayer[e[i,:]]);
         end
     end
@@ -281,44 +320,47 @@ function edgelengths(ens::Vector{Int}, v::Array{Float64, 2}, e::Array{Int, 2}, v
     eLengths = zeros(length(ens))
     for i = 1:length(ens)
         en = ens[i]
-        eLengths[i] = elength(v[e[en,1],:], v[e[en,2],:], vertex_weight[e[en,1]], vertex_weight[e[en,2]])
+        eLengths[i] = elength(v, vertex_weight, e[en,1], e[en,2])
     end
     return eLengths
 end
 
-# Length of the edge between 2 vertices
-function elength(p1::Vector{T}, p2::Vector{T}, vw1::T, vw2::T) where {T}
-    p = p2 - p1;
-    return max(vw1, vw2) * norm(p);
+# Weighted length of the edge between 2 vertices
+function elength(v::Array{Float64, 2}, vertex_weight::Vector{Float64}, i1::Int, i2::Int)
+    return max(vertex_weight[i1], vertex_weight[i2]) * 
+        sqrt((v[i2,1] - v[i1,1])^2 + (v[i2,2] - v[i1,2])^2 + (v[i2,3] - v[i1,3])^2);
 end
 
-function sortedelist(elayer::Vector{Int}, es::Vector{Float64}, desiredes::Vector{Float64}, availe::Vector{Int})
-    eList = deepcopy(availe); fill!(eList, 0)
-    n=0;
+function sortedelist!(selist::_IntegerBuffer, elayer::Vector{Int}, es::Vector{Float64}, desiredes::Vector{Float64}, availe::_IntegerBuffer)
+    empty!(selist)
     for i11=1:length(availe)
         k11=availe[i11];
         if (elayer[k11] >0)
             if  es[k11] < desiredes[elayer[k11]]
-                n=n+1; eList[n] =k11;
+                push!(selist, k11);
             end
         end
     end
-    return eList[1:n];
+    return selist;
 end
 
-function availelist(elayer::Vector{Int}, currvlayer::Int, minnt::Int, maxnt::Int, es::Vector{Float64}, nblayer::Int, desiredes::Vector{Float64}, Faile::Vector{Int})
-    eList= []; newcurrvlayer = 0
+function availelist!(availe::_IntegerBuffer, selist::_IntegerBuffer, elayer::Vector{Int}, currvlayer::Int, minnt::Int, maxnt::Int, es::Vector{Float64}, nblayer::Int, desiredes::Vector{Float64}, everfailed::Array{Bool,1})
+    newcurrvlayer = 0
+    empty!(selist)
     for layer = currvlayer:-1:nblayer+1 # This can be changed to allow for more or less coarsening
-        availe = setdiff(find(p -> layer <= p, elayer), Faile);
-        eList = sortedelist(elayer, es, desiredes, availe);
+        empty!(availe)
+        for i = 1:length(elayer) # @inbounds 
+            if (layer <= elayer[i]) && (!everfailed[i])
+                push!(availe, i)
+            end 
+        end
+        selist = sortedelist!(selist, elayer, es, desiredes, availe);
         newcurrvlayer = layer;
-        if (length(eList) >= minnt)
+        if (length(selist) >= minnt)
             break;
         end
     end
-    availe = eList;
-    availe = availe[1:min(length(availe), maxnt)];
-    return availe, newcurrvlayer
+    return copy!(availe, trim!(selist, min(length(selist), maxnt))), newcurrvlayer
 end
 
 
@@ -364,29 +406,30 @@ in a negative volume  for any of the tetrahedra connected to `whichv`.
 This is a heavily used function, and hence speed and absence of
 memory allocation is at a premium.
 """
-function anynegvol(t::Array{Int,2}, v::Array{Float64,2}, whichv::Int, v1::Array{Float64,1})
-    Volume6 = 0.0
+function anynegvol(t::Array{Int,2}, v::Array{Float64,2}, whichv::Int, otherv::Int)
+    i1, i2, i3, i4 = 0, 0, 0, 0
+    Volume6 = 0.0 # @inbounds Volume6 = let
     for iS1 = 1:size(t,1)
         i1, i2, i3, i4 = t[iS1,:]; # nodes of the tetrahedron
         if (i1 == whichv) 
-            @inbounds Volume6 = let
-                A1 = v[i2,1]-v1[1]; 
-                A2 = v[i2,2]-v1[2]; 
-                A3 = v[i2,3]-v1[3]; 
-                B1 = v[i3,1]-v1[1]; 
-                B2 = v[i3,2]-v1[2]; 
-                B3 = v[i3,3]-v1[3]; 
-                C1 = v[i4,1]-v1[1]; 
-                C2 = v[i4,2]-v1[2]; 
-                C3 = v[i4,3]-v1[3]; 
+            Volume6 = let
+                A1 = v[i2,1]-v[otherv,1]; 
+                A2 = v[i2,2]-v[otherv,2]; 
+                A3 = v[i2,3]-v[otherv,3]; 
+                B1 = v[i3,1]-v[otherv,1]; 
+                B2 = v[i3,2]-v[otherv,2]; 
+                B3 = v[i3,3]-v[otherv,3]; 
+                C1 = v[i4,1]-v[otherv,1]; 
+                C2 = v[i4,2]-v[otherv,2]; 
+                C3 = v[i4,3]-v[otherv,3]; 
                 ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3)
             end
         end
         if (i2 == whichv) 
-            @inbounds Volume6 = let
-                A1 = v1[1]-v[i1,1]; 
-                A2 = v1[2]-v[i1,2]; 
-                A3 = v1[3]-v[i1,3]; 
+            Volume6 = let
+                A1 = v[otherv,1]-v[i1,1]; 
+                A2 = v[otherv,2]-v[i1,2]; 
+                A3 = v[otherv,3]-v[i1,3]; 
                 B1 = v[i3,1]-v[i1,1]; 
                 B2 = v[i3,2]-v[i1,2]; 
                 B3 = v[i3,3]-v[i1,3]; 
@@ -397,13 +440,13 @@ function anynegvol(t::Array{Int,2}, v::Array{Float64,2}, whichv::Int, v1::Array{
             end
         end
         if (i3 == whichv) 
-            @inbounds Volume6 = let
+            Volume6 = let
                 A1 = v[i2,1]-v[i1,1]; 
                 A2 = v[i2,2]-v[i1,2]; 
                 A3 = v[i2,3]-v[i1,3]; 
-                B1 = v1[1]-v[i1,1]; 
-                B2 = v1[2]-v[i1,2]; 
-                B3 = v1[3]-v[i1,3]; 
+                B1 = v[otherv,1]-v[i1,1]; 
+                B2 = v[otherv,2]-v[i1,2]; 
+                B3 = v[otherv,3]-v[i1,3]; 
                 C1 = v[i4,1]-v[i1,1]; 
                 C2 = v[i4,2]-v[i1,2]; 
                 C3 = v[i4,3]-v[i1,3]; 
@@ -411,16 +454,16 @@ function anynegvol(t::Array{Int,2}, v::Array{Float64,2}, whichv::Int, v1::Array{
             end
         end
         if (i4 == whichv) 
-            @inbounds Volume6 = let
+            Volume6 = let
                 A1 = v[i2,1]-v[i1,1]; 
                 A2 = v[i2,2]-v[i1,2]; 
                 A3 = v[i2,3]-v[i1,3]; 
                 B1 = v[i3,1]-v[i1,1]; 
                 B2 = v[i3,2]-v[i1,2]; 
                 B3 = v[i3,3]-v[i1,3]; 
-                C1 = v1[1]-v[i1,1]; 
-                C2 = v1[2]-v[i1,2]; 
-                C3 = v1[3]-v[i1,3]; 
+                C1 = v[otherv,1]-v[i1,1]; 
+                C2 = v[otherv,2]-v[i1,2]; 
+                C3 = v[otherv,3]-v[i1,3]; 
                 ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3)
             end
         end
@@ -431,7 +474,7 @@ function anynegvol(t::Array{Int,2}, v::Array{Float64,2}, whichv::Int, v1::Array{
     return false;
 end
 
-function delete_ent(t::Array{Int,2}, v::Array{Float64,2}, tmid::Array{Int,1})
+function cleanoutput(t::Array{Int,2}, v::Array{Float64,2}, tmid::Array{Int,1})
     nn = zeros(Int, size(v,1));
     nv = deepcopy(v);
     k=1;
@@ -483,3 +526,19 @@ function delete_ent(t::Array{Int,2}, v::Array{Float64,2}, tmid::Array{Int,1})
 end
 
 end # module
+
+# julia> include("src\\TetRemeshingModule.jl"); include("test/playground.jl")
+# WARNING: replacing module TetRemeshingModule.
+# Mesh size: initial = 3000000
+# 26.25.24.23.22.21.20.19.18.17.16.15.14.13.12.11.10.9.8.7.6.5.4.
+# 3.2.
+# 187.307604 seconds (520.54 M allocations: 141.169 GiB, 41.79% gc time)
+# Mesh size: final = 401937 [187.5880000591278 sec]
+
+# WARNING: replacing module TetRemeshingModule.
+# Mesh size: initial = 3000000
+# 26.25.24.23.22.21.20.19.18.17.16.15.14.13.12.11.10.9.8.7.6.5.4.
+# 3.2.
+# Mesh size: final = 401937 [133.66499996185303 sec]
+# V = 0.013499999999977705 compared to 0.0135
+# Task (runnable) @0x000000000af5dfb0
