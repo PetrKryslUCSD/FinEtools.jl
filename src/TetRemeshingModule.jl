@@ -164,11 +164,6 @@ function coarsen(t::Array{Int, 2}, v::Array{Float64, 2}, tmid::Vector{Int}; bv::
     elayer = vec(minimum(hcat(vlayer[e[:,1]],vlayer[e[:,2]]), 2))
     minne = 200;    maxne = 400;# 36
     
-    dumparray(es, "es")
-    dumparray(elayer, "elayer")
-    dumparray(desiredes, "desiredes")
-    dumparray(v2t, "v2t")
-    dumparray(v2e, "v2e")
     # Let's get down to business
     Faile =  Int[];
     pass =1;
@@ -210,33 +205,40 @@ function collapseedge!(e::Array{Int, 2}, es::Vector{Float64}, elayer::Vector{Int
     if anynegvol(t[v2t[de[2]],:], v, de[2], v[de[1],:])
         de = e[dei, [2,1]];# Try the edge the other way
         if anynegvol(t[v2t[de[2]],:], v, de[2], v[de[1],:])
-            return result; # the collapse failed
+            return false; # the collapse failed
         end
     end
     vi1 = de[1]; vi2 = de[2];
-    mtl = unique(vcat(v2t[vi1],v2t[vi2]));
     # Modify t: switch the references to the replaced vertex vi2
+    mtl = unique(vcat(v2t[vi1],v2t[vi2]));
     for k = 1:length(mtl)
         for i = 1:4
             if t[mtl[k], i] == vi2
-                t[mtl[k], i] = vi1; break
+                t[mtl[k], i] = vi1; 
             end 
         end
     end
-    mel = unique(vcat(v2e[vi1],v2e[vi2]));
     # Modify e: switch the references to the replaced vertex vi2
+    mel = unique(vcat(v2e[vi1],v2e[vi2]));
     for k=1:length(mel)
         for i = 1:2
             if e[mel[k], i] == vi2
-                e[mel[k], i] = vi1; break
+                e[mel[k], i] = vi1; 
             end 
         end
     end
     # Delete the collapsed tetrahedra from the vertex-to-tet map
     dtl = intersect(v2t[vi1],v2t[vi2]); # list of tets that connect the verts on the collapsed edge
-    vl = unique(t[dtl,:]); # vertices incident on the collapsed tetrahedra
+    vl = unique(vec(t[dtl,:])); # vertices incident on the collapsed tetrahedra
     for i=1:length(vl) # Delete the collapsed tetrahedra
         filter!(p -> !(p in dtl), v2t[vl[i]])
+        # alist = Int[]
+        # for ti = 1:length(v2t[vl[i]])
+        #     if !(v2t[vl[i]][ti] in dtl)
+        #         push!(alist, v2t[vl[i]][ti])
+        #     end 
+        # end
+        # v2t[vl[i]] = alist
     end
     # Delete edges which are merged by the collapse
     del = v2e[vi2]; # vi2 is the vertex that is to be deleted
@@ -249,13 +251,13 @@ function collapseedge!(e::Array{Int, 2}, es::Vector{Float64}, elayer::Vector{Int
             elayer[i] = 0;# indicate the deleted edge
         end
     end
-    t[dtl,:] = 0;# Mark deleted tetrahedra
-    e[dei,:] = 0;# Mark deleted edge
+    t[dtl,:] .= 0;# Mark deleted tetrahedra
+    e[dei,:] .= 0;# Mark deleted edge
     # Update the vertex-2-tet  map
     v2t[vi1]= setdiff(mtl, dtl);
     v2t[vi2]= [];# this vertex is gone
     # Update the vertex-2-edge  map
-    v2e[vi1]= setdiff(mtl, dei);
+    v2e[vi1]= setdiff(mel, dei);
     v2e[vi2]= [];# this vertex is gone
     #     v(vi1,:) = nv1;# new vertex location
     v[vi2,:] .= Inf;# Indicate invalid vertex
