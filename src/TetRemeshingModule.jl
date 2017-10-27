@@ -35,7 +35,13 @@ function dumparray(a::Array{T,2}, afile) where {T}
     fid=close(fid);
 end
 
+"""
+    _IntegerBuffer
 
+This data structure is introduced in order to avoid constant allocation/deallocation of integer  arrays.  
+The buffer is allocated once and then reused  millions of times. The memory is never  released.
+The buffer needs to be accessed  through the methods  below, not directly.
+"""
 mutable struct _IntegerBuffer
     a::Array{Int,1}
     pa::Int
@@ -249,9 +255,9 @@ function collapseedge!(e::Array{Int, 2}, es::Vector{Float64}, elayer::Vector{Int
     result = false;
     # if the operation would result in inverted tetrahedra, cancel it
     de1, de2 = e[dei, 1], e[dei, 2];
-    if anynegvol(t[v2t[de2],:], vt, de2, de1)
+    if anynegvol(t, v2t[de2], vt, de2, de1)
         de1, de2 = e[dei, 2], e[dei, 1];;# Try the edge the other way
-        if anynegvol(t[v2t[de2],:], vt, de2, de1)
+        if anynegvol(t, v2t[de2], vt, de2, de1)
             return false; # the collapse failed
         end
     end
@@ -407,10 +413,10 @@ in a negative volume  for any of the tetrahedra connected to `whichv`.
 This is a heavily used function, and hence speed and absence of
 memory allocation is at a premium.
 """
-function anynegvol(t::Array{Int,2}, vt::Array{Float64,2}, whichv::Int, otherv::Int)
+function anynegvol(t::Array{Int,2}, whichtets::Vector{Int}, vt::Array{Float64,2}, whichv::Int, otherv::Int)
     i1, i2, i3, i4 = 0, 0, 0, 0
     Volume6 = 0.0 # @inbounds Volume6 = let
-    for iS1 = 1:size(t,1)
+    for iS1 in whichtets
         i1, i2, i3, i4 = t[iS1,:]; # nodes of the tetrahedron
         if (i1 == whichv) 
             @inbounds Volume6 = let
