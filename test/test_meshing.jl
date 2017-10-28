@@ -2158,7 +2158,7 @@ ml314.test()
 module mtetmeshedges1
 using FinEtools
 using FinEtools.MeshTetrahedronModule
-using Base.Test
+using Compat.Test
 t =[
      1    17    13    14
      6     5     2    18
