@@ -17,7 +17,7 @@ desired_ts = 4 * voxel_size(file.header)[1];
 bfes = meshboundary(fes);
 f = connectednodes(bfes);
 bv = zeros(Bool, size(v,1));
-bv[f] = true;
+# bv[f] = true;
 
 println("Mesh size: initial = $(size(t,1))")
 t0 = time()
