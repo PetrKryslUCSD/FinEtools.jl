@@ -112,11 +112,10 @@ using FinEtools.MeshHexahedronModule
 export  H8block,  H8blockx,  H8sphere,  H8refine, H8hexahedron, H8extrudeQ4,
     H8spheren, H8voximg,  H8compositeplatex, H8elliphole, H8toH27,  H27block,
     H20block,  H8toH20, H20blockx, H27blockx
-
+    
 include("MeshTetrahedronModule.jl")
 using FinEtools.MeshTetrahedronModule
 export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10compositeplatex, T4meshedges, T4voximg
-include("TetRemeshingModule.jl")
 
 include("ForceIntensityModule.jl")
 using FinEtools.ForceIntensityModule
@@ -232,6 +231,8 @@ using FinEtools.AlgoHeatDiffModule
 include("AlgoDeforLinearModule.jl")
 using FinEtools.AlgoDeforLinearModule
 
+include("TetRemeshingModule.jl")
+using FinEtools.TetRemeshingModule
 include("VoxelBoxModule.jl")
 using FinEtools.VoxelBoxModule
 export VoxelBoxVolume, voxeldims, size,
@@ -240,5 +241,8 @@ export VoxelBoxVolume, voxeldims, size,
     solidsphere, solidhalfspace, solidbox, solidcylinder,
     trim, pad, threshold,
     vtkexport
+    
+include("VoxelTetMeshingModule.jl")
+export ElementSizeWeightFunction, ImageMesher, mesh!
 
 end

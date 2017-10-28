@@ -1,8 +1,12 @@
+"""
+Module for remeshing tetrahedral triangulations.
+"""
 module TetRemeshingModule
 
-using FinEtools
+using FinEtools.FTypesModule
 using FinEtools.FENodeToFEMapModule
 using FinEtools.MeshTetrahedronModule
+using FinEtools.MeshModificationModule
 import Base.length
 import Base.push!
 import Base.getindex
@@ -138,7 +142,7 @@ function coarsen(t::Array{Int, 2}, inputv::Array{Float64, 2}, tmid::Vector{Int};
         f = interior2boundary(t, [1 3 2; 1 2 4; 2 3 4; 1 4 3])
         vlayer = zeros(Int, nv);
         if (surface_coarsening)
-            i = setdiff(collect(1:size(v,1)),vec(f));
+            i = setdiff(collect(1:nv),vec(f));
             vlayer[i] .= 1;# Mark all vertices in the interior (layer 1) 
             vlayer[f] .= 2;# Mark all vertices on the boundary (layer 2) 
             if (preserve_thin) # thin features should be preserved, 
@@ -549,3 +553,32 @@ end # module
 # Mesh size: final = 401937 [133.66499996185303 sec]
 # V = 0.013499999999977705 compared to 0.0135
 # Task (runnable) @0x000000000af5dfb0
+
+# With optimization  3  (passing the whole t to anyneg)
+# PetrKrysl@Firebolt MINGW64 ~/.julia/v0.7/FinEtools (master)
+# $ /c/Users/PetrKrysl/AppData/Local/Julia-0.7.0-DEV/bin/julia.exe
+#                _
+#    _       _ _(_)_     |  A fresh approach to technical computing
+#   (_)     | (_) (_)    |  Documentation: https://docs.julialang.org
+#    _ _   _| |_  __ _   |  Type "?help" for help.
+#   | | | | | | |/ _` |  |
+#   | | |_| | | | (_| |  |  Version 0.7.0-DEV.2098 (2017-10-10 11:37 UTC)
+#  _/ |\__'_|_|_|\__'_|  |  Commit 546a801260* (16 days old master)
+# |__/                   |  x86_64-w64-mingw32
+
+# julia> include("src\\TetRemeshingModule.jl"); include("test/playground.jl")
+# Mesh size: initial = 3000000
+# 26.25.24.23.22.21.20.19.18.17.16.15.14.13.12.11.10.9.8.7.6.5.4.
+# 3.2.
+# Mesh size: final = 401937 [107.39300012588501 sec]
+# V = 0.013499999999977705 compared to 0.0135
+# Task (runnable) @0x000000000bf4cb90
+
+# julia> include("src\\TetRemeshingModule.jl"); include("test/playground.jl")
+# WARNING: replacing module TetRemeshingModule.
+# Mesh size: initial = 3000000
+# 26.25.24.23.22.21.20.19.18.17.16.15.14.13.12.11.10.9.8.7.6.5.4.
+# 3.2.
+# Mesh size: final = 401937 [93.27800011634827 sec]
+# V = 0.013499999999977705 compared to 0.0135
+# Task (runnable) @0x000000000da705d0

@@ -499,7 +499,7 @@ function renumberconn!(fes::FESetModule.FESet, new_numbering::FIntVec)
 end
 
 """
-    vsmoothing(v::FFltMat, t::FIntMat;options...)
+    vsmoothing(v::FFltMat, t::FIntMat; options...)
 
 Internal routine for mesh smoothing.
 
@@ -510,18 +510,6 @@ fixedv = Boolean array, one entry per vertex: is the vertex iimmovable (true)
 npass = number of passes (default 2)
 """
 function vsmoothing(v::FFltMat, t::FIntMat; options...)
-# General smoothing of meshes.
-#
-# function [t,v] =smoothing(t,v,options)
-#
-# Fields of the structure options, all are optional:
-# method='laplace' or 'taubin' (Default is 'taubin'.)
-# f=boundary faces (optional)
-# bv=boundary vertices (optional)
-# bv_from_f=compute boundary of vertices from the boundary faces, true or
-# false.  Tetrahedra and hexahedra are supported.
-    # npass=how many passes of smoothing? default is 2.
-
     fixedv = falses(size(v,1))
     npass = 2;
     method =:taubin;
@@ -538,12 +526,12 @@ function vsmoothing(v::FFltMat, t::FIntMat; options...)
 
     nv = deepcopy(v)
     # find neighbors for the given connections
-    vneigh =  vertex_neighbors(t,size(v,1));
+    vneigh =  vertexneighbors(t,size(v,1));
     # Smoothing considering all connections through the volume
     if (method == :taubin)
-        nv =  taubin_smoother(v,vneigh,fixedv,npass,0.5,-0.5);
+        nv =  smoothertaubin(v,vneigh,fixedv,npass,0.5,-0.5);
     elseif (method == :laplace)
-        nv =  laplace_smoother(v,vneigh,fixedv,npass,0.5,-0.5);
+        nv =  smootherlaplace(v,vneigh,fixedv,npass,0.5,-0.5);
     end
     # return new vertex locations
     return nv
@@ -570,7 +558,7 @@ function meshsmoothing(fens::FENodeSet, fes::T; options...) where {T<:FESet}
     return fens
 end
 
-function  taubin_smoother(vinp::FFltMat,vneigh::Array{Array{Int,1},1},fixedv::BitArray{1},npass::FInt,lambda::FFlt,mu::FFlt)
+function  smoothertaubin(vinp::FFltMat, vneigh::Array{Array{Int,1},1}, fixedv::BitArray{1}, npass::FInt, lambda::FFlt,mu::FFlt)
     v=deepcopy(vinp);
     nv=deepcopy(vinp);
     for I= 1:npass
@@ -601,7 +589,7 @@ function  taubin_smoother(vinp::FFltMat,vneigh::Array{Array{Int,1},1},fixedv::Bi
     return nv
 end
 
-function   laplace_smoother(vinp::FFltMat,vneigh::Array{Array{Int,1},1},fixedv::BitArray{1},npass::FInt,lambda::FFlt,mu::FFlt)
+function   smootherlaplace(vinp::FFltMat, vneigh::Array{Array{Int,1},1}, fixedv::BitArray{1}, npass::FInt, lambda::FFlt,mu::FFlt)
     v=deepcopy(vinp);
     nv=deepcopy(vinp);
     damping_factor=lambda;
@@ -621,18 +609,15 @@ function   laplace_smoother(vinp::FFltMat,vneigh::Array{Array{Int,1},1},fixedv::
     return nv
 end
 
-function vertex_neighbors(conn::FIntMat,nvertices::FInt)
-# Find the node neighbors in the mesh.
-# %
-# function vn =  vertex_neighbors(vn,f,v)
-# %
-# vn= cell array, element I holds an array of numbers of nodes
-#     which are connected to node I (including node I).  When this array is
-#     supplied as input the information from the current call is added to
-#     the array vn; otherwise (when vn is empty on input) the array is created
-#     and returned.
-# f= connectivity of the mesh, one row per element
-# v= locations of the nodes, three columns, one row per node
+"""
+    vertexneighbors(conn::FIntMat, nvertices::FInt)
+
+Find the node neighbors in the mesh. 
+
+Returns an array of integer vectors, element I holds an array of numbers of nodes
+which are connected to node I (including node I).  
+"""
+function vertexneighbors(conn::FIntMat, nvertices::FInt)
     vn = Array{FIntVec}(nvertices)
     for I= 1:length(vn)
         vn[I]=FInt[];          # preallocate
