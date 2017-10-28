@@ -364,3 +364,7 @@ C:\Program Files\Git\bin\bash.exe
 
 '.platform-linux atom-workspace, .platform-win32 atom-workspace':
   'alt-ctrl-shift-enter': 'platformio-ide-terminal:insert-selected-text'
+
+-- Failures to indent code properly in Atom and VS code for lines with 
+continuation are not specific to  Julia.
+Both fail for instance for  C-language code.
