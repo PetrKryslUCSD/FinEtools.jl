@@ -5,7 +5,7 @@ using Main.TetRemeshingModule
 L= 0.3; 
 W = 0.3;
 a = 0.15;
-nL=76; nW=76; na=56;
+nL=46; nW=46; na=36;
 
 fens,fes = T4block(a,L,W,nL,nW,na,:a);
 t = deepcopy(fes.conn);
@@ -34,6 +34,6 @@ femm  =  FEMMBase(GeoD(fes, SimplexRule(3, 1)))
 V = integratefunction(femm, geom, (x) ->  1.0)
 println("V = $(V) compared to $(L * W * a)")
 
-File = "test1.vtk"
-MeshExportModule.vtkexportmesh(File, t, v, MeshExportModule.T4)
-@async run(`"paraview.exe" $File`)
+# File = "test1.vtk"
+# MeshExportModule.vtkexportmesh(File, t, v, MeshExportModule.T4)
+# @async run(`"paraview.exe" $File`)
