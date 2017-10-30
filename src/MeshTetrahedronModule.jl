@@ -284,6 +284,22 @@ function tetv(X::FFltMat)
     end
 end
 
+function tetv(v11::FFlt, v12::FFlt, v13::FFlt, v21::FFlt, v22::FFlt, v23::FFlt, v31::FFlt, v32::FFlt, v33::FFlt, v41::FFlt, v42::FFlt, v43::FFlt)
+    local one6th = 1.0/6
+    @inbounds let
+        A1 = v21 - v11; 
+        A2 = v22 - v12; 
+        A3 = v23 - v13; 
+        B1 = v31 - v11; 
+        B2 = v32 - v12; 
+        B3 = v33 - v13; 
+        C1 = v41 - v11; 
+        C2 = v42 - v12; 
+        C3 = v43 - v13; 
+        return one6th * ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
+    end
+end
+
 """
     tetv1times6(v, i1, i2, i3, i4)
 

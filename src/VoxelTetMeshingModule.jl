@@ -6,7 +6,7 @@ using FinEtools.VoxelBoxModule
 using FinEtools.MeshTetrahedronModule
 using FinEtools.MeshModificationModule
 
-export ElementSizeWeightFunction, ImageMesher, mesh!
+export ElementSizeWeightFunction, ImageMesher, mesh!, volumes
 
 mutable struct  ElementSizeWeightFunction
     influenceweight::FFlt
@@ -60,12 +60,35 @@ function coarsensurface!(self::ImageMesher, desired_element_size::FFlt)
     return self;
 end
  
+function allpositivevolumes(v, t)
+    for i = 1:size(t, 1)
+        v11, v12, v13 = v[t[i, 1], :]
+        v21, v22, v23 = v[t[i, 2], :]
+        v31, v32, v33 = v[t[i, 3], :]
+        v41, v42, v43 = v[t[i, 4], :]
+        if MeshTetrahedronModule.tetv(v11, v12, v13, v21, v22, v23, v31, v32, v33, v41, v42, v43) < 0.0
+             return false
+        end 
+    end
+    return true
+end
+
+function volumes(self::ImageMesher)
+    V = zeros(size(self.t, 1))
+    for i = 1:size(self.t, 1)
+        v11, v12, v13 = self.v[self.t[i, 1], :]
+        v21, v22, v23 = self.v[self.t[i, 2], :]
+        v31, v32, v33 = self.v[self.t[i, 3], :]
+        v41, v42, v43 = self.v[self.t[i, 4], :]
+        V[i] =  MeshTetrahedronModule.tetv(v11, v12, v13, v21, v22, v23, v31, v32, v33, v41, v42, v43) 
+    end
+    return V
+end
+
 function smooth!(self::ImageMesher, npass::Int = 5)
-    # fetmids = unique(self.tmid);
-    # for j=1:length(fetmids)
-    #     iix = find(m -> m==fetmids[j], self.tmid);
-    #     self.v = MeshModificationModule.vsmoothing(self.v, self.t[iix,:]; npass = 5)
-    # end 
+    if !allpositivevolumes(self.v, self.t)
+        error("shouldn't be here")
+    end 
 
     # Find boundary vertices
     bv = falses(size(self.v, 1));
@@ -74,13 +97,31 @@ function smooth!(self::ImageMesher, npass::Int = 5)
     # find neighbors for the SURFACE vertices
     fvn = MeshModificationModule.vertexneighbors(f, size(self.v, 1));
     # Smoothing considering only surface connections
-    fv =  MeshModificationModule.smoothertaubin(self.v, fvn, bv, npass, 0.5, -0.5);
+    fv = FFltMat[]
+    trialfv = deepcopy(self.v)
+    for pass = 1:npass
+        fv =  MeshModificationModule.smoothertaubin(trialfv, fvn, bv, 1, 0.5, -0.5);
+        if !allpositivevolumes(fv, self.t) # smoothing only allowed if it results in positive volumes
+            copy!(fv, trialfv) # undo the smoothing
+            break;
+        end 
+        copy!(trialfv, fv)
+    end
     
     # find neighbors for the VOLUME vertices
     vn =  MeshModificationModule.vertexneighbors(self.t, size(self.v, 1));
     # Smoothing considering all connections through the volume
     bv[vec(f)]=true;
-    v = MeshModificationModule.smoothertaubin(self.v, vn, bv, npass, 0.5, -0.5); 
+    v = FFltMat[]
+    trialv = deepcopy(fv)
+    for pass = 1:npass
+        v = MeshModificationModule.smoothertaubin(trialv, vn, bv, 1, 0.5, -0.5); 
+        if !allpositivevolumes(v, self.t) # smoothing only allowed if it results in positive volumes
+            copy!(v, trialv) # undo the smoothing
+            break
+        end
+        copy!(trialv, v)
+    end
 
     # Correction of the vertices of the surface
     for i= 1:length(fvn)
@@ -88,8 +129,11 @@ function smooth!(self::ImageMesher, npass::Int = 5)
             v[i,:] = fv[i,:];
         end
     end
+    if !allpositivevolumes(v, self.t)
+        error("shouldn't be here")
+    end 
 
-    copy!(self.v, v)
+    copy!(self.v, v) # save the final result
     return self
 end
 

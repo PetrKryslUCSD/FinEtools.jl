@@ -83,6 +83,35 @@ function copy!(d::_IntegerBuffer, s::_IntegerBuffer)
     return d
 end
 
+function tetvtimes6(vi1::FFltVec, vi2::FFltVec, vi3::FFltVec, vi4::FFltVec)
+    # local one6th = 1.0/6
+    # @assert size(X, 1) == 4
+    # @assert size(X, 2) == 3
+    @inbounds let
+        A1 = vi2[1]-vi1[1]; 
+        A2 = vi2[2]-vi1[2]; 
+        A3 = vi2[3]-vi1[3]; 
+        B1 = vi3[1]-vi1[1]; 
+        B2 = vi3[2]-vi1[2]; 
+        B3 = vi3[3]-vi1[3]; 
+        C1 = vi4[1]-vi1[1]; 
+        C2 = vi4[2]-vi1[2]; 
+        C3 = vi4[3]-vi1[3]; 
+        return ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
+    end
+end
+
+function checkvolumes(when, vt, t)
+    for i = 1:size(t, 1)
+        if any(x->x==0, t[i,:])
+        else 
+            if tetvtimes6(vt[:,t[i,1]], vt[:,t[i,2]], vt[:,t[i,3]], vt[:,t[i,4]]) < 0.0
+                error("*** $when Negative volume = $([t[i,:]])")
+            end
+        end 
+    end
+end
+
 """
     coarsen(t::Array{Int, 2}, v::Array{Float64, 2}, tmid::Vector{Int}, options)
 
@@ -221,6 +250,8 @@ function coarsen(t::Array{Int, 2}, inputv::Array{Float64, 2}, tmid::Vector{Int};
     availe = _IntegerBuffer(zeros(Int, size(e,1)), 0) # Flexible  buffer to avoid allocations
     selist = _IntegerBuffer(zeros(Int, size(e,1)), 0) # Flexible  buffer to avoid allocations
     
+    checkvolumes("Before reduction starts", vt, t)
+
     # Let's get down to business
     previouscurrvlayer = 0
     pass =1;
@@ -249,6 +280,7 @@ function coarsen(t::Array{Int, 2}, inputv::Array{Float64, 2}, tmid::Vector{Int};
     end
     reportprogress(0) # we are done
     # Note  that we are reverting the transpose of the vertex array here
+    checkvolumes("Before clean", vt, t)
     return cleanoutput(t,deepcopy(transpose(vt)),tmid);
 end
 
@@ -256,9 +288,9 @@ function collapseedge!(e::Array{Int, 2}, es::Vector{Float64}, elayer::Vector{Int
     result = false;
     # if the operation would result in inverted tetrahedra, cancel it
     de1, de2 = e[dei, 1], e[dei, 2];
-    if anynegvol(t, v2t[de2], vt, de2, de1)
+    if anynegvol1(t, v2t[de2], vt, de2, de1)
         de1, de2 = e[dei, 2], e[dei, 1];;# Try the edge the other way
-        if anynegvol(t, v2t[de2], vt, de2, de1)
+        if anynegvol1(t, v2t[de2], vt, de2, de1)
             return false; # the collapse failed
         end
     end
@@ -403,6 +435,28 @@ function t4_e2(t::Array{Int, 2})
         n = m;
     end
     e = e[1:i-1,:];
+end
+
+function anynegvol1(t::Array{Int,2}, whichtets::Vector{Int}, vt::Array{Float64,2}, whichv::Int, otherv::Int)
+    for iS1 in whichtets
+        i1, i2, i3, i4 = t[iS1,:]; # nodes of the tetrahedron
+        if (i1 == whichv) 
+            i1 = otherv
+        end
+        if (i2 == whichv) 
+            i2 = otherv
+        end
+        if (i3 == whichv) 
+            i3 = otherv
+        end
+        if (i4 == whichv) 
+            i4 = otherv
+        end
+        if tetvtimes6(vt[:,i1], vt[:,i2], vt[:,i3], vt[:,i4]) < 0.0
+            return true
+        end 
+    end
+    return false;
 end
 
 """
