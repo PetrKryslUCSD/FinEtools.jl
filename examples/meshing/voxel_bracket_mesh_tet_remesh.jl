@@ -11,15 +11,12 @@ fillsolid!(V, differenceop(unionop(b1, b2), h1), 1)
 im = ImageMesher(V, zero(eltype(V.data)), eltype(V.data)[1])
 mesh!(im)
 println("Mesh size: initial = $(size(im.t,1))")
-# fens = FENodeSet(im.v)
-# fes = FESetT4(im.t)
-# setlabel!(fes, im.tmid)
-# File = "voxel_bracket_mesh_tet.vtk"
-# vtkexportmesh(File, fens, fes)
-# @async run(`"paraview.exe" $File`)
+
 im.elementsizeweightfunctions = [ElementSizeWeightFunction(20.0, vec([0.0, 2.5, 2.5]), 1.0), ElementSizeWeightFunction(1.0, vec([0.0, 2.5, 2.5]), 3.5)]
-mesh!(im, 1.01)
-println("Mesh size: final = $(size(im.t,1))")
+for i = 1:12
+    mesh!(im, 1.1)
+    println("Mesh size: final = $(size(im.t,1))")
+end
 
 fens = FENodeSet(im.v)
 fes = FESetT4(im.t)
