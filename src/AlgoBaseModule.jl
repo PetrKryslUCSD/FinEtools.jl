@@ -8,16 +8,6 @@ module AlgoBaseModule
 using FinEtools.FTypesModule
 using FinEtools.FEMMBaseModule
 
-export FDataDict
-#export dcheck!, richextrapol, fieldnorm, fielddiffnorm, evalconvergencestudy
-
-"""
-    FDataDict = Dict{String, Any}
-
-Type for the model-data packaging system (used by all FinEtools algorithms).  
-"""
-const FDataDict = Dict{String, Any}
-
 function _keymatch(key::String, allowed_keys::Array{String})
     matched_key = nothing
     for  j = 1:length(allowed_keys)
