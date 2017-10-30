@@ -2965,7 +2965,7 @@ function test()
     im.elementsizeweightfunctions = [ElementSizeWeightFunction(20.0, vec([0.0, 2.5, 2.5]), 1.0), ElementSizeWeightFunction(1.0, vec([0.0, 2.5, 2.5]), 3.5)]
     mesh!(im, 1.01)
     # println("Mesh size: final = $(size(im.t,1))")
-    @test size(im.t,1) == 82633
+    @test size(im.t,1) == 111768
     fens = FENodeSet(im.v)
     fes = FESetT4(im.t)
     setlabel!(fes, im.tmid)
