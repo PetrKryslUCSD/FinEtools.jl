@@ -104,9 +104,9 @@ function mesh!(self::ImageMesher, stretch::FFlt = 1.2)
         smooth!(self);
         self.havemesh = true
     else
-        coarsensurface!(self, sqrt(2.0)*self.currentelementsize)
+        coarsensurface!(self, sqrt(1.0)*self.currentelementsize)
         smooth!(self);
-        coarsenvolume!(self, sqrt(3.0)*self.currentelementsize);
+        coarsenvolume!(self, sqrt(2.0)*self.currentelementsize);
         smooth!(self);
         self.currentelementsize = stretch * self.currentelementsize
     end 
