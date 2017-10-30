@@ -119,7 +119,7 @@ vertex_weight= weight of vertices, one per  vertex; weight <= 1.0 is ignored,
 ## Output
 t,v,tmid = new arrays
 """
-function coarsen(t::Array{Int, 2}, inputv::Array{Float64, 2}, tmid::Vector{Int}; bv::Vector{Bool} = Bool[], desired_ts::Number = 0.0, stretch::Number = 1.25, nblayer::Int = 1, surface_coarsening::Bool = false, preserve_thin::Bool = false, vertex_weight::Vector{Float64} = Float64[])
+function coarsen(t::Array{Int, 2}, inputv::Array{Float64, 2}, tmid::Vector{Int}; bv::Vector{Bool} = Bool[], desired_ts::Number = 0.0, stretch::Number = 1.25, nblayer::Int = 1, surface_coarsening::Bool = false, preserve_thin::Bool = false, vertex_weight::Vector{Float64} = Float64[], reportprogress::F = n -> nothing) where {F<:Function}
     vt = deepcopy(transpose(inputv))  # Better locality of data can be achieved with vertex coordinates in columns
     nv = size(inputv, 1)
     if length(bv) == nv
@@ -227,10 +227,7 @@ function coarsen(t::Array{Int, 2}, inputv::Array{Float64, 2}, tmid::Vector{Int};
     while true
         availe, currvlayer = availelist!(availe, selist, elayer, currvlayer, minne, maxne, es, nblayer, desiredes, everfailed);
         if currvlayer != previouscurrvlayer
-            print(currvlayer, ".")
-            if (mod(pass,40) == 0)
-                print("\n")
-            end
+            reportprogress(currvlayer)
         end 
         if (length(availe)==0)  
             break; # Done. Hallelujah!
@@ -250,7 +247,7 @@ function coarsen(t::Array{Int, 2}, inputv::Array{Float64, 2}, tmid::Vector{Int};
         end
         pass = pass + 1; previouscurrvlayer = currvlayer
     end
-    print("\n")
+    reportprogress(0) # we are done
     # Note  that we are reverting the transpose of the vertex array here
     return cleanoutput(t,deepcopy(transpose(vt)),tmid);
 end
