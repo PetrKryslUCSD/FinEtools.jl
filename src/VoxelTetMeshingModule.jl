@@ -60,7 +60,18 @@ function coarsensurface!(self::ImageMesher, desired_element_size::FFlt)
     return self;
 end
  
-function allpositivevolumes(v, t)
+function volumes!(V::Array{FFlt, 1}, v::Array{FFlt, 2}, t::Array{Int, 2})
+    for i = 1:size(t, 1)
+        v11, v12, v13 = v[t[i, 1], :]
+        v21, v22, v23 = v[t[i, 2], :]
+        v31, v32, v33 = v[t[i, 3], :]
+        v41, v42, v43 = v[t[i, 4], :]
+        V[i] = MeshTetrahedronModule.tetv(v11, v12, v13, v21, v22, v23, v31, v32, v33, v41, v42, v43) 
+    end
+    return V
+end
+
+function allnonnegativevolumes(v, t)
     for i = 1:size(t, 1)
         v11, v12, v13 = v[t[i, 1], :]
         v21, v22, v23 = v[t[i, 2], :]
@@ -75,20 +86,14 @@ end
 
 function volumes(self::ImageMesher)
     V = zeros(size(self.t, 1))
-    for i = 1:size(self.t, 1)
-        v11, v12, v13 = self.v[self.t[i, 1], :]
-        v21, v22, v23 = self.v[self.t[i, 2], :]
-        v31, v32, v33 = self.v[self.t[i, 3], :]
-        v41, v42, v43 = self.v[self.t[i, 4], :]
-        V[i] =  MeshTetrahedronModule.tetv(v11, v12, v13, v21, v22, v23, v31, v32, v33, v41, v42, v43) 
-    end
-    return V
+    return volumes!(V, self.v, self.t)
 end
 
 function smooth!(self::ImageMesher, npass::Int = 5)
-    if !allpositivevolumes(self.v, self.t)
+    if !allnonnegativevolumes(self.v, self.t)
         error("shouldn't be here")
     end 
+    V = zeros(size(self.t, 1)) # tetrahedron volumes
 
     # Find boundary vertices
     bv = falses(size(self.v, 1));
@@ -101,10 +106,13 @@ function smooth!(self::ImageMesher, npass::Int = 5)
     trialfv = deepcopy(self.v)
     for pass = 1:npass
         fv =  MeshModificationModule.smoothertaubin(trialfv, fvn, bv, 1, 0.5, -0.5);
-        if !allpositivevolumes(fv, self.t) # smoothing only allowed if it results in positive volumes
-            copy!(fv, trialfv) # undo the smoothing
-            break;
-        end 
+        V = volumes!(V, fv, self.t)
+        for i = 1:length(V)
+            if V[i] < 0.0 # smoothing is only allowed if it results in non-negative volume
+                c = self.t[i, :]
+                fv[c, :] = trialfv[c, :]# undo the smoothing
+            end 
+        end
         copy!(trialfv, fv)
     end
     
@@ -116,20 +124,38 @@ function smooth!(self::ImageMesher, npass::Int = 5)
     trialv = deepcopy(fv)
     for pass = 1:npass
         v = MeshModificationModule.smoothertaubin(trialv, vn, bv, 1, 0.5, -0.5); 
-        if !allpositivevolumes(v, self.t) # smoothing only allowed if it results in positive volumes
-            copy!(v, trialv) # undo the smoothing
-            break
+        anynegative = true; chk=1
+        while anynegative
+            println("Checking volumes $chk")
+            V = volumes!(V, v, self.t)
+            anynegative = false
+            for i = 1:length(V)
+                if V[i] < 0.0 # smoothing is only allowed if it results in non-negative volume
+                    c = self.t[i, :]
+                    v[c, :] = self.v[c, :]# undo the smoothing
+                    anynegative = true
+                end 
+            end
+            chk = chk+1
         end
         copy!(trialv, v)
     end
 
-    # Correction of the vertices of the surface
-    for i= 1:length(fvn)
-        if (!isempty(fvn[i]))
-            v[i,:] = fv[i,:];
-        end
-    end
-    if !allpositivevolumes(v, self.t)
+    # # Correction of the vertices of the surface
+    # copy!(trialv, v)
+    # for i= 1:length(fvn)
+    #     if (!isempty(fvn[i]))
+    #         v[i,:] = fv[i,:];
+    #     end
+    # end
+    # V = volumes!(V, v, self.t)
+    # for i = 1:length(V)
+    #     if V[i] < 0.0 # smoothing is only allowed if it results in non-negative volume
+    #         c = self.t[i, :]
+    #         v[c, :] = trialv[c, :]# undo the smoothing
+    #     end 
+    # end
+    if !allnonnegativevolumes(v, self.t)
         error("shouldn't be here")
     end 
 
