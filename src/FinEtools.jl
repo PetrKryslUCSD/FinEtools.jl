@@ -9,6 +9,7 @@ module FinEtools
 include("FTypesModule.jl")
 using FinEtools.FTypesModule
 export FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec
+export FDataDict
 
 include("BoxModule.jl")
 using FinEtools.BoxModule
@@ -84,6 +85,7 @@ export AbaqusExporter, close, HEADING, COMMENT, PART, END_PART,
     STEP_PERTURBATION_BUCKLE, BOUNDARY, DLOAD, CLOAD, TEMPERATURE,
     END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
 export savecsv
+export export_NASTRAN
 
 include("MeshImportModule.jl")
 using FinEtools.MeshImportModule
@@ -220,7 +222,6 @@ export stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
 
 include("AlgoBaseModule.jl")
 using FinEtools.AlgoBaseModule
-export FDataDict
 
 include("AlgoAcoustModule.jl")
 using FinEtools.AlgoAcoustModule
@@ -231,8 +232,7 @@ using FinEtools.AlgoHeatDiffModule
 include("AlgoDeforLinearModule.jl")
 using FinEtools.AlgoDeforLinearModule
 
-include("TetRemeshingModule.jl")
-using FinEtools.TetRemeshingModule
+
 include("VoxelBoxModule.jl")
 using FinEtools.VoxelBoxModule
 export VoxelBoxVolume, voxeldims, size,
@@ -242,7 +242,10 @@ export VoxelBoxVolume, voxeldims, size,
     trim, pad, threshold,
     vtkexport
     
+include("TetRemeshingModule.jl")
+using FinEtools.TetRemeshingModule
+
 include("VoxelTetMeshingModule.jl")
-export ElementSizeWeightFunction, ImageMesher, mesh!
+export ElementSizeWeightFunction, ImageMesher, mesh! 
 
 end
