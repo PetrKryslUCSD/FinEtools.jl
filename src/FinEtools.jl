@@ -246,6 +246,6 @@ include("TetRemeshingModule.jl")
 using FinEtools.TetRemeshingModule
 
 include("VoxelTetMeshingModule.jl")
-export ElementSizeWeightFunction, ImageMesher, mesh! 
+export ElementSizeWeightFunction, ImageMesher, mesh!, volumes 
 
 end
