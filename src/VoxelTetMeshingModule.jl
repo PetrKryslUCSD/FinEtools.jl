@@ -19,6 +19,11 @@ function weight(self::ElementSizeWeightFunction, xyz::Vector{FFlt})
     return 1.0+(self.influenceweight)*(1.0-1.0/(1+exp(-3*(4.0*r/self.influenceradius-3))));
 end
   
+"""
+    ImageMesher{CoordT,DataT}
+
+Tetrahedral image mesher.  
+"""
 mutable struct  ImageMesher{CoordT,DataT}
     box::VoxelBoxVolume{CoordT,DataT}
     currentelementsize::FFlt
@@ -82,11 +87,6 @@ function allnonnegativevolumes(v, t)
         end 
     end
     return true
-end
-
-function volumes(self::ImageMesher)
-    V = zeros(size(self.t, 1))
-    return volumes!(V, self.v, self.t)
 end
 
 function smooth!(self::ImageMesher, npass::Int = 5)
@@ -163,7 +163,17 @@ function smooth!(self::ImageMesher, npass::Int = 5)
     return self
 end
 
+"""
+    mesh!(self::ImageMesher, stretch::FFlt = 1.2)
 
+Perform a meshing step.  
+
+If  no mesh exists,  the initial mesh is created; otherwise a coarsening
+sequence of coarsen surface -> smooth -> coarsen volume -> smooth is performed.
+
+After meshing the vertices, tetrahedra, and material identifiers,  can be retrieved
+as `self.v`, `self.t`, and `self.tmid`.
+"""
 function mesh!(self::ImageMesher, stretch::FFlt = 1.2)
     if !self.havemesh
         fens, fes = T4voximg(self.box.data, vec([voxeldims(self.box)...]), self.notemptyvoxel)
@@ -181,6 +191,16 @@ function mesh!(self::ImageMesher, stretch::FFlt = 1.2)
         self.currentelementsize = stretch * self.currentelementsize
     end 
     return self
+end
+
+"""
+    volumes(self::ImageMesher)
+
+Compute tetrahedral volumes in the current mesh.  
+"""
+function volumes(self::ImageMesher)
+    V = zeros(size(self.t, 1))
+    return volumes!(V, self.v, self.t)
 end
 
 end
