@@ -90,7 +90,7 @@ function volumes(self::ImageMesher)
 end
 
 function smooth!(self::ImageMesher, npass::Int = 5)
-    if !allnonnegativevolumes(self.v, self.t)
+    if !allnonnegativevolumes(self.v, self.t) # This test is not strictly necessary,  just  while the remeshing procedure is in flux
         error("shouldn't be here")
     end 
     V = zeros(size(self.t, 1)) # tetrahedron volumes
@@ -126,7 +126,7 @@ function smooth!(self::ImageMesher, npass::Int = 5)
         v = MeshModificationModule.smoothertaubin(trialv, vn, bv, 1, 0.5, -0.5); 
         anynegative = true; chk=1
         while anynegative
-            println("Checking volumes $chk")
+            # println("Checking volumes $chk")
             V = volumes!(V, v, self.t)
             anynegative = false
             for i = 1:length(V)
@@ -155,7 +155,7 @@ function smooth!(self::ImageMesher, npass::Int = 5)
     #         v[c, :] = trialv[c, :]# undo the smoothing
     #     end 
     # end
-    if !allnonnegativevolumes(v, self.t)
+    if !allnonnegativevolumes(v, self.t) # This test is not strictly necessary,  just  while the remeshing procedure is in flux
         error("shouldn't be here")
     end 
 
