@@ -65,3 +65,12 @@ PSOLID(ne, 1, 1)
 MAT1(ne, 1, 20.0e9, 0.3, 1800.0)
 ENDDATA(ne)
 close(ne)
+
+stle = STLExporter("voxel_bracket_mesh_tet.stl")
+solid(stle) 
+bfes = meshboundary(fes)
+for i = 1:count(bfes)
+    facet(stle, fens.xyz[bfes.conn[i, 1], :], fens.xyz[bfes.conn[i, 2], :], fens.xyz[bfes.conn[i, 3], :])
+end
+endsolid(stle)
+close(stle)
