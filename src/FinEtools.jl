@@ -85,7 +85,8 @@ export AbaqusExporter, close, HEADING, COMMENT, PART, END_PART,
     STEP_PERTURBATION_BUCKLE, BOUNDARY, DLOAD, CLOAD, TEMPERATURE,
     END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
 export savecsv
-export export_NASTRAN
+export NASTRANExporter, close, CEND, BEGIN_BULK, ENDDATA, GRID, PSOLID, MAT1, CTETRA
+export STLExporter, solid, facet, endsolid
 
 include("MeshImportModule.jl")
 using FinEtools.MeshImportModule
