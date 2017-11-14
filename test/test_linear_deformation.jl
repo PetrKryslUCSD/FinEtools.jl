@@ -7283,8 +7283,7 @@ function test()
     
     # println("")
     # println("Normalized Approximate Error = $(errornorms)")
-    
-    @test abs(p[1] - 2.66914)/2.66914 < 1.0e-3
+    @test abs(p[1] - 1.3347513854727369)/1.3347513854727369 < 1.0e-3
     # csvFile = filebase * "_errors" * ".CSV"
     # savecsv(csvFile,
     # elementsizes=vec(elementsizes[1:end-1]),

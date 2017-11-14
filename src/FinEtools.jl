@@ -9,6 +9,7 @@ module FinEtools
 include("FTypesModule.jl")
 using FinEtools.FTypesModule
 export FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec
+export FDataDict
 
 include("BoxModule.jl")
 using FinEtools.BoxModule
@@ -84,14 +85,17 @@ export AbaqusExporter, close, HEADING, COMMENT, PART, END_PART,
     STEP_PERTURBATION_BUCKLE, BOUNDARY, DLOAD, CLOAD, TEMPERATURE,
     END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
 export savecsv
+export NASTRANExporter, close, CEND, BEGIN_BULK, ENDDATA, GRID, PSOLID, MAT1, CTETRA
+export STLExporter, solid, facet, endsolid
 
 include("MeshImportModule.jl")
 using FinEtools.MeshImportModule
 
 include("MeshModificationModule.jl")
 using FinEtools.MeshModificationModule
-export meshboundary, fusenodes, compactnodes, mergemeshes, mergenmeshes,
-    mergenodes, renumberconn!, meshsmoothing, mirrormesh, nodepartitioning
+export  meshboundary,  fusenodes,  compactnodes,  mergemeshes,  mergenmeshes,
+    mergenodes,  renumberconn!,  meshsmoothing,  mirrormesh, nodepartitioning, 
+    interior2boundary
 
 include("MeshQuadrilateralModule.jl")
 using FinEtools.MeshQuadrilateralModule
@@ -111,10 +115,10 @@ using FinEtools.MeshHexahedronModule
 export  H8block,  H8blockx,  H8sphere,  H8refine, H8hexahedron, H8extrudeQ4,
     H8spheren, H8voximg,  H8compositeplatex, H8elliphole, H8toH27,  H27block,
     H20block,  H8toH20, H20blockx, H27blockx
-
+    
 include("MeshTetrahedronModule.jl")
 using FinEtools.MeshTetrahedronModule
-export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10compositeplatex
+export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10compositeplatex, T4meshedges, T4voximg
 
 include("ForceIntensityModule.jl")
 using FinEtools.ForceIntensityModule
@@ -219,7 +223,6 @@ export stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
 
 include("AlgoBaseModule.jl")
 using FinEtools.AlgoBaseModule
-export FDataDict
 
 include("AlgoAcoustModule.jl")
 using FinEtools.AlgoAcoustModule
@@ -230,6 +233,7 @@ using FinEtools.AlgoHeatDiffModule
 include("AlgoDeforLinearModule.jl")
 using FinEtools.AlgoDeforLinearModule
 
+
 include("VoxelBoxModule.jl")
 using FinEtools.VoxelBoxModule
 export VoxelBoxVolume, voxeldims, size,
@@ -238,5 +242,11 @@ export VoxelBoxVolume, voxeldims, size,
     solidsphere, solidhalfspace, solidbox, solidcylinder,
     trim, pad, threshold,
     vtkexport
+    
+include("TetRemeshingModule.jl")
+using FinEtools.TetRemeshingModule
+
+include("VoxelTetMeshingModule.jl")
+export ElementSizeWeightFunction, ImageMesher, mesh!, volumes 
 
 end

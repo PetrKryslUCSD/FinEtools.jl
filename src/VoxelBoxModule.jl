@@ -27,16 +27,14 @@ function VoxelBoxVolume(::Type{CoordT}, ::Type{DataT}) where {CoordT<:Number,Dat
     return V
 end
 
-function VoxelBoxVolume(::Type{DataT},
-    nvox::Array{Int,1}, boxdim::Array{CoordT,1}) where {CoordT<:Number,DataT<:Number}
+function VoxelBoxVolume(::Type{DataT}, nvox::Array{Int,1}, boxdim::Array{CoordT,1}) where {CoordT<:Number,DataT<:Number}
     origin = zeros(CoordT,3)
     data = zeros(DataT,nvox...)
     V = VoxelBoxVolume(origin, boxdim, data);
     return V
 end
 
-function VoxelBoxVolume(data::Array{DataT,3},
-    boxdim::Array{CoordT,1})  where {CoordT<:Number,DataT<:Number}
+function VoxelBoxVolume(data::Array{DataT,3}, boxdim::Array{CoordT,1})  where {CoordT<:Number,DataT<:Number}
     V = VoxelBoxVolume(CoordT,DataT);
     copy!(V.boxdim, boxdim)
     V.data = deepcopy(data)
@@ -53,7 +51,6 @@ end
 
 size(V::VoxelBoxVolume, which) = size(V.data, which)
 size(V::VoxelBoxVolume) = size(V.data)
-
 
 struct SolidCF{F<:Function}
     f::F

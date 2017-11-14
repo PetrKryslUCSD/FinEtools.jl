@@ -11,11 +11,13 @@ fens,fes = Q4elliphole(a, a, L/2, H/2, nL, nH, nR)
 npartitions = 4
 partitioning = nodepartitioning(fens, npartitions)
 partitionnumbers = unique(partitioning)
-
-using Plots
-plotly()
+ 
+using PyCall
+@pyimport matplotlib.pyplot as plt
+fig = plt.figure() 
+ax = plt.axes()
 for ixxxx = 1:length(partitionnumbers)
     i1 = find(x -> x == partitionnumbers[ixxxx], partitioning)
-    plot!(vec(fens.xyz[i1, 1]), vec(fens.xyz[i1, 2]), m=:o)
+    ax[:plot](vec(fens.xyz[i1, 1]), vec(fens.xyz[i1, 2]), linestyle="none", marker=:o)
 end
-gui()
+plt.show()

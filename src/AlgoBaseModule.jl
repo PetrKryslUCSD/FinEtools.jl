@@ -8,16 +8,6 @@ module AlgoBaseModule
 using FinEtools.FTypesModule
 using FinEtools.FEMMBaseModule
 
-export FDataDict
-#export dcheck!, richextrapol, fieldnorm, fielddiffnorm, evalconvergencestudy
-
-"""
-    FDataDict = Dict{String, Any}
-
-Type for the model-data packaging system (used by all FinEtools algorithms).  
-"""
-const FDataDict = Dict{String, Any}
-
 function _keymatch(key::String, allowed_keys::Array{String})
     matched_key = nothing
     for  j = 1:length(allowed_keys)
@@ -106,7 +96,7 @@ function fieldnorm(modeldata)
         fnorm += integratefieldfunction(regions[i]["femm"], geom, targetfields[i], (x, v) -> norm(v)^2, 0.0)
     end
 
-    return fnorm
+    return sqrt(fnorm)
 end
 
 """
@@ -147,7 +137,7 @@ function fielddiffnorm(modeldatacoarse, modeldatafine)
         diffnorm += integratefieldfunction(regionsfine[i]["femm"], geom, diffff, (x, v) -> norm(v)^2, 0.0)
     end
 
-    return diffnorm
+    return sqrt(diffnorm)
 end
 
 """

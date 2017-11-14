@@ -134,7 +134,7 @@ Implemented 05/01/2017
 -- return fens,nfes            # I think I should not be overwriting the input!
 What is that about?
 
--- Settings for the atom editor:
+-- Settings for the Atom editor:
  + Install the minimap, auto-indent, simple-drag-drop-text, highlight-selected,
  minimap-highlight-selected
 
@@ -331,6 +331,21 @@ Key bindings:
         "when": "editorTextFocus" },
 ]
 
+User settings:
+{
+    "julia.executablePath": "C:\\Users\\PetrKrysl\\AppData\\Local\\Julia-0.6.0\\bin\\julia.exe",
+    "terminal.integrated.shell.windows": "C:\\Program Files\\Git\\bin\\bash.exe",
+    "workbench.colorTheme": "Tomorrow Night Blue",
+    "julia.runlinter": false,
+    "window.zoomLevel": 0,
+    // When opening a file, `editor.tabSize` and `editor.insertSpaces` will be detected based on the file contents.
+    "editor.detectIndentation": true,
+    // Controls if the editor should automatically adjust the indentation when users type, paste or move lines. Indentation rules of the language must be available. 
+    "editor.autoIndent": true,
+    "editor.wordWrap": "on",
+    "editor.wrappingIndent": "indent",
+}
+
 -- Speed up the elementwise-field transfer the same way it's been done for the nodal fields.
 (Using a search structure based on partitioning and sub- meshes.)
 
@@ -349,3 +364,12 @@ C:\Program Files\Git\bin\bash.exe
 
 '.platform-linux atom-workspace, .platform-win32 atom-workspace':
   'alt-ctrl-shift-enter': 'platformio-ide-terminal:insert-selected-text'
+
+-- Failures to indent code properly in Atom and VS code for lines with 
+continuation are not specific to  Julia.
+Both fail for instance for  C-language code.
+
+-- Configuring PyPlot to use Anaconda
+ENV["PYTHON"]="C:\\ProgramData\\Anaconda3\\python.exe"
+ENV["PYTHON"]="C:\\Users\\PetrKrysl\\Documents\\WinPython-64bit-3.6.3.0Qt5\\python-3.6.3.amd64\\python.exe"
+Pkg.build("PyCall")

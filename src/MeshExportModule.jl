@@ -14,10 +14,13 @@ export AbaqusExporter, close, HEADING, COMMENT, PART, END_PART,
     STEP_PERTURBATION_BUCKLE, BOUNDARY, DLOAD, CLOAD, TEMPERATURE,
     END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
 export savecsv
+export NASTRANExporter, close, CEND, BEGIN_BULK, ENDDATA, GRID, PSOLID, MAT1, CTETRA
+export STLExporter, solid, facet, endsolid
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
 using FinEtools.FENodeSetModule
+using FinEtools.FTypesModule
 import Base.close
 
 ################################################################################
@@ -760,7 +763,7 @@ end
 """
     close(self::AbaqusExporter)
 
-Close  the strain opened by the exporter.
+Close  the stream opened by the exporter.
 """
 function close(self::AbaqusExporter)
   close(self.ios)
@@ -801,6 +804,168 @@ function savecsv(name::String; kwargs...)
         print(fid, "\n")
     end
     return true
+end
+
+################################################################################
+# NASTRAN export
+################################################################################
+
+"""
+NASTRANExporter
+
+Export mesh to Abaqus.
+"""
+mutable struct NASTRANExporter
+    filename::AbstractString
+    ios::IO
+    element_range::Tuple{Int64, Int64}
+    function NASTRANExporter(filename::AbstractString)
+        if match(r".*\.nas$", filename) == nothing
+            filename = filename * ".nas"
+        end
+        ios = open(filename,"w+")
+        return new(deepcopy(filename), ios, (typemax(Int64), 0))
+    end
+end
+
+NASTRANtypemap = Dict{DataType, AbstractString}(FESetT4=>"CTETRA", FESetT10=>"CTETRA")
+
+"""
+    CEND(self::NASTRANExporter)
+
+Terminate the Executive Control section.
+"""
+function CEND(self::NASTRANExporter)
+    println(self.ios, "CEND")
+end
+
+"""
+    BEGIN_BULK(self::NASTRANExporter)
+
+Terminate the Case Control section by starting the bulk section.
+"""
+function BEGIN_BULK(self::NASTRANExporter)
+    println(self.ios, "BEGIN BULK")
+end
+
+"""
+    ENDDATA(self::NASTRANExporter)
+
+Terminate the bulk section.
+"""
+function ENDDATA(self::NASTRANExporter)
+    println(self.ios, "ENDDATA")
+end
+
+"""
+    GRID(self::NASTRANExporter, n::Int, xyz::Vector{FFlt})
+
+Write a grid-point statement.  
+"""
+function GRID(self::NASTRANExporter, n::Int, xyz::Vector{FFlt})
+    @printf self.ios "GRID,%d,,%g,%g,%g\n" n xyz[1] xyz[2] xyz[3]
+end
+
+"""
+    PSOLID(self::NASTRANExporter, pid::Int, mid::Int)
+
+Write solid-property statement.  
+"""
+function PSOLID(self::NASTRANExporter, pid::Int, mid::Int)
+    @printf self.ios "PSOLID,%d,%d\n" pid mid
+end
+
+"""
+    MAT1(self::NASTRANExporter, mid::Int, E::FFlt, G::FFlt, nu::FFlt, rho::FFlt, A::FFlt, TREF::FFlt, GE::FFlt)
+
+Write a statement for an isotropic elastic material.
+"""
+function MAT1(self::NASTRANExporter, mid::Int, E::FFlt, G::FFlt, nu::FFlt, rho::FFlt, A::FFlt, TREF::FFlt, GE::FFlt)
+    @printf self.ios "MAT1,%d,%g,%g,%g,%g,%g,%g,%g\n" mid E G nu rho A TREF GE
+end
+
+"""
+    MAT1(self::NASTRANExporter, mid::Int, E::FFlt, nu::FFlt, rho::FFlt = 0.0, A::FFlt = 0.0, TREF::FFlt = 0.0)
+
+Write a statement for an isotropic elastic material.
+"""
+function MAT1(self::NASTRANExporter, mid::Int, E::FFlt, nu::FFlt, rho::FFlt = 0.0, A::FFlt = 0.0, TREF::FFlt = 0.0, GE::FFlt = 0.0)
+    @printf self.ios "MAT1,%d,%g,,%g,%g,%g,%g,%g\n" mid E nu rho A TREF GE
+end
+
+function CTETRA(self::NASTRANExporter, eid::Int, pid::Int, conn::Vector{Int})
+    nc = length(conn)
+    @printf self.ios "CTETRA,%d,%d" eid pid
+    for k = 1:nc
+        @printf self.ios ",%d" conn[k]
+        if k == 6
+            @printf self.ios "\n"
+        end
+    end
+    @printf self.ios "\n"
+end
+
+"""
+    close(self::NASTRANExporter)
+
+Close  the stream opened by the exporter.
+"""
+function close(self::NASTRANExporter)
+    close(self.ios)
+end
+
+
+################################################################################
+# STL export
+################################################################################
+
+"""
+STLExporter
+
+Export surface mesh as STL file.
+"""
+mutable struct STLExporter
+    filename::AbstractString
+    ios::IO
+    element_range::Tuple{Int64, Int64}
+    function STLExporter(filename::AbstractString)
+        if match(r".*\.stl$", filename) == nothing
+            filename = filename * ".stl"
+        end
+        ios = open(filename,"w+")
+        return new(deepcopy(filename), ios, (typemax(Int64), 0))
+    end
+end
+
+function solid(self::STLExporter, name::AbstractString = "thesolid")
+    @printf self.ios "solid %s\n" name 
+end
+
+function facet(self::STLExporter, v1::Vector{FFlt}, v2::Vector{FFlt}, v3::Vector{FFlt})
+    V = v2 - v1
+    W = v3 - v1
+    normal = cross(V, W)
+    normal = normal / norm(normal)
+    @printf self.ios "facet normal %e %e %e\n" normal[1] normal[2] normal[3]
+    @printf self.ios "    outer loop\n"
+    @printf self.ios "        vertex %e %e %e\n" v1[1] v1[2] v1[3]
+    @printf self.ios "        vertex %e %e %e\n" v2[1] v2[2] v2[3]
+    @printf self.ios "        vertex %e %e %e\n" v3[1] v3[2] v3[3]
+    @printf self.ios "    endloop\n"
+    @printf self.ios "endfacet\n"
+end
+
+function endsolid(self::STLExporter, name::AbstractString = "thesolid")
+    @printf self.ios "endsolid %s\n" name 
+end
+
+"""
+    close(self::STLExporter)
+
+Close  the stream opened by the exporter.
+"""
+function close(self::STLExporter)
+    close(self.ios)
 end
 
 end

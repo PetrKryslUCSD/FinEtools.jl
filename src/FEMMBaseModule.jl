@@ -231,7 +231,7 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
     parametrictol = 0.01
     nodebox = initbox!([], vec(fensc.xyz[1, :]))
     # Find out how many partitions of the nodes on the fine mesh we should use
-    npartitions = max(2, Int(round(count(fensf)/100)))
+    npartitions = max(2, Int(round(count(fensf)/1000)))
     # Partition the nodes of the fine mesh
     npf = nodepartitioning(fensf, npartitions)
     partitionnumbers = unique(npf)
@@ -269,7 +269,7 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
                     for e = el
                         c = view(fescsub.conn, e, :)
                         pc, success = map2parametric(fescsub, fenscsub.xyz[c, :],
-                        vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
+                            vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
                         @assert success # this shouldn't be tripped; normally we succeed
                         if inparametric(fescsub, pc; tolerance = parametrictol) # coarse mesh element encloses the node
                             N = bfun(fescsub,  pc)

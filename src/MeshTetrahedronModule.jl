@@ -5,7 +5,7 @@ Module  for generation of meshes composed of tetrahedra.
 """
 module MeshTetrahedronModule
 
-export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10compositeplatex
+export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10compositeplatex, T4meshedges, T4voximg
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -251,6 +251,221 @@ function T10compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
         fes.label[List] = layer
     end
     return T4toT10(fens, fes)
+end
+
+"""
+    tetv(X)
+
+Compute the volume of a tetrahedron.  
+
+```
+X = [0  4  3
+9  2  4
+6  1  7
+0  1  5] # for these points the volume is 10.0
+tetv(X)
+```
+"""
+function tetv(X::FFltMat)
+    local one6th = 1.0/6
+    # @assert size(X, 1) == 4
+    # @assert size(X, 2) == 3
+    @inbounds let
+        A1 = X[2,1]-X[1,1]; 
+        A2 = X[2,2]-X[1,2]; 
+        A3 = X[2,3]-X[1,3]; 
+        B1 = X[3,1]-X[1,1]; 
+        B2 = X[3,2]-X[1,2]; 
+        B3 = X[3,3]-X[1,3]; 
+        C1 = X[4,1]-X[1,1]; 
+        C2 = X[4,2]-X[1,2]; 
+        C3 = X[4,3]-X[1,3]; 
+        return one6th * ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
+    end
+end
+
+function tetv(v11::FFlt, v12::FFlt, v13::FFlt, v21::FFlt, v22::FFlt, v23::FFlt, v31::FFlt, v32::FFlt, v33::FFlt, v41::FFlt, v42::FFlt, v43::FFlt)
+    local one6th = 1.0/6
+    @inbounds let
+        A1 = v21 - v11; 
+        A2 = v22 - v12; 
+        A3 = v23 - v13; 
+        B1 = v31 - v11; 
+        B2 = v32 - v12; 
+        B3 = v33 - v13; 
+        C1 = v41 - v11; 
+        C2 = v42 - v12; 
+        C3 = v43 - v13; 
+        return one6th * ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
+    end
+end
+
+"""
+    tetv1times6(v, i1, i2, i3, i4)
+
+Compute 6 times the volume of the tetrahedron.  
+"""
+function tetv1times6(v::FFltMat, i1::Int, i2::Int, i3::Int, i4::Int)
+    # local one6th = 1.0/6
+    # @assert size(X, 1) == 4
+    # @assert size(X, 2) == 3
+    @inbounds let
+        A1 = v[i2,1]-v[i1,1]; 
+        A2 = v[i2,2]-v[i1,2]; 
+        A3 = v[i2,3]-v[i1,3]; 
+        B1 = v[i3,1]-v[i1,1]; 
+        B2 = v[i3,2]-v[i1,2]; 
+        B3 = v[i3,3]-v[i1,3]; 
+        C1 = v[i4,1]-v[i1,1]; 
+        C2 = v[i4,2]-v[i1,2]; 
+        C3 = v[i4,3]-v[i1,3]; 
+        return ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
+    end
+end
+
+"""
+    T4meshedges(t::Array{Int, 2})
+
+Compute all the edges of the 4-node triangulation.  
+"""
+function T4meshedges(t::Array{Int, 2})
+    @assert size(t, 2) == 4
+    ec = [  1  2
+            2  3
+            3  1
+            4  1
+            4  2
+            4  3];
+    e = vcat(t[:,ec[1,:]], t[:,ec[2,:]], t[:,ec[3,:]], t[:,ec[4,:]], t[:,ec[5,:]], t[:,ec[6,:]])
+    e = sort(e, 2);
+    ix = sortperm(e[:,1]);
+    e = e[ix,:];
+    ue = deepcopy(e)
+    i = 1;
+    n=1;
+    while n <= size(e,1)
+        c = ue[n,1];
+        m = n+1;
+        while m <= size(e,1)
+            if (ue[m,1] != c)
+                break; 
+            end
+            m = m+1;
+        end
+        us = unique(ue[n:m-1,2], 1);
+        ls =length(us);
+        e[i:i+ls-1,1] = c;
+        e[i:i+ls-1,2] = sort(us);
+        i = i+ls;
+        n = m;
+    end
+    e = e[1:i-1,:];
+end
+
+
+# Construct arrays to describe a hexahedron mesh created from voxel image.
+#
+# img = 3-D image (array),  the voxel values  are arbitrary
+# voxval =range of voxel values to be included in the mesh,
+# voxval =  [minimum value,  maximum value].  Minimum value == maximum value is
+# allowed.
+# Output:
+# t = array of hexahedron connectivities,  one hexahedron per row
+# v =Array of vertex locations,  one vertex per row
+function T4voximggen(img::Array{DataT, 3},  voxval::Array{DataT, 1}) where {DataT<:Number}
+    M=size(img,  1); N=size(img,  2); P=size(img,  3);
+    t4ia = [8 4 7 5; 6 7 2 5; 3 4 2 7; 1 2 4 5; 7 4 2 5];
+    t4ib = [7 3 6 8; 5 8 6 1; 2 3 1 6; 4 1 3 8; 6 3 1 8];
+
+    function find_nonempty(minvoxval, maxvoxval)
+        Nvoxval=0
+        for I= 1:M
+            for J= 1:N
+                for K= 1:P
+                    if (img[I, J, K]>=minvoxval) && (img[I, J, K]<=maxvoxval)
+                        Nvoxval=Nvoxval+1
+                    end
+                end
+            end
+        end
+        return Nvoxval
+    end
+    minvoxval= minimum(voxval)  # include voxels at or above this number
+    maxvoxval= maximum(voxval)  # include voxels at or below this number
+    Nvoxval =find_nonempty(minvoxval, maxvoxval) # how many "full" voxels are there?
+
+    # Allocate output arrays:  one voxel is converted to 5 tetrahedra
+    t =zeros(FInt, 5*Nvoxval, 4);
+    v =zeros(FInt, (M+1)*(N+1)*(P+1), 3);
+    tmid =zeros(FInt, 5*Nvoxval);
+
+    Slice =zeros(FInt, 2, N+1, P+1); # auxiliary buffer
+    function find_vertex(I, IJK)
+        vidx = zeros(FInt, 1, size(IJK, 1));
+        for r= 1:size(IJK, 1)
+            if (Slice[IJK[r, 1], IJK[r, 2], IJK[r, 3]]==0)
+                nv=nv+1;
+                v[nv, :] =IJK[r, :]; v[nv, 1] += I-1;
+                Slice[IJK[r, 1], IJK[r, 2], IJK[r, 3]] =nv;
+            end
+            vidx[r] =Slice[IJK[r, 1], IJK[r, 2], IJK[r, 3]];
+        end
+        return vidx
+    end
+    function store_elements(I, J, K)
+        locs =[1 J K;1+1 J K;1+1 J+1 K;1 J+1 K;1 J K+1;1+1 J K+1;1+1 J+1 K+1;1 J+1 K+1];
+        vidx = find_vertex(I, locs);
+        for r=1:5
+        nt =nt +1;
+        if (mod(sum( [I,J,K] ),2) == 0)
+            t[nt,:] = vidx[t4ia[r,:]];
+        else
+            t[nt,:] = vidx[t4ib[r,:]];
+        end
+        tmid[nt] = convert(FInt, img[I, J, K]);
+    end
+        
+    end
+
+    nv =0;                      # number of vertices
+    nt =0;                      # number of elements
+    for I= 1:M
+        for J= 1:N
+            for K= 1:P
+                if  (img[I, J, K]>=minvoxval) && (img[I, J, K]<=maxvoxval)
+                    store_elements(I, J, K);
+                end
+            end
+        end
+        Slice[1, :, :] =Slice[2, :, :] ;
+        Slice[2, :, :] =0;
+    end
+    # Trim output arrays
+    v = v[1:nv, :];
+    t = t[1:nt, :];
+    tmid = tmid[1:nt];
+
+    return t, v, tmid
+end
+
+"""
+    T4voximg(img::Array{DataT, 3}, voxdims::FFltVec,
+        voxval::Array{DataT, 1}) where {DataT<:Number}
+
+Generate a tetrahedral mesh  from three-dimensional image.
+"""
+function T4voximg(img::Array{DataT, 3}, voxdims::FFltVec, voxval::Array{DataT, 1}) where {DataT<:Number}
+    t, v, tmid = T4voximggen(img, voxval)
+    xyz = zeros(FFlt, size(v, 1), 3)
+    for k=1:3
+        for j=1:size(v, 1)
+            xyz[j, k] = v[j, k]*voxdims[k]
+        end
+    end
+    fens  = FENodeSetModule.FENodeSet(xyz);
+    fes = FESetModule.FESetT4(t);
+    setlabel!(fes, tmid)
+    return fens, fes;
 end
 
 end
