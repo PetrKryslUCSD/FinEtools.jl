@@ -6,12 +6,12 @@ Meshing an L-shaped membrane: merging multiple meshes.
 
 t0 = time()
 
-W= 100. # strip width
+W = 100. # strip width
 L = 200. # length of the strip
 nL = 15
 nW = 10
-tolerance = W/nW/1.0e5
-Meshes = Array{Tuple{FENodeSet, FESet},1}()
+tolerance = W / nW / 1.0e5
+Meshes = Array{Tuple{FENodeSet,FESet},1}()
 push!(Meshes, Q4quadrilateral([0.0 0.0; W W], nW, nW))
 push!(Meshes, Q4quadrilateral([-L 0.0; 0.0 W], nL, nW))
 push!(Meshes, Q4quadrilateral([0.0 -L; W 0.0], nW, nL))
