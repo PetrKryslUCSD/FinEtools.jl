@@ -1,7 +1,7 @@
 
 using FinEtools
 using FinEtools.MeshExportModule
-using Main.TetRemeshingModule
+using FinEtools.TetRemeshingModule
 L= 0.3; 
 W = 0.3;
 a = 0.15;
