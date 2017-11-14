@@ -368,3 +368,8 @@ C:\Program Files\Git\bin\bash.exe
 -- Failures to indent code properly in Atom and VS code for lines with 
 continuation are not specific to  Julia.
 Both fail for instance for  C-language code.
+
+-- Configuring PyPlot to use Anaconda
+ENV["PYTHON"]="C:\\ProgramData\\Anaconda3\\python.exe"
+ENV["PYTHON"]="C:\\Users\\PetrKrysl\\Documents\\WinPython-64bit-3.6.3.0Qt5\\python-3.6.3.amd64\\python.exe"
+Pkg.build("PyCall")
