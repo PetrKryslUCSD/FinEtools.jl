@@ -34,9 +34,9 @@ fes = FESetQ4([1 2 4 3; 3 4 6 5; 5 6 8 7; 7 8 10 9; 9 10 12 11; 11 12 14 13; 13 
 
 nref = 1;
 for ref = 1:nref
-  fens,fes = Q4refine(fens,fes);
-  list = selectnode(fens, distance=1.0+0.1/2^nref, from=[0. 0.], inflate=tolerance);
-  fens.xyz[list,:] = FinEtools.MeshUtilModule.ontosphere(fens.xyz[list,:],1.0);
+    fens,fes = Q4refine(fens,fes);
+    list = selectnode(fens, distance=1.0+0.1/2^nref, from=[0. 0.], inflate=tolerance);
+    fens.xyz[list,:] = FinEtools.MeshUtilModule.ontosphere(fens.xyz[list,:],1.0);
 end
 
 ##
@@ -49,15 +49,14 @@ angslice  = 5*pi/16;
 ##
 # First the mesh is extruded to a block whose third dimension
 # represents the angular coordinate.
-fens,fes = H8extrudeQ4(fens, fes, nLayers,
-(rz,k)->[rz[1],rz[2],0.0]-(k)/nLayers*[0.,0.,angslice]);
+fens,fes = H8extrudeQ4(fens, fes, nLayers, (rz,k)->[rz[1],rz[2],0.0]-(k)/nLayers*[0.,0.,angslice]);
 # The block is now converted  to the axially symmetric geometry by using the
 # third (angular) coordinate  to sweep out  an axially symmetric domain. The
 # ccoordinates of the nodes at this point are |rza|,  radial distance,
 # Z-coordinate, angle.
 sweep(rza) = [-rza[1]*sin(rza[3]+angslice/2.0), rza[1]*cos(rza[3]+angslice/2.0), rza[2]]
 for j=1:size(fens.xyz,1)
-  fens.xyz[j,:] = sweep(fens.xyz[j,:])
+    fens.xyz[j,:] = sweep(fens.xyz[j,:])
 end
 
 AE = AbaqusExporter("LE11NAFEMS_H8");
