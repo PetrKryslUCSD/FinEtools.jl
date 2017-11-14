@@ -9,11 +9,19 @@ npartitions = 8
 partitioning = nodepartitioning(fens, npartitions)
 partitionnumbers = unique(partitioning)
 
-using Plots
-plotly(aspectratio = :equal)
-plot(seriestype=:scatter)
+using PyCall
+@pyimport matplotlib.pyplot as plt
+plt.style[:use]("seaborn-whitegrid")
+fig = plt.figure() 
+ax = plt.axes()
 for ixxxx = 1:length(partitionnumbers)
     i1 = find(x -> x == partitionnumbers[ixxxx], partitioning)
-    plot!(vec(fens.xyz[i1, 1]), vec(fens.xyz[i1, 2]), seriestype=:scatter, m=:o)
+    ax[:plot](vec(fens.xyz[i1, 1]), vec(fens.xyz[i1, 2]), linestyle="none", marker=:o)
 end
-gui()
+ax[:set_xlabel]("x")
+ax[:set_ylabel]("y")
+plt.axis("equal")
+plt.show()
+
+
+
