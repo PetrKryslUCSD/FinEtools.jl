@@ -28,7 +28,8 @@ Since  this package is not registered, please use cloning:
 ```julia
 Pkg.clone("https://github.com/PetrKryslUCSD/FinEtools.jl")
 ```
-Only version 0.7 (the nightly) builds of Julia  are supported.
+Only version 0.6 and 0.7 (the nightly) builds of Julia  are supported. (At the moment the nightly builds
+do not test successfully due to some problems with  the testing tools. However FinEtools runs successfully  with the nightly build.)
 
 ## Testing
 
