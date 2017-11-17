@@ -12,14 +12,15 @@
 
 ## News
 
+- 11/17/2017: At the moment the nightly builds do not test successfully due to some problems with  the testing tools. However FinEtools runs successfully  with the nightly build.
+
 - 10/21/2017: Global RMS error norms can now be evaluated for multi-region  models.
 
 - 10/12/2017: Evaluation of global error norms implemented.
 
 - 08/04/2017: Several Jupyter notebook tutorials are now available. Abaqus mesh import is now also implemented (for continuum elements). Initial implementation  of high-performance mean-strain hexahedra and tetrahedra has been completed.
 
-- 07/23/2017: Export of the finite element model to Abaqus  CAE (from Daussault Systems)
-has been implemented. The FinEtools package can of course  handle the finite element calculations that the export enables, but the point is to have an independent verification of the results. Export of continuum-element meshes for  vibration and static stress analysis  is currently included.
+- 07/23/2017: Export of the finite element model to Abaqus  CAE (from Daussault Systems) has been implemented. The FinEtools package can of course  handle the finite element calculations that the export enables, but the point is to have an independent verification of the results. Export of continuum-element meshes for  vibration and static stress analysis  is currently included.
 
 
 ## Get FinEtools
@@ -28,16 +29,17 @@ Since  this package is not registered, please use cloning:
 ```julia
 Pkg.clone("https://github.com/PetrKryslUCSD/FinEtools.jl")
 ```
-Only version 0.6 and 0.7 (the nightly) builds of Julia  are supported. (At the moment the nightly builds
-do not test successfully due to some problems with  the testing tools. However FinEtools runs successfully  with the nightly build.)
+Only version 0.6 and 0.7 (the nightly) builds of Julia  are supported. 
 
 ## Testing
 
 Pkg.test("FinEtools")
 
-## Usage
+## Usage and Documentation
 
 The package comes with examples  of its use. Tutorials in notebook form
 are available and more will  be added in the near future.
+
+The documentation  is published at [https://petrkryslucsd.github.io/FinEtools.jl]. 
 
 ![Alt Sample mesh](http://hogwarts.ucsd.edu/~pkrysl/site.images/ScreenHunter_31%20Feb.%2009%2020.54.jpg "FinEtools.jl")
