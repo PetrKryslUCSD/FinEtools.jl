@@ -29,14 +29,33 @@ The "other"  dimension  has the following meaning  for finite elements of differ
 | 1 | Cross-section   |  Thickness |
 | 0 | Volume   |  Cross-section |
 
+
 ## Integration  over the interior
 
-The integrals are always  *volume* integrals. This means that for elements which are of  lower manifold dimension
+The integrals are always  *volume* integrals. This means that for elements which are of  lower manifold 
+dimension than three the "other"  dimension needs to compensate.
+
+For  three-manifold finite elements (tetrahedra and hexahedra) the "other" dimension is always 1.0.
+This really means there is no "other" dimension to a volume-like element.
+
+| Manifold dimension        | Axially symmetric    | Plane 2D |
+| ------------- | ------------- | ----- |
+| 2 | $2\pi r\times$  |  1.0 |
+| 1 | $2\pi r\times$ Thickness  |  Cross-section |
+| 0 | $2\pi r  \times$ Cross-section  |  Volume |  
 
 ## Integration  over the boundary
 
-The integrals are always  *surface* integrals.
+The integrals are always  *surface* integrals. This means that for elements which are of  lower manifold 
+dimension than two the "other"  dimension needs to compensate.
 
+For  two-manifold finite elements (triangles and quadrilaterals) the "other" dimension is always 1.0.
+This really means there is no "other" dimension to a surface-like element.
+
+| Manifold dimension        | Axially symmetric    | Plane 2D |
+| ------------- | ------------- | ----- |
+| 1 | $2\pi r$   |  Thickness |
+| 0 | $2\pi r  \times$ Thickness  |  Cross-section |
 
 
 
