@@ -38,14 +38,16 @@ println("Eigenvalues: $fs [Hz]")
 
 println("Total time elapsed  =  ",time() - t0,"s")
 
-using Plots
-plotly()
+using PyCall
+@pyimport matplotlib.pyplot as plt
+plt.style[:use]("seaborn-whitegrid")
+fig = plt.figure() 
+ax = plt.axes()
 en = 2
 ix = sortperm(geom.values[:])
-plot(geom.values[:][ix], v[:,en][ix], color = "blue",
-title = "Fahy example, mode $en" , xlabel = "x", ylabel = "P")
-gui()
-# pl  =  FramedPlot(title =)
-
+ax[:plot](geom.values[:][ix], v[:,en][ix], color = "blue")
+ax[:set_xlabel]("x")
+ax[:set_ylabel]("P")
+plt.show()
 
 true
