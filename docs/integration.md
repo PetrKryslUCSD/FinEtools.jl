@@ -18,7 +18,16 @@ Elements are equipped with  "other" dimension which boosts the manifold dimensio
 dimension for  the integration. For instance,  a line element can be equipped dimension for  the integration. 
 For instance,  a line element can be equipped with an "other" dimension to represent a cross-section 
 so that a volume integral can be evaluated over a line element. Or, a line element can be given 
-an "other" dimension as a thickness to result in our physical dimension needed to evaluate a surface integral.
+an "other" dimension as a thickness to result in a physical dimension needed to evaluate a surface integral.
+
+The "other"  dimension  has the following meaning  for finite elements of different manifold dimensions:
+
+| Manifold dimension        | Volume integral           | Surface integral  |
+| ------------- | ------------- | ----- |
+| 3     | NA | NA |
+| 2    | Thickness  |  NA |
+| 1 | Cross-section   |  Thickness |
+| 0 | Volume   |  Cross-section |
 
 ## Integration  over the interior
 
