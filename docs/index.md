@@ -1,6 +1,7 @@
 # FinEtools (Finite Element tools) Documentation
 
-
-[Design philosophy](philosophy.html)
-
-
+- [Mesh](mesh.html)
+- [Field](field.html)
+- [Element](element.html)
+- [Integration](integration.html)
+- [Model machine](machine.html)
