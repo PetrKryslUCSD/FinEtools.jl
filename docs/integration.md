@@ -127,3 +127,5 @@ which simply returns 1.0 as the default value.
 ## Evaluation of integration data
 
 Importantly, the  Integration Data method `integrationdata` evaluates quantities  needed for numerical integration: locations and weights of quadrature points, and the values of basis functions and of the basis function gradients with respect to the parametric coordinates at the quadrature points.
+
+<img src="http://latex.codecogs.com/gif.latex?1+sin(x)" border="0"/>
