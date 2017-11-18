@@ -1,8 +1,8 @@
-[Top](https://petrkryslucsd.github.io/FinEtools.jl)
+[Table of contents](https://petrkryslucsd.github.io/FinEtools.jl)
 
 # Integration
 
-There are two kinds of integrals: integrals over the interior  of the domain,  and integrals over the boundary of the domain.
+There are two kinds of integrals in the weighted-residual finite element method: integrals over the interior  of the domain,  and integrals over the boundary of the domain.
 
 Consequently, in a typical simulation one would need  two meshes: one for the interior  of the domain,  and one for the boundary.
 Obviously, the one for the boundary will be derived from the mesh  constructed for the interior.
@@ -12,13 +12,12 @@ Therefore the necessary integrals are typically evaluated over a subset of the e
 
 ## Manifold dimension
 
-Finite elements  have  a certain manifold dimension.  Intuitively, tetrahedra  and hexahedra are three-manifolds,
+Finite elements  have  a certain manifold dimension.  Tetrahedra  and hexahedra are three-manifolds,
 triangles and quadrilaterals are two-manifolds, triangles and quadrilaterals are two-manifolds, 
 lines are one-manifolds, and points are zero-manifolds.
 
-Elements are equipped with  "other" dimension which boosts the manifold dimension to produce the required
-dimension for  the integration. For instance,  a line element can be equipped dimension for  the integration. 
-For instance,  a line element can be equipped with an "other" dimension to represent a cross-section 
+Elements are equipped with an "other" dimension which boosts the manifold dimension to produce the required
+dimension for  the integration. For instance,  a line element can be equipped with an "other" dimension to represent a cross-section 
 so that a volume integral can be evaluated over a line element. Or, a line element can be given 
 an "other" dimension as a thickness to result in a physical dimension needed to evaluate a surface integral.
 
@@ -87,5 +86,7 @@ Jacobian. (For the boundary integrals the Jacobian  is computed by the `Jacobian
 
 The surface Jacobian in this case  is  equal to the curve Jacobian times `2*pi*r`.
 
+## Geometry Data support for integration
 
-
+The  module `GeoDModule` supports  the processing of  the geometry necessary for the evaluation of the various integrals.
+More details can be found [here](geometry.md).

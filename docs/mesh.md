@@ -1,4 +1,4 @@
-[Top](https://petrkryslucsd.github.io/FinEtools.jl)
+[Table of contents](https://petrkryslucsd.github.io/FinEtools.jl)
 
 # Mesh
 
@@ -52,7 +52,7 @@ fens, fes = mergenodes(fens, fes,  tolerance, candidates);
 ```
 
 The final mesh used for a simulation  consists of a single  node set and one or more finite element sets.
-The  finite elements may be  divided into separate sets  to  accommodate different material properties, different orientations of the material  coordinate systems, or different formulations  of the discrete model. The  aassignment  of the finite elements to sets  may be based on geometrical proximity, topological connections, or some other characteristic. See the  "mesh selection"  module for details.
+The  finite elements may be  divided into separate sets  to  accommodate different material properties, different orientations of the material  coordinate systems, or different formulations  of the discrete model. The  assignment  of the finite elements to sets  may be based on geometrical proximity, topological connections, or some other characteristic. See the  "mesh selection"  module for details.
 
 
 

@@ -1,3 +1,5 @@
+[Table of contents](https://petrkryslucsd.github.io/FinEtools.jl)
+
 # Finite element
 
 The  finite element set is one of the basic entities in FinEtools.
