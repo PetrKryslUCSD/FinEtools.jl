@@ -43,20 +43,20 @@ function test()
     numberdofs!(u)
     display(u)
 
-    geod = GeoD(fes, GaussRule(1, 1), CSys(2, 1),
+    IntegData = IntegData(fes, GaussRule(1, 1), CSys(2, 1),
         (loc, conn, N) -> Area, false)
-    display(geod.mcsys)
-    femm = FEMMDeforLinear(MR, geod,  material)
+    display(IntegData.mcsys)
+    femm = FEMMDeforLinear(MR, IntegData,  material)
     K = stiffness(femm,  geom,  u)
 
     fi = ForceIntensity(vec([0 -2000.0]))
-    lfemm = FEMMBase(GeoD(FESetP1(reshape([3], 1,1)), PointRule()))
+    lfemm = FEMMBase(IntegData(FESetP1(reshape([3], 1,1)), PointRule()))
     F = distribloads(lfemm,  geom,  u,  fi,  3);
     fi = ForceIntensity(vec([+2000.0 0]))
-    lfemm = FEMMBase(GeoD(FESetP1(reshape([5], 1,1)), PointRule()))
+    lfemm = FEMMBase(IntegData(FESetP1(reshape([5], 1,1)), PointRule()))
     F = F + distribloads(lfemm,  geom,  u,  fi,  3);
     fi = ForceIntensity(vec([+4000.0 +6000.0]))
-    lfemm = FEMMBase(GeoD(FESetP1(reshape([6], 1,1)), PointRule()))
+    lfemm = FEMMBase(IntegData(FESetP1(reshape([6], 1,1)), PointRule()))
     F = F + distribloads(lfemm,  geom,  u,  fi,  3);
 
     K = cholfact(K)

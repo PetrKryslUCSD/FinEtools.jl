@@ -109,15 +109,15 @@ rl1 = vcat(selectelem(fens, fes, label = 1), selectelem(fens, fes, label = 3),
 rl2 = vcat(selectelem(fens, fes, label = 2), selectelem(fens, fes, label = 4),
         selectelem(fens, fes, label = 6))
 region1 = FDataDict("femm"=>FEMMDeforLinear(MR,
-    GeoD(subset(fes, rl1), gr, CSys(3, 3, updatecs!)), material))
+    IntegData(subset(fes, rl1), gr, CSys(3, 3, updatecs!)), material))
 region2 = FDataDict("femm"=>FEMMDeforLinear(MR,
-    GeoD(subset(fes, rl2), gr, CSys(3, 3, updatecs!)), material))
+    IntegData(subset(fes, rl2), gr, CSys(3, 3, updatecs!)), material))
 
 # File =  "NAFEMS-R0031-1-plate-r1.vtk"
-# vtkexportmesh(File, region1["femm"].geod.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
+# vtkexportmesh(File, region1["femm"].IntegData.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
 # # @async run(`"paraview.exe" $File`)
 # File =  "NAFEMS-R0031-1-plate-r2.vtk"
-# vtkexportmesh(File, region2["femm"].geod.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
+# vtkexportmesh(File, region2["femm"].IntegData.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
 # @async run(`"paraview.exe" $File`)
 
 # The essential boundary conditions are applied on the symmetry planes.
@@ -150,7 +150,7 @@ zl = selectelem(fens, bbfes, box = [0.0 0.0 -Inf Inf TH TH], inflate=tolerance)
 # quadrature rule is one-dimensional  since we are integrating along
 # a curve.
 Trac = FDataDict("traction_vector"=>vec([0.0; 0.0; -q0/2]),
-    "femm"=>FEMMBase(GeoD(subset(bbfes, zl), GaussRule(1, 3))))
+    "femm"=>FEMMBase(IntegData(subset(bbfes, zl), GaussRule(1, 3))))
 
 modeldata = FDataDict("fens"=>fens,
  "regions"=>[region1, region2],

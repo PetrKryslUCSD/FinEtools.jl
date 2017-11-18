@@ -52,14 +52,14 @@ t1  =  time()
 
 material = MatAcoustFluid(bulk, rho)
 # Region of the fluid
-region1 =  FDataDict("femm"=>FEMMAcoust(GeoD(fes, GaussRule(3, 2)), material))
+region1 =  FDataDict("femm"=>FEMMAcoust(IntegData(fes, GaussRule(3, 2)), material))
 
 # Surface for the ABC
-abc1  =  FDataDict("femm"=>FEMMAcoustSurf(GeoD(outer_fes, GaussRule(2, 2)),
+abc1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegData(outer_fes, GaussRule(2, 2)),
           material))
 
 # Surface of the piston
-flux1  =  FDataDict("femm"=>FEMMAcoustSurf(GeoD(piston_fes, GaussRule(2, 2)),
+flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegData(piston_fes, GaussRule(2, 2)),
           material),  "normal_flux"=> -rho*a_piston+0.0im);
 
 # Make model data

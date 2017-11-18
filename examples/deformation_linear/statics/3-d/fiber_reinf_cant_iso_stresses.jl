@@ -62,7 +62,7 @@ for n = [2 4 8 16 32]
     gr = GaussRule(3, 2)
 
     region = FDataDict("femm"=>FEMMDeforLinearMSH8(MR,
-    GeoD(fes, gr), material))
+    IntegData(fes, gr), material))
 
     lx0 = selectnode(fens, box=[0.0 0.0 -Inf Inf -Inf Inf], inflate=tolerance)
 
@@ -75,7 +75,7 @@ for n = [2 4 8 16 32]
     end
 
     Trac = FDataDict("traction_vector"=>getshr!,
-    "femm"=>FEMMBase(GeoD(subset(bfes, sshearl), GaussRule(2, 3))))
+    "femm"=>FEMMBase(IntegData(subset(bfes, sshearl), GaussRule(2, 3))))
 
     modeldata = FDataDict("fens"=>fens,
     "regions"=>[region],
@@ -108,7 +108,7 @@ for n = [2 4 8 16 32]
         write(file, "geom", geom)
         write(file, "u", u)
         # write(file, "femm", region["femm"])
-        write(file, "integrationrule", region["femm"].geod.integration_rule)
+        write(file, "integrationrule", region["femm"].IntegData.integration_rule)
         write(file, "stressfields", stressfields)
         write(file, "tolerance", tolerance)
     end

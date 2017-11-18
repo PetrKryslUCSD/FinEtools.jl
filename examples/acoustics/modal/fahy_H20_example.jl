@@ -26,7 +26,7 @@ P = NodalField(zeros(size(fens.xyz,1),1))
 
 numberdofs!(P)
 
-femm = FEMMAcoust(GeoD(fes, GaussRule(3, 3)), MatAcoustFluid(bulk, rho))
+femm = FEMMAcoust(IntegD(fes, GaussRule(3, 3)), MatAcoustFluid(bulk, rho))
 
 
 S = acousticstiffness(femm, geom, P);

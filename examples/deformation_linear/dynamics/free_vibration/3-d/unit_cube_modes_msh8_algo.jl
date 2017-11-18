@@ -23,8 +23,8 @@ fens,fes = H8block(a,b,h, na,nb,nh)
 # Make the region
 MR = DeforModelRed3D
 material = MatDeforElastIso(MR, rho, E, nu, 0.0)
-region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3,2)),
-  material), "femm_mass"=>FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3,3)),
+region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3,2)),
+  material), "femm_mass"=>FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3,3)),
   material))
 
 # Make model data

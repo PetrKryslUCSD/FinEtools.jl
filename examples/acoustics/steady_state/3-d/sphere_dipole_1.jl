@@ -74,12 +74,12 @@ t1  =  time()
 numberdofs!(P)
 
 material = MatAcoustFluid(bulk,rho)
-femm  =  FEMMAcoust(GeoD(fes, GaussRule(3, 2)), material)
+femm  =  FEMMAcoust(IntegData(fes, GaussRule(3, 2)), material)
 
 @time S  =  acousticstiffness(femm, geom, P);
 @time C  =  acousticmass(femm, geom, P);
 
-abcfemm  =  FEMMAcoustSurf(GeoD(subset(bfes, louter), GaussRule(2, 2)), material)
+abcfemm  =  FEMMAcoustSurf(IntegData(subset(bfes, louter), GaussRule(2, 2)), material)
 @time D  =  acousticABC(abcfemm, geom, P);
 
 # Inner sphere pressure loading
@@ -91,7 +91,7 @@ function dipole(dpdn, xyz, J, label)
 end
 
 fi  =  ForceIntensity(FCplxFlt, 1, dipole);
-dipfemm  =  FEMMAcoustSurf(GeoD(subset(bfes, linner), GaussRule(2, 2)), material)
+dipfemm  =  FEMMAcoustSurf(IntegData(subset(bfes, linner), GaussRule(2, 2)), material)
 @time F  = distribloads(dipfemm, geom, P, fi, 2);
 
 @time K = lufact((1.0+0.0im)*(-omega^2*S + omega*1.0im*D + C)) # We fake a complex matrix here

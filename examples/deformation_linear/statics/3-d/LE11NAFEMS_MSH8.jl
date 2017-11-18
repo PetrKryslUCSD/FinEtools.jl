@@ -153,7 +153,7 @@ material = MatDeforElastIso(MR, 1.0, Ea, nua, alphaa)
 # 3x3x3 points  gives good accuracy in this case. Compare it with 2x2x2
 # quadrature to appreciate the difference.
 
-femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material, true)
+femm = FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3, 2)), material, true)
 
 ##
 # The geometry nodal field is created from the node set.   The
@@ -181,7 +181,7 @@ numberdofs!(u)
 # surface  finite elements on the cross-sections.
 springcoefficient =1.0 / ((abs(sigmaA)/1.0e12)/Ea)
 fl = vcat(f1l, f2l)
-xsfemm = FEMMDeforWinkler(GeoD(subset(bfes,fl), GaussRule(2, 3)))
+xsfemm = FEMMDeforWinkler(IntegData(subset(bfes,fl), GaussRule(2, 3)))
 
 ##
 # We create the temperature field using the formula $T=r+z$.

@@ -29,7 +29,7 @@ ess3 = FDataDict("displacement"=>  0.0, "component"=> 3, "node_list"=>l1)
 # Traction on the opposite edge
 boundaryfes =  meshboundary(fes);
 Toplist  = selectelem(fens, boundaryfes, box= [width, width, -Inf, Inf, -Inf, Inf], inflate=  tolerance);
-el1femm = FEMMBase(GeoD(subset(boundaryfes, Toplist), SimplexRule(2, 3)))
+el1femm = FEMMBase(IntegData(subset(boundaryfes, Toplist), SimplexRule(2, 3)))
 flux1 = FDataDict("traction_vector"=>[0.0, 0.0, +magn],
     "femm"=>el1femm
     )
@@ -38,7 +38,7 @@ flux1 = FDataDict("traction_vector"=>[0.0, 0.0, +magn],
 MR = DeforModelRed3D
 material = MatDeforElastIso(MR,  0.0, E, nu, 0.0)
 region1 = FDataDict("femm"=>FEMMDeforLinearMST10(MR,
-    GeoD(fes, SimplexRule(3, 2)), material))
+    IntegData(fes, SimplexRule(3, 2)), material))
 
 modeldata = FDataDict("fens"=>fens,
  "regions"=>[region1],

@@ -42,7 +42,7 @@ function test()
         numberdofs!(u)
         
         
-        el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), TriRule(3)))
+        el1femm =  FEMMBase(IntegData(subset(bdryfes,icl), TriRule(3)))
         function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
             pt= [2.75/3.25*XYZ[1], 3.25/2.75*XYZ[2], 0.0]
             forceout .=    vec(p*pt/norm(pt));
@@ -57,7 +57,7 @@ function test()
         
         material = MatDeforElastIso(MR, E, nu)
         
-        femm = FEMMDeforLinear(MR, GeoD(fes, TetRule(4)), material)
+        femm = FEMMDeforLinear(MR, IntegData(fes, TetRule(4)), material)
         
         # The geometry field now needs to be associated with the FEMM
         femm = associategeometry!(femm, geom)
@@ -92,7 +92,7 @@ function test()
         "geom"=>geom,
         "u"=>u,
         "femm"=>femm,
-        "integrationrule"=>femm.geod.integration_rule,
+        "integrationrule"=>femm.IntegData.integration_rule,
         "stressfields"=>[stressfield],
         "tolerance"=>tolerance)
         )

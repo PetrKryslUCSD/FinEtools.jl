@@ -13,7 +13,7 @@ export stiffness, nzebcloadsstiffness, thermalstrainloads,
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
 using FinEtools.CSysModule
-using FinEtools.GeoDModule
+using FinEtools.IntegDataModule
 using FinEtools.FEMMBaseModule
 using FinEtools.FEMMDeforLinearBaseModule
 using FinEtools.FieldModule
@@ -30,19 +30,17 @@ using FinEtools.FENodeToFEMapModule
 
 Class for linear deformation finite element modeling machine.
 """
-mutable struct FEMMDeforLinear{MR<:DeforModelRed,
-  S<:FESet, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstract
-  mr::Type{MR}
-  geod::GeoD{S, F} # geometry data finite element modeling machine
-  material::M # material object
-  function FEMMDeforLinear(mr::Type{MR}, geod::GeoD{S, F},
-    material::M) where {MR<:DeforModelRed,
-    S<:FESet, F<:Function, M<:MatDefor}
-    @assert mr === material.mr "Model reduction is mismatched"
-    @assert (geod.axisymmetric) || (mr != DeforModelRed2DAxisymm) "Axially symmetric requires axisymmetric to be true"
-    return new{MR, S, F, M}(mr, geod,  material)
-  end
+mutable struct FEMMDeforLinear{MR<:DeforModelRed,  S<:FESet, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstract
+    mr::Type{MR}
+    IntegData::IntegData{S, F} # geometry data 
+    mcsys::CSys # updater of the material orientation matrix
+    material::M # material object
 end
 
+function FEMMDeforLinear(mr::Type{MR}, IntegData::IntegData{S, F}, material::M) where {MR<:DeforModelRed, S<:FESet, F<:Function, M<:MatDefor}
+    @assert mr === material.mr "Model reduction is mismatched"
+    @assert (IntegData.axisymmetric) || (mr != DeforModelRed2DAxisymm) "Axially symmetric requires axisymmetric to be true"
+    return FEMMDeforLinear(mr, IntegData, CSys(manifdim(IntegData.fes)), material)
+end
 
 end

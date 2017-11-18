@@ -32,7 +32,7 @@ setebc!(u,l1,true,1,0.0)
 applyebc!(u)
 numberdofs!(u)
 
-el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), GaussRule(1, 3)))
+el1femm =  FEMMBase(IntegData(subset(bdryfes,icl), GaussRule(1, 3)))
 function pfun(forceout::FFltVec, x::FFltMat, J::FFltMat, l::FInt)
     pt= [2.75/3.25*x[1] 3.25/2.75*x[2]]
     copy!(forceout, vec(p*pt/norm(pt)))
@@ -44,7 +44,7 @@ F2= distribloads(el1femm, geom, u, fi, 2);
 
 material=MatDeforElastIso(MR, E, nu)
 MR = DeforModelRed2DStress
-femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 3)), material)
+femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 3)), material)
 
 K =stiffness(femm, geom, u)
 K=cholfact(K)

@@ -29,8 +29,8 @@ Temp.dofnums[5] = 4
 
 bfes = FESetL2([4 5]);
 
-cfemm = FEMMHeatDiffSurf(GeoD(bfes, GaussRule(1, 2), Dz), h)
-femm = FEMMHeatDiff(GeoD(fes, TriRule(1), Dz), m)
+cfemm = FEMMHeatDiffSurf(IntegData(bfes, GaussRule(1, 2), Dz), h)
+femm = FEMMHeatDiff(IntegData(fes, TriRule(1), Dz), m)
 fi = ForceIntensity(FFlt[Q]);
 F1 = distribloads(femm, geom, Temp, fi, 3);
 K = conductivity(femm, geom, Temp)

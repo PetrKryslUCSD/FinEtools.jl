@@ -62,7 +62,7 @@ setebc!(u,l2,true, 2, 0.0) # symmetry plane Y = 0
 applyebc!(u)
 numberdofs!(u)
 
-el1femm =  FEMMBase(GeoD(subset(bdryfes,topbfl), TriRule(3)))
+el1femm =  FEMMBase(IntegData(subset(bdryfes,topbfl), TriRule(3)))
 function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
     forceout .=  [0.0, 0.0, -qmagn]
     return forceout
@@ -76,7 +76,7 @@ MR = DeforModelRed3D
 
 material = MatDeforElastIso(MR, E, nu)
 
-femm = FEMMDeforLinearMST10(MR, GeoD(fes, TetRule(4)), material)
+femm = FEMMDeforLinearMST10(MR, IntegData(fes, TetRule(4)), material)
 
 # The geometry field now needs to be associated with the FEMM
 femm = associategeometry!(femm, geom)
@@ -114,9 +114,9 @@ END_PART(AE);
 ASSEMBLY(AE, "ASSEM1");
 INSTANCE(AE, "INSTNC1", "PART1");
 NODE(AE, fens.xyz);
-ELEMENT(AE, "c3d10", "AllElements", 1, femm.geod.fes.conn)
+ELEMENT(AE, "c3d10", "AllElements", 1, femm.IntegData.fes.conn)
 ELEMENT(AE, "SFM3D6", "TractionElements",
-1+count(femm.geod.fes), el1femm.geod.fes.conn)
+1+count(femm.IntegData.fes), el1femm.IntegData.fes.conn)
 NSET_NSET(AE, "l1", l1)
 NSET_NSET(AE, "l2", l2)
 NSET_NSET(AE, "l3", l3)

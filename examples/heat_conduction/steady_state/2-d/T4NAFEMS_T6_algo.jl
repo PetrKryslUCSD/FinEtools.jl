@@ -80,12 +80,12 @@ for nref = 1:5
   # accurate.
   l2 = selectelem(fens, bfes; box=[Width Width  0.0 Height], inflate =tolerance)
   l3 = selectelem(fens, bfes; box=[0.0 Width Height Height], inflate =tolerance)
-  cfemm = FEMMHeatDiffSurf(GeoD(subset(bfes,vcat(l2,l3)),
+  cfemm = FEMMHeatDiffSurf(IntegData(subset(bfes,vcat(l2,l3)),
              GaussRule(1, 3), Thickness), h)
   convection1 = FDataDict("femm"=>cfemm, "ambient_temperature"=>0.);
 
   # The interior
-  femm = FEMMHeatDiff(GeoD(fes, TriRule(3), Thickness), m)
+  femm = FEMMHeatDiff(IntegData(fes, TriRule(3), Thickness), m)
   region1 = FDataDict("femm"=>femm)
 
   # Make the model data
@@ -124,10 +124,10 @@ println("Convergence rate estimate  = $(beta )")
 geom = modeldata["geom"]
 Temp = modeldata["temp"]
 regions = modeldata["regions"]
-vtkexportmesh("T4NAFEMS--T6.vtk", regions[1]["femm"].geod.fes.conn,
+vtkexportmesh("T4NAFEMS--T6.vtk", regions[1]["femm"].IntegData.fes.conn,
           [geom.values Temp.values/100], FinEtools.MeshExportModule.T6;
           scalars=[("Temperature", Temp.values)])
-vtkexportmesh("T4NAFEMS--T6--base.vtk", regions[1]["femm"].geod.fes.conn,
+vtkexportmesh("T4NAFEMS--T6--base.vtk", regions[1]["femm"].IntegData.fes.conn,
           [geom.values 0.0*Temp.values/100], FinEtools.MeshExportModule.T6)
 
 # ##

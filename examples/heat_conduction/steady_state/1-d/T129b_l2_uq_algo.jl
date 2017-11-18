@@ -19,7 +19,7 @@ l2  = selectnode(fens; box=[L L], inflate = L/n/100.0)
 
 essential1 = FDataDict("node_list"=>vcat(l1, l2), "temperature"=> 0.0);
 material = MatHeatDiff(kappa)
-femm = FEMMHeatDiff(GeoD(fes, GaussRule(1, 2), crosssection), material)
+femm = FEMMHeatDiff(IntegData(fes, GaussRule(1, 2), crosssection), material)
 region1 = FDataDict("femm"=>femm, "Q"=>Q)
 # Make model data
 modeldata= FDataDict("fens"=> fens,
@@ -49,7 +49,7 @@ function errfh(loc,val)
     return ((exact-val)*exact)[1]
 end
 
-femm.geod.integration_rule = GaussRule(1, 4)
+femm.IntegData.integration_rule = GaussRule(1, 4)
 E = integratefieldfunction(femm, geom, Temp, errfh, 0.0, m=3)
 println("Error=$E")
 

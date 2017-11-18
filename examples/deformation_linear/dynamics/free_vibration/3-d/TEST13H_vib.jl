@@ -56,10 +56,10 @@ function test()
 
     material=MatDeforElastIso(MR, rho, E, nu, 0.0)
 
-    femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3,2)), material)
+    femm = FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3,2)), material)
     femm = associategeometry!(femm, geom)
     K = stiffness(femm, geom, u)
-    femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,3)), material)
+    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,3)), material)
     M = mass(femm, geom, u)
 
     if true

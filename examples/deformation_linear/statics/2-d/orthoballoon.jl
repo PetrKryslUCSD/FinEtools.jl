@@ -61,7 +61,7 @@ println("Number of degrees of freedom = $(u.nfreedofs)")
 # The traction boundary condition is applied in the radial
 # direction.
 
-el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), GaussRule(1, 3), true))
+el1femm =  FEMMBase(IntegData(subset(bdryfes,icl), GaussRule(1, 3), true))
 function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
   copy!(forceout, XYZ/norm(XYZ)*p)
   return forceout
@@ -72,7 +72,7 @@ F2= distribloads(el1femm, geom, u, fi, 2);
 # Property and material
 material=MatDeforElastOrtho(MR, E1,E2,E3,nu12,nu13,nu23,G12,G13,G23)
 
-femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), true), material)
+femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
 
 K =stiffness(femm, geom, u)
 U=  K\(F2)

@@ -29,10 +29,10 @@ numberdofs!(u)
 
 material=MatDeforElastIso(MR, rho, E, nu, 0.0)
 
-femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,2)), material)
+femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,2)), material)
 
 @time K =stiffness(femm, geom, u)
-femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,3)), material)
+femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,3)), material)
 @time M =mass(femm, geom, u)
 d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
 d = d - OmegaShift;

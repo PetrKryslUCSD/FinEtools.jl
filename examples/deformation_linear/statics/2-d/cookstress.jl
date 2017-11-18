@@ -31,7 +31,7 @@ numberdofs!(u)
 
 @time boundaryfes =  meshboundary(fes);
 Toplist = selectelem(fens, boundaryfes,  box= [width,  width,  -Inf,  Inf ],  inflate=  tolerance);
-el1femm =  FEMMBase(GeoD(subset(boundaryfes, Toplist),  GaussRule(1, 2)))
+el1femm =  FEMMBase(IntegData(subset(boundaryfes, Toplist),  GaussRule(1, 2)))
 fi = ForceIntensity([0.0, +magn]);
 F2 = distribloads(el1femm,  geom,  u,  fi,  2);
 
@@ -39,7 +39,7 @@ F2 = distribloads(el1femm,  geom,  u,  fi,  2);
 MR = DeforModelRed2DStress
 material = MatDeforElastIso(MR,  0.0, E, nu, 0.0)
 
-femm = FEMMDeforLinear(MR, GeoD(fes,  TriRule(1)),  material)
+femm = FEMMDeforLinear(MR, IntegData(fes,  TriRule(1)),  material)
 
 K = stiffness(femm,  geom,  u)
 K = cholfact(K)

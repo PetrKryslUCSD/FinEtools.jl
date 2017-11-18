@@ -51,12 +51,12 @@ numberdofs!(P)
 pinc = deepcopy(P);
 
 material = MatAcoustFluid(bulk,rho)
-femm  =  FEMMAcoust(GeoD(fes, GaussRule(3, 2)), material)
+femm  =  FEMMAcoust(IntegData(fes, GaussRule(3, 2)), material)
 
 @time S  =  acousticstiffness(femm, geom, P);
 @time C  =  acousticmass(femm, geom, P);
 
-abcfemm  =  FEMMAcoustSurf(GeoD(outer_fes, GaussRule(2, 2)), material)
+abcfemm  =  FEMMAcoustSurf(IntegData(outer_fes, GaussRule(2, 2)), material)
 @time D  =  acousticABC(abcfemm, geom, P);
 
 pincf(loc)  =  pincampl*exp((-1.0im*(vec(k)'*vec(loc)))[1])

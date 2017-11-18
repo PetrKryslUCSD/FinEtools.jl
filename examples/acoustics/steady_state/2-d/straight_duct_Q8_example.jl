@@ -35,16 +35,16 @@ numberdofs!(P)
 
 
 material = MatAcoustFluid(bulk,rho)
-femm  =  FEMMAcoust(GeoD(fes, GaussRule(2, 3)), material)
+femm  =  FEMMAcoust(IntegData(fes, GaussRule(2, 3)), material)
 
 S  =  acousticstiffness(femm, geom, P);
 C  =  acousticmass(femm, geom, P);
 
 
-E10femm  =  FEMMAcoustSurf(GeoD(subset(bfes,L10),GaussRule(1, 3)), material)
+E10femm  =  FEMMAcoustSurf(IntegData(subset(bfes,L10),GaussRule(1, 3)), material)
 D  =  acousticABC(E10femm, geom, P);
 
-E0femm  =  FEMMBase(GeoD(subset(bfes,L0), GaussRule(1,  3)))
+E0femm  =  FEMMBase(IntegData(subset(bfes,L0), GaussRule(1,  3)))
 fi  =  ForceIntensity(-1.0im*omega*rho*vn0);
 F  =  distribloads(E0femm, geom, P, fi, 2);
 

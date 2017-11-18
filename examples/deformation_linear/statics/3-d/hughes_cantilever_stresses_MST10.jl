@@ -54,7 +54,7 @@ for n = [1 2 4 8] #
     gr = SimplexRule(3, 4)
 
     region = FDataDict("femm"=>FEMMDeforLinearMST10(MR,
-    GeoD(fes, gr), material))
+    IntegData(fes, gr), material))
 
     lx0 = selectnode(fens, box=[0.0 0.0 0.0 0.0 0.0 0.0], inflate=tolerance)
     # println("lx0 = $(lx0)")
@@ -81,9 +81,9 @@ for n = [1 2 4 8] #
     end
 
     Trac0 = FDataDict("traction_vector"=>getfrc0!,
-    "femm"=>FEMMBase(GeoD(subset(bfes, sshear0), SimplexRule(2, 3))))
+    "femm"=>FEMMBase(IntegData(subset(bfes, sshear0), SimplexRule(2, 3))))
     TracL = FDataDict("traction_vector"=>getfrcL!,
-    "femm"=>FEMMBase(GeoD(subset(bfes, sshearL), SimplexRule(2, 3))))
+    "femm"=>FEMMBase(IntegData(subset(bfes, sshearL), SimplexRule(2, 3))))
 
     modeldata = FDataDict("fens"=>fens,
     "regions"=>[region],
@@ -118,7 +118,7 @@ for n = [1 2 4 8] #
         "geom"=>geom,
         "u"=>u,
         "femm"=>region["femm"],
-        "integrationrule"=>region["femm"].geod.integration_rule,
+        "integrationrule"=>region["femm"].IntegData.integration_rule,
         "stressfields"=>stressfields,
         "tolerance"=>tolerance)
         )

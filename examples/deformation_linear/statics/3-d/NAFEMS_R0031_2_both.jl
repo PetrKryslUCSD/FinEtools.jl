@@ -76,10 +76,10 @@ gr = GaussRule(3, 3)
 
 rli = selectelem(fens, fes, label=1)
 innerregion = FDataDict("femm"=>FEMMDeforLinear(MR,
-    GeoD(subset(fes, rli), gr), innermaterial))
+    IntegData(subset(fes, rli), gr), innermaterial))
 rle = selectelem(fens, fes, label=2)
 outerregion = FDataDict("femm"=>FEMMDeforLinear(MR,
-    GeoD(subset(fes, rle), gr, CSys(3, 3, updatecs!)), outermaterial))
+    IntegData(subset(fes, rle), gr, CSys(3, 3, updatecs!)), outermaterial))
 
 lx0 = selectnode(fens, box=[0.0 0.0 -Inf Inf -Inf Inf], inflate=tolerance)
 ly0 = selectnode(fens, box=[-Inf Inf 0.0 0.0 -Inf Inf], inflate=tolerance)
@@ -96,7 +96,7 @@ function getpr!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FI
 end
 
 Trac = FDataDict("traction_vector"=>getpr!,
-    "femm"=>FEMMBase(GeoD(subset(bfes, intl), GaussRule(2, 3)))
+    "femm"=>FEMMBase(IntegData(subset(bfes, intl), GaussRule(2, 3)))
     )
 
 modeldata = FDataDict("fens"=>fens,

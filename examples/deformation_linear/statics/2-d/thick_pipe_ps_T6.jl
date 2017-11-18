@@ -141,7 +141,7 @@ numberdofs!(u)
 # The traction boundary condition is applied in the radial
 # direction.
 
-el1femm =  FEMMBase(GeoD(subset(bdryfes,bcl), GaussRule(1, 3)))
+el1femm =  FEMMBase(IntegData(subset(bdryfes,bcl), GaussRule(1, 3)))
 function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
   copy!(forceout, XYZ/norm(XYZ)*press)
   return forceout
@@ -152,7 +152,7 @@ F2 = distribloads(el1femm, geom, u, fi, 2);
 # Property and material
 material = MatDeforElastIso(MR, E, nu)
 
-femm = FEMMDeforLinear(MR, GeoD(fes, TriRule(3)), material)
+femm = FEMMDeforLinear(MR, IntegData(fes, TriRule(3)), material)
 
 K =stiffness(femm, geom, u)
 #K=cholfact(K)

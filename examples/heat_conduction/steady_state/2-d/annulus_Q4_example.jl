@@ -33,17 +33,17 @@ numberdofs!(Temp)
 
 
 material = MatHeatDiff(kappa)
-femm = FEMMHeatDiff(GeoD(fes,  GaussRule(2, 2)),  material)
+femm = FEMMHeatDiff(IntegData(fes,  GaussRule(2, 2)),  material)
 
 @time K = conductivity(femm,  geom,  Temp)
 
 l1 = selectelem(fens, edge_fes, box=[-1.1*rex -0.9*rex -0.5*rex 0.5*rex]);
-el1femm = FEMMBase(GeoD(subset(edge_fes, l1),  GaussRule(1, 2)))
+el1femm = FEMMBase(IntegData(subset(edge_fes, l1),  GaussRule(1, 2)))
 fi = ForceIntensity(FFlt[-magn]);#entering the domain
 @time F1 = (-1.0)* distribloads(el1femm,  geom,  Temp,  fi,  2);
 
 l1 = selectelem(fens, edge_fes, box=[0.9*rex 1.1*rex -0.5*rex 0.5*rex]);
-el1femm =  FEMMBase(GeoD(subset(edge_fes, l1),  GaussRule(1, 2)))
+el1femm =  FEMMBase(IntegData(subset(edge_fes, l1),  GaussRule(1, 2)))
 fi = ForceIntensity(FFlt[+magn]);#leaving the domain
 @time F2 = (-1.0)* distribloads(el1femm,  geom,  Temp,  fi,  2);
 

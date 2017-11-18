@@ -60,15 +60,15 @@ gr = GaussRule(3, 3)
 
 rl1 = selectelem(fens, fes, label=1)
 skinbot = FDataDict("femm"=>FEMMDeforLinear(MR,
-    GeoD(subset(fes, rl1), gr), skinmaterial))
+    IntegData(subset(fes, rl1), gr), skinmaterial))
 
 rl3 = selectelem(fens, fes, label=3)
 skintop = FDataDict("femm"=>FEMMDeforLinear(MR,
-    GeoD(subset(fes, rl3), gr), skinmaterial))
+    IntegData(subset(fes, rl3), gr), skinmaterial))
 
 rl2 = selectelem(fens, fes, label=2)
 core = FDataDict("femm"=>FEMMDeforLinear(MR,
-    GeoD(subset(fes, rl2), gr), corematerial))
+    IntegData(subset(fes, rl2), gr), corematerial))
 
 lx0 = selectnode(fens, box=[0.0 0.0 -Inf Inf -Inf Inf], inflate=tolerance)
 lxL2 = selectnode(fens, box=[L/2 L/2 -Inf Inf -Inf Inf], inflate=tolerance)
@@ -83,7 +83,7 @@ eyL2 = FDataDict( "displacement"=>  0.0, "component"=> 2, "node_list"=>lyL2 )
 bfes = meshboundary(fes)
 ttopl = selectelem(fens, bfes; facing=true, direction = [0.0 0.0 1.0])
 Trac = FDataDict("traction_vector"=>[0.0; 0.0; -tmag],
-    "femm"=>FEMMBase(GeoD(subset(bfes, ttopl), GaussRule(2, 3))))
+    "femm"=>FEMMBase(IntegData(subset(bfes, ttopl), GaussRule(2, 3))))
 
 modeldata = FDataDict("fens"=>fens,
  "regions"=>[skinbot, core, skintop], "essential_bcs"=>[ex0, exL2, ey0, eyL2],

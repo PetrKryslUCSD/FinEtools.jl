@@ -72,7 +72,7 @@ end
 gr = GaussRule(3, 2)
 
 region = FDataDict("femm"=>FEMMDeforLinear(MR,
-    GeoD(fes, gr, CSys(3, 3, updatecs!)), material))
+    IntegData(fes, gr, CSys(3, 3, updatecs!)), material))
 
 lx0 = selectnode(fens, box=[0.0 0.0 -Inf Inf -Inf Inf], inflate=tolerance)
 
@@ -85,7 +85,7 @@ function getshr!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::F
 end
 
 Trac = FDataDict("traction_vector"=>getshr!,
-    "femm"=>FEMMBase(GeoD(subset(bfes, sshearl), GaussRule(2, 3))))
+    "femm"=>FEMMBase(IntegData(subset(bfes, sshearl), GaussRule(2, 3))))
 
 modeldata = FDataDict("fens"=>fens,
  "regions"=>[region],
