@@ -14,7 +14,7 @@ As an example,  the following code generates a hexahedral mesh of simple rectang
 fens, fes  = H8block(h, l, 2.0 * pi, nh, nl, nc)
 ```
 
-The finite element node set and the finite element set  are returned. This is typical:  a mesh generation function  would return these data structures. More complicated meshes can be constructed from such mesh parts. There are  functions for  merging  nodes  and even multiple meshes together.
+The finite element node set and the finite element set  are returned. More complicated meshes can be constructed from such mesh parts. There are  functions for  merging  nodes  and even multiple meshes together.
 
 The code snippet below  constructs the mesh of an  L-shaped  domain  from  the meshes of three rectangles.
 ```julia
@@ -49,8 +49,8 @@ candidates = selectnode(fens, box = boundingbox([Rmed - h -Inf 0.0; Rmed + h +In
 fens, fes = mergenodes(fens, fes,  tolerance, candidates);
 ```
 
-
 The final mesh used for a simulation  consists of a single  node set and one or more finite element sets.
+The  finite elements may be  divided into separate sets  to  accommodate different material properties, different orientations of the material  coordinate systems, or different formulations  of the discrete model. The  aassignment  of the finite elements to sets  may be based on geometrical proximity, topological connections, or some other characteristic. See the  "mesh selection"  module for details.
 
 
 
