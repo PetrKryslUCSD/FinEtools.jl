@@ -88,5 +88,5 @@ The surface Jacobian in this case  is  equal to the curve Jacobian times `2*pi*r
 
 ## Geometry Data support for integration
 
-The  module `GeoDModule` supports  the processing of  the geometry necessary for the evaluation of the various integrals.
+The  module `IntegDataModule` supports  the processing of  the geometry necessary for the evaluation of the various integrals.
 More details can be found [here](geometry.md).

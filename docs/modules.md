@@ -1,15 +1,18 @@
-[Top](https://petrkryslucsd.github.io/FinEtools.jl)
+[Table of contents](https://petrkryslucsd.github.io/FinEtools.jl)
 
 # Modules
 
-- Top-level
-     `FinEtools`    
+FinEtools modules fall into several  categories. It is usually enough to do `using FinEtools`,
+but in some  cases modules need to be  brought into the scope individually.
 
-- Algorithms
-`AlgoBaseModule`,  `AlgoAcoustModule`,  `AlgoDeforLinearModule`, `AlgoHeatDiffModule`.
+- Top-level:
+     `FinEtools` is the  top-level module.   
 
-- Geometry  Data
-`CSysModule`, `GeoDModule`.
+- Algorithms: The various algorithms are implemented in modules for common methods
+`AlgoBaseModule`, for acoustics `AlgoAcoustModule`, for linear deformation `AlgoDeforLinearModule`, and for heat conduction `AlgoHeatDiffModule`.
+
+- Geometry  Data: 
+`CSysModule`, `IntegDataModule`.
 
 - Finite Element  Model Machines
    + Base
