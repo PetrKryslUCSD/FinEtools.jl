@@ -41,7 +41,7 @@ numberdofs!(Temp)
 t1 = time()
 
 m = MatHeatDiff(thermal_conductivity)
-femm = FEMMHeatDiff(GeoD(fes, GaussRule(2, 2)), m)
+femm = FEMMHeatDiff(IntegData(fes, GaussRule(2, 2)), m)
 
 println("Conductivity")
 @time K=conductivity(femm, geom, Temp)

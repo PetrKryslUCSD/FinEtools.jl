@@ -31,7 +31,7 @@ ebc1 = FDataDict("node_list"=>connectednodes(subset(edge_fes, l1)),
  "pressure"=>x -> cos(2*pi*x[2]/rin)+1im*sin(2*pi*x[2]/rin)) # entering the domain
 
 material = MatAcoustFluid(bulk, rho)
-femm = FEMMAcoust(GeoD(fes,  GaussRule(2, 2)),  material)
+femm = FEMMAcoust(IntegData(fes,  GaussRule(2, 2)),  material)
 region1 = FDataDict("femm"=>femm)
 
 # Make model data

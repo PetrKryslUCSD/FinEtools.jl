@@ -73,7 +73,7 @@ for (extrap, nodevalmeth) = zip([:default], [:invdistance])
             regions = FDataDict[]
             for layer = 1:nLayers
                 rls = selectelem(fens, fes, label =  layer)
-                push!(regions, FDataDict("femm"=>FEMMDeforLinear(MR, GeoD(subset(fes, rls), gr, CSys(3, 3, updatecs!)), skinmaterial)))
+                push!(regions, FDataDict("femm"=>FEMMDeforLinear(MR, IntegData(subset(fes, rls), gr, CSys(3, 3, updatecs!)), skinmaterial)))
             end
             
             # The essential boundary conditions are applied to enforce the plane strain constraint.
@@ -98,7 +98,7 @@ for (extrap, nodevalmeth) = zip([:default], [:invdistance])
             # Z = thickness
             tl = selectelem(fens, bfes, box = [-Inf Inf -Inf Inf T T], inflate=tolerance)
             Trac = FDataDict("traction_vector"=>pfun,
-            "femm"=>FEMMBase(GeoD(subset(bfes, tl), SimplexRule(2, 3))))
+            "femm"=>FEMMBase(IntegData(subset(bfes, tl), SimplexRule(2, 3))))
             
             modeldata = FDataDict("fens"=>fens,
             "regions"=>regions,

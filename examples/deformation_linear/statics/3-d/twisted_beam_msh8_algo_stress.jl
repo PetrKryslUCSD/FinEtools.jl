@@ -46,14 +46,14 @@ function  Twisted_beam()
   # Traction on the opposite edge
   boundaryfes  =   meshboundary(fes);
   Toplist   = selectelem(fens,boundaryfes, box =  [L L -100*W 100*W -100*W 100*W], inflate =   tolerance);
-  el1femm  = FEMMBase(GeoD(subset(boundaryfes,Toplist), GaussRule(2, 2)))
+  el1femm  = FEMMBase(IntegData(subset(boundaryfes,Toplist), GaussRule(2, 2)))
   flux1 = FDataDict("femm"=>el1femm, "traction_vector"=>loadv)
 
 
   # Make the region
   MR = DeforModelRed3D
   material = MatDeforElastIso(MR, 00.0, E, nu, 0.0)
-  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8tthe(MR, GeoD(fes, GaussRule(3,2)),
+  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8tthe(MR, IntegData(fes, GaussRule(3,2)),
             material))
 
   # Make model data

@@ -1251,7 +1251,7 @@ function test()
     try rm(File) catch end
 
     diffff = NodalField(referenceff.values - ff.values)
-    femm  = FEMMBase(GeoD(fesf, SimplexRule(3, 4)))
+    femm  = FEMMBase(IntegData(fesf, SimplexRule(3, 4)))
     geom = NodalField(fensf.xyz)
     error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
     ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
@@ -1327,7 +1327,7 @@ function test()
     try rm(File) catch end
 
     diffff = ElementalField(referenceff.values - ff.values)
-    femm  = FEMMBase(GeoD(fesf, SimplexRule(3, 4)))
+    femm  = FEMMBase(IntegData(fesf, SimplexRule(3, 4)))
     geom = NodalField(fensf.xyz)
     error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
     ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
@@ -1404,7 +1404,7 @@ Meshing = T4blockx
     try rm(File) catch end
 
     diffff = ElementalField(referenceff.values - ff.values)
-    femm  = FEMMBase(GeoD(fesf, SimplexRule(3, 4)))
+    femm  = FEMMBase(IntegData(fesf, SimplexRule(3, 4)))
     geom = NodalField(fensf.xyz)
     error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
     ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
@@ -1482,7 +1482,7 @@ Meshing = H20blockx
     try rm(File) catch end
 
     diffff = ElementalField(referenceff.values - ff.values)
-    femm  = FEMMBase(GeoD(fesf, GaussRule(3, 3)))
+    femm  = FEMMBase(IntegData(fesf, GaussRule(3, 3)))
     geom = NodalField(fensf.xyz)
     error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
     ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
@@ -1559,7 +1559,7 @@ Meshing = H8blockx
     try rm(File) catch end
 
     diffff = ElementalField(referenceff.values - ff.values)
-    femm  = FEMMBase(GeoD(fesf, GaussRule(3, 3)))
+    femm  = FEMMBase(IntegData(fesf, GaussRule(3, 3)))
     geom = NodalField(fensf.xyz)
     error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
     ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
@@ -1636,7 +1636,7 @@ Meshing = H27blockx
     # try rm(File) catch end
 
     diffff = ElementalField(referenceff.values - ff.values)
-    femm  = FEMMBase(GeoD(fesf, GaussRule(3, 3)))
+    femm  = FEMMBase(IntegData(fesf, GaussRule(3, 3)))
     geom = NodalField(fensf.xyz)
     error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
     ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
@@ -1713,7 +1713,7 @@ Meshing = Q4blockx
     # try rm(File) catch end
 
     diffff = ElementalField(referenceff.values - ff.values)
-    femm  = FEMMBase(GeoD(fesf, GaussRule(2, 3)))
+    femm  = FEMMBase(IntegData(fesf, GaussRule(2, 3)))
     geom = NodalField(fensf.xyz)
     error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
     ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
@@ -1790,7 +1790,7 @@ Meshing = Q8blockx
     # try rm(File) catch end
 
     diffff = ElementalField(referenceff.values - ff.values)
-    femm  = FEMMBase(GeoD(fesf, GaussRule(2, 3)))
+    femm  = FEMMBase(IntegData(fesf, GaussRule(2, 3)))
     geom = NodalField(fensf.xyz)
     error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
     ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
@@ -1867,7 +1867,7 @@ Meshing = T3blockx
     try rm(File) catch end
 
     diffff = ElementalField(referenceff.values - ff.values)
-    femm  = FEMMBase(GeoD(fesf, SimplexRule(2, 3)))
+    femm  = FEMMBase(IntegData(fesf, SimplexRule(2, 3)))
     geom = NodalField(fensf.xyz)
     error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
     ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
@@ -1944,7 +1944,7 @@ Meshing = T6blockx
     # try rm(File) catch end
 
     diffff = ElementalField(referenceff.values - ff.values)
-    femm  = FEMMBase(GeoD(fesf, SimplexRule(2, 3)))
+    femm  = FEMMBase(IntegData(fesf, SimplexRule(2, 3)))
     geom = NodalField(fensf.xyz)
     error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
     ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
@@ -2018,7 +2018,7 @@ Meshing = L2blockx
     # try rm(File) catch end
 
     diffff = ElementalField(referenceff.values - ff.values)
-    femm  = FEMMBase(GeoD(fesf, GaussRule(1, 3)))
+    femm  = FEMMBase(IntegData(fesf, GaussRule(1, 3)))
     geom = NodalField(fensf.xyz)
     error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
     ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
@@ -2093,7 +2093,7 @@ Meshing = L3blockx
     # try rm(File) catch end
 
     diffff = ElementalField(referenceff.values - ff.values)
-    femm  = FEMMBase(GeoD(fesf, GaussRule(1, 3)))
+    femm  = FEMMBase(IntegData(fesf, GaussRule(1, 3)))
     geom = NodalField(fensf.xyz)
     error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
     ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
@@ -2907,7 +2907,7 @@ fes.conn = deepcopy(t)
 setlabel!(fes, tmid)
 geom  =  NodalField(fens.xyz)
 
-femm  =  FEMMBase(GeoD(fes, SimplexRule(3, 1)))
+femm  =  FEMMBase(IntegData(fes, SimplexRule(3, 1)))
 V = integratefunction(femm, geom, (x) ->  1.0)
 # println("V = $(V) compared to $(L * W * a)")
 @test abs(V - L * W * a)/V < 1.0e-3

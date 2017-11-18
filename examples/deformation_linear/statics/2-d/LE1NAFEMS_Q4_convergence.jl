@@ -43,7 +43,7 @@ for extrapolation in [:extrapmean]
         numberdofs!(u)
 
 
-        el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), GaussRule(1, 2), Thickness))
+        el1femm =  FEMMBase(IntegData(subset(bdryfes,icl), GaussRule(1, 2), Thickness))
         function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
             pt= [2.75/3.25*XYZ[1], 3.25/2.75*XYZ[2]]
             forceout .=    vec(p*pt/norm(pt));
@@ -57,7 +57,7 @@ for extrapolation in [:extrapmean]
 
         material = MatDeforElastIso(MR, E, nu)
 
-        femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), Thickness), material)
+        femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), Thickness), material)
 
         # The geometry field now needs to be associated with the FEMM
         femm = associategeometry!(femm, geom)

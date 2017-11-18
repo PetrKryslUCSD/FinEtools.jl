@@ -66,7 +66,7 @@ setebc!(u,l1,true, 2, 0.0) # symmetry plane Y = 0
 applyebc!(u)
 numberdofs!(u)
 
-el1femm =  FEMMBase(GeoD(subset(bdryfes,topbfl), GaussRule(2, 2)))
+el1femm =  FEMMBase(IntegData(subset(bdryfes,topbfl), GaussRule(2, 2)))
 function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
     forceout .=  [0.0, 0.0, -qmagn]
     return forceout
@@ -80,7 +80,7 @@ MR = DeforModelRed3D
 
 material = MatDeforElastIso(MR, E, nu)
 
-femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material)
+femm = FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3, 2)), material)
 
 # The geometry field now needs to be associated with the FEMM
 femm = associategeometry!(femm, geom)

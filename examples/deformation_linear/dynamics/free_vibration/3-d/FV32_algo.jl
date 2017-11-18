@@ -37,8 +37,8 @@ end
 # Make the region
 MR = DeforModelRed3D
 material = MatDeforElastIso(MR, rho, E, nu, 0.0)
-region1 = FDataDict("femm"=>FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,2)),
-  material), "femm_mass"=>FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,3)),
+region1 = FDataDict("femm"=>FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,2)),
+  material), "femm_mass"=>FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,3)),
   material))
 
 nl1 = selectnode(fens; plane=[1.0 0.0 0.0 0.0], thickness=H/1.0e4)

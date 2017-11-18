@@ -32,16 +32,16 @@ essential1 = FDataDict("node_list"=>l1, "temperature"=>0.0)
 # The flux boundary condition is applied at two pieces of surface
 # Side 1
 l1 = selectelem(fens, edge_fes, box=[-1.1*rex -0.9*rex -0.5*rex 0.5*rex]);
-el1femm = FEMMBase(GeoD(subset(edge_fes, l1),  GaussRule(1, 2)))
+el1femm = FEMMBase(IntegData(subset(edge_fes, l1),  GaussRule(1, 2)))
 fi = ForceIntensity(FFlt[-magn]);#entering the domain
 flux1 = FDataDict("femm"=>el1femm, "normal_flux"=>-magn) # entering the domain
 # Side 2
 l2=selectelem(fens,edge_fes,box=[0.9*rex 1.1*rex -0.5*rex 0.5*rex]);
-el2femm = FEMMBase(GeoD(subset(edge_fes, l2),  GaussRule(1, 2)))
+el2femm = FEMMBase(IntegData(subset(edge_fes, l2),  GaussRule(1, 2)))
 flux2 = FDataDict("femm"=>el2femm, "normal_flux"=>+magn) # leaving the domain
 
 material = MatHeatDiff(kappa)
-femm = FEMMHeatDiff(GeoD(fes,  GaussRule(2, 2)),  material)
+femm = FEMMHeatDiff(IntegData(fes,  GaussRule(2, 2)),  material)
 region1 = FDataDict("femm"=>femm)
 
 # Make model data

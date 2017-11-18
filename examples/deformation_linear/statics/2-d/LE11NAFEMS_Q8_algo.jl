@@ -66,7 +66,7 @@ dtemp = FDataDict("temperature"=>x -> x[1] + x[2])
 # Property and material
 material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
 
-femm  =  FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 3), true), material)
+femm  =  FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 3), true), material)
 
 # Make region 1
 region = FDataDict("femm"=>femm)

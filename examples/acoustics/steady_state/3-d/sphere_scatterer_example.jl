@@ -69,12 +69,12 @@ numberdofs!(P)
 pinc = deepcopy(P);
 
 material = MatAcoustFluid(bulk,rho)
-femm  =  FEMMAcoust(GeoD(fes, GaussRule(3, 3)), material)
+femm  =  FEMMAcoust(IntegData(fes, GaussRule(3, 3)), material)
 
 @time S  =  acousticstiffness(femm, geom, P);
 @time C  =  acousticmass(femm, geom, P);
 
-abcfemm  =  FEMMAcoustSurf(GeoD(outer_fes, GaussRule(2, 3)), material)
+abcfemm  =  FEMMAcoustSurf(IntegData(outer_fes, GaussRule(2, 3)), material)
 @time D  =  acousticABC(abcfemm, geom, P);
 
 # Incident pressure loading

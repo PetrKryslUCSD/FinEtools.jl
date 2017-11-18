@@ -73,10 +73,10 @@ function test()
 
     material = MatDeforElastIso(MR, rho, E, nu, 0.0)
 
-    femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3,2)), material)
+    femm = FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3,2)), material)
     femm = associategeometry!(femm, geom)
     K = stiffness(femm, geom, u)
-    femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,3)), material)
+    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,3)), material)
     M = mass(femm, geom, u)
     C = Rayleigh_mass*M + Rayleigh_stiffness*K
 
@@ -91,7 +91,7 @@ function test()
 
     bdryfes = meshboundary(fes)
     topbfl = selectelem(fens, bdryfes, facing=true, direction=[0.0 0.0 1.0])
-    el1femm =  FEMMBase(GeoD(subset(bdryfes,topbfl), GaussRule(2,2)))
+    el1femm =  FEMMBase(IntegData(subset(bdryfes,topbfl), GaussRule(2,2)))
     function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
         forceout .=  [0.0, 0.0, -qmagn]
         return forceout

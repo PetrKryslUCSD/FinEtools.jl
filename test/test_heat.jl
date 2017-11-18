@@ -45,7 +45,7 @@ function test()
 
   material = MatHeatDiff(thermal_conductivity)
 
-  femm = FEMMHeatDiff(GeoD(fes, TriRule(1), 100.), material)
+  femm = FEMMHeatDiff(IntegData(fes, TriRule(1), 100.), material)
 
 
   # println("Conductivity")
@@ -119,16 +119,16 @@ function test()
   # The flux boundary condition is applied at two pieces of surface
   # Side 1
   l1 = selectelem(fens, edge_fes, box=[-1.1*rex -0.9*rex -0.5*rex 0.5*rex]);
-  el1femm = FEMMBase(GeoD(subset(edge_fes, l1),  GaussRule(1, 2)))
+  el1femm = FEMMBase(IntegData(subset(edge_fes, l1),  GaussRule(1, 2)))
   fi = ForceIntensity(FFlt[-magn]);#entering the domain
   flux1 = FDataDict("femm"=>el1femm, "normal_flux"=>-magn) # entering the domain
   # Side 2
   l2=selectelem(fens,edge_fes,box=[0.9*rex 1.1*rex -0.5*rex 0.5*rex]);
-  el2femm = FEMMBase(GeoD(subset(edge_fes, l2),  GaussRule(1, 2)))
+  el2femm = FEMMBase(IntegData(subset(edge_fes, l2),  GaussRule(1, 2)))
   flux2 = FDataDict("femm"=>el2femm, "normal_flux"=>+magn) # leaving the domain
 
   material = MatHeatDiff(kappa)
-  femm = FEMMHeatDiff(GeoD(fes,  GaussRule(2, 2)),  material)
+  femm = FEMMHeatDiff(IntegData(fes,  GaussRule(2, 2)),  material)
   region1 = FDataDict("femm"=>femm)
 
   # Make model data
@@ -206,7 +206,7 @@ function test()
   t1 = time()
 
   m = MatHeatDiff(thermal_conductivity)
-  femm = FEMMHeatDiff(GeoD(fes, GaussRule(2, 2)), m)
+  femm = FEMMHeatDiff(IntegData(fes, GaussRule(2, 2)), m)
 
   # println("Conductivity")
   K=conductivity(femm, geom, Temp)
@@ -280,7 +280,7 @@ function test()
     essential1 = FDataDict("node_list"=>vcat(l1, l2, l3, l4),
         "temperature"=>truetempf);
     material = MatHeatDiff(thermal_conductivity)
-    femm = FEMMHeatDiff(GeoD(fes, TriRule(1)), material)
+    femm = FEMMHeatDiff(IntegData(fes, TriRule(1)), material)
     region1 = FDataDict("femm"=>femm, "Q"=>magn)
     # Make model data
     modeldata= FDataDict("fens"=> fens,
@@ -301,7 +301,7 @@ function test()
         return ((exact .- val)^2)[1]
     end
 
-    femm.geod.integration_rule = TriRule(6)
+    femm.IntegData.integration_rule = TriRule(6)
     E = integratefieldfunction(femm, geom, Temp, errfh, 0.0, m=3)
     # println("Error=$E")
 
@@ -361,7 +361,7 @@ function test()
 
   material = MatHeatDiff(thermal_conductivity)
 
-  femm = FEMMHeatDiff(GeoD(fes, TriRule(1), CSys(Rm)), material)
+  femm = FEMMHeatDiff(IntegData(fes, TriRule(1)), CSys(Rm), material)
 
 
   # println("Conductivity")
@@ -476,12 +476,12 @@ function test()
     # accurate.
     l2 = selectelem(fens, bfes; box=[Width Width  0.0 Height], inflate =tolerance)
     l3 = selectelem(fens, bfes; box=[0.0 Width Height Height], inflate =tolerance)
-    cfemm = FEMMHeatDiffSurf(GeoD(subset(bfes,vcat(l2,l3)),
+    cfemm = FEMMHeatDiffSurf(IntegData(subset(bfes,vcat(l2,l3)),
       GaussRule(1, 3), Thickness), h)
     convection1 = FDataDict("femm"=>cfemm, "ambient_temperature"=>0.);
 
     # The interior
-    femm = FEMMHeatDiff(GeoD(fes, TriRule(3), Thickness), m)
+    femm = FEMMHeatDiff(IntegData(fes, TriRule(3), Thickness), m)
     region1 = FDataDict("femm"=>femm)
 
     # Make the model data
@@ -515,11 +515,11 @@ function test()
   geom = modeldata["geom"]
   Temp = modeldata["temp"]
   regions = modeldata["regions"]
-  vtkexportmesh("T4NAFEMS--T6.vtk", regions[1]["femm"].geod.fes.conn,
+  vtkexportmesh("T4NAFEMS--T6.vtk", regions[1]["femm"].IntegData.fes.conn,
   [geom.values Temp.values/100], FinEtools.MeshExportModule.T6;
   scalars=[("Temperature", Temp.values)])
   try  rm("T4NAFEMS--T6.vtk"); catch end
-  vtkexportmesh("T4NAFEMS--T6--base.vtk", regions[1]["femm"].geod.fes.conn,
+  vtkexportmesh("T4NAFEMS--T6--base.vtk", regions[1]["femm"].IntegData.fes.conn,
   [geom.values 0.0*Temp.values/100], FinEtools.MeshExportModule.T6)
   try rm("T4NAFEMS--T6--base.vtk"); catch end
   # ##
@@ -654,12 +654,12 @@ function test()
     # accurate.
     l2 = selectelem(fens, bfes; box=[Width Width  0.0 Height], inflate =tolerance)
     l3 = selectelem(fens, bfes; box=[0.0 Width Height Height], inflate =tolerance)
-    cfemm = FEMMHeatDiffSurf(GeoD(subset(bfes,vcat(l2,l3)),
+    cfemm = FEMMHeatDiffSurf(IntegData(subset(bfes,vcat(l2,l3)),
       GaussRule(1, 3), Thickness), h)
     convection1 = FDataDict("femm"=>cfemm, "ambient_temperature"=>0.);
 
     # The interior
-    femm = FEMMHeatDiff(GeoD(fes, TriRule(3), Thickness), m)
+    femm = FEMMHeatDiff(IntegData(fes, TriRule(3), Thickness), m)
     region1 = FDataDict("femm"=>femm)
 
     # Make the model data
@@ -693,11 +693,11 @@ function test()
   geom = modeldata["geom"]
   Temp = modeldata["temp"]
   regions = modeldata["regions"]
-  vtkexportmesh("T4NAFEMS--T3.vtk", regions[1]["femm"].geod.fes.conn,
+  vtkexportmesh("T4NAFEMS--T3.vtk", regions[1]["femm"].IntegData.fes.conn,
   [geom.values Temp.values/100], FinEtools.MeshExportModule.T3;
   scalars=[("Temperature", Temp.values)])
   rm("T4NAFEMS--T3.vtk")
-  vtkexportmesh("T4NAFEMS--T3--base.vtk", regions[1]["femm"].geod.fes.conn,
+  vtkexportmesh("T4NAFEMS--T3--base.vtk", regions[1]["femm"].IntegData.fes.conn,
   [geom.values 0.0*Temp.values/100], FinEtools.MeshExportModule.T3)
   rm("T4NAFEMS--T3--base.vtk")
   # ##
@@ -799,7 +799,7 @@ function test()
 
   material = MatHeatDiff(thermal_conductivity)
 
-  femm = FEMMHeatDiff(GeoD(fes, TetRule(1), 100.), material)
+  femm = FEMMHeatDiff(IntegData(fes, TetRule(1), 100.), material)
 
 
   # println("Conductivity")
@@ -882,7 +882,7 @@ function test()
 
   material = MatHeatDiff(thermal_conductivity)
 
-  femm = FEMMHeatDiff(GeoD(fes, TetRule(4), 100.), material)
+  femm = FEMMHeatDiff(IntegData(fes, TetRule(4), 100.), material)
 
 
   # println("Conductivity")
@@ -965,7 +965,7 @@ function test()
 
   material = MatHeatDiff(thermal_conductivity)
 
-  femm = FEMMHeatDiff(GeoD(fes, GaussRule(3,2), 100.), material)
+  femm = FEMMHeatDiff(IntegData(fes, GaussRule(3,2), 100.), material)
 
 
   # println("Conductivity")
@@ -1071,8 +1071,8 @@ function test()
   coldmater = MatHeatDiff(kappa)
    cl =  selectelem(fens, fes, box=[x0,x2,y0,y2,z0,z1],inflate = t/100);
 
-  hotfemm  =  FEMMHeatDiff(GeoD(subset(fes,cl), GaussRule(3, 2), 0.), hotmater)
-  coldfemm  = FEMMHeatDiff(GeoD(subset(fes,setdiff(collect(1:count(fes)), cl)),
+  hotfemm  =  FEMMHeatDiff(IntegData(subset(fes,cl), GaussRule(3, 2), 0.), hotmater)
+  coldfemm  = FEMMHeatDiff(IntegData(subset(fes,setdiff(collect(1:count(fes)), cl)),
     GaussRule(3, 2), 0.), coldmater)
     geom = NodalField(fens.xyz)
     Temp = NodalField(zeros(size(fens.xyz,1),1))
@@ -1189,8 +1189,8 @@ function test()
   coldmater = MatHeatDiff(kappa)
    cl =  selectelem(fens, fes, box=[x0,x2,y0,y2,z0,z1],inflate = t/100);
 
-  hotfemm  =  FEMMHeatDiff(GeoD(subset(fes,cl), GaussRule(3, 3), 0.), hotmater)
-  coldfemm  = FEMMHeatDiff(GeoD(subset(fes,setdiff(collect(1:count(fes)), cl)),
+  hotfemm  =  FEMMHeatDiff(IntegData(subset(fes,cl), GaussRule(3, 3), 0.), hotmater)
+  coldfemm  = FEMMHeatDiff(IntegData(subset(fes,setdiff(collect(1:count(fes)), cl)),
     GaussRule(3, 3), 0.), coldmater)
     geom = NodalField(fens.xyz)
     Temp = NodalField(zeros(size(fens.xyz,1),1))
@@ -1279,7 +1279,7 @@ function test()
 
   material = MatHeatDiff(thermal_conductivity)
 
-  femm = FEMMHeatDiff(GeoD(fes, TriRule(1), CSys(2, 2)), material)
+  femm = FEMMHeatDiff(IntegData(fes, TriRule(1)), CSys(2, 2), material)
 
 
   # println("Conductivity")
@@ -1357,17 +1357,17 @@ function test()
 
 
   material = MatHeatDiff(kappa)
-  femm = FEMMHeatDiff(GeoD(fes,  GaussRule(2, 3)),  material)
+  femm = FEMMHeatDiff(IntegData(fes,  GaussRule(2, 3)),  material)
 
   K = conductivity(femm,  geom,  Temp)
 
   l1 = selectelem(fens, edge_fes, box=[-1.1*rex -0.9*rex -0.5*rex 0.5*rex]);
-  el1femm = FEMMBase(GeoD(subset(edge_fes, l1),  GaussRule(1, 2)))
+  el1femm = FEMMBase(IntegData(subset(edge_fes, l1),  GaussRule(1, 2)))
   fi = ForceIntensity(FFlt[-magn]);#entering the domain
   F1 = (-1.0)* distribloads(el1femm,  geom,  Temp,  fi,  2);
 
   l1 = selectelem(fens, edge_fes, box=[0.9*rex 1.1*rex -0.5*rex 0.5*rex]);
-  el1femm =  FEMMBase(GeoD(subset(edge_fes, l1),  GaussRule(1, 2)))
+  el1femm =  FEMMBase(IntegData(subset(edge_fes, l1),  GaussRule(1, 2)))
   fi = ForceIntensity(FFlt[+magn]);#leaving the domain
   F2 = (-1.0)* distribloads(el1femm,  geom,  Temp,  fi,  2);
 
@@ -1420,8 +1420,8 @@ function test()
 
   bfes = FESetL2([4 5]);
 
-  cfemm = FEMMHeatDiffSurf(GeoD(bfes, GaussRule(1, 2), Dz), h)
-  femm = FEMMHeatDiff(GeoD(fes, TriRule(1), Dz), m)
+  cfemm = FEMMHeatDiffSurf(IntegData(bfes, GaussRule(1, 2), Dz), h)
+  femm = FEMMHeatDiff(IntegData(fes, TriRule(1), Dz), m)
   fi = ForceIntensity(FFlt[Q]);
   F1 = distribloads(femm, geom, Temp, fi, 3);
   K = conductivity(femm, geom, Temp)
@@ -1492,7 +1492,7 @@ function test()
 
   material = MatHeatDiff(thermal_conductivity)
 
-  femm = FEMMHeatDiff(GeoD(fes, TriRule(13), 100.), material)
+  femm = FEMMHeatDiff(IntegData(fes, TriRule(13), 100.), material)
 
 
   # println("Conductivity")
@@ -1579,7 +1579,7 @@ function test()
   t1 = time()
 
   m = MatHeatDiff(thermal_conductivity)
-  femm = FEMMHeatDiff(GeoD(fes, GaussRule(2, 4)), m)
+  femm = FEMMHeatDiff(IntegData(fes, GaussRule(2, 4)), m)
 
   # println("Conductivity")
   K=conductivity(femm, geom, Temp)
@@ -1675,7 +1675,7 @@ function test()
 
   material = MatHeatDiff(thermal_conductivity)
 
-  femm = FEMMHeatDiff(GeoD(fes, TetRule(5), 100.), material)
+  femm = FEMMHeatDiff(IntegData(fes, TetRule(5), 100.), material)
 
 
   # println("Conductivity")
@@ -1756,7 +1756,7 @@ function test()
   t1 = time()
 
   m = MatHeatDiff(thermal_conductivity)
-  femm = FEMMHeatDiff(GeoD(fes, TriRule(13)), m)
+  femm = FEMMHeatDiff(IntegData(fes, TriRule(13)), m)
 
   # println("Conductivity")
   K=conductivity(femm, geom, Temp)
@@ -1850,7 +1850,7 @@ function test()
         t1 = time()
 
         m = MatHeatDiff(thermal_conductivity)
-        femm = FEMMHeatDiff(GeoD(fes, TriRule(13)), m)
+        femm = FEMMHeatDiff(IntegData(fes, TriRule(13)), m)
 
         # println("Conductivity")
         K=conductivity(femm, geom, Temp)
@@ -1914,7 +1914,7 @@ function test()
 
     essential1 = FDataDict("node_list"=>vcat(l1, l2), "temperature"=> 0.0);
     material = MatHeatDiff(kappa)
-    femm = FEMMHeatDiff(GeoD(fes, GaussRule(1, 2), crosssection), material)
+    femm = FEMMHeatDiff(IntegData(fes, GaussRule(1, 2), crosssection), material)
 
     geom = NodalField(fens.xyz)
     Temp = NodalField(zeros(size(fens.xyz,1),1))
@@ -1975,15 +1975,15 @@ function test()
     # The convection boundary condition is applied at two pieces of surface
     # Side 1
     l1 = selectelem(fens, edge_fes, box=[-1.1*rex -0.9*rex -0.5*rex 0.5*rex]);
-    el1femm = FEMMHeatDiffSurf(GeoD(subset(edge_fes, l1),  GaussRule(1, 2)), hconv1)
+    el1femm = FEMMHeatDiffSurf(IntegData(subset(edge_fes, l1),  GaussRule(1, 2)), hconv1)
     cbc1 = FDataDict("femm"=>el1femm, "ambient_temperature"=>te1)
     # Side 2
     l2=selectelem(fens,edge_fes,box=[0.9*rex 1.1*rex -0.5*rex 0.5*rex]);
-    el2femm = FEMMHeatDiffSurf(GeoD(subset(edge_fes, l2),  GaussRule(1, 2)), hconv2)
+    el2femm = FEMMHeatDiffSurf(IntegData(subset(edge_fes, l2),  GaussRule(1, 2)), hconv2)
     cbc2 = FDataDict("femm"=>el2femm, "ambient_temperature"=>te2)
 
     material = MatHeatDiff(kappa)
-    femm = FEMMHeatDiff(GeoD(fes,  GaussRule(2, 2)),  material)
+    femm = FEMMHeatDiff(IntegData(fes,  GaussRule(2, 2)),  material)
     region1 = FDataDict("femm"=>femm)
 
     # Make model data

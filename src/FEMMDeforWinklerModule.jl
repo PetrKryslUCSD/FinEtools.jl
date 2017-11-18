@@ -13,7 +13,7 @@ export surfacenormalspringstiffness
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
 using FinEtools.CSysModule
-using FinEtools.GeoDModule
+using FinEtools.IntegDataModule
 using FinEtools.FEMMBaseModule
 using FinEtools.FieldModule
 using FinEtools.NodalFieldModule
@@ -31,7 +31,7 @@ Type for normal spring support  (Winkler).
 """
 # Class for heat diffusion finite element modeling machine.
 mutable struct FEMMDeforWinkler{S<:FESet, F<:Function} <: FEMMAbstractBase
-  geod::GeoD{S, F} # geometry data finite element modeling machine
+  IntegData::IntegData{S, F} # geometry data finite element modeling machine
 end
 
 """
@@ -48,16 +48,16 @@ normal displacement to the surface.
 function surfacenormalspringstiffness(self::FEMMDeforWinkler, assembler::A,
   geom::NodalField{FFlt}, u::NodalField{T},
   springconstant::FFlt) where {A<:SysmatAssemblerBase, T<:Number}
-  geod = self.geod
+  IntegData = self.IntegData
   # Constants
-  nfes = count(geod.fes); # number of finite elements in the set
+  nfes = count(IntegData.fes); # number of finite elements in the set
   ndn = ndofs(u); # number of degrees of freedom per node
-  nne = nodesperelem(geod.fes); # number of nodes for element
+  nne = nodesperelem(IntegData.fes); # number of nodes for element
   sdim = ndofs(geom);            # number of space dimensions
-  mdim = manifdim(geod.fes); # manifold dimension of the element
+  mdim = manifdim(IntegData.fes); # manifold dimension of the element
   Kedim = ndn*nne;             # dimension of the element matrix
   # Precompute basis f. values + basis f. gradients wrt parametric coor
-  npts, Ns, gradNparams, w, pc = integrationdata(geod);
+  npts, Ns, gradNparams, w, pc = integrationdata(IntegData);
   # Prepare assembler and temporaries
   Ke = zeros(FFlt,Kedim,Kedim);                # element matrix -- used as a buffer
   conn = zeros(FInt,nne,1); # element nodes -- used as a buffer
@@ -67,13 +67,13 @@ function surfacenormalspringstiffness(self::FEMMDeforWinkler, assembler::A,
   J = eye(FFlt,sdim,mdim); # Jacobian matrix -- used as a buffer
   startassembly!(assembler, Kedim, Kedim, nfes, u.nfreedofs, u.nfreedofs);
   for i = 1:nfes # Loop over elements
-    getconn!(geod.fes, conn, i);
+    getconn!(IntegData.fes, conn, i);
     gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
     fill!(Ke, 0.0); # Initialize element matrix
     for j = 1:npts # Loop over quadrature points
       At_mul_B!(loc, Ns[j], x);# Quadrature points location
       At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-      Jac = Jacobiansurface(geod, J, loc, conn, Ns[j]);
+      Jac = Jacobiansurface(IntegData, J, loc, conn, Ns[j]);
       n = surfacenormal(loc, J);# find the normal to the surface
       Nn = reshape(n*Ns[j]', Kedim, 1);# The normal n is a column vector
       add_nnt_ut_only!(Ke, Nn, springconstant*Jac*w[j])

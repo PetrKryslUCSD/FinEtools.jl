@@ -80,7 +80,7 @@ function test()
 
             bdryfes = meshboundary(fes);
             ixl = selectelem(fens, bdryfes, plane=[1.0, 0.0, 0.0, Re], thickness=tolerance);
-            elxfemm =  FEMMBase(GeoD(subset(bdryfes,ixl), GaussRule(2, 2)))
+            elxfemm =  FEMMBase(IntegData(subset(bdryfes,ixl), GaussRule(2, 2)))
             function pfunx(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
                 forceout[1] = sigmaxx(XYZ)
                 forceout[2] = sigmaxy(XYZ)
@@ -90,7 +90,7 @@ function test()
             fi = ForceIntensity(FFlt, 3, pfunx);
             Fx = distribloads(elxfemm, geom, u, fi, 2);
             iyl = selectelem(fens, bdryfes, plane=[0.0, 1.0, 0.0, Re], thickness=tolerance);
-            elyfemm =  FEMMBase(GeoD(subset(bdryfes,iyl), GaussRule(2, 2)))
+            elyfemm =  FEMMBase(IntegData(subset(bdryfes,iyl), GaussRule(2, 2)))
             function pfuny(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
                 forceout[1] = -sigmaxy(XYZ)
                 forceout[2] = sigmayy(XYZ)
@@ -104,7 +104,7 @@ function test()
 
             material = MatDeforElastIso(MR, E, nu)
 
-            femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material)
+            femm = FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3, 2)), material)
 
             # The geometry field now needs to be associated with the FEMM
             femm = associategeometry!(femm, geom)

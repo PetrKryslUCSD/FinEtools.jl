@@ -117,19 +117,19 @@ gr = GaussRule(3, 2)
 # and one for the core.
 rls = selectelem(fens, fes, label = 1)
 botskinregion = FDataDict("femm"=>FEMMDeforLinearMSH8(MR,
-    GeoD(subset(fes, rls), gr, CSys(3, 3, updatecs!)), skinmaterial))
+    IntegData(subset(fes, rls), gr, CSys(3, 3, updatecs!)), skinmaterial))
 rls = selectelem(fens, fes, label = 3)
 topskinregion = FDataDict("femm"=>FEMMDeforLinearMSH8(MR,
-    GeoD(subset(fes, rls), gr, CSys(3, 3, updatecs!)), skinmaterial))
+    IntegData(subset(fes, rls), gr, CSys(3, 3, updatecs!)), skinmaterial))
 rlc = selectelem(fens, fes, label = 2)
 coreregion = FDataDict("femm"=>FEMMDeforLinearMSH8(MR,
-    GeoD(subset(fes, rlc), gr, CSys(3, 3, updatecs!)), corematerial))
+    IntegData(subset(fes, rlc), gr, CSys(3, 3, updatecs!)), corematerial))
 
 # File =  "Meyer_Piening_sandwich-r1.vtk"
-# vtkexportmesh(File, skinregion["femm"].geod.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
+# vtkexportmesh(File, skinregion["femm"].IntegData.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
 # # @async run(`"paraview.exe" $File`)
 # File =  "Meyer_Piening_sandwich-r2.vtk"
-# vtkexportmesh(File, coreregion["femm"].geod.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
+# vtkexportmesh(File, coreregion["femm"].IntegData.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
 # @async run(`"paraview.exe" $File`)
 
 # The essential boundary conditions are applied on the symmetry planes.
@@ -150,7 +150,7 @@ bfes = meshboundary(fes)
 # Z = thickness
 tl = selectelem(fens, bfes, box = [0.0 Lx/2 0 Ly/2 TH TH], inflate=tolerance)
 Trac = FDataDict("traction_vector"=>vec([0.0; 0.0; -q0]),
-    "femm"=>FEMMBase(GeoD(subset(bfes, tl), GaussRule(2, 2))))
+    "femm"=>FEMMBase(IntegData(subset(bfes, tl), GaussRule(2, 2))))
 
 modeldata = FDataDict("fens"=>fens,
  "regions"=>[botskinregion, coreregion, topskinregion],
@@ -186,9 +186,9 @@ ninterbot = ninterbot[xclobot]
 botx = geom.values[ninterbot, 1]
 xclotop = xclobot = nothing
 
-conninbotskin = intersect(connectednodes(botskinregion["femm"].geod.fes), ncenterline)
-connincore = intersect(connectednodes(coreregion["femm"].geod.fes), ncenterline)
-connintopskin = intersect(connectednodes(topskinregion["femm"].geod.fes), ncenterline)
+conninbotskin = intersect(connectednodes(botskinregion["femm"].IntegData.fes), ncenterline)
+connincore = intersect(connectednodes(coreregion["femm"].IntegData.fes), ncenterline)
+connintopskin = intersect(connectednodes(topskinregion["femm"].IntegData.fes), ncenterline)
 inbotskin = [n in conninbotskin for n in ncenterline]
 incore = [n in connincore for n in ncenterline]
 intopskin = [n in connintopskin for n in ncenterline]

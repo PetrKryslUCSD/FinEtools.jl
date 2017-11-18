@@ -29,7 +29,7 @@ P = NodalField(zeros(size(fens.xyz,1),1))
 
 numberdofs!(P)
 
-femm = FEMMAcoust(GeoD(fes, GaussRule(2, 2)),
+femm = FEMMAcoust(IntegData(fes, GaussRule(2, 2)),
                      MatAcoustFluid(bulk,rho))
 
 S = acousticstiffness(femm, geom, P);
@@ -94,7 +94,7 @@ P = NodalField(zeros(size(fens.xyz,1),1))
 
 numberdofs!(P)
 
-femm = FEMMAcoust(GeoD(fes, GaussRule(1, 2)), MatAcoustFluid(bulk, rho))
+femm = FEMMAcoust(IntegData(fes, GaussRule(1, 2)), MatAcoustFluid(bulk, rho))
 
 S  =  acousticstiffness(femm, geom, P);
 C  =  acousticmass(femm, geom, P);
@@ -164,7 +164,7 @@ P = NodalField(zeros(size(fens.xyz,1),1))
 
 numberdofs!(P)
 
-femm = FEMMAcoust(GeoD(fes, GaussRule(3, 2)), MatAcoustFluid(bulk, rho))
+femm = FEMMAcoust(IntegData(fes, GaussRule(3, 2)), MatAcoustFluid(bulk, rho))
 
 
 S = acousticstiffness(femm, geom, P);
@@ -223,7 +223,7 @@ P = NodalField(zeros(size(fens.xyz,1),1))
 
 numberdofs!(P)
 
-femm = FEMMAcoust(GeoD(fes, GaussRule(3, 3)), MatAcoustFluid(bulk, rho))
+femm = FEMMAcoust(IntegData(fes, GaussRule(3, 3)), MatAcoustFluid(bulk, rho))
 
 
 S = acousticstiffness(femm, geom, P);
@@ -289,16 +289,16 @@ function test()
 
 
     material = MatAcoustFluid(bulk,rho)
-    femm  =  FEMMAcoust(GeoD(fes, GaussRule(3, 2)), material)
+    femm  =  FEMMAcoust(IntegData(fes, GaussRule(3, 2)), material)
 
     S  =  acousticstiffness(femm, geom, P);
     C  =  acousticmass(femm, geom, P);
 
 
-    E10femm  =  FEMMAcoustSurf(GeoD(subset(bfes,L10),GaussRule(2, 2)), material)
+    E10femm  =  FEMMAcoustSurf(IntegData(subset(bfes,L10),GaussRule(2, 2)), material)
     D  =  acousticABC(E10femm, geom, P);
 
-    E0femm  =  FEMMBase(GeoD(subset(bfes,L0), GaussRule(2,  2)))
+    E0femm  =  FEMMBase(IntegData(subset(bfes,L0), GaussRule(2,  2)))
     fi  =  ForceIntensity(-1.0im*omega*rho*vn0);
     F  =  distribloads(E0femm, geom, P, fi, 2);
 
@@ -418,12 +418,12 @@ t1  =  time()
 numberdofs!(P)
 
 material = MatAcoustFluid(bulk,rho)
-femm  =  FEMMAcoust(GeoD(fes, GaussRule(3, 2)), material)
+femm  =  FEMMAcoust(IntegData(fes, GaussRule(3, 2)), material)
 
 S  =  acousticstiffness(femm, geom, P);
 C  =  acousticmass(femm, geom, P);
 
-abcfemm  =  FEMMAcoustSurf(GeoD(subset(bfes, louter), GaussRule(2, 2)), material)
+abcfemm  =  FEMMAcoustSurf(IntegData(subset(bfes, louter), GaussRule(2, 2)), material)
 D  =  acousticABC(abcfemm, geom, P);
 
 # Inner sphere pressure loading
@@ -435,7 +435,7 @@ end
 
 fi  =  ForceIntensity(FCplxFlt, 1, dipole);
 #F  =  F - distribloads(pfemm, nothing, geom, P, fi, 2);
-dipfemm  =  FEMMAcoustSurf(GeoD(subset(bfes, linner), GaussRule(2, 2)), material)
+dipfemm  =  FEMMAcoustSurf(IntegData(subset(bfes, linner), GaussRule(2, 2)), material)
 F  = distribloads(dipfemm, geom, P, fi, 2);
 
 K = lufact((1.0+0.0im)*(-omega^2*S + omega*1.0im*D + C)) # We fake a complex matrix here
@@ -500,16 +500,16 @@ numberdofs!(P)
 
 
 material = MatAcoustFluid(bulk,rho)
-femm  =  FEMMAcoust(GeoD(fes, TetRule(4)), material)
+femm  =  FEMMAcoust(IntegData(fes, TetRule(4)), material)
 
 S  =  acousticstiffness(femm, geom, P);
 C  =  acousticmass(femm, geom, P);
 
 
-E10femm  =  FEMMAcoustSurf(GeoD(subset(bfes,L10), TriRule(3)), material)
+E10femm  =  FEMMAcoustSurf(IntegData(subset(bfes,L10), TriRule(3)), material)
 D  =  acousticABC(E10femm, geom, P);
 
-E0femm  =  FEMMBase(GeoD(subset(bfes,L0), TriRule(3)))
+E0femm  =  FEMMBase(IntegData(subset(bfes,L0), TriRule(3)))
 fi  =  ForceIntensity(-1.0im*omega*rho*vn0);
 F  =  distribloads(E0femm, geom, P, fi, 2);
 
@@ -577,7 +577,7 @@ fes = cat(newfes1,fes2)
 
 # Find the inertial properties of the solid sphere
 geom  =  NodalField(fens.xyz)
-femm  =  FEMMBase(GeoD(fes, GaussRule(3, 2)))
+femm  =  FEMMBase(IntegData(fes, GaussRule(3, 2)))
 V = integratefunction(femm, geom, (x) ->  1.0)
   # println("V=$(V/phun("mm^3"))")
 Sx = integratefunction(femm, geom, (x) ->  x[1])
@@ -668,12 +668,12 @@ function test()
   numberdofs!(P)
 
   material = MatAcoustFluid(bulk,rho)
-  femm  =  FEMMAcoust(GeoD(fes, GaussRule(3, 2)), material)
+  femm  =  FEMMAcoust(IntegData(fes, GaussRule(3, 2)), material)
 
   S  =  acousticstiffness(femm, geom, P);
   C  =  acousticmass(femm, geom, P);
 
-  abcfemm  =  FEMMAcoustSurf(GeoD(subset(bfes, louter), GaussRule(2, 2)), material)
+  abcfemm  =  FEMMAcoustSurf(IntegData(subset(bfes, louter), GaussRule(2, 2)), material)
   D  =  acousticABC(abcfemm, geom, P);
 
   # Inner sphere pressure loading
@@ -683,7 +683,7 @@ function test()
       dpdn[1] = -rho*a_amplitude*sin(omega*t)*n[1]
   end
 
-  dipfemm  =  FEMMAcoustSurf(GeoD(subset(bfes, linner), GaussRule(2, 2)), material)
+  dipfemm  =  FEMMAcoustSurf(IntegData(subset(bfes, linner), GaussRule(2, 2)), material)
 
   # Solve
   P0 = deepcopy(P)
@@ -790,7 +790,7 @@ function test()
 
   # Find the inertial properties of the solid sphere
   geom  =  NodalField(fens.xyz)
-  femm  =  FEMMBase(GeoD(subset(fes, Solidl), GaussRule(3, 2)))
+  femm  =  FEMMBase(IntegData(subset(fes, Solidl), GaussRule(3, 2)))
   V = integratefunction(femm, geom, (x) ->  1.0)
     # println("V=$(V/phun("mm^3"))")
   Sx = integratefunction(femm, geom, (x) ->  x[1])
@@ -853,12 +853,12 @@ function test()
   numberdofs!(P)
 
   material = MatAcoustFluid(bulk,rho)
-  femm  =  FEMMAcoust(GeoD(fes, GaussRule(3, 2)), material)
+  femm  =  FEMMAcoust(IntegData(fes, GaussRule(3, 2)), material)
 
   S  =  acousticstiffness(femm, geom, P);
   C  =  acousticmass(femm, geom, P);
 
-  abcfemm  =  FEMMAcoustSurf(GeoD(subset(bfes, louter), GaussRule(2, 2)), material)
+  abcfemm  =  FEMMAcoustSurf(IntegData(subset(bfes, louter), GaussRule(2, 2)), material)
   D  =  acousticABC(abcfemm, geom, P);
 
   # ABC surface pressure loading
@@ -870,7 +870,7 @@ function test()
   end
 
 
-  targetfemm  =  FEMMAcoustSurf(GeoD(subset(bfes, linner), GaussRule(2, 2)), material)
+  targetfemm  =  FEMMAcoustSurf(IntegData(subset(bfes, linner), GaussRule(2, 2)), material)
 
   ForceF = GeneralField(zeros(3,1))
   numberdofs!(ForceF)
@@ -1092,14 +1092,14 @@ t1  =  time()
 
 material = MatAcoustFluid(bulk, rho)
 # Region of the fluid
-region1 =  FDataDict("femm"=>FEMMAcoust(GeoD(fes, GaussRule(3, 2)), material))
+region1 =  FDataDict("femm"=>FEMMAcoust(IntegData(fes, GaussRule(3, 2)), material))
 
 # Surface for the ABC
-abc1  =  FDataDict("femm"=>FEMMAcoustSurf(GeoD(outer_fes, GaussRule(2, 2)),
+abc1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegData(outer_fes, GaussRule(2, 2)),
           material))
 
 # Surface of the piston
-flux1  =  FDataDict("femm"=>FEMMAcoustSurf(GeoD(piston_fes, GaussRule(2, 2)),
+flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegData(piston_fes, GaussRule(2, 2)),
           material),  "normal_flux"=> -rho*a_piston+0.0im);
 
 # Make model data
@@ -1202,7 +1202,7 @@ function test()
 
     material = MatAcoustFluid(bulk, rho)
     # Region of the fluid
-    femm = FEMMAcoust(GeoD(fes, GaussRule(3, 2)), material)
+    femm = FEMMAcoust(IntegData(fes, GaussRule(3, 2)), material)
 
     geom = NodalField(fens.xyz);
     P = NodalField(zeros(nnodes(geom),1));
@@ -1313,7 +1313,7 @@ function test()
      "pressure"=>x -> cos(2*pi*x[2]/rin)+1im*sin(2*pi*x[2]/rin)) # entering the domain
 
     material = MatAcoustFluid(bulk, rho)
-    femm = FEMMAcoust(GeoD(fes,  GaussRule(2, 2)),  material)
+    femm = FEMMAcoust(IntegData(fes,  GaussRule(2, 2)),  material)
     region1 = FDataDict("femm"=>femm)
 
     # Make model data

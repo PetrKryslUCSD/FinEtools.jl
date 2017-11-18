@@ -27,7 +27,7 @@ ess2 = FDataDict("displacement"=>  0.0, "component"=> 2, "node_list"=>l1)
 # Traction on the opposite edge
 boundaryfes =  meshboundary(fes);
 Toplist  = selectelem(fens, boundaryfes, box= [width, width, -Inf, Inf ], inflate=  tolerance);
-el1femm = FEMMBase(GeoD(subset(boundaryfes, Toplist), GaussRule(1, 2), thickness))
+el1femm = FEMMBase(IntegData(subset(boundaryfes, Toplist), GaussRule(1, 2), thickness))
 flux1 = FDataDict("traction_vector"=>[0.0,+magn],
     "femm"=>el1femm
     )
@@ -36,7 +36,7 @@ flux1 = FDataDict("traction_vector"=>[0.0,+magn],
 MR = DeforModelRed2DStrain
 material = MatDeforElastOrtho(MR,  0.0, E, nu, 0.0)
 region1 = FDataDict("femm"=>FEMMDeforLinear(MR,
-    GeoD(fes, TriRule(1), thickness), material))
+    IntegData(fes, TriRule(1), thickness), material))
 
 modeldata = FDataDict("fens"=>fens,
  "regions"=>[region1],
@@ -106,8 +106,8 @@ INSTANCE(AE, "INSTNC1", "PART1");
 NODE(AE, fens.xyz);
 COMMENT(AE, "We are assuming three node triangles in plane-stress");
 COMMENT(AE, "CPE3 are pretty poor-accuracy elements, but here we don't care about it.");
-@assert size(modeldata["regions"][1]["femm"].geod.fes.conn,2) == 3
-ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].geod.fes.conn)
+@assert size(modeldata["regions"][1]["femm"].IntegData.fes.conn,2) == 3
+ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].IntegData.fes.conn)
 NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
 ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
 SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", thickness);
@@ -118,7 +118,7 @@ ELASTIC(AE, E, nu)
 STEP_PERTURBATION_STATIC(AE)
 BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 1)
 BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 2)
-bfes = modeldata["traction_bcs"][1]["femm"].geod.fes
+bfes = modeldata["traction_bcs"][1]["femm"].IntegData.fes
 COMMENT(AE, "Concentrated loads: we are assuming that the elements on the boundary");
 COMMENT(AE, "have two nodes each and also that they are the same length.");
 COMMENT(AE, "Then the concentrated loads below will be correctly lumped.");

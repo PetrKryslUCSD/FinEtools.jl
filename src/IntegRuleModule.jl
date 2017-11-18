@@ -1,6 +1,5 @@
 """
-    IntegRuleModule
-
+IntegRuleModule
 Module for numerical integration rules.
 """
 module IntegRuleModule
@@ -11,9 +10,10 @@ abstract type IntegRule end
 export IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule
 
 """
-    TriRule
+TriRule
 
-Class of triangular quadrature rule.
+Triangular quadrature rule.
+
 Used for integration on the standard triangle.
 """
 struct TriRule <: IntegRule
@@ -29,7 +29,7 @@ end
 Type for triangular quadrature rule.  Used for integration of the standard
 triangle, which is between 0 and 1 in both parametric coordinates.
 `npts` = number of points (1-- one-point rule, 3 -- three-point rule,
-     6 -- six point rule, 10 -- Strang 10 point, order 13, degree of precision 7, rule).
+ 6 -- six point rule, 10 -- Strang 10 point, order 13, degree of precision 7, rule).
 """
 function TriRule(npts=1)
     if npts == 1 # integrates exactly linear polynomials
@@ -87,7 +87,8 @@ end
 """
     GaussRule
 
-Class of the Gauss rule.
+The Gauss rule.
+
 The rule is applicable for a tensor product of  intervals -1 <=x<= +1.
 """
 struct GaussRule <: IntegRule
@@ -99,7 +100,7 @@ struct GaussRule <: IntegRule
 end
 
 """
-  GaussRule(dim=1, order=1)
+    GaussRule(dim=1, order=1)
 
 Gauss rule.
 """
@@ -164,7 +165,8 @@ end
 """
     TetRule
 
-Class of tetrahedral quadrature rule.
+Tetrahedral quadrature rule.
+
 Used for integration on the standard tetrahedron.
 """
 struct TetRule <: IntegRule
@@ -177,7 +179,6 @@ end
     TetRule(npts=1)
 
 Tetrahedral integration rule.
-
 npts=number of points (1-- one-point rule, 4 -- four-point rule, 5 -- five point
 rule).
 """
@@ -216,6 +217,7 @@ end
     PointRule
 
 Class of point quadrature rule.
+
 Used for integration on the standard "point" shape.
 """
 struct PointRule <: IntegRule
@@ -228,7 +230,6 @@ end
     PointRule()
 
 POINT integration rule.
-
 """
 function PointRule()
     return PointRule(1, reshape([1.0], 1, 1), reshape([1.0], 1, 1))
@@ -237,7 +238,8 @@ end
 """
     SimplexRule
 
-Class of simplex quadrature rule.
+Simplex quadrature rule.
+
 Used for integration on the standard triangle or the standard tetrahedron.
 """
 struct SimplexRule <: IntegRule

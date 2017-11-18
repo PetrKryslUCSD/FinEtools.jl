@@ -48,7 +48,7 @@ println("Number of degrees of freedom = $(u.nfreedofs)")
 # The traction boundary condition is applied in the radial
 # direction.
 
-el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), GaussRule(1, 3), true))
+el1femm =  FEMMBase(IntegData(subset(bdryfes,icl), GaussRule(1, 3), true))
 function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
   copy!(forceout, XYZ/norm(XYZ)*p)
   return forceout
@@ -59,7 +59,7 @@ F2= distribloads(el1femm, geom, u, fi, 2);
 # Property and material
 material=MatDeforElastOrtho(MR, E1,E2,E3,nu12,nu13,nu23,G12,G13,G23)
 
-femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), true), material)
+femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
 
 ##
 # The restraints of the nodes on the bounding cross-sections in the direction
@@ -68,8 +68,8 @@ femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), true), material)
 # For that purpose we introduce  a finite element model machine for the
 # surface  finite elements on the cross-sections.
 springcoefficient =1.0e9/ (abs(p)/E1)
-xsfemm = FEMMDeforWinkler(GeoD(subset(bdryfes, lx), GaussRule(1, 3), true))
-ysfemm = FEMMDeforWinkler(GeoD(subset(bdryfes, ly), GaussRule(1, 3), true))
+xsfemm = FEMMDeforWinkler(IntegData(subset(bdryfes, lx), GaussRule(1, 3), true))
+ysfemm = FEMMDeforWinkler(IntegData(subset(bdryfes, ly), GaussRule(1, 3), true))
 H = surfacenormalspringstiffness(xsfemm,  geom, u, springcoefficient) +
     surfacenormalspringstiffness(ysfemm,  geom, u, springcoefficient)
 K =stiffness(femm, geom, u)

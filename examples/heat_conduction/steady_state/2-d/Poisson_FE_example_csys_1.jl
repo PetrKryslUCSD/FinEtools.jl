@@ -45,7 +45,7 @@ t1 = time()
 
 material = MatHeatDiff(thermal_conductivity)
 
-femm = FEMMHeatDiff(GeoD(fes, TriRule(1), CSys(Rm)), material)
+femm = FEMMHeatDiff(IntegData(fes, TriRule(1), CSys(Rm)), material)
 
 println("Conductivity")
 @time K = conductivity(femm, geom, Temp)

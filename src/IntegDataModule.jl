@@ -1,11 +1,11 @@
 """
-    GeoDModule
+    IntegDataModule
 
 Module to manage geometry data.
 """
-module GeoDModule
+module IntegDataModule
 
-export  GeoD
+export  IntegData
 export Jacobianpoint,  Jacobiancurve,  Jacobiansurface,  Jacobianvolume,
  Jacobianmdim,  integrationdata
 
@@ -16,84 +16,71 @@ using FinEtools.IntegRuleModule
 using FinEtools.NodalFieldModule
 using FinEtools.ForceIntensityModule
 using FinEtools.AssemblyModule
-using FinEtools.CSysModule
 
 """
-    GeoD{T<:FESet}
+    IntegData{T<:FESet}
 
-Geometry data for all finite element models.
+Integration data.
 
 T = type of finite element set.  The type of the FE set will be dependent upon the
 operations required. For instance, for interior (volume) integrals such as body
 load or the stiffness hexahedral H8 may be used, whereas for boundary  (surface)
 integrals quadrilateral Q4 would be needed.
 """
-mutable struct GeoD{S<:FESet, F<:Function}
+mutable struct IntegData{S<:FESet, F<:Function}
     fes::S # finite element set object
     integration_rule::IntegRule  # integration rule object
-    mcsys::CSys # updater of the material orientation matrix
     otherdimension::F
     axisymmetric::Bool
 end
 
 """
-    GeoD(fes::S, integration_rule::IntegRule) where {S<:FESet}
+    IntegData(fes::S, integration_rule::IntegRule) where {S<:FESet}
 
 Construct with the default orientation matrix (identity), and the other
 dimension  being the default 1.0.
 """
-function  GeoD(fes::S, integration_rule::IntegRule) where {S<:FESet}
-    return GeoD(fes, integration_rule, CSys(manifdim(fes)), otherdimensionunity, false)
+function  IntegData(fes::S, integration_rule::IntegRule) where {S<:FESet}
+    return IntegData(fes, integration_rule, otherdimensionunity, false)
 end
 
 """
-    GeoD(fes::S, integration_rule::IntegRule,
+    IntegData(fes::S, integration_rule::IntegRule,
       otherdimension::FFlt) where {S<:FESet}
 
 Construct with the default orientation matrix (identity), and constant other
 dimension.
 """
-function  GeoD(fes::S, integration_rule::IntegRule, otherdimension::FFlt) where {S<:FESet}
+function  IntegData(fes::S, integration_rule::IntegRule, otherdimension::FFlt) where {S<:FESet}
     function otherdimensionfu(loc::FFltMat,
         conn::CC, N::FFltMat)::FFlt where {CC<:AbstractArray{FInt}}
         return otherdimension::FFlt
     end
-    return GeoD(fes, integration_rule, CSys(manifdim(fes)), otherdimensionfu, false)
+    return IntegData(fes, integration_rule, otherdimensionfu, false)
 end
 
 """
-    GeoD(fes::S, integration_rule::IntegRule,
+    IntegData(fes::S, integration_rule::IntegRule,
       axisymmetric::Bool) where {S<:FESet}
 
 Construct with the default orientation matrix (identity), for axially symmetric
 models. The other dimension is  the default  unity (1.0).
 """
-function GeoD(fes::S, integration_rule::IntegRule, axisymmetric::Bool) where {S<:FESet}
-    return GeoD(fes, integration_rule, CSys(manifdim(fes)), otherdimensionunity, axisymmetric)
+function IntegData(fes::S, integration_rule::IntegRule, axisymmetric::Bool) where {S<:FESet}
+    return IntegData(fes, integration_rule, otherdimensionunity, axisymmetric)
 end
 
 """
-    GeoD(fes::S, integration_rule::IntegRule, axisymmetric::Bool,
+    IntegData(fes::S, integration_rule::IntegRule, axisymmetric::Bool,
       otherdimension::FFlt) where {S<:FESet}
 
-Construct with the default orientation matrix (identity), for axially symmetric
-models. The other dimension is given.
+Construct for axially symmetric models. The other dimension is given as a number.
 """
-function GeoD(fes::S, integration_rule::IntegRule, axisymmetric::Bool, otherdimension::FFlt) where {S<:FESet}
+function IntegData(fes::S, integration_rule::IntegRule, axisymmetric::Bool, otherdimension::FFlt) where {S<:FESet}
     function otherdimensionfu(loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {CC<:AbstractArray{FInt}}
         return otherdimension::FFlt
     end
-    return GeoD(fes, integration_rule, CSys(manifdim(fes)), otherdimensionfu, axisymmetric)
-end
-
-"""
-    GeoD(fes::S, integration_rule::IntegRule,
-      mcsys::Csys) where {S<:FESet}
-
-Construct with specified orientation matrix (identity).
-"""
-function  GeoD(fes::S, integration_rule::IntegRule,  mcsys::CSys) where {S<:FESet}
-    return GeoD(fes, integration_rule, mcsys, otherdimensionunity, false)
+    return IntegData(fes, integration_rule, otherdimensionfu, axisymmetric)
 end
 
 """
@@ -106,9 +93,8 @@ function otherdimensionunity(loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {CC
     return 1.0
 end
 
-
 """
-    Jacobianpoint(self::GeoD{T}, J::FFltMat,
+    Jacobianpoint(self::IntegData{T}, J::FFltMat,
                 loc::FFltMat, conn::CC,
                 N::FFltMat)::FFlt where {T<:FESet0Manifold, CC<:AbstractArray{FInt}}
 
@@ -119,12 +105,12 @@ Evaluate the point Jacobian.
 `conn` = connectivity of the element,
 `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobianpoint(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet0Manifold, CC<:AbstractArray{FInt}}
+function Jacobianpoint(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet0Manifold, CC<:AbstractArray{FInt}}
     return FinEtools.FESetModule.Jacobian(self.fes, J)::FFlt
 end
 
 """
-    Jacobiancurve(self::GeoD{T}, J::FFltMat,
+    Jacobiancurve(self::IntegData{T}, J::FFltMat,
         loc::FFltMat, conn::CC,
         N::FFltMat)::FFlt where {T<:FESet0Manifold, CC<:AbstractArray{FInt}}
 
@@ -135,7 +121,7 @@ Evaluate the curve Jacobian.
 `conn` = connectivity of the element,
 `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobiancurve(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet0Manifold, CC<:AbstractArray{FInt}}
+function Jacobiancurve(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet0Manifold, CC<:AbstractArray{FInt}}
     Jac = Jacobianpoint(self, J, loc, conn, N)
     if self.axisymmetric
         return Jac*2*pi*loc[1];
@@ -145,7 +131,7 @@ function Jacobiancurve(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFl
 end
 
 """
-    Jacobiansurface(self::GeoD{T}, J::FFltMat,
+    Jacobiansurface(self::IntegData{T}, J::FFltMat,
                 loc::FFltMat, conn::CC,
                 N::FFltMat)::FFlt where {T<:FESet0Manifold, CC<:AbstractArray{FInt}}
 
@@ -163,7 +149,7 @@ For the zero-dimensional cell,  the surface Jacobian is
 `conn` = connectivity of the element,
 `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobiansurface(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet0Manifold, CC<:AbstractArray{FInt}}
+function Jacobiansurface(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet0Manifold, CC<:AbstractArray{FInt}}
     Jac = Jacobianpoint(self, J, loc, conn, N)::FFlt
     if self.axisymmetric
         return Jac*2*pi*loc[1]*self.otherdimension(loc, conn,  N);
@@ -173,7 +159,7 @@ function Jacobiansurface(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::F
 end
 
 """
-    Jacobianvolume(self::GeoD{T}, J::FFltMat,
+    Jacobianvolume(self::IntegData{T}, J::FFltMat,
           loc::FFltMat, conn::CC,
           N::FFltMat)::FFlt where {T<:FESet0Manifold, CC<:AbstractArray{FInt}}
 
@@ -192,7 +178,7 @@ For the zero-dimensional cell,  the volume Jacobian is
 `conn` = connectivity of the element,
 `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobianvolume(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet0Manifold, CC<:AbstractArray{FInt}}
+function Jacobianvolume(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet0Manifold, CC<:AbstractArray{FInt}}
     Jac = Jacobianpoint(self, J, loc, conn, N)
     if self.axisymmetric
         return Jac*2*pi*loc[1]*self.otherdimension(loc, conn,  N);
@@ -202,7 +188,7 @@ function Jacobianvolume(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FF
 end
 
 """
-    Jacobianmdim(self::GeoD{T}, J::FFltMat,
+    Jacobianmdim(self::IntegData{T}, J::FFltMat,
       loc::FFltMat, conn::CC,
       N::FFltMat, m::FInt)::FFlt where {T<:FESet0Manifold, CC<:AbstractArray{FInt}}
 
@@ -214,7 +200,7 @@ For an 0-dimensional finite element,  the manifold Jacobian is for
     m=2: Jacobiansurface
     m=3: Jacobianvolume
 """
-function Jacobianmdim(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat, m::FInt)::FFlt where {T<:FESet0Manifold, CC<:AbstractArray{FInt}}
+function Jacobianmdim(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat, m::FInt)::FFlt where {T<:FESet0Manifold, CC<:AbstractArray{FInt}}
     @assert (m >= 0)  && (m <= 3)
     if (m==3)
         return Jacobianvolume(self, J, loc, conn, N)
@@ -229,7 +215,7 @@ end
 
 
 """
-    Jacobiancurve(self::GeoD{T}, J::FFltMat,
+    Jacobiancurve(self::IntegData{T}, J::FFltMat,
               loc::FFltMat, conn::CC,
               N::FFltMat)::FFlt where {T<:FESet1Manifold, CC<:AbstractArray{FInt}}
 
@@ -240,12 +226,12 @@ Evaluate the curve Jacobian.
 `conn` = connectivity of the element,
 `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobiancurve(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet1Manifold, CC<:AbstractArray{FInt}}
+function Jacobiancurve(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet1Manifold, CC<:AbstractArray{FInt}}
     return FinEtools.FESetModule.Jacobian(self.fes, J)::FFlt
 end
 
 """
-    Jacobiansurface(self::GeoD{T}, J::FFltMat,
+    Jacobiansurface(self::IntegData{T}, J::FFltMat,
                 loc::FFltMat, conn::CC,
                 N::FFltMat)::FFlt where {T<:FESet1Manifold, CC<:AbstractArray{FInt}}
 
@@ -263,7 +249,7 @@ For the one-dimensional cell,  the surface Jacobian is
 `conn` = connectivity of the element,
 `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobiansurface(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet1Manifold, CC<:AbstractArray{FInt}}
+function Jacobiansurface(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet1Manifold, CC<:AbstractArray{FInt}}
     Jac = Jacobiancurve(self, J, loc, conn, N)
     if self.axisymmetric
         return Jac*2*pi*loc[1];
@@ -273,7 +259,7 @@ function Jacobiansurface(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::F
 end
 
 """
-    Jacobianvolume(self::GeoD{T}, J::FFltMat,
+    Jacobianvolume(self::IntegData{T}, J::FFltMat,
                 loc::FFltMat, conn::CC,
                 N::FFltMat)::FFlt where {T<:FESet1Manifold, CC<:AbstractArray{FInt}}
 
@@ -291,7 +277,7 @@ For the one-dimensional cell,  the volume Jacobian is
 `conn` = connectivity of the element,
 `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobianvolume(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet1Manifold, CC<:AbstractArray{FInt}}
+function Jacobianvolume(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet1Manifold, CC<:AbstractArray{FInt}}
     Jac = Jacobiancurve(self, J, loc, conn, N)
     if self.axisymmetric
         return Jac*2*pi*loc[1]*self.otherdimension(loc, conn,  N);
@@ -301,7 +287,7 @@ function Jacobianvolume(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FF
 end
 
 """
-    Jacobianmdim(self::GeoD{T}, J::FFltMat,
+    Jacobianmdim(self::IntegData{T}, J::FFltMat,
     loc::FFltMat, conn::CC,
     N::FFltMat, m::FInt)::FFlt where {T<:FESet1Manifold, CC<:AbstractArray{FInt}}
 
@@ -312,7 +298,7 @@ For an 1-dimensional finite element,  the manifold Jacobian is for
     m=2: Jacobiansurface
     m=3: Jacobianvolume
 """
-function Jacobianmdim(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat, m::FInt)::FFlt where {T<:FESet1Manifold, CC<:AbstractArray{FInt}}
+function Jacobianmdim(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat, m::FInt)::FFlt where {T<:FESet1Manifold, CC<:AbstractArray{FInt}}
     @assert (m >= 1) && (m <= 3)
     if (m==3)
         return Jacobianvolume(self, J, loc, conn, N)
@@ -325,7 +311,7 @@ end
 
 
 """
-    Jacobiansurface(self::GeoD{T}, J::FFltMat,
+    Jacobiansurface(self::IntegData{T}, J::FFltMat,
                 loc::FFltMat, conn::CC,
                  N::FFltMat)::FFlt where {T<:FESet2Manifold, CC<:AbstractArray{FInt}}
 
@@ -336,12 +322,12 @@ Evaluate the surface Jacobian.
 `conn` = connectivity of the element,
 `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobiansurface(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet2Manifold, CC<:AbstractArray{FInt}}
+function Jacobiansurface(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet2Manifold, CC<:AbstractArray{FInt}}
     return FinEtools.FESetModule.Jacobian(self.fes, J)
 end
 
 """
-    Jacobianvolume(self::GeoD{T}, J::FFltMat,
+    Jacobianvolume(self::IntegData{T}, J::FFltMat,
                 loc::FFltMat, conn::CC,
                 N::FFltMat)::FFlt where {T<:FESet2Manifold, CC<:AbstractArray{FInt}}
 
@@ -359,7 +345,7 @@ For the two-dimensional cell,  the volume Jacobian is
 `conn` = connectivity of the element,
 `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobianvolume(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet2Manifold, CC<:AbstractArray{FInt}}
+function Jacobianvolume(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet2Manifold, CC<:AbstractArray{FInt}}
     Jac = Jacobiansurface(self, J, loc, conn, N)::FFlt
     if self.axisymmetric
         return Jac*2*pi*loc[1];
@@ -369,7 +355,7 @@ function Jacobianvolume(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FF
 end
 
 """
-    Jacobianmdim(self::GeoD{T}, J::FFltMat,
+    Jacobianmdim(self::IntegData{T}, J::FFltMat,
                 loc::FFltMat, conn::CC,
                 N::FFltMat, m::FInt)::FFlt where {T<:FESet2Manifold, CC<:AbstractArray{FInt}}
 
@@ -379,7 +365,7 @@ For an 2-dimensional finite element,  the manifold Jacobian is for
     m=2: Jacobiansurface
     m=3: Jacobianvolume
 """
-function Jacobianmdim(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat, m::FInt)::FFlt where {T<:FESet2Manifold, CC<:AbstractArray{FInt}}
+function Jacobianmdim(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat, m::FInt)::FFlt where {T<:FESet2Manifold, CC<:AbstractArray{FInt}}
     @assert (m >= 2) && (m <= 3)
     if (m==3)
         return Jacobianvolume(self, J, loc, conn, N)
@@ -390,7 +376,7 @@ end
 
 
 """
-    Jacobianvolume(self::GeoD{T}, J::FFltMat,
+    Jacobianvolume(self::IntegData{T}, J::FFltMat,
                 loc::FFltMat, conn::CC,
                 N::FFltMat)::FFlt where {T<:FESet3Manifold, CC<:AbstractArray{FInt}}
 Evaluate the volume Jacobian.
@@ -400,12 +386,12 @@ Evaluate the volume Jacobian.
 `conn` = connectivity of the element,
 `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobianvolume(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet3Manifold, CC<:AbstractArray{FInt}}
+function Jacobianvolume(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet3Manifold, CC<:AbstractArray{FInt}}
     return FinEtools.FESetModule.Jacobian(self.fes, J)::FFlt
 end
 
 """
-    Jacobianmdim{T<:FESet3Manifold}(self::GeoD, J::FFltMat,
+    Jacobianmdim{T<:FESet3Manifold}(self::IntegData, J::FFltMat,
                 loc::FFltMat, conn::FIntMat, N::FFltMat, m::FInt)
 
 Evaluate the manifold Jacobian for an m-dimensional manifold.
@@ -413,13 +399,13 @@ Evaluate the manifold Jacobian for an m-dimensional manifold.
 For an 3-dimensional cell,  the manifold Jacobian is
     m=3: Jacobianvolume
 """
-function Jacobianmdim(self::GeoD{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat, m::FInt)::FFlt where {T<:FESet3Manifold, CC<:AbstractArray{FInt}}
+function Jacobianmdim(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat, m::FInt)::FFlt where {T<:FESet3Manifold, CC<:AbstractArray{FInt}}
     @assert (m == 3)
     return Jacobianvolume(self, J, loc, conn, N)
 end
 
 """
-    integrationdata(self::GeoD)
+    integrationdata(self::IntegData)
 
 Calculate the data needed for  numerical quadrature.
 
@@ -428,7 +414,7 @@ basis function values at the quadrature points,  arrays of gradients of basis
 functions  with respect  to the parametric coordinates, array of weights and
 array of locations of the quadrature points.
 """
-function  integrationdata(self::GeoD)
+function  integrationdata(self::IntegData)
     pc::FFltMat = self.integration_rule.param_coords;
     w::FFltMat  =  self.integration_rule.weights ;
     npts::FInt = self.integration_rule.npts;

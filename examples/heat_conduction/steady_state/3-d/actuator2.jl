@@ -71,8 +71,8 @@ hotmater = MatHeatDiff(kappa)
 coldmater = MatHeatDiff(kappa)
  cl =  selectelem(fens, fes, box=[x0,x2,y0,y2,z0,z1],inflate = t/100);
 
-hotfemm  =  FEMMHeatDiff(GeoD(subset(fes,cl), GaussRule(3, 3), 0.), hotmater)
-coldfemm  = FEMMHeatDiff(GeoD(subset(fes,setdiff(collect(1:count(fes)), cl)),
+hotfemm  =  FEMMHeatDiff(IntegData(subset(fes,cl), GaussRule(3, 3), 0.), hotmater)
+coldfemm  = FEMMHeatDiff(IntegData(subset(fes,setdiff(collect(1:count(fes)), cl)),
   GaussRule(3, 3), 0.), coldmater)
   geom = NodalField(fens.xyz)
   Temp = NodalField(zeros(size(fens.xyz,1),1))

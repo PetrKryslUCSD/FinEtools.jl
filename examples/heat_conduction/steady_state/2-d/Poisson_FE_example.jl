@@ -39,7 +39,7 @@ t1 = time()
 
 material = MatHeatDiff(thermal_conductivity)
 
-femm = FEMMHeatDiff(GeoD(fes, TriRule(1)), material)
+femm = FEMMHeatDiff(IntegData(fes, TriRule(1)), material)
 
 
 println("Conductivity")
@@ -52,7 +52,7 @@ println("Internal heat generation")
 # end
 # fi = ForceIntensity(FFlt, getsource!);# alternative  specification
 fi = ForceIntensity(FFlt[Q]);
-@time F1 = distribloads(FEMMBase(GeoD(fes, TriRule(1))), geom, Temp, fi, 3);
+@time F1 = distribloads(FEMMBase(IntegData(fes, TriRule(1))), geom, Temp, fi, 3);
 
 println("Factorization")
 @time K = cholfact(K)

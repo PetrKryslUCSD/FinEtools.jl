@@ -166,9 +166,9 @@ include("IntegRuleModule.jl")
 using FinEtools.IntegRuleModule
 export IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule
 
-include("GeoDModule.jl")
-using FinEtools.GeoDModule
-export GeoD
+include("IntegDataModule.jl")
+using FinEtools.IntegDataModule
+export IntegData
 export otherdimensionunity
 export Jacobianpoint, Jacobiancurve, Jacobiansurface, Jacobianvolume, Jacobianmdim
 

@@ -60,7 +60,7 @@ l2 = selectelem(fens, edge_fes, box=[Piston_radius Tank_radius Tank_height Tank_
 ebc2 = FDataDict("node_list"=>connectednodes(subset(edge_fes, l2)),
     "pressure"=>x -> 0.0) # entering the domain
 material = MatAcoustFluid(bulk, rho)
-femm = FEMMAcoust(GeoD(fes,  GaussRule(2, 2), axisymmetric),  material)
+femm = FEMMAcoust(IntegData(fes,  GaussRule(2, 2), axisymmetric),  material)
 region1 = FDataDict("femm"=>femm)
 
 # Make model data

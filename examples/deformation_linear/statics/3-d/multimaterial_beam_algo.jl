@@ -31,7 +31,7 @@ function  multimaterial_beam()
   # Traction on the opposite edge
   boundaryfes  =   meshboundary(fes);
   Toplist   = selectelem(fens,boundaryfes, box =  [L L -Inf Inf -Inf Inf], inflate =   tolerance);
-  el1femm  =   FEMMBase(GeoD(subset(boundaryfes,Toplist), GaussRule(2, 2)))
+  el1femm  =   FEMMBase(IntegData(subset(boundaryfes,Toplist), GaussRule(2, 2)))
   flux1 = FDataDict("femm"=>el1femm, "traction_vector"=>loadv)
 
   r1list   = selectelem(fens,fes, box =  [0 L/2. -Inf Inf -Inf Inf], inflate =   tolerance);
@@ -42,12 +42,12 @@ function  multimaterial_beam()
 
   # Make region 1
   region1 = FDataDict("femm"=>FEMMDeforLinear(MR,
-      GeoD(subset(fes,r1list), GaussRule(3,2)),
+      IntegData(subset(fes,r1list), GaussRule(3,2)),
       MatDeforElastIso(MR, 0.0, E1, nu1, 0.0)))
 
   # Make region 2
   region2 = FDataDict("femm"=>FEMMDeforLinear(MR,
-      GeoD(subset(fes,r2list), GaussRule(3,2)),
+      IntegData(subset(fes,r2list), GaussRule(3,2)),
       MatDeforElastIso(MR, 0.0, E2, nu2, 0.0)))
 
   # Make model data

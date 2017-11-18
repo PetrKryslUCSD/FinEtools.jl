@@ -65,7 +65,7 @@ function test()
     # Property and material
     material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
 
-    femm  =  FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 3), true), material)
+    femm  =  FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 3), true), material)
 
     # Make region 1
     region = FDataDict("femm"=>femm)
@@ -288,7 +288,7 @@ function test()
   # 3x3x3 points  gives good accuracy in this case. Compare it with 2x2x2
   # quadrature to appreciate the difference.
 
-  femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3, 3)), material)
+  femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3, 3)), material)
 
   ##
   # The geometry nodal field is created from the node set.   The
@@ -316,7 +316,7 @@ function test()
   # surface  finite elements on the cross-sections.
   springcoefficient =1.0 / ((abs(sigmaA)/1.0e12)/Ea)
   fl = vcat(f1l, f2l)
-  xsfemm = FEMMDeforWinkler(GeoD(subset(bfes,fl), GaussRule(2, 3)))
+  xsfemm = FEMMDeforWinkler(IntegData(subset(bfes,fl), GaussRule(2, 3)))
 
   ##
   # We create the temperature field using the formula $T=r+z$.
@@ -419,7 +419,7 @@ function test()
 
   boundaryfes =  meshboundary(fes);
   Toplist = selectelem(fens, boundaryfes,  box= [width,  width,  -Inf,  Inf ],  inflate=  tolerance);
-  el1femm =  FEMMBase(GeoD(subset(boundaryfes, Toplist),  GaussRule(1, 2)))
+  el1femm =  FEMMBase(IntegData(subset(boundaryfes, Toplist),  GaussRule(1, 2)))
   fi = ForceIntensity([0.0, +magn]);
   F2 = distribloads(el1femm,  geom,  u,  fi,  2);
 
@@ -427,7 +427,7 @@ function test()
   MR = DeforModelRed2DStress
   material = MatDeforElastIso(MR,  0.0, E, nu, 0.0)
 
-  femm = FEMMDeforLinear(MR, GeoD(fes,  TriRule(1)),  material)
+  femm = FEMMDeforLinear(MR, IntegData(fes,  TriRule(1)),  material)
 
   K = stiffness(femm,  geom,  u)
   K = cholfact(K)
@@ -578,14 +578,14 @@ function test()
   # The traction boundary condition is applied in the radial
   # direction.
 
-  el1femm =  FEMMBase(GeoD(subset(bdryfes,bcl), GaussRule(1, 3), axisymmetric))
+  el1femm =  FEMMBase(IntegData(subset(bdryfes,bcl), GaussRule(1, 3), axisymmetric))
   fi = ForceIntensity([press; 0.0]);
   F2= distribloads(el1femm, geom, u, fi, 2);
 
   # Property and material
   material = MatDeforElastIso(MR,  E, nu)
 
-  femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), axisymmetric), material)
+  femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), axisymmetric), material)
 
   K = stiffness(femm, geom, u)
   #K=cholfact(K)
@@ -681,10 +681,10 @@ function test()
 
   material=MatDeforElastIso(MR, rho, E, nu, 0.0)
 
-  femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,2)), material)
+  femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,2)), material)
 
   K =stiffness(femm, geom, u)
-  femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,3)), material)
+  femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,3)), material)
   M =mass(femm, geom, u)
   d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
   d = d .- OmegaShift;
@@ -760,14 +760,14 @@ function  Twisted_beam(dir)
   # Traction on the opposite edge
   boundaryfes  =   meshboundary(fes);
   Toplist   = selectelem(fens,boundaryfes, box =  [L L -100*W 100*W -100*W 100*W], inflate =   tolerance);
-  el1femm  = FEMMBase(GeoD(subset(boundaryfes,Toplist), GaussRule(2, 2)))
+  el1femm  = FEMMBase(IntegData(subset(boundaryfes,Toplist), GaussRule(2, 2)))
   flux1 = FDataDict("femm"=>el1femm, "traction_vector"=>loadv)
 
 
   # Make the region
   MR = DeforModelRed3D
   material = MatDeforElastIso(MR, 00.0, E, nu, 0.0)
-  region1 = FDataDict("femm"=>FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,2)),
+  region1 = FDataDict("femm"=>FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,2)),
   material))
 
   # Make model data
@@ -993,7 +993,7 @@ function test()
   # 3x3x3 points  gives good accuracy in this case. Compare it with 2x2x2
   # quadrature to appreciate the difference.
 
-  femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3, 3)), material)
+  femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3, 3)), material)
 
   ##
   # The geometry nodal field is created from the node set.   The
@@ -1021,7 +1021,7 @@ function test()
   # surface  finite elements on the cross-sections.
   springcoefficient =1.0 / ((abs(sigmaA)/1.0e12)/Ea)
   fl = vcat(f1l, f2l)
-  xsfemm = FEMMDeforWinkler(GeoD(subset(bfes,fl), GaussRule(2, 3)))
+  xsfemm = FEMMDeforWinkler(IntegData(subset(bfes,fl), GaussRule(2, 3)))
 
   ##
   # We create the temperature field using the formula $T=r+z$.
@@ -1167,7 +1167,7 @@ function test()
   # Property and material
   material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
 
-  femm  =  FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 3), true), material)
+  femm  =  FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 3), true), material)
 
   K  = stiffness(femm, geom, u)
   F  =  thermalstrainloads(femm, geom, u, dT)
@@ -1269,7 +1269,7 @@ function test()
   gr = GaussRule(3, 3)
 
   region = FDataDict("femm"=>FEMMDeforLinear(MR,
-      GeoD(fes, gr, CSys(3, 3, updatecs!)), laminamaterial))
+      IntegData(fes, gr), CSys(3, 3, updatecs!), laminamaterial))
 
   lx0 = selectnode(fens, box=[0.0 0.0 -Inf Inf -Inf Inf], inflate=tolerance)
   lxa = selectnode(fens, box=[a a -Inf Inf -Inf Inf], inflate=tolerance)
@@ -1288,7 +1288,7 @@ function test()
   bfes = meshboundary(fes)
   ttopl = selectelem(fens, bfes; facing=true, direction = [0.0 0.0 1.0])
   Trac = FDataDict("traction_vector"=>[0.0; 0.0; -q0],
-      "femm"=>FEMMBase(GeoD(subset(bfes, ttopl), GaussRule(2, 3))))
+      "femm"=>FEMMBase(IntegData(subset(bfes, ttopl), GaussRule(2, 3))))
 
   modeldata = FDataDict("fens"=>fens,
    "regions"=>[region],
@@ -1344,7 +1344,7 @@ function test()
   # Traction on the opposite edge
   boundaryfes  =   meshboundary(fes);
   Toplist   = selectelem(fens,boundaryfes, box =  [L L -Inf Inf -Inf Inf], inflate =   tolerance);
-  el1femm  =   FEMMBase(GeoD(subset(boundaryfes,Toplist), GaussRule(2, 2)))
+  el1femm  =   FEMMBase(IntegData(subset(boundaryfes,Toplist), GaussRule(2, 2)))
   flux1 = FDataDict("femm"=>el1femm, "traction_vector"=>loadv)
 
   r1list   = selectelem(fens,fes, box =  [0 L/2. -Inf Inf -Inf Inf], inflate =   tolerance);
@@ -1355,12 +1355,12 @@ function test()
 
   # Make region 1
   region1 = FDataDict("femm"=>FEMMDeforLinear(MR,
-  GeoD(subset(fes,r1list), GaussRule(3,2)),
+  IntegData(subset(fes,r1list), GaussRule(3,2)),
   MatDeforElastIso(MR, 0.0, E1, nu1, 0.0)))
 
   # Make region 2
   region2 = FDataDict("femm"=>FEMMDeforLinear(MR,
-  GeoD(subset(fes,r2list), GaussRule(3,2)),
+  IntegData(subset(fes,r2list), GaussRule(3,2)),
   MatDeforElastIso(MR, 0.0, E2, nu2, 0.0)))
 
   # Make model data
@@ -1448,8 +1448,8 @@ function test()
   # Make the region
   MR = DeforModelRed3D
   material = MatDeforElastIso(MR, rho, E, nu, 0.0)
-  region1 = FDataDict("femm"=>FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,2)),
-    material), "femm_mass"=>FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,3)),
+  region1 = FDataDict("femm"=>FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,2)),
+    material), "femm_mass"=>FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,3)),
     material))
 
   # Make model data
@@ -1630,7 +1630,7 @@ numberdofs!(u)
 # The traction boundary condition is applied in the radial
 # direction.
 
-el1femm =  FEMMBase(GeoD(subset(bdryfes,bcl), GaussRule(1, 3)))
+el1femm =  FEMMBase(IntegData(subset(bdryfes,bcl), GaussRule(1, 3)))
 function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
   copy!(forceout, XYZ/norm(XYZ)*press)
   return forceout
@@ -1641,7 +1641,7 @@ F2 = distribloads(el1femm, geom, u, fi, 2);
 # Property and material
 material = MatDeforElastIso(MR, E, nu)
 
-femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2)), material)
+femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2)), material)
 
 K =stiffness(femm, geom, u)
 #K=cholfact(K)
@@ -1788,7 +1788,7 @@ function test()
   # The traction boundary condition is applied in the radial
   # direction.
 
-  el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), GaussRule(1, 3), true))
+  el1femm =  FEMMBase(IntegData(subset(bdryfes,icl), GaussRule(1, 3), true))
   function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     copy!(forceout, XYZ/norm(XYZ)*p)
     return forceout
@@ -1799,7 +1799,7 @@ function test()
   # Property and material
   material=MatDeforElastOrtho(MR, E1,E2,E3,nu12,nu13,nu23,G12,G13,G23)
 
-  femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), true), material)
+  femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
 
   K =stiffness(femm, geom, u)
   U=  K\(F2)
@@ -1857,7 +1857,7 @@ function test()
   # Traction on the opposite edge
   boundaryfes =  meshboundary(fes);
   Toplist  = selectelem(fens, boundaryfes, box= [width, width, -Inf, Inf ], inflate=  tolerance);
-  el1femm = FEMMBase(GeoD(subset(boundaryfes, Toplist), GaussRule(1, 3)))
+  el1femm = FEMMBase(IntegData(subset(boundaryfes, Toplist), GaussRule(1, 3)))
   flux1 = FDataDict("traction_vector"=>[0.0,+magn],
       "femm"=>el1femm
       )
@@ -1866,7 +1866,7 @@ function test()
   MR = DeforModelRed2DStress
   material = MatDeforElastIso(MR,  0.0, E, nu, 0.0)
   region1 = FDataDict("femm"=>FEMMDeforLinear(MR,
-      GeoD(fes, TriRule(3)), material))
+      IntegData(fes, TriRule(3)), material))
 
   modeldata = FDataDict("fens"=>fens,
    "regions"=>[region1],
@@ -1939,7 +1939,7 @@ function test()
   # Traction on the opposite edge
   boundaryfes =  meshboundary(fes);
   Toplist  = selectelem(fens, boundaryfes, box= [width, width, -Inf, Inf ], inflate=  tolerance);
-  el1femm = FEMMBase(GeoD(subset(boundaryfes, Toplist), GaussRule(1, 3)))
+  el1femm = FEMMBase(IntegData(subset(boundaryfes, Toplist), GaussRule(1, 3)))
   flux1 = FDataDict("traction_vector"=>[0.0,+magn],
       "femm"=>el1femm
       )
@@ -1950,7 +1950,7 @@ function test()
   # isotropiic material  model..
   material=MatDeforElastOrtho(MR, E1,E2,E3,nu12,nu13,nu23,G12,G13,G23)
   region1 = FDataDict("femm"=>FEMMDeforLinear(MR,
-      GeoD(fes, TriRule(3)), material))
+      IntegData(fes, TriRule(3)), material))
 
   modeldata = FDataDict("fens"=>fens,
    "regions"=>[region1],
@@ -2062,8 +2062,7 @@ function test()
 
   gr = GaussRule(3, 2)
 
-  region = FDataDict("femm"=>FEMMDeforLinear(MR,
-      GeoD(fes, gr, CSys(3, 3, updatecs!)), material))
+  region = FDataDict("femm"=>FEMMDeforLinear(MR, IntegData(fes, gr), CSys(3, 3, updatecs!), material))
 
   lx0 = selectnode(fens, box=[0.0 0.0 -Inf Inf -Inf Inf], inflate=tolerance)
 
@@ -2076,7 +2075,7 @@ function test()
   end
 
   Trac = FDataDict("traction_vector"=>getshr!,
-      "femm"=>FEMMBase(GeoD(subset(bfes, sshearl), GaussRule(2, 3))))
+      "femm"=>FEMMBase(IntegData(subset(bfes, sshearl), GaussRule(2, 3))))
 
   modeldata = FDataDict("fens"=>fens,
    "regions"=>[region],
@@ -2187,15 +2186,15 @@ function test()
 
   rl1 = selectelem(fens, fes, label=1)
   skinbot = FDataDict("femm"=>FEMMDeforLinear(MR,
-      GeoD(subset(fes, rl1), gr), skinmaterial))
+      IntegData(subset(fes, rl1), gr), skinmaterial))
 
   rl3 = selectelem(fens, fes, label=3)
   skintop = FDataDict("femm"=>FEMMDeforLinear(MR,
-      GeoD(subset(fes, rl3), gr), skinmaterial))
+      IntegData(subset(fes, rl3), gr), skinmaterial))
 
   rl2 = selectelem(fens, fes, label=2)
   core = FDataDict("femm"=>FEMMDeforLinear(MR,
-      GeoD(subset(fes, rl2), gr), corematerial))
+      IntegData(subset(fes, rl2), gr), corematerial))
 
   lx0 = selectnode(fens, box=[0.0 0.0 -Inf Inf -Inf Inf], inflate=tolerance)
   lxL2 = selectnode(fens, box=[L/2 L/2 -Inf Inf -Inf Inf], inflate=tolerance)
@@ -2210,7 +2209,7 @@ function test()
   bfes = meshboundary(fes)
   ttopl = selectelem(fens, bfes; facing=true, direction = [0.0 0.0 1.0])
   Trac = FDataDict("traction_vector"=>[0.0; 0.0; -tmag],
-      "femm"=>FEMMBase(GeoD(subset(bfes, ttopl), GaussRule(2, 3))))
+      "femm"=>FEMMBase(IntegData(subset(bfes, ttopl), GaussRule(2, 3))))
 
   modeldata = FDataDict("fens"=>fens,
    "regions"=>[skinbot, core, skintop], "essential_bcs"=>[ex0, exL2, ey0, eyL2],
@@ -2288,14 +2287,14 @@ function test()
   # Traction on the opposite edge
   boundaryfes  =   meshboundary(fes);
   Toplist   = selectelem(fens,boundaryfes, box =  [L L -100*W 100*W -100*W 100*W], inflate =   tolerance);
-  el1femm  = FEMMBase(GeoD(subset(boundaryfes,Toplist), GaussRule(2, 2)))
+  el1femm  = FEMMBase(IntegData(subset(boundaryfes,Toplist), GaussRule(2, 2)))
   flux1 = FDataDict("femm"=>el1femm, "traction_vector"=>loadv)
 
 
   # Make the region
   MR = DeforModelRed3D
   material = MatDeforElastIso(MR, 00.0, E, nu, 0.0)
-  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3,2)),
+  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3,2)),
   material))
 
   # Make model data
@@ -2388,8 +2387,8 @@ function test()
   # Make the region
   MR = DeforModelRed3D
   material = MatDeforElastIso(MR, rho, E, nu, 0.0)
-  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3,2)),
-    material), "femm_mass"=>FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3,3)),
+  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3,2)),
+    material), "femm_mass"=>FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3,3)),
     material))
 
   # Make model data
@@ -2452,14 +2451,14 @@ function test()
   # Traction on the opposite edge
   boundaryfes  =   meshboundary(fes);
   Toplist   = selectelem(fens,boundaryfes, box =  [L L -100*W 100*W -100*W 100*W], inflate =   tolerance);
-  el1femm  = FEMMBase(GeoD(subset(boundaryfes,Toplist), GaussRule(2, 2)))
+  el1femm  = FEMMBase(IntegData(subset(boundaryfes,Toplist), GaussRule(2, 2)))
   flux1 = FDataDict("femm"=>el1femm, "traction_vector"=>loadv)
 
 
   # Make the region
   MR = DeforModelRed3D
   material = MatDeforElastIso(MR, 00.0, E, nu, 0.0)
-  region1 = FDataDict("femm"=>FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,2)),
+  region1 = FDataDict("femm"=>FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,2)),
             material))
 
   # Make model data
@@ -2585,14 +2584,14 @@ function test()
   # Traction on the opposite edge
   boundaryfes  =   meshboundary(fes);
   Toplist   = selectelem(fens,boundaryfes, box =  [L L -100*W 100*W -100*W 100*W], inflate =   tolerance);
-  el1femm  = FEMMBase(GeoD(subset(boundaryfes,Toplist), GaussRule(2, 2)))
+  el1femm  = FEMMBase(IntegData(subset(boundaryfes,Toplist), GaussRule(2, 2)))
   flux1 = FDataDict("femm"=>el1femm, "traction_vector"=>loadv)
 
 
   # Make the region
   MR = DeforModelRed3D
   material = MatDeforElastOrtho(MR, E, nu)
-  region1 = FDataDict("femm"=>FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,2)),
+  region1 = FDataDict("femm"=>FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,2)),
             material))
 
   # Make model data
@@ -2721,10 +2720,10 @@ function test()
 
   material=MatDeforElastIso(MR, rho, E, nu, 0.0)
 
-  femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,2)), material)
+  femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,2)), material)
 
   K =stiffness(femm, geom, u)
-  femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,3)), material)
+  femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,3)), material)
   M =mass(femm, geom, u)
   d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
   d = broadcast(-, d, OmegaShift);
@@ -2926,7 +2925,7 @@ numberdofs!(u)
 # The traction boundary condition is applied in the radial
 # direction.
 
-el1femm =  FEMMBase(GeoD(subset(bdryfes,bcl), GaussRule(1, 3)))
+el1femm =  FEMMBase(IntegData(subset(bdryfes,bcl), GaussRule(1, 3)))
 function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
   copy!(forceout, XYZ/norm(XYZ)*press)
   return forceout
@@ -2937,7 +2936,7 @@ F2 = distribloads(el1femm, geom, u, fi, 2);
 # Property and material
 material = MatDeforElastOrtho(MR, E, nu)
 
-femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2)), material)
+femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2)), material)
 
 K =stiffness(femm, geom, u)
 #K=cholfact(K)
@@ -3149,14 +3148,14 @@ function test()
   # The traction boundary condition is applied in the radial
   # direction.
 
-  el1femm =  FEMMBase(GeoD(subset(bdryfes,bcl), GaussRule(1, 3), axisymmetric))
+  el1femm =  FEMMBase(IntegData(subset(bdryfes,bcl), GaussRule(1, 3), axisymmetric))
   fi = ForceIntensity([press; 0.0]);
   F2= distribloads(el1femm, geom, u, fi, 2);
 
   # Property and material
   material = MatDeforElastOrtho(MR,  E, nu)
 
-  femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), axisymmetric), material)
+  femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), axisymmetric), material)
 
   K = stiffness(femm, geom, u)
   #K=cholfact(K)
@@ -3295,7 +3294,7 @@ function test()
   # Property and material
   material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
 
-  femm  =  FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 3), true), material)
+  femm  =  FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 3), true), material)
 
   K  = stiffness(femm, geom, u)
   F  =  thermalstrainloads(femm, geom, u, dT)
@@ -3413,7 +3412,7 @@ function test()
   material = MatDeforElastOrtho(MR, 0.0, Ea, nua, alphaa)
   # display(material )
 
-  femm  =  FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 3), true), material)
+  femm  =  FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 3), true), material)
 
   K  = stiffness(femm, geom, u)
   F  =  thermalstrainloads(femm, geom, u, dT)
@@ -3529,7 +3528,7 @@ function test()
   # Property and material
   material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
 
-  femm  =  FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 3), true), material)
+  femm  =  FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 3), true), material)
 
   K  = stiffness(femm, geom, u)
   F  =  thermalstrainloads(femm, geom, u, dT)
@@ -3697,7 +3696,7 @@ function test()
   # Property and material
   material = MatDeforElastOrtho(MR, 0.0, Ea, nua, alphaa)
 
-  femm  =  FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 3), true), material)
+  femm  =  FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 3), true), material)
 
   K  = stiffness(femm, geom, u)
   F  =  thermalstrainloads(femm, geom, u, dT)
@@ -3821,7 +3820,7 @@ function test()
   # Traction on the opposite edge
   boundaryfes =  meshboundary(fes);
   Toplist  = selectelem(fens, boundaryfes, box= [width, width, -Inf, Inf ], inflate=  tolerance);
-  el1femm = FEMMBase(GeoD(subset(boundaryfes, Toplist), GaussRule(1, 2), thickness))
+  el1femm = FEMMBase(IntegData(subset(boundaryfes, Toplist), GaussRule(1, 2), thickness))
   flux1 = FDataDict("traction_vector"=>[0.0,+magn],
       "femm"=>el1femm
       )
@@ -3830,7 +3829,7 @@ function test()
   MR = DeforModelRed2DStrain
   material = MatDeforElastIso(MR,  0.0, E, nu, 0.0)
   region1 = FDataDict("femm"=>FEMMDeforLinear(MR,
-      GeoD(fes, TriRule(1), thickness), material))
+      IntegData(fes, TriRule(1), thickness), material))
 
   modeldata = FDataDict("fens"=>fens,
    "regions"=>[region1],
@@ -3911,8 +3910,8 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPE3 are pretty poor-accuracy elements, but here we don't care about it.");
-  @test  size(modeldata["regions"][1]["femm"].geod.fes.conn,2) == 3
-  ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].geod.fes.conn)
+  @test  size(modeldata["regions"][1]["femm"].IntegData.fes.conn,2) == 3
+  ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].IntegData.fes.conn)
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", thickness);
@@ -3923,7 +3922,7 @@ function test()
   STEP_PERTURBATION_STATIC(AE)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 1)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 2)
-  bfes = modeldata["traction_bcs"][1]["femm"].geod.fes
+  bfes = modeldata["traction_bcs"][1]["femm"].IntegData.fes
   COMMENT(AE, "Concentrated loads: we are assuming that the elements on the boundary");
   COMMENT(AE, "have two nodes each and also that they are the same length.");
   COMMENT(AE, "Then the concentrated loads below will be correctly lumped.");
@@ -3987,7 +3986,7 @@ function test()
   # Traction on the opposite edge
   boundaryfes =  meshboundary(fes);
   Toplist  = selectelem(fens, boundaryfes, box= [width, width, -Inf, Inf ], inflate=  tolerance);
-  el1femm = FEMMBase(GeoD(subset(boundaryfes, Toplist), GaussRule(1, 2), thickness))
+  el1femm = FEMMBase(IntegData(subset(boundaryfes, Toplist), GaussRule(1, 2), thickness))
   flux1 = FDataDict("traction_vector"=>[0.0,+magn],
       "femm"=>el1femm
       )
@@ -3996,7 +3995,7 @@ function test()
   MR = DeforModelRed2DStrain
   material = MatDeforElastOrtho(MR,  0.0, E, nu, 0.0)
   region1 = FDataDict("femm"=>FEMMDeforLinear(MR,
-      GeoD(fes, TriRule(1), thickness), material))
+      IntegData(fes, TriRule(1), thickness), material))
 
   modeldata = FDataDict("fens"=>fens,
    "regions"=>[region1],
@@ -4077,8 +4076,8 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPE3 are pretty poor-accuracy elements, but here we don't care about it.");
-@test  size(modeldata["regions"][1]["femm"].geod.fes.conn,2) == 3
-  ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].geod.fes.conn)
+@test  size(modeldata["regions"][1]["femm"].IntegData.fes.conn,2) == 3
+  ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].IntegData.fes.conn)
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", thickness);
@@ -4089,7 +4088,7 @@ function test()
   STEP_PERTURBATION_STATIC(AE)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 1)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 2)
-  bfes = modeldata["traction_bcs"][1]["femm"].geod.fes
+  bfes = modeldata["traction_bcs"][1]["femm"].IntegData.fes
   COMMENT(AE, "Concentrated loads: we are assuming that the elements on the boundary");
   COMMENT(AE, "have two nodes each and also that they are the same length.");
   COMMENT(AE, "Then the concentrated loads below will be correctly lumped.");
@@ -4154,7 +4153,7 @@ function test()
   # Traction on the opposite edge
   boundaryfes =  meshboundary(fes);
   Toplist  = selectelem(fens, boundaryfes, box= [width, width, -Inf, Inf ], inflate=  tolerance);
-  el1femm = FEMMBase(GeoD(subset(boundaryfes, Toplist), GaussRule(1, 2), thickness))
+  el1femm = FEMMBase(IntegData(subset(boundaryfes, Toplist), GaussRule(1, 2), thickness))
   flux1 = FDataDict("traction_vector"=>[0.0,+magn],
       "femm"=>el1femm
       )
@@ -4163,7 +4162,7 @@ function test()
   MR = DeforModelRed2DStress
   material = MatDeforElastOrtho(MR,  0.0, E, nu, 0.0)
   region1 = FDataDict("femm"=>FEMMDeforLinear(MR,
-      GeoD(fes, TriRule(1), thickness), material))
+      IntegData(fes, TriRule(1), thickness), material))
 
   modeldata = FDataDict("fens"=>fens,
    "regions"=>[region1],
@@ -4245,8 +4244,8 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPS3 are pretty poor-accuracy elements, but here we don't care about it.");
-@test  size(modeldata["regions"][1]["femm"].geod.fes.conn,2) == 3
-  ELEMENT(AE, "CPS3", "AllElements", modeldata["regions"][1]["femm"].geod.fes.conn)
+@test  size(modeldata["regions"][1]["femm"].IntegData.fes.conn,2) == 3
+  ELEMENT(AE, "CPS3", "AllElements", modeldata["regions"][1]["femm"].IntegData.fes.conn)
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", thickness);
@@ -4257,7 +4256,7 @@ function test()
   STEP_PERTURBATION_STATIC(AE)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 1)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 2)
-  bfes = modeldata["traction_bcs"][1]["femm"].geod.fes
+  bfes = modeldata["traction_bcs"][1]["femm"].IntegData.fes
   COMMENT(AE, "Concentrated loads: we are assuming that the elements on the boundary");
   COMMENT(AE, "have two nodes each and also that they are the same length.");
   COMMENT(AE, "Then the concentrated loads below will be correctly lumped.");
@@ -4321,7 +4320,7 @@ function test()
   # Traction on the opposite edge
   boundaryfes =  meshboundary(fes);
   Toplist  = selectelem(fens, boundaryfes, box= [width, width, -Inf, Inf ], inflate=  tolerance);
-  el1femm = FEMMBase(GeoD(subset(boundaryfes, Toplist), GaussRule(1, 2), thickness))
+  el1femm = FEMMBase(IntegData(subset(boundaryfes, Toplist), GaussRule(1, 2), thickness))
   flux1 = FDataDict("traction_vector"=>[0.0,+magn],
       "femm"=>el1femm
       )
@@ -4330,7 +4329,7 @@ function test()
   MR = DeforModelRed2DStress
   material = MatDeforElastIso(MR,  0.0, E, nu, 0.0)
   region1 = FDataDict("femm"=>FEMMDeforLinear(MR,
-      GeoD(fes, TriRule(1), thickness), material))
+      IntegData(fes, TriRule(1), thickness), material))
 
   modeldata = FDataDict("fens"=>fens,
    "regions"=>[region1],
@@ -4411,8 +4410,8 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPS3 are pretty poor-accuracy elements, but here we don't care about it.");
-@test  size(modeldata["regions"][1]["femm"].geod.fes.conn,2) == 3
-  ELEMENT(AE, "CPS3", "AllElements", modeldata["regions"][1]["femm"].geod.fes.conn)
+@test  size(modeldata["regions"][1]["femm"].IntegData.fes.conn,2) == 3
+  ELEMENT(AE, "CPS3", "AllElements", modeldata["regions"][1]["femm"].IntegData.fes.conn)
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", thickness);
@@ -4423,7 +4422,7 @@ function test()
   STEP_PERTURBATION_STATIC(AE)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 1)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 2)
-  bfes = modeldata["traction_bcs"][1]["femm"].geod.fes
+  bfes = modeldata["traction_bcs"][1]["femm"].IntegData.fes
   COMMENT(AE, "Concentrated loads: we are assuming that the elements on the boundary");
   COMMENT(AE, "have two nodes each and also that they are the same length.");
   COMMENT(AE, "Then the concentrated loads below will be correctly lumped.");
@@ -4807,7 +4806,7 @@ function test()
     applyebc!(u)
     numberdofs!(u)
 
-    eL1femm =  FEMMBase(GeoD(subset(bdryfes,topbfl), TriRule(3)))
+    eL1femm =  FEMMBase(IntegData(subset(bdryfes,topbfl), TriRule(3)))
     function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
         forceout .=  [0.0, 0.0, -qmagn]
         return forceout
@@ -4821,7 +4820,7 @@ function test()
 
     material = MatDeforElastIso(MR, E, nu)
 
-    femm = FEMMDeforLinearMST10(MR, GeoD(fes, TetRule(4)), material)
+    femm = FEMMDeforLinearMST10(MR, IntegData(fes, TetRule(4)), material)
 
     # The geometry field now needs to be associated with the FEMM
     femm = associategeometry!(femm, geom)
@@ -4865,9 +4864,9 @@ function test()
     ASSEMBLY(AE, "ASSEM1");
     INSTANCE(AE, "INSTNC1", "PART1");
     NODE(AE, fens.xyz);
-    ELEMENT(AE, "c3d10", "AllElements", 1, femm.geod.fes.conn)
+    ELEMENT(AE, "c3d10", "AllElements", 1, femm.IntegData.fes.conn)
     ELEMENT(AE, "SFM3D6", "TractionElements",
-    1+count(femm.geod.fes), eL1femm.geod.fes.conn)
+    1+count(femm.IntegData.fes), eL1femm.IntegData.fes.conn)
     NSET_NSET(AE, "L1", L1)
     NSET_NSET(AE, "L2", L2)
     NSET_NSET(AE, "L3", L3)
@@ -4917,7 +4916,7 @@ try rm(AE.filename) catch end
     applyebc!(u)
     numberdofs!(u)
 
-    eL1femm =  FEMMBase(GeoD(subset(bdryfes,topbfl), TriRule(3)))
+    eL1femm =  FEMMBase(IntegData(subset(bdryfes,topbfl), TriRule(3)))
     # function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
     #     forceout .=  [0.0, 0.0, -qmagn]
     #     return forceout
@@ -4931,7 +4930,7 @@ try rm(AE.filename) catch end
 
     material = MatDeforElastIso(MR, E, nu)
 
-    femm = FEMMDeforLinearMST10(MR, GeoD(fes, TetRule(4)), material)
+    femm = FEMMDeforLinearMST10(MR, IntegData(fes, TetRule(4)), material)
 
     # The geometry field now needs to be associated with the FEMM
     femm = associategeometry!(femm, geom)
@@ -5018,10 +5017,10 @@ function test()
 
     material=MatDeforElastIso(MR, rho, E, nu, 0.0)
 
-    femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3,2)), material)
+    femm = FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3,2)), material)
     femm = associategeometry!(femm, geom)
     K =stiffness(femm, geom, u)
-    femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,3)), material)
+    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,3)), material)
     M =mass(femm, geom, u)
 
 
@@ -5113,8 +5112,8 @@ function test()
     # Make the region
     MR = DeforModelRed3D
     material = MatDeforElastIso(MR, rho, E, nu, 0.0)
-    region1 = FDataDict("femm"=>FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,2)),
-      material), "femm_mass"=>FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,3)),
+    region1 = FDataDict("femm"=>FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,2)),
+      material), "femm_mass"=>FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,3)),
       material))
 
     nl1 = selectnode(fens; plane=[1.0 0.0 0.0 0.0], thickness=H/1.0e4)
@@ -5192,10 +5191,10 @@ function test()
 
     material=MatDeforElastIso(MR, rho, E, nu, 0.0)
 
-    femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3,2)), material)
+    femm = FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3,2)), material)
     femm = associategeometry!(femm, geom)
     K =stiffness(femm, geom, u)
-    femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3,3)), material)
+    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,3)), material)
     M =mass(femm, geom, u)
 
 
@@ -5325,7 +5324,7 @@ function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label:
   copy!(csmatout, csmat)
 end
 
-femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3, 2), CSys(3, 3, updatecs!)), material)
+femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3, 2)), CSys(3, 3, updatecs!), material)
 
 lx0 = selectnode(fens, box=[0.0 0.0 -Inf Inf -Inf Inf], inflate=tolerance)
 
@@ -5345,7 +5344,7 @@ function getshr!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::F
   copy!(forceout, q0*[0.0; 0.0; 1.0])
 end
 
-Tracfemm = FEMMBase(GeoD(subset(bfes, sshearl), GaussRule(2, 3)))
+Tracfemm = FEMMBase(IntegData(subset(bfes, sshearl), GaussRule(2, 3)))
 
 # println("Stiffness")
 K = stiffness(femm, geom, u)
@@ -5375,8 +5374,8 @@ END_PART(AE);
 ASSEMBLY(AE, "ASSEM1");
 INSTANCE(AE, "INSTNC1", "PART1");
 NODE(AE, fens.xyz);
-ELEMENT(AE, "c3d20r", "AllElements", femm.geod.fes.conn)
-ELEMENT(AE, "SFM3D8", "TractionElements", Tracfemm.geod.fes.conn)
+ELEMENT(AE, "c3d20r", "AllElements", femm.IntegData.fes.conn)
+ELEMENT(AE, "SFM3D8", "TractionElements", Tracfemm.IntegData.fes.conn)
 NSET_NSET(AE, "L1", lx0)
 NSET_NSET(AE, "L2", lx0)
 NSET_NSET(AE, "L3", lx0)
@@ -5458,7 +5457,7 @@ function test()
     # The traction boundary condition is applied in the radial
     # direction.
 
-    el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), GaussRule(1, 3), true))
+    el1femm =  FEMMBase(IntegData(subset(bdryfes,icl), GaussRule(1, 3), true))
     function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
       copy!(forceout, XYZ/norm(XYZ)*p)
       return forceout
@@ -5469,7 +5468,7 @@ function test()
     # Property and material
     material=MatDeforElastOrtho(MR, E1,E2,E3,nu12,nu13,nu23,G12,G13,G23)
 
-    femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), true), material)
+    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
 
     ##
     # The restraints of the nodes on the bounding cross-sections in the direction
@@ -5478,8 +5477,8 @@ function test()
     # For that purpose we introduce  a finite element model machine for the
     # surface  finite elements on the cross-sections.
     springcoefficient =1.0e9/ (abs(p)/E1)
-    xsfemm = FEMMDeforWinkler(GeoD(subset(bdryfes, lx), GaussRule(1, 3), true))
-    ysfemm = FEMMDeforWinkler(GeoD(subset(bdryfes, ly), GaussRule(1, 3), true))
+    xsfemm = FEMMDeforWinkler(IntegData(subset(bdryfes, lx), GaussRule(1, 3), true))
+    ysfemm = FEMMDeforWinkler(IntegData(subset(bdryfes, ly), GaussRule(1, 3), true))
     H = surfacenormalspringstiffness(xsfemm,  geom, u, springcoefficient) +
         surfacenormalspringstiffness(ysfemm,  geom, u, springcoefficient)
     K =stiffness(femm, geom, u)
@@ -5563,7 +5562,7 @@ function test()
     # Property and material
     material=MatDeforElastOrtho(MR, E1,E2,E3,nu12,nu13,nu23,G12,G13,G23)
 
-    femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), true), material)
+    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
 
     K =stiffness(femm, geom, u)
     F = nzebcloadsstiffness(femm, geom, u)
@@ -5606,8 +5605,8 @@ function test()
     #   conn::CC, N::FFltMat)::FFlt where {CC<:AbstractArray{FInt}}
     #   return otherdimension::FFlt
     # end
-    geod = GeoD(fes, GaussRule(1, 2), CSys(3, 1), (loc, conn, N) -> Area, false)
-    # display(geod)
+    integdata = IntegData(fes, GaussRule(1, 2), (loc, conn, N) -> Area, false)
+    # display(IntegData)
 
     MR = DeforModelRed1D
     material = MatDeforElastIso(MR,  0.0, E, nu, alpha)
@@ -5617,7 +5616,7 @@ function test()
     u = NodalField(zeros(size(fens.xyz, 1), 3)) # displacement field
     numberdofs!(u)
 
-    femm = FEMMDeforLinear(MR, geod,  material)
+    femm = FEMMDeforLinear(MR, integdata, CSys(3, 1), material)
     K = stiffness(femm,  geom,  u)
     # println("K = $(K/(phun("lbf")/phun("in")))")
     ref_K=   1.0e+05 *[
@@ -5696,20 +5695,17 @@ function test()
     numberdofs!(u)
     # display(u)
 
-    geod = GeoD(fes, GaussRule(1, 1), CSys(2, 1),
-        (loc, conn, N) -> Area, false)
-    # display(geod.mcsys)
-    femm = FEMMDeforLinear(MR, geod,  material)
+    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(1, 1),  (loc, conn, N) -> Area, false), CSys(2, 1), material)
     K = stiffness(femm,  geom,  u)
 
     fi = ForceIntensity(vec([0 -2000.0]))
-    lfemm = FEMMBase(GeoD(FESetP1(reshape([3], 1,1)), PointRule()))
+    lfemm = FEMMBase(IntegData(FESetP1(reshape([3], 1,1)), PointRule()))
     F = distribloads(lfemm,  geom,  u,  fi,  3);
     fi = ForceIntensity(vec([+2000.0 0]))
-    lfemm = FEMMBase(GeoD(FESetP1(reshape([5], 1,1)), PointRule()))
+    lfemm = FEMMBase(IntegData(FESetP1(reshape([5], 1,1)), PointRule()))
     F = F + distribloads(lfemm,  geom,  u,  fi,  3);
     fi = ForceIntensity(vec([+4000.0 +6000.0]))
-    lfemm = FEMMBase(GeoD(FESetP1(reshape([6], 1,1)), PointRule()))
+    lfemm = FEMMBase(IntegData(FESetP1(reshape([6], 1,1)), PointRule()))
     F = F + distribloads(lfemm,  geom,  u,  fi,  3);
 
     K = cholfact(K)
@@ -5812,7 +5808,7 @@ function test()
     applyebc!(u)
     numberdofs!(u)
 
-    el1femm =  FEMMBase(GeoD(subset(bdryfes,topbfl), GaussRule(2, 2)))
+    el1femm =  FEMMBase(IntegData(subset(bdryfes,topbfl), GaussRule(2, 2)))
     function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
         forceout .=  [0.0, 0.0, -qmagn]
         return forceout
@@ -5826,7 +5822,7 @@ function test()
 
     material = MatDeforElastIso(MR, E, nu)
 
-    femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material)
+    femm = FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3, 2)), material)
 
     # The geometry field now needs to be associated with the FEMM
     femm = associategeometry!(femm, geom)
@@ -5865,9 +5861,9 @@ function test()
     ASSEMBLY(AE, "ASSEM1");
     INSTANCE(AE, "INSTNC1", "PART1");
     NODE(AE, fens.xyz);
-    ELEMENT(AE, "c3d8rh", "AllElements", 1, femm.geod.fes.conn)
+    ELEMENT(AE, "c3d8rh", "AllElements", 1, femm.IntegData.fes.conn)
     ELEMENT(AE, "SFM3D4", "TractionElements",
-    1+count(femm.geod.fes), el1femm.geod.fes.conn)
+    1+count(femm.IntegData.fes), el1femm.IntegData.fes.conn)
     NSET_NSET(AE, "l1", l1)
     NSET_NSET(AE, "l2", l2)
     NSET_NSET(AE, "l3", l3)
@@ -5977,7 +5973,7 @@ function test()
 
             bdryfes = meshboundary(fes);
             ixl = selectelem(fens, bdryfes, plane=[1.0, 0.0, 0.0, Re], thickness=tolerance);
-            elxfemm =  FEMMBase(GeoD(subset(bdryfes,ixl), GaussRule(2, 2)))
+            elxfemm =  FEMMBase(IntegData(subset(bdryfes,ixl), GaussRule(2, 2)))
             function pfunx(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
                 forceout[1] = sigmaxx(XYZ)
                 forceout[2] = sigmaxy(XYZ)
@@ -5987,7 +5983,7 @@ function test()
             fi = ForceIntensity(FFlt, 3, pfunx);
             Fx = distribloads(elxfemm, geom, u, fi, 2);
             iyl = selectelem(fens, bdryfes, plane=[0.0, 1.0, 0.0, Re], thickness=tolerance);
-            elyfemm =  FEMMBase(GeoD(subset(bdryfes,iyl), GaussRule(2, 2)))
+            elyfemm =  FEMMBase(IntegData(subset(bdryfes,iyl), GaussRule(2, 2)))
             function pfuny(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
                 forceout[1] = -sigmaxy(XYZ)
                 forceout[2] = sigmayy(XYZ)
@@ -6001,7 +5997,7 @@ function test()
 
             material = MatDeforElastIso(MR, E, nu)
 
-            femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material)
+            femm = FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3, 2)), material)
 
             # The geometry field now needs to be associated with the FEMM
             femm = associategeometry!(femm, geom)
@@ -6152,7 +6148,7 @@ function test()
             bdryfes = meshboundary(fes);
             # ixl = selectelem(fens, bdryfes, plane=[1.0, 0.0, 0.0, Re], thickness=tolerance);
             ixl = selectelem(fens, bdryfes, box=[Re, Re, -Inf, +Inf, -Inf, +Inf], inflate = tolerance);
-            elxfemm =  FEMMBase(GeoD(subset(bdryfes,ixl), GaussRule(2, 2)))
+            elxfemm =  FEMMBase(IntegData(subset(bdryfes,ixl), GaussRule(2, 2)))
             function pfunx(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
                 forceout[1] = sigmaxx(XYZ)
                 forceout[2] = sigmaxy(XYZ)
@@ -6163,7 +6159,7 @@ function test()
             Fx = distribloads(elxfemm, geom, u, fi, 2);
             # iyl = selectelem(fens, bdryfes, plane=[0.0, 1.0, 0.0, Re], thickness=tolerance);
             iyl = selectelem(fens, bdryfes, box=[-Inf, +Inf, Re, Re, -Inf, +Inf], inflate = tolerance);
-            elyfemm =  FEMMBase(GeoD(subset(bdryfes,iyl), GaussRule(2, 2)))
+            elyfemm =  FEMMBase(IntegData(subset(bdryfes,iyl), GaussRule(2, 2)))
             function pfuny(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
                 forceout[1] = sigmaxy(XYZ)
                 forceout[2] = sigmayy(XYZ)
@@ -6177,7 +6173,7 @@ function test()
 
             material = MatDeforElastIso(MR, E, nu)
 
-            femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(3, 2)), material)
+            femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3, 2)), material)
 
             # The geometry field now needs to be associated with the FEMM
             femm = associategeometry!(femm, geom)
@@ -6334,7 +6330,7 @@ function test()
 
             applyebc!(u)
             numberdofs!(u)
-            el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), SimplexRule(2, 3)))
+            el1femm =  FEMMBase(IntegData(subset(bdryfes,icl), SimplexRule(2, 3)))
             function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
                 local r = sqrt(XYZ[1]^2 + XYZ[2]^2)
                 nx = XYZ[1]/r; ny = XYZ[2]/r
@@ -6357,7 +6353,7 @@ function test()
 
             material = MatDeforElastIso(MR, E, nu)
 
-            femm = FEMMDeforLinearMST10(MR, GeoD(fes, SimplexRule(3, 4)), material)
+            femm = FEMMDeforLinearMST10(MR, IntegData(fes, SimplexRule(3, 4)), material)
 
             # The geometry field now needs to be associated with the FEMM
             femm = associategeometry!(femm, geom)
@@ -6443,7 +6439,7 @@ function test()
     numberdofs!(u)
 
 
-    el1femm =  FEMMBase(GeoD(subset(bdryfes,icl), GaussRule(2, 2)))
+    el1femm =  FEMMBase(IntegData(subset(bdryfes,icl), GaussRule(2, 2)))
     function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
         pt= [2.75/3.25*XYZ[1], 3.25/2.75*XYZ[2], 0.0]
         forceout .=    vec(p*pt/norm(pt));
@@ -6458,7 +6454,7 @@ function test()
 
     material = MatDeforElastIso(MR, E, nu)
 
-    femm = FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3, 2)), material)
+    femm = FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3, 2)), material)
 
     # The geometry field now needs to be associated with the FEMM
     femm = associategeometry!(femm, geom)
@@ -6551,7 +6547,7 @@ function test()
     # Property and material
     material=MatDeforElastOrtho(MR, E1,E2,E3,nu12,nu13,nu23,G12,G13,G23)
 
-    femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), true), material)
+    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
 
     # Make region
     region = FDataDict("femm"=>femm)
@@ -6653,7 +6649,7 @@ function test()
     # Property and material
     material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
 
-    femm  =  FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 3), true), material)
+    femm  =  FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 3), true), material)
 
     # Make region 1
     region = FDataDict("femm"=>femm)
@@ -6754,7 +6750,7 @@ function test()
   # Traction on the opposite edge
   boundaryfes  =   meshboundary(fes);
   Toplist   = selectelem(fens,boundaryfes, box =  [L L -100*W 100*W -100*W 100*W], inflate =   tolerance);
-  el1femm  = FEMMBase(GeoD(subset(boundaryfes,Toplist), GaussRule(2, 2)))
+  el1femm  = FEMMBase(IntegData(subset(boundaryfes,Toplist), GaussRule(2, 2)))
   flux1 = FDataDict("femm"=>el1femm, "traction_vector"=>loadv)
 
 
@@ -6765,7 +6761,7 @@ function test()
     nu12s, nu13s, nu23s,
     G12s, G13s, G23s,
     0.0, 0.0, 0.0)
-  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3,2)),
+  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3,2)),
   material))
 
   # Make model data
@@ -6884,7 +6880,7 @@ function test()
     # Traction on the opposite edge
     boundaryfes  =   meshboundary(fes);
     Toplist   = selectelem(fens,boundaryfes, box =  [L L -100*W 100*W -100*W 100*W], inflate =   tolerance);
-    el1femm  = FEMMBase(GeoD(subset(boundaryfes,Toplist), GaussRule(2, 2)))
+    el1femm  = FEMMBase(IntegData(subset(boundaryfes,Toplist), GaussRule(2, 2)))
     flux1 = FDataDict("femm"=>el1femm, "traction_vector"=>loadv)
 
 
@@ -6895,7 +6891,7 @@ function test()
     nu12s, nu13s, nu23s,
     G12s, G13s, G23s,
     0.0, 0.0, 0.0)
-    region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3,2)),
+    region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3,2)),
     material))
 
     # Make model data
@@ -7014,7 +7010,7 @@ function test()
     # display(material)
     # println("$(material.D)")
 
-    femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), true), material)
+    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
 
     K =stiffness(femm, geom, u)
     F = nzebcloadsstiffness(femm, geom, u)
@@ -7098,7 +7094,7 @@ function test()
     # display(material)
     # println("$(material.D)")
 
-    femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), true), material)
+    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
 
     K =stiffness(femm, geom, u)
     F = nzebcloadsstiffness(femm, geom, u)
@@ -7204,11 +7200,11 @@ function test()
         for layer = 1:nLayers
             rls = selectelem(fens, fes, label =  layer)
             push!(regions, FDataDict("femm"=>FEMMDeforLinearMSH8(MR,
-            GeoD(subset(fes, rls), gr, CSys(3, 3, updatecs!)), skinmaterial)))
+            IntegData(subset(fes, rls), gr), CSys(3, 3, updatecs!), skinmaterial)))
         end
         
         # File =  "Meyer_Piening_sandwich-r1.vtk"
-        # vtkexportmesh(File, skinregion["femm"].geod.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
+        # vtkexportmesh(File, skinregion["femm"].IntegData.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
         # # @async run(`"paraview.exe" $File`)
         
         
@@ -7234,7 +7230,7 @@ function test()
         # Z = thickness
         tl = selectelem(fens, bfes, box = [-Inf Inf -Inf Inf T T], inflate=tolerance)
         Trac = FDataDict("traction_vector"=>pfun,
-        "femm"=>FEMMBase(GeoD(subset(bfes, tl), GaussRule(2, 2))))
+        "femm"=>FEMMBase(IntegData(subset(bfes, tl), GaussRule(2, 2))))
         
         modeldata = FDataDict("fens"=>fens,
         "regions"=>regions,

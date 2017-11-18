@@ -49,7 +49,7 @@ function test()
     # Property and material
     material=MatDeforElastOrtho(MR, E1,E2,E3,nu12,nu13,nu23,G12,G13,G23)
 
-    femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), true), material)
+    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
 
     # Make region
     region = FDataDict("femm"=>femm)

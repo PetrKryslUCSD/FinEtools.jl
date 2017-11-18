@@ -116,14 +116,14 @@ numberdofs!(u)
 # The traction boundary condition is applied in the radial
 # direction.
 
-el1femm =  FEMMBase(GeoD(subset(bdryfes,bcl), GaussRule(1, 3), axisymmetric))
+el1femm =  FEMMBase(IntegData(subset(bdryfes,bcl), GaussRule(1, 3), axisymmetric))
 fi = ForceIntensity([press; 0.0]);
 F2= distribloads(el1femm, geom, u, fi, 2);
 
 # Property and material
 material = MatDeforElastIso(MR,  E, nu)
 
-femm = FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 2), axisymmetric), material)
+femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), axisymmetric), material)
 
 K = stiffness(femm, geom, u)
 #K=cholfact(K)

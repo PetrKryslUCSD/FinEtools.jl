@@ -57,13 +57,13 @@ edge_fes = meshboundary(fes);
 material = MatAcoustFluid(bulk, rho)
 # The pressure boundary condition
 l1 = selectelem(fens, edge_fes, box=[0.0 Piston_radius Tank_height-Piston_height Tank_height-Piston_height]);
-flux1  =  FDataDict("femm"=>FEMMAcoustSurf(GeoD(subset(edge_fes, l1), GaussRule(1, 2), axisymmetric),
+flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegData(subset(edge_fes, l1), GaussRule(1, 2), axisymmetric),
           material),  "normal_flux"=> -rho*a_piston+0.0im);
 l2 = selectelem(fens, edge_fes, box=[Piston_radius Tank_radius Tank_height Tank_height]);
 ebc2 = FDataDict("node_list"=>connectednodes(subset(edge_fes, l2)),
     "pressure"=>x -> 0.0) # entering the domain
 
-femm = FEMMAcoust(GeoD(fes,  GaussRule(2, 2), axisymmetric),  material)
+femm = FEMMAcoust(IntegData(fes,  GaussRule(2, 2), axisymmetric),  material)
 region1 = FDataDict("femm"=>femm)
 
 # Make model data

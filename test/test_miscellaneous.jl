@@ -121,14 +121,14 @@ function test()
   # Traction on the opposite edge
   boundaryfes  =   meshboundary(fes);
   Toplist   = selectelem(fens,boundaryfes, box =  [L L -100*W 100*W -100*W 100*W], inflate =   tolerance);
-  el1femm  = FEMMBase(GeoD(subset(boundaryfes,Toplist), GaussRule(2, 2)))
+  el1femm  = FEMMBase(IntegData(subset(boundaryfes,Toplist), GaussRule(2, 2)))
   flux1 = FDataDict("femm"=>el1femm, "traction_vector"=>loadv)
 
 
   # Make the region
   MR = DeforModelRed3D
   material = MatDeforElastIso(MR, 00.0, E, nu, 0.0)
-  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3,2)),
+  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3,2)),
             material))
 
   # Make model data
@@ -144,9 +144,9 @@ function test()
   ASSEMBLY(AE, "ASSEM1");
   INSTANCE(AE, "INSTNC1", "PART1");
   NODE(AE, fens.xyz);
-  ELEMENT(AE, "c3d8rh", "AllElements", 1, region1["femm"].geod.fes.conn)
+  ELEMENT(AE, "c3d8rh", "AllElements", 1, region1["femm"].IntegData.fes.conn)
   ELEMENT(AE, "SFM3D4", "TractionElements",
-    1+count(region1["femm"].geod.fes), flux1["femm"].geod.fes.conn)
+    1+count(region1["femm"].IntegData.fes), flux1["femm"].IntegData.fes.conn)
   NSET_NSET(AE, "l1", l1)
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", "Hourglass");
@@ -213,14 +213,14 @@ function test()
   # Traction on the opposite edge
   boundaryfes  =   meshboundary(fes);
   Toplist   = selectelem(fens,boundaryfes, box =  [L L -100*W 100*W -100*W 100*W], inflate =   tolerance);
-  el1femm  = FEMMBase(GeoD(subset(boundaryfes,Toplist), GaussRule(2, 2)))
+  el1femm  = FEMMBase(IntegData(subset(boundaryfes,Toplist), GaussRule(2, 2)))
   flux1 = FDataDict("femm"=>el1femm, "traction_vector"=>loadv)
 
 
   # Make the region
   MR = DeforModelRed3D
   material = MatDeforElastIso(MR, 00.0, E, nu, 0.0)
-  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, GeoD(fes, GaussRule(3,2)),
+  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3,2)),
             material))
 
   # Make model data
@@ -236,9 +236,9 @@ function test()
   ASSEMBLY(AE, "ASSEM1");
   INSTANCE(AE, "INSTNC1", "PART1");
   NODE(AE, fens.xyz);
-  ELEMENT(AE, "c3d8rh", "AllElements", 1, region1["femm"].geod.fes.conn)
+  ELEMENT(AE, "c3d8rh", "AllElements", 1, region1["femm"].IntegData.fes.conn)
   ELEMENT(AE, "SFM3D4", "TractionElements",
-    1+count(region1["femm"].geod.fes), flux1["femm"].geod.fes.conn)
+    1+count(region1["femm"].IntegData.fes), flux1["femm"].IntegData.fes.conn)
   NSET_NSET(AE, "l1", l1)
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", "Hourglass");
@@ -303,7 +303,7 @@ function test()
     fens,fes  = H8block(L,W,t, nl,nw,nt)
     geom  =  NodalField(fens.xyz)
 
-    femm  =  FEMMBase(GeoD(fes, GaussRule(3, 2)))
+    femm  =  FEMMBase(IntegData(fes, GaussRule(3, 2)))
     V = integratefunction(femm, geom, (x) ->  1.0)
     @test abs(V - W*L*t)/V < 1.0e-5
 end
@@ -323,7 +323,7 @@ function test()
     fens,fes  = H8block(L,W,t, nl,nw,nt)
     geom  =  NodalField(fens.xyz)
     bfes = meshboundary(fes)
-    femm  =  FEMMBase(GeoD(bfes, GaussRule(2, 2)))
+    femm  =  FEMMBase(IntegData(bfes, GaussRule(2, 2)))
     S = integratefunction(femm, geom, (x) ->  1.0)
     @test abs(S - 2*(W*L + L*t + W*t))/S < 1.0e-5
 end
@@ -344,7 +344,7 @@ function test()
     fens,fes  = Q4block(L,W,nl,nw)
     geom  =  NodalField(fens.xyz)
     bfes = meshboundary(fes)
-    femm  =  FEMMBase(GeoD(bfes, GaussRule(1, 2)))
+    femm  =  FEMMBase(IntegData(bfes, GaussRule(1, 2)))
     S = integratefunction(femm, geom, (x) ->  1.0)
     @test abs(S - 2*(W + L))/S < 1.0e-5
 end
@@ -365,7 +365,7 @@ function test()
     fens,fes  = L2block(L,nl)
     geom  =  NodalField(fens.xyz)
     bfes = meshboundary(fes)
-    femm  =  FEMMBase(GeoD(bfes, PointRule()))
+    femm  =  FEMMBase(IntegData(bfes, PointRule()))
     S = integratefunction(femm, geom, (x) ->  1.0)
     @test abs(S - 2)/S < 1.0e-5
 end
@@ -387,7 +387,7 @@ function test()
     geom  =  NodalField(fens.xyz)
 
     nfes = FESetP1(reshape(collect(1:count(fens)), count(fens), 1))
-    femm  =  FEMMBase(GeoD(nfes, PointRule()))
+    femm  =  FEMMBase(IntegData(nfes, PointRule()))
     S = integratefunction(femm, geom, (x) ->  1.0)
     @test abs(S - count(fens))/S < 1.0e-5
 
@@ -410,7 +410,7 @@ function test()
     geom  =  NodalField(fens.xyz)
 
     nfes = FESetP1(reshape(collect(1:count(fens)), count(fens), 1))
-    femm  =  FEMMBase(GeoD(nfes, PointRule()))
+    femm  =  FEMMBase(IntegData(nfes, PointRule()))
     S = integratefunction(femm, geom, (x) ->  1.0)
     @test abs(S - count(fens))/S < 1.0e-5
 
@@ -433,7 +433,7 @@ function test()
     geom  =  NodalField(fens.xyz)
     bfes = FESetP1(reshape([nl+1], 1, 1))
     axisymmetric = true
-    femm  =  FEMMBase(GeoD(bfes, PointRule(), axisymmetric))
+    femm  =  FEMMBase(IntegData(bfes, PointRule(), axisymmetric))
     S = integratefunction(femm, geom, (x) ->  1.0, 1)
     # println(" Length  of the circle = $(S)")
     @test abs(S - 2*pi*L)/S < 1.0e-5
@@ -455,7 +455,7 @@ function test()
     geom  =  NodalField(fens.xyz)
     bfes = FESetP1(reshape([nl+1], 1, 1))
 
-    femm  =  FEMMBase(GeoD(bfes, PointRule(), t))
+    femm  =  FEMMBase(IntegData(bfes, PointRule(), t))
     S = integratefunction(femm, geom, (x) ->  1.0, 1)
     # println("Length  of the boundary curve = $(S)")
     @test abs(S - t)/S < 1.0e-5
@@ -477,7 +477,7 @@ function test()
     geom  =  NodalField(fens.xyz)
     bfes = FESetP1(reshape([nl+1], 1, 1))
 
-    femm  =  FEMMBase(GeoD(bfes, PointRule(), t*W))
+    femm  =  FEMMBase(IntegData(bfes, PointRule(), t*W))
     S = integratefunction(femm, geom, (x) ->  1.0, 2)
     # println("Length  of the boundary curve = $(S)")
     @test abs(S - t*W)/S < 1.0e-5
@@ -499,7 +499,7 @@ function test()
     geom  =  NodalField(fens.xyz)
     bfes = FESetP1(reshape([nl+1], 1, 1))
 axisymmetric = true
-    femm  =  FEMMBase(GeoD(bfes, PointRule(), axisymmetric, W))
+    femm  =  FEMMBase(IntegData(bfes, PointRule(), axisymmetric, W))
     S = integratefunction(femm, geom, (x) ->  1.0, 2)
     # println("Length  of the boundary curve = $(S)")
     @test abs(S - 2*pi*L*W)/S < 1.0e-5
@@ -521,7 +521,7 @@ function test()
     geom  =  NodalField(fens.xyz)
     bfes = FESetP1(reshape([nl+1], 1, 1))
 axisymmetric = true
-    femm  =  FEMMBase(GeoD(bfes, PointRule(), axisymmetric, W*t))
+    femm  =  FEMMBase(IntegData(bfes, PointRule(), axisymmetric, W*t))
     S = integratefunction(femm, geom, (x) ->  1.0, 3)
     # println("Length  of the boundary curve = $(S)")
     @test abs(S - 2*pi*L*W*t)/S < 1.0e-5
@@ -543,7 +543,7 @@ function test()
     geom  =  NodalField(fens.xyz)
     bfes = FESetP1(reshape([nl+1], 1, 1))
 axisymmetric = false
-    femm  =  FEMMBase(GeoD(bfes, PointRule(), axisymmetric, L*W*t))
+    femm  =  FEMMBase(IntegData(bfes, PointRule(), axisymmetric, L*W*t))
     S = integratefunction(femm, geom, (x) ->  1.0, 3)
     # println("Length  of the boundary curve = $(S)")
     @test abs(S - L*W*t)/S < 1.0e-5
@@ -654,7 +654,7 @@ function test()
         fens,fes  = T4block(L,W,t, nl,nw,nt, or)
         geom  =  NodalField(fens.xyz)
 
-        femm  =  FEMMBase(GeoD(fes, TetRule(5)))
+        femm  =  FEMMBase(IntegData(fes, TetRule(5)))
         V = integratefunction(femm, geom, (x) ->  1.0)
         @test abs(V - W*L*t)/V < 1.0e-5
     end
@@ -707,7 +707,7 @@ function test()
     fens,fes  = H27block(L,W,t, nl,nw,nt)
     geom  =  NodalField(fens.xyz)
 
-    femm  =  FEMMBase(GeoD(fes, GaussRule(3, 3)))
+    femm  =  FEMMBase(IntegData(fes, GaussRule(3, 3)))
     V = integratefunction(femm, geom, (x) ->  1.0)
     @test abs(V - W*L*t)/V < 1.0e-5
 end
@@ -728,7 +728,7 @@ function test()
     geom  =  NodalField(fens.xyz)
 
 bfes = meshboundary(fes)
-    femm  =  FEMMBase(GeoD(bfes, GaussRule(2, 4)))
+    femm  =  FEMMBase(IntegData(bfes, GaussRule(2, 4)))
     V = integratefunction(femm, geom, (x) ->  1.0)
     @test abs(V - 2*(W*L+L*t+W*t))/V < 1.0e-5
 end
@@ -757,7 +757,7 @@ function test()
     # MeshExportModule.vtkexportmesh(File, fens, fes)
 
     bfes = meshboundary(fes)
-    femm  =  FEMMBase(GeoD(bfes, GaussRule(2, 4)))
+    femm  =  FEMMBase(IntegData(bfes, GaussRule(2, 4)))
     S20 = integratefunction(femm, geom, (x) ->  1.0)
 
     fens,fes  = H27block(L,W,t, nl,nw,nt)
@@ -770,7 +770,7 @@ function test()
     # MeshExportModule.vtkexportmesh(File, fens, fes)
 
     bfes = meshboundary(fes)
-    femm  =  FEMMBase(GeoD(bfes, GaussRule(2, 4)))
+    femm  =  FEMMBase(IntegData(bfes, GaussRule(2, 4)))
     S27 = integratefunction(femm, geom, (x) ->  1.0)
     # println("$((S20-S27)/S20)")
 
@@ -800,7 +800,7 @@ function test()
     # File = "mesh.vtk"
     # MeshExportModule.vtkexportmesh(File, fens, fes)
 
-    femm  =  FEMMBase(GeoD(fes, GaussRule(3, 4)))
+    femm  =  FEMMBase(IntegData(fes, GaussRule(3, 4)))
     V20 = integratefunction(femm, geom, (x) ->  1.0)
 
     fens,fes  = H27block(L,W,t, nl,nw,nt)
@@ -812,7 +812,7 @@ function test()
     # File = "mesh.vtk"
     # MeshExportModule.vtkexportmesh(File, fens, fes)
 
-    femm  =  FEMMBase(GeoD(fes, GaussRule(3, 4)))
+    femm  =  FEMMBase(IntegData(fes, GaussRule(3, 4)))
     V27 = integratefunction(femm, geom, (x) ->  1.0)
     # println("$((S20-S27)/S20)")
 
@@ -1055,7 +1055,7 @@ function test()
     nh = 3; nl  = 4; nc = 5;
 
     fens,fes  = H8block(h,l,2.0*pi,nh,nl,nc)
-    femm = FEMMBase(GeoD(fes, GaussRule(3, 2)))
+    femm = FEMMBase(IntegData(fes, GaussRule(3, 2)))
     C = connectionmatrix(femm, count(fens))
     Degree = [length(find(x->x!=0, C[j,:])) for j in 1:size(C, 1)]
     # println("Maximum degree  = $(maximum(Degree))")
@@ -1116,7 +1116,7 @@ function test()
 
     geom  =  NodalField(fens.xyz)
 
-    femm  =  FEMMBase(GeoD(subset(boundaryfes, ytl), GaussRule(1, 2)))
+    femm  =  FEMMBase(IntegData(subset(boundaryfes, ytl), GaussRule(1, 2)))
     L = integratefunction(femm, geom, (x) ->  1.0)
     @test abs(L - 2.0)/L < 1.0e-5
 
@@ -1149,7 +1149,7 @@ function test()
 
     geom  =  NodalField(fens.xyz)
 
-    femm  =  FEMMBase(GeoD(subset(boundaryfes, ytl), GaussRule(1, 3)))
+    femm  =  FEMMBase(IntegData(subset(boundaryfes, ytl), GaussRule(1, 3)))
     L = integratefunction(femm, geom, (x) ->  1.0)
     @test abs(L - 2.0)/L < 1.0e-5
 
@@ -1182,12 +1182,12 @@ function test()
 
     geom  =  NodalField(fens.xyz)
 
-    femm  =  FEMMBase(GeoD(subset(boundaryfes, ytl), SimplexRule(2, 1)))
+    femm  =  FEMMBase(IntegData(subset(boundaryfes, ytl), SimplexRule(2, 1)))
     S = integratefunction(femm, geom, (x) ->  1.0)
     @test abs(S - 6.0)/S < 1.0e-5
 
 
-    femm  =  FEMMBase(GeoD(fes, SimplexRule(3, 1)))
+    femm  =  FEMMBase(IntegData(fes, SimplexRule(3, 1)))
     V = integratefunction(femm, geom, (x) ->  1.0)
     @test abs(V - 36.0)/V < 1.0e-5
 
@@ -1236,7 +1236,7 @@ function test()
     # MeshExportModule.vtkexportmesh(File, fens, fes)
     # @async run(`"paraview.exe" $File`)
 
-    femm  =  FEMMBase(GeoD(fes, GaussRule(3, 4)))
+    femm  =  FEMMBase(IntegData(fes, GaussRule(3, 4)))
     V20 = integratefunction(femm, geom, (x) ->  1.0)
 
     subregion1list = selectelem(fens, fes, box = [0.0 L/2 -Inf Inf -Inf Inf], inflate = t/1000)
@@ -1258,9 +1258,9 @@ function test()
     present = find(x -> x > 0, new_numbering2)
     geom2  =  NodalField(fens.xyz[present, :])
 
-    femm1  =  FEMMBase(GeoD(fes1, GaussRule(3, 4)))
+    femm1  =  FEMMBase(IntegData(fes1, GaussRule(3, 4)))
     V20p = integratefunction(femm1, geom1, (x) ->  1.0)
-    femm2  =  FEMMBase(GeoD(fes2, GaussRule(3, 4)))
+    femm2  =  FEMMBase(IntegData(fes2, GaussRule(3, 4)))
     V20p += integratefunction(femm2, geom2, (x) ->  1.0)
     # println("V20p = $(V20p)")
     # println("V20 = $(V20)")

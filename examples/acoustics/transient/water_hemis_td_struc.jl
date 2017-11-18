@@ -54,7 +54,7 @@ fens1w, fes1w = deepcopy(fens), subset(fes, setdiff(collect(1:count(fes)), Solid
 
 # Find the inertial properties of the solid sphere
 geom  =  NodalField(fens.xyz)
-femm  =  FEMMBase(GeoD(subset(fes, Solidl), GaussRule(3, 2)))
+femm  =  FEMMBase(IntegData(subset(fes, Solidl), GaussRule(3, 2)))
 V = integratefunction(femm, geom, (x) ->  1.0)
   println("V=$(V/phun("mm^3"))")
 Sx = integratefunction(femm, geom, (x) ->  x[1])
@@ -117,12 +117,12 @@ t1  =  time()
 numberdofs!(P)
 
 material = MatAcoustFluid(bulk,rho)
-femm  =  FEMMAcoust(GeoD(fes, GaussRule(3, 2)), material)
+femm  =  FEMMAcoust(IntegData(fes, GaussRule(3, 2)), material)
 
 S  =  acousticstiffness(femm, geom, P);
 C  =  acousticmass(femm, geom, P);
 
-abcfemm  =  FEMMAcoustSurf(GeoD(subset(bfes, louter), GaussRule(2, 2)), material)
+abcfemm  =  FEMMAcoustSurf(IntegData(subset(bfes, louter), GaussRule(2, 2)), material)
 D  =  acousticABC(abcfemm, geom, P);
 
 # ABC surface pressure loading
@@ -134,7 +134,7 @@ function abcp(dpdn, xyz, J, label, t)
 end
 
 
-targetfemm  =  FEMMAcoustSurf(GeoD(subset(bfes, linner), GaussRule(2, 2)), material)
+targetfemm  =  FEMMAcoustSurf(IntegData(subset(bfes, linner), GaussRule(2, 2)), material)
 
 ForceF = GeneralField(zeros(3,1))
 numberdofs!(ForceF)

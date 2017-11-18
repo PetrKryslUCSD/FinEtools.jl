@@ -29,7 +29,7 @@ l4  = selectnode(fens; box=[0. A A A], inflate = 1.0/N/100.0)
 essential1 = FDataDict("node_list"=>vcat(l1, l2, l3, l4),
 "temperature"=>truetempf);
 material = MatHeatDiff(thermal_conductivity)
-femm = FEMMHeatDiff(GeoD(fes, TriRule(1)), material)
+femm = FEMMHeatDiff(IntegData(fes, TriRule(1)), material)
 region1 = FDataDict("femm"=>femm, "Q"=>magn)
 # Make model data
 modeldata= FDataDict("fens"=> fens,

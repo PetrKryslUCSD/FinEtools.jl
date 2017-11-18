@@ -74,7 +74,7 @@ dT  = NodalField(reshape(fens.xyz[:,1]+fens.xyz[:,2],size(fens.xyz,1),1));
 # Property and material
 material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
 
-femm  =  FEMMDeforLinear(MR, GeoD(fes, GaussRule(2, 3), true), material)
+femm  =  FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 3), true), material)
 
 K  = stiffness(femm, geom, u)
 F  =  thermalstrainloads(femm, geom, u, dT)
