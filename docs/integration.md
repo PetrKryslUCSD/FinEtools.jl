@@ -4,8 +4,7 @@
 
 There are two kinds of integrals in the weighted-residual finite element method: integrals over the interior  of the domain,  and integrals over the boundary of the domain.
 
-Consequently, in a typical simulation one would need  two meshes: one for the interior  of the domain,  and one for the boundary.
-Obviously, the one for the boundary will be derived from the mesh  constructed for the interior.
+Consequently, in a typical simulation one would need  two meshes: one for the interior  of the domain,  and one for the boundary. Obviously, the one for the boundary will be derived from the mesh  constructed for the interior.
 Often only at part  of the entire boundary  of the interior mesh  is   used:  on some parts of the boundary  the
 boundary condition is boundary condition is implied as homogeneous (i. e. zero). For instance, a traction-free boundary. 
 Therefore the necessary integrals are typically evaluated over a subset of the entire boundary.
@@ -17,8 +16,7 @@ triangles and quadrilaterals are two-manifolds, triangles and quadrilaterals are
 lines are one-manifolds, and points are zero-manifolds.
 
 Elements are equipped with an "other" dimension which boosts the manifold dimension to produce the required
-dimension for  the integration. For instance,  a line element can be equipped with an "other" dimension to represent a cross-section 
-so that a volume integral can be evaluated over a line element. Or, a line element can be given 
+dimension for  the integration. For instance,  a line element can be equipped with an "other" dimension to represent a cross-section so that a volume integral can be evaluated over a line element. Or, a line element can be given 
 an "other" dimension as a thickness to result in a physical dimension needed to evaluate a surface integral.
 
 The "other"  dimension  has the following meaning  for finite elements of different manifold dimensions:
@@ -50,7 +48,7 @@ to the model (axially symmetric versus simple  plane 2D) as shown  in the table 
 
 The integral  is approximated with numerical quadrature as
 
-<img src="http://latex.codecogs.com/gif.latex? \int_{\partial \Omega} f dS \approx \sum_q f(\xi_q) J(\xi_q) W_q " border="0"/>
+<img src="http://latex.codecogs.com/gif.latex? \int_{\Omega} f dV \approx \sum_q f(\xi_q) J(\xi_q) W_q " border="0"/>
 
 Here <img src="http://latex.codecogs.com/gif.latex? f" border="0"/> is the integrand, <img src="http://latex.codecogs.com/gif.latex? f(\xi_q)" border="0"/> is the  value of the integrand  at the quadrature point,
 <img src="http://latex.codecogs.com/gif.latex? J(\xi_q)" border="0"/> is the  value of the Jacobian  at the quadrature point.
@@ -70,15 +68,15 @@ to the model (axially symmetric versus simple  plane 2D) as shown  in the table 
 
 | Manifold dimension        | Axially symmetric    | Plane 2D |
 | ------------- | ------------- | ----- |
-| 1 | $2\pi r$   |  Thickness |
-| 0 | $2\pi r  \times$ Thickness  |  Cross-section |
+| 1 | <img src="http://latex.codecogs.com/gif.latex? 2\pi r" border="0"/>  |  Thickness |
+| 0 | <img src="http://latex.codecogs.com/gif.latex? 2\pi r\times" border="0"/>  Thickness  |  Cross-section |
 
 The integral  is approximated with numerical quadrature as
 
-$\int_{\partial \Omega} f dS \approx \sum_q f(\xi_q) J(\xi_q) W_q $ 
+<img src="http://latex.codecogs.com/gif.latex? \int_{\partial \Omega} f dS \approx \sum_q f(\xi_q) J(\xi_q) W_q " border="0"/> 
 
-Here $f$ is the integrand, $f(\xi_q)$ is the  value of the integrand  at the quadrature point,
-$J(\xi_q)$ is the  value of the Jacobian  at the quadrature point.
+Here <img src="http://latex.codecogs.com/gif.latex? f" border="0"/> is the integrand, <img src="http://latex.codecogs.com/gif.latex? f(\xi_q)" border="0"/> is the  value of the integrand  at the quadrature point,
+<img src="http://latex.codecogs.com/gif.latex? J(\xi_q)" border="0"/> is the  value of the Jacobian  at the quadrature point.
 Importantly, the Jacobian incorporates the "other" dimension,  and therefore it is the  *surface* 
 Jacobian. (For the boundary integrals the Jacobian  is computed by the `Jacobiansurface` method.)
 
@@ -127,5 +125,3 @@ which simply returns 1.0 as the default value.
 ## Evaluation of integration data
 
 Importantly, the  Integration Data method `integrationdata` evaluates quantities  needed for numerical integration: locations and weights of quadrature points, and the values of basis functions and of the basis function gradients with respect to the parametric coordinates at the quadrature points.
-
-<img src="http://latex.codecogs.com/gif.latex?1+sin(x)" border="0"/>
