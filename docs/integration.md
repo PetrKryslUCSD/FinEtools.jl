@@ -44,13 +44,13 @@ to the model (axially symmetric versus simple  plane 2D) as shown  in the table 
 
 | Manifold dimension        | Axially symmetric    | Plane 2D |
 | ------------- | ------------- | ----- |
-| 2 | $2\pi r\times$  |  1.0 |
-| 1 | $2\pi r\times$ Thickness  |  Cross-section |
-| 0 | $2\pi r  \times$ Cross-section  |  Volume |  
+| 2 | <img src="http://latex.codecogs.com/gif.latex? 2\pi r\times" border="0"/>  |  1.0 |
+| 1 | <img src="http://latex.codecogs.com/gif.latex? 2\pi r\times" border="0"/> Thickness  |  Cross-section |
+| 0 | <img src="http://latex.codecogs.com/gif.latex? 2\pi r\times" border="0"/> Cross-section  |  Volume |  
 
 The integral  is approximated with numerical quadrature as
 
-$\int_{\partial \Omega} f dS \approx \sum_q f(\xi_q) J(\xi_q) W_q $ 
+<img src="http://latex.codecogs.com/gif.latex? \int_{\partial \Omega} f dS \approx \sum_q f(\xi_q) J(\xi_q) W_q " border="0"/>
 
 Here $f$ is the integrand, $f(\xi_q)$ is the  value of the integrand  at the quadrature point,
 $J(\xi_q)$ is the  value of the Jacobian  at the quadrature point.
