@@ -1,28 +1,35 @@
+[Top](https://petrkryslucsd.github.io/FinEtools.jl)
+
 # Modules
 
 - Top-level
      `FinEtools`    
 
 - Algorithms
-`AlgoBaseModule`  `AlgoAcoustModule`  `AlgoDeforLinearModule`, `AlgoHeatDiffModule`
+`AlgoBaseModule`,  `AlgoAcoustModule`,  `AlgoDeforLinearModule`, `AlgoHeatDiffModule`.
 
 - Geometry  Data
-`CSysModule` `GeoDModule`  
+`CSysModule`, `GeoDModule`.
 
 - Finite Element  Model Machines
-`FEMMAcoustModule`,`FEMMAcoustSurfModule`    `FEMMDeforLinearModule`    `FEMMDeforLinearMSModule`   `FEMMHeatDiffModule`  `FEMMHeatDiffSurfModule`   
-`DeforModelRedModule`    `FEMMBaseModule`                
-     `FEMMDeforLinearBaseModule`         `FEMMDeforWinklerModule`          
+   + Base
+   `FEMMBaseModule`,
+   + Heat diffusion
+    `FEMMHeatDiffModule`, `FEMMHeatDiffSurfModule`  
+   + Acoustics
+    `FEMMAcoustModule`, `FEMMAcoustSurfModule`
+   + Linear deformation
+    `FEMMDeforLinearBaseModule`, `DeforModelRedModule`,  `FEMMDeforLinearModule`, `FEMMDeforLinearMSModule`,  `FEMMDeforWinklerModule`    
 
 - Materials
   `MatDeforModule`     `MatDeforElastIsoModule`  `MatDeforElastOrthoModule`  `MatHeatDiffModule`  
       `MatAcoustFluidModule`         
   
 - Mesh  entities
-  `FENodeSetModule`       `FESetModule`   
+  `FENodeSetModule`, `FESetModule`   
 
 - Mesh Generation and Manipulation
-   `MeshLineModule`  `MeshQuadrilateralModule`  `MeshTriangleModule`  `MeshTetrahedronModule` `MeshImportModule`     `MeshSelectionModule`         `MeshModificationModule`   `VoxelTetMeshingModule` `MeshExportModule`    `MeshHexahedronModule`  `TetRemeshingModule`   `MeshUtilModule` `FENodeToFEMapModule` 
+   `MeshLineModule`,  `MeshQuadrilateralModule`  `MeshTriangleModule`  `MeshTetrahedronModule` `MeshImportModule`     `MeshSelectionModule`         `MeshModificationModule`   `VoxelTetMeshingModule` `MeshExportModule`    `MeshHexahedronModule`  `TetRemeshingModule`   `MeshUtilModule` `FENodeToFEMapModule` 
 - Fields 
  `FieldModule`    `GeneralFieldModule` `ElementalFieldModule`    `NodalFieldModule`
 
