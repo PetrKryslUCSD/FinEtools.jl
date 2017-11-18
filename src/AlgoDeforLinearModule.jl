@@ -316,10 +316,10 @@ function exportdeformation(modeldata::FDataDict)
             push!(vectors, (us[ixxxx][1], us[ixxxx][2].values))
         end
         if boundary_only
-            bfes = meshboundary(femm.geod.fes);
+            bfes = meshboundary(femm.IntegData.fes);
             vtkexportmesh(rfile, fens, bfes;  vectors=vectors)
         else
-            vtkexportmesh(rfile, fens, femm.geod.fes; vectors=vectors)
+            vtkexportmesh(rfile, fens, femm.IntegData.fes; vectors=vectors)
         end
         ed = FDataDict("file"=>rfile, "field"=>u, "region"=>i,
             "type"=>"displacement")
@@ -430,12 +430,12 @@ function exportstress(modeldata::FDataDict)
             context...)
         end
         if boundary_only
-            bfes = meshboundary(femm.geod.fes);
+            bfes = meshboundary(femm.IntegData.fes);
             vtkexportmesh(rfile, fens, bfes;
             scalars=[(string(quantity)*componentname, fld.values)],
             vectors=[("u", u.values)])
         else
-            vtkexportmesh(rfile, fens, femm.geod.fes;
+            vtkexportmesh(rfile, fens, femm.IntegData.fes;
             scalars=[(string(quantity)*componentname, fld.values)],
             vectors=[("u", u.values)])
         end
@@ -538,12 +538,12 @@ function exportstresselementwise(modeldata::FDataDict)
             context...)
         end
         if boundary_only
-            bfes = meshboundary(femm.geod.fes);
+            bfes = meshboundary(femm.IntegData.fes);
             vtkexportmesh(rfile, fens, bfes;
             scalars=[(string(quantity)*componentname, fld.values)],
             vectors=[("u", u.values)])
         else
-            vtkexportmesh(rfile, fens, femm.geod.fes;
+            vtkexportmesh(rfile, fens, femm.IntegData.fes;
             scalars=[(string(quantity)*componentname, fld.values)],
             vectors=[("u", u.values)])
         end
