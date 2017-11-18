@@ -1,4 +1,4 @@
-[Top](https://petrkryslucsd.github.io/FinEtools.jl)
+[Table of contents](https://petrkryslucsd.github.io/FinEtools.jl)
 
 # Finite element
 
