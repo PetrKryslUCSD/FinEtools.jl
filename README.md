@@ -40,6 +40,6 @@ Pkg.test("FinEtools")
 The package comes with examples  of its use. Tutorials in notebook form
 are available and more will  be added in the near future.
 
-The documentation  is published at [https://petrkryslucsd.github.io/FinEtools.jl]. 
+The documentation  is published as [Github pages](https://petrkryslucsd.github.io/FinEtools.jl). 
 
 ![Alt Sample mesh](http://hogwarts.ucsd.edu/~pkrysl/site.images/ScreenHunter_31%20Feb.%2009%2020.54.jpg "FinEtools.jl")
