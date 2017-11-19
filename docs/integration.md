@@ -42,7 +42,7 @@ to the model (axially symmetric versus simple  plane 2D) as shown  in the table 
 
 | Manifold dimension        | Axially symmetric    | Plane 2D |
 | ------------- | ------------- | ----- |
-| 2 | <img src="http://latex.codecogs.com/gif.latex? 2\pi r" border="0"/>  |  1.0 |
+| 2 | <img src="http://latex.codecogs.com/svg.latex? 2\pi r" border="0"/>  |  Thickness |
 | 1 | <img src="http://latex.codecogs.com/gif.latex? 2\pi r\times" border="0"/> Thickness  |  Cross-section |
 | 0 | <img src="http://latex.codecogs.com/gif.latex? 2\pi r\times" border="0"/> Cross-section  |  Volume |  
 
