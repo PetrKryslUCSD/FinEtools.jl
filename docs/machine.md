@@ -59,7 +59,7 @@ The sum over the degree of freedom number <img src="http://latex.codecogs.com/sv
 
 Thus the term splits into two  pieces, 
 
-<img src="http://latex.codecogs.com/svg.latex? \sum_{i=1}^N_{\mathrm{f}} \int_{V}(\mathrm{grad}N_{\left<j\right>})\; \kappa (\mathrm{grad}N_{\left<i\right>}
+<img src="http://latex.codecogs.com/svg.latex? \sum_{i=1}^{N_{\mathrm{f}}} \int_{V}(\mathrm{grad}N_{\left<j\right>})\; \kappa (\mathrm{grad}N_{\left<i\right>}
             )^T\; \mathrm{d} V \; T_i" border="0"/>
 
 where the  individual integrals are entries of the conductivity matrix, and
@@ -82,7 +82,7 @@ where we first create a `material` to  deliver the thermal conductivity matrix <
 K = conductivity(femm, geom, Temp)
 ```
 
-to evaluate the global conductivity matrix `K`, where the geometry comes from the geometry field `geom`, and the field `Temp` provides the  numbering of the degrees of freedom.
+to evaluate the global conductivity matrix `K`, where the geometry comes from the geometry field `geom`, and the temperature field `Temp` provides the  numbering of the degrees of freedom.
 
 The heat load term  due to the  nonzero essential boundary conditions  is evaluated with the method `nzebcloadsconductivity`
 
@@ -90,4 +90,4 @@ The heat load term  due to the  nonzero essential boundary conditions  is evalua
 F2 = nzebcloadsconductivity(femm, geom, Temp);
 ```
 
-where the geometry comes from the geometry field `geom`, and the field `Temp` provides the  numbering of the degrees of freedom and the values of the prescribed (fixed) degrees of freedom.
+where the geometry comes from the geometry field `geom`, and the temperature field `Temp` provides the  numbering of the degrees of freedom and the values of the prescribed (fixed) degrees of freedom. The result is a contribution to the global heat load vector.
