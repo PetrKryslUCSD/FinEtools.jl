@@ -27,7 +27,10 @@ Now the test function and the trial function is substituted  into the  weighted 
 <img src="http://latex.codecogs.com/svg.latex? \int_{V} N_{\left<j\right>} Q \; \mathrm{d} V  
              " border="0" />
 
-This integral evaluates to a number, the heat load  applied to the degree of freedom <img src="http://latex.codecogs.com/svg.latex? j" border="0"/>. 
+This integral evaluates to a number, the heat load  applied to the degree of freedom <img src="http://latex.codecogs.com/svg.latex? j" border="0"/>. When these numbers are evaluated for all  the free degrees of freedom,  they constitute the entries of the global heat load vector. 
+
+
+Evaluating integrals of this form is so common that there is a module `FEMMBaseModule` with the method `distribloads` that computes and assembles the global vector. For instance to evaluate this heat load vector  on the mesh composed of three-node triangles, for a uniform heat generation rate `Q`, we can write
 
 ```julia
 fi = ForceIntensity(FFlt[Q]);
