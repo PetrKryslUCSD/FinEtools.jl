@@ -46,35 +46,48 @@ F1 = distribloads(FEMMBase(IntegData(fes, TriRule(1))), geom, Temp, fi, 3);
 ## Example: conductivity term
 
 The conductivity term from the weighted residual equation
+
 <img src="http://latex.codecogs.com/svg.latex? \int_{V}(\mathrm{grad}\vartheta)\; \kappa (\mathrm{grad}T
             )^T\; \mathrm{d} V " border="0"/>
+
 is rewritten with the test and trial functions as
+
 <img src="http://latex.codecogs.com/svg.latex? \sum_{i=1}^N \int_{V}(\mathrm{grad}N_{\left<j\right>})\; \kappa (\mathrm{grad}N_{\left<i\right>}
             )^T\; \mathrm{d} V \; T_i" border="0"/>
 
-The sum <img src="http://latex.codecogs.com/svg.latex? \sum_{i=1}^N" border="0"/> should be split: some of the  coefficients <img src="http://latex.codecogs.com/svg.latex? T_i" border="0"/> are for free degrees of freedom (<img src="http://latex.codecogs.com/svg.latex? 1 \le i \le  N_{\mathrm{f}}" border="0"/>, with <img src="http://latex.codecogs.com/svg.latex? N_{\mathrm{f}}" border="0"/>) being the total number of free degrees of freedom), while some are  fixed (prescribed) for nodes  which are located on the essential boundary condition surface <img src="http://latex.codecogs.com/svg.latex? S_1" border="0"/> (<img src="http://latex.codecogs.com/svg.latex? N_{\mathrm{f}} < i \le N" border="0"/>).
+The sum over the degree of freedom number <img src="http://latex.codecogs.com/svg.latex? i" border="0"/> should be split: some of the  coefficients <img src="http://latex.codecogs.com/svg.latex? T_i" border="0"/> are for free degrees of freedom (<img src="http://latex.codecogs.com/svg.latex? 1 \le i \le  N_{\mathrm{f}}" border="0"/>, with <img src="http://latex.codecogs.com/svg.latex? N_{\mathrm{f}}" border="0"/>) being the total number of free degrees of freedom), while some are  fixed (prescribed) for nodes  which are located on the essential boundary condition surface <img src="http://latex.codecogs.com/svg.latex? S_1" border="0"/> (<img src="http://latex.codecogs.com/svg.latex? N_{\mathrm{f}} < i \le N" border="0"/>).
 
 Thus the term splits into two  pieces, 
+
 <img src="http://latex.codecogs.com/svg.latex? \sum_{i=1}^N_{\mathrm{f}} \int_{V}(\mathrm{grad}N_{\left<j\right>})\; \kappa (\mathrm{grad}N_{\left<i\right>}
             )^T\; \mathrm{d} V \; T_i" border="0"/>
+
 where the  individual integrals are entries of the conductivity matrix, and
+
 <img src="http://latex.codecogs.com/svg.latex? \sum_{i=N_{\mathrm{f}}+1}^N \int_{V}(\mathrm{grad}N_{\left<j\right>})\; \kappa (\mathrm{grad}N_{\left<i\right>}
             )^T\; \mathrm{d} V \; T_i" border="0"/>
+
 which  will represent heat loads  due to nonzero  prescribed boundary condition.
 
 The FEM machine  for heat conduction  can be created as
+
 ```julia
 material = MatHeatDiff(thermal_conductivity)
 femm = FEMMHeatDiff(IntegData(fes, TriRule(1)), material)
 ```
+
 where we first create a `material` to  deliver the thermal conductivity matrix <img src="http://latex.codecogs.com/svg.latex? \kappa" border="0"/>, and then  we create  the FEM  machine  from the integration data  for a mesh  consisting of three node triangles, using one-point integration rule, and the material. This  FEM machine  can then be passed to a method
+
 ```julia
 K = conductivity(femm, geom, Temp)
 ```
+
 to evaluate the global conductivity matrix `K`, where the geometry comes from the geometry field `geom`, and the field `Temp` provides the  numbering of the degrees of freedom.
 
 The heat load term  due to the  nonzero essential boundary conditions  is evaluated with the method `nzebcloadsconductivity`
+
 ```julia
 F2 = nzebcloadsconductivity(femm, geom, Temp);
 ```
+
 where the geometry comes from the geometry field `geom`, and the field `Temp` provides the  numbering of the degrees of freedom and the values of the prescribed (fixed) degrees of freedom.
