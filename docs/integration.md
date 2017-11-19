@@ -43,15 +43,15 @@ to the model (axially symmetric versus simple  plane 2D) as shown  in the table 
 | Manifold dimension        | Axially symmetric    | Plane 2D |
 | ------------- | ------------- | ----- |
 | 2 | <img src="http://latex.codecogs.com/svg.latex? 2\pi r" border="0"/>  |  Thickness |
-| 1 | <img src="http://latex.codecogs.com/gif.latex? 2\pi r\times" border="0"/> Thickness  |  Cross-section |
-| 0 | <img src="http://latex.codecogs.com/gif.latex? 2\pi r\times" border="0"/> Cross-section  |  Volume |  
+| 1 | <img src="http://latex.codecogs.com/svg.latex? 2\pi r\times" border="0"/> Thickness  |  Cross-section |
+| 0 | <img src="http://latex.codecogs.com/svg.latex? 2\pi r\times" border="0"/> Cross-section  |  Volume |  
 
 The integral  is approximated with numerical quadrature as
 
-<img src="http://latex.codecogs.com/gif.latex? \int_{\Omega} f dV \approx \sum_q f(\xi_q) J(\xi_q) W_q " border="0"/>
+<img src="http://latex.codecogs.com/svg.latex? \int_{\Omega} f dV \approx \sum_q f(\xi_q) J(\xi_q) W_q " border="0"/>
 
-Here <img src="http://latex.codecogs.com/gif.latex? f" border="0"/> is the integrand, <img src="http://latex.codecogs.com/gif.latex? f(\xi_q)" border="0"/> is the  value of the integrand  at the quadrature point,
-<img src="http://latex.codecogs.com/gif.latex? J(\xi_q)" border="0"/> is the  value of the Jacobian  at the quadrature point.
+Here <img src="http://latex.codecogs.com/svg.latex? f" border="0"/> is the integrand, <img src="http://latex.codecogs.com/svg.latex? f(\xi_q)" border="0"/> is the  value of the integrand  at the quadrature point,
+<img src="http://latex.codecogs.com/svg.latex? J(\xi_q)" border="0"/> is the  value of the Jacobian  at the quadrature point.
 Importantly, the Jacobian incorporates the "other" dimension,  and therefore it is the  *volume* 
 Jacobian. (For the boundary integrals the Jacobian  is computed by the `Jacobianvolume` method.)
 
@@ -68,15 +68,15 @@ to the model (axially symmetric versus simple  plane 2D) as shown  in the table 
 
 | Manifold dimension        | Axially symmetric    | Plane 2D |
 | ------------- | ------------- | ----- |
-| 1 | <img src="http://latex.codecogs.com/gif.latex? 2\pi r" border="0"/>  |  Thickness |
-| 0 | <img src="http://latex.codecogs.com/gif.latex? 2\pi r\times" border="0"/>  Thickness  |  Cross-section |
+| 1 | <img src="http://latex.codecogs.com/svg.latex? 2\pi r" border="0"/>  |  Thickness |
+| 0 | <img src="http://latex.codecogs.com/svg.latex? 2\pi r\times" border="0"/>  Thickness  |  Cross-section |
 
 The integral  is approximated with numerical quadrature as
 
-<img src="http://latex.codecogs.com/gif.latex? \int_{\partial \Omega} f dS \approx \sum_q f(\xi_q) J(\xi_q) W_q " border="0"/> 
+<img src="http://latex.codecogs.com/svg.latex? \int_{\partial \Omega} f dS \approx \sum_q f(\xi_q) J(\xi_q) W_q " border="0"/> 
 
-Here <img src="http://latex.codecogs.com/gif.latex? f" border="0"/> is the integrand, <img src="http://latex.codecogs.com/gif.latex? f(\xi_q)" border="0"/> is the  value of the integrand  at the quadrature point,
-<img src="http://latex.codecogs.com/gif.latex? J(\xi_q)" border="0"/> is the  value of the Jacobian  at the quadrature point.
+Here <img src="http://latex.codecogs.com/svg.latex? f" border="0"/> is the integrand, <img src="http://latex.codecogs.com/svg.latex? f(\xi_q)" border="0"/> is the  value of the integrand  at the quadrature point,
+<img src="http://latex.codecogs.com/svg.latex? J(\xi_q)" border="0"/> is the  value of the Jacobian  at the quadrature point.
 Importantly, the Jacobian incorporates the "other" dimension,  and therefore it is the  *surface* 
 Jacobian. (For the boundary integrals the Jacobian  is computed by the `Jacobiansurface` method.)
 
