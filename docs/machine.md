@@ -21,7 +21,11 @@ The  test function is  taken to be  one  finite element basis function at a time
 
 Here <img src="http://latex.codecogs.com/svg.latex? N_{\left<j\right>}" border="0"/> we mean the basis function constructed on the mesh and associated with the node <img src="http://latex.codecogs.com/svg.latex? \left<j\right>" border="0"/>. We use the notation <img src="http://latex.codecogs.com/svg.latex? \left<j\right>" border="0"/> to mean node number at which the degree of freedom <img src="http://latex.codecogs.com/svg.latex? j" border="0"/> lives.
 
-Now the test function and the trial function is substituted  into the  weighted residual equation.  For instance,  for the term <img src="http://latex.codecogs.com/svg.latex? \int_{V}  \vartheta Q \; \mathrm{d} V  
+Now the test function and the trial function is substituted  into the  weighted residual equation.  
+
+## Example:  internal heat generation rate term
+
+For instance,  for the term <img src="http://latex.codecogs.com/svg.latex? \int_{V}  \vartheta Q \; \mathrm{d} V  
              " border="0" /> we obtain
 
 <img src="http://latex.codecogs.com/svg.latex? \int_{V} N_{\left<j\right>} Q \; \mathrm{d} V  
@@ -36,3 +40,13 @@ Evaluating integrals of this form is so common that there is a module `FEMMBaseM
 fi = ForceIntensity(FFlt[Q]);
 F1 = distribloads(FEMMBase(IntegData(fes, TriRule(1))), geom, Temp, fi, 3);
 ```
+
+`IntegData(fes, TriRule(1))` constructs integration data  for the  finite elements `fes` using a triangular  integration rule with a single point. `FEMMBase` is the base  FEM  machine,  and all it needs at this point is the integration data. The method  `distribloads` is defined for the  base FEM machine, the geometry field `geom`, the numbering of the degrees of freedom is taken from the field `Temp`, the internal heat generation rate is defined as the force intensity `fi`, and the integrals  are volume integrals  (3).
+
+## Example: conductivity term
+
+<img src="http://latex.codecogs.com/svg.latex? \int_{V}(\mathrm{grad}\vartheta)\; \kappa (\mathrm{grad}T
+            )^T\; \mathrm{d} V " border="0"/>
+
+<img src="http://latex.codecogs.com/svg.latex? \sum_{i=1}^N \int_{V}(\mathrm{grad}N_{\left<j\right>})\; \kappa (\mathrm{grad}N_{\left<i\right>}
+            )^T\; \mathrm{d} V T_i" border="0"/>
