@@ -6,6 +6,7 @@
 - [Element](element.html)
 - [Integration](integration.html)
 - [FEM machine](machine.html)
+- [Algorithms](algorithms.html)
 - [Querying quadrature-point data](query.html)
 - [Postprocessing](post.html)
 - [Import/export](importexport.html)
