@@ -1,5 +1,6 @@
 # FinEtools (Finite Element tools) Documentation
 
+- [Module structure](modules.html)
 - [Mesh](mesh.html)
 - [Field](field.html)
 - [Element](element.html)
@@ -7,4 +8,4 @@
 - [FEM machine](machine.html)
 - [Querying quadrature-point data](query.html)
 - [Postprocessing](post.html)
-- [Module structure](modules.html)
+- [Import/export](importexport.html)

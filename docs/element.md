@@ -6,6 +6,8 @@ The  finite element set is one of the basic entities in FinEtools.
 
 The finite element set is a collection of  finite elements defined by the connectivity (array of node numbers, listing the nodes connected by the element in  a specific order). The finite element set  provides  specialized methods  to compute values of basis functions and the values of  the gradients of the basis functions  with respect to the parametric coordinates.
 
+## Types
+
 The finite element sets are instances of concrete types. Each particular shape and order of element has its own type. There are types for  linear  and quadratic quadrilaterals, for instance, `FESetQ4` and `FESetQ8`. Each element set provides access to the number of nodes  connected by the element (`nodesperelem`),  the connectivity as the two dimensional array    `conn`,  and the  integer label vector `label`. 
 
 The concrete finite element set types are subtypes of the abstract type for elements of different manifold dimension (3, 2, 1, and 0), for instance for the quadrilaterals that would be `FESet2Manifold`. These types are in turn  subtypes of the abstract finite element set type `FESet`.
