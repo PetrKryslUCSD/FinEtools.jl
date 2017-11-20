@@ -5,19 +5,14 @@
 There are two kinds of integrals in the weighted-residual finite element method: integrals over the interior  of the domain,  and integrals over the boundary of the domain.
 
 Consequently, in a typical simulation one would need  two meshes: one for the interior  of the domain,  and one for the boundary. Obviously, the one for the boundary will be derived from the mesh  constructed for the interior.
-Often only at part  of the entire boundary  of the interior mesh  is   used:  on some parts of the boundary  the
-boundary condition is boundary condition is implied as homogeneous (i. e. zero). For instance, a traction-free boundary. 
-Therefore the necessary integrals are typically evaluated over a subset of the entire boundary.
+
+Often only a part  of the entire boundary   is   used:  on some parts of the boundary  the  boundary condition is implied as homogeneous (i. e. zero). For instance, a traction-free boundary. Therefore the necessary integrals are typically evaluated over a subset of the entire boundary.
 
 ## Manifold dimension
 
-Finite elements  have  a certain manifold dimension.  Tetrahedra  and hexahedra are three-manifolds,
-triangles and quadrilaterals are two-manifolds, triangles and quadrilaterals are two-manifolds, 
-lines are one-manifolds, and points are zero-manifolds.
+Finite elements  have  a certain manifold dimension.  Tetrahedra  and hexahedra are three-manifolds, triangles and quadrilaterals are two-manifolds, triangles and quadrilaterals are two-manifolds, lines are one-manifolds, and points are zero-manifolds.
 
-Elements are equipped with an "other" dimension which boosts the manifold dimension to produce the required
-dimension for  the integration. For instance,  a line element can be equipped with an "other" dimension to represent a cross-section so that a volume integral can be evaluated over a line element. Or, a line element can be given 
-an "other" dimension as a thickness to result in a physical dimension needed to evaluate a surface integral.
+Elements are equipped with an "other" dimension which boosts the manifold dimension to produce the required dimension for  the integration. For instance,  a line element can be equipped with an "other" dimension to represent a cross-section so that a volume integral can be evaluated over a line element. Or, a line element can be given an "other" dimension as a thickness to result in a physical dimension needed to evaluate a surface integral.
 
 The "other"  dimension  has the following meaning  for finite elements of different manifold dimensions:
 
@@ -28,17 +23,13 @@ The "other"  dimension  has the following meaning  for finite elements of differ
 | 1 | Cross-section   |  Thickness |
 | 0 | Volume   |  Cross-section |
 
-
 ## Integration  over the interior
 
-The integrals are always  *volume* integrals. This means that for elements which are of  lower manifold 
-dimension than three the "other"  dimension needs to compensate.
+The integrals are always  *volume* integrals. This means that for elements which are of  lower manifold dimension than three the "other"  dimension needs to compensate.
 
-For  three-manifold finite elements (tetrahedra and hexahedra) the "other" dimension is always 1.0.
-This really means there is no "other" dimension to a volume-like element.
+For  three-manifold finite elements (tetrahedra and hexahedra) the "other" dimension is always 1.0. This really means there is no "other" dimension to a volume-like element.
 
-For  finite elements of manifold dimension  less than tthree, the  "other" dimension varies according 
-to the model (axially symmetric versus simple  plane 2D) as shown  in the table below.
+For  finite elements of manifold dimension  less than tthree, the  "other" dimension varies according to the model (axially symmetric versus simple  plane 2D) as shown  in the table below.
 
 | Manifold dimension        | Axially symmetric    | Plane 2D |
 | ------------- | ------------- | ----- |
