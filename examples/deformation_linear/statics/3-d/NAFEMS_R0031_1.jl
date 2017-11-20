@@ -114,10 +114,10 @@ region2 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR,
     IntegData(subset(fes, rl2), gr, CSys(3, 3, updatecs!)), material))
 
 # File =  "NAFEMS-R0031-1-plate-r1.vtk"
-# vtkexportmesh(File, region1["femm"].IntegData.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
+# vtkexportmesh(File, region1["femm"].integdata.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
 # # @async run(`"paraview.exe" $File`)
 # File =  "NAFEMS-R0031-1-plate-r2.vtk"
-# vtkexportmesh(File, region2["femm"].IntegData.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
+# vtkexportmesh(File, region2["femm"].integdata.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
 # @async run(`"paraview.exe" $File`)
 
 # The essential boundary conditions are applied on the symmetry planes.
@@ -226,20 +226,20 @@ println("sxz@D_2 = $(s.values[nD]/phun("MPa")) [MPa]")
 #     return idat
 # end
 #
-# felist = selectelem(fens, region1["femm"].IntegData.fes,
+# felist = selectelem(fens, region1["femm"].integdata.fes,
 #     box=[0.0 0.0 0.0 0.0 0.0 0.0], inflate=tolerance, allin = false)
 #
 # inspectintegpoints(region1["femm"], geom, u, felist,
 #     _inspector, 0, quantity=:Cauchy, outputcsys = CSys(3))
 #
 # femm = deepcopy(region1["femm"])
-# femm.IntegData.fes = subset(femm.IntegData.fes, felist)
+# femm.integdata.fes = subset(femm.integdata.fes, felist)
 # associategeometry!(femm, geom)
 # s = fieldfromintegpoints(femm, geom, u, :Cauchy, 5;
 #     outputcsys = CSys(3), nodevalmethod = inspectormeth, reportat = extrap)
 # println("sxz@D_1 = $(s.values[nD]/phun("MPa")) [MPa]")
 
-# felist = selectelem(fens, region2["femm"].IntegData.fes,
+# felist = selectelem(fens, region2["femm"].integdata.fes,
 #     box=[0.0 0.0 0.0 0.0 0.0 TH], inflate=tolerance, allin = false)
 #
 # inspectintegpoints(region2["femm"], geom, u, felist,

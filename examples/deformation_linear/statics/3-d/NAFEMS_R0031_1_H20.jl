@@ -114,10 +114,10 @@ region2 = FDataDict("femm"=>FEMMDeforLinear(MR,
     IntegData(subset(fes, rl2), gr, CSys(3, 3, updatecs!)), material))
 
 # File =  "NAFEMS-R0031-1-plate-r1.vtk"
-# vtkexportmesh(File, region1["femm"].IntegData.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
+# vtkexportmesh(File, region1["femm"].integdata.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
 # # @async run(`"paraview.exe" $File`)
 # File =  "NAFEMS-R0031-1-plate-r2.vtk"
-# vtkexportmesh(File, region2["femm"].IntegData.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
+# vtkexportmesh(File, region2["femm"].integdata.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
 # @async run(`"paraview.exe" $File`)
 
 # The essential boundary conditions are applied on the symmetry planes.

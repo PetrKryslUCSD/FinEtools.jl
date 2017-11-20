@@ -301,7 +301,7 @@ function test()
         return ((exact .- val)^2)[1]
     end
 
-    femm.IntegData.integration_rule = TriRule(6)
+    femm.integdata.integration_rule = TriRule(6)
     E = integratefieldfunction(femm, geom, Temp, errfh, 0.0, m=3)
     # println("Error=$E")
 
@@ -515,11 +515,11 @@ function test()
   geom = modeldata["geom"]
   Temp = modeldata["temp"]
   regions = modeldata["regions"]
-  vtkexportmesh("T4NAFEMS--T6.vtk", regions[1]["femm"].IntegData.fes.conn,
+  vtkexportmesh("T4NAFEMS--T6.vtk", regions[1]["femm"].integdata.fes.conn,
   [geom.values Temp.values/100], FinEtools.MeshExportModule.T6;
   scalars=[("Temperature", Temp.values)])
   try  rm("T4NAFEMS--T6.vtk"); catch end
-  vtkexportmesh("T4NAFEMS--T6--base.vtk", regions[1]["femm"].IntegData.fes.conn,
+  vtkexportmesh("T4NAFEMS--T6--base.vtk", regions[1]["femm"].integdata.fes.conn,
   [geom.values 0.0*Temp.values/100], FinEtools.MeshExportModule.T6)
   try rm("T4NAFEMS--T6--base.vtk"); catch end
   # ##
@@ -693,11 +693,11 @@ function test()
   geom = modeldata["geom"]
   Temp = modeldata["temp"]
   regions = modeldata["regions"]
-  vtkexportmesh("T4NAFEMS--T3.vtk", regions[1]["femm"].IntegData.fes.conn,
+  vtkexportmesh("T4NAFEMS--T3.vtk", regions[1]["femm"].integdata.fes.conn,
   [geom.values Temp.values/100], FinEtools.MeshExportModule.T3;
   scalars=[("Temperature", Temp.values)])
   rm("T4NAFEMS--T3.vtk")
-  vtkexportmesh("T4NAFEMS--T3--base.vtk", regions[1]["femm"].IntegData.fes.conn,
+  vtkexportmesh("T4NAFEMS--T3--base.vtk", regions[1]["femm"].integdata.fes.conn,
   [geom.values 0.0*Temp.values/100], FinEtools.MeshExportModule.T3)
   rm("T4NAFEMS--T3--base.vtk")
   # ##

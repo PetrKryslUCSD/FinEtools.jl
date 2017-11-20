@@ -103,7 +103,7 @@ function test()
                 "geom"=>geom,
                 "u"=>u,
                 "femm"=>femm,
-                "integrationrule"=>femm.IntegData.integration_rule,
+                "integrationrule"=>femm.integdata.integration_rule,
                 "stressfields"=>[stressfield],
                 "tolerance"=>tolerance)
                 )

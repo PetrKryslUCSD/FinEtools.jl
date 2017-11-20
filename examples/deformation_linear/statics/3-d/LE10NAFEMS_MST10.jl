@@ -114,9 +114,9 @@ END_PART(AE);
 ASSEMBLY(AE, "ASSEM1");
 INSTANCE(AE, "INSTNC1", "PART1");
 NODE(AE, fens.xyz);
-ELEMENT(AE, "c3d10", "AllElements", 1, femm.IntegData.fes.conn)
+ELEMENT(AE, "c3d10", "AllElements", 1, femm.integdata.fes.conn)
 ELEMENT(AE, "SFM3D6", "TractionElements",
-1+count(femm.IntegData.fes), el1femm.IntegData.fes.conn)
+1+count(femm.integdata.fes), el1femm.integdata.fes.conn)
 NSET_NSET(AE, "l1", l1)
 NSET_NSET(AE, "l2", l2)
 NSET_NSET(AE, "l3", l3)

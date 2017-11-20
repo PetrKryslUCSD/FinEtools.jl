@@ -3910,8 +3910,8 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPE3 are pretty poor-accuracy elements, but here we don't care about it.");
-  @test  size(modeldata["regions"][1]["femm"].IntegData.fes.conn,2) == 3
-  ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].IntegData.fes.conn)
+  @test  size(modeldata["regions"][1]["femm"].integdata.fes.conn,2) == 3
+  ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].integdata.fes.conn)
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", thickness);
@@ -3922,7 +3922,7 @@ function test()
   STEP_PERTURBATION_STATIC(AE)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 1)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 2)
-  bfes = modeldata["traction_bcs"][1]["femm"].IntegData.fes
+  bfes = modeldata["traction_bcs"][1]["femm"].integdata.fes
   COMMENT(AE, "Concentrated loads: we are assuming that the elements on the boundary");
   COMMENT(AE, "have two nodes each and also that they are the same length.");
   COMMENT(AE, "Then the concentrated loads below will be correctly lumped.");
@@ -4076,8 +4076,8 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPE3 are pretty poor-accuracy elements, but here we don't care about it.");
-@test  size(modeldata["regions"][1]["femm"].IntegData.fes.conn,2) == 3
-  ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].IntegData.fes.conn)
+@test  size(modeldata["regions"][1]["femm"].integdata.fes.conn,2) == 3
+  ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].integdata.fes.conn)
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", thickness);
@@ -4088,7 +4088,7 @@ function test()
   STEP_PERTURBATION_STATIC(AE)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 1)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 2)
-  bfes = modeldata["traction_bcs"][1]["femm"].IntegData.fes
+  bfes = modeldata["traction_bcs"][1]["femm"].integdata.fes
   COMMENT(AE, "Concentrated loads: we are assuming that the elements on the boundary");
   COMMENT(AE, "have two nodes each and also that they are the same length.");
   COMMENT(AE, "Then the concentrated loads below will be correctly lumped.");
@@ -4244,8 +4244,8 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPS3 are pretty poor-accuracy elements, but here we don't care about it.");
-@test  size(modeldata["regions"][1]["femm"].IntegData.fes.conn,2) == 3
-  ELEMENT(AE, "CPS3", "AllElements", modeldata["regions"][1]["femm"].IntegData.fes.conn)
+@test  size(modeldata["regions"][1]["femm"].integdata.fes.conn,2) == 3
+  ELEMENT(AE, "CPS3", "AllElements", modeldata["regions"][1]["femm"].integdata.fes.conn)
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", thickness);
@@ -4256,7 +4256,7 @@ function test()
   STEP_PERTURBATION_STATIC(AE)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 1)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 2)
-  bfes = modeldata["traction_bcs"][1]["femm"].IntegData.fes
+  bfes = modeldata["traction_bcs"][1]["femm"].integdata.fes
   COMMENT(AE, "Concentrated loads: we are assuming that the elements on the boundary");
   COMMENT(AE, "have two nodes each and also that they are the same length.");
   COMMENT(AE, "Then the concentrated loads below will be correctly lumped.");
@@ -4410,8 +4410,8 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPS3 are pretty poor-accuracy elements, but here we don't care about it.");
-@test  size(modeldata["regions"][1]["femm"].IntegData.fes.conn,2) == 3
-  ELEMENT(AE, "CPS3", "AllElements", modeldata["regions"][1]["femm"].IntegData.fes.conn)
+@test  size(modeldata["regions"][1]["femm"].integdata.fes.conn,2) == 3
+  ELEMENT(AE, "CPS3", "AllElements", modeldata["regions"][1]["femm"].integdata.fes.conn)
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", thickness);
@@ -4422,7 +4422,7 @@ function test()
   STEP_PERTURBATION_STATIC(AE)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 1)
   BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 2)
-  bfes = modeldata["traction_bcs"][1]["femm"].IntegData.fes
+  bfes = modeldata["traction_bcs"][1]["femm"].integdata.fes
   COMMENT(AE, "Concentrated loads: we are assuming that the elements on the boundary");
   COMMENT(AE, "have two nodes each and also that they are the same length.");
   COMMENT(AE, "Then the concentrated loads below will be correctly lumped.");
@@ -4864,9 +4864,9 @@ function test()
     ASSEMBLY(AE, "ASSEM1");
     INSTANCE(AE, "INSTNC1", "PART1");
     NODE(AE, fens.xyz);
-    ELEMENT(AE, "c3d10", "AllElements", 1, femm.IntegData.fes.conn)
+    ELEMENT(AE, "c3d10", "AllElements", 1, femm.integdata.fes.conn)
     ELEMENT(AE, "SFM3D6", "TractionElements",
-    1+count(femm.IntegData.fes), eL1femm.IntegData.fes.conn)
+    1+count(femm.integdata.fes), eL1femm.integdata.fes.conn)
     NSET_NSET(AE, "L1", L1)
     NSET_NSET(AE, "L2", L2)
     NSET_NSET(AE, "L3", L3)
@@ -5374,8 +5374,8 @@ END_PART(AE);
 ASSEMBLY(AE, "ASSEM1");
 INSTANCE(AE, "INSTNC1", "PART1");
 NODE(AE, fens.xyz);
-ELEMENT(AE, "c3d20r", "AllElements", femm.IntegData.fes.conn)
-ELEMENT(AE, "SFM3D8", "TractionElements", Tracfemm.IntegData.fes.conn)
+ELEMENT(AE, "c3d20r", "AllElements", femm.integdata.fes.conn)
+ELEMENT(AE, "SFM3D8", "TractionElements", Tracfemm.integdata.fes.conn)
 NSET_NSET(AE, "L1", lx0)
 NSET_NSET(AE, "L2", lx0)
 NSET_NSET(AE, "L3", lx0)
@@ -5861,9 +5861,9 @@ function test()
     ASSEMBLY(AE, "ASSEM1");
     INSTANCE(AE, "INSTNC1", "PART1");
     NODE(AE, fens.xyz);
-    ELEMENT(AE, "c3d8rh", "AllElements", 1, femm.IntegData.fes.conn)
+    ELEMENT(AE, "c3d8rh", "AllElements", 1, femm.integdata.fes.conn)
     ELEMENT(AE, "SFM3D4", "TractionElements",
-    1+count(femm.IntegData.fes), el1femm.IntegData.fes.conn)
+    1+count(femm.integdata.fes), el1femm.integdata.fes.conn)
     NSET_NSET(AE, "l1", l1)
     NSET_NSET(AE, "l2", l2)
     NSET_NSET(AE, "l3", l3)
@@ -7204,7 +7204,7 @@ function test()
         end
         
         # File =  "Meyer_Piening_sandwich-r1.vtk"
-        # vtkexportmesh(File, skinregion["femm"].IntegData.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
+        # vtkexportmesh(File, skinregion["femm"].integdata.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
         # # @async run(`"paraview.exe" $File`)
         
         

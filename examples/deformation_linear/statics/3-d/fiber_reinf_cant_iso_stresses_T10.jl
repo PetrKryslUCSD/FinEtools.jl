@@ -111,7 +111,7 @@ for n = [1 2 4 8 16]
         "geom"=>geom,
         "u"=>u,
         "femm"=>region["femm"],
-        "integrationrule"=>region["femm"].IntegData.integration_rule,
+        "integrationrule"=>region["femm"].integdata.integration_rule,
         "stressfields"=>stressfields,
         "tolerance"=>tolerance)
         )

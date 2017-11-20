@@ -49,7 +49,7 @@ function errfh(loc,val)
     return ((exact-val)*exact)[1]
 end
 
-femm.IntegData.integration_rule = GaussRule(1, 4)
+femm.integdata.integration_rule = GaussRule(1, 4)
 E = integratefieldfunction(femm, geom, Temp, errfh, 0.0, m=3)
 println("Error=$E")
 

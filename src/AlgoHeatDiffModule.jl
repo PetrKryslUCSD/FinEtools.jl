@@ -133,7 +133,7 @@ function steadystate(modeldata::FDataDict)
       dcheck!(convbc, convection_bcs_recognized_keys)
       femm = get(()->error("Must get femm!"), convbc, "femm");
       # Apply the prescribed ambient temperature
-      fenids = connectednodes(femm.IntegData.fes);
+      fenids = connectednodes(femm.integdata.fes);
       fixed = ones(length(fenids));
       T_fixed = zeros(FFlt, length(fenids)); # default is zero
       ambient_temperature = get(convbc, "ambient_temperature", nothing);

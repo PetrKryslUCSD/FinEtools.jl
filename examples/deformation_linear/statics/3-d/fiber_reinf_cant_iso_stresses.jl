@@ -108,7 +108,7 @@ for n = [2 4 8 16 32]
         write(file, "geom", geom)
         write(file, "u", u)
         # write(file, "femm", region["femm"])
-        write(file, "integrationrule", region["femm"].IntegData.integration_rule)
+        write(file, "integrationrule", region["femm"].integdata.integration_rule)
         write(file, "stressfields", stressfields)
         write(file, "tolerance", tolerance)
     end

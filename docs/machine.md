@@ -25,8 +25,12 @@ Now the test function and the trial function is substituted  into the  weighted 
 
 ## Example:  internal heat generation rate term
 
-For instance,  for the term <img src="http://latex.codecogs.com/svg.latex? \int_{V}  \vartheta Q \; \mathrm{d} V  
-             " border="0" /> we obtain
+For instance,  for the term 
+
+<img src="http://latex.codecogs.com/svg.latex? \int_{V}  \vartheta Q \; \mathrm{d} V  
+             " border="0" /> 
+             
+we obtain
 
 <img src="http://latex.codecogs.com/svg.latex? \int_{V} N_{\left<j\right>} Q \; \mathrm{d} V  
              " border="0" />
@@ -55,7 +59,7 @@ is rewritten with the test and trial functions as
 <img src="http://latex.codecogs.com/svg.latex? \sum_{i=1}^N \int_{V}(\mathrm{grad}N_{\left<j\right>})\; \kappa (\mathrm{grad}N_{\left<i\right>}
             )^T\; \mathrm{d} V \; T_i" border="0"/>
 
-The sum over the degree of freedom number <img src="http://latex.codecogs.com/svg.latex? i" border="0"/> should be split: some of the  coefficients <img src="http://latex.codecogs.com/svg.latex? T_i" border="0"/> are for free degrees of freedom (<img src="http://latex.codecogs.com/svg.latex? 1 \le i \le  N_{\mathrm{f}}" border="0"/>, with <img src="http://latex.codecogs.com/svg.latex? N_{\mathrm{f}}" border="0"/>) being the total number of free degrees of freedom), while some are  fixed (prescribed) for nodes  which are located on the essential boundary condition surface <img src="http://latex.codecogs.com/svg.latex? S_1" border="0"/> (<img src="http://latex.codecogs.com/svg.latex? N_{\mathrm{f}} < i \le N" border="0"/>).
+The sum over the degree of freedom number <img src="http://latex.codecogs.com/svg.latex? i" border="0"/> should be split: some of the  coefficients <img src="http://latex.codecogs.com/svg.latex? T_i" border="0"/> are for free degrees of freedom (<img src="http://latex.codecogs.com/svg.latex? 1 \le i \le  N_{\mathrm{f}}" border="0"/>, with <img src="http://latex.codecogs.com/svg.latex? N_{\mathrm{f}}" border="0"/> being the total number of free degrees of freedom), while some are  fixed (prescribed) for nodes  which are located on the essential boundary condition surface <img src="http://latex.codecogs.com/svg.latex? S_1" border="0"/> (<img src="http://latex.codecogs.com/svg.latex? N_{\mathrm{f}} < i \le N" border="0"/>).
 
 Thus the term splits into two  pieces, 
 
@@ -91,3 +95,86 @@ F2 = nzebcloadsconductivity(femm, geom, Temp);
 ```
 
 where the geometry comes from the geometry field `geom`, and the temperature field `Temp` provides the  numbering of the degrees of freedom and the values of the prescribed (fixed) degrees of freedom. The result is a contribution to the global heat load vector.
+
+## Base FEM machine
+
+The following  operations are provided  by the base FEM machine:
+
+- Integrate  a function expressed in terms of a field. This is typically used  to  evaluate RMS discretization errors.
+
+- Integrate a function of the position. Perhaps the evaluation of the moments of inertia,  or the calculation of the volume.
+
+- Transfer field between meshes of different resolutions.
+
+- Calculate  the distributed-load system vector.
+
+- Construct a field  from integration-point quantities. This is typically used in the postprocessing phase, for instance to construct continuous distribution of stresses in the structure.
+
+## Acoustics FEM machines
+
+There is one for  the interior integrals  and one for  boundary integrals. 
+The  machine for the interior integrals can be used to compute:
+
+- Evaluate the acoustic-mass matrix and the acoustic-stiffness matrix.
+
+- Evaluate the load vector corresponding to prescribed pressure  or the prescribed second order  rate of the pressure.
+
+The machine for the boundary integrals can be used to compute:
+
+- Compute  transformation matrix to convert  pressure  to resultant force  or pressure to resultant torque.
+
+- Compute the acoustic  ABC  (absorbing boundary condition) matrix.
+
+##  Heat  conduction FEM machines
+
+There is one for  the interior integrals  and one for  boundary integrals. 
+The  machine for the interior integrals can be used to compute:
+
+- Evaluate the conductivity matrix.
+
+- Evaluate the load vector corresponding to prescribed temperature.
+
+The machine for the boundary integrals can be used to compute:
+
+- Compute surface heat transfer  matrix.
+
+- Compute  the heat load vector for surface heat transfer.
+
+- Compute the heat load vector  corresponding to prescribed temperatures on the boundary  with surface heat transfer.
+
+## Linear deformation FEM  machines
+
+For  the base machine for linear deformation, `FEMMDeforLinearBase`, assumes standard isoparametric  finite elements. It evaluates  the interior integrals:
+
+- The stiffness matrix, the mass matrix.
+
+- The load vector corresponding to thermal strains.
+
+Additionally:
+
+- Function to inspect  integration points.
+
+The FEM machine `FEMMDeforLinear` simply stores the data required by the base `FEMMDeforLinearBase`.
+ 
+The machine `FEMMDeforWinkler` is specialized for the boundary integrals for bodies  supported  on continuously distributed springs:
+
+- Compute the stiffness matrix corresponding to the springs.
+
+The  mean-strain FEM machine `FEMMDeforLinearMS` implements advanced hexahedral and tetrahedral elements based on multi-field theory and  energy-sampling  stabilization. It provides functions to compute:
+
+- The stiffness matrix, the mass matrix.
+
+- The load vector corresponding to thermal strains.
+
+Additionally it defines:
+
+- Function to inspect  integration points.
+
+
+
+
+
+
+
+
+

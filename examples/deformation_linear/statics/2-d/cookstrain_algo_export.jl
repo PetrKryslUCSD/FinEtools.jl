@@ -106,8 +106,8 @@ INSTANCE(AE, "INSTNC1", "PART1");
 NODE(AE, fens.xyz);
 COMMENT(AE, "We are assuming three node triangles in plane-stress");
 COMMENT(AE, "CPE3 are pretty poor-accuracy elements, but here we don't care about it.");
-@assert size(modeldata["regions"][1]["femm"].IntegData.fes.conn,2) == 3
-ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].IntegData.fes.conn)
+@assert size(modeldata["regions"][1]["femm"].integdata.fes.conn,2) == 3
+ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].integdata.fes.conn)
 NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
 ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
 SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", thickness);
@@ -118,7 +118,7 @@ ELASTIC(AE, E, nu)
 STEP_PERTURBATION_STATIC(AE)
 BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 1)
 BOUNDARY(AE, "ASSEM1.INSTNC1.clamped", 2)
-bfes = modeldata["traction_bcs"][1]["femm"].IntegData.fes
+bfes = modeldata["traction_bcs"][1]["femm"].integdata.fes
 COMMENT(AE, "Concentrated loads: we are assuming that the elements on the boundary");
 COMMENT(AE, "have two nodes each and also that they are the same length.");
 COMMENT(AE, "Then the concentrated loads below will be correctly lumped.");

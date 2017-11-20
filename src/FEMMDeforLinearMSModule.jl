@@ -40,48 +40,48 @@ abstract type FEMMDeforLinearAbstractMS <: FEMMDeforLinearAbstract end
 
 mutable struct FEMMDeforLinearMSH8{MR<:DeforModelRed, S<:FESetH8, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstractMS
     mr::Type{MR}
-    IntegData::IntegData{S, F} # geometry data finite element modeling machine
+    integdata::IntegData{S, F} # geometry data finite element modeling machine
     mcsys::CSys # updater of the material orientation matrix
     material::M # material object
     stabilization_material::MatDeforElastIso
     phis::FFltVec
 end
 
-function FEMMDeforLinearMSH8(mr::Type{MR}, IntegData::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
+function FEMMDeforLinearMSH8(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
     @assert mr === material.mr "Model reduction is mismatched"
     @assert (mr === DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
-    return FEMMDeforLinearMSH8(mr, IntegData, mcsys, material, stabilization_material, zeros(FFlt, 1))
+    return FEMMDeforLinearMSH8(mr, integdata, mcsys, material, stabilization_material, zeros(FFlt, 1))
 end
 
-function FEMMDeforLinearMSH8(mr::Type{MR}, IntegData::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
+function FEMMDeforLinearMSH8(mr::Type{MR}, integdata::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
     @assert mr === material.mr "Model reduction is mismatched"
     @assert (mr === DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
-    return FEMMDeforLinearMSH8(mr, IntegData, CSys(manifdim(IntegData.fes)), material, stabilization_material, zeros(FFlt, 1))
+    return FEMMDeforLinearMSH8(mr, integdata, CSys(manifdim(integdata.fes)), material, stabilization_material, zeros(FFlt, 1))
 end
 
 mutable struct FEMMDeforLinearMST10{MR<:DeforModelRed, S<:FESetT10, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstractMS
     mr::Type{MR}
-    IntegData::IntegData{S, F} # geometry data finite element modeling machine
+    integdata::IntegData{S, F} # geometry data finite element modeling machine
     mcsys::CSys # updater of the material orientation matrix
     material::M # material object
     stabilization_material::MatDeforElastIso
     phis::FFltVec
 end
 
-function FEMMDeforLinearMST10(mr::Type{MR}, IntegData::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetT10, F<:Function, M<:MatDefor}
+function FEMMDeforLinearMST10(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetT10, F<:Function, M<:MatDefor}
     @assert mr === material.mr "Model reduction is mismatched"
     @assert (mr === DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
     return FEMMDeforLinearMST10(mr, IntegData, mcsys, material, stabilization_material, zeros(FFlt, 1))
 end
 
-function FEMMDeforLinearMST10(mr::Type{MR}, IntegData::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetT10, F<:Function, M<:MatDefor}
+function FEMMDeforLinearMST10(mr::Type{MR}, integdata::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetT10, F<:Function, M<:MatDefor}
     @assert mr === material.mr "Model reduction is mismatched"
     @assert (mr === DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
-    return FEMMDeforLinearMST10(mr, IntegData, CSys(manifdim(IntegData.fes)), material, stabilization_material, zeros(FFlt, 1))
+    return FEMMDeforLinearMST10(mr, integdata, CSys(manifdim(integdata.fes)), material, stabilization_material, zeros(FFlt, 1))
 end
 
 function make_stabilization_material(material::M) where {M}
@@ -106,9 +106,9 @@ function make_stabilization_material(material::M) where {M}
 end
 
 function buffers1(self::FEMMDeforLinearAbstractMS, geom::NodalField, npts::FInt)
-    nne = nodesperelem(self.IntegData.fes); # number of nodes for element
+    nne = nodesperelem(self.integdata.fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
-    mdim = manifdim(self.IntegData.fes); # manifold dimension of the element
+    mdim = manifdim(self.integdata.fes); # manifold dimension of the element
     # Prepare buffers
     conn = zeros(FInt, nne, 1); # element nodes -- buffer
     x = zeros(FFlt, nne, sdim); # array of node coordinates -- buffer
@@ -121,9 +121,9 @@ end
 
 function buffers2(self::FEMMDeforLinearAbstractMS, geom::NodalField, u::NodalField, npts::FInt)
     ndn = ndofs(u); # number of degrees of freedom per node
-    nne = nodesperelem(self.IntegData.fes); # number of nodes for element
+    nne = nodesperelem(self.integdata.fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
-    mdim = manifdim(self.IntegData.fes); # manifold dimension of the element
+    mdim = manifdim(self.integdata.fes); # manifold dimension of the element
     nstrs = nstsstn(self.mr);  # number of stresses
     elmatdim = ndn*nne;             # dimension of the element matrix
     # Prepare buffers
@@ -179,21 +179,21 @@ Associate geometry field with the FEMM.
 Compute the  correction factors to account for  the shape of the  elements.
 """
 function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDeforLinearMSH8}
-    IntegData = self.IntegData
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(IntegData);
+    integdata = self.integdata
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(integdata);
     conn, x, loc, J, csmatTJ, gradN = buffers1(self, geom, npts)
-    self.phis = zeros(FFlt, count(IntegData.fes))
-    for i = 1:count(IntegData.fes) # Loop over elements
-        getconn!(IntegData.fes, conn, i);
+    self.phis = zeros(FFlt, count(integdata.fes))
+    for i = 1:count(integdata.fes) # Loop over elements
+        getconn!(integdata.fes, conn, i);
         gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         # NOTE: the coordinate system should be evaluated at a single point within the
         # element in order for the derivatives to be consistent at all quadrature points
         loc = centroid!(self,  loc, x)
-        updatecsmat!(self.mcsys, loc, J, IntegData.fes.label[i]);
+        updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
         for j = 1:npts # Loop over quadrature points
             At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
-            gradN!(IntegData.fes, gradN, gradNparams[j], csmatTJ);
+            gradN!(integdata.fes, gradN, gradNparams[j], csmatTJ);
             h2 = diag(transpose(csmatTJ)*csmatTJ)
             cap_phi = (2 * (1 + self.stabilization_material.nu) * (minimum(h2) / maximum(h2)))  # Plane stress
             phi = cap_phi / (1 + cap_phi)
@@ -212,17 +212,17 @@ Compute the  correction factors to account for  the shape of the  elements.
 """
 function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDeforLinearMST10}
     gamma = 2.6; C = 1e4;
-    IntegData = self.IntegData
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(IntegData);
+    integdata = self.integdata
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(integdata);
     conn, x, loc, J, csmatTJ, gradN = buffers1(self, geom, npts)
-    self.phis = zeros(FFlt, count(IntegData.fes))
-    for i = 1:count(IntegData.fes) # Loop over elements
-        getconn!(IntegData.fes, conn, i);
+    self.phis = zeros(FFlt, count(integdata.fes))
+    for i = 1:count(integdata.fes) # Loop over elements
+        getconn!(integdata.fes, conn, i);
         gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         # NOTE: the coordinate system should be evaluated at a single point within the
         # element in order for the derivatives to be consistent at all quadrature points
         loc = centroid!(self,  loc, x)
-        updatecsmat!(self.mcsys, loc, J, IntegData.fes.label[i]);
+        updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
         for j = 1:npts # Loop over quadrature points
             At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
@@ -245,8 +245,8 @@ Compute and assemble  stiffness matrix.
 function stiffness(self::FEMMDeforLinearAbstractMS, assembler::A,
     geom::NodalField{FFlt},
     u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
-    IntegData = self.IntegData
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(IntegData);
+    integdata = self.integdata
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(integdata);
     conn, x, dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac,
     D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
     realmat = self.material
@@ -254,22 +254,22 @@ function stiffness(self::FEMMDeforLinearAbstractMS, assembler::A,
     realmat.tangentmoduli!(realmat, D, 0.0, 0.0, loc, 0)
     stabmat.tangentmoduli!(stabmat,
     Dstab, 0.0, 0.0, loc, 0)
-    startassembly!(assembler, size(elmat, 1), size(elmat, 2), count(IntegData.fes),
+    startassembly!(assembler, size(elmat, 1), size(elmat, 2), count(integdata.fes),
     u.nfreedofs, u.nfreedofs);
-    for i = 1:count(IntegData.fes) # Loop over elements
-        getconn!(IntegData.fes, conn, i);
+    for i = 1:count(integdata.fes) # Loop over elements
+        getconn!(integdata.fes, conn, i);
         gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         # NOTE: the coordinate system should be evaluated at a single point within the
         # element in order for the derivatives to be consistent at all quadrature points
         loc = centroid!(self,  loc, x)
-        updatecsmat!(self.mcsys, loc, J, IntegData.fes.label[i]);
+        updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
         vol = 0.0; # volume of the element
         fill!(MeangradN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
             At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac[j] = Jacobianvolume(IntegData, J, loc, conn, Ns[j]);
+            Jac[j] = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
-            gradN!(IntegData.fes, AllgradN[j], gradNparams[j], csmatTJ);
+            gradN!(integdata.fes, AllgradN[j], gradNparams[j], csmatTJ);
             dvol = Jac[j]*w[j]
             MeangradN .= MeangradN .+ AllgradN[j]*dvol
             vol = vol + dvol
@@ -296,8 +296,8 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS,
     felist::FIntVec,
     inspector::F,  idat, quantity=:Cauchy;
     context...) where {T<:Number, F<:Function}
-    IntegData = self.IntegData
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(IntegData);
+    integdata = self.integdata
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(integdata);
     conn, x, dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac,
     D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
     MeanN = deepcopy(Ns[1])
@@ -324,23 +324,23 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS,
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
         i = felist[ilist];
-        getconn!(IntegData.fes, conn, i);
+        getconn!(integdata.fes, conn, i);
         gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         gathervalues_asvec!(u, ue, conn);# retrieve element displacements
         gathervalues_asvec!(dT, dTe, conn);# retrieve element temperature increments
         # NOTE: the coordinate system should be evaluated at a single point within the
         # element in order for the derivatives to be consistent at all quadrature points
         loc = centroid!(self,  loc, x)
-        updatecsmat!(self.mcsys, loc, J, IntegData.fes.label[i]);
-        updatecsmat!(outputcsys, loc, J, IntegData.fes.label[i]);
+        updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
+        updatecsmat!(outputcsys, loc, J, integdata.fes.label[i]);
         vol = 0.0; # volume of the element
         fill!(MeangradN, 0.0) # mean basis function gradients
         fill!(MeanN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
             At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac[j] = Jacobianvolume(IntegData, J, loc, conn, Ns[j]);
+            Jac[j] = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
-            gradN!(IntegData.fes, AllgradN[j], gradNparams[j], csmatTJ);
+            gradN!(integdata.fes, AllgradN[j], gradNparams[j], csmatTJ);
             dvol = Jac[j]*w[j]
             MeangradN .= MeangradN .+ AllgradN[j]*dvol
             MeanN .= MeanN .+ Ns[j]*dvol
@@ -355,7 +355,7 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS,
         realmat.thermalstrain!(realmat, qpthstrain, qpdT)
         # Material updates the state and returns the output
         out = realmat.update!(realmat, qpstress, out,
-            vec(qpstrain), qpthstrain, t, dt, loc, IntegData.fes.label[i], quantity)
+            vec(qpstrain), qpthstrain, t, dt, loc, integdata.fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(out1) >= length(out)) || (out1 = zeros(length(out)))
             rotstressvec(self.mr, out1, out, self.mcsys.csmat')# To global coord sys
@@ -373,8 +373,8 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS,
     felist::FIntVec,
     inspector::F,  idat, quantity=:Cauchy;
     context...) where {T<:Number, F<:Function}
-    IntegData = self.IntegData
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(IntegData);
+    integdata = self.integdata
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(integdata);
     conn, x, dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac,
     D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
     MeanN = deepcopy(Ns[1])
@@ -401,23 +401,23 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS,
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
         i = felist[ilist];
-        getconn!(IntegData.fes, conn, i);
+        getconn!(integdata.fes, conn, i);
         gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         gathervalues_asvec!(u, ue, conn);# retrieve element displacements
         gathervalues_asvec!(dT, dTe, conn);# retrieve element temperature increments
         # NOTE: the coordinate system should be evaluated at a single point within the
         # element in order for the derivatives to be consistent at all quadrature points
         loc = centroid!(self,  loc, x)
-        updatecsmat!(self.mcsys, loc, J, IntegData.fes.label[i]);
-        updatecsmat!(outputcsys, loc, J, IntegData.fes.label[i]);
+        updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
+        updatecsmat!(outputcsys, loc, J, integdata.fes.label[i]);
         vol = 0.0; # volume of the element
         fill!(MeangradN, 0.0) # mean basis function gradients
         fill!(MeanN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
             At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac[j] = Jacobianvolume(IntegData, J, loc, conn, Ns[j]);
+            Jac[j] = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
-            gradN!(IntegData.fes, AllgradN[j], gradNparams[j], csmatTJ);
+            gradN!(integdata.fes, AllgradN[j], gradNparams[j], csmatTJ);
             dvol = Jac[j]*w[j]
             MeangradN .= MeangradN .+ AllgradN[j]*dvol
             MeanN .= MeanN .+ Ns[j]*dvol
@@ -432,7 +432,7 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS,
         realmat.thermalstrain!(realmat, qpthstrain, qpdT)
         # Material updates the state and returns the output
         out = realmat.update!(realmat, qpstress, out,
-            vec(qpstrain), qpthstrain, t, dt, loc, IntegData.fes.label[i], quantity)
+            vec(qpstrain), qpthstrain, t, dt, loc, integdata.fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(out1) >= length(out)) || (out1 = zeros(length(out)))
             rotstressvec(self.mr, out1, out, self.mcsys.csmat')# To global coord sys
@@ -452,8 +452,8 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
     felist::FIntVec,
     inspector::F,  idat, quantity=:Cauchy;
     context...) where {T<:Number, F<:Function}
-    IntegData = self.IntegData
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(IntegData);
+    integdata = self.integdata
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(integdata);
     conn, x, dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac,
     D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
     MeanN = deepcopy(Ns[1])
@@ -487,23 +487,23 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
         i = felist[ilist];
-        getconn!(IntegData.fes, conn, i);
+        getconn!(integdata.fes, conn, i);
         gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         gathervalues_asvec!(u, ue, conn);# retrieve element displacements
         gathervalues_asvec!(dT, dTe, conn);# retrieve element temperature increments
         # NOTE: the coordinate system should be evaluated at a single point within the
         # element in order for the derivatives to be consistent at all quadrature points
         loc = centroid!(self,  loc, x) # WARNING: is this how the paper does it?
-        updatecsmat!(self.mcsys, loc, J, IntegData.fes.label[i]);
-        updatecsmat!(outputcsys, loc, J, IntegData.fes.label[i]);
+        updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
+        updatecsmat!(outputcsys, loc, J, integdata.fes.label[i]);
         vol = 0.0; # volume of the element
         fill!(MeangradN, 0.0) # mean basis function gradients
         fill!(MeanN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
             At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac[j] = Jacobianvolume(IntegData, J, loc, conn, Ns[j]);
+            Jac[j] = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
-            gradN!(IntegData.fes, AllgradN[j], gradNparams[j], csmatTJ);
+            gradN!(integdata.fes, AllgradN[j], gradNparams[j], csmatTJ);
             dvol = Jac[j]*w[j]
             MeangradN .= MeangradN .+ AllgradN[j]*dvol
             MeanN .= MeanN .+ Ns[j]*dvol
@@ -518,7 +518,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
         realmat.thermalstrain!(realmat, qpthstrain, qpdT)
         # REAL Material updates the state and returns the output
         rout = realmat.update!(realmat, qpstress, rout,
-            vec(qpstrain), qpthstrain, t, dt, loc, IntegData.fes.label[i], quantity)
+            vec(qpstrain), qpthstrain, t, dt, loc, integdata.fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(rout1) >= length(rout)) || (rout1 = zeros(length(rout)))
             rotstressvec(self.mr, rout1, rout, self.mcsys.csmat')# To global coord sys
@@ -526,7 +526,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
         end
         # STABILIZATION Material updates the state and returns the output
         sbout = stabmat.update!(stabmat, qpstress, sbout,
-            vec(qpstrain), qpthstrain, t, dt, loc, IntegData.fes.label[i], quantity)
+            vec(qpstrain), qpthstrain, t, dt, loc, integdata.fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(sbout1) >= length(sbout)) || (sbout1 = zeros(length(sbout)))
             rotstressvec(self.mr, sbout1, sbout, self.mcsys.csmat')# To global coord sys
@@ -542,7 +542,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
             stabmat.thermalstrain!(stabmat, qpthstrain, qpdT)
             # Material updates the state and returns the output
             sout = stabmat.update!(stabmat, qpstress, sout,
-                vec(qpstrain), qpthstrain, t, dt, loc, IntegData.fes.label[i], quantity)
+                vec(qpstrain), qpthstrain, t, dt, loc, integdata.fes.label[i], quantity)
             if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
                 (length(sout1) >= length(sout)) || (sout1 = zeros(length(sout)))
                 rotstressvec(self.mr, sout1, sout, self.mcsys.csmat')# To global coord sys

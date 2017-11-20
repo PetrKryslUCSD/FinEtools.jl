@@ -125,10 +125,10 @@ coreregion = FDataDict("femm"=>FEMMDeforLinear(MR,
     IntegData(subset(fes, rlc), gr, CSys(3, 3, updatecs!)), corematerial))
 
 # File =  "Meyer_Piening_sandwich-r1.vtk"
-# vtkexportmesh(File, skinregion["femm"].IntegData.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
+# vtkexportmesh(File, skinregion["femm"].integdata.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
 # # @async run(`"paraview.exe" $File`)
 # File =  "Meyer_Piening_sandwich-r2.vtk"
-# vtkexportmesh(File, coreregion["femm"].IntegData.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
+# vtkexportmesh(File, coreregion["femm"].integdata.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
 # @async run(`"paraview.exe" $File`)
 
 # The essential boundary conditions are applied on the symmetry planes.
@@ -179,9 +179,9 @@ topx = geom.values[nintertop[xclotop], 1]
 xclobot = sortperm(vec(geom.values[ninterbot, 1]))
 botx = geom.values[ninterbot[xclobot], 1]
 
-conninbotskin = intersect(connectednodes(botskinregion["femm"].IntegData.fes), ncenterline)
-connincore = intersect(connectednodes(coreregion["femm"].IntegData.fes), ncenterline)
-connintopskin = intersect(connectednodes(topskinregion["femm"].IntegData.fes), ncenterline)
+conninbotskin = intersect(connectednodes(botskinregion["femm"].integdata.fes), ncenterline)
+connincore = intersect(connectednodes(coreregion["femm"].integdata.fes), ncenterline)
+connintopskin = intersect(connectednodes(topskinregion["femm"].integdata.fes), ncenterline)
 inbotskin = [n in conninbotskin for n in ncenterline]
 incore = [n in connincore for n in ncenterline]
 intopskin = [n in connintopskin for n in ncenterline]

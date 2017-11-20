@@ -128,8 +128,8 @@ function fielddiffnorm(modeldatacoarse, modeldatafine)
         fcoarse = targetfieldscoarse[i]
         fcoarsetransferred = deepcopy(ffine)
         fcoarsetransferred = transferfield!(fcoarsetransferred,
-            fensfine, regionsfine[i]["femm"].IntegData.fes, fcoarse,
-            fenscoarse, regionscoarse[i]["femm"].IntegData.fes, geometricaltolerance)
+            fensfine, regionsfine[i]["femm"].integdata.fes, fcoarse,
+            fenscoarse, regionscoarse[i]["femm"].integdata.fes, geometricaltolerance)
         # Form the difference  field
         diffff = deepcopy(fcoarsetransferred)
         diffff.values[:] = ffine.values - fcoarsetransferred.values

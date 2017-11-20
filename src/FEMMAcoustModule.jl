@@ -31,19 +31,18 @@ using FinEtools.MatrixUtilityModule.complete_lt!
 Class for linear acoustics finite element modeling machine.
 """
 mutable struct FEMMAcoust{S<:FESet, F<:Function, M} <: FEMMAbstractBase
-  IntegData::IntegData{S, F} # geometry data finite element modeling machine
-  material::M # material object
+    integdata::IntegData{S, F} # geometry data finite element modeling machine
+    material::M # material object
 end
 
-function  buffers(self::FEMMAcoust, geom::NodalField{FFlt},
-    P::NodalField{F}) where {F}
-    IntegData = self.IntegData
+function  buffers(self::FEMMAcoust, geom::NodalField{FFlt}, P::NodalField{F}) where {F}
+    integdata = self.integdata
     # Constants
-    nfes = count(IntegData.fes); # number of finite elements in the set
+    nfes = count(integdata.fes); # number of finite elements in the set
     ndn = ndofs(P); # number of degrees of freedom per node
-    nne =  nodesperelem(IntegData.fes); # number of nodes per element
+    nne =  nodesperelem(integdata.fes); # number of nodes per element
     sdim =  ndofs(geom);            # number of space dimensions
-    mdim = manifdim(IntegData.fes);     # manifold dimension of the element
+    mdim = manifdim(integdata.fes);     # manifold dimension of the element
     Cedim = ndn*nne;          # dimension of the element matrix
     # Prepare assembler and temporaries
     conn = zeros(FInt, nne, 1); # element nodes -- used as a buffer
@@ -75,25 +74,25 @@ P = acoustic (perturbation) pressure field
 function acousticmass(self::FEMMAcoust,
     assembler::A, geom::NodalFieldModule.NodalField,
     P::NodalFieldModule.NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
-    IntegData = self.IntegData
+    integdata = self.integdata
     conn, x, dofnums, loc, J, gradN, elmat, elvec, elvecfix =
         buffers(self, geom, P)
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc  =  integrationdata(IntegData);
+    npts, Ns, gradNparams, w, pc  =  integrationdata(integdata);
     Jac = 0.0;
     afactor = 0.0;
-    startassembly!(assembler, size(elmat,1), size(elmat,2), count(IntegData.fes),
+    startassembly!(assembler, size(elmat,1), size(elmat,2), count(integdata.fes),
         P.nfreedofs, P.nfreedofs);
-    for i = 1:count(IntegData.fes) # Loop over elements
-        getconn!(IntegData.fes, conn, i);# retrieve element node numbers
+    for i = 1:count(integdata.fes) # Loop over elements
+        getconn!(integdata.fes, conn, i);# retrieve element node numbers
         gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         fill!(elmat, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
             At_mul_B!(loc, Ns[j], x);# Quadrature points location
             At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac = Jacobianvolume(IntegData, J, loc, conn, Ns[j]);
+            Jac = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
             # gradient WRT global Cartesian coordinates
-            FESetModule.gradN!(IntegData.fes, gradN, gradNparams[j], J);
+            FESetModule.gradN!(integdata.fes, gradN, gradNparams[j], J);
             afactor = (Jac*w[j]);
             add_mggt_ut_only!(elmat, gradN, afactor)
         end # Loop over quadrature points
@@ -122,15 +121,15 @@ Compute load vector for nonzero EBC for fixed pressure..
 function nzebcloadsacousticmass(self::FEMMAcoust, assembler::A,
     geom::NodalField, P::NodalField{T}) where {T<:Number,
     A<:SysvecAssemblerBase}
-    IntegData = self.IntegData
+    integdata = self.integdata
     conn, x, dofnums, loc, J, gradN, elmat, elvec, elvecfix =
         buffers(self, geom, P)
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc  =  integrationdata(IntegData);
+    npts, Ns, gradNparams, w, pc  =  integrationdata(integdata);
     startassembly!(assembler, P.nfreedofs);
     # Now loop over all finite elements in the set
-    for i = 1:count(IntegData.fes) # Loop over elements
-        getconn!(IntegData.fes, conn, i);# retrieve element node numbers
+    for i = 1:count(integdata.fes) # Loop over elements
+        getconn!(integdata.fes, conn, i);# retrieve element node numbers
         gatherfixedvalues_asvec!(P, elvecfix, conn);# retrieve element coordinates
         if norm(elvecfix) !=  0.0     # Is the load nonzero?
             gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
@@ -138,9 +137,9 @@ function nzebcloadsacousticmass(self::FEMMAcoust, assembler::A,
             for j = 1:npts # Loop over quadrature points
                 At_mul_B!(loc, Ns[j], x);# Quadrature points location
                 At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-                Jac = Jacobianvolume(IntegData, J, loc, conn, Ns[j]);
+                Jac = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
                 # gradient WRT global Cartesian coordinates
-                FESetModule.gradN!(IntegData.fes, gradN, gradNparams[j], J);
+                FESetModule.gradN!(integdata.fes, gradN, gradNparams[j], J);
                 afactor = (Jac*w[j]);
                 add_mggt_ut_only!(elmat, gradN, afactor)
             end # Loop over quadrature points
@@ -170,26 +169,26 @@ function acousticstiffness(self::FEMMAcoust, assembler::A,
     geom::NodalFieldModule.NodalField,
     Pddot::NodalFieldModule.NodalField{T}) where {T<:Number,
     A<:SysmatAssemblerBase}
-    IntegData = self.IntegData
+    integdata = self.integdata
     conn, x, dofnums, loc, J, gradN, elmat, elvec, elvecfix =
         buffers(self, geom, Pddot)
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc  =  integrationdata(IntegData);
+    npts, Ns, gradNparams, w, pc  =  integrationdata(integdata);
     # Material
     bulk_modulus  =   self.material.bulk_modulus;
     mass_density  =   self.material.mass_density;
     c  =  sqrt(bulk_modulus/mass_density); # sound speed
     oc2 = 1.0/c^2;
-    startassembly!(assembler, size(elmat,1), size(elmat,2), count(IntegData.fes),
+    startassembly!(assembler, size(elmat,1), size(elmat,2), count(integdata.fes),
         Pddot.nfreedofs, Pddot.nfreedofs);
-    for i = 1:count(IntegData.fes) # Loop over elements
-        getconn!(IntegData.fes, conn, i);# retrieve element node numbers
+    for i = 1:count(integdata.fes) # Loop over elements
+        getconn!(integdata.fes, conn, i);# retrieve element node numbers
         gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         fill!(elmat, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
             At_mul_B!(loc, Ns[j], x);# Quadrature points location
             At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac = Jacobianvolume(IntegData, J, loc, conn, Ns[j]);
+            Jac = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
             ffactor = Jac*oc2*w[j]
             add_nnt_ut_only!(elmat, Ns[j], ffactor)
         end # Loop over quadrature points
@@ -220,11 +219,11 @@ function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A,
     geom::NodalFieldModule.NodalField,
     Pddot::NodalFieldModule.NodalField{T}) where {T<:Number,
     A<:SysvecAssemblerBase}
-    IntegData = self.IntegData
+    integdata = self.integdata
     conn, x, dofnums, loc, J, gradN, elmat, elvec, elvecfix =
         buffers(self, geom, Pddot)
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc  =  integrationdata(IntegData);
+    npts, Ns, gradNparams, w, pc  =  integrationdata(integdata);
     # Material
     bulk_modulus  =   self.material.bulk_modulus;
     mass_density  =   self.material.mass_density;
@@ -232,8 +231,8 @@ function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A,
     oc2 = 1.0/c^2;
     startassembly!(assembler, Pddot.nfreedofs);
     # Now loop over all finite elements in the set
-    for i = 1:count(IntegData.fes) # Loop over elements
-        getconn!(IntegData.fes, conn, i);# retrieve element node numbers
+    for i = 1:count(integdata.fes) # Loop over elements
+        getconn!(integdata.fes, conn, i);# retrieve element node numbers
         gatherfixedvalues_asvec!(Pddot, elvecfix, conn);# retrieve element coordinates
         if norm(elvecfix) !=  0.0  # Is the load nonzero?
             gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
@@ -241,7 +240,7 @@ function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A,
             for j = 1:npts # Loop over quadrature points
                 At_mul_B!(loc, Ns[j], x);# Quadrature point location
                 At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-                Jac = Jacobianvolume(IntegData, J, loc, conn, Ns[j]);
+                Jac = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
                 ffactor = Jac*oc2*w[j]
                 add_nnt_ut_only!(elmat, Ns[j], ffactor)
             end # Loop over quadrature points

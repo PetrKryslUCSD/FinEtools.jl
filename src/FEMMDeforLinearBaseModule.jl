@@ -32,9 +32,9 @@ abstract type FEMMDeforLinearAbstract <: FEMMAbstractBase end
 
 function buffers(self::FEMMDeforLinearAbstract, geom::NodalField, u::NodalField)
     ndn = ndofs(u); # number of degrees of freedom per node
-    nne = nodesperelem(self.IntegData.fes); # number of nodes for element
+    nne = nodesperelem(self.integdata.fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
-    mdim = manifdim(self.IntegData.fes); # manifold dimension of the element
+    mdim = manifdim(self.integdata.fes); # manifold dimension of the element
     nstrs = nstsstn(self.mr);  # number of stresses
     elmatdim = ndn*nne;             # dimension of the element matrix
     # Prepare buffers
@@ -64,7 +64,7 @@ Compute the consistent mass matrix
 This is a general routine for the abstract linear-deformation  FEMM.
 """
 function mass(self::FEMMDeforLinearAbstract,  assembler::A,  geom::NodalField{FFlt}, u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
-    IntegData = self.IntegData
+    IntegData = self.integdata
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(IntegData);
     conn, x, dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat = buffers(self, geom, u)  # Prepare buffers
     rho::FFlt = self.material.mass_density; # mass density
@@ -108,7 +108,7 @@ end
 Compute and assemble  stiffness matrix.
 """
 function stiffness(self::FEMMDeforLinearAbstract, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
-    IntegData = self.IntegData
+    IntegData = self.integdata
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(IntegData);
     conn, x, dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix = buffers(self, geom, u)  # Prepare buffers
     self.material.tangentmoduli!(self.material, D, 0.0, 0.0, loc, 0)
@@ -148,7 +148,7 @@ end
 Compute load vector for nonzero EBC for fixed displacement.
 """
 function nzebcloadsstiffness(self::FEMMDeforLinearAbstract,  assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:SysvecAssemblerBase, T<:Number}
-    IntegData = self.IntegData
+    IntegData = self.integdata
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(IntegData);
     conn, x, dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix = buffers(self, geom, u)  # Prepare buffers
     self.material.tangentmoduli!(self.material, D, 0.0, 0.0, loc, 0)
@@ -191,7 +191,7 @@ end
 Compute the thermal-strain load vector.
 """
 function  thermalstrainloads(self::FEMMDeforLinearAbstract, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}, dT::NodalField{FFlt}) where {A<:SysvecAssemblerBase, T<:Number}
-    IntegData = self.IntegData
+    IntegData = self.integdata
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(IntegData);
     conn, x, dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix = buffers(self, geom, u)# Prepare buffers
     t= 0.0
@@ -260,7 +260,7 @@ The updated inspector data is returned.
 """
 function inspectintegpoints(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt},
     felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
-    IntegData = self.IntegData
+    IntegData = self.integdata
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(IntegData);
     conn, x, dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix = buffers(self, geom, u)  # Prepare buffers
     # Sort out  the output requirements

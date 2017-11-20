@@ -144,9 +144,9 @@ function test()
   ASSEMBLY(AE, "ASSEM1");
   INSTANCE(AE, "INSTNC1", "PART1");
   NODE(AE, fens.xyz);
-  ELEMENT(AE, "c3d8rh", "AllElements", 1, region1["femm"].IntegData.fes.conn)
+  ELEMENT(AE, "c3d8rh", "AllElements", 1, region1["femm"].integdata.fes.conn)
   ELEMENT(AE, "SFM3D4", "TractionElements",
-    1+count(region1["femm"].IntegData.fes), flux1["femm"].IntegData.fes.conn)
+    1+count(region1["femm"].integdata.fes), flux1["femm"].integdata.fes.conn)
   NSET_NSET(AE, "l1", l1)
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", "Hourglass");
@@ -236,9 +236,9 @@ function test()
   ASSEMBLY(AE, "ASSEM1");
   INSTANCE(AE, "INSTNC1", "PART1");
   NODE(AE, fens.xyz);
-  ELEMENT(AE, "c3d8rh", "AllElements", 1, region1["femm"].IntegData.fes.conn)
+  ELEMENT(AE, "c3d8rh", "AllElements", 1, region1["femm"].integdata.fes.conn)
   ELEMENT(AE, "SFM3D4", "TractionElements",
-    1+count(region1["femm"].IntegData.fes), flux1["femm"].IntegData.fes.conn)
+    1+count(region1["femm"].integdata.fes), flux1["femm"].integdata.fes.conn)
   NSET_NSET(AE, "l1", l1)
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", "Hourglass");

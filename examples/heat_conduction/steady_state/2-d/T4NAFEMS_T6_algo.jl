@@ -124,10 +124,10 @@ println("Convergence rate estimate  = $(beta )")
 geom = modeldata["geom"]
 Temp = modeldata["temp"]
 regions = modeldata["regions"]
-vtkexportmesh("T4NAFEMS--T6.vtk", regions[1]["femm"].IntegData.fes.conn,
+vtkexportmesh("T4NAFEMS--T6.vtk", regions[1]["femm"].integdata.fes.conn,
           [geom.values Temp.values/100], FinEtools.MeshExportModule.T6;
           scalars=[("Temperature", Temp.values)])
-vtkexportmesh("T4NAFEMS--T6--base.vtk", regions[1]["femm"].IntegData.fes.conn,
+vtkexportmesh("T4NAFEMS--T6--base.vtk", regions[1]["femm"].integdata.fes.conn,
           [geom.values 0.0*Temp.values/100], FinEtools.MeshExportModule.T6)
 
 # ##

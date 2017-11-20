@@ -124,11 +124,11 @@ coreregion = FDataDict("femm"=>FEMMDeforLinear(MR,
     IntegData(subset(fes, rlc), gr, CSys(3, 3, updatecs!)), corematerial))
 
 # File =  "Meyer_Piening_sandwich-r1.vtk"
-# vtkexportmesh(File, botskinregion["femm"].IntegData.fes.conn, fens.xyz,
+# vtkexportmesh(File, botskinregion["femm"].integdata.fes.conn, fens.xyz,
 #     FinEtools.MeshExportModule.T10)
 # # @async run(`"paraview.exe" $File`)
 # File =  "Meyer_Piening_sandwich-r2.vtk"
-# vtkexportmesh(File, coreregion["femm"].IntegData.fes.conn, fens.xyz,
+# vtkexportmesh(File, coreregion["femm"].integdata.fes.conn, fens.xyz,
 #     FinEtools.MeshExportModule.T10)
 # @async run(`"paraview.exe" $File`)
 
@@ -191,9 +191,9 @@ ntopcenter = selectnode(fens, box=[0.0 0.0 0.0 0.0 TH TH], inflate=tolerance)
 # botx = geom.values[ninterbot, 1]
 # xclotop = xclobot = nothing
 #
-# conninbotskin = intersect(connectednodes(botskinregion["femm"].IntegData.fes), ncenterline)
-# connincore = intersect(connectednodes(coreregion["femm"].IntegData.fes), ncenterline)
-# connintopskin = intersect(connectednodes(topskinregion["femm"].IntegData.fes), ncenterline)
+# conninbotskin = intersect(connectednodes(botskinregion["femm"].integdata.fes), ncenterline)
+# connincore = intersect(connectednodes(coreregion["femm"].integdata.fes), ncenterline)
+# connintopskin = intersect(connectednodes(topskinregion["femm"].integdata.fes), ncenterline)
 # inbotskin = [n in conninbotskin for n in ncenterline]
 # incore = [n in connincore for n in ncenterline]
 # intopskin = [n in connintopskin for n in ncenterline]
