@@ -19,7 +19,7 @@ using FinEtools.FieldModule.@add_Field_fields
 Nodal field.
 """
 mutable struct NodalField{T<:Number} <: Field
-  @add_Field_fields()
+    @add_Field_fields()
 end
 
 """
@@ -28,13 +28,13 @@ end
 Constructor of nodal field.
 """
 function NodalField(data::FMat{T}=[]) where {T<:Number}
-  values = deepcopy(data)
-  dofnums = 0*similar(values,FInt)
-  is_fixed = similar(values,Bool)
-  fill!(is_fixed, 0)
-  fixed_values = zeros(T,size(values))
-  nfreedofs = 0
-  return NodalField(values, dofnums, is_fixed, fixed_values, nfreedofs)
+    values = deepcopy(data)
+    dofnums = 0*similar(values,FInt)
+    is_fixed = similar(values,Bool)
+    fill!(is_fixed, 0)
+    fixed_values = zeros(T,size(values))
+    nfreedofs = 0
+    return NodalField(values, dofnums, is_fixed, fixed_values, nfreedofs)
 end
 
 """

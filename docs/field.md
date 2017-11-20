@@ -7,7 +7,7 @@ The structure to maintain the numbering  and values of the degrees of freedom in
 ## Abstract  Field
 
 The assumption is that a field has one set of degrees of freedom per node or per element. For simplicity we will refer to the nodes and elements as entities.
-It assumes that concrete  subtypes of the abstract field  have the following data:
+It assumes that concrete  subtypes of the abstract field  have the following data, one row per entity:
 
 - `values::FMat{T}`: Array of the values of the degrees of freedom, one row  for each entity. All the arrays below have the same dimensions as this one.
 - `dofnums::FIntMat`: Array  of the numbers of the free degrees of freedom. If the degree of freedom is fixed (prescribed), the corresponding entry is zero.
@@ -29,5 +29,14 @@ The methods defined for the abstract field  include:
 
 ## Nodal Field
 
+In this case  the  abstract field  results in a concrete field where the entities are nodes.
 
+## Elemental Field
+
+In this case  the  abstract field  results in a concrete field where the entities are the elements.
+
+
+## General Field
+
+In this case  the  abstract field  results in a concrete field where the entities are the use-case  specific. 
 
