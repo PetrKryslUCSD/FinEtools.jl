@@ -29,14 +29,14 @@ The methods defined for the abstract field  include:
 
 ## Nodal Field
 
-In this case  the  abstract field  results in a concrete field where the entities are nodes.
+In this case  the  abstract field is subtyped to a concrete field where the entities are nodes.
 
 ## Elemental Field
 
-In this case  the  abstract field  results in a concrete field where the entities are the elements.
+In this case  the  abstract field  is subtyped to a concrete field where the entities are the elements.
 
 
 ## General Field
 
-In this case  the  abstract field  results in a concrete field where the entities are the use-case  specific. 
+In this case  the  abstract field  is subtyped to a concrete field where the entities are  use-case  specific. 
 
