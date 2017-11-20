@@ -6,7 +6,7 @@ Solution procedures and other  common operations on FEM models  are expressed  i
 
 Algorithms typically (not always) accept a single argument, `modeldata`, a dictionary of data, keyed by Strings. Algorithms  also return `modeldata`,  typically  including additional key/value pairs that represent the data computed by the algorithm.
 
-##  Base algorithms
+## Base algorithms
 
 These are not specific to the particular physics at hand. Examples of  algorithms are  Richardson extrapolation,  calculation of the norm of the field, or calculation of the norm  of the difference of two fields. These algorithms are the exceptions, they do not return `modeldata` but rather return directly computed values.
 
@@ -14,36 +14,45 @@ These are not specific to the particular physics at hand. Examples of  algorithm
 
 At the moment there is one algorithm, for steady-state (harmonic) acoustics.
 
-###  Example:  baffled piston
+### Example:  baffled piston
 
 After the mesh  has been generated, the `modeldata` can be set up: Here we begin with  the region.
+
 ```julia
 material = MatAcoustFluid(bulk, rho)
 region1 =  FDataDict("femm"=>FEMMAcoust(IntegData(fes, GaussRule(3, 2)), material))
 ```
+
 We set up a definition of the absorbing boundary condition:
+
 ```julia
 abc1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegData(outer_fes, GaussRule(2, 2)),
           material))
 ```
+
 The  surface of the piston is associated with a known-flux  boundary condition:
+
 ```julia
 flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegData(piston_fes, GaussRule(2, 2)),
           material),  "normal_flux"=> -rho*a_piston+0.0im);
 ```
-And finally we make the model data,,
+
+And finally we make the model data,
+
 ```julia
 modeldata =  FDataDict("fens"=>  fens,
                  "omega"=>omega,
                  "regions"=>[region1],
                  "flux_bcs"=>[flux1], "ABCs"=>[abc1])
 ```
+
 and call  the solver:
+
 ```julia
 modeldata = FinEtools.AlgoAcoustModule.steadystate(modeldata)
 ```
-When  the algorithm completes, `modeldata["P"]` is the computed pressure field.
 
+When  the algorithm completes, `modeldata["P"]` is the computed pressure field.
 
 ## Heat diffusion algorithms
 
@@ -59,9 +68,3 @@ There are algorithms for
 - Modal (free-vibration) analysis;
 - Export  of modal shapes for visualization;
 - Subspace-iteration method implementation.
-
-
-
-
-
-

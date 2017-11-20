@@ -22,16 +22,4 @@ The module `MatDeforModule` provides functions to convert between vector and mat
 
 Currently  there are material types for isotropic and orthotropic linear elastic materials. The user may add  additional material types by deriving from `MatDefor` equipping them with three methods: compute the tangent moduli, update the material state, compute the thermal strain.
 
-For full generality, material types  should implement these methods for fully three-dimensional, plane strain and plane stress, 2D axially symmetric, and one-dimensional deformation models. 
-
-
-
-
-
-
-
-
-
-
-
-
+For full generality, material types  should implement these methods for fully three-dimensional, plane strain and plane stress, 2D axially symmetric, and one-dimensional deformation models.
