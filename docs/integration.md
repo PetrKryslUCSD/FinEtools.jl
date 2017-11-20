@@ -44,7 +44,7 @@ The integral  is approximated with numerical quadrature as
 Here <img src="http://latex.codecogs.com/svg.latex? f" border="0"/> is the integrand, <img src="http://latex.codecogs.com/svg.latex? f(\xi_q)" border="0"/> is the  value of the integrand  at the quadrature point,
 <img src="http://latex.codecogs.com/svg.latex? J(\xi_q)" border="0"/> is the  value of the Jacobian  at the quadrature point.
 Importantly, the Jacobian incorporates the "other" dimension,  and therefore it is the  *volume* 
-Jacobian. (For the boundary integrals the Jacobian  is computed by the `Jacobianvolume` method.)
+Jacobian. (For the interior integrals the Jacobian  is computed by the `Jacobianvolume` method.)
 
 ## Integration  over the boundary
 
@@ -67,9 +67,7 @@ The integral  is approximated with numerical quadrature as
 <img src="http://latex.codecogs.com/svg.latex? \int_{\partial \Omega} f dS \approx \sum_q f(\xi_q) J(\xi_q) W_q " border="0"/> 
 
 Here <img src="http://latex.codecogs.com/svg.latex? f" border="0"/> is the integrand, <img src="http://latex.codecogs.com/svg.latex? f(\xi_q)" border="0"/> is the  value of the integrand  at the quadrature point,
-<img src="http://latex.codecogs.com/svg.latex? J(\xi_q)" border="0"/> is the  value of the Jacobian  at the quadrature point.
-Importantly, the Jacobian incorporates the "other" dimension,  and therefore it is the  *surface* 
-Jacobian. (For the boundary integrals the Jacobian  is computed by the `Jacobiansurface` method.)
+<img src="http://latex.codecogs.com/svg.latex? J(\xi_q)" border="0"/> is the  value of the Jacobian  at the quadrature point. Importantly, the Jacobian incorporates the "other" dimension,  and therefore it is the  *surface* Jacobian. (For the boundary integrals the Jacobian  is computed by the `Jacobiansurface` method.)
 
 ### Example: axially symmetric model, line element L2
 
