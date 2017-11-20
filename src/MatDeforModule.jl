@@ -29,10 +29,10 @@ abstract type MatDefor end
 Convert a matrix of 2x2 strain components  into a 3-component vector.
 """
 function strain2x2tto3v!(v::FFltVec, t::FFltMat)
-  v[1] = t[1,1];
-  v[2] = t[2,2];
-  v[3] = t[1,2] + t[2,1];
-  return v
+    v[1] = t[1,1];
+    v[2] = t[2,2];
+    v[3] = t[1,2] + t[2,1];
+    return v
 end
 
 """
@@ -41,11 +41,11 @@ end
 Convert a strain 3-vector to a  matrix of 2x2 strain components (symmetric tensor).
 """
 function strain3vto2x2t!(t::FFltMat, v::FFltVec)
-  t[1,1] = v[1];
-  t[2,2] = v[2];
-  t[1,2] = v[3]/2.;
-  t[2,1] = v[3]/2.;
-  return t
+    t[1,1] = v[1];
+    t[2,2] = v[2];
+    t[1,2] = v[3]/2.;
+    t[2,1] = v[3]/2.;
+    return t
 end
 
 """
@@ -54,13 +54,13 @@ end
 Convert a matrix of 3x3 strain components to a 6-component vector.
 """
 function strain3x3tto6v!(v::FFltVec, t::FFltMat)
-  v[1] = t[1,1];
-  v[2] = t[2,2];
-  v[3] = t[3,3];
-  v[4] = t[1,2] + t[2,1];
-  v[5] = t[1,3] + t[3,1];
-  v[6] = t[3,2] + t[2,3];
-  return v
+    v[1] = t[1,1];
+    v[2] = t[2,2];
+    v[3] = t[3,3];
+    v[4] = t[1,2] + t[2,1];
+    v[5] = t[1,3] + t[3,1];
+    v[6] = t[3,2] + t[2,3];
+    return v
 end
 
 """
@@ -69,16 +69,16 @@ end
 Convert a strain 6-vector to a  matrix of 3x3 strain components (symmetric tensor)..
 """
 function strain6vto3x3t!(t::FFltMat, v::FFltVec)
-  t[1,1] = v[1];
-  t[2,2] = v[2];
-  t[3,3] = v[3];
-  t[1,2] = v[4]/2.;
-  t[2,1] = v[4]/2.;
-  t[1,3] = v[5]/2.;
-  t[3,1] = v[5]/2.;
-  t[3,2] = v[6]/2.;
-  t[2,3] = v[6]/2.;
-  return t
+    t[1,1] = v[1];
+    t[2,2] = v[2];
+    t[3,3] = v[3];
+    t[1,2] = v[4]/2.;
+    t[2,1] = v[4]/2.;
+    t[1,3] = v[5]/2.;
+    t[3,1] = v[5]/2.;
+    t[3,2] = v[6]/2.;
+    t[2,3] = v[6]/2.;
+    return t
 end
 
 """
@@ -90,16 +90,16 @@ The  strain components are in the order
      ex, ey, ez, gxy, gyx, gyz, gzy, gxz, gzx
 """
 function strain3x3tto9v!(v::FFltVec, t::FFltMat)
-  v[1] = t[1,1];
-  v[2] = t[2,2];
-  v[3] = t[3,3];
-  v[4] = t[1,2];
-  v[5] = t[2,1];
-  v[6] = t[2,3];
-  v[7] = t[3,2];
-  v[8] = t[1,3];
-  v[9] = t[3,1];
-  return v
+    v[1] = t[1,1];
+    v[2] = t[2,2];
+    v[3] = t[3,3];
+    v[4] = t[1,2];
+    v[5] = t[2,1];
+    v[6] = t[2,3];
+    v[7] = t[3,2];
+    v[8] = t[1,3];
+    v[9] = t[3,1];
+    return v
 end
 
 """
@@ -111,16 +111,16 @@ The  strain components are in the order
      ex, ey, ez, gxy, gyx, gyz, gzy, gxz, gzx
 """
 function strain9vto3x3t!(t::FFltMat, v::FFltVec)
-  t[1,1] = v[1];
-  t[2,2] = v[2];
-  t[3,3] = v[3];
-  t[1,2] = v[4];
-  t[2,1] = v[5];
-  t[2,3] = v[6];
-  t[3,2] = v[7];
-  t[1,3] = v[8];
-  t[3,1] = v[9];
-  return t
+    t[1,1] = v[1];
+    t[2,2] = v[2];
+    t[3,3] = v[3];
+    t[1,2] = v[4];
+    t[2,1] = v[5];
+    t[2,3] = v[6];
+    t[3,2] = v[7];
+    t[1,3] = v[8];
+    t[3,1] = v[9];
+    return t
 end
 
 """
@@ -129,10 +129,10 @@ end
 Convert a symmetric matrix of 2x2 stress components to a 3-component vector.
 """
 function stress2x2to3v!(v::FFltVec, t::FFltMat)
-  v[1] = t[1,1];
-  v[2] = t[2,2];
-  v[3] = 1.0/2.0*(t[1,2] + t[2,1]);
-  return v
+    v[1] = t[1,1];
+    v[2] = t[2,2];
+    v[3] = 1.0/2.0*(t[1,2] + t[2,1]);
+    return v
 end
 
 """
@@ -141,11 +141,11 @@ end
 Convert a 3-vector to a  matrix of 2x2 stress components (symmetric tensor).
 """
 function stress3vto2x2t!(t::FFltMat, v::FFltVec)
-  t[1,1] = v[1];
-  t[2,2] = v[2];
-  t[1,2] = v[3];
-  t[2,1] = v[3];
-  return t
+    t[1,1] = v[1];
+    t[2,2] = v[2];
+    t[1,2] = v[3];
+    t[2,1] = v[3];
+    return t
 end
 
 """
@@ -154,11 +154,11 @@ end
 Convert a 3-vector to a matrix of 3x3 stress components (symmetric tensor).
 """
 function stress3vto3x3t!(t::FFltMat, v::FFltVec)
-  t[1,1] = v[1];
-  t[2,2] = v[2];
-  t[1,2] = v[3];
-  t[2,1] = v[3];
-  return t
+    t[1,1] = v[1];
+    t[2,2] = v[2];
+    t[1,2] = v[3];
+    t[2,1] = v[3];
+    return t
 end
 
 """
@@ -178,12 +178,12 @@ reordered, as from the constitutive equation they come out
 as sigmax, sigmay, sigmaz, tauxy.
 """
 function stress4vto3x3t!(t::FFltMat, v::FFltVec)
-  t[1,1] = v[1];
-  t[2,2] = v[2];
-  t[1,2] = v[3];
-  t[2,1] = v[3];
-  t[3,3] = v[4];
-  return t
+    t[1,1] = v[1];
+    t[2,2] = v[2];
+    t[1,2] = v[3];
+    t[2,1] = v[3];
+    t[3,3] = v[4];
+    return t
 end
 
 """
@@ -192,16 +192,16 @@ end
 Convert a 6-vector to a  matrix of 3x3 stress components (symmetric tensor).
 """
 function stress6vto3x3t!(t::FFltMat, v::FFltVec)
-  t[1,1] = v[1];
-  t[2,2] = v[2];
-  t[3,3] = v[3];
-  t[1,2] = v[4];
-  t[2,1] = v[4];
-  t[1,3] = v[5];
-  t[3,1] = v[5];
-  t[3,2] = v[6];
-  t[2,3] = v[6];
-  return t
+    t[1,1] = v[1];
+    t[2,2] = v[2];
+    t[3,3] = v[3];
+    t[1,2] = v[4];
+    t[2,1] = v[4];
+    t[1,3] = v[5];
+    t[3,1] = v[5];
+    t[3,2] = v[6];
+    t[2,3] = v[6];
+    return t
 end
 
 """
@@ -210,13 +210,13 @@ end
 Convert a matrix of 3x3 stress components to a 6-component vector.
 """
 function stress3x3tto6v!(v::FFltVec, t::FFltMat)
-  v[1] = t[1,1];
-  v[2] = t[2,2];
-  v[3] = t[3,3];
-  v[4] = 1/2.0*(t[1,2] + t[2,1]);
-  v[5] = 1/2.0*(t[1,3] + t[3,1]);
-  v[6] = 1/2.0*(t[3,2] + t[2,3]);
-  return v
+    v[1] = t[1,1];
+    v[2] = t[2,2];
+    v[3] = t[3,3];
+    v[4] = 1/2.0*(t[1,2] + t[2,1]);
+    v[5] = 1/2.0*(t[1,3] + t[3,1]);
+    v[6] = 1/2.0*(t[3,2] + t[2,3]);
+    return v
 end
 
 """
@@ -225,13 +225,13 @@ end
 Convert a strain 9-vector to a  strain 6-vector components (tensor).
 """
 function strain9vto6v!(t::FFltVec, v::FFltVec)
-  t[1] = v[1];
-  t[2] = v[2];
-  t[3] = v[3];
-  t[4] = v[4]+v[5];
-  t[5] = v[8]+v[9];
-  t[6] = v[6]+v[7];
-  return t
+    t[1] = v[1];
+    t[2] = v[2];
+    t[3] = v[3];
+    t[4] = v[4]+v[5];
+    t[5] = v[8]+v[9];
+    t[6] = v[6]+v[7];
+    return t
 end
 
 """
@@ -243,16 +243,16 @@ The  strain components are in the order
      ex, ey, ez, gxy/2, gxy/2, gyz/2, gyz/2, gxz/2, gxz/2
 """
 function strain6vto9v!(t::FFltVec, v::FFltVec)
-  t[1] = v[1];
-  t[2] = v[2];
-  t[3] = v[3];
-  t[4] = v[4]/2.;
-  t[5] = v[4]/2.;
-  t[6] = v[6]/2.;
-  t[7] = v[6]/2.;
-  t[8] = v[5]/2.;
-  t[9] = v[5]/2.;
-  return t
+    t[1] = v[1];
+    t[2] = v[2];
+    t[3] = v[3];
+    t[4] = v[4]/2.;
+    t[5] = v[4]/2.;
+    t[6] = v[6]/2.;
+    t[7] = v[6]/2.;
+    t[8] = v[5]/2.;
+    t[9] = v[5]/2.;
+    return t
 end
 
 """
@@ -264,13 +264,13 @@ The  stress components are in the order
      sigx, sigy, sigz, tauxy, tauxy, tauyz, tauyz, tauxz, tauxz
 """
 function stress9vto6v!(t::FFltVec, v::FFltVec)
-  t[1] = v[1];
-  t[2] = v[2];
-  t[3] = v[3];
-  t[4] = v[4];
-  t[5] = v[8];
-  t[6] = v[6];
-  return t
+    t[1] = v[1];
+    t[2] = v[2];
+    t[3] = v[3];
+    t[4] = v[4];
+    t[5] = v[8];
+    t[6] = v[6];
+    return t
 end
 
 """
@@ -282,16 +282,16 @@ The  stress components are in the order
      sigx, sigy, sigz, tauxy, tauxy, tauyz, tauyz, tauxz, tauxz
 """
 function stress6vto9v!(t::FFltVec, v::FFltVec)
-  t[1] = v[1];
-  t[2] = v[2];
-  t[3] = v[3];
-  t[4] = v[4];
-  t[5] = v[4];
-  t[6] = v[6];
-  t[7] = v[6];
-  t[8] = v[5];
-  t[9] = v[5];
-  return t
+    t[1] = v[1];
+    t[2] = v[2];
+    t[3] = v[3];
+    t[4] = v[4];
+    t[5] = v[4];
+    t[6] = v[6];
+    t[7] = v[6];
+    t[8] = v[5];
+    t[9] = v[5];
+    return t
 end
 
 
@@ -310,8 +310,7 @@ Calculate the rotation of the stress vector to the
 `Rm` = columns are components of 'bar' basis vectors on the 'plain'
      basis vectors
 """
-function  rotstressvec(::Type{DeforModelRed3D},  outstress::FFltVec,
-  instress::FFltVec, Rm::FFltMat)
+function  rotstressvec(::Type{DeforModelRed3D},  outstress::FFltVec,  instress::FFltVec, Rm::FFltMat)
       # # Derivation of the transformation matrix [T]
     # #This is from Barbero''s  book Finite element analysis of composite
     # #materials  using Abaqus.  Note that his matrix "a"  is the transpose of
@@ -374,7 +373,7 @@ function  rotstressvec(::Type{DeforModelRed3D},  outstress::FFltVec,
     outstress[6] =  (a12*a13)*instress[1] + (a22*a23)*instress[2] +
                     (a32*a33)*instress[3] + (a12*a23 + a13*a22)*instress[4] +
                     (a12*a33 + a13*a32)*instress[5] + (a22*a33 + a23*a32)*instress[6]
-  return outstress
+    return outstress
 end
 
 
@@ -394,21 +393,16 @@ Calculate the rotation of the stress vector to the
 `Rm` = columns are components of 'bar' basis vectors on the 'plain'
      basis vectors
 """
-function  rotstressvec(::Type{DeforModelRed2DStrain},  outstress::FFltVec,
-  instress::FFltVec,  Rm::FFltMat)
-  a11=Rm[1,1]; a12=Rm[1,2]; a13=0.0;
-  a21=Rm[2,1]; a22=Rm[2,2]; a23=0.0;
-  a31=0.0; a32=0.0; a33=1.0;
-  # Note the special arrangement  of the components for plane strain
-  outstress[1] =  (a11^2)*instress[1] + (a21^2)*instress[2] +
-  (a31^2)*instress[4] + (2*a11*a21)*instress[3]
-  outstress[2] =  (a12^2)*instress[1] +  (a22^2)*instress[2] +
-  (a32^2)*instress[4] + (2*a12*a22)*instress[3]
-  outstress[4] =  (a13^2)*instress[1] + (a23^2)*instress[2] +
-  (a33^2)*instress[4] + (2*a13*a23)*instress[3]
-  outstress[3] =  a11*a12*instress[1] +  a21*a22*instress[2] +
-  a31*a32*instress[4] + (a11*a22 + a12*a21)*instress[3]
-  return outstress
+function  rotstressvec(::Type{DeforModelRed2DStrain},  outstress::FFltVec,  instress::FFltVec,  Rm::FFltMat)
+    a11=Rm[1,1]; a12=Rm[1,2]; a13=0.0;
+    a21=Rm[2,1]; a22=Rm[2,2]; a23=0.0;
+    a31=0.0; a32=0.0; a33=1.0;
+    # Note the special arrangement  of the components for plane strain
+    outstress[1] =  (a11^2)*instress[1] + (a21^2)*instress[2] + (a31^2)*instress[4] + (2*a11*a21)*instress[3]
+    outstress[2] =  (a12^2)*instress[1] +  (a22^2)*instress[2] + (a32^2)*instress[4] + (2*a12*a22)*instress[3]
+    outstress[4] =  (a13^2)*instress[1] + (a23^2)*instress[2] + (a33^2)*instress[4] + (2*a13*a23)*instress[3]
+    outstress[3] =  a11*a12*instress[1] +  a21*a22*instress[2] + a31*a32*instress[4] + (a11*a22 + a12*a21)*instress[3]
+    return outstress
 end
 
 
@@ -428,17 +422,13 @@ Calculate the rotation of the stress vector to the
 `Rm` = columns are components of 'bar' basis vectors on the 'plain'
      basis vectors
 """
-function  rotstressvec(::Type{DeforModelRed2DStress},  outstress::FFltVec,
-  instress::FFltVec,  Rm::FFltMat)
-  a11=Rm[1,1]; a12=Rm[1,2];
-  a21=Rm[2,1]; a22=Rm[2,2];
-  outstress[1] =  (a11^2)*instress[1] + (a21^2)*instress[2] +
-  (2*a11*a21)*instress[3]
-  outstress[2] =  (a12^2)*instress[1] +  (a22^2)*instress[2] +
-  (2*a12*a22)*instress[3]
-  outstress[3] =  (a11*a12)*instress[1] + (a21*a22)*instress[2] +
-  (a11*a22+a12*a21)*instress[3]
-  return outstress
+function  rotstressvec(::Type{DeforModelRed2DStress},  outstress::FFltVec,  instress::FFltVec,  Rm::FFltMat)
+    a11=Rm[1,1]; a12=Rm[1,2];
+    a21=Rm[2,1]; a22=Rm[2,2];
+    outstress[1] =  (a11^2)*instress[1] + (a21^2)*instress[2] + (2*a11*a21)*instress[3]
+    outstress[2] =  (a12^2)*instress[1] +  (a22^2)*instress[2] + (2*a12*a22)*instress[3]
+    outstress[3] =  (a11*a12)*instress[1] + (a21*a22)*instress[2] + (a11*a22+a12*a21)*instress[3]
+    return outstress
 end
 
 ################################################################################
@@ -456,19 +446,14 @@ Calculate the rotation of the stress vector to the
 `Rm` = columns are components of 'bar' basis vectors on the 'plain'
      basis vectors
 """
-function  rotstressvec(::Type{DeforModelRed2DAxisymm},  outstress::FFltVec,
-  instress::FFltVec,  Rm::FFltMat)
-  a11=Rm[1,1]; a12=Rm[1,2];
-  a21=Rm[2,1]; a22=Rm[2,2];
-  outstress[1] =  (a11^2)*instress[1] + (a21^2)*instress[2] +
-                  (0.0)*instress[3] + (2*a11*a21)*instress[4]
-  outstress[2] =  (a12^2)*instress[1] + (a22^2)*instress[2] +
-                  (0.0)*instress[3] + (2*a12*a22)*instress[4]
-  outstress[3] =  (0.0)*instress[1] + (0.0)*instress[2] +
-                  (1.0)*instress[3] + (0.0)*instress[4]
-  outstress[4] =  (a11*a12)*instress[1] + (a21*a22)*instress[2] +
-                  (0.0)*instress[3] + (a11*a22 + a12*a21)*instress[4]
-  return outstress
+function  rotstressvec(::Type{DeforModelRed2DAxisymm},  outstress::FFltVec,  instress::FFltVec,  Rm::FFltMat)
+    a11=Rm[1,1]; a12=Rm[1,2];
+    a21=Rm[2,1]; a22=Rm[2,2];
+    outstress[1] =  (a11^2)*instress[1] + (a21^2)*instress[2] + (0.0)*instress[3] + (2*a11*a21)*instress[4]
+    outstress[2] =  (a12^2)*instress[1] + (a22^2)*instress[2] + (0.0)*instress[3] + (2*a12*a22)*instress[4]
+    outstress[3] =  (0.0)*instress[1] + (0.0)*instress[2] + (1.0)*instress[3] + (0.0)*instress[4]
+    outstress[4] =  (a11*a12)*instress[1] + (a21*a22)*instress[2] + (0.0)*instress[3] + (a11*a22 + a12*a21)*instress[4]
+    return outstress
 end
 
 
@@ -487,10 +472,9 @@ Calculate the rotation of the stress vector to the
 `Rm` = columns are components of 'bar' basis vectors on the 'plain'
      basis vectors
 """
-function  rotstressvec(::Type{DeforModelRed1D},  outstress::FFltVec,
-  instress::FFltVec,  Rm::FFltMat)
-  copy!(outstress, instress)
-  return outstress
+function  rotstressvec(::Type{DeforModelRed1D},  outstress::FFltVec,  instress::FFltVec,  Rm::FFltMat)
+    copy!(outstress, instress)
+    return outstress
 end
 
 
