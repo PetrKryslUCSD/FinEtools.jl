@@ -75,24 +75,22 @@ function conductivity(self::FEMMHeatDiff,  assembler::A, geom::NodalField{FFlt},
     # Thermal conductivity matrix is in local  material coordinates.
     kappa_bar =  self.material.thermal_conductivity;
     # Prepare assembler and buffers
-    conn, x, dofnums, loc, J, RmTJ, gradN, kappa_bargradNT, elmat =
-                buffers(self, geom, temp)
-    startassembly!(assembler, size(elmat,1), size(elmat,2), count(integdata.fes),
-    temp.nfreedofs, temp.nfreedofs);
+    conn, x, dofnums, loc, J, RmTJ, gradN, kappa_bargradNT, elmat = buffers(self, geom, temp)
+    startassembly!(assembler, size(elmat,1), size(elmat,2), count(integdata.fes), temp.nfreedofs, temp.nfreedofs);
     for i = 1:count(integdata.fes) # Loop over elements
         getconn!(integdata.fes, conn, i);
         gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         fill!(elmat,  0.0); # Initialize element matrix
         for j=1:npts # Loop over quadrature points
-        At_mul_B!(loc, Ns[j], x);# Quadrature point location
-        At_mul_B!(J, x, gradNparams[j]); # Jacobian matrix
-        Jac = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
-        updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
-        At_mul_B!(RmTJ,  self.mcsys.csmat,  J); # local Jacobian matrix
-        gradN!(integdata.fes, gradN, gradNparams[j], RmTJ);
-        # Add the product gradN*kappa_bar*gradNT*(Jac*w[j])
-        factor::FFlt = (Jac*w[j])
-        add_gkgt_ut_only!(elmat, gradN, factor, kappa_bar, kappa_bargradNT)
+            At_mul_B!(loc, Ns[j], x);# Quadrature point location
+            At_mul_B!(J, x, gradNparams[j]); # Jacobian matrix
+            Jac = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
+            updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
+            At_mul_B!(RmTJ,  self.mcsys.csmat,  J); # local Jacobian matrix
+            gradN!(integdata.fes, gradN, gradNparams[j], RmTJ);
+            # Add the product gradN*kappa_bar*gradNT*(Jac*w[j])
+            factor::FFlt = (Jac*w[j])
+            add_gkgt_ut_only!(elmat, gradN, factor, kappa_bar, kappa_bargradNT)
         end # Loop over quadrature points
         complete_lt!(elmat)
         gatherdofnums!(temp, dofnums, conn);# retrieve degrees of freedom
@@ -101,8 +99,7 @@ function conductivity(self::FEMMHeatDiff,  assembler::A, geom::NodalField{FFlt},
     return makematrix!(assembler);
 end
 
-function conductivity(self::FEMMHeatDiff,
-  geom::NodalField{FFlt},  temp::NodalField{FFlt})
+function conductivity(self::FEMMHeatDiff, geom::NodalField{FFlt},  temp::NodalField{FFlt})
     assembler = SysmatAssemblerSparseSymm();
     return conductivity(self, assembler, geom, temp);
 end
@@ -114,9 +111,7 @@ end
 
 Compute load vector for nonzero EBC of prescribed temperature.
 """
-function nzebcloadsconductivity(self::FEMMHeatDiff,
-    assembler::A,  geom::NodalField{FFlt},
-    temp::NodalField{FFlt}) where {A<:SysvecAssemblerBase}
+function nzebcloadsconductivity(self::FEMMHeatDiff, assembler::A,  geom::NodalField{FFlt},  temp::NodalField{FFlt}) where {A<:SysvecAssemblerBase}
     integdata = self.integdata
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(integdata);
     # Thermal conductivity matrix is in local  material coordinates.
@@ -152,8 +147,7 @@ function nzebcloadsconductivity(self::FEMMHeatDiff,
     return makevector!(assembler);
 end
 
-function nzebcloadsconductivity(self::FEMMHeatDiff,
-  geom::NodalField{FFlt},   temp::NodalField{FFlt})
+function nzebcloadsconductivity(self::FEMMHeatDiff,  geom::NodalField{FFlt},   temp::NodalField{FFlt})
     assembler = SysvecAssembler()
     return  nzebcloadsconductivity(self, assembler, geom, temp);
 end
