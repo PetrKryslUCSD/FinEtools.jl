@@ -40,3 +40,6 @@ In this case  the  abstract field  is subtyped to a concrete field where the ent
 
 In this case  the  abstract field  is subtyped to a concrete field where the entities are  use-case  specific. 
 
+## Numbering of the degrees of freedom
+
+NEEDS TO BE WRITTEN
