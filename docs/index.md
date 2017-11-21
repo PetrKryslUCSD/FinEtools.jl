@@ -1,7 +1,11 @@
 # FinEtools (Finite Element tools) Documentation
 
 - [Module structure](modules.html)
-- [Mesh](mesh.html)
+- [Arithmetic types](types.html)
+- [Physical units](units.html)
+- [Mesh entities](mesh.html)
+- [Mesh generation](meshgen.html)
+- [Selection of mesh entities](selection.html)
 - [Field](field.html)
 - [Element](element.html)
 - [Integration](integration.html)

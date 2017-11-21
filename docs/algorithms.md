@@ -68,3 +68,7 @@ There are algorithms for
 - Modal (free-vibration) analysis;
 - Export  of modal shapes for visualization;
 - Subspace-iteration method implementation.
+
+## Model data
+
+Needs to be written
