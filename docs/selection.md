@@ -2,4 +2,33 @@
 
 # Selection of mesh entities
 
-NEEDS TO BE WRITTEN
+There are many instances of problem definitions where it is important to partition meshes into subsets. As an example,  consider a tube consisting of inner ABS core and  outer fiber-reinforced  laminate  layer. The mesh may consist  of hexahedra.  This mesh would then need to be partitioned into two subsets, because the materials and the  material orientation data  are different between the two regions.
+
+As another example, consider a simple beam  of rectangular cross-section, clamped  at one end,  and  loaded with shear tractions at the  free end. The  entire boundary of the beam needs to be separated  into three subsets:  the first subset,  for the traction-free boundary, is ignored. The second subset, for the clamped cross-section, is extracted  and  its nodes  are used  to  formulate the essential boundary condition. The third subset is extracted and used to define and FEM machine to compute the load vector due to the shear traction.
+
+There are  several  ways  in which mesh entities (nodes and finite elements) can be selected. The simplest uses element labels: some mesh-generation routines label the generated elements. For example,
+
+```julia
+fens,fes = H8compositeplatex(xs, ys, ts, nts)
+```
+
+generates a plate-like mesh where the layers are labeled. It is therefore possible to select  the bottom-most layer as
+
+```julia
+rls = selectelem(fens, fes, label = 1)
+```
+
+where `rls` is a list of integer indexes into the  set `fes`, so that we can extract a subset corresponding to this layer as
+
+```julia
+botskin = subset(fes, rls)
+```
+
+Geometrical techniques for selecting finite elements  or nodes can be based on 
+
+- the location within or overlap  with boxes;
+- distance from  a given point;
+- distance from a given plane;
+- connectedness (selection by flooding).
+
+Additionally, surface-like  finite elements (quadrilaterals and triangles embedded in three dimensions, or lines embedded in two dimensions) can be used based upon the orientation of their normal (`facing`  criterion).
