@@ -19,6 +19,7 @@ fens, fes  = H8block(h, l, 2.0 * pi, nh, nl, nc)
 The finite element node set and the finite element set  are returned. More complicated meshes can be constructed from such mesh parts. There are  functions for  merging  nodes  and even multiple meshes together.
 
 The code snippet below  constructs the mesh of an  L-shaped  domain  from  the meshes of three rectangles.
+
 ```julia
 W = 100. # width of the leg
 L = 200. # length of the leg
@@ -34,6 +35,7 @@ fes = cat(outputfes[1], cat(outputfes[2], outputfes[3]))
 ```
 
 As an example of the  merging  of nodes to create  the final mesh, consider the creation of  a closed hollow tube.
+
 ```julia
 fens, fes  = H8block(h, l, 2.0 * pi, nh, nl, nc) # generate a block
 # Shape into a cylinder
@@ -53,6 +55,3 @@ fens, fes = mergenodes(fens, fes,  tolerance, candidates);
 
 The final mesh used for a simulation  consists of a single  node set and one or more finite element sets.
 The  finite elements may be  divided into separate sets  to  accommodate different material properties, different orientations of the material  coordinate systems, or different formulations  of the discrete model. The  assignment  of the finite elements to sets  may be based on geometrical proximity, topological connections, or some other characteristic. See the  "mesh selection" [discussion](selection.html) for details.
-
-
-

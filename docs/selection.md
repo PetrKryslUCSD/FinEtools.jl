@@ -24,7 +24,7 @@ where `rls` is a list of integer indexes into the  set `fes`, so that we can ext
 botskin = subset(fes, rls)
 ```
 
-Geometrical techniques for selecting finite elements  or nodes can be based on 
+Geometrical techniques for selecting finite elements  or nodes can be based on
 
 - the location within or overlap  with boxes;
 - distance from  a given point;
@@ -52,4 +52,3 @@ L0 = selectelem(fens,bfes,facing = true, direction = [-1.0 0.0])
 ```
 
 where the numbers of the finite elements  whose normals point in the general direction of the vector [-1.0 0.0] are returned in the integer array `L0`.
-
