@@ -1,5 +1,4 @@
 using FinEtools
-using Plots
 
 t0  =  time()
 
@@ -64,12 +63,15 @@ scalars = [("Pressure", scalars)])
 @async run(`"paraview.exe" $File`)
 
 
-plotly()
+using PyCall
+@pyimport matplotlib.pyplot as plt
+plt.style[:use]("seaborn-whitegrid")
+fig = plt.figure() 
+ax = plt.axes()
 ix = sortperm(geom.values[nLx,1])
-plot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], color = :blue, label = "real")
-plot!(geom.values[nLx,1][ix], imag(P.values)[nLx][ix], color = :red, label  =  "imag")
-plot!(title = "Straight duct with anechoic termination",
-xlabel = "x", ylabel = "Pressure")
-gui()
+ax[:plot](geom.values[nLx,1][ix], real(P.values)[nLx][ix], marker=:o, color = :blue, label = "real")
+ax[:plot](geom.values[nLx,1][ix], imag(P.values)[nLx][ix], marker=:d,  color = :red, label  =  "imag")
+plt.legend()
+plt.show()
 
 true

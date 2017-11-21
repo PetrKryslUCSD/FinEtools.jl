@@ -1,5 +1,4 @@
 using FinEtools
-using Plots
 
 t0  =  time()
 
@@ -19,14 +18,14 @@ Example from Boundary element acoustics: Fundamentals and computer codes, TW Wu,
 Both real and imaginary components of the pressure should have amplitude of
 rho*c = $(rho*c).
 
-Hexahedral mesh.
+Triangle mesh.
 """)
 
-fens,fes  =  H8block(Lx,Ly,Ly,n,2,2); # Mesh
+fens,fes  =  T3block(Lx,Ly,n,2); # Mesh
 bfes  =  meshboundary(fes)
-L0 = selectelem(fens,bfes,facing = true, direction = [-1.0 0.0 0.0])
-L10 = selectelem(fens,bfes,facing = true, direction = [+1.0 0.0 0.0])
-nLx = selectnode(fens,box = [0.0 Lx  0.0 0.0 0.0 0.0], inflate = Lx/1.0e5)
+L0 = selectelem(fens,bfes,facing = true, direction = [-1.0 0.0])
+L10 = selectelem(fens,bfes,facing = true, direction = [+1.0 0.0])
+nLx = selectnode(fens,box = [0.0 Lx  0.0 0.0], inflate = Lx/1.0e5)
 
 geom  =  NodalField(fens.xyz)
 P  =  NodalField(zeros(Complex128,size(fens.xyz,1),1))
@@ -35,16 +34,16 @@ numberdofs!(P)
 
 
 material = MatAcoustFluid(bulk,rho)
-femm  =  FEMMAcoust(IntegData(fes, GaussRule(3, 2)), material)
+femm  =  FEMMAcoust(IntegData(fes, TriRule(1)), material)
 
 S  =  acousticstiffness(femm, geom, P);
 C  =  acousticmass(femm, geom, P);
 
 
-E10femm  =  FEMMAcoustSurf(IntegData(subset(bfes,L10),GaussRule(2, 2)), material)
+E10femm  =  FEMMAcoustSurf(IntegData(subset(bfes,L10),GaussRule(1, 2)), material)
 D  =  acousticABC(E10femm, geom, P);
 
-E0femm  =  FEMMBase(IntegData(subset(bfes,L0), GaussRule(2,  2)))
+E0femm  =  FEMMBase(IntegData(subset(bfes,L0), GaussRule(1,  2)))
 fi  =  ForceIntensity(-1.0im*omega*rho*vn0);
 F  =  distribloads(E0femm, geom, P, fi, 2);
 
@@ -59,17 +58,20 @@ println("Total time elapsed  =  ",time() - t0,"s")
 
 File  =   "straight_duct.vtk"
 scalars = real(P.values);
-vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
+vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.T3;
 scalars = [("Pressure", scalars)])
 @async run(`"paraview.exe" $File`)
 
 
-plotly()
+using PyCall
+@pyimport matplotlib.pyplot as plt
+plt.style[:use]("seaborn-whitegrid")
+fig = plt.figure() 
+ax = plt.axes()
 ix = sortperm(geom.values[nLx,1])
-plot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], color = :blue, label = "real")
-plot!(geom.values[nLx,1][ix], imag(P.values)[nLx][ix], color = :red, label  =  "imag")
-plot!(title = "Straight duct with anechoic termination",
-xlabel = "x", ylabel = "Pressure")
-gui()
+ax[:plot](geom.values[nLx,1][ix], real(P.values)[nLx][ix], marker=:o, color = :blue, label = "real")
+ax[:plot](geom.values[nLx,1][ix], imag(P.values)[nLx][ix], marker=:d,  color = :red, label  =  "imag")
+plt.legend()
+plt.show()
 
 true
