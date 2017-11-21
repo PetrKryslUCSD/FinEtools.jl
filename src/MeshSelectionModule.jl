@@ -44,6 +44,8 @@ end
 
 Select finite elements.
 
+## Selection criteria
+
 ### facing
 Select all "boundary" elements that "face" a certain direction.
 ```
@@ -90,6 +92,15 @@ Example:
 ```
 exteriorbfl = selectelem(fens, bdryfes,
    box=[1.0, 1.0, 0.0, pi/2, 0.0, Thickness], inflate=tolerance);
+```
+
+### flood
+Select all FEs connected together, starting from a given node.
+
+Example:
+Select all FEs connected together (Starting from node 13):
+```julia
+l = selectelem(fens, fes, flood = true, startnode = 13)
 ```
 
 ## Optional keyword arguments
