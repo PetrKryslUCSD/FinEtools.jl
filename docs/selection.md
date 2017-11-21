@@ -31,4 +31,25 @@ Geometrical techniques for selecting finite elements  or nodes can be based on
 - distance from a given plane;
 - connectedness (selection by flooding).
 
-Additionally, surface-like  finite elements (quadrilaterals and triangles embedded in three dimensions, or lines embedded in two dimensions) can be used based upon the orientation of their normal (`facing`  criterion).
+Additionally, surface-like  finite elements (quadrilaterals and triangles embedded in three dimensions, or lines embedded in two dimensions) can be selected based upon the orientation of their normal (`facing`  criterion).
+
+As an example, consider a straight duct with anechoic termination. A triangle mesh is generated as
+
+```julia
+fens,fes  =  T3block(Lx,Ly,n,2); 
+```
+
+and its boundary is extracted as
+
+```julia
+bfes  =  meshboundary(fes)
+```
+
+The finite elements from the  piece of the boundary on the left parallel to the Y axis can be extracted as
+
+```julia
+L0 = selectelem(fens,bfes,facing = true, direction = [-1.0 0.0])
+```
+
+where the numbers of the finite elements  whose normals point in the general direction of the vector [-1.0 0.0] are returned in the integer array `L0`.
+
