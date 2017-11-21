@@ -18,29 +18,29 @@ The concrete finite element set type provides specialized methods to compute the
 
 + Methods defined for  the abstract type:
 
-- `nodesperelem`: Get the number of nodes  connected  by  the finite element.
-- `count`:  Get the number of individual connectivities in the FE set.
-- `getconn!`: Get the connectivity of the jth element in the set.
-- `setlabel!`: Set the label of the entire finite elements set.
-- `subset`: Extract a subset of the finite elements from the given finite element set.
-- `cat`: Concatenate the connectivities of two FE sets.
-- `updateconn!`: Update the connectivity after the IDs of nodes changed.
-- `map2parametric`: Map a spatial location to parametric coordinates.
+    - `nodesperelem`: Get the number of nodes  connected  by  the finite element.
+    - `count`:  Get the number of individual connectivities in the FE set.
+    - `getconn!`: Get the connectivity of the jth element in the set.
+    - `setlabel!`: Set the label of the entire finite elements set.
+    - `subset`: Extract a subset of the finite elements from the given finite element set.
+    - `cat`: Concatenate the connectivities of two FE sets.
+    - `updateconn!`: Update the connectivity after the IDs of nodes changed.
+    - `map2parametric`: Map a spatial location to parametric coordinates.
 
 + Methods dispatched based on the manifold type:
 
-- `manifdim`: Return the manifold dimension.
-- `Jacobian`: Evaluate the  Jacobian.
-- `gradN!`: Compute the gradient of the basis functions with the respect to the "reduced" spatial coordinates.
+    - `manifdim`: Return the manifold dimension.
+    - `Jacobian`: Evaluate the  Jacobian.
+    - `gradN!`: Compute the gradient of the basis functions with the respect to the "reduced" spatial coordinates.
 
 + Methods dispatched on the concrete type:
 
-- `boundaryconn`: Get boundary connectivity.
-- `boundaryfe`: Return the constructor of the type of the boundary finite element.
-- `bfun`: Compute the values of the basis functions at a given parametric coordinate.
-- `bfundpar`: Compute the values of the basis function gradients at a given parametric coordinate.
-- `inparametric`: Are given parametric coordinates inside the element parametric domain?
-- `centroidparametric`: Return the parametric coordinates  of the centroid of the element.
+    - `boundaryconn`: Get boundary connectivity.
+    - `boundaryfe`: Return the constructor of the type of the boundary finite element.
+    - `bfun`: Compute the values of the basis functions at a given parametric coordinate.
+    - `bfundpar`: Compute the values of the basis function gradients at a given parametric coordinate.
+    - `inparametric`: Are given parametric coordinates inside the element parametric domain?
+    - `centroidparametric`: Return the parametric coordinates  of the centroid of the element.
 
 
 
