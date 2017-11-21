@@ -212,7 +212,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     #     locations = options.nearestto;
     # end
 
-    # The  elements of disarray are flipped from zero  when the element satisfies
+    # The  elements of this array are flipped from zero  when the element satisfies
     # the search condition.. This list is  eventually purged of the zero elements and
     # returned.
     felist = zeros(FInt,size(fes.conn,1));
@@ -446,6 +446,8 @@ Select locations (vertices) from the array based on some criterion.
 ## Arguments
 `v` = array of locations, one location per row
 `args` = pairs of keyword argument/value
+
+## Selection criteria
 
 ### box
 ```
