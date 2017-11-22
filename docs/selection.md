@@ -9,7 +9,7 @@ As another example, consider a simple beam  of rectangular cross-section, clampe
 There are  several  ways  in which mesh entities (nodes and finite elements) can be selected. The simplest uses element labels: some mesh-generation routines label the generated elements. For example,
 
 ```julia
-fens,fes = H8compositeplatex(xs, ys, ts, nts)
+fens,fes = H8layeredplatex(xs, ys, ts, nts)
 ```
 
 generates a plate-like mesh where the layers are labeled. It is therefore possible to select  the bottom-most layer as
