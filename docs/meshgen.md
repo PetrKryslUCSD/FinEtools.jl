@@ -6,13 +6,13 @@
 
 The simplest possible meshes can be generated in the form of one-dimensional, two-dimensional, and three-dimensional blocks. The spacing of the nodes can be either uniform (for instance `Q8block`), or the spacing can be given with an arbitrary distribution (for instance `Q4blockx`). Meshes of tetrahedra can be generated in various orientations of the "diagonals".
 
-More complex meshes can be generated for certain element types: for instance in annulus (`Q4annulus`), quarter of a plate with a hole (`Q4elliphole`), quarter of a sphere (`H8spheren`), layered plate (`H8layeredplatex`).
+More complex meshes can be generated for certain element types: for instance an annulus (`Q4annulus`), quarter of a plate with a hole (`Q4elliphole`), quarter of a sphere (`H8spheren`), layered plate (`H8layeredplatex`).
 
 Hexahedral meshes can also be created by extrusion of  quadrilateral meshes (`H8extrudeQ4`).
 
 ## Shaping
 
-Simple meshes  such as blocks can be deformed into geometrically complex shapes, for instance  by tapering  or by bending  the mesh into a cylinder. For instance, we can generate a block  and then bended  into one quarter  of  an annulus as
+Simple meshes  such as blocks can be deformed into geometrically complex shapes, for instance  by tapering  or oother relocation of the nodes. For instance, we can generate a block  and then bend it  into one quarter  of  an annulus as
 
 ```julia
 fens,fes = Q4block(rex-rin,pi/2,5,20);
