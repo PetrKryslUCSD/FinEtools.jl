@@ -1252,7 +1252,7 @@ function test()
   ys = collect(linspace(0.0, b, nb+1))
   ts = h/nLayers*ones(nLayers);# layer thicknesses
   nts= 3*ones(Int, nLayers);# number of elements per layer
-  fens,fes = H8compositeplatex(xs, ys, ts, nts)
+  fens,fes = H8layeredplatex(xs, ys, ts, nts)
   fens,fes = H8toH20(fens,fes)
 
   MR = DeforModelRed3D
@@ -2167,7 +2167,7 @@ function test()
   tmag = 100*phun("psi")
 
   # Generate mesh
-  fens,fes = H8compositeplatex(xs, ys, ts, nts)
+  fens,fes = H8layeredplatex(xs, ys, ts, nts)
   fens,fes = H8toH20(fens,fes)
 
   MR = DeforModelRed3D
@@ -7176,7 +7176,7 @@ function test()
         xs = collect(linspace(0.0, L, nL+1))
         ys = collect(linspace(0.0, h, nh+1))
         
-        fens,fes = H8compositeplatex(xs, ys, ts, nts)
+        fens,fes = H8layeredplatex(xs, ys, ts, nts)
         # println("count(fens) = $(count(fens))")
         
         # This is the material  model

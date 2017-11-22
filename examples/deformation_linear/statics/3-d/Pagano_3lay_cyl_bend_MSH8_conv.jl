@@ -48,7 +48,7 @@ for (extrap, nodevalmeth) = zip([:extrapmean, :extraptrend, :default], [:averagi
             
             xs = collect(linspace(0.0, L, nL+1))
             ys = collect(linspace(0.0, h, nh+1))
-            fens,fes = H8compositeplatex(xs, ys, ts, nts)
+            fens,fes = H8layeredplatex(xs, ys, ts, nts)
             
             println("Mesh: nL, nh, nts = $nL, $nh, $nts")
             println("count(fens) = $(count(fens))")

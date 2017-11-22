@@ -89,8 +89,7 @@ function conductivity(self::FEMMHeatDiff,  assembler::A, geom::NodalField{FFlt},
             At_mul_B!(RmTJ,  self.mcsys.csmat,  J); # local Jacobian matrix
             gradN!(integdata.fes, gradN, gradNparams[j], RmTJ);
             # Add the product gradN*kappa_bar*gradNT*(Jac*w[j])
-            factor::FFlt = (Jac*w[j])
-            add_gkgt_ut_only!(elmat, gradN, factor, kappa_bar, kappa_bargradNT)
+            add_gkgt_ut_only!(elmat, gradN, (Jac*w[j]), kappa_bar, kappa_bargradNT)
         end # Loop over quadrature points
         complete_lt!(elmat)
         gatherdofnums!(temp, dofnums, conn);# retrieve degrees of freedom
@@ -135,8 +134,7 @@ function nzebcloadsconductivity(self::FEMMHeatDiff, assembler::A,  geom::NodalFi
             At_mul_B!(RmTJ,  self.mcsys.csmat,  J); # local Jacobian matrix
             gradN!(integdata.fes, gradN, gradNparams[j], RmTJ);
             # Add the product gradN*kappa_bar*gradNT*(Jac*w[j])
-            factor::FFlt = (Jac*w[j])
-            add_gkgt_ut_only!(elmat, gradN, factor, kappa_bar, kappa_bargradNT)
+            add_gkgt_ut_only!(elmat, gradN, (Jac*w[j]), kappa_bar, kappa_bargradNT)
         end # Loop over quadrature points
         complete_lt!(elmat)
         mv_product!(elvec, elmat, elvecfix) # compute  the load vector

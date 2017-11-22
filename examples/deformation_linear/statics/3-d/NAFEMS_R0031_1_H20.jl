@@ -83,7 +83,7 @@ xs = unique(vcat(collect(linspace(0,AB/2,nL+1)), [CD],
 xs = xs[sortperm(xs)]
 ys = collect(linspace(0,W/2,nW+1));
 
-fens,fes = H8compositeplatex(xs, ys, ts, nts)
+fens,fes = H8layeredplatex(xs, ys, ts, nts)
 fens,fes = H8toH20(fens,fes)
 
 # This is the material  model

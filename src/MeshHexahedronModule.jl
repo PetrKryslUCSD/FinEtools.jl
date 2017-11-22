@@ -6,7 +6,7 @@ Module for generation of  hexahedral meshes.
 module MeshHexahedronModule
 
 export  H8block,  H8blockx,  H8sphere,  H8refine, H8hexahedron, H8extrudeQ4,
-    H8spheren, H8voximg,  H8compositeplatex, H8elliphole, H8toH27,  H27block,
+    H8spheren, H8voximg,  H8layeredplatex, H8elliphole, H8toH27,  H27block,
     H20block,  H8toH20, H20blockx, H27blockx
 
 
@@ -84,15 +84,13 @@ function H8blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec)
     return fens, fes;
 end
 
+"""
+    H8sphere(radius::FFlt, nrefine::FInt)
 
-# Create a solid mesh of 1/8 of the sphere of "radius".
-#
-# function [fens, gcells]=H8_sphere(radius, nrefine)
-#
-# Create a mesh of 1/8 of the sphere of "radius". The  mesh will consist of
-# four hexahedral elements if "nrefine==0",  or more if "nrefine>0".
-# "nrefine" is the number of bisections applied  to refine the mesh.
-#
+    Create a mesh of 1/8 of the sphere of "radius". The  mesh will consist of
+    four hexahedral elements if "nrefine==0",  or more if "nrefine>0".
+    "nrefine" is the number of bisections applied  to refine the mesh.
+"""
 function H8sphere(radius::FFlt, nrefine::FInt)
     a=sqrt(2.0)/2.0;
     b=1.0/sqrt(3.0);
@@ -136,25 +134,12 @@ function H8sphere(radius::FFlt, nrefine::FInt)
      return fens,  fes
 end
 
-function H8refine(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
-# Refine a mesh of H8 hexahedrals by octasection.
-#
-# function [fens, fes] = H8_refine(fens, fes)
-#
-# Arguments and
-# Output:
-# fens= finite element node set
-# fes = finite element set
-#
-# Examples:
-#
-#     xyz = [3,  1,  6; -5,  2,  1];
-#     [fens, fes] = H8_hexahedron(xyz, 1, 2, 3);
-#     drawmesh({fens, fes}, 'fes', 'facecolor', 'red');
-#     [fens, fes] = H8_refine(fens, fes);
-#     figure;
-#     drawmesh({fens, fes}, 'fes', 'facecolor', 'm');
+"""
+    H8refine(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
 
+Refine a mesh of H8 hexahedrals by octasection.
+"""
+function H8refine(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
     fens, fes = H8toH27(fens, fes);
     conn=fes.conn;
     nconn=zeros(FInt, 8*size(conn, 1), 8);
@@ -175,16 +160,12 @@ function H8refine(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
     return fens,  fes
 end
 
+"""
+    H8toH27(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
+
+    Convert a mesh of hexahedra H8 to hexahedra H27.
+"""
 function   H8toH27(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
-# Convert a mesh of hexahedra H8 to hexahedra H27.
-#
-# function [fens, fes] = H8_to_H27(fens, fes)
-#
-# Arguments and
-# Output:
-# fens= finite element node set
-# fes = finite element set
-#
     nedges=12;
     nfaces=6;
     ec = [1   2; 2   3; 3   4; 4   1; 5   6; 6   7; 7   8; 8   5; 1   5; 2   6; 3   7; 4   8;];
@@ -329,30 +310,12 @@ function H8hexahedron(xyz::FFltMat, nL::FInt, nW::FInt, nH::FInt; blockfun=nothi
     return fens, fes;
 end
 
+"""
+    H27block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
+
+Create mesh of a 3-D block of H27 finite elements.  
+"""
 function H27block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
-    # Mesh of a 3-D block of H27 finite elements
-    #
-    # Arguments:
-    # Length, Width, Height= dimensions of the mesh in Cartesian coordinate axes,
-    # smallest coordinate in all three directions is  0 (origin)
-    # nL, nW, nH=number of elements in the three directions
-    #
-    # Range in xyz =<0, Length> x <0, Width> x <0, Height>
-    # Divided into elements: nL,  nW,  nH in the first,  second,  and
-    # third direction (x, y, z). Finite elements of type H27.
-    #
-    # Output:
-    # fens= finite element node set
-    # fes = finite element set
-    #
-    #
-    # Examples:
-    #
-    #     [fens, fes] = H27_block(2, 3, 4,  1, 2, 3);
-    #     drawmesh({fens, fes}, 'nodes', 'fes', 'facecolor', 'none'); hold on
-    #
-    # See also: H8_block,  H8_to_H27
-    #
     fens, fes = H8block(Length, Width, Height, nL, nW, nH);
     fens, fes = H8toH27(fens, fes);
     return fens, fes
@@ -506,29 +469,12 @@ function H8spheren(radius::FFlt, nperradius::FInt)
     return fens, fes
 end
 
+"""
+    H20block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
+
+Create mesh of a 3-D block of H20 finite elements.  
+"""
 function H20block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
-    # Mesh of a 3-D block of H20 finite elements
-    #
-    # Arguments:
-    # Length, Width, Height= dimensions of the mesh in Cartesian coordinate axes,
-    # smallest coordinate in all three directions is  0 (origin)
-    # nL, nW, nH=number of elements in the three directions
-    #
-    # Range in xyz =<0, Length> x <0, Width> x <0, Height>
-    # Divided into elements: nL,  nW,  nH in the first,  second,  and
-    # third direction (x, y, z). Finite elements of type H20.
-    #
-    # Output:
-    # fens= finite element node set
-    # fes = finite element set
-    #
-    #
-    # Examples:
-    #     [fens, fes] = H20_block(2, 3, 4,  1, 2, 3);
-    #     drawmesh({fens, fes}, 'nodes', 'fes', 'facecolor', 'none'); hold on
-    #
-    # See also: H8_block,  H8_to_H20
-    #
     fens, fes = H8block(Length, Width, Height, nL, nW, nH);
     fens, fes = H8toH20(fens, fes);
 end
@@ -697,7 +643,7 @@ function H8voximg(img::Array{DataT, 3}, voxdims::FFltVec,
 end
 
 """
-    H8compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec)
+    H8layeredplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec)
 
 H8 mesh for a layered block (composite plate) with specified in plane coordinates.
 
@@ -708,7 +654,7 @@ nts= array of numbers of elements per layer
 The finite elements of each layer are labeled with the layer number, starting
 from 1.
 """
-function H8compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec)
+function H8layeredplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec)
     tolerance = minimum(abs.(ts))/maximum(nts)/10.;
     @assert length(ts) >= 1
     layer = 1

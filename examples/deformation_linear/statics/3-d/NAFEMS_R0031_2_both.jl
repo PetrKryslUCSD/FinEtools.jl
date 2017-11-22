@@ -40,7 +40,7 @@ xs = collect(linspace(0.0, L/2, nL+1))
 ys = collect(linspace(0.0, pi/2, nc+1))
 ts = [ti; te];# layer thicknesses
 nts= 6*ones(Int, length(ts));# number of elements per layer
-fens,fes = H8compositeplatex(xs, ys, ts, nts)
+fens,fes = H8layeredplatex(xs, ys, ts, nts)
 fens,fes = H8toH20(fens,fes)
 bfes = meshboundary(fes)
 # inner surface  for the pressure loading

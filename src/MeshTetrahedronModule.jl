@@ -5,7 +5,7 @@ Module  for generation of meshes composed of tetrahedra.
 """
 module MeshTetrahedronModule
 
-export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10compositeplatex, T4meshedges, T4voximg
+export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10layeredplatex, T4meshedges, T4voximg
 
 using FinEtools.FTypesModule
 using FinEtools.FESetModule
@@ -218,7 +218,7 @@ function T10blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec, orientation::Symbol = 
 end
 
 """
-    T10compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
+    T10layeredplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
         orientation::Symbol = :a)
 
 T10 mesh for a layered block (composite plate) with specified in plane coordinates.
@@ -230,7 +230,7 @@ nts= array of numbers of elements per layer
 The finite elements of each layer are labeled with the layer number, starting
 from 1 at the bottom.
 """
-function T10compositeplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
+function T10layeredplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
     orientation::Symbol = :a)
     tolerance = minimum(abs.(ts))/maximum(nts)/10.;
     @assert length(ts) >= 1

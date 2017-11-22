@@ -990,7 +990,7 @@ function test()
     ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1, strength))),
         collect(MeshUtilModule.gradedspace(Ly/2, Sy/2, nSy-nL+1, strength))))
 
-    fens,fes = H8compositeplatex(xs, ys, ts, nts)
+    fens,fes = H8layeredplatex(xs, ys, ts, nts)
     @test count(fens) == 27846
     @test count(fes) == 25000
     rls = selectelem(fens, fes, label = 1)
@@ -1040,7 +1040,7 @@ function test()
     ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1, strength))),
         collect(MeshUtilModule.gradedspace(Ly/2, Sy/2, nSy-nL+1, strength))))
 
-    fens,fes = T10compositeplatex(xs, ys, ts, nts)
+    fens,fes = T10layeredplatex(xs, ys, ts, nts)
 
     @test count(fens) == 211191
     @test count(fes) == 150000
@@ -1091,7 +1091,7 @@ function test()
     ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1, strength))),
         collect(MeshUtilModule.gradedspace(Ly/2, Sy/2, nSy-nL+1, strength))))
 
-    fens,fes = T10compositeplatex(xs, ys, ts, nts, :b)
+    fens,fes = T10layeredplatex(xs, ys, ts, nts, :b)
 
     @test count(fens) == 211191
     @test count(fes) == 150000

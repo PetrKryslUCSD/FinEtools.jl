@@ -89,7 +89,7 @@ xs = unique(vcat(reverse(collect(sp(Lx/2, 0.0, nL+1))),
 ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1))),
     collect(sp(Ly/2, Sy/2, nSy-nL+1))))
 
-fens,fes = H8compositeplatex(xs, ys, ts, nts)
+fens,fes = H8layeredplatex(xs, ys, ts, nts)
 
 
 # This is the material  model

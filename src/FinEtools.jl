@@ -113,12 +113,12 @@ export  T3blockx, T3block,  T3toT6,  T6block,  Q4toT3,  T3refine, T6blockx
 include("MeshHexahedronModule.jl")
 using FinEtools.MeshHexahedronModule
 export  H8block,  H8blockx,  H8sphere,  H8refine, H8hexahedron, H8extrudeQ4,
-    H8spheren, H8voximg,  H8compositeplatex, H8elliphole, H8toH27,  H27block,
+    H8spheren, H8voximg,  H8layeredplatex, H8elliphole, H8toH27,  H27block,
     H20block,  H8toH20, H20blockx, H27blockx
     
 include("MeshTetrahedronModule.jl")
 using FinEtools.MeshTetrahedronModule
-export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10compositeplatex, T4meshedges, T4voximg
+export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10layeredplatex, T4meshedges, T4voximg
 
 include("ForceIntensityModule.jl")
 using FinEtools.ForceIntensityModule

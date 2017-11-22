@@ -41,7 +41,7 @@ nts = [2; 3;  2; ] # number of elements through the thickness
 tmag = 100*phun("psi")
 
 # Generate mesh
-fens,fes = H8compositeplatex(xs, ys, ts, nts)
+fens,fes = H8layeredplatex(xs, ys, ts, nts)
 fens,fes = H8toH20(fens,fes)
 
 MR = DeforModelRed3D
