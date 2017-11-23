@@ -9,7 +9,7 @@ import Base.count
 import Base.cat
 
 export FESet,  FESet0Manifold,  FESet1Manifold,  FESet2Manifold,  FESet3Manifold
-export manifdim, nodesperelem, count, getconn!, setlabel!, subset, cat, updateconn!
+export manifdim, nodesperelem, count, fromarray!, toarray, setlabel!, subset, cat, updateconn!
 export bfun, bfundpar, map2parametric, inparametric, centroidparametric
 export FESetP1
 export FESetL2, FESetL3
@@ -77,6 +77,7 @@ count(self::T) where {T<:FESet} = length(self.conn)
 Set  the connectivity from an integer array.  
 """
 function fromarray!(self::FESet{NODESPERELEM}, conn::FIntMat) where {NODESPERELEM}
+    @assert size(conn, 2) == NODESPERELEM
     self.conn = Array{NTuple{NODESPERELEM, FInt}, 1}(size(conn, 1));
     for i = 1:length(self.conn)
         self.conn[i] = ntuple(y -> conn[i, y], NODESPERELEM);
@@ -90,10 +91,10 @@ end
 Return the connectivity  as an integer array. 
 """
 function toarray(self::FESet{NODESPERELEM}) where {NODESPERELEM}
-    conn = zeros(FInt, length(self.nodes), NODESPERELEM)
-    for i = 1:length(c)
+    conn = zeros(FInt, length(self.conn), NODESPERELEM)
+    for i = 1:size(conn, 1)
         for j = 1:NODESPERELEM
-            conn[i, j] = c[i][j]
+            conn[i, j] = self.conn[i][j]
         end
     end
     return conn
@@ -194,12 +195,13 @@ _into_ the  NewIDs array. After the connectivity was updated
 this is no longer true!
 """
 function updateconn!(self::T, NewIDs::FIntVec) where {T<:FESet}
-    for i=1:size(self.conn, 1)
-        for j=1:size(self.conn, 2)
-            self.conn[i, j]=NewIDs[self.conn[i, j]];
+    conn = toarray(self)
+    for i=1:size(conn, 1)
+        for j=1:size(conn, 2)
+            conn[i, j]=NewIDs[conn[i, j]];
         end
     end
-    return self
+    return fromarray!(self, conn)
 end
 
 """
