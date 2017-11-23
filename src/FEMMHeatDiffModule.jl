@@ -62,6 +62,26 @@ function  buffers(self::FEMMHeatDiff, geom::NodalField{FFlt}, temp::NodalField{F
     return conn, x, dofnums, loc, J, RmTJ, gradN, kappa_bargradNT, elmat, elvec, elvecfix
 end
 
+function locjac!(loc::FFltMat, J::FFltMat, X::FFltMat, conn::C, N::FFltMat, gradNparams::FFltMat) where {C}
+    n = size(gradNparams, 1)
+    @inbounds for j = 1:size(loc, 2)
+        la = 0.0
+        @inbounds for k = 1:n
+            la += N[k] * X[conn[k], j]
+        end
+        loc[j] = la
+    end
+    @inbounds for j = 1:size(J, 2)
+        @inbounds for i = 1:size(J, 1)
+            Ja = 0.0
+            @inbounds for k = 1:n
+                Ja += X[conn[k], i] * gradNparams[k, j]
+            end
+            J[i, j] = Ja
+        end
+    end
+end
+
 """
     conductivity(self::FEMMHeatDiff,
       assembler::A, geom::NodalField{FFlt},
@@ -79,11 +99,12 @@ function conductivity(self::FEMMHeatDiff,  assembler::A, geom::NodalField{FFlt},
     startassembly!(assembler, size(elmat,1), size(elmat,2), count(integdata.fes), temp.nfreedofs, temp.nfreedofs);
     for i = 1:count(integdata.fes) # Loop over elements
         getconn!(integdata.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
+        # gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         fill!(elmat,  0.0); # Initialize element matrix
         for j=1:npts # Loop over quadrature points
-            At_mul_B!(loc, Ns[j], x);# Quadrature point location
-            At_mul_B!(J, x, gradNparams[j]); # Jacobian matrix
+            locjac!(loc, J, geom.values, conn, Ns[j], gradNparams[j])
+            # At_mul_B!(loc, Ns[j], x);# Quadrature point location
+            # At_mul_B!(J, x, gradNparams[j]); # Jacobian matrix
             Jac = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
             updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
             At_mul_B!(RmTJ,  self.mcsys.csmat,  J); # local Jacobian matrix

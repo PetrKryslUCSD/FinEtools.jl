@@ -19,57 +19,84 @@ export FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
 using FinEtools.FTypesModule
 using FinEtools.RotationUtilModule
 
-abstract type FESet end
-abstract type FESet0Manifold <: FESet end
-abstract type FESet1Manifold <: FESet end
-abstract type FESet2Manifold <: FESet end
-abstract type FESet3Manifold <: FESet end
+abstract type FESet{NODESPERELEM} end
+abstract type FESet0Manifold{NODESPERELEM} <: FESet{NODESPERELEM} end
+abstract type FESet1Manifold{NODESPERELEM} <: FESet{NODESPERELEM} end
+abstract type FESet2Manifold{NODESPERELEM} <: FESet{NODESPERELEM} end
+abstract type FESet3Manifold{NODESPERELEM} <: FESet{NODESPERELEM} end
 
-macro add_FESet_fields()
+macro add_FESet_fields(NODESPERELEM)
     return esc(:(
-    nodesperelem::FInt;
-    conn::FIntMat;
+    conn::Array{NTuple{$NODESPERELEM, FInt}, 1};
     label::FIntVec; )
     )
 end
-# show(macroexpand(:(@add_FESet_fields)))
+# show(macroexpand(:(@add_FESet_fields 6)))
+
+macro define_FESet(NAME, MANIFOLD, NODESPERELEM)
+    return esc(:(
+        mutable struct $NAME <: $MANIFOLD{$NODESPERELEM}
+            @add_FESet_fields $NODESPERELEM
+            function $NAME(conn::FIntMat)
+                self = new(Array{NTuple{$NODESPERELEM, FInt}, 1}(0), FInt[])
+                self = fromarray!(self, conn)
+                setlabel!(self, 0)
+                return self
+            end
+        end
+    ))
+end
+# show(macroexpand(:(@define_FESet FESetT10 FESet3Manifold 10)))
+
+"""
+    nodesperelem(fes::FESet{NODESPERELEM}) where {NODESPERELEM}
+
+Provide the number of nodes per element.  
+"""
+nodesperelem(fes::FESet{NODESPERELEM}) where {NODESPERELEM} = NODESPERELEM
 
 """
     manifdim(me)
 Get the manifold dimension.
 """
-manifdim(me::FESet0Manifold)::FInt  =0
-manifdim(me::FESet1Manifold)::FInt  =1
-manifdim(me::FESet2Manifold)::FInt  =2
-manifdim(me::FESet3Manifold)::FInt  =3
-
-"""
-    nodesperelem(self::T)::FInt where {T<:FESet}
-
-Get the number of nodes  connected  by  the finite element.
-"""
-(nodesperelem(self::T)::FInt) where {T<:FESet} = self.nodesperelem::FInt
+manifdim(me::FESet0Manifold{NODESPERELEM}) where {NODESPERELEM} = 0
+manifdim(me::FESet1Manifold{NODESPERELEM}) where {NODESPERELEM} = 1
+manifdim(me::FESet2Manifold{NODESPERELEM}) where {NODESPERELEM} = 2
+manifdim(me::FESet3Manifold{NODESPERELEM}) where {NODESPERELEM} = 3
 
 """
     count(self::T)::FInt where {T<:FESet}
 
 Get the number of individual connectivities in the FE set.
 """
-(count(self::T)::FInt) where {T<:FESet} = size(self.conn, 1)
+count(self::T) where {T<:FESet} = length(self.conn)
 
 """
-    getconn!(self::T, conn::CC, j::FInt) where {T<:FESet, CC}
+    fromarray!(self::FESet{NODESPERELEM}, conn::FIntMat) where {NODESPERELEM}
 
-Get the connectivity of the jth element in the set.
-
-The connectivity conn[j, :] lists the node  numbers  of the nodes connected
-by the jth element.
+Set  the connectivity from an integer array.  
 """
-function getconn!(self::T, conn::CC, j::FInt) where {T<:FESet, CC}
-    for i=1:size(self.conn, 2)
-        conn[i]=self.conn[j, i];
+function fromarray!(self::FESet{NODESPERELEM}, conn::FIntMat) where {NODESPERELEM}
+    self.conn = Array{NTuple{NODESPERELEM, FInt}, 1}(size(conn, 1));
+    for i = 1:length(self.conn)
+        self.conn[i] = ntuple(y -> conn[i, y], NODESPERELEM);
     end
     return self
+end
+
+"""
+    toarray(self::FESet{NODESPERELEM}) where {NODESPERELEM}
+
+Return the connectivity  as an integer array. 
+"""
+function toarray(self::FESet{NODESPERELEM}) where {NODESPERELEM}
+    conn = zeros(FInt, length(self.nodes), NODESPERELEM)
+    for i = 1:length(c)
+        for j = 1:NODESPERELEM
+            conn[i, j] = c[i][j]
+        end
+    end
+    return conn
 end
 
 """
@@ -139,7 +166,7 @@ Extract a subset of the finite elements from the given finite element set.
 """
 function subset(self::T, L::FIntVec) where {T<:FESet}
     result = deepcopy(self)
-    result.conn = deepcopy(self.conn[L, :])
+    result.conn = deepcopy(self.conn[L])
     result.label = deepcopy(self.label[L])
     return  result
 end
@@ -150,9 +177,9 @@ end
 Concatenate the connectivities of two FE sets.
 """
 function cat(self::T,  other::T) where {T<:FESet}
-    @assert self.nodesperelem==other.nodesperelem
+    @assert nodesperelem(self) == nodesperelem(other)
     result =deepcopy(self)
-    result.conn =[self.conn; other.conn];
+    result.conn = vcat(self.conn, other.conn);
     setlabel!(result, vcat(self.label, other.label))
     return result
 end
@@ -366,6 +393,8 @@ function gradN!(self::FESet3Manifold, gradN::FFltMat, gradNparams::FFltMat, redJ
     end
 end
 
+
+    
 ################################################################################
 ################################################################################
 
@@ -374,18 +403,7 @@ end
 
 Type for sets of point-like of finite elements.
 """
-mutable struct FESetP1 <: FESet0Manifold
-  @add_FESet_fields
-
-  function    FESetP1(conn::FIntMat=[])
-    nodesperelem::FInt  = 1
-    @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-    # Need to make a COPY of the input arrays
-    self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-    setlabel!(self, 0)
-    return self
-  end
-end
+@define_FESet FESetP1 FESet0Manifold 1
 
 privbfun(self::FESetP1,  param_coords::FFltVec) = reshape([1.0], 1, 1) # make sure this is a matrix
 privbfundpar(self::FESetP1,  param_coords::FFltVec) = zeros(1, 0)
@@ -416,18 +434,7 @@ end
 
 Type for sets of curve-like of finite elements with two nodes.
 """
-mutable struct FESetL2 <: FESet1Manifold
-    @add_FESet_fields
-
-    function    FESetL2(conn::FIntMat=[])
-        nodesperelem::FInt  = 2
-        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-        # Need to make a COPY of the input arrays
-        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-        setlabel!(self, 0)
-        return self
-    end
-end
+@define_FESet FESetL2 FESet1Manifold 2
 
 privbfun(self::FESetL2,  param_coords::FFltVec) = reshape([(1. - param_coords[1]); (1. + param_coords[1])] / 2.0, 2, 1) # make sure this is a matrix
 privbfundpar(self::FESetL2,  param_coords::FFltVec) = reshape([-1.0; +1.0]/2.0, 2, 1)
@@ -459,18 +466,7 @@ end
 
 Type for sets of curve-like of finite elements with three nodes.
 """
-mutable struct FESetL3 <: FESet1Manifold
-  @add_FESet_fields
-
-  function    FESetL3(conn::FIntMat=[])
-    nodesperelem::FInt  = 3
-    @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-    # Need to make a COPY of the input arrays
-    self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-    setlabel!(self, 0)
-    return self
-  end
-end
+@define_FESet FESetL3 FESet1Manifold 3
 
 function privbfun(self::FESetL3,  param_coords::FFltVec)
     xi=param_coords[1];
@@ -510,18 +506,7 @@ end
 
 Type for sets of surface-like of triangular finite elements with three nodes.
 """
-mutable struct FESetT3 <: FESet2Manifold
-    @add_FESet_fields
-
-    function  FESetT3( conn::FIntMat=[])
-        nodesperelem::FInt  = 3
-        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-        # Need to make a COPY of the input arrays
-        self = new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-        setlabel!(self, 0)
-        return self
-    end
-end
+@define_FESet FESetT3 FESet2Manifold 3
 
 function privbfun(self::FESetT3,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 3-node triangle.
@@ -561,18 +546,7 @@ end
 
 Type for sets of surface-like of quadrilateral finite elements with four nodes.
 """
-mutable struct FESetQ4 <: FESet2Manifold
-    @add_FESet_fields
-
-    function    FESetQ4(conn::FIntMat=[])
-        nodesperelem::FInt  = 4
-        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-        # Need to make a COPY of the input arrays
-        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-        setlabel!(self, 0)
-        return self
-    end
-end
+@define_FESet FESetQ4 FESet2Manifold 4
 
 function privbfun(self::FESetQ4,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 4-node quadrilateral.
@@ -619,18 +593,7 @@ end
 
 Type for sets of surface-like of quadrilateral finite elements with nine nodes.
 """
-mutable struct FESetQ9 <: FESet2Manifold
-    @add_FESet_fields
-
-    function    FESetQ9(conn::FIntMat=[])
-        nodesperelem::FInt  = 9
-        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-        # Need to make a COPY of the input arrays
-        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-        setlabel!(self, 0)
-        return self
-    end
-end
+@define_FESet FESetQ9 FESet2Manifold 9
 
 function privbfun(self::FESetQ9,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 9-node quadrilateral.
@@ -684,18 +647,7 @@ end
 
 Type for sets of surface-like of quadrilateral finite elements with eight nodes.
 """
-mutable struct FESetQ8 <: FESet2Manifold
-    @add_FESet_fields
-
-    function    FESetQ8(conn::FIntMat=[])
-        nodesperelem::FInt  = 8
-        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-        # Need to make a COPY of the input arrays
-        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-        setlabel!(self, 0)
-        return self
-    end
-end
+@define_FESet FESetQ8 FESet2Manifold 8
 
 function privbfun(self::FESetQ8,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 4-node quadrilateral.
@@ -765,18 +717,7 @@ end
 
 Type for sets of surface-like of triangular finite elements with six nodes.
 """
-mutable struct FESetT6 <: FESet2Manifold
-    @add_FESet_fields
-
-    function    FESetT6(conn::FIntMat=[])
-        nodesperelem::FInt  = 6
-        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-        # Need to make a COPY of the input arrays
-        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-        setlabel!(self, 0)
-        return self
-    end
-end
+@define_FESet FESetT6 FESet2Manifold 6
 
 function privbfun(self::FESetT6,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 4-node quadrilateral.
@@ -835,18 +776,7 @@ end
 
 Type for sets of volume-like of hexahedral finite elements with eight nodes.
 """
-mutable struct FESetH8 <: FESet3Manifold
-    @add_FESet_fields
-
-    function    FESetH8(conn::FIntMat=[])
-        nodesperelem::FInt  = 8
-        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-        # Need to make a COPY of the input arrays
-        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-        setlabel!(self, 0)
-        return self
-    end
-end
+@define_FESet FESetH8 FESet3Manifold 8
 
 function privbfun(self::FESetH8,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 8-node hexahedron.
@@ -913,17 +843,7 @@ end
 
 Type for sets of volume-like of hexahedral finite elements with 20 nodes.
 """
-mutable struct FESetH20 <: FESet3Manifold
-    @add_FESet_fields
-
-    function    FESetH20(conn::FIntMat=[])
-        nodesperelem::FInt  = 20
-        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-        setlabel!(self, 0)
-        return self
-    end
-end
+@define_FESet FESetH20 FESet3Manifold 20
 
 function privbfun(self::FESetH20,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 20-node hexahedron.
@@ -1068,17 +988,7 @@ end
 
 Type for sets of volume-like of hexahedral finite elements with 27 nodes.
 """
-mutable struct FESetH27 <: FESet3Manifold
-    @add_FESet_fields
-
-    function    FESetH27(conn::FIntMat=[])
-        nodesperelem::FInt  = 27
-        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-        setlabel!(self, 0)
-        return self
-    end
-end
+@define_FESet FESetH27 FESet3Manifold 27
 
 function privbfun(self::FESetH27,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 8-node hexahedron.
@@ -1200,18 +1110,7 @@ end
 
 Type for sets of volume-like of tetrahedral finite elements with four nodes.
 """
-mutable struct FESetT4 <: FESet3Manifold
-    @add_FESet_fields
-
-    function    FESetT4(conn::FIntMat=[])
-        nodesperelem::FInt  = 4
-        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-        # Need to make a COPY of the input arrays
-        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-        setlabel!(self, 0)
-        return self
-    end
-end
+@define_FESet FESetT4 FESet3Manifold 4
 
 function privbfun(self::FESetT4,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 3-node triangle.
@@ -1258,18 +1157,7 @@ end
 
 Type for sets of volume-like of tetrahedral finite elements with 10 nodes.
 """
-mutable struct FESetT10 <: FESet3Manifold
-    @add_FESet_fields
-
-    function FESetT10(conn::FIntMat=[])
-        nodesperelem::FInt  = 10
-        @assert (size(conn, 2) == nodesperelem) "Number of nodes per element mismatched"
-        # Need to make a COPY of the input arrays
-        self =new(nodesperelem, deepcopy(conn), deepcopy(FInt[]))
-        setlabel!(self, 0)
-        return self
-    end
-end
+@define_FESet FESetT10 FESet3Manifold 10
 
 function privbfun(self::FESetT10,  param_coords::FFltVec)
     # Evaluate the basis function matrix for an 3-node triangle.
