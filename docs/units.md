@@ -18,3 +18,10 @@ The usual sets of units are included, `:US`, `:IMPERIAL`, `:CGS`, `:SIMM` (milli
 julia> E = 200*phun("GPa")
 2.0e11
 ```
+
+Numbers output by the simulation can also be converted  to appropriate units for printing as
+
+```julia
+julia> E/phun("MPa")
+200000.0
+```

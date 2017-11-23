@@ -374,4 +374,4 @@ ENV["PYTHON"]="C:\\ProgramData\\Anaconda3\\python.exe"
 ENV["PYTHON"]="C:\\Users\\PetrKrysl\\Documents\\WinPython-64bit-3.6.3.0Qt5\\python-3.6.3.amd64\\python.exe"
 Pkg.build("PyCall")
 
--- VS code: To insert a symbol, simply execute the Unicode: Insert Math Symbol command and type in the name of your desired symbol or select it from the drop-down list.
+-- VS code: To insert a symbol, simply execute the Unicode: Insert Math Symbol command and type in the name of your desired symbol or select it from the drop-down list. (Unicode Latex extension..)
