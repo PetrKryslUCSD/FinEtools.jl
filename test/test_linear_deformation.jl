@@ -106,7 +106,7 @@ function test()
     @test norm(sA - [-93.8569]) < 1.0e-2
 
     # Loop over only those elements that share the node nA
-    fen2fe  = FENodeToFEMap(fes.conn, nnodes(geom))
+    fen2fe  = FENodeToFEMap(connasarray(fes), nnodes(geom))
     function inspector(idat, elnum, conn, xe,  out,  xq)
         # println("loc = $(  xq  ) : $(  transpose(out)/phun("MEGA*Pa")  )")
         return idat
@@ -1190,7 +1190,7 @@ function test()
   # println("Stress at point A: $(sA) i. e.  $( sAn*100  )% of reference value")
   @test abs(sA[1]-(-93.8569)) < 1e-3
 
-  fen2fe  = FENodeToFEMap(fes.conn, nnodes(geom))
+  fen2fe  = FENodeToFEMap(connasarray(fes), nnodes(geom))
   function inspector(idat, elnum, conn, xe,  out,  xq)
     # println("loc = $(  xq  ) : $(  transpose(out)/phun("MEGA*Pa")  )")
     return idat
@@ -2226,7 +2226,7 @@ function test()
   @test abs(cdis - (-0.13634800328800462)) < 1.0e-5
 
   File =  "NAFEMS-R0031-3-plate.vtk"
-  vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H20;
+  vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H20;
       scalars = [("Layer", fes.label)], vectors = [("displacement", u.values)])
   # @async run(`"paraview.exe" $File`)
   try  rm(File); catch end
@@ -2751,7 +2751,7 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "The hybrid form of the serendipity hexahedron is chosen because");
   COMMENT(AE, "the material is  nearly incompressible.");
-  ELEMENT(AE, "c3d20rh", "AllElements", 1, fes.conn)
+  ELEMENT(AE, "c3d20rh", "AllElements", 1, connasarray(fes))
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements");
   END_INSTANCE(AE);
@@ -3320,7 +3320,7 @@ function test()
   # println("Stress at point A: $(sA) i. e.  $( sAn*100  )% of reference value")
   @test abs(sA[1] - (-93.8569)) < 1.0e-3
 
-  fen2fe  = FENodeToFEMap(fes.conn, nnodes(geom))
+  fen2fe  = FENodeToFEMap(connasarray(fes), nnodes(geom))
   function inspector(idat, elnum, conn, xe,  out,  xq)
     println("loc = $(  xq  ) : $(  transpose(out)/phun("MEGA*Pa")  )")
     return idat
@@ -3438,7 +3438,7 @@ function test()
   # println("Stress at point A: $(sA) i. e.  $( sAn*100  )% of reference value")
   @test abs(sA[1] - (-93.8569)) < 1.0e-3
 
-  fen2fe  = FENodeToFEMap(fes.conn, nnodes(geom))
+  fen2fe  = FENodeToFEMap(connasarray(fes), nnodes(geom))
   function inspector(idat, elnum, conn, xe,  out,  xq)
     println("loc = $(  xq  ) : $(  transpose(out)/phun("MEGA*Pa")  )")
     return idat
@@ -3554,7 +3554,7 @@ function test()
   sAn  =  fld.values[nA]/sigmaA
   # println("Stress at point A: $(sA) i. e.  $( sAn*100  )% of reference value")
 
-  fen2fe  = FENodeToFEMap(fes.conn, nnodes(geom))
+  fen2fe  = FENodeToFEMap(connasarray(fes), nnodes(geom))
   function inspector(idat, elnum, conn, xe,  out,  xq)
     # println("loc = $(  xq  ) : $(  transpose(out)/phun("MEGA*Pa")  )")
     return idat
@@ -3589,7 +3589,7 @@ function test()
   ASSEMBLY(AE, "ASSEM1");
   INSTANCE(AE, "INSTNC1", "PART1");
   NODE(AE, fens.xyz);
-  ELEMENT(AE, "cax8", "AllElements", 1, fes.conn)
+  ELEMENT(AE, "cax8", "AllElements", 1, connasarray(fes))
   NSET_NSET(AE, "ltop", ltop)
   NSET_NSET(AE, "lbottom", lbottom)
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
@@ -3722,7 +3722,7 @@ function test()
   sAn  =  fld.values[nA]/sigmaA
   # println("Stress at point A: $(sA) i. e.  $( sAn*100  )% of reference value")
 
-  fen2fe  = FENodeToFEMap(fes.conn, nnodes(geom))
+  fen2fe  = FENodeToFEMap(connasarray(fes), nnodes(geom))
   function inspector(idat, elnum, conn, xe,  out,  xq)
     # println("loc = $(  xq  ) : $(  transpose(out)/phun("MEGA*Pa")  )")
     return idat
@@ -3757,7 +3757,7 @@ function test()
   ASSEMBLY(AE, "ASSEM1");
   INSTANCE(AE, "INSTNC1", "PART1");
   NODE(AE, fens.xyz);
-  ELEMENT(AE, "cax8", "AllElements", 1, fes.conn)
+  ELEMENT(AE, "cax8", "AllElements", 1, connasarray(fes))
   NSET_NSET(AE, "ltop", ltop)
   NSET_NSET(AE, "lbottom", lbottom)
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
@@ -3910,8 +3910,8 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPE3 are pretty poor-accuracy elements, but here we don't care about it.");
-  @test  size(modeldata["regions"][1]["femm"].integdata.fes.conn,2) == 3
-  ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].integdata.fes.conn)
+  @test nodesperelem(modeldata["regions"][1]["femm"].integdata.fes) == 3
+  ELEMENT(AE, "CPE3", "AllElements", connasarray(modeldata["regions"][1]["femm"].integdata.fes))
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", thickness);
@@ -3930,7 +3930,7 @@ function test()
   F = zeros(count(modeldata["fens"]))
   for ix = 1:count(bfes)
     for jx = 1:2
-      F[bfes.conn[ix, jx]] += 1.0/n/2/thickness
+      F[bfes.conn[ix][jx]] += 1.0/n/2/thickness
     end
   end
   for ixxxx = 1:length(F)
@@ -4076,8 +4076,8 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPE3 are pretty poor-accuracy elements, but here we don't care about it.");
-@test  size(modeldata["regions"][1]["femm"].integdata.fes.conn,2) == 3
-  ELEMENT(AE, "CPE3", "AllElements", modeldata["regions"][1]["femm"].integdata.fes.conn)
+@test  nodesperelem(modeldata["regions"][1]["femm"].integdata.fes) == 3
+  ELEMENT(AE, "CPE3", "AllElements", connasarray(modeldata["regions"][1]["femm"].integdata.fes))
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", thickness);
@@ -4096,7 +4096,7 @@ function test()
   F = zeros(count(modeldata["fens"]))
   for ix = 1:count(bfes)
     for jx = 1:2
-      F[bfes.conn[ix, jx]] += 1.0/n/2/thickness
+      F[bfes.conn[ix][jx]] += 1.0/n/2/thickness
     end
   end
   for ixxxx = 1:length(F)
@@ -4244,8 +4244,8 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPS3 are pretty poor-accuracy elements, but here we don't care about it.");
-@test  size(modeldata["regions"][1]["femm"].integdata.fes.conn,2) == 3
-  ELEMENT(AE, "CPS3", "AllElements", modeldata["regions"][1]["femm"].integdata.fes.conn)
+@test nodesperelem(modeldata["regions"][1]["femm"].integdata.fes) == 3
+  ELEMENT(AE, "CPS3", "AllElements", connasarray(modeldata["regions"][1]["femm"].integdata.fes))
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", thickness);
@@ -4264,7 +4264,7 @@ function test()
   F = zeros(count(modeldata["fens"]))
   for ix = 1:count(bfes)
     for jx = 1:2
-      F[bfes.conn[ix, jx]] += 1.0/n/2/thickness
+      F[bfes.conn[ix][jx]] += 1.0/n/2/thickness
     end
   end
   for ixxxx = 1:length(F)
@@ -4410,8 +4410,8 @@ function test()
   NODE(AE, fens.xyz);
   COMMENT(AE, "We are assuming three node triangles in plane-stress");
   COMMENT(AE, "CPS3 are pretty poor-accuracy elements, but here we don't care about it.");
-@test  size(modeldata["regions"][1]["femm"].integdata.fes.conn,2) == 3
-  ELEMENT(AE, "CPS3", "AllElements", modeldata["regions"][1]["femm"].integdata.fes.conn)
+@test  nodesperelem(modeldata["regions"][1]["femm"].integdata.fes) == 3
+  ELEMENT(AE, "CPS3", "AllElements", connasarray(modeldata["regions"][1]["femm"].integdata.fes))
   NSET_NSET(AE, "clamped", modeldata["essential_bcs"][1]["node_list"])
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", thickness);
@@ -4430,7 +4430,7 @@ function test()
   F = zeros(count(modeldata["fens"]))
   for ix = 1:count(bfes)
     for jx = 1:2
-      F[bfes.conn[ix, jx]] += 1.0/n/2/thickness
+      F[bfes.conn[ix][jx]] += 1.0/n/2/thickness
     end
   end
   for ixxxx = 1:length(F)
@@ -4851,7 +4851,7 @@ function test()
     @test abs(fld.values[nl,1][1]/phun("MPa") - -5.470291697493607) < 1.0e-3
 
     File =  "LE10NAFEMS_MST10_sigmay.vtk"
-    vtkexportmesh(File, fes.conn, geom.values,
+    vtkexportmesh(File, connasarray(fes), geom.values,
                    FinEtools.MeshExportModule.T10; vectors=[("u", u.values)],
                    scalars=[("sigmay", fld.values)])
     # @async run(`"paraview.exe" $File`)
@@ -4864,9 +4864,9 @@ function test()
     ASSEMBLY(AE, "ASSEM1");
     INSTANCE(AE, "INSTNC1", "PART1");
     NODE(AE, fens.xyz);
-    ELEMENT(AE, "c3d10", "AllElements", 1, femm.integdata.fes.conn)
+    ELEMENT(AE, "c3d10", "AllElements", 1, connasarray(femm.integdata.fes))
     ELEMENT(AE, "SFM3D6", "TractionElements",
-    1+count(femm.integdata.fes), eL1femm.integdata.fes.conn)
+    1+count(femm.integdata.fes), connasarray(eL1femm.integdata.fes))
     NSET_NSET(AE, "L1", L1)
     NSET_NSET(AE, "L2", L2)
     NSET_NSET(AE, "L3", L3)
@@ -4961,7 +4961,7 @@ try rm(AE.filename) catch end
     @test abs(fld.values[nl,1][1]/phun("MPa") - -5.470291697493607) < 1.0e-3
 
     File =  "LE10NAFEMS_MST10_sigmay.vtk"
-    vtkexportmesh(File, fes.conn, geom.values,
+    vtkexportmesh(File, connasarray(fes), geom.values,
                    FinEtools.MeshExportModule.T10; vectors=[("u", u.values)],
                    scalars=[("sigmay", fld.values)])
     # @async run(`"paraview.exe" $File`)
@@ -5374,8 +5374,8 @@ END_PART(AE);
 ASSEMBLY(AE, "ASSEM1");
 INSTANCE(AE, "INSTNC1", "PART1");
 NODE(AE, fens.xyz);
-ELEMENT(AE, "c3d20r", "AllElements", femm.integdata.fes.conn)
-ELEMENT(AE, "SFM3D8", "TractionElements", Tracfemm.integdata.fes.conn)
+ELEMENT(AE, "c3d20r", "AllElements", connasarray(femm.integdata.fes))
+ELEMENT(AE, "SFM3D8", "TractionElements", connasarray(Tracfemm.integdata.fes))
 NSET_NSET(AE, "L1", lx0)
 NSET_NSET(AE, "L2", lx0)
 NSET_NSET(AE, "L3", lx0)
@@ -5861,9 +5861,9 @@ function test()
     ASSEMBLY(AE, "ASSEM1");
     INSTANCE(AE, "INSTNC1", "PART1");
     NODE(AE, fens.xyz);
-    ELEMENT(AE, "c3d8rh", "AllElements", 1, femm.integdata.fes.conn)
+    ELEMENT(AE, "c3d8rh", "AllElements", 1, connasarray(femm.integdata.fes))
     ELEMENT(AE, "SFM3D4", "TractionElements",
-    1+count(femm.integdata.fes), el1femm.integdata.fes.conn)
+    1+count(femm.integdata.fes), connasarray(el1femm.integdata.fes))
     NSET_NSET(AE, "l1", l1)
     NSET_NSET(AE, "l2", l2)
     NSET_NSET(AE, "l3", l3)
@@ -6219,7 +6219,7 @@ function test()
             # push!(nelems, count(fes))
             # push!(sigyderrs[extrapolation], abs(sigyd/sigma_yD - 1.0))
             File =  "a.vtk"
-            vtkexportmesh(File, fes.conn, geom.values,
+            vtkexportmesh(File, connasarray(fes), geom.values,
                 FinEtools.MeshExportModule.H20; vectors=[("u", u.values)],
                 scalars=[("sigmax", sigx.values/phun("MEGA*PA")),
                 ("sigmay", sigy.values/phun("MEGA*PA"))])
@@ -6682,7 +6682,7 @@ function test()
     # println("Stress at point A: $(sA) i. e.  $( sAn*100  )% of reference value")
     @test norm(sA .- -93.8569) < 1.0e-4
 
-    fen2fe  = FENodeToFEMap(fes.conn, nnodes(geom))
+    fen2fe  = FENodeToFEMap(connasarray(fes), nnodes(geom))
     function inspector(idat, elnum, conn, xe,  out,  xq)
     #   println("loc = $(  xq  ) : $(  transpose(out)/phun("MEGA*Pa")  )")
       return idat

@@ -107,24 +107,24 @@ function make_stabilization_material(material::M) where {M}
 end
 
 function buffers1(self::FEMMDeforLinearAbstractMS, geom::NodalField, npts::FInt)
-    nne = nodesperelem(self.integdata.fes); # number of nodes for element
+    fes = self.integdata.fes
+    nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
-    mdim = manifdim(self.integdata.fes); # manifold dimension of the element
+    mdim = manifdim(fes); # manifold dimension of the element
     # Prepare buffers
-    conn = zeros(FInt, nne, 1); # element nodes -- buffer
-    x = zeros(FFlt, nne, sdim); # array of node coordinates -- buffer
     loc = zeros(FFlt, 1, sdim); # quadrature point location -- buffer
     J = eye(FFlt, sdim, mdim); # Jacobian matrix -- buffer
     csmatTJ = zeros(FFlt, mdim, mdim); # intermediate result -- buffer
     gradN = zeros(FFlt, nne, mdim);
-    return conn, x, loc, J, csmatTJ, gradN
+    return loc, J, csmatTJ, gradN
 end
 
 function buffers2(self::FEMMDeforLinearAbstractMS, geom::NodalField, u::NodalField, npts::FInt)
+    fes = self.integdata.fes
     ndn = ndofs(u); # number of degrees of freedom per node
-    nne = nodesperelem(self.integdata.fes); # number of nodes for element
+    nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
-    mdim = manifdim(self.integdata.fes); # manifold dimension of the element
+    mdim = manifdim(fes); # manifold dimension of the element
     nstrs = nstsstn(self.mr);  # number of stresses
     elmatdim = ndn*nne;             # dimension of the element matrix
     # Prepare buffers
@@ -186,19 +186,19 @@ Associate geometry field with the FEMM.
 Compute the  correction factors to account for  the shape of the  elements.
 """
 function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDeforLinearMSH8}
-    integdata = self.integdata
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(integdata);
-    conn, x, loc, J, csmatTJ, gradN = buffers1(self, geom, npts)
-    self.phis = zeros(FFlt, count(integdata.fes))
-    for i = 1:count(integdata.fes) # Loop over elements
+    fes = self.integdata.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    loc, J, csmatTJ, gradN = buffers1(self, geom, npts)
+    self.phis = zeros(FFlt, count(fes))
+    for i = 1:count(fes) # Loop over elements
         # NOTE: the coordinate system should be evaluated at a single point within the
         # element in order for the derivatives to be consistent at all quadrature points
-        loc = centroid!(self,  loc, x)
-        updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
+        loc = centroid!(self,  loc, geom.values, fes.conn[i])
+        updatecsmat!(self.mcsys, loc, J, fes.label[i]);
         for j = 1:npts # Loop over quadrature points
-            jac!(J, geom.values, integdata.fes.conn[i], gradNparams[j]) 
+            jac!(J, geom.values, fes.conn[i], gradNparams[j]) 
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
-            gradN!(integdata.fes, gradN, gradNparams[j], csmatTJ);
+            gradN!(fes, gradN, gradNparams[j], csmatTJ);
             h2 = diag(transpose(csmatTJ)*csmatTJ)
             cap_phi = (2 * (1 + self.stabilization_material.nu) * (minimum(h2) / maximum(h2)))  # Plane stress
             phi = cap_phi / (1 + cap_phi)
@@ -217,17 +217,17 @@ Compute the  correction factors to account for  the shape of the  elements.
 """
 function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDeforLinearMST10}
     gamma = 2.6; C = 1e4;
-    integdata = self.integdata
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(integdata);
-    conn, x, loc, J, csmatTJ, gradN = buffers1(self, geom, npts)
-    self.phis = zeros(FFlt, count(integdata.fes))
-    for i = 1:count(integdata.fes) # Loop over elements
+    fes = self.integdata.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    loc, J, csmatTJ, gradN = buffers1(self, geom, npts)
+    self.phis = zeros(FFlt, count(fes))
+    for i = 1:count(fes) # Loop over elements
         # NOTE: the coordinate system should be evaluated at a single point within the
         # element in order for the derivatives to be consistent at all quadrature points
-        loc = centroid!(self,  loc, x)
-        updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
+        loc = centroid!(self,  loc, geom.values, fes.conn[i])
+        updatecsmat!(self.mcsys, loc, J, fes.label[i]);
         for j = 1:npts # Loop over quadrature points
-            jac!(J, geom.values, integdata.fes.conn[i], gradNparams[j]) 
+            jac!(J, geom.values, fes.conn[i], gradNparams[j]) 
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
             condJ = cond(csmatTJ);
             cap_phi = C*(1.0/condJ)^(gamma);
@@ -248,8 +248,8 @@ Compute and assemble  stiffness matrix.
 function stiffness(self::FEMMDeforLinearAbstractMS, assembler::A,
     geom::NodalField{FFlt},
     u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
-    integdata = self.integdata
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(integdata);
+    fes = self.integdata.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
     conn, x, dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac,
     D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
     realmat = self.material
@@ -257,20 +257,20 @@ function stiffness(self::FEMMDeforLinearAbstractMS, assembler::A,
     realmat.tangentmoduli!(realmat, D, 0.0, 0.0, loc, 0)
     stabmat.tangentmoduli!(stabmat,
     Dstab, 0.0, 0.0, loc, 0)
-    startassembly!(assembler, size(elmat, 1), size(elmat, 2), count(integdata.fes),
+    startassembly!(assembler, size(elmat, 1), size(elmat, 2), count(fes),
     u.nfreedofs, u.nfreedofs);
-    for i = 1:count(integdata.fes) # Loop over elements
+    for i = 1:count(fes) # Loop over elements
         # NOTE: the coordinate system should be evaluated at a single point within the
         # element in order for the derivatives to be consistent at all quadrature points
-        loc = centroid!(self,  loc, x)
-        updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
+        loc = centroid!(self,  loc, geom.values, fes.conn[i])
+        updatecsmat!(self.mcsys, loc, J, fes.label[i]);
         vol = 0.0; # volume of the element
         fill!(MeangradN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
-            jac!(J, geom.values, integdata.fes.conn[i], gradNparams[j]) 
-            Jac[j] = Jacobianvolume(integdata, J, loc, integdata.fes.conn[i], Ns[j]);
+            jac!(J, geom.values, fes.conn[i], gradNparams[j]) 
+            Jac[j] = Jacobianvolume(integdata, J, loc, fes.conn[i], Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
-            gradN!(integdata.fes, AllgradN[j], gradNparams[j], csmatTJ);
+            gradN!(fes, AllgradN[j], gradNparams[j], csmatTJ);
             dvol = Jac[j]*w[j]
             MeangradN .= MeangradN .+ AllgradN[j]*dvol
             vol = vol + dvol
@@ -285,7 +285,7 @@ function stiffness(self::FEMMDeforLinearAbstractMS, assembler::A,
             add_btdb_ut_only!(elmat, B, self.phis[i]*Jac[j]*w[j], Dstab, DB)
         end # Loop over quadrature points
         complete_lt!(elmat)
-        gatherdofnums!(u, dofnums, integdata.fes.conn[i]); # retrieve degrees of freedom
+        gatherdofnums!(u, dofnums, fes.conn[i]); # retrieve degrees of freedom
         assemble!(assembler, elmat, dofnums, dofnums); # assemble symmetric matrix
     end # Loop over elements
     return makematrix!(assembler);
@@ -314,6 +314,9 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS,
     end
     t= 0.0
     dt = 0.0
+    nne = nodesperelem(fes); # number of nodes for element
+    sdim = ndofs(geom);            # number of space dimensions
+    xe = zeros(FFlt, nne, sdim); # array of node coordinates -- buffer
     dTe = zeros(FFlt, length(conn)) # nodal temperatures -- buffer
     ue = zeros(FFlt, size(elmat, 1)); # array of node displacements -- buffer
     qpdT = 0.0; # node temperature increment
@@ -325,21 +328,22 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS,
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
         i = felist[ilist];
-        gathervalues_asvec!(u, ue, conn);# retrieve element displacements
-        gathervalues_asvec!(dT, dTe, conn);# retrieve element temperature increments
+        gathervalues_asmat!(geom, xe, fes.conn[i]);# retrieve element coords
+        gathervalues_asvec!(u, ue, fes.conn[i]);# retrieve element displacements
+        gathervalues_asvec!(dT, dTe, fes.conn[i]);# retrieve element temperature increments
         # NOTE: the coordinate system should be evaluated at a single point within the
         # element in order for the derivatives to be consistent at all quadrature points
-        loc = centroid!(self,  loc, x)
-        updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
-        updatecsmat!(outputcsys, loc, J, integdata.fes.label[i]);
+        loc = centroid!(self,  loc, geom.values, fes.conn[i])
+        updatecsmat!(self.mcsys, loc, J, fes.label[i]);
+        updatecsmat!(outputcsys, loc, J, fes.label[i]);
         vol = 0.0; # volume of the element
         fill!(MeangradN, 0.0) # mean basis function gradients
         fill!(MeanN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
-            jac!(J, geom.values, integdata.fes.conn[i], gradNparams[j]) 
+            jac!(J, geom.values, fes.conn[i], gradNparams[j]) 
             Jac[j] = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
-            gradN!(integdata.fes, AllgradN[j], gradNparams[j], csmatTJ);
+            gradN!(fes, AllgradN[j], gradNparams[j], csmatTJ);
             dvol = Jac[j]*w[j]
             MeangradN .= MeangradN .+ AllgradN[j]*dvol
             MeanN .= MeanN .+ Ns[j]*dvol
@@ -354,14 +358,14 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS,
         realmat.thermalstrain!(realmat, qpthstrain, qpdT)
         # Material updates the state and returns the output
         out = realmat.update!(realmat, qpstress, out,
-            vec(qpstrain), qpthstrain, t, dt, loc, integdata.fes.label[i], quantity)
+            vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(out1) >= length(out)) || (out1 = zeros(length(out)))
             rotstressvec(self.mr, out1, out, self.mcsys.csmat')# To global coord sys
             rotstressvec(self.mr, out, out1, outputcsys.csmat)# To output coord sys
         end
         # Call the inspector
-        idat = inspector(idat, i, conn, x, out, loc);
+        idat = inspector(idat, i, conn, xe, out, loc);
     end # Loop over elements
     return idat; # return the updated inspector data
 end
@@ -389,6 +393,9 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS,
     end
     t= 0.0
     dt = 0.0
+    nne = nodesperelem(fes); # number of nodes for element
+    sdim = ndofs(geom);            # number of space dimensions
+    xe = zeros(FFlt, nne, sdim); # array of node coordinates -- buffer
     dTe = zeros(FFlt, length(conn)) # nodal temperatures -- buffer
     ue = zeros(FFlt, size(elmat, 1)); # array of node displacements -- buffer
     qpdT = 0.0; # node temperature increment
@@ -400,21 +407,22 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS,
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
         i = felist[ilist];
+        gathervalues_asmat!(geom, xe, fes.conn[i]);# retrieve element coords
         gathervalues_asvec!(u, ue, conn);# retrieve element displacements
         gathervalues_asvec!(dT, dTe, conn);# retrieve element temperature increments
         # NOTE: the coordinate system should be evaluated at a single point within the
         # element in order for the derivatives to be consistent at all quadrature points
-        loc = centroid!(self,  loc, x)
-        updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
-        updatecsmat!(outputcsys, loc, J, integdata.fes.label[i]);
+        loc = centroid!(self,  loc, geom.values, fes.conn[i])
+        updatecsmat!(self.mcsys, loc, J, fes.label[i]);
+        updatecsmat!(outputcsys, loc, J, fes.label[i]);
         vol = 0.0; # volume of the element
         fill!(MeangradN, 0.0) # mean basis function gradients
         fill!(MeanN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
-            jac!(J, geom.values, integdata.fes.conn[i], gradNparams[j]) 
+            jac!(J, geom.values, fes.conn[i], gradNparams[j]) 
             Jac[j] = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
-            gradN!(integdata.fes, AllgradN[j], gradNparams[j], csmatTJ);
+            gradN!(fes, AllgradN[j], gradNparams[j], csmatTJ);
             dvol = Jac[j]*w[j]
             MeangradN .= MeangradN .+ AllgradN[j]*dvol
             MeanN .= MeanN .+ Ns[j]*dvol
@@ -429,7 +437,7 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS,
         realmat.thermalstrain!(realmat, qpthstrain, qpdT)
         # Material updates the state and returns the output
         out = realmat.update!(realmat, qpstress, out,
-            vec(qpstrain), qpthstrain, t, dt, loc, integdata.fes.label[i], quantity)
+            vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(out1) >= length(out)) || (out1 = zeros(length(out)))
             rotstressvec(self.mr, out1, out, self.mcsys.csmat')# To global coord sys
@@ -437,7 +445,7 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS,
         end
         # Call the inspector for each node location
         for nod = 1:size(x, 1)
-            idat = inspector(idat, i, conn, x, out, x[nod, :]);
+            idat = inspector(idat, i, conn, xe, out, xe[nod, :]);
         end
     end # Loop over elements
     return idat; # return the updated inspector data
@@ -449,8 +457,8 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
     felist::FIntVec,
     inspector::F,  idat, quantity=:Cauchy;
     context...) where {T<:Number, F<:Function}
-    integdata = self.integdata
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(integdata);
+    fes = self.integdata.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
     conn, x, dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac,
     D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
     MeanN = deepcopy(Ns[1])
@@ -466,6 +474,9 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
     end
     t= 0.0
     dt = 0.0
+    nne = nodesperelem(fes); # number of nodes for element
+    sdim = ndofs(geom);            # number of space dimensions
+    xe = zeros(FFlt, nne, sdim); # array of node coordinates -- buffer
     dTe = zeros(FFlt, length(conn)) # nodal temperatures -- buffer
     ue = zeros(FFlt, size(elmat, 1)); # array of node displacements -- buffer
     qpdT = 0.0; # node temperature increment
@@ -484,21 +495,22 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
         i = felist[ilist];
-        gathervalues_asvec!(u, ue, conn);# retrieve element displacements
-        gathervalues_asvec!(dT, dTe, conn);# retrieve element temperature increments
+        gathervalues_asmat!(geom, xe, fes.conn[i]);# retrieve element coords
+        gathervalues_asvec!(u, ue, fes.conn[i]);# retrieve element displacements
+        gathervalues_asvec!(dT, dTe, fes.conn[i]);# retrieve element temperature increments
         # NOTE: the coordinate system should be evaluated at a single point within the
         # element in order for the derivatives to be consistent at all quadrature points
-        loc = centroid!(self,  loc, x) # WARNING: is this how the paper does it?
-        updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
-        updatecsmat!(outputcsys, loc, J, integdata.fes.label[i]);
+        loc = centroid!(self,  loc, geom.values, fes.conn[i])
+        updatecsmat!(self.mcsys, loc, J, fes.label[i]);
+        updatecsmat!(outputcsys, loc, J, fes.label[i]);
         vol = 0.0; # volume of the element
         fill!(MeangradN, 0.0) # mean basis function gradients
         fill!(MeanN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
-            jac!(J, geom.values, integdata.fes.conn[i], gradNparams[j]) 
-            Jac[j] = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
+            jac!(J, geom.values, fes.conn[i], gradNparams[j]) 
+            Jac[j] = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
-            gradN!(integdata.fes, AllgradN[j], gradNparams[j], csmatTJ);
+            gradN!(fes, AllgradN[j], gradNparams[j], csmatTJ);
             dvol = Jac[j]*w[j]
             MeangradN .= MeangradN .+ AllgradN[j]*dvol
             MeanN .= MeanN .+ Ns[j]*dvol
@@ -513,7 +525,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
         realmat.thermalstrain!(realmat, qpthstrain, qpdT)
         # REAL Material updates the state and returns the output
         rout = realmat.update!(realmat, qpstress, rout,
-            vec(qpstrain), qpthstrain, t, dt, loc, integdata.fes.label[i], quantity)
+            vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(rout1) >= length(rout)) || (rout1 = zeros(length(rout)))
             rotstressvec(self.mr, rout1, rout, self.mcsys.csmat')# To global coord sys
@@ -521,7 +533,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
         end
         # STABILIZATION Material updates the state and returns the output
         sbout = stabmat.update!(stabmat, qpstress, sbout,
-            vec(qpstrain), qpthstrain, t, dt, loc, integdata.fes.label[i], quantity)
+            vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(sbout1) >= length(sbout)) || (sbout1 = zeros(length(sbout)))
             rotstressvec(self.mr, sbout1, sbout, self.mcsys.csmat')# To global coord sys
@@ -537,7 +549,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
             stabmat.thermalstrain!(stabmat, qpthstrain, qpdT)
             # Material updates the state and returns the output
             sout = stabmat.update!(stabmat, qpstress, sout,
-                vec(qpstrain), qpthstrain, t, dt, loc, integdata.fes.label[i], quantity)
+                vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
             if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
                 (length(sout1) >= length(sout)) || (sout1 = zeros(length(sout)))
                 rotstressvec(self.mr, sout1, sout, self.mcsys.csmat')# To global coord sys
@@ -553,7 +565,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
             xdel = vec(@view x[nod, :]) - vec(loc)
             nout = rout + self.phis[i] * (- sbout + vec(reshape(xdel, 1, 3) * p[1:3, :]) + p[4, :])
             # Call the inspector for the node location
-            idat = inspector(idat, i, conn, x, nout, x[nod, :]);
+            idat = inspector(idat, i, conn, xe, nout, xe[nod, :]);
         end
     end # Loop over elements
     return idat; # return the updated inspector data
@@ -586,12 +598,7 @@ Inspect integration point quantities.
 ### Return
 The updated inspector data is returned.
 """
-function inspectintegpoints(self::FEMMDeforLinearAbstractMS,
-    geom::NodalField{FFlt},  u::NodalField{T},
-    dT::NodalField{FFlt},
-    felist::FIntVec,
-    inspector::F,  idat, quantity=:Cauchy;
-    context...) where {T<:Number, F<:Function}
+function inspectintegpoints(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
     reportat = :meanonly
     for (i, arg) in enumerate(context)
         sy, val = arg
@@ -611,14 +618,9 @@ function inspectintegpoints(self::FEMMDeforLinearAbstractMS,
     end
 end
 
-function inspectintegpoints(self::FEMMDeforLinearAbstractMS,
-    geom::NodalField{FFlt},  u::NodalField{T},
-    felist::FIntVec,
-    inspector::F, idat, quantity=:Cauchy;
-    context...) where {T<:Number, F<:Function}
+function inspectintegpoints(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt},  u::NodalField{T}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
     dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
-    return inspectintegpoints(self, geom, u, dT, felist,
-        inspector, idat, quantity; context...);
+    return inspectintegpoints(self, geom, u, dT, felist, inspector, idat, quantity; context...);
 end
 
 end

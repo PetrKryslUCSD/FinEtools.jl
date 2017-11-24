@@ -72,7 +72,7 @@ function mass(self::FEMMDeforLinearAbstract,  assembler::A,  geom::NodalField{FF
     ndn = ndofs(u)
     for j = 1:npts # This quantity is the same for all quadrature points
         Nexp = zeros(FFlt, ndn, size(elmat,1))
-        for l1 = 1:length(conn)
+        for l1 = 1:nodesperelem(fes)
             Nexp[1:ndn, (l1-1)*ndn+1:(l1)*ndn] = eye(ndn)*Ns[j][l1];
         end
         NexpTNexp[j] = Nexp'*Nexp;
@@ -246,8 +246,7 @@ Inspect integration point quantities.
 ### Return
 The updated inspector data is returned.
 """
-function inspectintegpoints(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt},
-    felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
+function inspectintegpoints(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
     fes = self.integdata.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
     dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix = buffers(self, geom, u)
@@ -263,6 +262,9 @@ function inspectintegpoints(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt
     dt = 0.0
     dTe = zeros(FFlt, nodesperelem(fes)) # nodal temperatures -- buffer
     ue = zeros(FFlt, size(elmat, 1)); # array of node displacements -- buffer
+    nne = nodesperelem(fes); # number of nodes for element
+    sdim = ndofs(geom);            # number of space dimensions
+    xe = zeros(FFlt, nne, sdim); # array of node coordinates -- buffer
     qpdT = 0.0; # node temperature increment
     qpstrain = zeros(FFlt, nstsstn(self.mr), 1); # total strain -- buffer
     qpthstrain = zeros(FFlt, nthstn(self.mr)); # thermal strain -- buffer
@@ -272,6 +274,7 @@ function inspectintegpoints(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
         i = felist[ilist];
+        gathervalues_asmat!(geom, xe, fes.conn[i]);# retrieve element coords
         gathervalues_asvec!(u, ue, fes.conn[i]);# retrieve element displacements
         gathervalues_asvec!(dT, dTe, fes.conn[i]);# retrieve element temp. increments
         for j = 1:npts # Loop over quadrature points
@@ -294,7 +297,7 @@ function inspectintegpoints(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt
                 rotstressvec(self.mr, out, out1, outputcsys.csmat)# To output coord sys
             end
             # Call the inspector
-            idat = inspector(idat, i, conn, x, out, loc);
+            idat = inspector(idat, i, fes.conn[i], xe, out, loc);
         end # Loop over quadrature points
     end # Loop over elements
     return idat; # return the updated inspector data
@@ -302,8 +305,7 @@ end
 
 function inspectintegpoints(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt},  u::NodalField{T}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
     dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
-    return inspectintegpoints(self, geom, u, dT, felist,
-    inspector, idat, quantity; context...);
+    return inspectintegpoints(self, geom, u, dT, felist, inspector, idat, quantity; context...);
 end
 
 end

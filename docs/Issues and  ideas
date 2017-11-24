@@ -385,3 +385,7 @@ function mysum3(A)
     end
     return s
 end
+
+-- Implement
+fen2fe  = FENodeToFEMap(fes, nnodes(geom))
+or in other words use the tuple-based connectivity..

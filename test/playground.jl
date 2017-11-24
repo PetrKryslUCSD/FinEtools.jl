@@ -1,90 +1,54 @@
-module mmtwistedeexportmm
+module scratch2_06102017
+
 using FinEtools
 using Compat.Test
-using FinEtools.MeshExportModule
+
 function test()
-  E = 0.29e8;
-  nu = 0.22;
-  W = 1.1;
-  L = 12.;
-  t =  0.32;
-  nl = 2; nt = 1; nw = 1; ref = 3;
-  p =   1/W/t;
-  #  Loading in the Z direction
-  loadv = [0;0;p]; dir = 3; uex = 0.005424534868469; # Harder: 5.424e-3;
-  #   Loading in the Y direction
-  #loadv = [0;p;0]; dir = 2; uex = 0.001753248285256; # Harder: 1.754e-3;
-  tolerance  = t/1000;
-
-  fens,fes  = H8block(L,W,t, nl*ref,nw*ref,nt*ref)
-
-  # Reshape into a twisted beam shape
-  for i = 1:count(fens)
-    a = fens.xyz[i,1]/L*(pi/2); y = fens.xyz[i,2]-(W/2); z = fens.xyz[i,3]-(t/2);
-    fens.xyz[i,:] = [fens.xyz[i,1],y*cos(a)-z*sin(a),y*sin(a)+z*cos(a)];
-  end
-
-  # Clamped end of the beam
-  l1  = selectnode(fens; box = [0 0 -100*W 100*W -100*W 100*W], inflate  =  tolerance)
-  e1 = FDataDict("node_list"=>l1, "component"=>1, "displacement"=>0.0)
-  e2 = FDataDict("node_list"=>l1, "component"=>2, "displacement"=>0.0)
-  e3 = FDataDict("node_list"=>l1, "component"=>3, "displacement"=>0.0)
-
-  # Traction on the opposite edge
-  boundaryfes  =   meshboundary(fes);
-  Toplist   = selectelem(fens,boundaryfes, box =  [L L -100*W 100*W -100*W 100*W], inflate =   tolerance);
-  el1femm  = FEMMBase(IntegData(subset(boundaryfes,Toplist), GaussRule(2, 2)))
-  flux1 = FDataDict("femm"=>el1femm, "traction_vector"=>loadv)
+  # println("""
+  #         % Vibration modes of unit cube  of almost incompressible material.
+  #         %
+  #         % Reference: Puso MA, Solberg J (2006) A stabilized nodally integrated
+  #         % tetrahedral. International Journal for Numerical Methods in
+  #         % Engineering 67: 841-867.""")
+  #         t0 = time()
 
 
-  # Make the region
+  E = 1*phun("PA");
+  nu = 0.499;
+  rho = 1*phun("KG/M^3");
+  a = 1*phun("M"); b = a; h =  a;
+  n1 = 10;# How many element edges per side?
+  na =  n1; nb =  n1; nh  = n1;
+  neigvs = 20                   # how many eigenvalues
+  OmegaShift = (0.01*2*pi)^2;
+
   MR = DeforModelRed3D
-  material = MatDeforElastIso(MR, 00.0, E, nu, 0.0)
-  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, IntegData(fes, GaussRule(3,2)),
-            material))
+  fens,fes  = H20block(a,b,h, na,nb,nh)
 
-  # Make model data
-  modeldata =  FDataDict(
-  "fens"=> fens, "regions"=>  [region1],
-  "essential_bcs"=>[e1, e2, e3], "traction_bcs"=>  [flux1])
+  geom = NodalField(fens.xyz)
+  u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
 
+  numberdofs!(u)
 
-  AE = AbaqusExporter("twisted_beam");
-  HEADING(AE, "Twisted beam example");
-  PART(AE, "part1");
-  END_PART(AE);
-  ASSEMBLY(AE, "ASSEM1");
-  INSTANCE(AE, "INSTNC1", "PART1");
-  NODE(AE, fens.xyz);
-  ELEMENT(AE, "c3d8rh", "AllElements", 1, connasarray(region1["femm"].integdata.fes))
-  ELEMENT(AE, "SFM3D4", "TractionElements",
-    1+count(region1["femm"].integdata.fes), connasarray(flux1["femm"].integdata.fes))
-  NSET_NSET(AE, "l1", l1)
-  ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
-  SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", "Hourglass");
-  SURFACE_SECTION(AE, "TractionElements")
-  END_INSTANCE(AE);
-  END_ASSEMBLY(AE);
-  MATERIAL(AE, "elasticity")
-  ELASTIC(AE, E, nu)
-  SECTION_CONTROLS(AE, "section1", "HOURGLASS=ENHANCED")
-  STEP_PERTURBATION_STATIC(AE)
-  BOUNDARY(AE, "ASSEM1.INSTNC1.l1", 1)
-  BOUNDARY(AE, "ASSEM1.INSTNC1.l1", 2)
-  BOUNDARY(AE, "ASSEM1.INSTNC1.l1", 3)
-  DLOAD(AE, "ASSEM1.INSTNC1.TractionElements", vec(flux1["traction_vector"]))
-  END_STEP(AE)
-  close(AE)
-  nlines = 0
-  open("twisted_beam.inp") do f
-    s = readlines(f)
-    nlines = length(s)
-  end
-  @test nlines == 223
-  rm("twisted_beam.inp")
+  material=MatDeforElastIso(MR, rho, E, nu, 0.0)
 
-  true
+  femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,2)), material)
+
+  K =stiffness(femm, geom, u)
+  femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,3)), material)
+  M =mass(femm, geom, u)
+  d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
+  d = d .- OmegaShift;
+  fs = real(sqrt.(complex(d)))/(2*pi)
+  println("Eigenvalues: $fs [Hz]")
+
+  # mode = 17
+  # scattersysvec!(u, v[:,mode])
+  # File =  "unit_cube_modes.vtk"
+  # vtkexportmesh(File, fens, fes; vectors=[("mode$mode", u.values)])
+
+  @test abs(fs[7]-0.26259869196259) < 1.0e-5
 end
 end
-using .mmtwistedeexportmm
-mmtwistedeexportmm.test()
+using .scratch2_06102017
+scratch2_06102017.test()
