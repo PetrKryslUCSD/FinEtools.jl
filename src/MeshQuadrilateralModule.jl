@@ -302,7 +302,9 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
             h,n=MeshUtilModule.findhyperface!(edges, ev);
             econn[J]=n;
         end
+        
         inn=size(xyz,1)-length(fes.conn)+i
+
         xyz[inn,:]=mean(xyz[[k for k in fes.conn[i]],:],1); # interior node
         #h,inn=MeshUtilModule.findhyperface!(faces, conn);
         nconn[nc,:] =[fes.conn[i][1] econn[1] inn econn[4]];
