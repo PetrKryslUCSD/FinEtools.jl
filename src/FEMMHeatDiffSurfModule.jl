@@ -21,6 +21,7 @@ using FinEtools.MatHeatDiffModule
 using FinEtools.AssemblyModule
 using FinEtools.MatrixUtilityModule.add_nnt_ut_only!
 using FinEtools.MatrixUtilityModule.complete_lt!
+using FinEtools.MatrixUtilityModule: locjac!
 
 # Type for heat diffusion finite element modeling machine for boundary integrals.
 mutable struct FEMMHeatDiffSurf{S<:FESet, F<:Function} <: FEMMAbstractBase
@@ -54,17 +55,14 @@ function surfacetransfer(self::FEMMHeatDiffSurf,  assembler::A, geom::NodalField
     J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
     startassembly!(assembler, Hedim, Hedim, nfes, temp.nfreedofs, temp.nfreedofs);
     for i = 1:nfes # Loop over elements
-        getconn!(integdata.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         fill!(He,  0.0); # Initialize element matrix
         for j=1:npts # Loop over quadrature points
-        At_mul_B!(loc, Ns[j], x);# Quadrature points location
-        At_mul_B!(J,  x,  gradNparams[j]); # calculate the Jacobian matrix
-        Jac = Jacobiansurface(integdata, J, loc, conn,  Ns[j]);
-        add_nnt_ut_only!(He, Ns[j], self.surfacetransfercoeff*Jac*w[j])
+            locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobiansurface(integdata, J, loc, integdata.fes.conn[i],  Ns[j]);
+            add_nnt_ut_only!(He, Ns[j], self.surfacetransfercoeff*Jac*w[j])
         end # Loop over quadrature points
         complete_lt!(He)
-        gatherdofnums!(temp, dofnums, conn);# retrieve degrees of freedom
+        gatherdofnums!(temp, dofnums, integdata.fes.conn[i]);# retrieve degrees of freedom
         assemble!(assembler, He, dofnums, dofnums);# assemble symmetric matrix
     end # Loop over elements
     return makematrix!(assembler);
@@ -105,21 +103,18 @@ function surfacetransferloads(self::FEMMHeatDiffSurf,  assembler::A,  geom::Noda
     pT = zeros(FFlt, Hedim);
     startassembly!(assembler,  temp.nfreedofs);
     for i = 1:nfes # Loop over elements
-        getconn!(integdata.fes, conn, i);
         gathervalues_asvec!(ambtemp, pT, conn);# retrieve element coordinates
         if norm(pT) != 0.0    # Is the load nonzero?
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
-        fill!(Fe,  0.0); # Initialize element matrix
-        for j=1:npts # Loop over quadrature points
-            At_mul_B!(loc, Ns[j], x);# Quadrature points location
-            At_mul_B!(J,  x,  gradNparams[j]); # calculate the Jacobian matrix
-            Jac = Jacobiansurface(integdata, J, loc, conn,  Ns[j]);
-            Ta = dot(vec(pT), vec(Ns[j]))
-            factor = Ta*self.surfacetransfercoeff*Jac*w[j]
-            Fe .+= factor*Ns[j]
-        end # Loop over quadrature points
-        gatherdofnums!(temp, dofnums, conn); # retrieve degrees of freedom
-        assemble!(assembler,  Fe,  dofnums); # assemble element load vector
+            fill!(Fe,  0.0); # Initialize element matrix
+            for j=1:npts # Loop over quadrature points
+                locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+                Jac = Jacobiansurface(integdata, J, loc, integdata.fes.conn[i],  Ns[j]);
+                Ta = dot(vec(pT), vec(Ns[j]))
+                factor = Ta*self.surfacetransfercoeff*Jac*w[j]
+                Fe .+= factor*Ns[j]
+            end # Loop over quadrature points
+            gatherdofnums!(temp, dofnums, integdata.fes.conn[i]); # retrieve degrees of freedom
+            assemble!(assembler,  Fe,  dofnums); # assemble element load vector
         end
     end
     F = makevector!(assembler);
@@ -163,20 +158,18 @@ function nzebcsurfacetransferloads(self::FEMMHeatDiffSurf, assembler::A,  geom::
     startassembly!(assembler,  temp.nfreedofs);
     # Now loop over all finite elements in the set
     for i=1:nfes # Loop over elements
-        getconn!(integdata.fes, conn, i);
         gatherfixedvalues_asvec!(temp, pT, conn);# retrieve element coordinates
         if norm(pT) != 0.0    # Is the load nonzero?
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
-        fill!(He,  0.0);
-        for j=1:npts # Loop over quadrature points
-            At_mul_B!(loc, Ns[j], x);# Quadrature points location
-            At_mul_B!(J,  x,  gradNparams[j]); # calculate the Jacobian matrix
-            Jac = Jacobiansurface(integdata, J, loc, conn,  Ns[j]);
-            add_nnt_ut_only!(He, Ns[j], self.surfacetransfercoeff*Jac*w[j])
-        end # Loop over quadrature points
-        complete_lt!(He)
-        gatherdofnums!(temp, dofnums, conn); # retrieve degrees of freedom
-        assemble!(assembler,  vec(He*pT),  dofnums); # assemble element load vector
+            gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
+            fill!(He,  0.0);
+            for j=1:npts # Loop over quadrature points
+                locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+                Jac = Jacobiansurface(integdata, J, loc, integdata.fes.conn[i],  Ns[j]);
+                add_nnt_ut_only!(He, Ns[j], self.surfacetransfercoeff*Jac*w[j])
+            end # Loop over quadrature points
+            complete_lt!(He)
+            gatherdofnums!(temp, dofnums, integdata.fes.conn[i]); # retrieve degrees of freedom
+            assemble!(assembler,  vec(He*pT),  dofnums); # assemble element load vector
         end
     end
     F= makevector!(assembler);

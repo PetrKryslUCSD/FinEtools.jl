@@ -64,7 +64,7 @@ On the other hand, if it is an 2d array, each column is exported  as a separate 
 function vtkexportmesh(theFile::String, fens::FENodeSet, fes::T;
     opts...) where {T<:FESet}
     Cell_type = get(()->error("Unknown VTK type!"), VTKtypemap, typeof(fes));
-    return vtkexportmesh(theFile, fes.conn, fens.xyz, Cell_type; opts...)
+    return vtkexportmesh(theFile, connasarray(fes), fens.xyz, Cell_type; opts...)
 end
 
 """

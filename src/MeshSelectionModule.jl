@@ -23,7 +23,7 @@ finite element set `fes`. Note that it is assumed that all the FEs are of the sa
 type (the same number of connected nodes by each cell).
 """
 function connectednodes(fes::FESetModule.FESet)
-    return unique(fes.conn[:]);
+    return unique(connasarray(fes)[:]);
 end
 
 """
@@ -215,12 +215,12 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     # The  elements of this array are flipped from zero  when the element satisfies
     # the search condition.. This list is  eventually purged of the zero elements and
     # returned.
-    felist = zeros(FInt,size(fes.conn,1));
+    felist = zeros(FInt,length(fes.conn));
 
     #     Select based on fe label
     if label!= nothing
-        @assert length(fes.label) == size(fes.conn,1)
-        for i=1:size(fes.conn,1)
+        @assert length(fes.label) == length(fes.conn)
+        for i=1:length(fes.conn)
             if label==fes.label[i]
                 felist[i] =i;   # matched this element
             end
@@ -231,7 +231,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     # Select by flooding
     if flood != nothing && (flood)
         @assert startnode > 0
-        fen2fe = FENodeToFEMap(fes.conn, count(fens))
+        fen2fe = FENodeToFEMap(connasarray(fes), count(fens))
         felist = zeros(FInt, count(fes));
         pfelist = zeros(FInt, count(fes));
         felist[fen2fe.map[startnode]] = 1;
@@ -239,7 +239,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
             copy!(pfelist, felist);
             markedl = find(x -> x != 0, felist)
             for j = markedl
-                for k = fes.conn[j,:]
+                for k = fes.conn[j][:]
                     felist[fen2fe.map[k]] = 1;
                 end
             end
@@ -275,9 +275,8 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
             d = reshape(direction,1,sd)/norm(direction);
         end
         Nder = FESetModule.bfundpar(fes, vec(param_coords));
-        for i=1: size(fes.conn,1)
-            conn=fes.conn[i,:];
-            xyz =xs[conn[:],:];
+        for i=1:length(fes.conn)
+            xyz =xs[[j for j in fes.conn[i]],:];
             Tangents =xyz'*Nder;
             N = normal(Tangents);
             if (Need_Evaluation)
@@ -336,9 +335,9 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     # Select all FEs whose bounding box overlaps given box
     if (overlappingbox != nothing)
         bbox = zeros(2 * size(fens.xyz, 2))
-        for i = 1:size(fes.conn,1)
-            bbox = initbox!(bbox, vec(fens.xyz[fes.conn[i, 1], :]))
-            bbox = updatebox!(bbox, fens.xyz[fes.conn[i, 2:end], :])
+        for i = 1:length(fes.conn)
+            bbox = initbox!(bbox, vec(fens.xyz[fes.conn[i][1], :]))
+            bbox = updatebox!(bbox, fens.xyz[fes.conn[i][2:end], :])
             if boxesoverlap(overlappingbox, bbox)
                 felist[i]=i; # this element overlaps the box
             end
@@ -420,12 +419,13 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
     #  Default:   Select based on location of nodes
     #   Should we consider the element only if all its nodes are in?
     allinvalue = (allin == nothing) || ((allin != nothing) && (allin))
-    nodelist = selectnode(fens; args...);
     # Select elements whose nodes are in the selected node list
-    for i = 1:size(fes.conn,1)
-        common = intersect(view(fes.conn, i, :), vec(nodelist));
+    nodelist = selectnode(fens; args...);
+    nper = nodesperelem(fes)
+    for i = 1:length(fes.conn)
+        common = intersect(fes.conn[i], vec(nodelist));
         if allinvalue
-            if length(common) == size(fes.conn,2)
+            if length(common) == nper
                 felist[i] =i;
             end
         else
@@ -592,7 +592,7 @@ accomplished.
 """
 function findunconnnodes(fens::FENodeSet, fes::FESet)
   connected = trues(count(fens));
-  fen2fem = FENodeToFEMap(fes.conn, count(fens))
+  fen2fem = FENodeToFEMap(connasarray(fes), count(fens))
   for i=1:length(fen2fem.map),
     connected[i] = (!isempty(fen2fem.map[i]));
   end

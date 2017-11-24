@@ -24,6 +24,7 @@ using FinEtools.AssemblyModule
 using FinEtools.MatrixUtilityModule.add_mggt_ut_only!
 using FinEtools.MatrixUtilityModule.add_nnt_ut_only!
 using FinEtools.MatrixUtilityModule.complete_lt!
+using FinEtools.MatrixUtilityModule: locjac!
 
 """
     FEMMAcoustSurf{S<:FESet, F<:Function, M} <: FEMMAbstractBase
@@ -87,18 +88,15 @@ function acousticABC(self::FEMMAcoustSurf, assembler::A,
     J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
     startassembly!(assembler, Dedim, Dedim, nfes, Pdot.nfreedofs, Pdot.nfreedofs);
     for i = 1:count(integdata.fes) # Loop over elements
-        getconn!(integdata.fes, conn, i);# retrieve element node numbers
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         fill!(De, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
-        At_mul_B!(loc, Ns[j], x);# Quadrature points location
-        At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-        Jac = Jacobiansurface(integdata, J, loc, conn, Ns[j]);
-        ffactor = (Jac/c*w[j])
-        add_nnt_ut_only!(De, Ns[j], ffactor)
+            locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobiansurface(integdata, J, loc, integdata.fes.conn[i], Ns[j]);
+            ffactor = (Jac/c*w[j])
+            add_nnt_ut_only!(De, Ns[j], ffactor)
         end # Loop over quadrature points
         complete_lt!(De)
-        gatherdofnums!(Pdot, dofnums, conn);# retrieve degrees of freedom
+        gatherdofnums!(Pdot, dofnums, integdata.fes.conn[i]);# retrieve degrees of freedom
         assemble!(assembler, De, dofnums, dofnums);# assemble symmetric matrix
     end # Loop over elements
     return makematrix!(assembler);
@@ -147,18 +145,15 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A,
     gatherdofnums!(Force, rowdofnums, [1 2 3]);# retrieve degrees of freedom
     startassembly!(assembler, 3, edim, count(integdata.fes), 3, P.nfreedofs);
     for i = 1:count(integdata.fes) # Loop over elements
-        getconn!(integdata.fes, conn, i);# retrieve element node numbers
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         fill!(Ge, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
-        At_mul_B!(loc, Ns[j], x);# Quadrature points location
-        At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-        Jac = Jacobiansurface(integdata, J, loc, conn, Ns[j]);
-        n = self.getnormal!(n, loc, J);
-        ffactor = (Jac*w[j])
-        Ge = Ge + (ffactor*n)*transpose(Ns[j])
+            locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobiansurface(integdata, J, loc, integdata.fes.conn[i], Ns[j]);
+            n = self.getnormal!(n, loc, J);
+            ffactor = (Jac*w[j])
+            Ge = Ge + (ffactor*n)*transpose(Ns[j])
         end # Loop over quadrature points
-        gatherdofnums!(P, coldofnums, conn);# retrieve degrees of freedom
+        gatherdofnums!(P, coldofnums, integdata.fes.conn[i]);# retrieve degrees of freedom
         assemble!(assembler, Ge, rowdofnums, coldofnums);# assemble unsymmetric matrix
     end # Loop over elements
     return makematrix!(assembler);
@@ -204,18 +199,15 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::Noda
     gatherdofnums!(Torque, rowdofnums, [1 2 3]);# retrieve degrees of freedom
     startassembly!(assembler, 3, edim, count(integdata.fes), 3, P.nfreedofs);
     for i = 1:count(integdata.fes) # Loop over elements
-        getconn!(integdata.fes, conn, i);# retrieve element node numbers
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         fill!(Ge, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
-        At_mul_B!(loc, Ns[j], x);# Quadrature points location
-        At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-        Jac = Jacobiansurface(integdata, J, loc, conn, Ns[j]);
-        n = self.getnormal!(n, loc, J);
-        ffactor = (Jac*w[j])
-        Ge = Ge + (ffactor*cross(vec(vec(loc)-CG), n))*transpose(Ns[j])
+            locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobiansurface(integdata, J, loc, integdata.fes.conn[i], Ns[j]);
+            n = self.getnormal!(n, loc, J);
+            ffactor = (Jac*w[j])
+            Ge = Ge + (ffactor*cross(vec(vec(loc)-CG), n))*transpose(Ns[j])
         end # Loop over quadrature points
-        gatherdofnums!(P, coldofnums, conn);# retrieve degrees of freedom
+        gatherdofnums!(P, coldofnums, integdata.fes.conn[i]);# retrieve degrees of freedom
         assemble!(assembler, Ge, rowdofnums, coldofnums);# assemble unsymmetric matrix
     end # Loop over elements
     return makematrix!(assembler);

@@ -24,6 +24,7 @@ using FinEtools.AssemblyModule
 using FinEtools.MatrixUtilityModule.add_mggt_ut_only!
 using FinEtools.MatrixUtilityModule.add_nnt_ut_only!
 using FinEtools.MatrixUtilityModule.complete_lt!
+using FinEtools.MatrixUtilityModule: locjac!
 
 """
     FEMMAcoust{S<:FESet}
@@ -75,8 +76,7 @@ function acousticmass(self::FEMMAcoust,
     assembler::A, geom::NodalFieldModule.NodalField,
     P::NodalFieldModule.NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
     integdata = self.integdata
-    conn, x, dofnums, loc, J, gradN, elmat, elvec, elvecfix =
-        buffers(self, geom, P)
+    conn, x, dofnums, loc, J, gradN, elmat, elvec, elvecfix =   buffers(self, geom, P)
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(integdata);
     Jac = 0.0;
@@ -84,20 +84,17 @@ function acousticmass(self::FEMMAcoust,
     startassembly!(assembler, size(elmat,1), size(elmat,2), count(integdata.fes),
         P.nfreedofs, P.nfreedofs);
     for i = 1:count(integdata.fes) # Loop over elements
-        getconn!(integdata.fes, conn, i);# retrieve element node numbers
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         fill!(elmat, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
-            At_mul_B!(loc, Ns[j], x);# Quadrature points location
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
+            locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobianvolume(integdata, J, loc, integdata.fes.conn[i], Ns[j]);
             # gradient WRT global Cartesian coordinates
             FESetModule.gradN!(integdata.fes, gradN, gradNparams[j], J);
             afactor = (Jac*w[j]);
             add_mggt_ut_only!(elmat, gradN, afactor)
         end # Loop over quadrature points
         complete_lt!(elmat)
-        gatherdofnums!(P, dofnums, conn);# retrieve degrees of freedom
+        gatherdofnums!(P, dofnums, integdata.fes.conn[i]);# retrieve degrees of freedom
         assemble!(assembler, elmat, dofnums, dofnums);# assemble symmetric matrix
     end # Loop over elements
     return makematrix!(assembler);
@@ -129,22 +126,19 @@ function nzebcloadsacousticmass(self::FEMMAcoust, assembler::A,
     startassembly!(assembler, P.nfreedofs);
     # Now loop over all finite elements in the set
     for i = 1:count(integdata.fes) # Loop over elements
-        getconn!(integdata.fes, conn, i);# retrieve element node numbers
-        gatherfixedvalues_asvec!(P, elvecfix, conn);# retrieve element coordinates
+        gatherfixedvalues_asvec!(P, elvecfix, integdata.fes.conn[i]);# retrieve element coordinates
         if norm(elvecfix) !=  0.0     # Is the load nonzero?
-            gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
             fill!(elmat, 0.0);
             for j = 1:npts # Loop over quadrature points
-                At_mul_B!(loc, Ns[j], x);# Quadrature points location
-                At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-                Jac = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
+                locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+                Jac = Jacobianvolume(integdata, J, loc, integdata.fes.conn[i], Ns[j]);
                 # gradient WRT global Cartesian coordinates
                 FESetModule.gradN!(integdata.fes, gradN, gradNparams[j], J);
                 afactor = (Jac*w[j]);
                 add_mggt_ut_only!(elmat, gradN, afactor)
             end # Loop over quadrature points
             complete_lt!(elmat)
-            gatherdofnums!(P, dofnums, conn);# retrieve degrees of freedom
+            gatherdofnums!(P, dofnums, integdata.fes.conn[i]);# retrieve degrees of freedom
             assemble!(assembler, -elmat*elvecfix, dofnums); # assemble element load vector
         end
     end
@@ -182,18 +176,15 @@ function acousticstiffness(self::FEMMAcoust, assembler::A,
     startassembly!(assembler, size(elmat,1), size(elmat,2), count(integdata.fes),
         Pddot.nfreedofs, Pddot.nfreedofs);
     for i = 1:count(integdata.fes) # Loop over elements
-        getconn!(integdata.fes, conn, i);# retrieve element node numbers
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         fill!(elmat, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
-            At_mul_B!(loc, Ns[j], x);# Quadrature points location
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
+            locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobianvolume(integdata, J, loc, integdata.fes.conn[i], Ns[j]);
             ffactor = Jac*oc2*w[j]
             add_nnt_ut_only!(elmat, Ns[j], ffactor)
         end # Loop over quadrature points
         complete_lt!(elmat)
-        gatherdofnums!(Pddot, dofnums, conn);# retrieve degrees of freedom
+        gatherdofnums!(Pddot, dofnums, integdata.fes.conn[i]);# retrieve degrees of freedom
         assemble!(assembler, elmat, dofnums, dofnums);# assemble symmetric matrix
     end # Loop over elements
     return makematrix!(assembler);
@@ -232,20 +223,17 @@ function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A,
     startassembly!(assembler, Pddot.nfreedofs);
     # Now loop over all finite elements in the set
     for i = 1:count(integdata.fes) # Loop over elements
-        getconn!(integdata.fes, conn, i);# retrieve element node numbers
         gatherfixedvalues_asvec!(Pddot, elvecfix, conn);# retrieve element coordinates
         if norm(elvecfix) !=  0.0  # Is the load nonzero?
-            gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
             fill!(elmat, 0.0);
             for j = 1:npts # Loop over quadrature points
-                At_mul_B!(loc, Ns[j], x);# Quadrature point location
-                At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-                Jac = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
+                locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+                Jac = Jacobianvolume(integdata, J, loc, integdata.fes.conn[i], Ns[j]);
                 ffactor = Jac*oc2*w[j]
                 add_nnt_ut_only!(elmat, Ns[j], ffactor)
             end # Loop over quadrature points
             complete_lt!(elmat)
-            gatherdofnums!(Pddot, dofnums, conn); # retrieve degrees of freedom
+            gatherdofnums!(Pddot, dofnums, integdata.fes.conn[i]); # retrieve degrees of freedom
             assemble!(assembler, -elmat*elvecfix, dofnums); # assemble element load vector
         end
     end

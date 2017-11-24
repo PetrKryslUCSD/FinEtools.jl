@@ -29,6 +29,7 @@ using FinEtools.MatrixUtilityModule.add_btdb_ut_only!
 using FinEtools.MatrixUtilityModule.complete_lt!
 using FinEtools.MatrixUtilityModule.mv_product!
 using FinEtools.MatrixUtilityModule.add_btv!
+using FinEtools.MatrixUtilityModule: loc!, jac!, locjac!
 import FinEtools.FEMMDeforLinearBaseModule.stiffness
 import FinEtools.FEMMDeforLinearBaseModule.nzebcloadsstiffness
 import FinEtools.FEMMDeforLinearBaseModule.mass
@@ -151,12 +152,19 @@ function buffers2(self::FEMMDeforLinearAbstractMS, geom::NodalField, u::NodalFie
     D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix
 end
 
-function centroid!(self::F,  loc, x) where {F<:FEMMDeforLinearMSH8}
-    copy!(loc, mean(x, 1))
-    return loc
+function centroid!(self::F,  loc, x) where {F<:FEMMDeforLinearMSH8, C}
+    weights = [0.125
+                0.125
+                0.125
+                0.125
+                0.125
+                0.125
+                0.125
+                0.125]
+    return loc!(loc, X, conn, reshape(weights, 1, 8))
 end
 
-function centroid!(self::F,  loc, x) where {F<:FEMMDeforLinearMST10}
+function centroid!(self::F, loc, X::FFltMat, conn::C) where {F<:FEMMDeforLinearMST10, C}
     weights = [ -0.125
                 -0.125
                 -0.125
@@ -167,8 +175,7 @@ function centroid!(self::F,  loc, x) where {F<:FEMMDeforLinearMST10}
                 0.250
                 0.250
                 0.250]
-    A_mul_B!(loc, reshape(weights, 1, 10), x);
-    return loc
+    return loc!(loc, X, conn, reshape(weights, 1, 10)) 
 end
 
 """
@@ -184,14 +191,12 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
     conn, x, loc, J, csmatTJ, gradN = buffers1(self, geom, npts)
     self.phis = zeros(FFlt, count(integdata.fes))
     for i = 1:count(integdata.fes) # Loop over elements
-        getconn!(integdata.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         # NOTE: the coordinate system should be evaluated at a single point within the
         # element in order for the derivatives to be consistent at all quadrature points
         loc = centroid!(self,  loc, x)
         updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
         for j = 1:npts # Loop over quadrature points
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
+            jac!(J, geom.values, integdata.fes.conn[i], gradNparams[j]) 
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
             gradN!(integdata.fes, gradN, gradNparams[j], csmatTJ);
             h2 = diag(transpose(csmatTJ)*csmatTJ)
@@ -217,14 +222,12 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
     conn, x, loc, J, csmatTJ, gradN = buffers1(self, geom, npts)
     self.phis = zeros(FFlt, count(integdata.fes))
     for i = 1:count(integdata.fes) # Loop over elements
-        getconn!(integdata.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         # NOTE: the coordinate system should be evaluated at a single point within the
         # element in order for the derivatives to be consistent at all quadrature points
         loc = centroid!(self,  loc, x)
         updatecsmat!(self.mcsys, loc, J, integdata.fes.label[i]);
         for j = 1:npts # Loop over quadrature points
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
+            jac!(J, geom.values, integdata.fes.conn[i], gradNparams[j]) 
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
             condJ = cond(csmatTJ);
             cap_phi = C*(1.0/condJ)^(gamma);
@@ -257,8 +260,6 @@ function stiffness(self::FEMMDeforLinearAbstractMS, assembler::A,
     startassembly!(assembler, size(elmat, 1), size(elmat, 2), count(integdata.fes),
     u.nfreedofs, u.nfreedofs);
     for i = 1:count(integdata.fes) # Loop over elements
-        getconn!(integdata.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         # NOTE: the coordinate system should be evaluated at a single point within the
         # element in order for the derivatives to be consistent at all quadrature points
         loc = centroid!(self,  loc, x)
@@ -266,8 +267,8 @@ function stiffness(self::FEMMDeforLinearAbstractMS, assembler::A,
         vol = 0.0; # volume of the element
         fill!(MeangradN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac[j] = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
+            jac!(J, geom.values, integdata.fes.conn[i], gradNparams[j]) 
+            Jac[j] = Jacobianvolume(integdata, J, loc, integdata.fes.conn[i], Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
             gradN!(integdata.fes, AllgradN[j], gradNparams[j], csmatTJ);
             dvol = Jac[j]*w[j]
@@ -284,7 +285,7 @@ function stiffness(self::FEMMDeforLinearAbstractMS, assembler::A,
             add_btdb_ut_only!(elmat, B, self.phis[i]*Jac[j]*w[j], Dstab, DB)
         end # Loop over quadrature points
         complete_lt!(elmat)
-        gatherdofnums!(u, dofnums, conn); # retrieve degrees of freedom
+        gatherdofnums!(u, dofnums, integdata.fes.conn[i]); # retrieve degrees of freedom
         assemble!(assembler, elmat, dofnums, dofnums); # assemble symmetric matrix
     end # Loop over elements
     return makematrix!(assembler);
@@ -324,8 +325,6 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS,
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
         i = felist[ilist];
-        getconn!(integdata.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         gathervalues_asvec!(u, ue, conn);# retrieve element displacements
         gathervalues_asvec!(dT, dTe, conn);# retrieve element temperature increments
         # NOTE: the coordinate system should be evaluated at a single point within the
@@ -337,7 +336,7 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS,
         fill!(MeangradN, 0.0) # mean basis function gradients
         fill!(MeanN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
+            jac!(J, geom.values, integdata.fes.conn[i], gradNparams[j]) 
             Jac[j] = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
             gradN!(integdata.fes, AllgradN[j], gradNparams[j], csmatTJ);
@@ -401,8 +400,6 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS,
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
         i = felist[ilist];
-        getconn!(integdata.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         gathervalues_asvec!(u, ue, conn);# retrieve element displacements
         gathervalues_asvec!(dT, dTe, conn);# retrieve element temperature increments
         # NOTE: the coordinate system should be evaluated at a single point within the
@@ -414,7 +411,7 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS,
         fill!(MeangradN, 0.0) # mean basis function gradients
         fill!(MeanN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
+            jac!(J, geom.values, integdata.fes.conn[i], gradNparams[j]) 
             Jac[j] = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
             gradN!(integdata.fes, AllgradN[j], gradNparams[j], csmatTJ);
@@ -487,8 +484,6 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
         i = felist[ilist];
-        getconn!(integdata.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         gathervalues_asvec!(u, ue, conn);# retrieve element displacements
         gathervalues_asvec!(dT, dTe, conn);# retrieve element temperature increments
         # NOTE: the coordinate system should be evaluated at a single point within the
@@ -500,7 +495,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS,
         fill!(MeangradN, 0.0) # mean basis function gradients
         fill!(MeanN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
+            jac!(J, geom.values, integdata.fes.conn[i], gradNparams[j]) 
             Jac[j] = Jacobianvolume(integdata, J, loc, conn, Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
             gradN!(integdata.fes, AllgradN[j], gradNparams[j], csmatTJ);

@@ -9,7 +9,7 @@ import Base.count
 import Base.cat
 
 export FESet,  FESet0Manifold,  FESet1Manifold,  FESet2Manifold,  FESet3Manifold
-export manifdim, nodesperelem, count, fromarray!, toarray, setlabel!, subset, cat, updateconn!
+export manifdim, nodesperelem, count, fromarray!, connasarray, setlabel!, subset, cat, updateconn!
 export bfun, bfundpar, map2parametric, inparametric, centroidparametric
 export FESetP1
 export FESetL2, FESetL3
@@ -86,11 +86,11 @@ function fromarray!(self::FESet{NODESPERELEM}, conn::FIntMat) where {NODESPERELE
 end
 
 """
-    toarray(self::FESet{NODESPERELEM}) where {NODESPERELEM}
+    connasarray(self::FESet{NODESPERELEM}) where {NODESPERELEM}
 
 Return the connectivity  as an integer array. 
 """
-function toarray(self::FESet{NODESPERELEM}) where {NODESPERELEM}
+function connasarray(self::FESet{NODESPERELEM}) where {NODESPERELEM}
     conn = zeros(FInt, length(self.conn), NODESPERELEM)
     for i = 1:size(conn, 1)
         for j = 1:NODESPERELEM
@@ -195,7 +195,7 @@ _into_ the  NewIDs array. After the connectivity was updated
 this is no longer true!
 """
 function updateconn!(self::T, NewIDs::FIntVec) where {T<:FESet}
-    conn = toarray(self)
+    conn = connasarray(self)
     for i=1:size(conn, 1)
         for j=1:size(conn, 2)
             conn[i, j]=NewIDs[conn[i, j]];
@@ -442,8 +442,8 @@ privbfun(self::FESetL2,  param_coords::FFltVec) = reshape([(1. - param_coords[1]
 privbfundpar(self::FESetL2,  param_coords::FFltVec) = reshape([-1.0; +1.0]/2.0, 2, 1)
 
 function privboundaryconn(self::FESetL2)
-    # Get boundary connectivity.
-    return [self.conn[:, 1];self.conn[:, 2]];
+    conn = connasarray(self)
+    return [conn[:, 1]; conn[:, 2]];
 end
 
 function privboundaryfe(self::FESetL2)
@@ -483,7 +483,8 @@ function privbfundpar(self::FESetL3,  param_coords::FFltVec)
 end
 
 function privboundaryconn(self::FESetL3)
-    return [self.conn[:, 1];self.conn[:, 2]];
+    conn = connasarray(self)
+    return [conn[:, 1]; conn[:, 2]];
 end
 
 function privboundaryfe(self::FESetL3)
@@ -521,7 +522,8 @@ function privbfundpar(self::FESetT3,  param_coords::FFltVec)
 end
 
 function privboundaryconn(self::FESetT3)
-    return [self.conn[:, 1:2];self.conn[:, 2:3];self.conn[:, [3, 1]]];
+    conn = connasarray(self)
+    return [conn[:, 1:2]; conn[:, 2:3]; conn[:, [3, 1]]];
 end
 
 function privboundaryfe(self::FESetT3)
@@ -569,7 +571,8 @@ function privbfundpar(self::FESetQ4,  param_coords::FFltVec)
 end
 
 function privboundaryconn(self::FESetQ4)
-    return [self.conn[:, 1:2];self.conn[:, 2:3];self.conn[:, 3:4];self.conn[:, [4, 1]]];
+    conn = connasarray(self)
+    return [conn[:, 1:2]; conn[:, 2:3]; conn[:, 3:4]; conn[:, [4, 1]]];
 end
 
 function privboundaryfe(self::FESetQ4)
@@ -624,7 +627,8 @@ function privbfundpar(self::FESetQ9,  param_coords::FFltVec)
 end
 
 function privboundaryconn(self::FESetQ9)
-    return [self.conn[:, [1, 2, 5]];self.conn[:, [2, 3, 6]];self.conn[:, [3, 4, 7]];self.conn[:, [4, 1, 8]]];
+    conn = connasarray(self)
+    return [conn[:, [1, 2, 5]]; conn[:, [2, 3, 6]]; conn[:, [3, 4, 7]]; conn[:, [4, 1, 8]]];
 end
 
 function privboundaryfe(self::FESetQ9)
@@ -693,8 +697,8 @@ function privbfundpar(self::FESetQ8,  param_coords::FFltVec)
 end
 
 function privboundaryconn(self::FESetQ8)
-    # Get boundary connectivity.
-    return [self.conn[:, [1, 2, 5]];self.conn[:, [2, 3, 6]];self.conn[:, [3, 4, 7]];self.conn[:, [4, 1, 8]]];
+    conn = connasarray(self)
+    return [conn[:, [1, 2, 5]]; conn[:, [2, 3, 6]]; conn[:, [3, 4, 7]]; conn[:, [4, 1, 8]]];
 end
 
 function privboundaryfe(self::FESetQ8)
@@ -750,8 +754,8 @@ function privbfundpar(self::FESetT6,  param_coords::FFltVec)
 end
 
 function privboundaryconn(self::FESetT6)
-    # Get boundary connectivity.
-    return [self.conn[:, [1,  2,  4]];self.conn[:, [2,  3,  5]];self.conn[:, [3,  1,  6]]];
+    conn = connasarray(self)
+    return [conn[:, [1,  2,  4]]; conn[:, [2,  3,  5]]; conn[:, [3,  1,  6]]];
 end
 
 function privboundaryfe(self::FESetT6)
@@ -814,12 +818,13 @@ function privbfundpar(self::FESetH8,  param_coords::FFltVec)
 end
 
 function privboundaryconn(self::FESetH8)
-    return  [self.conn[:, [1,  4,  3,  2]];
-             self.conn[:, [1,  2,  6,  5]];
-             self.conn[:, [2,  3,  7,  6]];
-             self.conn[:, [3,  4,  8,  7]];
-             self.conn[:, [4,  1,  5,  8]];
-             self.conn[:, [6,  7,  8,  5]]];
+    conn = connasarray(self)
+    return  [conn[:, [1,  4,  3,  2]];
+             conn[:, [1,  2,  6,  5]];
+             conn[:, [2,  3,  7,  6]];
+             conn[:, [3,  4,  8,  7]];
+             conn[:, [4,  1,  5,  8]];
+             conn[:, [6,  7,  8,  5]]];
 end
 
 function privboundaryfe(self::FESetH8)
@@ -959,12 +964,13 @@ function privbfundpar(self::FESetH20,  param_coords::FFltVec)
 end
 
 function privboundaryconn(self::FESetH20)
-    return  [self.conn[:, [1,  4,  3,  2,  12,  11,  10,  9]];
-             self.conn[:, [1,  2,  6,  5,  9,  18,  13,  17]];
-             self.conn[:, [2,  3,  7,  6,  10,  19,  14,  18]];
-             self.conn[:, [3,  4,  8,  7,   11,  20,  15,  19]];
-             self.conn[:, [4,  1,  5,  8,  12,  17,  16,  20]];
-             self.conn[:, [6,  7,  8,  5,  14,  15,  16,  13]]];
+    conn = connasarray(self)
+    return  [conn[:, [1,  4,  3,  2,  12,  11,  10,  9]];
+             conn[:, [1,  2,  6,  5,  9,  18,  13,  17]];
+             conn[:, [2,  3,  7,  6,  10,  19,  14,  18]];
+             conn[:, [3,  4,  8,  7,   11,  20,  15,  19]];
+             conn[:, [4,  1,  5,  8,  12,  17,  16,  20]];
+             conn[:, [6,  7,  8,  5,  14,  15,  16,  13]]];
 end
 
 function privboundaryfe(self::FESetH20)
@@ -1082,12 +1088,13 @@ function privbfundpar(self::FESetH27,  param_coords::FFltVec)
 end
 
 function privboundaryconn(self::FESetH27)
-    return  [self.conn[:, [1,  4,  3,  2,  12,  11,  10,  9,  21]];
-             self.conn[:, [1,  2,  6,  5,  9,  18,  13,  17,  22]];
-             self.conn[:, [2,  3,  7,  6,  10,  19,  14,  18,  23]];
-             self.conn[:, [3,  4,  8,  7,   11,  20,  15,  19,  24]];
-             self.conn[:, [4,  1,  5,  8,  12,  17,  16,  20,  25]];
-             self.conn[:, [6,  7,  8,  5,  14,  15,  16,  13,  26]]];
+    conn = connasarray(self)
+    return  [conn[:, [1,  4,  3,  2,  12,  11,  10,  9,  21]];
+             conn[:, [1,  2,  6,  5,  9,  18,  13,  17,  22]];
+             conn[:, [2,  3,  7,  6,  10,  19,  14,  18,  23]];
+             conn[:, [3,  4,  8,  7,   11,  20,  15,  19,  24]];
+             conn[:, [4,  1,  5,  8,  12,  17,  16,  20,  25]];
+             conn[:, [6,  7,  8,  5,  14,  15,  16,  13,  26]]];
 end
 
 function privboundaryfe(self::FESetH27)
@@ -1133,7 +1140,8 @@ function privbfundpar(self::FESetT4,  param_coords::FFltVec)
 end
 
 function privboundaryconn(self::FESetT4)
-    return [self.conn[:, [1,  3,  2]];self.conn[:, [1,  2,  4]];self.conn[:, [2,  3,  4]];self.conn[:, [1,  4,  3]]];
+    conn = connasarray(self)
+    return [conn[:, [1,  3,  2]]; conn[:, [1,  2,  4]]; conn[:, [2,  3,  4]]; conn[:, [1,  4,  3]]];
 end
 
 function privboundaryfe(self::FESetT4)
@@ -1193,10 +1201,11 @@ function privbfundpar(self::FESetT10,  param_coords::FFltVec)
 end
 
 function privboundaryconn(self::FESetT10)
-    return [self.conn[:, [1,  3,  2,  7,  6,  5]];
-    self.conn[:, [1,  2,  4,  5,  9,  8]];
-    self.conn[:, [2,  3,  4,  6,  10,  9]];
-    self.conn[:, [3,  1,  4,  7,  8,  10]]];
+    conn = connasarray(self)
+    return [conn[:, [1,  3,  2,  7,  6,  5]];
+            conn[:, [1,  2,  4,  5,  9,  8]];
+            conn[:, [2,  3,  4,  6,  10,  9]];
+            conn[:, [3,  1,  4,  7,  8,  10]]];
 end
 
 function privboundaryfe(self::FESetT10)

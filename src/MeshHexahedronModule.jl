@@ -131,7 +131,7 @@ function H8sphere(radius::FFlt, nrefine::FInt)
             fens.xyz[cn[j], :]=fens.xyz[cn[j], :]*radius/norm(fens.xyz[cn[j], :]);
         end
     end
-     return fens,  fes
+    return fens,  fes
 end
 
 """
@@ -175,7 +175,7 @@ function   H8toH27(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
         3     4     8     7;
         4     1     5     8;
         6     7     8     5];
-    conns = fes.conn;
+    conns = connasarray(fes);
     labels = deepcopy(fes.label)
     # Additional node numbers are numbered from here
     newn=FENodeSetModule.count(fens)+1;
@@ -497,7 +497,7 @@ Convert a mesh of hexahedra H8 to hexahedra H20.
 function   H8toH20(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
     nedges=12;
     ec = [1   2; 2   3; 3   4; 4   1; 5   6; 6   7; 7   8; 8   5; 1   5; 2   6; 3   7; 4   8;];
-    conns = fes.conn;
+    conns = connasarray(fes);
     labels = deepcopy(fes.label)
     # Additional node numbers are numbered from here
     newn=FENodeSetModule.count(fens)+1;

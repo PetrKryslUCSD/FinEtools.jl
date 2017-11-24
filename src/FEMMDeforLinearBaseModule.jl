@@ -79,17 +79,14 @@ function mass(self::FEMMDeforLinearAbstract,  assembler::A,  geom::NodalField{FF
     end
     startassembly!(assembler,  size(elmat,1),  size(elmat,2),  count(IntegData.fes), u.nfreedofs,  u.nfreedofs);
     for i = 1:count(IntegData.fes) # Loop over elements
-        getconn!(IntegData.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         fill!(elmat,  0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
-            At_mul_B!(loc, Ns[j], x);# Quadrature point location
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac = Jacobianvolume(IntegData, J, loc, conn, Ns[j]);
+            locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobianvolume(IntegData, J, loc, integdata.fes.conn[i], Ns[j]);
             thefactor::FFlt =(rho*Jac*w[j]);
             elmat .+= NexpTNexp[j]*thefactor
         end # Loop over quadrature points
-        gatherdofnums!(u,  dofnums,  conn);# retrieve degrees of freedom
+        gatherdofnums!(u,  dofnums,  integdata.fes.conn[i]);# retrieve degrees of freedom
         assemble!(assembler,  elmat,  dofnums,  dofnums);# assemble symmetric matrix
     end # Loop over elements
     return makematrix!(assembler);
@@ -115,13 +112,10 @@ function stiffness(self::FEMMDeforLinearAbstract, assembler::A, geom::NodalField
     startassembly!(assembler, size(elmat, 1), size(elmat, 2), count(IntegData.fes),
     u.nfreedofs, u.nfreedofs);
     for i = 1:count(IntegData.fes) # Loop over elements
-        getconn!(IntegData.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         fill!(elmat,  0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
-            At_mul_B!(loc, Ns[j], x);# Quadrature points location
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac = Jacobianvolume(IntegData, J, loc, conn, Ns[j]);
+            locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobianvolume(IntegData, J, loc, integdata.fes.conn[i], Ns[j]);
             updatecsmat!(self.mcsys, loc, J, IntegData.fes.label[i]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
             gradN!(IntegData.fes, gradN, gradNparams[j], csmatTJ);
@@ -129,7 +123,7 @@ function stiffness(self::FEMMDeforLinearAbstract, assembler::A, geom::NodalField
             add_btdb_ut_only!(elmat, B, Jac*w[j], D, DB)
         end # Loop over quadrature points
         complete_lt!(elmat)
-        gatherdofnums!(u, dofnums, conn); # retrieve degrees of freedom
+        gatherdofnums!(u, dofnums, integdata.fes.conn[i]); # retrieve degrees of freedom
         assemble!(assembler, elmat, dofnums, dofnums); # assemble symmetric matrix
     end # Loop over elements
     return makematrix!(assembler);
@@ -154,15 +148,12 @@ function nzebcloadsstiffness(self::FEMMDeforLinearAbstract,  assembler::A, geom:
     self.material.tangentmoduli!(self.material, D, 0.0, 0.0, loc, 0)
     startassembly!(assembler,  u.nfreedofs);
     for i = 1:count(IntegData.fes) # Loop over elements
-        getconn!(IntegData.fes, conn, i);
         gatherfixedvalues_asvec!(u, elvecfix, conn);# retrieve element displacement vector
         if norm(elvecfix) != 0     # Is the load nonzero?
-            gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
             fill!(elmat,  0.0); # Initialize element matrix
             for j = 1:npts # Loop over quadrature points
-                At_mul_B!(loc, Ns[j], x);# Quadrature points location
-                At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-                Jac = Jacobianvolume(IntegData, J, loc, conn, Ns[j]);
+                locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+                Jac = Jacobianvolume(IntegData, J, loc, integdata.fes.conn[i], Ns[j]);
                 updatecsmat!(self.mcsys, loc, J, IntegData.fes.label[i]);
                 At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
                 gradN!(IntegData.fes, gradN, gradNparams[j], csmatTJ);
@@ -170,7 +161,7 @@ function nzebcloadsstiffness(self::FEMMDeforLinearAbstract,  assembler::A, geom:
                 add_btdb_ut_only!(elmat, B, Jac*w[j], D, DB)
             end # Loop over quadrature points
             complete_lt!(elmat)
-            gatherdofnums!(u, dofnums, conn); # retrieve degrees of freedom
+            gatherdofnums!(u, dofnums, integdata.fes.conn[i]); # retrieve degrees of freedom
             mv_product!(elvec, elmat, elvecfix)
             assemble!(assembler,  -elvec,  dofnums); # assemble element load vector
         end
@@ -202,15 +193,12 @@ function  thermalstrainloads(self::FEMMDeforLinearAbstract, assembler::A, geom::
     thstress = zeros(FFlt, nstsstn(self.mr)); # thermal stress -- buffer
     startassembly!(assembler,  u.nfreedofs);
     for i = 1:count(IntegData.fes) # Loop over elements
-        getconn!(IntegData.fes, conn, i);
         gathervalues_asvec!(dT, DeltaT, conn);# retrieve element temperatures
         if norm(DeltaT) != 0     # Is the thermal increment nonzero?
-            gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
             fill!(elvec,  0.0); # Initialize element matrix
             for j = 1:npts # Loop over quadrature points
-                At_mul_B!(loc, Ns[j], x);# Quadrature points location
-                At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-                Jac = Jacobianvolume(IntegData, J, loc, conn, Ns[j]);
+                locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+                Jac = Jacobianvolume(IntegData, J, loc, integdata.fes.conn[i], Ns[j]);
                 updatecsmat!(self.mcsys, loc, J, IntegData.fes.label[i]);
                 At_mul_B!(csmatTJ,  self.mcsys.csmat,  J); # local Jacobian matrix
                 gradN!(IntegData.fes, gradN, gradNparams[j], csmatTJ);#Do: gradN = gradNparams[j]/csmatTJ;
@@ -219,7 +207,7 @@ function  thermalstrainloads(self::FEMMDeforLinearAbstract, assembler::A, geom::
                 thstress = self.material.update!(self.material, thstress, thstress, strain, thstrain, t, dt, loc, IntegData.fes.label[i], :nothing)
                 add_btv!(elvec, B, thstress, (-1)*(Jac*w[j]))
             end
-            gatherdofnums!(u, dofnums, conn); # retrieve degrees of freedom
+            gatherdofnums!(u, dofnums, integdata.fes.conn[i]); # retrieve degrees of freedom
             assemble!(assembler,  elvec,  dofnums); # assemble element load vector
         end
     end # Loop over elements
@@ -284,13 +272,10 @@ function inspectintegpoints(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
         i = felist[ilist];
-        getconn!(IntegData.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         gathervalues_asvec!(u, ue, conn);# retrieve element displacements
         gathervalues_asvec!(dT, dTe, conn);# retrieve element temperature increments
         for j = 1:npts # Loop over quadrature points
-            At_mul_B!(loc, Ns[j], x);# Quadrature points location
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
+            locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
             Jac = Jacobianvolume(IntegData, J, loc, conn, Ns[j]);
             updatecsmat!(self.mcsys, loc, J, IntegData.fes.label[i]);
             At_mul_B!(csmatTJ,  self.mcsys.csmat,  J); # local Jacobian matrix

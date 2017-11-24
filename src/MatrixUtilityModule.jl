@@ -7,6 +7,49 @@ module MatrixUtilityModule
 
 using FinEtools.FTypesModule
 
+function locjac!(loc::FFltMat, J::FFltMat, X::FFltMat, conn::C, N::FFltMat, gradNparams::FFltMat) where {C}
+    n = size(gradNparams, 1)
+    @inbounds for j = 1:size(loc, 2)
+        la = 0.0
+        @inbounds for k = 1:n
+            la += N[k] * X[conn[k], j]
+        end
+        loc[j] = la
+    end
+    @inbounds for j = 1:size(J, 2)
+        @inbounds for i = 1:size(J, 1)
+            Ja = 0.0
+            @inbounds for k = 1:n
+                Ja += X[conn[k], i] * gradNparams[k, j]
+            end
+            J[i, j] = Ja
+        end
+    end
+end
+
+function loc!(loc::FFltMat, X::FFltMat, conn::C, N::FFltMat) where {C}
+    n = size(N, 1)
+    @inbounds for j = 1:size(loc, 2)
+        la = 0.0
+        @inbounds for k = 1:n
+            la += N[k] * X[conn[k], j]
+        end
+        loc[j] = la
+    end
+end
+
+function jac!(J::FFltMat, X::FFltMat, conn::C, gradNparams::FFltMat) where {C}
+    n = size(gradNparams, 1)
+    @inbounds for j = 1:size(J, 2)
+        @inbounds for i = 1:size(J, 1)
+            Ja = 0.0
+            @inbounds for k = 1:n
+                Ja += X[conn[k], i] * gradNparams[k, j]
+            end
+            J[i, j] = Ja
+        end
+    end
+end
 
 """
     add_gkgt_ut_only!(Ke::FFltMat, gradN::FFltMat, Jac_w::FFlt,

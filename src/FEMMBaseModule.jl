@@ -20,6 +20,7 @@ using FinEtools.ForceIntensityModule
 using FinEtools.CSysModule
 using FinEtools.IntegDataModule
 using FinEtools.AssemblyModule
+using FinEtools.MatrixUtilityModule: locjac!
 
 """
     FEMMAbstractBase
@@ -97,13 +98,10 @@ function integratefieldfunction(self::FEMMAbstractBase,
     end
     result = initial;           # initial value for the result
     for i=1:count(integdata.fes) #Now loop over all fes in the block
-        getconn!(integdata.fes,conn,i);
-        gathervalues_asmat!(geom,x,conn);# retrieve element coordinates
         gathervalues_asmat!(afield,a,conn);# retrieve element dofs
         for j = 1:npts #Loop over all integration points
-            At_mul_B!(loc, Ns[j], x);# Quadrature point location
+            locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
             At_mul_B!(val, Ns[j], a);# Field value at the quadrature point
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
             Jac = Jacobianmdim(integdata, J, loc, conn,  Ns[j], m);
             result = result + fh(loc,val)*Jac*w[j];
         end
@@ -142,12 +140,9 @@ function integratefieldfunction(self::FEMMAbstractBase,
     end
     result = initial;           # initial value for the result
     for i=1:count(integdata.fes) #Now loop over all fes in the block
-        getconn!(integdata.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         gathervalues_asmat!(afield, a, [i]);# retrieve element dofs
         for j = 1:npts #Loop over all integration points
-            At_mul_B!(loc, Ns[j], x);# Quadrature point location
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
+            locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
             Jac = Jacobianmdim(integdata, J, loc, conn,  Ns[j], m);
             result = result + fh(loc, a)*Jac*w[j];
         end
@@ -202,18 +197,13 @@ function integratefunction(self::FEMMAbstractBase,
     mdim = manifdim(integdata.fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(integdata);
-    conn = zeros(FInt, nne, 1); # element nodes -- used as a buffer
-    x = zeros(FFlt, nne, sdim); # array of node coordinates -- used as a buffer
     loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
     J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
     result = 0.0;# Initialize the result
     for i = 1:count(integdata.fes)  # Now loop over all fes in the set
-        getconn!(integdata.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         for j=1:npts #Loop over all integration points
-            At_mul_B!(loc, Ns[j], x);# Quadrature points location
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac = Jacobianmdim(integdata, J, loc, conn,  Ns[j], m);
+            locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobianmdim(integdata, J, loc, integdata.fes.conn[i],  Ns[j], m);
             result = result + fh(vec(loc))*Jac*w[j];
         end
     end
@@ -429,13 +419,10 @@ function distribloads(self::FEMM, assembler::A,
     Fe = zeros(T,Cedim);
     startassembly!(assembler, P.nfreedofs);
     for i = 1:nfes # Loop over elements
-        getconn!(integdata.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         fill!(Fe, 0.0);
         for j = 1:npts
-            At_mul_B!(loc, Ns[j], x);# Quadrature point location
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac = Jacobianmdim(integdata, J, loc, conn,  Ns[j], m);
+            locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobianmdim(integdata, J, loc, integdata.fes.conn[i],  Ns[j], m);
             updateforce!(fi, loc, J, integdata.fes.label[i]); # retrieve the applied load
             Factor::FFlt = (Jac * w[j]);
             NkxF::FFlt = 0.0
@@ -448,7 +435,7 @@ function distribloads(self::FEMM, assembler::A,
                 end
             end
         end
-        gatherdofnums!(P, dofnums, conn);
+        gatherdofnums!(P, dofnums, integdata.fes.conn[i]);
         assemble!(assembler, Fe, dofnums);
     end
     F = makevector!(assembler);
@@ -473,17 +460,17 @@ The matrix has a nonzero in all the rows and columns which correspond to nodes
 connected by some finite element.
 """
 function connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:FEMMAbstractBase}
-    nfes = size(self.integdata.fes.conn,1)
-    nconns = size(self.integdata.fes.conn,2)
+    nfes = length(self.integdata.fes.conn)
+    nconns = nodesperelem(self.integdata.fes)
     N = nfes*nconns*nconns
     rb = FInt[]; sizehint!(rb, N)
     cb = FInt[]; sizehint!(cb, N)
     vb = ones(FInt, N);
     @inbounds for  j = 1:nfes
         @inbounds for  k = 1:nconns
-            append!(rb, self.integdata.fes.conn[j, :])
+            append!(rb, self.integdata.fes.conn[j])
             @inbounds for  m = 1:nconns
-                push!(cb, self.integdata.fes.conn[j, k])
+                push!(cb, self.integdata.fes.conn[j][k])
             end
         end
     end

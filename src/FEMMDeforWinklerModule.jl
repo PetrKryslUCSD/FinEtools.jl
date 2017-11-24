@@ -23,6 +23,7 @@ using FinEtools.DeforModelRedModule
 using FinEtools.MatrixUtilityModule.add_nnt_ut_only!
 using FinEtools.MatrixUtilityModule.complete_lt!
 using FinEtools.MatrixUtilityModule.mv_product!
+using FinEtools.MatrixUtilityModule: locjac!
 
 """
     FEMMDeforWinkler{S<:FESet, F<:Function}
@@ -67,19 +68,16 @@ function surfacenormalspringstiffness(self::FEMMDeforWinkler, assembler::A,
     J = eye(FFlt,sdim,mdim); # Jacobian matrix -- used as a buffer
     startassembly!(assembler, Kedim, Kedim, nfes, u.nfreedofs, u.nfreedofs);
     for i = 1:nfes # Loop over elements
-        getconn!(integdata.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         fill!(Ke, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
-        At_mul_B!(loc, Ns[j], x);# Quadrature points location
-        At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-        Jac = Jacobiansurface(integdata, J, loc, conn, Ns[j]);
-        n = surfacenormal(loc, J);# find the normal to the surface
-        Nn = reshape(n*Ns[j]', Kedim, 1);# The normal n is a column vector
-        add_nnt_ut_only!(Ke, Nn, springconstant*Jac*w[j])
+            locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobiansurface(integdata, J, loc, integdata.fes.conn[i], Ns[j]);
+            n = surfacenormal(loc, J);# find the normal to the surface
+            Nn = reshape(n*Ns[j]', Kedim, 1);# The normal n is a column vector
+            add_nnt_ut_only!(Ke, Nn, springconstant*Jac*w[j])
         end # Loop over quadrature points
         complete_lt!(Ke)
-        gatherdofnums!(u, dofnums, conn);# retrieve degrees of freedom
+        gatherdofnums!(u, dofnums, integdata.fes.conn[i]);# retrieve degrees of freedom
         assemble!(assembler, Ke, dofnums, dofnums);# assemble symmetric matrix
     end # Loop over elements
     return makematrix!(assembler);
