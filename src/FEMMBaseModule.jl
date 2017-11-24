@@ -85,8 +85,6 @@ function integratefieldfunction(self::FEMMAbstractBase,
     mdim = manifdim(integdata.fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(integdata);
-    conn = zeros(FInt,nne,1); # element nodes -- used as a buffer
-    x = zeros(FFlt,nne,sdim); # array of node coordinates -- used as a buffer
     a = zeros(FFlt,nne,ndn); # array of field DOFS-- used as a buffer
     loc = zeros(FFlt,1,sdim); # quadrature point location -- used as a buffer
     val = zeros(FFlt,1,ndn); # field value at the point -- used as a buffer
@@ -98,11 +96,11 @@ function integratefieldfunction(self::FEMMAbstractBase,
     end
     result = initial;           # initial value for the result
     for i=1:count(integdata.fes) #Now loop over all fes in the block
-        gathervalues_asmat!(afield,a,conn);# retrieve element dofs
+        gathervalues_asmat!(afield, a, integdata.fes.conn[i]);# retrieve element dofs
         for j = 1:npts #Loop over all integration points
             locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
             At_mul_B!(val, Ns[j], a);# Field value at the quadrature point
-            Jac = Jacobianmdim(integdata, J, loc, conn,  Ns[j], m);
+            Jac = Jacobianmdim(integdata, J, loc, integdata.fes.conn[i],  Ns[j], m);
             result = result + fh(loc,val)*Jac*w[j];
         end
     end
@@ -128,8 +126,6 @@ function integratefieldfunction(self::FEMMAbstractBase,
     mdim = manifdim(integdata.fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(integdata);
-    conn = zeros(FInt,nne,1); # element nodes -- used as a buffer
-    x = zeros(FFlt,nne,sdim); # array of node coordinates -- used as a buffer
     a = zeros(FFlt,nne,ndn); # array of field DOFS-- used as a buffer
     loc = zeros(FFlt,1,sdim); # quadrature point location -- used as a buffer
     J = eye(FFlt,sdim,mdim); # Jacobian matrix -- used as a buffer
@@ -411,8 +407,6 @@ function distribloads(self::FEMM, assembler::A,
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(integdata);
     # Prepare some buffers:
-    conn = zeros(FInt,nne,1); # element nodes -- used as a buffer
-    x = zeros(FFlt,nne,sdim); # array of node coordinates -- used as a buffer
     dofnums = zeros(FInt,1,Cedim); # degree of freedom array -- used as a buffer
     loc = zeros(FFlt,1,sdim); # quadrature point location -- used as a buffer
     J = eye(FFlt,sdim,mdim); # Jacobian matrix -- used as a buffer

@@ -50,7 +50,7 @@ scalarllist = Any[]
 for n  = 1:15
   push!(scalarllist, ("Pressure_mode_$n", v[:,n]));
 end
-vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.Q4;
+vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.Q4;
           scalars=scalarllist)
 sleep(1.0)
 try rm(File) catch end
@@ -313,7 +313,7 @@ function test()
 
     File  =   "straight_duct.vtk"
     scalars = real(P.values);
-    vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H8;
     scalars = [("Pressure", scalars)])
     try rm(File) catch end
     # @async run(`"paraview.exe" $File`)
@@ -450,7 +450,7 @@ scattersysvec!(P, p[:])
 # println("Total time elapsed  =  ",time() - t0,"s")
 
 File  =   "sphere_dipole_1.vtk"
-vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
+vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H8;
  scalars = [( "realP", real(P.values))])
 try rm(File) catch end
 # @async run(`"paraview.exe" $File`)
@@ -525,7 +525,7 @@ scattersysvec!(P, p[:])
 
 File  =   "straight_duct.vtk"
 scalars = real(P.values);
-vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.T10;
+vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.T10;
 scalars = [("Pressure", scalars)])
 # @async run(`"paraview.exe" $File`)
 try rm(File) catch end

@@ -46,8 +46,6 @@ function  buffers(self::FEMMAcoust, geom::NodalField{FFlt}, P::NodalField{F}) wh
     mdim = manifdim(integdata.fes);     # manifold dimension of the element
     Cedim = ndn*nne;          # dimension of the element matrix
     # Prepare assembler and temporaries
-    conn = zeros(FInt, nne, 1); # element nodes -- used as a buffer
-    x = zeros(FFlt, nne, sdim); # array of node coordinates -- used as a buffer
     dofnums = zeros(FInt, 1, Cedim); # degree of freedom array -- used as a buffer
     loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
     J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
@@ -55,7 +53,7 @@ function  buffers(self::FEMMAcoust, geom::NodalField{FFlt}, P::NodalField{F}) wh
     elmat = zeros(FFlt, Cedim, Cedim);       # element matrix -- used as a buffer
     elvec = zeros(F, Cedim); # buffer
     elvecfix = zeros(F, Cedim); # buffer
-    return conn, x, dofnums, loc, J, gradN, elmat, elvec, elvecfix
+    return dofnums, loc, J, gradN, elmat, elvec, elvecfix
 end
 
 """
@@ -76,7 +74,7 @@ function acousticmass(self::FEMMAcoust,
     assembler::A, geom::NodalFieldModule.NodalField,
     P::NodalFieldModule.NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
     integdata = self.integdata
-    conn, x, dofnums, loc, J, gradN, elmat, elvec, elvecfix =   buffers(self, geom, P)
+    dofnums, loc, J, gradN, elmat, elvec, elvecfix =   buffers(self, geom, P)
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(integdata);
     Jac = 0.0;
@@ -119,15 +117,14 @@ function nzebcloadsacousticmass(self::FEMMAcoust, assembler::A,
     geom::NodalField, P::NodalField{T}) where {T<:Number,
     A<:SysvecAssemblerBase}
     integdata = self.integdata
-    conn, x, dofnums, loc, J, gradN, elmat, elvec, elvecfix =
-        buffers(self, geom, P)
+    dofnums, loc, J, gradN, elmat, elvec, elvecfix = buffers(self, geom, P)
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(integdata);
     startassembly!(assembler, P.nfreedofs);
     # Now loop over all finite elements in the set
     for i = 1:count(integdata.fes) # Loop over elements
         gatherfixedvalues_asvec!(P, elvecfix, integdata.fes.conn[i]);# retrieve element coordinates
-        if norm(elvecfix) !=  0.0     # Is the load nonzero?
+        if norm(elvecfix, Inf) !=  0.0     # Is the load nonzero?
             fill!(elmat, 0.0);
             for j = 1:npts # Loop over quadrature points
                 locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
@@ -164,8 +161,7 @@ function acousticstiffness(self::FEMMAcoust, assembler::A,
     Pddot::NodalFieldModule.NodalField{T}) where {T<:Number,
     A<:SysmatAssemblerBase}
     integdata = self.integdata
-    conn, x, dofnums, loc, J, gradN, elmat, elvec, elvecfix =
-        buffers(self, geom, Pddot)
+    dofnums, loc, J, gradN, elmat, elvec, elvecfix = buffers(self, geom, Pddot)
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(integdata);
     # Material
@@ -211,8 +207,7 @@ function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A,
     Pddot::NodalFieldModule.NodalField{T}) where {T<:Number,
     A<:SysvecAssemblerBase}
     integdata = self.integdata
-    conn, x, dofnums, loc, J, gradN, elmat, elvec, elvecfix =
-        buffers(self, geom, Pddot)
+    dofnums, loc, J, gradN, elmat, elvec, elvecfix = buffers(self, geom, Pddot)
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(integdata);
     # Material
@@ -223,8 +218,8 @@ function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A,
     startassembly!(assembler, Pddot.nfreedofs);
     # Now loop over all finite elements in the set
     for i = 1:count(integdata.fes) # Loop over elements
-        gatherfixedvalues_asvec!(Pddot, elvecfix, conn);# retrieve element coordinates
-        if norm(elvecfix) !=  0.0  # Is the load nonzero?
+        gatherfixedvalues_asvec!(Pddot, elvecfix, integdata.fes.conn[i]);# retrieve element coordinates
+        if norm(elvecfix, Inf) !=  0.0  # Is the load nonzero?
             fill!(elmat, 0.0);
             for j = 1:npts # Loop over quadrature points
                 locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 

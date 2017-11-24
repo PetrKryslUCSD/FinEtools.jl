@@ -375,3 +375,13 @@ ENV["PYTHON"]="C:\\Users\\PetrKrysl\\Documents\\WinPython-64bit-3.6.3.0Qt5\\pyth
 Pkg.build("PyCall")
 
 -- VS code: To insert a symbol, simply execute the Unicode: Insert Math Symbol command and type in the name of your desired symbol or select it from the drop-down list. (Unicode Latex extension..)
+
+-- SIMD optimizations are not turned on by default, because they only speed up very particular kinds of code, and turning them on everywhere would slow down the compiler too much.
+
+function mysum3(A)
+    s = zero(eltype(A))
+    @simd for a in A
+        s += a
+    end
+    return s
+end

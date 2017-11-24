@@ -149,7 +149,7 @@ function nzebcloadsstiffness(self::FEMMDeforLinearAbstract,  assembler::A, geom:
     startassembly!(assembler,  u.nfreedofs);
     for i = 1:count(IntegData.fes) # Loop over elements
         gatherfixedvalues_asvec!(u, elvecfix, conn);# retrieve element displacement vector
-        if norm(elvecfix) != 0     # Is the load nonzero?
+        if norm(elvecfix, Inf) != 0     # Is the load nonzero?
             fill!(elmat,  0.0); # Initialize element matrix
             for j = 1:npts # Loop over quadrature points
                 locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
@@ -194,7 +194,7 @@ function  thermalstrainloads(self::FEMMDeforLinearAbstract, assembler::A, geom::
     startassembly!(assembler,  u.nfreedofs);
     for i = 1:count(IntegData.fes) # Loop over elements
         gathervalues_asvec!(dT, DeltaT, conn);# retrieve element temperatures
-        if norm(DeltaT) != 0     # Is the thermal increment nonzero?
+        if norm(DeltaT, Inf) != 0     # Is the thermal increment nonzero?
             fill!(elvec,  0.0); # Initialize element matrix
             for j = 1:npts # Loop over quadrature points
                 locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 

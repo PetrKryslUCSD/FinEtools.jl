@@ -141,7 +141,7 @@ Refine a mesh of H8 hexahedrals by octasection.
 """
 function H8refine(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
     fens, fes = H8toH27(fens, fes);
-    conn=fes.conn;
+    conn=connasarray(fes);
     nconn=zeros(FInt, 8*size(conn, 1), 8);
     nc=1;
     for i= 1:size(conn, 1)
@@ -336,6 +336,7 @@ function doextrude(fens, fes::FESetQ4, nLayers, extrusionh)
     nnt=nn1*nLayers;
     ngc=count(fes)*nLayers;
     hconn=zeros(FInt, ngc, 8);
+    conn = connasarray(fes)
     xyz =zeros(FFlt, nn1*(nLayers+1), 3);
     for j=1:nn1
         xyz[j, :] =extrusionh(fens.xyz[j, :], 0);
@@ -350,7 +351,7 @@ function doextrude(fens, fes::FESetQ4, nLayers, extrusionh)
     gc=1;
     for k=1:nLayers
         for i=1:count(fes)
-            hconn[gc, :]=[broadcast(+, fes.conn[i, :], (k-1)*nn1) broadcast(+, fes.conn[i, :], k*nn1)];
+            hconn[gc, :]=[broadcast(+, conn[i, :], (k-1)*nn1) broadcast(+, conn[i, :], k*nn1)];
             gc=gc+1;
         end
     end
@@ -432,7 +433,7 @@ function H8spheren(radius::FFlt, nperradius::FInt)
 
     xyz = deepcopy(fens.xyz);
     layer = broadcast(+, zeros(FFlt, size(xyz,  1), 1), oftype(1.0, Inf));
-    conn = deepcopy(fes.conn);
+    conn = deepcopy(connasarray(fes));
     bg = meshboundary(fes);
     l = selectelem(fens, bg; facing=true,  direction=[1. 1. 1.], dotmin = 0.01);
     cn = connectednodes(subset(bg, l))   ;

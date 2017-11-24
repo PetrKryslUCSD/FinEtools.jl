@@ -152,7 +152,7 @@ function buffers2(self::FEMMDeforLinearAbstractMS, geom::NodalField, u::NodalFie
     D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix
 end
 
-function centroid!(self::F,  loc, x) where {F<:FEMMDeforLinearMSH8, C}
+function centroid!(self::F,  loc, X::FFltMat, conn::C) where {F<:FEMMDeforLinearMSH8, C}
     weights = [0.125
                 0.125
                 0.125

@@ -397,12 +397,11 @@ function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)
     nnodes = mid-1;
     xyzm = xyzm[1:nnodes,:];
     # Renumber the cells
-    conns = fes.conn;
-    for i = 1:FESetModule.count(fes)
-        conn = conns[i,:];
-        conns[i,:] = id1[conn];
+    conns = connasarray(fes);
+    for i = 1:size(conns,1)
+        conns[i,:] = id1[conns[i,:]];
     end
-    fes.conn = deepcopy(conns);
+    fes = fromarray!(fes, conns)
 
     fens = FENodeSet(xyzm[1:nnodes,:]);
 

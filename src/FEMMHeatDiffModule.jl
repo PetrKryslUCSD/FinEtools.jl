@@ -52,15 +52,13 @@ function  buffers(self::FEMMHeatDiff, geom::NodalField{FFlt}, temp::NodalField{F
     elmat = zeros(FFlt, Kedim, Kedim); # buffer
     elvec = zeros(FFlt, Kedim); # buffer
     elvecfix = zeros(FFlt, Kedim); # buffer
-    conn = zeros(FInt, nne); # buffer
-    x = zeros(FFlt, nne, sdim); # buffer
     dofnums = zeros(FInt, 1, Kedim); # buffer
     loc = zeros(FFlt, 1, sdim); # buffer
     J = eye(FFlt, sdim, mdim); # buffer
     RmTJ = zeros(FFlt, mdim, mdim); # buffer
     gradN = zeros(FFlt, nne, mdim); # buffer
     kappa_bargradNT = zeros(FFlt, mdim, nne); # buffer
-    return conn, x, dofnums, loc, J, RmTJ, gradN, kappa_bargradNT, elmat, elvec, elvecfix
+    return dofnums, loc, J, RmTJ, gradN, kappa_bargradNT, elmat, elvec, elvecfix
 end
 
 """
@@ -76,7 +74,7 @@ function conductivity(self::FEMMHeatDiff,  assembler::A, geom::NodalField{FFlt},
     # Thermal conductivity matrix is in local  material coordinates.
     kappa_bar =  self.material.thermal_conductivity;
     # Prepare assembler and buffers
-    conn, x, dofnums, loc, J, RmTJ, gradN, kappa_bargradNT, elmat = buffers(self, geom, temp)
+    dofnums, loc, J, RmTJ, gradN, kappa_bargradNT, elmat = buffers(self, geom, temp)
     startassembly!(assembler, size(elmat,1), size(elmat,2), count(integdata.fes), temp.nfreedofs, temp.nfreedofs);
     for i = 1:count(integdata.fes) # Loop over elements
         fill!(elmat,  0.0); # Initialize element matrix
@@ -114,13 +112,12 @@ function nzebcloadsconductivity(self::FEMMHeatDiff, assembler::A,  geom::NodalFi
     # Thermal conductivity matrix is in local  material coordinates.
     kappa_bar = self.material.thermal_conductivity;
     # Prepare assembler and buffers
-    conn, x, dofnums, loc, J, RmTJ, gradN, kappa_bargradNT, elmat, elvec, elvecfix =
-                buffers(self, geom, temp)
+    dofnums, loc, J, RmTJ, gradN, kappa_bargradNT, elmat, elvec, elvecfix = buffers(self, geom, temp)
     startassembly!(assembler,  temp.nfreedofs);
     # Now loop over all finite elements in the set
     for i = 1:count(integdata.fes) # Loop over elements
-        gatherfixedvalues_asvec!(temp, elvecfix, conn);# retrieve element coordinates
-        if norm(elvecfix) != 0.     # Is the load nonzero?
+        gatherfixedvalues_asvec!(temp, elvecfix, integdata.fes.conn[i]);# retrieve element coordinates
+        if norm(elvecfix, Inf) != 0. # Is the load nonzero?
             fill!(elmat,  0.0);
             for j=1:npts # Loop over quadrature points
                 locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 

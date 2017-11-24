@@ -16,7 +16,7 @@ end
 makecontainer() = Dict{FInt, Array{HyperFaceContainer}}();
 
 function addhyperface!(container,hyperface,newn)
-    h=sort(vec(hyperface))
+    h=sort([i for i in hyperface])
     anchor=h[1]; other=IntSet(h[2:end]);
     C=get(container,anchor,Array{HyperFaceContainer}(0));
     fnd=false;
@@ -33,7 +33,7 @@ function addhyperface!(container,hyperface,newn)
 end
 
 function findhyperface!(container,hyperface)
-    h=sort(vec(hyperface))
+    h=sort([i for i in hyperface])
     anchor=h[1]; other=IntSet(h[2:end]);
     C=get(container,anchor,Array{HyperFaceContainer}(0));
     for k=1:length(C)

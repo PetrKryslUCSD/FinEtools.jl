@@ -10,9 +10,10 @@ function test()
 
   fens,fes = Q4block(Lx,Ly,3,2); # Mesh
   # show(fes.conn)
+  length(fes.conn)
 
   bfes = meshboundary(fes)
-  @test bfes.conn == [1 2; 5 1; 2 3; 3 4; 4 8; 9 5; 8 12; 10 9; 11 10; 12 11]
+  @test bfes.conn == Tuple{Int64,Int64}[(1, 2), (5, 1), (2, 3), (3, 4), (4, 8), (9, 5), (8, 12), (10, 9), (11, 10), (12, 11)]
 end
 end
 using .mmiscellaneous1mmm
@@ -144,9 +145,9 @@ function test()
   ASSEMBLY(AE, "ASSEM1");
   INSTANCE(AE, "INSTNC1", "PART1");
   NODE(AE, fens.xyz);
-  ELEMENT(AE, "c3d8rh", "AllElements", 1, region1["femm"].integdata.fes.conn)
+  ELEMENT(AE, "c3d8rh", "AllElements", 1, connasarray(region1["femm"].integdata.fes))
   ELEMENT(AE, "SFM3D4", "TractionElements",
-    1+count(region1["femm"].integdata.fes), flux1["femm"].integdata.fes.conn)
+    1+count(region1["femm"].integdata.fes), connasarray(flux1["femm"].integdata.fes))
   NSET_NSET(AE, "l1", l1)
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", "Hourglass");
@@ -236,9 +237,9 @@ function test()
   ASSEMBLY(AE, "ASSEM1");
   INSTANCE(AE, "INSTNC1", "PART1");
   NODE(AE, fens.xyz);
-  ELEMENT(AE, "c3d8rh", "AllElements", 1, region1["femm"].integdata.fes.conn)
+  ELEMENT(AE, "c3d8rh", "AllElements", 1, connasarray(region1["femm"].integdata.fes))
   ELEMENT(AE, "SFM3D4", "TractionElements",
-    1+count(region1["femm"].integdata.fes), flux1["femm"].integdata.fes.conn)
+    1+count(region1["femm"].integdata.fes), connasarray(flux1["femm"].integdata.fes))
   NSET_NSET(AE, "l1", l1)
   ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
   SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", "Hourglass");
@@ -841,7 +842,7 @@ function test()
   # MeshExportModule.vtkexportmesh(File, fens, fes)
 
   bfes = meshboundary(fes)
-  @test bfes.conn == [1 2; 5 1; 2 3; 3 4; 4 8; 9 5; 8 12; 10 9; 11 10; 12 11]
+  @test bfes.conn == Tuple{Int64,Int64}[(1, 2), (5, 1), (2, 3), (3, 4), (4, 8), (9, 5), (8, 12), (10, 9), (11, 10), (12, 11)]
 end
 end
 using .mmmiscellaneous2
@@ -873,7 +874,7 @@ function test()
 
   bfes = meshboundary(fes)
   # show(fes.conn)
-  @test vec(bfes.conn) == vec([1 5])
+  @test bfes.conn == Tuple{Int64}[(1,), (5,)]
 end
 end
 using .mmmiscellaneous3
@@ -995,12 +996,16 @@ function test()
     MeshExportModule.vtkexportmesh(File, fens, fes)
     csmatout = zeros(FFlt, 3, 2)
     gradNparams = FESetModule.bfundpar(fes, vec([0.0 0.0]));
-    J = transpose(fens.xyz[fes.conn[1, :], :]) * gradNparams
+    J = zeros(3, 2)
+    for i = 1:length(fes.conn[1])
+        J += reshape(fens.xyz[fes.conn[1][i], :], 3, 1) * reshape(gradNparams[i, :], 1, 2)
+    end
     # println("J = $(J)")
     @test norm(J - [1.0 0.0; 0.0 2.0; 0.25 -0.25]) < 1.0e-5
     CSysModule.gen_iso_csmat!(csmatout, mean(fens.xyz, 1), J, 0)
     # println("csmatout = $(csmatout)")
     @test norm(csmatout - [0.970143 0.0291979; 0.0 0.992727; 0.242536 -0.116791]) < 1.0e-5
+    try rm(File); catch end
 end
 end
 using .mgen_iso_csmat2

@@ -48,8 +48,6 @@ function surfacetransfer(self::FEMMHeatDiffSurf,  assembler::A, geom::NodalField
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(integdata);
     # Prepare assembler and temporaries
     He = zeros(FFlt, Hedim, Hedim);                # element matrix -- used as a buffer
-    conn = zeros(FInt, nne, 1); # element nodes -- used as a buffer
-    x = zeros(FFlt, nne, sdim); # array of node coordinates -- used as a buffer
     dofnums = zeros(FInt, 1, Hedim); # degree of freedom array -- used as a buffer
     loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
     J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
@@ -95,16 +93,14 @@ function surfacetransferloads(self::FEMMHeatDiffSurf,  assembler::A,  geom::Noda
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(integdata);
     # Prepare assembler and temporaries
     Fe = zeros(FFlt, Hedim, 1); # element matrix -- used as a buffer
-    conn = zeros(FInt, nne, 1); # element nodes -- used as a buffer
-    x = zeros(FFlt, nne, sdim); # array of node coordinates -- used as a buffer
     dofnums = zeros(FInt, 1, Hedim); # degree of freedom array -- used as a buffer
     loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
     J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
     pT = zeros(FFlt, Hedim);
     startassembly!(assembler,  temp.nfreedofs);
     for i = 1:nfes # Loop over elements
-        gathervalues_asvec!(ambtemp, pT, conn);# retrieve element coordinates
-        if norm(pT) != 0.0    # Is the load nonzero?
+        gathervalues_asvec!(ambtemp, pT, integdata.fes.conn[i]);# retrieve element coordinates
+        if norm(pT, Inf) != 0.0    # Is the load nonzero?
             fill!(Fe,  0.0); # Initialize element matrix
             for j=1:npts # Loop over quadrature points
                 locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
@@ -149,8 +145,6 @@ function nzebcsurfacetransferloads(self::FEMMHeatDiffSurf, assembler::A,  geom::
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(integdata);
     # Prepare assembler and temporaries
     He = zeros(FFlt, Hedim, Hedim);                # element matrix -- used as a buffer
-    conn = zeros(FInt, nne, 1); # element nodes -- used as a buffer
-    x = zeros(FFlt, nne, sdim); # array of node coordinates -- used as a buffer
     dofnums = zeros(FInt, 1, Hedim); # degree of freedom array -- used as a buffer
     loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
     J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
@@ -158,9 +152,8 @@ function nzebcsurfacetransferloads(self::FEMMHeatDiffSurf, assembler::A,  geom::
     startassembly!(assembler,  temp.nfreedofs);
     # Now loop over all finite elements in the set
     for i=1:nfes # Loop over elements
-        gatherfixedvalues_asvec!(temp, pT, conn);# retrieve element coordinates
-        if norm(pT) != 0.0    # Is the load nonzero?
-            gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
+        gatherfixedvalues_asvec!(temp, pT, integdata.fes.conn[i]);# retrieve element coordinates
+        if norm(pT, Inf) != 0.0    # Is the load nonzero?
             fill!(He,  0.0);
             for j=1:npts # Loop over quadrature points
                 locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
