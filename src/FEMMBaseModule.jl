@@ -114,9 +114,7 @@ end
 
 Integrate a elemental-field function over the discrete manifold.
 """
-function integratefieldfunction(self::FEMMAbstractBase,
-    geom::NodalField{FFlt},  afield::FL, fh::F, initial::R;
-    m::FInt=-1) where {T<:Number, FL<:ElementalField{T}, R, F<:Function}
+function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R; m::FInt=-1) where {T<:Number, FL<:ElementalField{T}, R, F<:Function}
     fes = self.integdata.fes  # finite elements
     # Constants
     nfes = count(fes); # number of finite elements in the set
@@ -180,8 +178,7 @@ mass=V*rhos;
 Inertia=I*rhos;
 ```
 """
-function integratefunction(self::FEMMAbstractBase,
-    geom::NodalField{FFlt}, fh::F, m::FInt = -1) where {F<:Function}
+function integratefunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, fh::F, m::FInt = -1) where {F<:Function}
     fes = self.integdata.fes
     if m < 0
         m = manifdim(fes);  # native  manifold dimension
@@ -219,9 +216,7 @@ Transfer a nodal field from a coarse mesh to a finer one.
 `fesc` = finite element set for the coarse mesh
 `tolerance` = tolerance in physical space for searches of the adjacent nodes
 """
-function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
-    fc::F, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
-    )  where {T<:Number, F<:NodalField{T}}
+function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENodeSet, fesc::FESet,  tolerance::FFlt)  where {T<:Number, F<:NodalField{T}}
     fill!(ff.values, Inf) # the "infinity" value indicates a missed node
     @assert count(fensf) == nents(ff)
     parametrictol = 0.01
@@ -263,7 +258,7 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
                     nodebox = inflatebox!(nodebox, tolerance)
                     el = selectelem(fenscsub, fescsub; overlappingbox = nodebox)
                     for e = el
-                        c = view(fescsub.conn, e, :)
+                        c = [k for k in fescsub.conn[e]] #c = view(fescsub.conn, e, :)
                         pc, success = map2parametric(fescsub, fenscsub.xyz[c, :],
                             vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
                         @assert success # this shouldn't be tripped; normally we succeed
@@ -341,9 +336,7 @@ Transfer a elemental field from a coarse mesh to a finer one.
 `fesc` = finite element set for the coarse mesh
 `tolerance` = tolerance in physical space for searches of the adjacent nodes
 """
-function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
-    fc::F, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
-    )  where {T<:Number, F<:ElementalField{T}}
+function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENodeSet, fesc::FESet,  tolerance::FFlt)  where {T<:Number, F<:ElementalField{T}}
     @assert count(fesf) == nents(ff)
     nodebox = initbox!([], vec(fensc.xyz[1, :]))
     centroidpc = centroidparametric(fesf)

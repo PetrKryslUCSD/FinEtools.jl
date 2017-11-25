@@ -7,10 +7,11 @@ module MatrixUtilityModule
 
 using FinEtools.FTypesModule
 
-function locjac!(loc::FFltMat, J::FFltMat, X::FFltMat, conn::C, N::FFltMat, gradNparams::FFltMat) where {C}
-    return loc!(loc, X, conn, N), jac!(J, X, conn, gradNparams)
-end
+"""
+    loc!(loc::FFltMat, X::FFltMat, conn::C, N::FFltMat) where {C}
 
+Compute location of the quadrature point.  
+"""
 function loc!(loc::FFltMat, X::FFltMat, conn::C, N::FFltMat) where {C}
     n = size(N, 1)
     @inbounds for j = 1:size(loc, 2)
@@ -23,6 +24,11 @@ function loc!(loc::FFltMat, X::FFltMat, conn::C, N::FFltMat) where {C}
     return loc
 end
 
+"""
+    jac!(J::FFltMat, X::FFltMat, conn::C, gradNparams::FFltMat) where {C}
+
+Compute Jacobian matrix at the quadrature point.  
+"""
 function jac!(J::FFltMat, X::FFltMat, conn::C, gradNparams::FFltMat) where {C}
     n = size(gradNparams, 1)
     @inbounds for j = 1:size(J, 2)
@@ -35,6 +41,15 @@ function jac!(J::FFltMat, X::FFltMat, conn::C, gradNparams::FFltMat) where {C}
         end
     end
     return J
+end
+
+"""
+    locjac!(loc::FFltMat, J::FFltMat, X::FFltMat, conn::C, N::FFltMat, gradNparams::FFltMat) where {C}
+
+Compute location and Jacobian matrix at the quadrature point.  
+"""
+function locjac!(loc::FFltMat, J::FFltMat, X::FFltMat, conn::C, N::FFltMat, gradNparams::FFltMat) where {C}
+    return loc!(loc, X, conn, N), jac!(J, X, conn, gradNparams)
 end
 
 """

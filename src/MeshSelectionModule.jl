@@ -337,7 +337,9 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
         bbox = zeros(2 * size(fens.xyz, 2))
         for i = 1:length(fes.conn)
             bbox = initbox!(bbox, vec(fens.xyz[fes.conn[i][1], :]))
-            bbox = updatebox!(bbox, fens.xyz[fes.conn[i][2:end], :])
+            for k = 2:length(fes.conn[i])
+                bbox = updatebox!(bbox, fens.xyz[fes.conn[i][k], :])
+            end
             if boxesoverlap(overlappingbox, bbox)
                 felist[i]=i; # this element overlaps the box
             end
@@ -591,12 +593,12 @@ would like to remove from the mesh: here is how that would be
 accomplished.
 """
 function findunconnnodes(fens::FENodeSet, fes::FESet)
-  connected = trues(count(fens));
-  fen2fem = FENodeToFEMap(connasarray(fes), count(fens))
-  for i=1:length(fen2fem.map),
-    connected[i] = (!isempty(fen2fem.map[i]));
-  end
-  return connected
+    connected = trues(count(fens));
+    fen2fem = FENodeToFEMap(connasarray(fes), count(fens))
+    for i=1:length(fen2fem.map),
+        connected[i] = (!isempty(fen2fem.map[i]));
+    end
+    return connected
 end
 
 
