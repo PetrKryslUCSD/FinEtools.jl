@@ -20,8 +20,9 @@ The concrete finite element set type provides specialized methods to compute the
 
     - `nodesperelem`: Get the number of nodes  connected  by  the finite element.
     - `count`:  Get the number of individual connectivities in the FE set.
-    - `getconn!`: Get the connectivity of the jth element in the set.
     - `setlabel!`: Set the label of the entire finite elements set.
+    - `connasarray`: Retrieve  connectivity  as an integer array.
+    - `fromarray`: Set  connectivity from an integer array.
     - `subset`: Extract a subset of the finite elements from the given finite element set.
     - `cat`: Concatenate the connectivities of two FE sets.
     - `updateconn!`: Update the connectivity after the IDs of nodes changed.

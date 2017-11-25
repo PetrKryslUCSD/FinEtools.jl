@@ -52,8 +52,8 @@ function L3blockx(xs::FFltVec)
     N = count(fens)
     for i = 1:count(fes)
         N = N + 1
-        nxyz[i, :] = mean(fens.xyz[fes.conn[i, :], :], 1)
-        nconn[i, :] = vcat(fes.conn[i, :], [N])
+        nxyz[i, :] = mean(fens.xyz[[k for k in fes.conn[i]], :], 1)
+        nconn[i, :] = vcat([k for k in fes.conn[i]], [N])
     end
     fens = FENodeSetModule.FENodeSet([fens.xyz; nxyz]);
     # Create the finite elements

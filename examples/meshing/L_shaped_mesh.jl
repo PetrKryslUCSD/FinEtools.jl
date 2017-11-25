@@ -21,7 +21,7 @@ fes = cat(outputfes[1], cat(outputfes[2], outputfes[3]))
 geom = NodalField(fens.xyz)
 
 File =  "L_shape.vtk"
-vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.Q4);
+vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.Q4);
 @async run(`"paraview.exe" $File`)
 
 println("Done")

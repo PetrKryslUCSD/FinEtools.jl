@@ -123,7 +123,7 @@ end
 
 """
     gathervalues_asvec!(self::Field, dest::AbstractArray{T, 1},
-        conn::CC) where {CC<:AbstractArray{FInt}, T}
+        conn::CC) where {CC, T}
 
 Gather values from the field into a vector.
 
@@ -133,8 +133,7 @@ degrees of freedom,  then the next node and so on.
 `dest` = destination buffer: overwritten  inside,  must be preallocated
 in the correct size
 """
-function gathervalues_asvec!(self::Field, dest::AbstractArray{T, 1},
-    conn::CC) where {CC<:AbstractArray{FInt}, T}
+function gathervalues_asvec!(self::Field, dest::AbstractArray{T, 1},    conn::CC) where {CC, T}
     en::FInt = 1;
     for i = 1:length(conn)
         for j = 1:size(self.values,2)
@@ -147,7 +146,7 @@ end
 
 """
     gathervalues_asmat!(self::Field, dest::AbstractArray{T, 2},
-        conn::CC) where {CC<:AbstractArray{FInt}, T}
+        conn::CC) where {CC, T}
 
 Gather values from the field into a two-dimensional array.
 
@@ -158,8 +157,7 @@ row and so on.
 `dest` = destination buffer: overwritten  inside,  must be preallocated
 in the correct size
 """
-function gathervalues_asmat!(self::Field, dest::AbstractArray{T, 2},
-    conn::CC) where {CC<:AbstractArray{FInt}, T}
+function gathervalues_asmat!(self::Field, dest::AbstractArray{T, 2},    conn::CC) where {CC, T}
     for i = 1:length(conn)
         for j = 1:size(self.values,2)
             dest[i, j] = self.values[conn[i], j];
@@ -170,7 +168,7 @@ end
 
 """
     gatherfixedvalues_asvec!(self::Field, dest::AbstractArray{T, 1},
-        conn::CC) where {CC<:AbstractArray{FInt}, T}
+        conn::CC) where {CC, T}
 
 Gather FIXED values from the field into a vector.
 
@@ -181,8 +179,7 @@ is NOT fixed, the corresponding entry is  set to zero.
 `dest` = destination buffer: overwritten  inside,  must be preallocated
 in the correct size
 """
-function gatherfixedvalues_asvec!(self::Field, dest::AbstractArray{T, 1},
-    conn::CC) where {CC<:AbstractArray{FInt}, T}
+function gatherfixedvalues_asvec!(self::Field, dest::AbstractArray{T, 1},    conn::CC) where {CC, T}
     en::FInt = 1;
     for i = 1:length(conn)
         for j = 1:size(self.fixed_values,2)
@@ -199,7 +196,7 @@ end
 
 """
     gatherfixedvalues_asmat!(self::Field, dest::AbstractArray{T, 2},
-        conn::CC) where {CC<:AbstractArray{FInt}, T}
+        conn::CC) where {CC, T}
 
 Gather FIXED values from the field into a two-dimensional array.
 
@@ -211,8 +208,7 @@ is NOT fixed, the corresponding entry is  set to zero.
 `dest` = destination buffer: overwritten  inside,  must be preallocated
 in the correct size
 """
-function gatherfixedvalues_asmat!(self::Field, dest::AbstractArray{T, 2},
-    conn::CC) where {CC<:AbstractArray{FInt}, T}
+function gatherfixedvalues_asmat!(self::Field, dest::AbstractArray{T, 2},    conn::CC) where {CC, T}
     for i = 1:length(conn)
         for j = 1:size(self.fixed_values,2)
             if self.is_fixed[conn[i],j] # fixed degree of freedom
@@ -226,11 +222,11 @@ function gatherfixedvalues_asmat!(self::Field, dest::AbstractArray{T, 2},
 end
 
 """
-    gatherdofnums!(self::Field, dest::A, conn::CC) where {A, CC<:AbstractArray{FInt}}
+    gatherdofnums!(self::Field, dest::A, conn::CC) where {A, CC}
 
 Gather dofnums from the field.
 """
-function gatherdofnums!(self::Field, dest::A, conn::CC) where {A, CC<:AbstractArray{FInt}}
+function gatherdofnums!(self::Field, dest::A, conn::CC) where {A, CC}
     en::FInt = 1;
     for i = 1:length(conn)
         for j = 1:size(self.dofnums,2)
@@ -286,8 +282,7 @@ and therefore is presumed to invalidate the
 current degree-of-freedom numbering. In such a case this method sets
 `nfreedofs = 0`; and  `dofnums=0`.
 """
-function setebc!(self::Field, fenids::FIntVec, is_fixed::Bool, comp::FInt,
-    val::FVec{T}) where {T<:Number}
+function setebc!(self::Field, fenids::FIntVec, is_fixed::Bool, comp::FInt,    val::FVec{T}) where {T<:Number}
     @assert comp <= size(self.values,2) "Requested  nonexistent  degree of freedom"
     @assert maximum(fenids) <= size(self.values,1) "Requested nonexistent node"
     @assert size(fenids) == size(val) "Arrays of mismatched sizes"
@@ -322,8 +317,7 @@ and therefore is presumed to invalidate the
 current degree-of-freedom numbering. In such a case this method sets
 `nfreedofs = 0`; and  `dofnums=0`.
 """
-function setebc!(self::Field, fenids::FIntVec, is_fixed::Bool, comp::FInt,
-    val::T) where {T<:Number}
+function setebc!(self::Field, fenids::FIntVec, is_fixed::Bool, comp::FInt,    val::T) where {T<:Number}
     @assert (comp >= 1 && comp <= size(self.values,2)) "Requested  nonexistent  degree of freedom"
     @assert maximum(fenids) <= size(self.values,1) "Requested nonexistent node"
     @assert minimum(fenids) >= 1 "Requested nonexistent node"
@@ -356,8 +350,7 @@ and therefore is presumed to invalidate the
 current degree-of-freedom numbering. In such a case this method sets
 `nfreedofs = 0`; and  `dofnums=0`.
 """
-function setebc!(self::Field, fenids::FIntVec, comp::FInt,
-    val::FVec{T}) where {T<:Number}
+function setebc!(self::Field, fenids::FIntVec, comp::FInt, val::FVec{T}) where {T<:Number}
     return setebc!(self, fenids, true, comp, val)
 end
 
@@ -378,8 +371,7 @@ and therefore is presumed to invalidate the
 current degree-of-freedom numbering. In such a case this method sets
 `nfreedofs = 0`; and  `dofnums=0`.
 """
-function setebc!(self::Field, fenids::FIntVec, comp::FInt;
-    val::T=0.0) where {T<:Number}
+function setebc!(self::Field, fenids::FIntVec, comp::FInt; val::T=0.0) where {T<:Number}
     return setebc!(self, fenids, true, comp, val)
 end
 
@@ -399,8 +391,7 @@ and therefore is presumed to invalidate the
 current degree-of-freedom numbering. In such a case this method sets
 `nfreedofs = 0`; and  `dofnums=0`.
 """
-function setebc!(self::Field, fenids::FIntVec, is_fixed::Bool, comp::FInt;
-    val::T=0.0) where {T<:Number}
+function setebc!(self::Field, fenids::FIntVec, is_fixed::Bool, comp::FInt;    val::T=0.0) where {T<:Number}
     j = comp
     @assert (j >= 1) && (j <= ndofs(self))
     setebc!(self, fenids, is_fixed, j, val)

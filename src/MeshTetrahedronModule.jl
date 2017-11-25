@@ -139,10 +139,9 @@ function  T4toT10(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetT4)
     newn = FENodeSetModule.count(fens)+1;
     # make a search structure for edges
     edges = MeshUtilModule.makecontainer();
-    for i= 1:size(fes.conn, 1)
-        conn = fes.conn[i, :];
+    for i= 1:length(fes.conn)
         for J = 1:nedges
-            ev=conn[ec[J, :]];
+            ev=fes.conn[i][ec[J,:]];
             newn = MeshUtilModule.addhyperface!(edges,  ev,  newn);
         end
     end
@@ -160,19 +159,18 @@ function  T4toT10(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetT4)
           xyz[C[J].n, :] = mean(xyz[ix, :], 1);
         end
     end
-    fens =FENodeSetModule.FENodeSet(xyz);
+    fens = FENodeSetModule.FENodeSet(xyz);
     # construct new geometry cells
-    nconn=zeros(FInt, size(fes.conn, 1), 10);
+    nconn=zeros(FInt, length(fes.conn), 10);
     nc=1;
-    for i= 1:size(fes.conn, 1)
-        conn = fes.conn[i, :];
+    for i= 1:length(fes.conn)
         econn=zeros(FInt, 1, nedges);
         for J = 1:nedges
-            ev=conn[ec[J, :]];
+            ev=fes.conn[i][ec[J,:]];
             h, n=MeshUtilModule.findhyperface!(edges,  ev);
             econn[J]=n;
         end
-        nconn[nc, :] = vcat(vec(conn),   vec(econn))
+        nconn[nc, :] = vcat([j for j in fes.conn[i]], vec(econn))
         nc= nc+ 1;
     end
     labels = deepcopy(fes.label)

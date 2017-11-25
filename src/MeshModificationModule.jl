@@ -397,12 +397,11 @@ function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)
     nnodes = mid-1;
     xyzm = xyzm[1:nnodes,:];
     # Renumber the cells
-    conns = fes.conn;
-    for i = 1:FESetModule.count(fes)
-        conn = conns[i,:];
-        conns[i,:] = id1[conn];
+    conns = connasarray(fes);
+    for i = 1:size(conns,1)
+        conns[i,:] = id1[conns[i,:]];
     end
-    fes.conn = deepcopy(conns);
+    fes = fromarray!(fes, conns)
 
     fens = FENodeSet(xyzm[1:nnodes,:]);
 
@@ -458,12 +457,12 @@ function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt, candidates::FI
     nnodes = mid-1;
     xyzm = xyzm[1:nnodes,:];
     # Renumber the cells
-    conns = fes.conn;
+    conns = connasarray(fes);
     for i = 1:FESetModule.count(fes)
         conn = conns[i,:];
         conns[i,:] = id1[conn];
     end
-    fes.conn = deepcopy(conns);
+    fes = fromarray!(fes, conns);
 
     fens = FENodeSet(xyzm[1:nnodes,:]);
 
@@ -491,11 +490,12 @@ Finally, check that the mesh is valid:
 validate_mesh(fens, fes);
 """
 function renumberconn!(fes::FESetModule.FESet, new_numbering::FIntVec)
-    for i=1:size(fes.conn,1)
-        c = fes.conn[i,:];
-        fes.conn[i,:] = new_numbering[c];
+    conn = connasarray(fes)
+    for i=1:size(conn,1)
+        c = conn[i,:];
+        conn[i,:] = new_numbering[c];
     end
-    return fes
+    return fromarray!(fes, conn)
 end
 
 """
@@ -553,7 +553,7 @@ The modified  node set.
 """
 function meshsmoothing(fens::FENodeSet, fes::T; options...) where {T<:FESet}
     v = deepcopy(fens.xyz)
-    v = vsmoothing(v, fes.conn; options...)
+    v = vsmoothing(v, connasarray(fes); options...)
     copy!(fens.xyz, v)
     return fens
 end
@@ -675,10 +675,11 @@ function mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
     end
     # Reconnect the cells
     fes1=deepcopy(fes);
-    for i=1:size(fes1.conn,1)
-        fes1.conn[i,:]=renumb(fes1.conn[i,:]);
+    conn = connasarray(fes1)
+    for i=1:size(conn, 1)
+        conn[i,:]=renumb(conn[i,:]);
     end
-    return fens1,fes1
+    return fens1, fromarray!(fes1, conn)
 end
 
 """

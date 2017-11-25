@@ -12,7 +12,7 @@ function test()
   # show(fes.conn)
 
   bfes = meshboundary(fes)
-  @test bfes.conn == [1 2; 5 1; 2 3; 3 4; 4 8; 9 5; 8 12; 10 9; 11 10; 12 11]
+  @test bfes.conn == Tuple{Int64,Int64}[(1, 2), (5, 1), (2, 3), (3, 4), (4, 8), (9, 5), (8, 12), (10, 9), (11, 10), (12, 11)] 
 end
 end
 using .miscellaneous2mm
@@ -54,8 +54,7 @@ function test()
   File = "Slot-coarser.vtk"
   MeshExportModule.vtkexportmesh(File, output["fens"], output["fesets"][1])
   rm(File)
-  @test output["fesets"][1].conn[count(output["fesets"][1]), :] ==
-    [143, 140, 144, 138, 361, 363, 176, 519, 781, 520]
+  @test output["fesets"][1].conn[count(output["fesets"][1]), :] == NTuple{10,Int64}[(143, 140, 144, 138, 361, 363, 176, 519, 781, 520)]
   # @async run(`"paraview.exe" $File`)
 end
 end
@@ -74,8 +73,8 @@ function test()
   File = "Slot-coarser.vtk"
   MeshExportModule.vtkexportmesh(File, output["fens"], output["fesets"][1])
   rm(File)
-  @test output["fesets"][1].conn[count(output["fesets"][1]), :] ==
-    [143, 140, 144, 138, 361, 363, 176, 519, 781, 520]
+  @test output["fesets"][1].conn[count(output["fesets"][1]), :] == NTuple{10,Int64}[(143, 140, 144, 138, 361, 363, 176, 519, 781, 520)] 
+  
   # @async run(`"paraview.exe" $File`)
 end
 end
@@ -104,11 +103,11 @@ function test()
   fens, outputfes = mergenmeshes(Meshes, tolerance);
   fes = cat(outputfes[1], cat(outputfes[2], outputfes[3]))
   @test count(fens) == 96
-  @test norm(vec(fes.conn[1,:]) - vec([1   2   8   7])) < 0.01
+  @test fes.conn == NTuple{4,Int64}[(1, 2, 8, 7), (7, 8, 14, 13), (13, 14, 20, 19), (19, 20, 26, 25), (25, 26, 32, 31), (2, 3, 9, 8), (8, 9, 15, 14), (14, 15, 21, 20), (20, 21, 27, 26), (26, 27, 33, 32), (3, 4, 10, 9), (9, 10, 16, 15), (15, 16, 22, 21), (21, 22, 28, 27), (27, 28, 34, 33), (4, 5, 11, 10), (10, 11, 17, 16), (16, 17, 23, 22), (22, 23, 29, 28), (28, 29, 35, 34), (5, 6, 12, 11), (11, 12, 18, 17), (17, 18, 24, 23), (23, 24, 30, 29), (29, 30, 36, 35), (37, 38, 43, 42), (42, 43, 48, 47), (47, 48, 53, 52), (52, 53, 58, 57), (57, 58, 63, 62), (38, 39, 44, 43), (43, 44, 49, 48), (48, 49, 54, 53), (53, 54, 59, 58), (58, 59, 64, 63), (39, 40, 45, 44), (44, 45, 50, 49), (49, 50, 55, 54), (54, 55, 60, 59), (59, 60, 65, 64), (40, 41, 46, 45), (45, 46, 51, 50), (50, 51, 56, 55), (55, 56, 61, 60), (60, 61, 66, 65), (41, 1, 7, 46), (46, 7, 13, 51), (51, 13, 19, 56), (56, 19, 25, 61), (61, 25, 31, 66), (67, 68, 74, 73), (73, 74, 80, 79), (79, 80, 86, 85), (85, 86, 92, 91), (91, 92, 2, 1), (68, 69, 75, 74), (74, 75, 81, 80), (80, 81, 87, 86), (86, 87, 93, 92), (92, 93, 3, 2), (69, 70, 76, 75), (75, 76, 82, 81), (81, 82, 88, 87), (87, 88, 94, 93), (93, 94, 4, 3), (70, 71, 77, 76), (76, 77, 83, 82), (82, 83, 89, 88), (88, 89, 95, 94), (94, 95, 5, 4), (71, 72, 78, 77), (77, 78, 84, 83), (83, 84, 90, 89), (89, 90, 96, 95), (95, 96, 6, 5)]
   geom = NodalField(fens.xyz)
 
   File =  "L_shape.vtk"
-  vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.Q4);
+  vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.Q4);
   # @async run(`"paraview.exe" $File`)
   rm(File)
 
@@ -188,7 +187,7 @@ function test()
   ASSEMBLY(AE, "ASSEM1");
   INSTANCE(AE, "INSTNC1", "PART1");
   NODE(AE, fens.xyz);
-  ELEMENT(AE, "c3d8rh", "AllElements", 1, fes.conn)
+  ELEMENT(AE, "c3d8rh", "AllElements", 1, connasarray(fes))
   END_INSTANCE(AE);
   END_ASSEMBLY(AE);
   close(AE)
@@ -249,7 +248,7 @@ function test()
     geom = NodalField(fens.xyz)
 
     File =  "mesh_smoothing_after.vtk"
-    vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.T3);
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.T3);
     # @async run(`"paraview.exe" $File`)
     try rm(File) catch end
 
@@ -301,7 +300,7 @@ function test()
     geom = NodalField(fens.xyz)
 
     File =  "mesh_smoothing_after.vtk"
-    vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.T3);
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.T3);
     # @async run(`"paraview.exe" $File`)
     try rm(File) catch end
 
@@ -560,7 +559,7 @@ function test()
   ASSEMBLY(AE, "ASSEM1");
   INSTANCE(AE, "INSTNC1", "PART1");
   NODE(AE, fens.xyz);
-  ELEMENT(AE, "c3d8rh", "AllElements", 1, fes.conn)
+  ELEMENT(AE, "c3d8rh", "AllElements", 1, connasarray(fes))
   ELSET_ELSET(AE, "AllSolids", collect(1:count(fes)))
   END_INSTANCE(AE);
   END_ASSEMBLY(AE);
@@ -617,7 +616,7 @@ function test()
     @test count(fens) == 8820
 
     bfes = meshboundary(fes)
-    startnode = bfes.conn[1,1]
+    startnode = bfes.conn[1][1]
     lb = selectelem(fens, bfes, flood=true, startnode=startnode)
     # println("$(length(lb))")
     @test length(lb) == 3120
@@ -671,7 +670,7 @@ function test()
     # @test count(fens) == 8820
 
     bfes = meshboundary(fes)
-    startnode = bfes.conn[1,1]
+    startnode = bfes.conn[1][1]
     lb = selectelem(fens, bfes, flood=true, startnode=startnode)
     # println("$(lb)")
     @test length(lb) == 80
@@ -783,7 +782,7 @@ function test()
   ASSEMBLY(AE, "ASSEM1");
   INSTANCE(AE, "INSTNC1", "PART1");
   NODE(AE, fens.xyz);
-  ELEMENT(AE, "c3d8rh", "AllElements", 1, fes.conn)
+  ELEMENT(AE, "c3d8rh", "AllElements", 1, connasarray(fes))
   END_INSTANCE(AE);
   END_ASSEMBLY(AE);
   STEP_PERTURBATION_BUCKLE(AE, 1)
@@ -1160,9 +1159,9 @@ function test()
     fens = FENodeSet(X);
     fes = FESetQ4(reshape([1 2 3 4], 1, 4))
     pt = [0.1 0.2]
-    pc, success = map2parametric(fes, fens.xyz[fes.conn[1, :], :], vec(pt))
+    pc, success = map2parametric(fes, fens.xyz[[i for i in fes.conn[1]], :], vec(pt))
     N = bfun(fes,  pc)
-    pt1 = transpose(N) * fens.xyz[fes.conn[1, :], :]
+    pt1 = transpose(N) * fens.xyz[[i for i in fes.conn[1]], :]
     # println("pt = $(pt)")
     # println("pt1 = $(pt1)")
     @test norm(pt - pt1) < 1.0e-7
@@ -1179,11 +1178,11 @@ function test()
     fens = FENodeSet(X);
     fes = FESetQ4(reshape([1 2 3 4], 1, 4))
     pt = [3.1 0.2]
-    pc, success = map2parametric(fes, fens.xyz[fes.conn[1, :], :], vec(pt);
+    pc, success = map2parametric(fes, fens.xyz[[i for i in fes.conn[1]], :], vec(pt);
         Tolerance = 0.000001, maxiter =7)
     # println("pc = $(pc)")
     N = bfun(fes,  pc)
-    pt1 = transpose(N) * fens.xyz[fes.conn[1, :], :]
+    pt1 = transpose(N) * fens.xyz[[i for i in fes.conn[1]], :]
     # println("pt = $(pt)")
     # println("pt1 = $(pt1)")
     @test norm(pt - pt1) < 1.0e-7
@@ -1289,7 +1288,7 @@ function test()
 
     fc = ElementalField(zeros(count(fesc), 1))
     for i = 1:count(fesc)
-        c = view(fesc.conn, i, :)
+        c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
         fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
@@ -1310,7 +1309,7 @@ function test()
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
     for i = 1:count(fesf)
-        c = view(fesf.conn, i, :)
+        c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
         referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
@@ -1366,7 +1365,7 @@ Meshing = T4blockx
 
     fc = ElementalField(zeros(count(fesc), 1))
     for i = 1:count(fesc)
-        c = view(fesc.conn, i, :)
+        c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
         fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
@@ -1387,7 +1386,7 @@ Meshing = T4blockx
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
     for i = 1:count(fesf)
-        c = view(fesf.conn, i, :)
+        c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
         referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
@@ -1444,7 +1443,7 @@ Meshing = H20blockx
 
     fc = ElementalField(zeros(count(fesc), 1))
     for i = 1:count(fesc)
-        c = view(fesc.conn, i, :)
+        c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
         fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
@@ -1465,7 +1464,7 @@ Meshing = H20blockx
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
     for i = 1:count(fesf)
-        c = view(fesf.conn, i, :)
+        c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
         referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
@@ -1521,7 +1520,7 @@ Meshing = H8blockx
 
     fc = ElementalField(zeros(count(fesc), 1))
     for i = 1:count(fesc)
-        c = view(fesc.conn, i, :)
+        c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
         fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
@@ -1542,7 +1541,7 @@ Meshing = H8blockx
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
     for i = 1:count(fesf)
-        c = view(fesf.conn, i, :)
+        c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
         referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
@@ -1598,7 +1597,7 @@ Meshing = H27blockx
 
     fc = ElementalField(zeros(count(fesc), 1))
     for i = 1:count(fesc)
-        c = view(fesc.conn, i, :)
+        c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
         fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
@@ -1619,7 +1618,7 @@ Meshing = H27blockx
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
     for i = 1:count(fesf)
-        c = view(fesf.conn, i, :)
+        c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
         referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
@@ -1675,7 +1674,7 @@ Meshing = Q4blockx
 
     fc = ElementalField(zeros(count(fesc), 1))
     for i = 1:count(fesc)
-        c = view(fesc.conn, i, :)
+        c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y = centroid
         fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
@@ -1696,7 +1695,7 @@ Meshing = Q4blockx
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
     for i = 1:count(fesf)
-        c = view(fesf.conn, i, :)
+        c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y = centroid
         referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
@@ -1752,7 +1751,7 @@ Meshing = Q8blockx
 
     fc = ElementalField(zeros(count(fesc), 1))
     for i = 1:count(fesc)
-        c = view(fesc.conn, i, :)
+        c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y = centroid
         fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
@@ -1773,7 +1772,7 @@ Meshing = Q8blockx
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
     for i = 1:count(fesf)
-        c = view(fesf.conn, i, :)
+        c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y = centroid
         referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
@@ -1829,7 +1828,7 @@ Meshing = T3blockx
 
     fc = ElementalField(zeros(count(fesc), 1))
     for i = 1:count(fesc)
-        c = view(fesc.conn, i, :)
+        c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y = centroid
         fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
@@ -1850,7 +1849,7 @@ Meshing = T3blockx
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
     for i = 1:count(fesf)
-        c = view(fesf.conn, i, :)
+        c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y = centroid
         referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
@@ -1906,7 +1905,7 @@ Meshing = T6blockx
 
     fc = ElementalField(zeros(count(fesc), 1))
     for i = 1:count(fesc)
-        c = view(fesc.conn, i, :)
+        c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y = centroid
         fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
@@ -1927,7 +1926,7 @@ Meshing = T6blockx
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
     for i = 1:count(fesf)
-        c = view(fesf.conn, i, :)
+        c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y = centroid
         referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
@@ -1982,7 +1981,7 @@ Meshing = L2blockx
 
     fc = ElementalField(zeros(count(fesc), 1))
     for i = 1:count(fesc)
-        c = view(fesc.conn, i, :)
+        c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x = centroid
         fc.values[i, :] = sin.(2*x/A)
@@ -2001,7 +2000,7 @@ Meshing = L2blockx
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
     for i = 1:count(fesf)
-        c = view(fesf.conn, i, :)
+        c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x = centroid
         referenceff.values[i, :] = sin.(2*x/A)
@@ -2057,7 +2056,7 @@ Meshing = L3blockx
 
     fc = ElementalField(zeros(count(fesc), 1))
     for i = 1:count(fesc)
-        c = view(fesc.conn, i, :)
+        c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x = centroid
         fc.values[i, :] = sin.(2*x/A)
@@ -2076,7 +2075,7 @@ Meshing = L3blockx
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
     for i = 1:count(fesf)
-        c = view(fesf.conn, i, :)
+        c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x = centroid
         referenceff.values[i, :] = sin.(2*x/A)
@@ -2884,7 +2883,7 @@ a = 0.15;
 nL=46; nW=46; na=36;
 
 fens,fes = T4block(a,L,W,nL,nW,na,:a);
-t = deepcopy(fes.conn);
+t = connasarray(fes);
 v = deepcopy(fens.xyz);
 tmid = ones(Int, size(t,1));
 
@@ -2903,7 +2902,7 @@ t, v, tmid = TetRemeshingModule.coarsen(t, v, tmid; bv = bv, desired_ts = desire
 @test size(t,1) == 75102
 
 fens.xyz = deepcopy(v)
-fes.conn = deepcopy(t)
+fes = fromarray!(fes, t)
 setlabel!(fes, tmid)
 geom  =  NodalField(fens.xyz)
 

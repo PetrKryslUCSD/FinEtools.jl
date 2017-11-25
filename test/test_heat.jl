@@ -515,11 +515,11 @@ function test()
   geom = modeldata["geom"]
   Temp = modeldata["temp"]
   regions = modeldata["regions"]
-  vtkexportmesh("T4NAFEMS--T6.vtk", regions[1]["femm"].integdata.fes.conn,
+  vtkexportmesh("T4NAFEMS--T6.vtk", connasarray(regions[1]["femm"].integdata.fes),
   [geom.values Temp.values/100], FinEtools.MeshExportModule.T6;
   scalars=[("Temperature", Temp.values)])
   try  rm("T4NAFEMS--T6.vtk"); catch end
-  vtkexportmesh("T4NAFEMS--T6--base.vtk", regions[1]["femm"].integdata.fes.conn,
+  vtkexportmesh("T4NAFEMS--T6--base.vtk", connasarray(regions[1]["femm"].integdata.fes),
   [geom.values 0.0*Temp.values/100], FinEtools.MeshExportModule.T6)
   try rm("T4NAFEMS--T6--base.vtk"); catch end
   # ##
@@ -693,11 +693,11 @@ function test()
   geom = modeldata["geom"]
   Temp = modeldata["temp"]
   regions = modeldata["regions"]
-  vtkexportmesh("T4NAFEMS--T3.vtk", regions[1]["femm"].integdata.fes.conn,
+  vtkexportmesh("T4NAFEMS--T3.vtk", connasarray(regions[1]["femm"].integdata.fes),
   [geom.values Temp.values/100], FinEtools.MeshExportModule.T3;
   scalars=[("Temperature", Temp.values)])
   rm("T4NAFEMS--T3.vtk")
-  vtkexportmesh("T4NAFEMS--T3--base.vtk", regions[1]["femm"].integdata.fes.conn,
+  vtkexportmesh("T4NAFEMS--T3--base.vtk", connasarray(regions[1]["femm"].integdata.fes),
   [geom.values 0.0*Temp.values/100], FinEtools.MeshExportModule.T3)
   rm("T4NAFEMS--T3--base.vtk")
   # ##
@@ -1381,7 +1381,7 @@ function test()
   # println("Total time elapsed = ", time() - t0, "s")
 
   File =  "annulusq8.vtk"
-  vtkexportmesh(File,  fes.conn,  [geom.values Temp.values],
+  vtkexportmesh(File,  connasarray(fes),  [geom.values Temp.values],
   FinEtools.MeshExportModule.Q8; scalars=[("Temperature", Temp.values)])
   try rm(File); catch end
   # println("Minimum/maximum temperature= $(minimum(Temp.values))/$(maximum(Temp.values)))")

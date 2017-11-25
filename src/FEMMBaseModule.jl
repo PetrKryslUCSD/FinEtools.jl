@@ -20,6 +20,7 @@ using FinEtools.ForceIntensityModule
 using FinEtools.CSysModule
 using FinEtools.IntegDataModule
 using FinEtools.AssemblyModule
+using FinEtools.MatrixUtilityModule: locjac!
 
 """
     FEMMAbstractBase
@@ -75,17 +76,15 @@ Integrate a nodal-field function over the discrete manifold.
 function integratefieldfunction(self::FEMMAbstractBase,
     geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R;
     m::FInt=-1) where {T<:Number, FL<:NodalField{T}, R, F<:Function}
-    integdata = self.integdata                # finite elements
+    fes = self.integdata.fes  # finite elements
     # Constants
-    nfes = count(integdata.fes); # number of finite elements in the set
+    nfes = count(fes); # number of finite elements in the set
     ndn = ndofs(afield); # number of degrees of freedom per node
-    nne = nodesperelem(integdata.fes); # number of nodes per element
+    nne = nodesperelem(fes); # number of nodes per element
     sdim = ndofs(geom);            # number of space dimensions
-    mdim = manifdim(integdata.fes);     # manifold dimension of the element
+    mdim = manifdim(fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc = integrationdata(integdata);
-    conn = zeros(FInt,nne,1); # element nodes -- used as a buffer
-    x = zeros(FFlt,nne,sdim); # array of node coordinates -- used as a buffer
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdata);
     a = zeros(FFlt,nne,ndn); # array of field DOFS-- used as a buffer
     loc = zeros(FFlt,1,sdim); # quadrature point location -- used as a buffer
     val = zeros(FFlt,1,ndn); # field value at the point -- used as a buffer
@@ -96,15 +95,12 @@ function integratefieldfunction(self::FEMMAbstractBase,
         m=mdim;# ...Or it is implied
     end
     result = initial;           # initial value for the result
-    for i=1:count(integdata.fes) #Now loop over all fes in the block
-        getconn!(integdata.fes,conn,i);
-        gathervalues_asmat!(geom,x,conn);# retrieve element coordinates
-        gathervalues_asmat!(afield,a,conn);# retrieve element dofs
+    for i=1:count(fes) #Now loop over all fes in the block
+        gathervalues_asmat!(afield, a, fes.conn[i]);# retrieve element dofs
         for j = 1:npts #Loop over all integration points
-            At_mul_B!(loc, Ns[j], x);# Quadrature point location
+            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
             At_mul_B!(val, Ns[j], a);# Field value at the quadrature point
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac = Jacobianmdim(integdata, J, loc, conn,  Ns[j], m);
+            Jac = Jacobianmdim(self.integdata, J, loc, fes.conn[i],  Ns[j], m);
             result = result + fh(loc,val)*Jac*w[j];
         end
     end
@@ -118,20 +114,16 @@ end
 
 Integrate a elemental-field function over the discrete manifold.
 """
-function integratefieldfunction(self::FEMMAbstractBase,
-    geom::NodalField{FFlt},  afield::FL, fh::F, initial::R;
-    m::FInt=-1) where {T<:Number, FL<:ElementalField{T}, R, F<:Function}
-    integdata = self.integdata                # finite elements
+function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R; m::FInt=-1) where {T<:Number, FL<:ElementalField{T}, R, F<:Function}
+    fes = self.integdata.fes  # finite elements
     # Constants
-    nfes = count(integdata.fes); # number of finite elements in the set
+    nfes = count(fes); # number of finite elements in the set
     ndn = ndofs(afield); # number of degrees of freedom per node
-    nne = nodesperelem(integdata.fes); # number of nodes per element
+    nne = nodesperelem(fes); # number of nodes per element
     sdim = ndofs(geom);            # number of space dimensions
-    mdim = manifdim(integdata.fes);     # manifold dimension of the element
+    mdim = manifdim(fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc = integrationdata(integdata);
-    conn = zeros(FInt,nne,1); # element nodes -- used as a buffer
-    x = zeros(FFlt,nne,sdim); # array of node coordinates -- used as a buffer
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdata);
     a = zeros(FFlt,nne,ndn); # array of field DOFS-- used as a buffer
     loc = zeros(FFlt,1,sdim); # quadrature point location -- used as a buffer
     J = eye(FFlt,sdim,mdim); # Jacobian matrix -- used as a buffer
@@ -141,14 +133,11 @@ function integratefieldfunction(self::FEMMAbstractBase,
         m = mdim;# ...Or it is implied
     end
     result = initial;           # initial value for the result
-    for i=1:count(integdata.fes) #Now loop over all fes in the block
-        getconn!(integdata.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
+    for i=1:count(fes) #Now loop over all fes in the block
         gathervalues_asmat!(afield, a, [i]);# retrieve element dofs
         for j = 1:npts #Loop over all integration points
-            At_mul_B!(loc, Ns[j], x);# Quadrature point location
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac = Jacobianmdim(integdata, J, loc, conn,  Ns[j], m);
+            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobianmdim(self.integdata, J, loc, fes.conn[i],  Ns[j], m);
             result = result + fh(loc, a)*Jac*w[j];
         end
     end
@@ -189,31 +178,25 @@ mass=V*rhos;
 Inertia=I*rhos;
 ```
 """
-function integratefunction(self::FEMMAbstractBase,
-    geom::NodalField{FFlt}, fh::F, m::FInt = -1) where {F<:Function}
-    integdata =self.integdata;
+function integratefunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, fh::F, m::FInt = -1) where {F<:Function}
+    fes = self.integdata.fes
     if m < 0
-        m = manifdim(integdata.fes);  # native  manifold dimension
+        m = manifdim(fes);  # native  manifold dimension
     end
     # Constants
-    nfes = count(integdata.fes); # number of finite elements in the set
-    nne = nodesperelem(integdata.fes); # number of nodes per element
+    nfes = count(fes); # number of finite elements in the set
+    nne = nodesperelem(fes); # number of nodes per element
     sdim = ndofs(geom);            # number of space dimensions
-    mdim = manifdim(integdata.fes);     # manifold dimension of the element
+    mdim = manifdim(fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc = integrationdata(integdata);
-    conn = zeros(FInt, nne, 1); # element nodes -- used as a buffer
-    x = zeros(FFlt, nne, sdim); # array of node coordinates -- used as a buffer
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdata);
     loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
     J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
     result = 0.0;# Initialize the result
-    for i = 1:count(integdata.fes)  # Now loop over all fes in the set
-        getconn!(integdata.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
+    for i = 1:count(fes)  # Now loop over all fes in the set
         for j=1:npts #Loop over all integration points
-            At_mul_B!(loc, Ns[j], x);# Quadrature points location
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac = Jacobianmdim(integdata, J, loc, conn,  Ns[j], m);
+            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobianmdim(self.integdata, J, loc, fes.conn[i],  Ns[j], m);
             result = result + fh(vec(loc))*Jac*w[j];
         end
     end
@@ -233,9 +216,7 @@ Transfer a nodal field from a coarse mesh to a finer one.
 `fesc` = finite element set for the coarse mesh
 `tolerance` = tolerance in physical space for searches of the adjacent nodes
 """
-function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
-    fc::F, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
-    )  where {T<:Number, F<:NodalField{T}}
+function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENodeSet, fesc::FESet,  tolerance::FFlt)  where {T<:Number, F<:NodalField{T}}
     fill!(ff.values, Inf) # the "infinity" value indicates a missed node
     @assert count(fensf) == nents(ff)
     parametrictol = 0.01
@@ -277,7 +258,7 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
                     nodebox = inflatebox!(nodebox, tolerance)
                     el = selectelem(fenscsub, fescsub; overlappingbox = nodebox)
                     for e = el
-                        c = view(fescsub.conn, e, :)
+                        c = [k for k in fescsub.conn[e]] #c = view(fescsub.conn, e, :)
                         pc, success = map2parametric(fescsub, fenscsub.xyz[c, :],
                             vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
                         @assert success # this shouldn't be tripped; normally we succeed
@@ -355,23 +336,21 @@ Transfer a elemental field from a coarse mesh to a finer one.
 `fesc` = finite element set for the coarse mesh
 `tolerance` = tolerance in physical space for searches of the adjacent nodes
 """
-function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
-    fc::F, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
-    )  where {T<:Number, F<:ElementalField{T}}
+function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENodeSet, fesc::FESet,  tolerance::FFlt)  where {T<:Number, F<:ElementalField{T}}
     @assert count(fesf) == nents(ff)
     nodebox = initbox!([], vec(fensc.xyz[1, :]))
     centroidpc = centroidparametric(fesf)
     N = bfun(fesf, centroidpc)
     NT = transpose(N)
     for i = 1:count(fesf) # For all finite elements in the fine mesh
-        c = view(fesf.conn, i, :)
+        c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         nodebox = initbox!(nodebox, vec(centroid))
         nodebox = inflatebox!(nodebox, tolerance)
         el = selectelem(fensc, fesc; overlappingbox = nodebox)
         foundone = false
         for e = el
-            c = view(fesc.conn, e, :)
+            c = [k for k in fesc.conn[e]]
             pc, success = map2parametric(fesc, fensc.xyz[c, :],
                 vec(centroid); Tolerance = 0.000001, maxiter =9)
             # if !success
@@ -410,33 +389,28 @@ function distribloads(self::FEMM, assembler::A,
     P::NodalField{T},
     fi::ForceIntensity,
     m::FInt) where {FEMM<:FEMMAbstractBase, T<:Number, A<:SysvecAssemblerBase}
-    integdata = self.integdata;         # the geometry data
+    fes = self.integdata.fes
     # Constants
-    nfes = count(integdata.fes); # number of finite elements in the set
+    nfes = count(fes); # number of finite elements in the set
     ndn = ndofs(P); # number of degrees of freedom per node
-    nne = nodesperelem(integdata.fes); # number of nodes per element
+    nne = nodesperelem(fes); # number of nodes per element
     sdim = ndofs(geom);            # number of space dimensions
-    mdim = manifdim(integdata.fes);     # manifold dimension of the element
+    mdim = manifdim(fes);     # manifold dimension of the element
     Cedim = ndn*nne;       # dimension of the element matrix/vector
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc = integrationdata(integdata);
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdata);
     # Prepare some buffers:
-    conn = zeros(FInt,nne,1); # element nodes -- used as a buffer
-    x = zeros(FFlt,nne,sdim); # array of node coordinates -- used as a buffer
     dofnums = zeros(FInt,1,Cedim); # degree of freedom array -- used as a buffer
     loc = zeros(FFlt,1,sdim); # quadrature point location -- used as a buffer
     J = eye(FFlt,sdim,mdim); # Jacobian matrix -- used as a buffer
     Fe = zeros(T,Cedim);
     startassembly!(assembler, P.nfreedofs);
     for i = 1:nfes # Loop over elements
-        getconn!(integdata.fes, conn, i);
-        gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
         fill!(Fe, 0.0);
         for j = 1:npts
-            At_mul_B!(loc, Ns[j], x);# Quadrature point location
-            At_mul_B!(J, x, gradNparams[j]); # calculate the Jacobian matrix
-            Jac = Jacobianmdim(integdata, J, loc, conn,  Ns[j], m);
-            updateforce!(fi, loc, J, integdata.fes.label[i]); # retrieve the applied load
+            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobianmdim(self.integdata, J, loc, fes.conn[i],  Ns[j], m);
+            updateforce!(fi, loc, J, fes.label[i]); # retrieve the applied load
             Factor::FFlt = (Jac * w[j]);
             NkxF::FFlt = 0.0
             rx::FInt=1;
@@ -448,7 +422,7 @@ function distribloads(self::FEMM, assembler::A,
                 end
             end
         end
-        gatherdofnums!(P, dofnums, conn);
+        gatherdofnums!(P, dofnums, fes.conn[i]);
         assemble!(assembler, Fe, dofnums);
     end
     F = makevector!(assembler);
@@ -473,17 +447,18 @@ The matrix has a nonzero in all the rows and columns which correspond to nodes
 connected by some finite element.
 """
 function connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:FEMMAbstractBase}
-    nfes = size(self.integdata.fes.conn,1)
-    nconns = size(self.integdata.fes.conn,2)
+    fes = self.integdata.fes
+    nfes = length(fes.conn)
+    nconns = nodesperelem(fes)
     N = nfes*nconns*nconns
     rb = FInt[]; sizehint!(rb, N)
     cb = FInt[]; sizehint!(cb, N)
     vb = ones(FInt, N);
     @inbounds for  j = 1:nfes
         @inbounds for  k = 1:nconns
-            append!(rb, self.integdata.fes.conn[j, :])
+            append!(rb, fes.conn[j])
             @inbounds for  m = 1:nconns
-                push!(cb, self.integdata.fes.conn[j, k])
+                push!(cb, fes.conn[j][k])
             end
         end
     end
@@ -525,7 +500,7 @@ end
 
 struct AveragingInspectorData
     component::FIntVec
-    d::FFltVec # nodesperelem(integdata.fes)
+    d::FFltVec # nodesperelem(fes)
     ncontrib::FIntVec # nnodes(geom)
     sum_quant::FFltMat # nnodes(geom) x length(component)
 end
@@ -577,9 +552,9 @@ function fieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
     dT::NodalField{FFlt},  quantity::Symbol,  component::FIntVec;
     context...) where {FEMM<:FEMMAbstractBase, T<:Number}
-    integdata = self.integdata
+    fes = self.integdata.fes
     # Constants
-    nne = nodesperelem(integdata.fes); # number of nodes for element
+    nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
     nodevalmethod = :invdistance
     reportat = :default
@@ -602,7 +577,7 @@ function fieldfromintegpoints(self::FEMM,
         );
         # Loop over cells to interpolate to nodes
         idat = inspectintegpoints(self,  geom,  u,  dT,
-            collect(1:count(integdata.fes)),  _avg_inspector,  idat, quantity;
+            collect(1:count(fes)),  _avg_inspector,  idat, quantity;
             context...);
         # The data for the field to be constructed is initialized
         nvals = zeros(FFlt, nnodes(geom), length(component));
@@ -626,7 +601,7 @@ function fieldfromintegpoints(self::FEMM,
         );
         # Loop over cells to interpolate to nodes
         idat = inspectintegpoints(self,  geom,  u,  dT,
-            collect(1:count(integdata.fes)),  _idi_inspector,  idat, quantity;
+            collect(1:count(fes)),  _idi_inspector,  idat, quantity;
             context...);
         # The data for the field to be constructed is initialized
         nvals = zeros(FFlt, nnodes(geom), length(component));
@@ -696,14 +671,14 @@ function elemfieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
     dT::NodalField{FFlt},  quantity::Symbol,  component::FIntVec;
     context...) where {FEMM<:FEMMAbstractBase, T<:Number}
-    integdata = self.integdata
+    fes = self.integdata.fes
     # Constants
-    nne = nodesperelem(integdata.fes); # number of nodes for element
+    nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
     # Container of intermediate results
     idat = MeanValueInspectorData(
-    zeros(FInt, count(integdata.fes)),
-    zeros(FFlt, count(integdata.fes), length(component))
+    zeros(FInt, count(fes)),
+    zeros(FFlt, count(fes), length(component))
     );
     # This is an mean-value interpolation inspector. The mean of the
     # quadrature-point quantities is reported per element.
@@ -719,10 +694,10 @@ function elemfieldfromintegpoints(self::FEMM,
     end
     # Loop over cells to interpolate to nodes
     idat = inspectintegpoints(self,  geom,  u,  dT,
-        collect(1:count(integdata.fes)), mv_inspector,  idat, quantity;
+        collect(1:count(fes)), mv_inspector,  idat, quantity;
         context...);
     # The data for the field to be constructed is initialized
-    evals = zeros(FFlt, count(integdata.fes), length(component));
+    evals = zeros(FFlt, count(fes), length(component));
     # compute the data array
     for j = 1:size(evals, 1)
         for kkk = 1:size(evals, 2)

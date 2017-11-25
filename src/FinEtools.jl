@@ -33,7 +33,7 @@ export CSys, updatecsmat!
 include("FESetModule.jl")
 using FinEtools.FESetModule
 export FESet,  FESet0Manifold,  FESet1Manifold,  FESet2Manifold,  FESet3Manifold
-export manifdim, nodesperelem, count, getconn!, setlabel!, subset, cat, updateconn!
+export manifdim, nodesperelem, count, fromarray!, connasarray, setlabel!, subset, cat, updateconn!
 export bfun, bfundpar, map2parametric, inparametric, centroidparametric
 export FESetP1
 export FESetL2, FESetL3

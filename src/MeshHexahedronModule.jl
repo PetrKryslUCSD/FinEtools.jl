@@ -131,7 +131,7 @@ function H8sphere(radius::FFlt, nrefine::FInt)
             fens.xyz[cn[j], :]=fens.xyz[cn[j], :]*radius/norm(fens.xyz[cn[j], :]);
         end
     end
-     return fens,  fes
+    return fens,  fes
 end
 
 """
@@ -141,7 +141,7 @@ Refine a mesh of H8 hexahedrals by octasection.
 """
 function H8refine(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
     fens, fes = H8toH27(fens, fes);
-    conn=fes.conn;
+    conn=connasarray(fes);
     nconn=zeros(FInt, 8*size(conn, 1), 8);
     nc=1;
     for i= 1:size(conn, 1)
@@ -175,7 +175,7 @@ function   H8toH27(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
         3     4     8     7;
         4     1     5     8;
         6     7     8     5];
-    conns = fes.conn;
+    conns = connasarray(fes);
     labels = deepcopy(fes.label)
     # Additional node numbers are numbered from here
     newn=FENodeSetModule.count(fens)+1;
@@ -336,6 +336,7 @@ function doextrude(fens, fes::FESetQ4, nLayers, extrusionh)
     nnt=nn1*nLayers;
     ngc=count(fes)*nLayers;
     hconn=zeros(FInt, ngc, 8);
+    conn = connasarray(fes)
     xyz =zeros(FFlt, nn1*(nLayers+1), 3);
     for j=1:nn1
         xyz[j, :] =extrusionh(fens.xyz[j, :], 0);
@@ -350,7 +351,7 @@ function doextrude(fens, fes::FESetQ4, nLayers, extrusionh)
     gc=1;
     for k=1:nLayers
         for i=1:count(fes)
-            hconn[gc, :]=[broadcast(+, fes.conn[i, :], (k-1)*nn1) broadcast(+, fes.conn[i, :], k*nn1)];
+            hconn[gc, :]=[broadcast(+, conn[i, :], (k-1)*nn1) broadcast(+, conn[i, :], k*nn1)];
             gc=gc+1;
         end
     end
@@ -432,7 +433,7 @@ function H8spheren(radius::FFlt, nperradius::FInt)
 
     xyz = deepcopy(fens.xyz);
     layer = broadcast(+, zeros(FFlt, size(xyz,  1), 1), oftype(1.0, Inf));
-    conn = deepcopy(fes.conn);
+    conn = deepcopy(connasarray(fes));
     bg = meshboundary(fes);
     l = selectelem(fens, bg; facing=true,  direction=[1. 1. 1.], dotmin = 0.01);
     cn = connectednodes(subset(bg, l))   ;
@@ -497,7 +498,7 @@ Convert a mesh of hexahedra H8 to hexahedra H20.
 function   H8toH20(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
     nedges=12;
     ec = [1   2; 2   3; 3   4; 4   1; 5   6; 6   7; 7   8; 8   5; 1   5; 2   6; 3   7; 4   8;];
-    conns = fes.conn;
+    conns = connasarray(fes);
     labels = deepcopy(fes.label)
     # Additional node numbers are numbered from here
     newn=FENodeSetModule.count(fens)+1;

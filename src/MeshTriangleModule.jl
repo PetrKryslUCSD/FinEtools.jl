@@ -85,7 +85,7 @@ Convert a mesh of triangle T3 (three-node) to triangle T6.
 function T3toT6(fens::FENodeSetModule.FENodeSet, fes::FESetModule.FESetT3)
     nedges=3;
     ec = [1 2; 2 3; 3 1];
-    conns = fes.conn;
+    conns = connasarray(fes);
     # Additional node numbers are numbered from here
     newn=FENodeSetModule.count(fens)+1;
     # make a search structure for edges
@@ -164,9 +164,10 @@ function Q4toT3(fens::FENodeSet, fes::FESetQ4, orientation::Symbol=:default)
     end
     nedges=4;
     nconns=zeros(FInt,2*count(fes),3);
+    conns = connasarray(fes)
     nc=1;
-    for i= 1:count(fes)
-        conn = fes.conn[i,:];
+    for i= 1:size(conns, 1)
+        conn = conns[i,:];
         nconns[nc,:] =conn[connl1];
         nc= nc+ 1;
         nconns[nc,:] =conn[connl2];
@@ -184,9 +185,10 @@ Refine a mesh of 3-node tetrahedra by quadrisection.
 function T3refine(fens::FENodeSet,fes::FESetT3)
     fens,fes = T3toT6(fens,fes);
     nconn=zeros(FInt,4*size(fes.conn,1),3);
+    conns = connasarray(fes)
     nc=1;
-    for i= 1:size(fes.conn,1)
-        c=fes.conn[i,:];
+    for i= 1:size(conns,1)
+        c=conns[i,:];
         nconn[nc,:] =c[[1,4,6]];        nc= nc+ 1;
         nconn[nc,:] =c[[2,5,4]];        nc= nc+ 1;
         nconn[nc,:] =c[[3,6,5]];        nc= nc+ 1;

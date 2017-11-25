@@ -203,7 +203,7 @@ Convert a mesh of quadrilateral Q4 to quadrilateral Q8.
 function Q4toQ8(fens::FENodeSet, fes::FESetQ4)
     nedges=4;
     ec = [1  2; 2  3; 3  4; 4  1];
-    conns = fes.conn;
+    conns = connasarray(fes);
     # Additional node numbers are numbered from here
     newn = count(fens)+1;
     # make a search structure for edges
@@ -271,14 +271,13 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
     newn=FENodeSetModule.count(fens)+1;
     # make a search structure for edges
     edges=MeshUtilModule.makecontainer();
-    for i= 1:size(fes.conn,1)
-        conn = fes.conn[i,:];
+    for i= 1:length(fes.conn)
         for J = 1:nedges
-            ev=conn[ec[J,:]];
+            ev=fes.conn[i][ec[J,:]];
             newn = MeshUtilModule.addhyperface!(edges, ev, newn);
         end
     end
-    newn=  newn+size(fes.conn,1) # add the interior nodes to the total
+    newn=  newn+length(fes.conn) # add the interior nodes to the total
     xyz1 =fens.xyz;             # Pre-existing nodes
     # Allocate for vertex nodes plus edge nodes plus face nodes
     xyz =zeros(FFlt,newn-1,size(xyz1,2));
@@ -294,26 +293,27 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
         end
     end
     # construct new geometry cells: for new elements out of one old one
-    nconn =zeros(FInt,4*size(fes.conn,1),4);
+    nconn =zeros(FInt,4*length(fes.conn),4);
     nc=1;
-    for i= 1:size(fes.conn,1)
-        conn = fes.conn[i,:];
+    for i= 1:length(fes.conn)
         econn=zeros(FInt,1,nedges);
         for J = 1:nedges
-            ev=conn[ec[J,:]];
+            ev=fes.conn[i][ec[J,:]];
             h,n=MeshUtilModule.findhyperface!(edges, ev);
             econn[J]=n;
         end
-        inn=size(xyz,1)-size(fes.conn,1)+i
-        xyz[inn,:]=mean(xyz[conn[:],:],1); # interior node
+        
+        inn=size(xyz,1)-length(fes.conn)+i
+
+        xyz[inn,:]=mean(xyz[[k for k in fes.conn[i]],:],1); # interior node
         #h,inn=MeshUtilModule.findhyperface!(faces, conn);
-        nconn[nc,:] =[conn[1] econn[1] inn econn[4]];
+        nconn[nc,:] =[fes.conn[i][1] econn[1] inn econn[4]];
         nc= nc+ 1;
-        nconn[nc,:] =[conn[2] econn[2] inn econn[1]];
+        nconn[nc,:] =[fes.conn[i][2] econn[2] inn econn[1]];
         nc= nc+ 1;
-        nconn[nc,:] =[conn[3] econn[3] inn econn[2]];
+        nconn[nc,:] =[fes.conn[i][3] econn[3] inn econn[2]];
         nc= nc+ 1;
-        nconn[nc,:] =[conn[4] econn[4] inn econn[3]];
+        nconn[nc,:] =[fes.conn[i][4] econn[4] inn econn[3]];
         nc= nc+ 1;
     end
     fens =FENodeSetModule.FENodeSet(xyz);
