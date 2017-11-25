@@ -1,6 +1,7 @@
 module VoxelTetMeshingModule
 
 using FinEtools.FTypesModule
+using FinEtools.FESetModule
 using FinEtools.TetRemeshingModule
 using FinEtools.VoxelBoxModule
 using FinEtools.MeshTetrahedronModule
@@ -178,7 +179,7 @@ function mesh!(self::ImageMesher, stretch::FFlt = 1.2)
     if !self.havemesh
         fens, fes = T4voximg(self.box.data, vec([voxeldims(self.box)...]), self.notemptyvoxel)
         self.v = deepcopy(fens.xyz)
-        self.t = deepcopy(fes.conn)
+        self.t = connasarray(fes)
         self.tmid = deepcopy(fes.label)
         self.currentelementsize = mean(vec([voxeldims(self.box)...]))
         smooth!(self);

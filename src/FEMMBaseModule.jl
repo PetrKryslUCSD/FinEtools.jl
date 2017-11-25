@@ -137,7 +137,7 @@ function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, 
         gathervalues_asmat!(afield, a, [i]);# retrieve element dofs
         for j = 1:npts #Loop over all integration points
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
-            Jac = Jacobianmdim(self.integdata, J, loc, conn,  Ns[j], m);
+            Jac = Jacobianmdim(self.integdata, J, loc, fes.conn[i],  Ns[j], m);
             result = result + fh(loc, a)*Jac*w[j];
         end
     end
@@ -343,14 +343,14 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENo
     N = bfun(fesf, centroidpc)
     NT = transpose(N)
     for i = 1:count(fesf) # For all finite elements in the fine mesh
-        c = view(fesf.conn, i, :)
+        c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         nodebox = initbox!(nodebox, vec(centroid))
         nodebox = inflatebox!(nodebox, tolerance)
         el = selectelem(fensc, fesc; overlappingbox = nodebox)
         foundone = false
         for e = el
-            c = view(fesc.conn, e, :)
+            c = [k for k in fesc.conn[e]]
             pc, success = map2parametric(fesc, fensc.xyz[c, :],
                 vec(centroid); Tolerance = 0.000001, maxiter =9)
             # if !success

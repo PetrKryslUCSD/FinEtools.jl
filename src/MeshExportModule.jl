@@ -358,33 +358,33 @@ Write out the `*ELEMENT` option.
 `conn`= connectivity array for the elements, one row per element
 """
 function ELEMENT(self::AbaqusExporter, TYPE::AbstractString, ELSET::AbstractString,
-  start::Integer, conn::AbstractArray{T, 2}) where {T<:Integer}
-  # Check that start is valid
-  @assert start > 0 "The  starting element number must be > 0"
-  # Check that the current element number range is disjoint from the
-  # range of the elements on input: they must not overlap
-  @assert (self.element_range[2] < start) ||
-          (self.element_range[1] > start+size(conn, 1)-1) "Elements  must be given unique numbers"
-  # Update the element range
-  self.element_range = (min(self.element_range[1], start),
-                        max(self.element_range[2], start+size(conn, 1)-1))
-  println(self.ios, "*ELEMENT, TYPE =" * TYPE * ", ELSET=" * ELSET)
-  for j=1:size(conn,1)
-    print(self.ios, "$(j+start-1),")
-    for ixxxx = 1:size(conn,2)-1
-      if ixxxx>15
-        print(self.ios, "\n")
-      end
-      print(self.ios, "$(conn[j,ixxxx]),")
+    start::Integer, conn::AbstractArray{T, 2}) where {T<:Integer}
+    # Check that start is valid
+    @assert start > 0 "The  starting element number must be > 0"
+    # Check that the current element number range is disjoint from the
+    # range of the elements on input: they must not overlap
+    @assert (self.element_range[2] < start) ||
+            (self.element_range[1] > start+size(conn, 1)-1) "Elements  must be given unique numbers"
+    # Update the element range
+    self.element_range = (min(self.element_range[1], start),
+                            max(self.element_range[2], start+size(conn, 1)-1))
+    println(self.ios, "*ELEMENT, TYPE =" * TYPE * ", ELSET=" * ELSET)
+    for j=1:size(conn,1)
+        print(self.ios, "$(j+start-1),")
+        for ixxxx = 1:size(conn,2)-1
+        if ixxxx>15
+            print(self.ios, "\n")
+        end
+        print(self.ios, "$(conn[j,ixxxx]),")
+        end
+        print(self.ios, "$(conn[j,size(conn,2)])\n")
     end
-    print(self.ios, "$(conn[j,size(conn,2)])\n")
-  end
 end
 
 function ELEMENT(self::AbaqusExporter, TYPE::AbstractString, ELSET::AbstractString,
-  conn::AbstractArray{T, 2}) where {T<:Integer}
-  start = self.element_range[2] + 1
-  ELEMENT(self, TYPE, ELSET, start, conn)
+    conn::AbstractArray{T, 2}) where {T<:Integer}
+    start = self.element_range[2] + 1
+    ELEMENT(self, TYPE, ELSET, start, conn)
 end
 
 """

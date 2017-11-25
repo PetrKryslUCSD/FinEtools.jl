@@ -239,7 +239,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
             copy!(pfelist, felist);
             markedl = find(x -> x != 0, felist)
             for j = markedl
-                for k = fes.conn[j][:]
+                for k = fes.conn[j]
                     felist[fen2fe.map[k]] = 1;
                 end
             end
