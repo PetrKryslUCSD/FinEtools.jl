@@ -4,7 +4,7 @@
 
 The  finite element set is one of the basic entities in FinEtools.
 
-The finite element set is a collection of  finite elements defined by the connectivity (array of node numbers, listing the nodes connected by the element in  a specific order). The finite element set  provides  specialized methods  to compute values of basis functions and the values of  the gradients of the basis functions  with respect to the parametric coordinates.
+The finite element set is a collection of  finite elements defined by the connectivity (collection of node numbers, listing the nodes connected by the element in  a specific order). The finite element set  provides  specialized methods  to compute values of basis functions and the values of  the gradients of the basis functions  with respect to the parametric coordinates.
 
 ## Types
 
@@ -22,7 +22,7 @@ The concrete finite element set type provides specialized methods to compute the
     - `count`:  Get the number of individual connectivities in the FE set.
     - `setlabel!`: Set the label of the entire finite elements set.
     - `connasarray`: Retrieve  connectivity  as an integer array.
-    - `fromarray`: Set  connectivity from an integer array.
+    - `fromarray!`: Set  connectivity from an integer array.
     - `subset`: Extract a subset of the finite elements from the given finite element set.
     - `cat`: Concatenate the connectivities of two FE sets.
     - `updateconn!`: Update the connectivity after the IDs of nodes changed.
@@ -42,10 +42,3 @@ The concrete finite element set type provides specialized methods to compute the
     - `bfundpar`: Compute the values of the basis function gradients at a given parametric coordinate.
     - `inparametric`: Are given parametric coordinates inside the element parametric domain?
     - `centroidparametric`: Return the parametric coordinates  of the centroid of the element.
-
-
-
-
-
-
-
