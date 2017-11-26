@@ -849,7 +849,11 @@ function ssit(K, M; nev::Int=6, evshift::FFlt = 0.0,
     Mv = zeros(size(M, 1), size(v, 2))
     for i = 1:maxiter
         u = factor\(M*v)
-        v, r = qr(u; full=false)  # economy factorization
+        if VERSION < v"0.7-"
+            v, r = qr(u; thin=true)  # economy factorization
+        else    
+            v, r = qr(u; full=false)  # economy factorization
+        end
         A_mul_B!(Kv, K, v)
         A_mul_B!(Mv, M, v)
         for j = 1:nvecs
