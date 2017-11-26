@@ -696,7 +696,11 @@ function nodepartitioning(fens::FENodeSet, npartitions = 2)
     function inertialcut(ptng, X, level)
         Xmean = mean(X, 1);
         X = X .- Xmean  # move the center of the point cloud to the origin
-        U, S, V = svd(X, full=false);
+        if VERSION < v"0.7-"
+            U, S, V = svd(X, thin=true);
+        else
+            U, S, V = svd(X, full=false);
+        end
         v = V[:, 1];
         d = X * v
         c = classifypoints(d)
