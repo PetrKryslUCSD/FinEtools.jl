@@ -23,11 +23,7 @@ using FinEtools.ForceIntensityModule
 using FinEtools.AssemblyModule
 using FinEtools.DeforModelRedModule
 using FinEtools.MatDeforModule
-using FinEtools.MatrixUtilityModule.add_btdb_ut_only!
-using FinEtools.MatrixUtilityModule.complete_lt!
-using FinEtools.MatrixUtilityModule.mv_product!
-using FinEtools.MatrixUtilityModule.add_btv!
-using FinEtools.MatrixUtilityModule: locjac!
+using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, locjac!
 
 abstract type FEMMDeforLinearAbstract <: FEMMAbstractBase end
 
@@ -163,7 +159,7 @@ function nzebcloadsstiffness(self::FEMMDeforLinearAbstract,  assembler::A, geom:
             end # Loop over quadrature points
             complete_lt!(elmat)
             gatherdofnums!(u, dofnums, fes.conn[i]); # retrieve degrees of freedom
-            mv_product!(elvec, elmat, elvecfix)
+            A_mul_B!(elvec, elmat, elvecfix)
             assemble!(assembler,  -elvec,  dofnums); # assemble element load vector
         end
     end # Loop over elements

@@ -25,11 +25,7 @@ using FinEtools.AssemblyModule
 using FinEtools.DeforModelRedModule
 using FinEtools.MatDeforModule
 using FinEtools.MatDeforElastIsoModule
-using FinEtools.MatrixUtilityModule.add_btdb_ut_only!
-using FinEtools.MatrixUtilityModule.complete_lt!
-using FinEtools.MatrixUtilityModule.mv_product!
-using FinEtools.MatrixUtilityModule.add_btv!
-using FinEtools.MatrixUtilityModule: loc!, jac!, locjac!
+using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, loc!, jac!, locjac!
 import FinEtools.FEMMDeforLinearBaseModule.stiffness
 import FinEtools.FEMMDeforLinearBaseModule.nzebcloadsstiffness
 import FinEtools.FEMMDeforLinearBaseModule.mass

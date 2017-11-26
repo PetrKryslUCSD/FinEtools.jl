@@ -20,10 +20,7 @@ using FinEtools.NodalFieldModule
 using FinEtools.ForceIntensityModule
 using FinEtools.MatHeatDiffModule
 using FinEtools.AssemblyModule
-using FinEtools.MatrixUtilityModule.add_gkgt_ut_only!
-using FinEtools.MatrixUtilityModule.complete_lt!
-using FinEtools.MatrixUtilityModule.mv_product!
-using FinEtools.MatrixUtilityModule: locjac!
+using FinEtools.MatrixUtilityModule: add_gkgt_ut_only!, complete_lt!, locjac!
 
 # Type for heat diffusion finite element modeling machine.
 mutable struct FEMMHeatDiff{S<:FESet, F<:Function, M<:MatHeatDiff} <: FEMMAbstractBase
@@ -130,7 +127,7 @@ function nzebcloadsconductivity(self::FEMMHeatDiff, assembler::A,  geom::NodalFi
                 add_gkgt_ut_only!(elmat, gradN, (Jac*w[j]), kappa_bar, kappa_bargradNT)
             end # Loop over quadrature points
             complete_lt!(elmat)
-            mv_product!(elvec, elmat, elvecfix) # compute  the load vector
+            A_mul_B!(elvec, elmat, elvecfix) # compute  the load vector
             gatherdofnums!(temp, dofnums, fes.conn[i]); # retrieve degrees of freedom
             assemble!(assembler,  -elvec,  dofnums); # assemble element load vector
         end

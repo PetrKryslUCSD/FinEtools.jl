@@ -221,6 +221,19 @@ function gatherfixedvalues_asmat!(self::Field, dest::AbstractArray{T, 2},    con
     return dest
 end
 
+function anyfixedvaluenz(self::Field, conn::CC) where {CC}
+    for i = 1:length(conn)
+        for j = 1:size(self.fixed_values,2)
+            if self.is_fixed[conn[i],j] # free degree of freedom
+                if  abs(self.fixed_values[conn[i], j]) > 0.0
+                    return true
+                end 
+            end
+        end
+    end
+    return false
+end
+
 """
     gatherdofnums!(self::Field, dest::A, conn::CC) where {A, CC}
 

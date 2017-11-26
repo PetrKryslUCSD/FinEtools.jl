@@ -514,7 +514,7 @@ function vselect(v::FFltMat; args...)
     end
 
     # Initialize the output list
-    vlist= zeros(FInt,1,size(v,1)); nn= 0;
+    vlist= zeros(FInt, size(v,1)); nn= 0;
 
 
     # Process the different options
@@ -536,7 +536,7 @@ function vselect(v::FFltMat; args...)
           end
         end
     elseif distance != nothing
-        fromvalue =0*v[1,:];
+        fromvalue =fill!(deepcopy(v[1,:]), 0.0);
         if from!=nothing
             fromvalue = from;
         end

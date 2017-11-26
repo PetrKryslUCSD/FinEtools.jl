@@ -20,10 +20,7 @@ using FinEtools.NodalFieldModule
 using FinEtools.ForceIntensityModule
 using FinEtools.AssemblyModule
 using FinEtools.DeforModelRedModule
-using FinEtools.MatrixUtilityModule.add_nnt_ut_only!
-using FinEtools.MatrixUtilityModule.complete_lt!
-using FinEtools.MatrixUtilityModule.mv_product!
-using FinEtools.MatrixUtilityModule: locjac!
+using FinEtools.MatrixUtilityModule: add_nnt_ut_only!, complete_lt!, locjac!
 
 """
     FEMMDeforWinkler{S<:FESet, F<:Function}
