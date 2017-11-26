@@ -12,33 +12,6 @@ import Base.push!
 import Base.getindex
 import Base.copy!
 
-function dumparray(a::Array{T,1}, afile) where {T}
-    fid=open(afile * ".csv","w");
-    if (fid==-1)
-        error("Could not open " * afile)
-        return nothing
-    end
-    for i= 1:size(a, 1)
-        print(fid,a[i],"\n");
-    end
-    fid=close(fid);
-end
-
-function dumparray(a::Array{T,2}, afile) where {T}
-    fid=open(afile * ".csv","w");
-    if (fid==-1)
-        error("Could not open " * afile)
-        return nothing
-    end
-    for i= 1:size(a, 1)
-        for j= 1:size(a,2)-1
-            print(fid,a[i,j],",");
-        end
-        print(fid,a[i,end],",\n");
-    end
-    fid=close(fid);
-end
-
 """
     _IntegerBuffer
 
@@ -403,40 +376,6 @@ function availelist!(availe::_IntegerBuffer, selist::_IntegerBuffer, elayer::Vec
     return copy!(availe, trim!(selist, min(length(selist), maxnt))), newcurrvlayer
 end
 
-
-function t4_e2(t::Array{Int, 2})
-    ec = [  1  2
-            2  3
-            3  1
-            4  1
-            4  2
-            4  3];
-    e = vcat(t[:,ec[1,:]], t[:,ec[2,:]], t[:,ec[3,:]], t[:,ec[4,:]], t[:,ec[5,:]], t[:,ec[6,:]])
-    e = sort(e, 2);
-    ix = sortperm(e[:,1]);
-    e = e[ix,:];
-    ue = deepcopy(e)
-    i = 1;
-    n=1;
-    while n <= size(e,1)
-        c = ue[n,1];
-        m = n+1;
-        while m <= size(e,1)
-            if (ue[m,1] != c)
-                break; 
-            end
-            m = m+1;
-        end
-        us = unique(ue[n:m-1,2], 1);# the transcription below is a lot faster
-        ls =length(us);
-        e[i:i+ls-1,1] = c;
-        e[i:i+ls-1,2] = s;
-        i = i+ls;
-        n = m;
-    end
-    e = e[1:i-1,:];
-end
-
 function anynegvol1(t::Array{Int,2}, whichtets::Vector{Int}, vt::Array{Float64,2}, whichv::Int, otherv::Int)
     for iS1 in whichtets
         i1, i2, i3, i4 = t[iS1,:]; # nodes of the tetrahedron
@@ -455,83 +394,6 @@ function anynegvol1(t::Array{Int,2}, whichtets::Vector{Int}, vt::Array{Float64,2
         if tetvtimes6(vt[:,i1], vt[:,i2], vt[:,i3], vt[:,i4]) < 0.0
             return true
         end 
-    end
-    return false;
-end
-
-"""
-    anynegvol(t, v, whichv, v1)
-
-Check that the new location `v1` of the vertex `whichv` does not result 
-in a negative volume  for any of the tetrahedra connected to `whichv`.  
-
-This is a heavily used function, and hence speed and absence of
-memory allocation is at a premium.
-"""
-function anynegvol(t::Array{Int,2}, whichtets::Vector{Int}, vt::Array{Float64,2}, whichv::Int, otherv::Int)
-    i1, i2, i3, i4 = 0, 0, 0, 0
-    Volume6 = 0.0 # @inbounds Volume6 = let
-    for iS1 in whichtets
-        i1, i2, i3, i4 = t[iS1,:]; # nodes of the tetrahedron
-        if (i1 == whichv) 
-            @inbounds Volume6 = let
-                A1 = vt[1,i2]-vt[1,otherv]; 
-                A2 = vt[2,i2]-vt[2,otherv]; 
-                A3 = vt[3,i2]-vt[3,otherv]; 
-                B1 = vt[1,i3]-vt[1,otherv]; 
-                B2 = vt[2,i3]-vt[2,otherv]; 
-                B3 = vt[3,i3]-vt[3,otherv]; 
-                C1 = vt[1,i4]-vt[1,otherv]; 
-                C2 = vt[2,i4]-vt[2,otherv]; 
-                C3 = vt[3,i4]-vt[3,otherv]; 
-                ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3)
-            end
-        end
-        if (i2 == whichv) 
-            @inbounds Volume6 = let
-                A1 = vt[1,otherv]-vt[1,i1]; 
-                A2 = vt[2,otherv]-vt[2,i1]; 
-                A3 = vt[3,otherv]-vt[3,i1]; 
-                B1 = vt[1,i3]-vt[1,i1]; 
-                B2 = vt[2,i3]-vt[2,i1]; 
-                B3 = vt[3,i3]-vt[3,i1]; 
-                C1 = vt[1,i4]-vt[1,i1]; 
-                C2 = vt[2,i4]-vt[2,i1]; 
-                C3 = vt[3,i4]-vt[3,i1]; 
-                ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3)
-            end
-        end
-        if (i3 == whichv) 
-            @inbounds Volume6 = let
-                A1 = vt[1,i2]-vt[1,i1]; 
-                A2 = vt[2,i2]-vt[2,i1]; 
-                A3 = vt[3,i2]-vt[3,i1]; 
-                B1 = vt[1,otherv]-vt[1,i1]; 
-                B2 = vt[2,otherv]-vt[2,i1]; 
-                B3 = vt[3,otherv]-vt[3,i1]; 
-                C1 = vt[1,i4]-vt[1,i1]; 
-                C2 = vt[2,i4]-vt[2,i1]; 
-                C3 = vt[3,i4]-vt[3,i1]; 
-                ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3)
-            end
-        end
-        if (i4 == whichv) 
-            @inbounds Volume6 = let
-                A1 = vt[1,i2]-vt[1,i1]; 
-                A2 = vt[2,i2]-vt[2,i1]; 
-                A3 = vt[3,i2]-vt[3,i1]; 
-                B1 = vt[1,i3]-vt[1,i1]; 
-                B2 = vt[2,i3]-vt[2,i1]; 
-                B3 = vt[3,i3]-vt[3,i1]; 
-                C1 = vt[1,otherv]-vt[1,i1]; 
-                C2 = vt[2,otherv]-vt[2,i1]; 
-                C3 = vt[3,otherv]-vt[3,i1]; 
-                ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3)
-            end
-        end
-        if (Volume6 < 0)
-             return true;
-        end
     end
     return false;
 end
@@ -588,6 +450,144 @@ function cleanoutput(t::Array{Int,2}, v::Array{Float64,2}, tmid::Array{Int,1})
 end
 
 end # module
+
+# function t4_e2(t::Array{Int, 2})
+#     ec = [  1  2
+#             2  3
+#             3  1
+#             4  1
+#             4  2
+#             4  3];
+#     e = vcat(t[:,ec[1,:]], t[:,ec[2,:]], t[:,ec[3,:]], t[:,ec[4,:]], t[:,ec[5,:]], t[:,ec[6,:]])
+#     e = sort(e, 2);
+#     ix = sortperm(e[:,1]);
+#     e = e[ix,:];
+#     ue = deepcopy(e)
+#     i = 1;
+#     n=1;
+#     while n <= size(e,1)
+#         c = ue[n,1];
+#         m = n+1;
+#         while m <= size(e,1)
+#             if (ue[m,1] != c)
+#                 break; 
+#             end
+#             m = m+1;
+#         end
+#         us = unique(ue[n:m-1,2], 1);# the transcription below is a lot faster
+#         ls =length(us);
+#         e[i:i+ls-1,1] = c;
+#         e[i:i+ls-1,2] = s;
+#         i = i+ls;
+#         n = m;
+#     end
+#     e = e[1:i-1,:];
+# end
+
+# """
+# anynegvol(t, v, whichv, v1)
+
+# Check that the new location `v1` of the vertex `whichv` does not result 
+# in a negative volume  for any of the tetrahedra connected to `whichv`.  
+
+# This is a heavily used function, and hence speed and absence of
+# memory allocation is at a premium.
+# """
+# function anynegvol(t::Array{Int,2}, whichtets::Vector{Int}, vt::Array{Float64,2}, whichv::Int, otherv::Int)
+# i1, i2, i3, i4 = 0, 0, 0, 0
+# Volume6 = 0.0 # @inbounds Volume6 = let
+# for iS1 in whichtets
+#     i1, i2, i3, i4 = t[iS1,:]; # nodes of the tetrahedron
+#     if (i1 == whichv) 
+#         @inbounds Volume6 = let
+#             A1 = vt[1,i2]-vt[1,otherv]; 
+#             A2 = vt[2,i2]-vt[2,otherv]; 
+#             A3 = vt[3,i2]-vt[3,otherv]; 
+#             B1 = vt[1,i3]-vt[1,otherv]; 
+#             B2 = vt[2,i3]-vt[2,otherv]; 
+#             B3 = vt[3,i3]-vt[3,otherv]; 
+#             C1 = vt[1,i4]-vt[1,otherv]; 
+#             C2 = vt[2,i4]-vt[2,otherv]; 
+#             C3 = vt[3,i4]-vt[3,otherv]; 
+#             ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3)
+#         end
+#     end
+#     if (i2 == whichv) 
+#         @inbounds Volume6 = let
+#             A1 = vt[1,otherv]-vt[1,i1]; 
+#             A2 = vt[2,otherv]-vt[2,i1]; 
+#             A3 = vt[3,otherv]-vt[3,i1]; 
+#             B1 = vt[1,i3]-vt[1,i1]; 
+#             B2 = vt[2,i3]-vt[2,i1]; 
+#             B3 = vt[3,i3]-vt[3,i1]; 
+#             C1 = vt[1,i4]-vt[1,i1]; 
+#             C2 = vt[2,i4]-vt[2,i1]; 
+#             C3 = vt[3,i4]-vt[3,i1]; 
+#             ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3)
+#         end
+#     end
+#     if (i3 == whichv) 
+#         @inbounds Volume6 = let
+#             A1 = vt[1,i2]-vt[1,i1]; 
+#             A2 = vt[2,i2]-vt[2,i1]; 
+#             A3 = vt[3,i2]-vt[3,i1]; 
+#             B1 = vt[1,otherv]-vt[1,i1]; 
+#             B2 = vt[2,otherv]-vt[2,i1]; 
+#             B3 = vt[3,otherv]-vt[3,i1]; 
+#             C1 = vt[1,i4]-vt[1,i1]; 
+#             C2 = vt[2,i4]-vt[2,i1]; 
+#             C3 = vt[3,i4]-vt[3,i1]; 
+#             ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3)
+#         end
+#     end
+#     if (i4 == whichv) 
+#         @inbounds Volume6 = let
+#             A1 = vt[1,i2]-vt[1,i1]; 
+#             A2 = vt[2,i2]-vt[2,i1]; 
+#             A3 = vt[3,i2]-vt[3,i1]; 
+#             B1 = vt[1,i3]-vt[1,i1]; 
+#             B2 = vt[2,i3]-vt[2,i1]; 
+#             B3 = vt[3,i3]-vt[3,i1]; 
+#             C1 = vt[1,otherv]-vt[1,i1]; 
+#             C2 = vt[2,otherv]-vt[2,i1]; 
+#             C3 = vt[3,otherv]-vt[3,i1]; 
+#             ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3)
+#         end
+#     end
+#     if (Volume6 < 0)
+#          return true;
+#     end
+# end
+# return false;
+# end
+
+
+# function dumparray(a::Array{T,1}, afile) where {T}
+#     fid=open(afile * ".csv","w");
+#     if (fid==-1)
+#         error("Could not open " * afile)
+#         return nothing
+#     end
+#     for i= 1:size(a, 1)
+#         print(fid,a[i],"\n");
+#     end
+#     fid=close(fid);
+# end
+
+# function dumparray(a::Array{T,2}, afile) where {T}
+#     fid=open(afile * ".csv","w");
+#     if (fid==-1)
+#         error("Could not open " * afile)
+#         return nothing
+#     end
+#     for i= 1:size(a, 1)
+#         for j= 1:size(a,2)-1
+#             print(fid,a[i,j],",");
+#         end
+#         print(fid,a[i,end],",\n");
+#     end
+#     fid=close(fid);
+# end
 
 # julia> include("src\\TetRemeshingModule.jl"); include("test/playground.jl")
 # WARNING: replacing module TetRemeshingModule.
