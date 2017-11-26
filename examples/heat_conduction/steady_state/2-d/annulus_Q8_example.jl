@@ -59,8 +59,7 @@ fi = ForceIntensity(FFlt[+magn]);#leaving the domain
 println("Total time elapsed = ", time() - t0, "s")
 
 File =  "annulusq8.vtk"
-vtkexportmesh(File,  fes.conn,  [geom.values Temp.values],
- FinEtools.MeshExportModule.Q8; scalars=[("Temperature", Temp.values)])
+vtkexportmesh(File, connasarray(fes),  [geom.values Temp.values], FinEtools.MeshExportModule.Q8; scalars=[("Temperature", Temp.values)])
 
 println("Minimum/maximum temperature= $(minimum(Temp.values))/$(maximum(Temp.values)))")
 

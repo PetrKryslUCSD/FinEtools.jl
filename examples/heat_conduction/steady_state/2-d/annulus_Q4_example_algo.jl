@@ -58,5 +58,4 @@ println("Minimum/maximum temperature= $(minimum(Temp.values))/$(maximum(Temp.val
 println("Total time elapsed = ",time() - t0,"s")
 
 # Postprocessing
-vtkexportmesh("annulusmod.vtk", fes.conn, [geom.values Temp.values],
-FinEtools.MeshExportModule.Q4; scalars=[("Temperature", Temp.values)])
+vtkexportmesh("annulusmod.vtk", connasarray(fes), [geom.values Temp.values], FinEtools.MeshExportModule.Q4; scalars=[("Temperature", Temp.values)])
