@@ -61,8 +61,9 @@ Sz = integratefunction(femm, geom, (x) ->  x[3])
   println("Sz=$(Sz/phun("mm^4"))")
 CG = vec([Sx Sy Sz]/V)
   println("CG=$(CG/phun("mm"))")
+I3 = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
 function Iinteg(x)
-  (norm(x-CG)^2*eye(3)-(x-CG)*(x-CG)')
+  (norm(x-CG)^2*I3-(x-CG)*(x-CG)')
 end
 Ixx = integratefunction(femm, geom, (x) ->  Iinteg(x)[1, 1])
 Ixy = integratefunction(femm, geom, (x) ->  Iinteg(x)[1, 2])

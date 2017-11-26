@@ -2107,7 +2107,7 @@ module mpointmm1
 using FinEtools
 using Compat.Test
 function test()
-    x::FFltMat = eye(FFlt, 4, 3)
+    x::FFltMat = [i==j ? one(FFlt) : zero(FFlt) for i=1:4, j=1:3]
     fes = FESetP1(reshape([1 2 4 3], 4, 1))
     pt::FFltVec = x[4, :]
     pc, success = map2parametric(fes, reshape(x[4, :], 1, 3), pt)

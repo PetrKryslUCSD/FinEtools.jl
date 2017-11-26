@@ -13,7 +13,7 @@ Version: 05/29/2017
 t0 = time()
 
 A = 1.0 # dimension of the domain (length of the side of the square)
-thermal_conductivity = eye(2,2); # conductivity matrix
+thermal_conductivity =  [i==j ? one(FFlt) : zero(FFlt) for i=1:2, j=1:2]; # conductivity matrix
 Q = -6.0; # internal heat generation rate
 function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
   forceout[1] = Q; #heat source

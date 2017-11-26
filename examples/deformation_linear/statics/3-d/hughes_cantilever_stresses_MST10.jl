@@ -45,7 +45,7 @@ for n = [1 2 4 8] #
     0.0, E, nu, CTE)
 
     # Material orientation matrix
-    csmat = eye(3, 3)
+    csmat = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
 
     function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
         copy!(csmatout, csmat)

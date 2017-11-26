@@ -80,12 +80,10 @@ function acousticABC(self::FEMMAcoustSurf, assembler::A,
     mass_density  =   self.material.mass_density;
     c  =  sqrt(bulk_modulus/mass_density); # sound speed
     # Prepare assembler and temporaries
-    De = zeros(FFlt, Dedim, Dedim);                # element matrix -- used as a buffer
-    conn = zeros(FInt, nne, 1); # element nodes -- used as a buffer
-    x = zeros(FFlt, nne, sdim); # array of node coordinates -- used as a buffer
-    dofnums = zeros(FInt, 1, Dedim); # degree of freedom array -- used as a buffer
-    loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
-    J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
+    De = fill(zero(FFlt), Dedim, Dedim);                # element matrix -- used as a buffer
+    dofnums = fill(zero(FInt), Dedim); # degree of freedom array -- used as a buffer
+    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
+    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
     startassembly!(assembler, Dedim, Dedim, nfes, Pdot.nfreedofs, Pdot.nfreedofs);
     for i = 1:count(fes) # Loop over elements
         fill!(De, 0.0); # Initialize element matrix
@@ -134,12 +132,12 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A,
     edim = ndn*nne;          # dimension of the element matrix
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdata);
-    Ge = zeros(FFlt, 3, nne); # element coupling matrix -- used as a buffer
+    Ge = fill(zero(FFlt), 3, nne); # element coupling matrix -- used as a buffer
     coldofnums = zeros(FInt, 1, edim); # degree of freedom array -- used as a buffer
     rowdofnums = zeros(FInt, 1, 3); # degree of freedom array -- used as a buffer
-    loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
-    n = zeros(FFlt, 3) # normal vector -- used as a buffer
-    J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
+    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
+    n = fill(zero(FFlt), 3) # normal vector -- used as a buffer
+    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
     gatherdofnums!(Force, rowdofnums, [1 2 3]);# retrieve degrees of freedom
     startassembly!(assembler, 3, edim, count(fes), 3, P.nfreedofs);
     for i = 1:count(fes) # Loop over elements
@@ -186,12 +184,12 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::Noda
     edim = ndn*nne;          # dimension of the element matrix
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdata);
-    Ge = zeros(FFlt, 3, nne); # element coupling matrix -- used as a buffer
+    Ge = fill(zero(FFlt), 3, nne); # element coupling matrix -- used as a buffer
     coldofnums = zeros(FInt, 1, edim); # degree of freedom array -- used as a buffer
     rowdofnums = zeros(FInt, 1, 3); # degree of freedom array -- used as a buffer
-    loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
-    n = zeros(FFlt, 3) # normal vector -- used as a buffer
-    J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
+    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
+    n = fill(zero(FFlt), 3) # normal vector -- used as a buffer
+    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
     gatherdofnums!(Torque, rowdofnums, [1 2 3]);# retrieve degrees of freedom
     startassembly!(assembler, 3, edim, count(fes), 3, P.nfreedofs);
     for i = 1:count(fes) # Loop over elements

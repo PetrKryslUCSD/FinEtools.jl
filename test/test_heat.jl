@@ -16,7 +16,7 @@ function test()
   t0 = time()
 
   A = 1.0 # dimension of the domain (length of the side of the square)
-  thermal_conductivity = eye(2,2); # conductivity matrix
+  thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:2, j=1:2]; # conductivity matrix
   Q = -6.0; # internal heat generation rate
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
@@ -178,7 +178,7 @@ function test()
   t0 = time()
 
   A = 1.0
-  thermal_conductivity = eye(2,2); # conductivity matrix
+  thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:2, j=1:2]; # conductivity matrix
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = -6.0; #heat source
   end
@@ -251,7 +251,7 @@ using FinEtools
 using Compat.Test
 function test()
     A= 1.0
-    thermal_conductivity = eye(2,2); # conductivity matrix
+    thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:2, j=1:2]; # conductivity matrix
     magn = -6.0; #heat source
     truetempf(x) = (1.0 .+ x[1].^2 .+ 2*x[2].^2);#the exact distribution of temperature
     N=20;
@@ -329,7 +329,7 @@ function test()
   t0 = time()
 
   A = 1.0 # dimension of the domain (length of the side of the square)
-  thermal_conductivity = eye(2,2); # conductivity matrix
+  thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:2, j=1:2]; # conductivity matrix
   Q = -6.0; # internal heat generation rate
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
@@ -757,7 +757,7 @@ function test()
   t0 = time()
 
   A = 1.0 # dimension of the domain (length of the side of the square)
-  thermal_conductivity = eye(3, 3); # conductivity matrix
+  thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]; # conductivity matrix
   Q = -6.0; # internal heat generation rate
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
@@ -840,7 +840,7 @@ function test()
   t0 = time()
 
   A = 1.0 # dimension of the domain (length of the side of the square)
-  thermal_conductivity = eye(3, 3); # conductivity matrix
+  thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]; # conductivity matrix
   Q = -6.0; # internal heat generation rate
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
@@ -923,7 +923,7 @@ function test()
   t0 = time()
 
   A = 1.0 # dimension of the domain (length of the side of the square)
-  thermal_conductivity = eye(3, 3); # conductivity matrix
+  thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]; # conductivity matrix
   Q = -6.0; # internal heat generation rate
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
@@ -1031,7 +1031,7 @@ function test()
   p1 = 1*2;
   p2 = 1*2;
   p3 = 1*2;
-  kappa = 157*eye(3, 3)*phun("W/m/K"); # W/m/K, conductivity matrix
+  kappa = 157*[i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]*phun("W/m/K"); # W/m/K, conductivity matrix
   DV = 5*phun("V"); # voltage drop in volt
   l  = 2*(y1+y2)/2+2*(x1+x2)/2; # length of the conductor
   resistivity  =  1.1e-5*phun("Ohm*m"); # Ohm m
@@ -1147,7 +1147,7 @@ function test()
   p1 = 1*2;
   p2 = 1*2;
   p3 = 1*2;
-  kappa = 157*eye(3, 3)*phun("W/m/K"); # W/m/K, conductivity matrix
+  kappa = 157*[i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]*phun("W/m/K"); # W/m/K, conductivity matrix
   DV = 5*phun("V"); # voltage drop in volt
   l  = 2*(y1+y2)/2+2*(x1+x2)/2; # length of the conductor
   resistivity  =  1.1e-5*phun("Ohm*m"); # Ohm m
@@ -1250,7 +1250,7 @@ function test()
   t0 = time()
 
   A = 1.0 # dimension of the domain (length of the side of the square)
-  thermal_conductivity = eye(2,2); # conductivity matrix
+  thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:2, j=1:2]; # conductivity matrix
   Q = -6.0; # internal heat generation rate
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
@@ -1462,7 +1462,7 @@ function test()
   t0 = time()
 
   A = 1.0 # dimension of the domain (length of the side of the square)
-  thermal_conductivity = eye(2,2); # conductivity matrix
+  thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:2, j=1:2]; # conductivity matrix
   Q = -6.0; # internal heat generation rate
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
@@ -1551,7 +1551,7 @@ function test()
   t0 = time()
 
   A = 1.0
-  thermal_conductivity = eye(2,2); # conductivity matrix
+  thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:2, j=1:2]; # conductivity matrix
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = -6.0; #heat source
   end
@@ -1633,7 +1633,7 @@ function test()
   t0 = time()
 
   A = 1.0 # dimension of the domain (length of the side of the square)
-  thermal_conductivity = eye(3, 3); # conductivity matrix
+  thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]; # conductivity matrix
   Q = -6.0; # internal heat generation rate
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = Q; #heat source
@@ -1727,7 +1727,7 @@ function test()
   t0 = time()
 
   A = 1.0
-  thermal_conductivity = eye(2,2); # conductivity matrix
+  thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:2, j=1:2]; # conductivity matrix
   function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     forceout[1] = -6.0; #heat source
   end
@@ -1822,7 +1822,7 @@ function test()
         t0 = time()
 
         A = 1.0
-        thermal_conductivity = eye(2,2); # conductivity matrix
+        thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:2, j=1:2]; # conductivity matrix
         function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             forceout[1] = -6.0; #heat source
         end

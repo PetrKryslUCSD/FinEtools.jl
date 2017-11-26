@@ -85,10 +85,10 @@ function integratefieldfunction(self::FEMMAbstractBase,
     mdim = manifdim(fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdata);
-    a = zeros(FFlt,nne,ndn); # array of field DOFS-- used as a buffer
-    loc = zeros(FFlt,1,sdim); # quadrature point location -- used as a buffer
-    val = zeros(FFlt,1,ndn); # field value at the point -- used as a buffer
-    J = eye(FFlt,sdim,mdim); # Jacobian matrix -- used as a buffer
+    a = fill(zero(FFlt), nne,ndn); # array of field DOFS-- used as a buffer
+    loc = fill(zero(FFlt), 1,sdim); # quadrature point location -- used as a buffer
+    val = fill(zero(FFlt), 1,ndn); # field value at the point -- used as a buffer
+    J = fill(zero(FFlt), sdim,mdim); # Jacobian matrix -- used as a buffer
     if m >= 0
         # Either the manifold dimension was supplied
     else
@@ -124,9 +124,9 @@ function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, 
     mdim = manifdim(fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdata);
-    a = zeros(FFlt,nne,ndn); # array of field DOFS-- used as a buffer
-    loc = zeros(FFlt,1,sdim); # quadrature point location -- used as a buffer
-    J = eye(FFlt,sdim,mdim); # Jacobian matrix -- used as a buffer
+    a = fill(zero(FFlt), nne,ndn); # array of field DOFS-- used as a buffer
+    loc = fill(zero(FFlt), 1,sdim); # quadrature point location -- used as a buffer
+    J = fill(zero(FFlt), sdim,mdim); # Jacobian matrix -- used as a buffer
     if m >= 0
         # Either the manifold dimension was supplied
     else
@@ -190,8 +190,8 @@ function integratefunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, fh::F
     mdim = manifdim(fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdata);
-    loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
-    J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
+    loc = fill(zero(FFlt), 1,sdim); # quadrature point location -- used as a buffer
+    J = fill(zero(FFlt), sdim,mdim); # Jacobian matrix -- used as a buffer
     result = 0.0;# Initialize the result
     for i = 1:count(fes)  # Now loop over all fes in the set
         for j=1:npts #Loop over all integration points
@@ -373,22 +373,17 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENo
 end
 
 """
-    distribloads(self::FEMM, assembler::A,
-      geom::NodalField{FFlt},
-      P::NodalField{T},
+    distribloads(self::FEMM, assembler::A, geom::NodalField{FFlt}, P::NodalField{T},
       fi::ForceIntensity,
       m::FInt) where {FEMM<:FEMMAbstractBase, T<:Number, A<:SysvecAssemblerBase}
 
 Compute the distributed-load vector.
 
-fi=force intensity object
-m= manifold dimension, 2= surface, 3= volume
+`fi`=force intensity object
+`m`= manifold dimension, 1= curve, 2= surface, 3= volume
 """
 function distribloads(self::FEMM, assembler::A,
-    geom::NodalField{FFlt},
-    P::NodalField{T},
-    fi::ForceIntensity,
-    m::FInt) where {FEMM<:FEMMAbstractBase, T<:Number, A<:SysvecAssemblerBase}
+    geom::NodalField{FFlt}, P::NodalField{T}, fi::ForceIntensity, m::FInt) where {FEMM<:FEMMAbstractBase, T<:Number, A<:SysvecAssemblerBase}
     fes = self.integdata.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
@@ -400,10 +395,10 @@ function distribloads(self::FEMM, assembler::A,
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdata);
     # Prepare some buffers:
-    dofnums = zeros(FInt,1,Cedim); # degree of freedom array -- used as a buffer
-    loc = zeros(FFlt,1,sdim); # quadrature point location -- used as a buffer
-    J = eye(FFlt,sdim,mdim); # Jacobian matrix -- used as a buffer
-    Fe = zeros(T,Cedim);
+    dofnums = fill(zero(FInt), Cedim); # degree of freedom array -- used as a buffer
+    loc = fill(zero(FFlt), (1,sdim)); # quadrature point location -- used as a buffer
+    J = fill(zero(FFlt), (sdim, mdim)) # Jac. matrix -- used as a buffer
+    Fe = fill(zero(T), (Cedim, ))
     startassembly!(assembler, P.nfreedofs);
     for i = 1:nfes # Loop over elements
         fill!(Fe, 0.0);
@@ -429,11 +424,7 @@ function distribloads(self::FEMM, assembler::A,
     return F
 end
 
-function distribloads(self::FEMM,
-    geom::NodalField{FFlt},
-    P::NodalField{T},
-    fi::ForceIntensity,
-    m::FInt) where {FEMM<:FEMMAbstractBase, T<:Number}
+function distribloads(self::FEMM, geom::NodalField{FFlt}, P::NodalField{T}, fi::ForceIntensity, m::FInt) where {FEMM<:FEMMAbstractBase, T<:Number}
     assembler = SysvecAssembler(0.0*P.values[1])#T(0.0))
     return distribloads(self, assembler, geom, P, fi, m)
 end

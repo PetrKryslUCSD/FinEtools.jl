@@ -25,7 +25,7 @@ OmegaShift=10.0;
 fens,fes = Q4block(Lx,Ly,n,n); # Mesh
 
 geom = NodalField(fens.xyz)
-P = NodalField(zeros(size(fens.xyz,1),1))
+P = NodalField(fill(zero(FFlt), size(fens.xyz,1),1))
 
 numberdofs!(P)
 
@@ -90,7 +90,7 @@ OmegaShift = 10.0;
 fens,fes  =  L2block(L,n); # Mesh
 
 geom = NodalField(fens.xyz)
-P = NodalField(zeros(size(fens.xyz,1),1))
+P = NodalField(fill(zero(FFlt), size(fens.xyz,1),1))
 
 numberdofs!(P)
 
@@ -160,7 +160,7 @@ OmegaShift=10.0;
 fens,fes = H8block(L,sqrt(A),sqrt(A),n,1,1); # Mesh
 
 geom = NodalField(fens.xyz)
-P = NodalField(zeros(size(fens.xyz,1),1))
+P = NodalField(fill(zero(FFlt), size(fens.xyz,1),1))
 
 numberdofs!(P)
 
@@ -219,7 +219,7 @@ fens,fes = H8block(L,sqrt(A),sqrt(A),n,1,1); # Mesh
 fens,fes = H8toH27(fens,fes)
 
 geom = NodalField(fens.xyz)
-P = NodalField(zeros(size(fens.xyz,1),1))
+P = NodalField(fill(zero(FFlt), size(fens.xyz,1),1))
 
 numberdofs!(P)
 
@@ -283,7 +283,7 @@ function test()
     nLx = selectnode(fens,box = [0.0 Lx  0.0 0.0 0.0 0.0], inflate = Lx/1.0e5)
 
     geom  =  NodalField(fens.xyz)
-    P  =  NodalField(zeros(Complex128,size(fens.xyz,1),1))
+    P = NodalField(fill(zero(Complex128), size(fens.xyz,1),1))
 
     numberdofs!(P)
 
@@ -394,7 +394,7 @@ fens, new_numbering = compactnodes(fens, connected);
 fess = renumberconn!(fes, new_numbering);
 
 geom  =  NodalField(fens.xyz)
-P  =  NodalField(zeros(FCplxFlt,size(fens.xyz,1),1))
+P = NodalField(fill(zero(FCplxFlt), size(fens.xyz,1),1))
 
 bfes  =  meshboundary(fes)
 
@@ -494,7 +494,7 @@ L10 = selectelem(fens,bfes,facing = true, direction = [+1.0 0.0 0.0])
 nLx = selectnode(fens,box = [0.0 Lx  0.0 0.0 0.0 0.0], inflate = Lx/1.0e5)
 
 geom  =  NodalField(fens.xyz)
-P  =  NodalField(zeros(Complex128,size(fens.xyz,1),1))
+P = NodalField(fill(zero(Complex128), size(fens.xyz,1),1))
 
 numberdofs!(P)
 
@@ -588,8 +588,9 @@ Sz = integratefunction(femm, geom, (x) ->  x[3])
   # println("Sz=$(Sz/phun("mm^4"))")
 CG = vec([Sx Sy Sz]/V)
   # println("CG=$(CG/phun("mm"))")
+  I3 = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
 function Iinteg(x)
-  (norm(x-CG)^2*eye(3)-(x-CG)*(x-CG)')
+  (norm(x-CG)^2*I3-(x-CG)*(x-CG)')
 end
 Ixx = integratefunction(femm, geom, (x) ->  Iinteg(x)[1, 1])
 Ixy = integratefunction(femm, geom, (x) ->  Iinteg(x)[1, 2])
@@ -657,7 +658,7 @@ function test()
   fess = renumberconn!(fes, new_numbering);
 
   geom  =  NodalField(fens.xyz)
-  P  =  NodalField(zeros(FCplxFlt,size(fens.xyz,1),1))
+  P  =  NodalField(fill(zero(FCplxFlt), size(fens.xyz,1),1))
 
   bfes  =  meshboundary(fes)
 
@@ -689,9 +690,9 @@ function test()
   P0 = deepcopy(P)
   P0.values[:] = 0.0; # initially all pressure is zero
   vP0 = gathersysvec(P0);
-  vP1 = zeros(vP0);
-  vQ0 = zeros(vP0);
-  vQ1 = zeros(vP0);
+  vP1 = fill!(similar(vP0), zero(eltype(vP0)))
+  vQ0 = fill!(similar(vP0), zero(eltype(vP0)))
+  vQ1 = fill!(similar(vP0), zero(eltype(vP0)))
   t = 0.0;
   P1 = deepcopy(P0);
 
@@ -763,7 +764,7 @@ function test()
   # Time step
   dt = 1.0/frequency/20;
   tfinal = 9/frequency;
-  nsteps = round(tfinal/dt)+1;
+  nsteps = Int(round(tfinal/dt)+1);
 
   t0  =  time()
 
@@ -801,8 +802,9 @@ function test()
     # println("Sz=$(Sz/phun("mm^4"))")
   CG = vec([Sx Sy Sz]/V)
     # println("CG=$(CG/phun("mm"))")
+    I3 = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
   function Iinteg(x)
-    (norm(x-CG)^2*eye(3)-(x-CG)*(x-CG)')
+    (norm(x-CG)^2*I3-(x-CG)*(x-CG)')
   end
   Ixx = integratefunction(femm, geom, (x) ->  Iinteg(x)[1, 1])
   Ixy = integratefunction(femm, geom, (x) ->  Iinteg(x)[1, 2])
@@ -838,7 +840,7 @@ function test()
   # @async run(`"paraview.exe" $File`)
 
   geom  =  NodalField(fens.xyz)
-  P  =  NodalField(zeros(FFlt,size(fens.xyz,1),1))
+  P  =  NodalField(fill(zero(FFlt), size(fens.xyz,1),1))
 
   bfes  =  meshboundary(fes)
 
@@ -872,9 +874,9 @@ function test()
 
   targetfemm  =  FEMMAcoustSurf(IntegData(subset(bfes, linner), GaussRule(2, 2)), material)
 
-  ForceF = GeneralField(zeros(3,1))
+  ForceF = GeneralField([zero(FFlt) for i=1:3, j=1:1])
   numberdofs!(ForceF)
-  TorqueF = GeneralField(zeros(3,1))
+  TorqueF = GeneralField([zero(FFlt) for i=1:3, j=1:1])
   numberdofs!(TorqueF)
 
   GF = pressure2resultantforce(targetfemm, geom, P, ForceF)
@@ -888,36 +890,36 @@ function test()
   P0 = deepcopy(P)
   P0.values[:] = 0.0; # initially all pressure is zero
   vP0 = gathersysvec(P0);
-  vP1 = zeros(vP0);
-  vQ0 = zeros(vP0);
-  vQ1 = zeros(vP0);
+  vP1 = fill!(similar(vP0), zero(eltype(vP0)))
+  vQ0 = fill!(similar(vP0), zero(eltype(vP0)))
+  vQ1 = fill!(similar(vP0), zero(eltype(vP0)))
   t = 0.0;
   P1 = deepcopy(P0);
-  tTa1 = zeros(3)
-  tAa1 = zeros(3)
-  tTa0 = zeros(3)
-  tAa0 = zeros(3)
-  tTv1 = zeros(3)
-  tAv1 = zeros(3)
-  tTv0 = zeros(3)
-  tAv0 = zeros(3)
-  tTu1 = zeros(3)
-  tAu1 = zeros(3)
-  tTu0 = zeros(3)
-  tAu0 = zeros(3)
-  tTa_store = zeros(3, nsteps+1)
-  tAa_store = zeros(3, nsteps+1)
-  tTv_store = zeros(3, nsteps+1)
-  tAv_store = zeros(3, nsteps+1)
-  tTu_store = zeros(3, nsteps+1)
-  tAu_store = zeros(3, nsteps+1)
-  t_store = zeros(1, nsteps+1)
+  tTa1 = [zero(FFlt) for i=1:3]
+  tAa1 = [zero(FFlt) for i=1:3]
+  tTa0 = [zero(FFlt) for i=1:3]
+  tAa0 = [zero(FFlt) for i=1:3]
+  tTv1 = [zero(FFlt) for i=1:3]
+  tAv1 = [zero(FFlt) for i=1:3]
+  tTv0 = [zero(FFlt) for i=1:3]
+  tAv0 = [zero(FFlt) for i=1:3]
+  tTu1 = [zero(FFlt) for i=1:3]
+  tAu1 = [zero(FFlt) for i=1:3]
+  tTu0 = [zero(FFlt) for i=1:3]
+  tAu0 = [zero(FFlt) for i=1:3]
+  tTa_store = fill(zero(FFlt), 3, nsteps+1)
+  tAa_store = fill!(similar(tTa_store), zero(eltype(tTa_store)))
+  tTv_store = fill!(similar(tTa_store), zero(eltype(tTa_store)))
+  tAv_store = fill!(similar(tTa_store), zero(eltype(tTa_store)))
+  tTu_store = fill!(similar(tTa_store), zero(eltype(tTa_store)))
+  tAu_store = fill!(similar(tTa_store), zero(eltype(tTa_store)))
+  t_store = fill(zero(FFlt), 1, nsteps+1)
 
   pinc = deepcopy(P)
   pincdd = deepcopy(P)
-  pincv = zeros(P.nfreedofs)
-  pincddv = zeros(P.nfreedofs)
-  p1v = zeros(P.nfreedofs)
+  pincv = fill(zero(FFlt), P.nfreedofs)
+  pincddv = deepcopy(pincv)
+  p1v = deepcopy(pincv)
   p1 = deepcopy(P)
 
   function recalculate_incident!(t, pinc, pincdd)
@@ -994,7 +996,7 @@ function test()
     t = t/mean(t);
     t = reshape(t,length(t),1);
     y = reshape(y,length(y),1);
-    local B = [t ones(t)];
+    local B = [t [1.0 for m in t]];
     local p = (B'*B)\(B'*y);
     return y.-p[1]*t.-p[2];
   end
@@ -1205,7 +1207,7 @@ function test()
     femm = FEMMAcoust(IntegData(fes, GaussRule(3, 2)), material)
 
     geom = NodalField(fens.xyz);
-    P = NodalField(zeros(nnodes(geom),1));
+    P = NodalField(fill(zero(FFlt), nnodes(geom),1));
     piston_fenids = connectednodes(piston_fes);
     setebc!(P, piston_fenids, true, 1, 0.0);
     applyebc!(P);
@@ -1221,7 +1223,7 @@ function test()
     Pdd1 = deepcopy(P)
     TMPF = deepcopy(P)
     P = nothing # we don't need this field anymore
-    vP0 = zeros(P0.nfreedofs)
+    vP0 = fill(zero(FFlt), P0.nfreedofs)
     vP1 = deepcopy(vP0)
     vPd0 = deepcopy(vP0)
     vPd1 = deepcopy(vP0)

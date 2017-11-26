@@ -5044,7 +5044,7 @@ function test()
 
     if true
         solver = AlgoDeforLinearModule.ssit
-        v0 = eye(size(K,1), 2*neigvs)
+        v0 = [i==j ? one(FFlt) : zero(FFlt) for i=1:size(K,1), j=1:2*neigvs]
         tol = 1.0e-2
         maxiter = 20
         lamb, v, nconv, niter, nmult, lamberr =
@@ -5218,7 +5218,7 @@ function test()
 
     if true
         solver = AlgoDeforLinearModule.ssit
-        v0 = eye(size(K,1), 2*neigvs)
+        v0 = [i==j ? one(FFlt) : zero(FFlt) for i=1:size(K,1), j=1:2*neigvs]
         tol = 1.0e-2
         maxiter = 20
         lamb, v, nconv, niter, nmult, lamberr =
@@ -6916,19 +6916,19 @@ function test()
 
     # Write out mesh with stresses
     modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8",
-    "quantity"=> :Cauchy, "component"=> :xy, "outputcsys"=>CSys(eye(3)))
+    "quantity"=> :Cauchy, "component"=> :xy, "outputcsys"=>CSys(3))
     modeldata = AlgoDeforLinearModule.exportstress(modeldata)
     try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
     # Write out mesh with stresses
     modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8",
-    "quantity"=> :Cauchy, "component"=> :xz, "outputcsys"=>CSys(eye(3)))
+    "quantity"=> :Cauchy, "component"=> :xz, "outputcsys"=>CSys(3))
     modeldata = AlgoDeforLinearModule.exportstress(modeldata)
     try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 
     # Write out mesh with von Mises stresses
     modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8",
-    "quantity"=> :vm, "outputcsys"=>CSys(eye(3)))
+    "quantity"=> :vm, "outputcsys"=>CSys(3))
     modeldata = AlgoDeforLinearModule.exportstress(modeldata)
     vm  = modeldata["postprocessing"]["exported"][1]["field"]
     # println("extremes of vm, nodal: $([minimum(vm.values),   maximum(vm.values)])")
@@ -6937,7 +6937,7 @@ function test()
 
     # Write out mesh with von Mises stresses, elementwise
     modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8-ew",
-    "quantity"=> :vm, "outputcsys"=>CSys(eye(3)))
+    "quantity"=> :vm, "outputcsys"=>CSys(3))
     modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
     vm  = modeldata["postprocessing"]["exported"][1]["field"]
     # println("extremes of vm, elemental: $([minimum(vm.values),   maximum(vm.values)])")
@@ -6946,7 +6946,7 @@ function test()
 
     # Write out mesh with von Mises stresses, elementwise
     modeldata["postprocessing"] = FDataDict("file"=>"twisted_beam_msh8-ew",
-    "quantity"=> :Cauchy, "component"=> :xz, "outputcsys"=>CSys(eye(3)))
+    "quantity"=> :Cauchy, "component"=> :xz, "outputcsys"=>CSys(3))
     modeldata = AlgoDeforLinearModule.exportstresselementwise(modeldata)
     try rm(modeldata["postprocessing"]["exported"][1]["file"]); catch end
 

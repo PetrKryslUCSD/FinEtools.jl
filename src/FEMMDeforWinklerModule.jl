@@ -61,11 +61,9 @@ function surfacenormalspringstiffness(self::FEMMDeforWinkler, assembler::A,
     npts, Ns, gradNparams, w, pc = integrationdata(integdata);
     # Prepare assembler and temporaries
     Ke = zeros(FFlt,Kedim,Kedim);                # element matrix -- used as a buffer
-    conn = zeros(FInt,nne,1); # element nodes -- used as a buffer
-    x = zeros(FFlt,nne,sdim); # array of node coordinates -- used as a buffer
-    dofnums = zeros(FInt,1,Kedim); # degree of freedom array -- used as a buffer
-    loc = zeros(FFlt,1,sdim); # quadrature point location -- used as a buffer
-    J = eye(FFlt,sdim,mdim); # Jacobian matrix -- used as a buffer
+    dofnums = zeros(FInt, Kedim); # degree of freedom array -- used as a buffer
+    loc = zeros(FFlt, 1,sdim); # quadrature point location -- used as a buffer
+    J = fill(zero(FFlt), sdim,mdim); # Jacobian matrix -- used as a buffer
     startassembly!(assembler, Kedim, Kedim, nfes, u.nfreedofs, u.nfreedofs);
     for i = 1:nfes # Loop over elements
         fill!(Ke, 0.0); # Initialize element matrix

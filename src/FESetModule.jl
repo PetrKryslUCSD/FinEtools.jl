@@ -228,14 +228,13 @@ Returns
 `pc` = Returns a row array of parametric coordinates if the solution was
 successful, otherwise NaN are returned.
 """
-function map2parametric(self::T, x::FFltMat, pt::FFltVec;
-    Tolerance = 0.001, maxiter =5) where {T<:FESet}
+function map2parametric(self::T, x::FFltMat, pt::FFltVec; Tolerance = 0.001, maxiter =5) where {T<:FESet}
     sdim = size(x, 2); # number of space dimensions
     mdim = manifdim(self); # manifold dimension of the element
     ppc = zeros(mdim);
     pc = deepcopy(ppc);
-    J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
-    loc = zeros(FFlt, 1, sdim); # point location -- used as a buffer
+    J = [i==j ? one(FFlt) : zero(FFlt) for i=1:sdim, j=1:mdim] # Jac. matx: "identity"
+    loc = fill(zero(FFlt), (1, sdim)) # point location buffer
     success = true
     for i = 1:maxiter
         gradNparams = privbfundpar(self, pc);

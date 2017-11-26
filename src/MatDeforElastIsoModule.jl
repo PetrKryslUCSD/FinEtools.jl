@@ -6,7 +6,7 @@ using FinEtools.FTypesModule
 using FinEtools.DeforModelRedModule
 using FinEtools.MatDeforModule
 
-const mI = diagm([1.0, 1.0, 1.0, 0.5, 0.5, 0.5]);
+const mI = Matrix(Diagonal([1.0, 1.0, 1.0, 0.5, 0.5, 0.5]))
 const m1 = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0];
 
 """

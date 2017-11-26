@@ -6,10 +6,10 @@ Module for mesh utility functions used in other meshing modules.
 module MeshUtilModule
 
 using FinEtools.FTypesModule
-import Base.IntSet
+import Base.BitSet
 
 mutable struct HyperFaceContainer
-    o::IntSet # numbers of the other nodes on the hyperface
+    o::BitSet # numbers of the other nodes on the hyperface
     n::Int # new node number generated on the hyperface
 end
 
@@ -17,7 +17,7 @@ makecontainer() = Dict{FInt, Array{HyperFaceContainer}}();
 
 function addhyperface!(container,hyperface,newn)
     h=sort([i for i in hyperface])
-    anchor=h[1]; other=IntSet(h[2:end]);
+    anchor=h[1]; other=BitSet(h[2:end]);
     C=get(container,anchor,Array{HyperFaceContainer}(0));
     fnd=false;
     for k=1:length(C)
@@ -34,7 +34,7 @@ end
 
 function findhyperface!(container,hyperface)
     h=sort([i for i in hyperface])
-    anchor=h[1]; other=IntSet(h[2:end]);
+    anchor=h[1]; other=BitSet(h[2:end]);
     C=get(container,anchor,Array{HyperFaceContainer}(0));
     for k=1:length(C)
         if C[k].o == other

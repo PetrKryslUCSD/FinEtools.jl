@@ -50,15 +50,15 @@ function  buffers(self::FEMMHeatDiff, geom::NodalField{FFlt}, temp::NodalField{F
     sdim = ndofs(geom);   # number of space dimensions
     mdim = manifdim(fes); # manifold dimension of the element
     Kedim = ndn*nne;      # dimension of the element matrix
-    elmat = zeros(FFlt, Kedim, Kedim); # buffer
-    elvec = zeros(FFlt, Kedim); # buffer
-    elvecfix = zeros(FFlt, Kedim); # buffer
-    dofnums = zeros(FInt, 1, Kedim); # buffer
-    loc = zeros(FFlt, 1, sdim); # buffer
-    J = eye(FFlt, sdim, mdim); # buffer
-    RmTJ = zeros(FFlt, mdim, mdim); # buffer
-    gradN = zeros(FFlt, nne, mdim); # buffer
-    kappa_bargradNT = zeros(FFlt, mdim, nne); # buffer
+    elmat = fill(zero(FFlt), Kedim, Kedim); # buffer
+    elvec = fill(zero(FFlt), Kedim); # buffer
+    elvecfix = fill(zero(FFlt), Kedim); # buffer
+    dofnums = fill(zero(FInt), Kedim); # buffer
+    loc = fill(zero(FFlt), 1, sdim); # buffer
+    J = fill(zero(FFlt), sdim, mdim); # buffer
+    RmTJ = fill(zero(FFlt), mdim, mdim); # buffer
+    gradN = fill(zero(FFlt), nne, mdim); # buffer
+    kappa_bargradNT = fill(zero(FFlt), mdim, nne); # buffer
     return dofnums, loc, J, RmTJ, gradN, kappa_bargradNT, elmat, elvec, elvecfix
 end
 

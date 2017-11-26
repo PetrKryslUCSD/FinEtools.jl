@@ -47,10 +47,10 @@ function surfacetransfer(self::FEMMHeatDiffSurf,  assembler::A, geom::NodalField
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
     # Prepare assembler and temporaries
-    He = zeros(FFlt, Hedim, Hedim);                # element matrix -- used as a buffer
-    dofnums = zeros(FInt, 1, Hedim); # degree of freedom array -- used as a buffer
-    loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
-    J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
+    He = fill(zero(FFlt), Hedim, Hedim);                # element matrix -- used as a buffer
+    dofnums = zeros(FInt, Hedim); # degree of freedom array -- used as a buffer
+    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
+    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
     startassembly!(assembler, Hedim, Hedim, nfes, temp.nfreedofs, temp.nfreedofs);
     for i = 1:nfes # Loop over elements
         fill!(He,  0.0); # Initialize element matrix
@@ -92,11 +92,11 @@ function surfacetransferloads(self::FEMMHeatDiffSurf,  assembler::A,  geom::Noda
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
     # Prepare assembler and temporaries
-    Fe = zeros(FFlt, Hedim, 1); # element matrix -- used as a buffer
-    dofnums = zeros(FInt, 1, Hedim); # degree of freedom array -- used as a buffer
-    loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
-    J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
-    pT = zeros(FFlt, Hedim);
+    Fe = fill(zero(FFlt), Hedim, 1); # element matrix -- used as a buffer
+    dofnums = zeros(FInt, Hedim); # degree of freedom array -- used as a buffer
+    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
+    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
+    pT = fill(zero(FFlt), Hedim);
     startassembly!(assembler,  temp.nfreedofs);
     for i = 1:nfes # Loop over elements
         gathervalues_asvec!(ambtemp, pT, fes.conn[i]);# retrieve ambient temp
@@ -144,11 +144,11 @@ function nzebcsurfacetransferloads(self::FEMMHeatDiffSurf, assembler::A,  geom::
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
     # Prepare assembler and temporaries
-    He = zeros(FFlt, Hedim, Hedim);                # element matrix -- used as a buffer
-    dofnums = zeros(FInt, 1, Hedim); # degree of freedom array -- used as a buffer
-    loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
-    J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
-    pT = zeros(FFlt, Hedim);
+    He = fill(zero(FFlt), Hedim, Hedim);                # element matrix -- used as a buffer
+    dofnums = zeros(FInt, Hedim); # degree of freedom array -- used as a buffer
+    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
+    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
+    pT = fill(zero(FFlt), Hedim);
     startassembly!(assembler,  temp.nfreedofs);
     # Now loop over all finite elements in the set
     for i=1:nfes # Loop over elements

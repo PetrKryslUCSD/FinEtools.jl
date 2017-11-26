@@ -9,6 +9,7 @@ export rotmat,  rotmat3!, skewmat!, cross3, cross3!, cross2
 
 using FinEtools.FTypesModule
 
+_I3 = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
 
 """
     rotmat3!(Rmout::FFltMat, a::FFltVec)
@@ -20,7 +21,9 @@ function rotmat3!(Rmout::FFltMat, a::FFltVec)
     @assert (m == n) && (m == 3) && (length(a) == m)
     na = norm(a);
     if (na == 0.)
-        copy!(Rmout, eye(m, n));
+        for i = 1:size(Rmout, 1), j = 1:size(Rmout, 2)
+            Rmout[i, j] = (i == j ? 1.0 : 0.0)
+        end
     else
         thetatilde = zeros(3,3);
         skewmat!(thetatilde, a);
@@ -28,7 +31,7 @@ function rotmat3!(Rmout::FFltMat, a::FFltVec)
         ca = cos(na);
         sa = sin(na);
         aa = a*a';
-        copy!(Rmout, ca * (eye(3,3)-aa) + sa/na*thetatilde + aa);
+        copy!(Rmout, ca * (_I3-aa) + sa/na*thetatilde + aa);
     end
 end
 

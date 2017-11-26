@@ -237,7 +237,7 @@ function coarsen(t::Array{Int, 2}, inputv::Array{Float64, 2}, tmid::Vector{Int};
             end
         end
         finalr=finalr-1;
-        desiredes[layer] .= desired_ts*stretch^finalr;
+        desiredes[layer] = desired_ts*stretch^finalr;
     end
     
     # Initialize edge lengths, edge vertex counts

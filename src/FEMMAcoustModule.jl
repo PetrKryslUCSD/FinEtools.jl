@@ -46,13 +46,13 @@ function  buffers(self::FEMMAcoust, geom::NodalField{FFlt}, P::NodalField{F}) wh
     mdim = manifdim(fes);     # manifold dimension of the element
     Cedim = ndn*nne;          # dimension of the element matrix
     # Prepare assembler and temporaries
-    dofnums = zeros(FInt, 1, Cedim); # degree of freedom array -- used as a buffer
-    loc = zeros(FFlt, 1, sdim); # quadrature point location -- used as a buffer
-    J = eye(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
-    gradN = zeros(FFlt, nne, mdim); # intermediate result -- used as a buffer
-    elmat = zeros(FFlt, Cedim, Cedim);       # element matrix -- used as a buffer
-    elvec = zeros(F, Cedim); # buffer
-    elvecfix = zeros(F, Cedim); # buffer
+    dofnums = fill(zero(FInt), Cedim); # degree of freedom array -- used as a buffer
+    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
+    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
+    gradN = fill(zero(FFlt), nne, mdim); # intermediate result -- used as a buffer
+    elmat = fill(zero(FFlt), Cedim, Cedim);       # element matrix -- used as a buffer
+    elvec = fill(zero(F), Cedim); # buffer
+    elvecfix = fill(zero(F), Cedim); # buffer
     return dofnums, loc, J, gradN, elmat, elvec, elvecfix
 end
 

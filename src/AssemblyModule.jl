@@ -66,8 +66,7 @@ end
 
 Assembly of a rectangular matrix.
 """
-function assemble!(self::SysmatAssemblerSparse{T}, mat::FMat{T},
-  dofnums_row::FIntMat, dofnums_col::FIntMat) where {T<:Number}
+function assemble!(self::SysmatAssemblerSparse{T}, mat::FMat{T}, dofnums_row::FIntVec, dofnums_col::FIntVec) where {T<:Number}
     # Assembly of a rectangular matrix.
     # The method assembles a rectangular matrix using the two vectors of
     # equation numbers for the rows and columns.
@@ -85,6 +84,10 @@ function assemble!(self::SysmatAssemblerSparse{T}, mat::FMat{T},
     end
     self.buffer_pointer=p;
     return self
+end
+
+function assemble!(self::SysmatAssemblerSparse{T}, mat::FMat{T}, dofnums_row::FIntMat, dofnums_col::FIntMat) where {T<:Number}
+    return assemble!(self, mat, vec(dofnums_row), vec(dofnums_col))
 end
 
 """
@@ -167,8 +170,7 @@ end
 
 Assembly of a square symmetric matrix.
 """
-function assemble!(self::SysmatAssemblerSparseSymm{T}, mat::FMat{T},
-  dofnums::FIntMat, ignore::FIntMat) where {T<:Number}
+function assemble!(self::SysmatAssemblerSparseSymm{T}, mat::FMat{T},  dofnums::FIntVec, ignore::FIntVec) where {T<:Number}
     # Assembly of a square symmetric matrix.
     # The method assembles the lower triangle of the square symmetric matrix using the two vectors of
     # equation numbers for the rows and columns.
@@ -186,6 +188,16 @@ function assemble!(self::SysmatAssemblerSparseSymm{T}, mat::FMat{T},
     end
     self.buffer_pointer=p;
     return self
+end
+
+"""
+assemble!(self::SysmatAssemblerSparseSymm{T}, mat::FMat{T},
+  dofnums::FIntMat, ignore::FIntMat) where {T<:Number}
+
+Assembly of a square symmetric matrix.
+"""
+function assemble!(self::SysmatAssemblerSparseSymm{T}, mat::FMat{T}, dofnums::FIntMat, ignore::FIntMat) where {T<:Number}
+    return assemble!(self, mat, vec(dofnums), vec(ignore))
 end
 
 """

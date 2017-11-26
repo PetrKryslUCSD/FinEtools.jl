@@ -1,7 +1,7 @@
 using FinEtools
 
 A= 1.0
-thermal_conductivity = eye(2,2); # conductivity matrix
+thermal_conductivity =  [i==j ? one(FFlt) : zero(FFlt) for i=1:2, j=1:2]; # conductivity matrix
 magn = -6.0; #heat source
 truetempf(x)=1.0 + x[1].^2 + 2.0*x[2].^2;
 N=20;

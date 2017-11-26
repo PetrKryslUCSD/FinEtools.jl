@@ -40,17 +40,17 @@ function buffers(self::FEMMDeforLinearAbstract, geom::NodalField, u::NodalField)
     nstrs = nstsstn(self.mr);  # number of stresses
     elmatdim = ndn*nne;             # dimension of the element matrix
     # Prepare buffers
-    elmat = zeros(FFlt, elmatdim, elmatdim);      # element matrix -- buffer
-    dofnums = zeros(FInt, 1, elmatdim); # degree of freedom array -- buffer
-    loc = zeros(FFlt, 1, sdim); # quadrature point location -- buffer
-    J = eye(FFlt, sdim, mdim); # Jacobian matrix -- buffer
-    csmatTJ = zeros(FFlt, mdim, mdim); # intermediate result -- buffer
-    gradN = zeros(FFlt, nne, mdim); # intermediate result -- buffer
-    D = zeros(FFlt, nstrs, nstrs); # material stiffness matrix -- buffer
-    B = zeros(FFlt, nstrs, elmatdim); # strain-displacement matrix -- buffer
-    DB = zeros(FFlt, nstrs, elmatdim); # strain-displacement matrix -- buffer
-    elvecfix = zeros(FFlt, elmatdim); # vector of prescribed displ. -- buffer
-    elvec = zeros(FFlt, elmatdim); # element vector -- buffer
+    elmat = fill(zero(FFlt), elmatdim, elmatdim);      # element matrix -- buffer
+    dofnums = zeros(FInt, elmatdim); # degree of freedom array -- buffer
+    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- buffer
+    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- buffer
+    csmatTJ = fill(zero(FFlt), mdim, mdim); # intermediate result -- buffer
+    gradN = fill(zero(FFlt), nne, mdim); # intermediate result -- buffer
+    D = fill(zero(FFlt), nstrs, nstrs); # material stiffness matrix -- buffer
+    B = fill(zero(FFlt), nstrs, elmatdim); # strain-displacement matrix -- buffer
+    DB = fill(zero(FFlt), nstrs, elmatdim); # strain-displacement matrix -- buffer
+    elvecfix = fill(zero(FFlt), elmatdim); # vector of prescribed displ. -- buffer
+    elvec = fill(zero(FFlt), elmatdim); # element vector -- buffer
     return dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix
 end
 
@@ -70,10 +70,11 @@ function mass(self::FEMMDeforLinearAbstract,  assembler::A,  geom::NodalField{FF
     rho::FFlt = self.material.mass_density; # mass density
     NexpTNexp = Array{FFltMat}(1, npts);# basis f. matrix -- buffer
     ndn = ndofs(u)
+    Indn = [i==j ? one(FFlt) : zero(FFlt) for i=1:ndn, j=1:ndn] # "identity"
     for j = 1:npts # This quantity is the same for all quadrature points
-        Nexp = zeros(FFlt, ndn, size(elmat,1))
+        Nexp = fill(zero(FFlt), ndn, size(elmat,1))
         for l1 = 1:nodesperelem(fes)
-            Nexp[1:ndn, (l1-1)*ndn+1:(l1)*ndn] = eye(ndn)*Ns[j][l1];
+            Nexp[1:ndn, (l1-1)*ndn+1:(l1)*ndn] = Indn * Ns[j][l1];
         end
         NexpTNexp[j] = Nexp'*Nexp;
     end
@@ -187,10 +188,10 @@ function  thermalstrainloads(self::FEMMDeforLinearAbstract, assembler::A, geom::
     dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix = buffers(self, geom, u)
     t= 0.0
     dt = 0.0
-    DeltaT = zeros(FFlt, nodesperelem(fes))
-    strain = zeros(FFlt, nstsstn(self.mr)); # total strain -- buffer
-    thstrain = zeros(FFlt, nthstn(self.mr)); # thermal strain -- buffer
-    thstress = zeros(FFlt, nstsstn(self.mr)); # thermal stress -- buffer
+    DeltaT = fill(zero(FFlt), nodesperelem(fes))
+    strain = fill(zero(FFlt), nstsstn(self.mr)); # total strain -- buffer
+    thstrain = fill(zero(FFlt), nthstn(self.mr)); # thermal strain -- buffer
+    thstress = fill(zero(FFlt), nstsstn(self.mr)); # thermal stress -- buffer
     startassembly!(assembler,  u.nfreedofs);
     for i = 1:count(fes) # Loop over elements
         gathervalues_asvec!(dT, DeltaT, fes.conn[i]);# retrieve element temperatures
@@ -260,17 +261,17 @@ function inspectintegpoints(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt
     end
     t= 0.0
     dt = 0.0
-    dTe = zeros(FFlt, nodesperelem(fes)) # nodal temperatures -- buffer
-    ue = zeros(FFlt, size(elmat, 1)); # array of node displacements -- buffer
+    dTe = fill(zero(FFlt), nodesperelem(fes)) # nodal temperatures -- buffer
+    ue = fill(zero(FFlt), size(elmat, 1)); # array of node displacements -- buffer
     nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
-    xe = zeros(FFlt, nne, sdim); # array of node coordinates -- buffer
+    xe = fill(zero(FFlt), nne, sdim); # array of node coordinates -- buffer
     qpdT = 0.0; # node temperature increment
-    qpstrain = zeros(FFlt, nstsstn(self.mr), 1); # total strain -- buffer
-    qpthstrain = zeros(FFlt, nthstn(self.mr)); # thermal strain -- buffer
-    qpstress = zeros(FFlt, nstsstn(self.mr)); # stress -- buffer
-    out1 = zeros(FFlt, nstsstn(self.mr)); # stress -- buffer
-    out =  zeros(FFlt, nstsstn(self.mr));# output -- buffer
+    qpstrain = fill(zero(FFlt), nstsstn(self.mr), 1); # total strain -- buffer
+    qpthstrain = fill(zero(FFlt), nthstn(self.mr)); # thermal strain -- buffer
+    qpstress = fill(zero(FFlt), nstsstn(self.mr)); # stress -- buffer
+    out1 = fill(zero(FFlt), nstsstn(self.mr)); # stress -- buffer
+    out =  fill(zero(FFlt), nstsstn(self.mr));# output -- buffer
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
         i = felist[ilist];
@@ -304,7 +305,7 @@ function inspectintegpoints(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt
 end
 
 function inspectintegpoints(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt},  u::NodalField{T}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
-    dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
+    dT = NodalField(fill(zero(FFlt), nnodes(geom), 1)) # zero difference in temperature
     return inspectintegpoints(self, geom, u, dT, felist, inspector, idat, quantity; context...);
 end
 

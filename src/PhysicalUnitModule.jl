@@ -334,7 +334,7 @@ function phun(str::String; system_of_units = :SI, base_time_units = :SEC)
     end
 
     ostr  =  replacesymbols(d,str);
-    val  =  eval(parse(ostr));
+    val  =  eval(Meta.parse(ostr));
     return val
 end
 

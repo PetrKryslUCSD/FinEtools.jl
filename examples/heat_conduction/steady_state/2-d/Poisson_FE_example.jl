@@ -13,7 +13,7 @@ Version: 05/29/2017
 t0 = time()
 
 A = 1.0 # dimension of the domain (length of the side of the square)
-thermal_conductivity = eye(2,2); # conductivity matrix
+thermal_conductivity =  [i==j ? one(FFlt) : zero(FFlt) for i=1:2, j=1:2]; # conductivity matrix
 Q = -6.0; # internal heat generation rate
 tempf(x) = (1.0 + x[:,1].^2 + 2*x[:,2].^2);#the exact distribution of temperature
 N = 1000;# number of subdivisions along the sides of the square domain

@@ -61,7 +61,7 @@ rotation matrix is the identity.
 `dim` = is the space dimension.
 """
 function CSys(dim::FInt)
-    return CSys(eye(dim, dim));
+    return CSys([i==j ? one(FFlt) : zero(FFlt) for i=1:dim, j=1:dim]);
 end
 
 """
@@ -139,7 +139,7 @@ function gen_iso_csmat!(csmatout::FFltMat,
     XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     sdim, mdim = size(tangents);
     if sdim == mdim # finite element embedded in space of the same dimension
-        copy!(csmatout, eye(sdim));
+        copy!(csmatout, [i==j ? one(FFlt) : zero(FFlt) for i=1:sdim, j=1:sdim]);
     else # lower-dimensional finite element embedded in space of higher dimension
         @assert 0 < mdim < 3
         e1 = tangents[:,1]/norm(tangents[:,1]);
