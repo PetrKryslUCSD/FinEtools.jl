@@ -71,11 +71,11 @@ pinc = deepcopy(P);
 material = MatAcoustFluid(bulk,rho)
 femm  =  FEMMAcoust(IntegData(fes, GaussRule(3, 3)), material)
 
-@time S  =  acousticstiffness(femm, geom, P);
-@time C  =  acousticmass(femm, geom, P);
+S  =  acousticstiffness(femm, geom, P);
+C  =  acousticmass(femm, geom, P);
 
 abcfemm  =  FEMMAcoustSurf(IntegData(outer_fes, GaussRule(2, 3)), material)
-@time D  =  acousticABC(abcfemm, geom, P);
+D  =  acousticABC(abcfemm, geom, P);
 
 # Incident pressure loading
 for j = 1:size(geom.values,1)
@@ -95,10 +95,10 @@ function dpincdn(dpdn, xyz, J, label)
 end
 
 fi  =  ForceIntensity(FCplxFlt, 1, dpincdn);
-@time F  =  F + distribloads(abcfemm, geom, P, fi, 2);
+F  =  F + distribloads(abcfemm, geom, P, fi, 2);
 
-@time K = ((-omega^2*S + omega*1.0im*D + C))
-@time p = K\F
+K = ((-omega^2*S + omega*1.0im*D + C))
+p = K\F
 
 scattersysvec!(P,p[:])
 
@@ -117,8 +117,7 @@ ptot.values = P.values+pinc.values
 # @async run(`"C:/Program Files (x86)/ParaView 4.2.0/bin/paraview.exe" $File`)
 
 File  =   "SphereP.vtk"
-vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
-scalars = [("P", abs(P.values))])
+vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H8; scalars = [("P", abs.(P.values))])
 @async run(`"paraview.exe" $File`)
 
 # File  =   "SphereP.vtk"
