@@ -40,4 +40,5 @@ function catexamples(output, pattern)
         @printf o "end # function allrun\n\n" 
         @printf o "end # module %s\n" outputname
     end
+    println("Wrote $output in $(pwd())\n")
 end

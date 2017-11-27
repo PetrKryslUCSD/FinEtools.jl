@@ -50,6 +50,6 @@ println("Total time elapsed = ",time() - t0,"s")
 
 # Postprocessing
 File = "acou_annulusmod.vtk"
-vtkexportmesh(File, fes.conn, geom.values,
+vtkexportmesh(File, connasarray(fes), geom.values,
 FinEtools.MeshExportModule.Q4; scalars=[("Pre", real(P.values)), ("Pim", imag(P.values))])
 @async run(`"paraview.exe" $File`)

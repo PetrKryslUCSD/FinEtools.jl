@@ -1,8 +1,9 @@
-module mmmmmmmmmmmm
+module heat_juafem_examples
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
-function test()
+
+function heat_juafem_example()
     println("""Heat conduction example from JuAFEM.""")
     t0 = time()
     
@@ -60,17 +61,12 @@ function test()
     # File =  "a.vtk"
     # MeshExportModule.vtkexportmesh(File, fes.conn, hcat(geom.values,  Temp.values), MeshExportModule.Q4; scalars=[("Temperature", Temp.values)])
     # @async run(`"paraview.exe" $File`)
-    
-    
-    
-    true
-    
-end
-end
-using .mmmmmmmmmmmm
-mmmmmmmmmmmm.test()
+end # heat_juafem_example
 
+function allrun()
+    println("#####################################################") 
+    println("# heat_juafem_example ")
+    heat_juafem_example()
+end # function allrun
 
-
-
-
+end # module heat_juafem_examples
