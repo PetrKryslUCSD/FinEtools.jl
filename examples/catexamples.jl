@@ -37,6 +37,7 @@ function catexamples(output, pattern)
             @printf o """println("# %s ")\n""" foo
             @printf o "    %s()\n" foo
         end
+        @printf o "    return true\n" 
         @printf o "end # function allrun\n\n" 
         @printf o "end # module %s\n" outputname
     end
