@@ -13,6 +13,7 @@ k = omega/c*[1.0 0.0 0.0];
 
 println("""
         Spherical domain filled with acoustic medium, no scatterer.
+        Incident wave.
 Hexahedral mesh.
         """)
 
@@ -97,12 +98,12 @@ ptot.values = P.values+pinc.values
 # @async run(`"C:/Program Files (x86)/ParaView 4.2.0/bin/paraview.exe" $File`)
 
 File  =   "Spherepinc.vtk"
-vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
+vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H8;
 scalars = [("realpinc", real(pinc.values))])
 @async run(`"paraview.exe" $File`)
 
 File  =   "SphereP.vtk"
-vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
+vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H8;
  scalars = [( "realP", real(P.values))])
 @async run(`"paraview.exe" $File`)
 
