@@ -389,3 +389,9 @@ end
 -- Implement
 fen2fe  = FENodeToFEMap(fes, nnodes(geom))
 or in other words use the tuple-based connectivity..
+
+-- Do not export ANYTHING? Then  one knows where methods come from because they need to be explicitly brought in.
+
+-- Instead of a geometry field, pass the finite element nodes? Then the node data could be stored as immutable, with possible performance gains.
+
+-- Have  multiple concrete types for fields? Some mutable, some immutable?
