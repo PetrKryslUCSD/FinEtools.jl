@@ -1,7 +1,5 @@
 module scratch
 using FinEtools
-#
-
 
 rho = 1.21*phun("kg/m^3");# mass density
 c  = 343.0*phun("m/s");# sound speed
@@ -27,7 +25,7 @@ t0  =  time()
 fens,fes  =  H8sphere(R,nref);
 bfes  =  meshboundary(fes)
 File  =   "baffledabc_boundary.vtk"
-vtkexportmesh(File, bfes.conn, fens.xyz, FinEtools.MeshExportModule.Q4)
+vtkexportmesh(File, connasarray(bfes), fens.xyz, FinEtools.MeshExportModule.Q4)
  @async run(`"paraview.exe" $File`)
 
 l = selectelem(fens,bfes,facing = true,direction = [1.0 1.0  1.0], dotmin= 0.001)
@@ -78,19 +76,9 @@ geom = modeldata["geom"]
 P = modeldata["P"]
 
 File  =   "baffledabc.vtk"
-vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
+vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H8;
 scalars = [("absP", abs.(P.values))])
 @async run(`"paraview.exe" $File`)
-
-# using Winston
-# pl  =  FramedPlot(title = "Matrix",xlabel = "x",ylabel = "Re P, Im P")
-# setattr(pl.frame, draw_grid = true)
-# add(pl, Curve([1:length(C[:])],vec(C[:]), color = "blue"))
-
-# # pl = plot(geom.values[nLx,1][ix],scalars[nLx][ix])
-# # xlabel("x")
-# # ylabel("Pressure")
-# display(pl)
 
 true
 end
