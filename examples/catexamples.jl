@@ -1,3 +1,10 @@
+using Glob
+
+"""
+    catexamples(output, pattern)
+
+Generate a module with examples  on a common theme.  
+"""
 function catexamples(output, pattern)
     n,ext = splitext(output)
     if ext == ".jl"

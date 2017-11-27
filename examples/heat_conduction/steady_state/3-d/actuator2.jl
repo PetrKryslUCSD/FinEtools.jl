@@ -69,15 +69,13 @@ fens,fes  =  H8toH20(fens,fes);
 
 hotmater = MatHeatDiff(kappa)
 coldmater = MatHeatDiff(kappa)
- cl =  selectelem(fens, fes, box=[x0,x2,y0,y2,z0,z1],inflate = t/100);
+cl =  selectelem(fens, fes, box=[x0,x2,y0,y2,z0,z1],inflate = t/100);
 
-hotfemm  =  FEMMHeatDiff(IntegData(subset(fes,cl), GaussRule(3, 3), 0.), hotmater)
-coldfemm  = FEMMHeatDiff(IntegData(subset(fes,setdiff(collect(1:count(fes)), cl)),
-  GaussRule(3, 3), 0.), coldmater)
-  geom = NodalField(fens.xyz)
-  Temp = NodalField(zeros(size(fens.xyz,1),1))
-fenids = selectnode(fens, box=[x0,x4,y0,y0,z0,z3],
-    inflate=t/1000) ; # fixed temperature on substrate
+hotfemm  =  FEMMHeatDiff(IntegData(subset(fes,cl), GaussRule(3, 3)), hotmater)
+coldfemm  = FEMMHeatDiff(IntegData(subset(fes,setdiff(collect(1:count(fes)), cl)),  GaussRule(3, 3)), coldmater)
+geom = NodalField(fens.xyz)
+Temp = NodalField(zeros(size(fens.xyz,1),1))
+fenids = selectnode(fens, box=[x0,x4,y0,y0,z0,z3], inflate=t/1000) ; # fixed temperature on substrate
 setebc!(Temp, fenids, true, 1, T_substrate)
 applyebc!(Temp)
 numberdofs!(Temp)
@@ -92,19 +90,27 @@ nzebcloadsconductivity(coldfemm, geom, Temp)
 U = K\F
 scattersysvec!(Temp,U[:])
 
-using Plots
-plotly()
+using PyCall
+@pyimport matplotlib.pyplot as plt
+plt.style[:use]("seaborn-whitegrid")
+fig = plt.figure() 
+ax = plt.axes()
 nList = selectnode(fens, box=[x1,x1,y0,y1,z1,z1], inflate=t/1000)
 y_i = geom.values[nList, 2]
 T_i = Temp.values[nList, 1]
 ix = sortperm(y_i)
-plot(y_i[ix], T_i[ix], color=:red, label= "hot leg")
+ax[:plot](y_i[ix], T_i[ix], color=:red, label= "hot leg")
 println("maximum(T_i) = $(maximum(T_i))")
 
 nList = selectnode(fens, box=[x3,x3,y0,y3,z2,z2], inflate=t/1000)
 y_o = geom.values[nList, 2]
 T_o = Temp.values[nList, 1]
 ix = sortperm(y_o)
-plot!(y_o[ix], T_o[ix], color=:blue, label= "cold leg")
+ax[:plot](y_o[ix], T_o[ix], color=:blue, label= "cold leg")
+plt.show()
+# plt.xlim(0.0, 1.0)
+# plt.axis("equal")
+# plt.legend()
+# ax[:set_xlabel]("")
 
-gui()
+
