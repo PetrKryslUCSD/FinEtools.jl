@@ -105,7 +105,7 @@ println("Computing time elapsed  =  ",time() - t1,"s")
 println("Total time elapsed  =  ",time() - t0,"s")
 
 File  =   "sphere_dipole_1.vtk"
-vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
+vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H8;
  scalars = [( "realP", real(P.values))])
 @async run(`"paraview.exe" $File`)
 
