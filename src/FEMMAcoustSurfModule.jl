@@ -132,6 +132,7 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A,
     edim = ndn*nne;          # dimension of the element matrix
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdata);
+    transposedNs = [reshape(N, 1, nne) for N in Ns]
     Ge = fill(zero(FFlt), 3, nne); # element coupling matrix -- used as a buffer
     coldofnums = zeros(FInt, 1, edim); # degree of freedom array -- used as a buffer
     rowdofnums = zeros(FInt, 1, 3); # degree of freedom array -- used as a buffer
@@ -147,7 +148,7 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A,
             Jac = Jacobiansurface(self.integdata, J, loc, fes.conn[i], Ns[j]);
             n = self.getnormal!(n, loc, J);
             ffactor = (Jac*w[j])
-            Ge = Ge + (ffactor*n)*transpose(Ns[j])
+            Ge = Ge + (ffactor*n)*transposedNs[j]
         end # Loop over quadrature points
         gatherdofnums!(P, coldofnums, fes.conn[i]);# retrieve degrees of freedom
         assemble!(assembler, Ge, rowdofnums, coldofnums);# assemble unsymmetric matrix
@@ -184,6 +185,7 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::Noda
     edim = ndn*nne;          # dimension of the element matrix
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdata);
+    transposedNs = [reshape(N, 1, nne) for N in Ns]
     Ge = fill(zero(FFlt), 3, nne); # element coupling matrix -- used as a buffer
     coldofnums = zeros(FInt, 1, edim); # degree of freedom array -- used as a buffer
     rowdofnums = zeros(FInt, 1, 3); # degree of freedom array -- used as a buffer
@@ -199,7 +201,7 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::Noda
             Jac = Jacobiansurface(self.integdata, J, loc, fes.conn[i], Ns[j]);
             n = self.getnormal!(n, loc, J);
             ffactor = (Jac*w[j])
-            Ge = Ge + (ffactor*cross(vec(vec(loc)-CG), n))*transpose(Ns[j])
+            Ge = Ge + (ffactor*cross(vec(vec(loc)-CG), n))*transposedNs[j]
         end # Loop over quadrature points
         gatherdofnums!(P, coldofnums, fes.conn[i]);# retrieve degrees of freedom
         assemble!(assembler, Ge, rowdofnums, coldofnums);# assemble unsymmetric matrix
