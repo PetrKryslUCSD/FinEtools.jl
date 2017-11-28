@@ -90,6 +90,13 @@ function vtkexportmesh(theFile::String, Connectivity, Points, Cell_type;
         end
     end
     numnodes = get(()->error("Wrong number of connected nodes!"), numnodesmap, Cell_type);
+    if typeof(Connectivity[1]) <: Tuple # Vector of connectivity tuples: convert to an array
+        c = fill(0, length(Connectivity), length(Connectivity[1]))
+        for i = 1:length(Connectivity)
+            c[i, :] = [Connectivity[i]...]
+        end
+        Connectivity = c
+    end 
     @assert numnodes == size(Connectivity,2)
 
     fid=open(theFile,"w");
