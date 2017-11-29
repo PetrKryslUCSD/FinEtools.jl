@@ -7,6 +7,9 @@ module AlgoDeforLinearModule
 
 using FinEtools
 using FinEtools.AlgoBaseModule.dcheck!
+if VERSION >= v"0.7-"
+    using   IterativeEigenSolvers
+end
 
 """
     AlgoDeforLinearModule.linearstatics(modeldata::FDataDict)
