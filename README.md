@@ -14,8 +14,6 @@
 
 - 11/18/2017:  The documentation of the design principles  and  organization of the package is published as [Github pages](https://petrkryslucsd.github.io/FinEtools.jl). (At the moment incomplete,  but under rapid development.  Please don't hesitate to contact me if something is unclear.)
 
-- 11/17/2017: At the moment the nightly builds do not test successfully due to some problems with  the testing tools. However FinEtools runs successfully  with the nightly build.
-
 - 10/21/2017: Global RMS error norms can now be evaluated for multi-region  models.
 
 - 10/12/2017: Evaluation of global error norms implemented.
