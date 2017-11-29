@@ -651,7 +651,9 @@ module scratch2_06102017
 
 using FinEtools
 using Compat.Test
-
+if VERSION >= v"0.7-"
+    using   IterativeEigenSolvers
+end
 function test()
   # println("""
   #         % Vibration modes of unit cube  of almost incompressible material.
@@ -2686,6 +2688,9 @@ module muunit_cube_modes_exportmmm
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    using   IterativeEigenSolvers
+end
 function test()
 
 
@@ -4976,6 +4981,9 @@ module mmtruncatedmfreem1
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    using   IterativeEigenSolvers
+end
 function test()
     # println("""
     # Vibration modes of truncated cylindrical shell.
@@ -5150,6 +5158,9 @@ module mmtruncatedmfreem2
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    using   IterativeEigenSolvers
+end
 function test()
     # println("""
     # Vibration modes of truncated cylindrical shell.
