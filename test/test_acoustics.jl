@@ -2,6 +2,9 @@
 module mmrrigid
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    using   IterativeEigenSolvers
+end
 function test()
 
 # println("""
@@ -66,7 +69,9 @@ module fahyL2example
 
 using FinEtools
 using Compat.Test
-
+if VERSION >= v"0.7-"
+    using   IterativeEigenSolvers
+end
 function test()
 # println("""
 # Example from Sound and Structural Vibration, Second Edition: Radiation, Transmission and Response [Paperback]
@@ -137,6 +142,9 @@ fahyL2example.test()
 module mmfahyH8example
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    using   IterativeEigenSolvers
+end
 function test()
 
 # println("""
@@ -195,6 +203,9 @@ mmfahyH8example.test()
 module mmfahyH27example
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    using   IterativeEigenSolvers
+end
 function test()
 
 # println("""
