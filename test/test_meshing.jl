@@ -2977,4 +2977,94 @@ end
 using .mmmremeshingm1m
 mmmremeshingm1m.test()
 
+module mmvoxel_bracket_mesh
+using FinEtools
+using FinEtools.TetRemeshingModule
+using FinEtools.FTypesModule
+using FinEtools.VoxelBoxModule
+using FinEtools.VoxelTetMeshingModule
+using FinEtools.MeshExportModule
+using Compat.Test
+function test()
+    V = VoxelBoxVolume(Int, 8*[5,6,7], [4.0, 4.0, 5.0])
+    
+    b1 = solidbox((0.0, 0.0, 0.0), (1.0, 4.0, 5.0))
+    b2 = solidbox((0.0, 0.0, 0.0), (4.0, 1.0, 5.0))
+    h1 = solidcylinder((2.0, 2.5, 2.5), (1.0, 0.0, 0.0), 0.75)
+    fillsolid!(V, differenceop(unionop(b1, b2), h1), 1)
+    
+    function checkvolumes(im)
+        for i = 1:size(im.t, 1)
+            if FinEtools.MeshTetrahedronModule.tetv1times6(im.v, im.t[i,1], im.t[i,2], im.t[i,3], im.t[i,4]) < 0.0
+                println("Negative volume = $([im.t[i,1], im.t[i,2], im.t[i,3], im.t[i,4]])")
+            end 
+        end
+    end
+    
+    im = ImageMesher(V, zero(eltype(V.data)), eltype(V.data)[1])
+    mesh!(im)
+    checkvolumes(im)
+    # println("Mesh size: initial = $(size(im.t,1))")
+    @test size(im.t,1) == 196275
+    
+    im.elementsizeweightfunctions = [ElementSizeWeightFunction(20.0, vec([0.0, 2.5, 2.5]), 1.0), ElementSizeWeightFunction(1.0, vec([0.0, 2.5, 2.5]), 3.5)]
+    for i = 1:12
+        #println("Phase $i");
+        checkvolumes(im)
+        mesh!(im, 1.1)
+        checkvolumes(im)
+        #println("Mesh size: final = $(size(im.t,1))")
+        V = volumes(im)
+        @test length(find(x -> x <= 0.0, V)) == 0
+        # println("length(find(x -> x <= 0.0, V)) = $(length(find(x -> x <= 0.0, V)))")
+        # open("im$(i)" * ".jls", "w") do file
+        #     serialize(file, im)
+        # end
+    end
+    
+    fens = FENodeSet(im.v)
+    fes = FESetT4(im.t)
+    setlabel!(fes, im.tmid)
+
+    @test count(fes) == 14042
+    
+    # bfes = meshboundary(fes)
+    # list = selectelem(fens, fes; overlappingbox = boundingbox([0.2018 2.1537 3.9064]), inflate = 0.01, allin = false)
+    # File = "voxel_bracket_mesh_tet.vtk"
+    # vtkexportmesh(File, fens, subset(fes, list))
+    # @async run(`"paraview.exe" $File`)
+    File = "voxel_bracket_mesh_tet.vtk"
+    vtkexportmesh(File, fens, fes)
+    #@async run(`"paraview.exe" $File`)
+    try rm(File); catch end
+    
+    ne = NASTRANExporter("voxel_bracket_mesh_tet.nas")
+    BEGIN_BULK(ne)
+    for i = 1:count(fens)
+        GRID(ne, i, fens.xyz[i, :])
+    end
+    for i = 1:count(fes)
+        CTETRA(ne, i, 1, [fes.conn[i]...])
+    end
+    PSOLID(ne, 1, 1)
+    MAT1(ne, 1, 20.0e9, 0.3, 1800.0)
+    ENDDATA(ne)
+    close(ne)
+    try rm(ne.filename); catch end
+    
+    stle = STLExporter("voxel_bracket_mesh_tet.stl")
+    solid(stle) 
+    bfes = meshboundary(fes)
+    for i = 1:count(bfes)
+        facet(stle, fens.xyz[bfes.conn[i][1], :], fens.xyz[bfes.conn[i][2], :], fens.xyz[bfes.conn[i][3], :])
+    end
+    endsolid(stle)
+    close(stle)
+    try rm(stle.filename); catch end
+end
+end
+using .mmvoxel_bracket_mesh
+mmvoxel_bracket_mesh.test()
+
+
 
