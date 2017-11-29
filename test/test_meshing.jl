@@ -3026,7 +3026,7 @@ function test()
     fes = FESetT4(im.t)
     setlabel!(fes, im.tmid)
 
-    @test count(fes) == 14042
+    @test count(fes) == 14086
     
     # bfes = meshboundary(fes)
     # list = selectelem(fens, fes; overlappingbox = boundingbox([0.2018 2.1537 3.9064]), inflate = 0.01, allin = false)
