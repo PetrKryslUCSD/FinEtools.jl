@@ -42,16 +42,16 @@ Map from finite element nodes to the finite elements connecting them.
 
 `nmax` = largest possible node number
 """
-function FENodeToFEMap(conns::FIntMat, nmax::FInt)
+function FENodeToFEMap(conn::C, nmax::FInt) where {C}
     #n=  maximum(conns[:]);#
     map = Array{FIntVec}(nmax)
     for i = 1:length(map)
         map[i] = []  # initially empty arrays
     end
 
-    for i = 1:size(conns,2)
-        for j = 1:size(conns,1)
-            ni = conns[j,i];
+    for i = 1:length(conn)
+        for j = 1:length(conn[i])
+            ni = conn[i][j];
             push!(map[ni],j)
         end
     end
