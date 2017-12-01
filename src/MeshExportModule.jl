@@ -394,6 +394,22 @@ function ELEMENT(self::AbaqusExporter, TYPE::AbstractString, ELSET::AbstractStri
     ELEMENT(self, TYPE, ELSET, start, conn)
 end
 
+function ELEMENT(self::AbaqusExporter, TYPE::AbstractString, ELSET::AbstractString,
+    start::Integer, conn::C) where {C}
+    @assert typeof(conn[1])<:Tuple
+    c = fill(0, length(conn), length(conn[1]))
+    for i = 1:length(conn)
+        c[i, :] = [conn[i]...]
+    end
+    ELEMENT(self, TYPE, ELSET, start, c)
+end
+
+function ELEMENT(self::AbaqusExporter, TYPE::AbstractString, ELSET::AbstractString,
+    conn::C) where {C}
+    start = self.element_range[2] + 1
+    ELEMENT(self, TYPE, ELSET, start, c)
+end
+
 """
     NSET_NSET(self::AbaqusExporter, NSET::AbstractString,
       n::AbstractVector{T}) where {T<:Integer}
