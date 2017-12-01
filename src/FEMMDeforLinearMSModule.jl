@@ -71,7 +71,7 @@ function FEMMDeforLinearMST10(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::C
     @assert mr === material.mr "Model reduction is mismatched"
     @assert (mr === DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
-    return FEMMDeforLinearMST10(mr, IntegData, mcsys, material, stabilization_material, fill(zero(FFlt), 1))
+    return FEMMDeforLinearMST10(mr, integdata, mcsys, material, stabilization_material, fill(zero(FFlt), 1))
 end
 
 function FEMMDeforLinearMST10(mr::Type{MR}, integdata::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetT10, F<:Function, M<:MatDefor}
