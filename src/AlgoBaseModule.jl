@@ -111,7 +111,8 @@ For both the "coarse"- and "fine"-mesh `modeldata` the data dictionaries need to
 - "targetfields" = array of fields, one for each region
 - "geom" = geometry field
 - "elementsize" = representative element size,
-- "geometricaltolerance" = geometrical tolerance (used in field transfer)
+- "geometricaltolerance" = geometrical tolerance (used in field transfer; refer to the documentation of `transferfield!`)
+- "parametrictolerance" = parametric tolerance (used in field transfer; refer to the documentation of `transferfield!`)
 """
 function fielddiffnorm(modeldatacoarse, modeldatafine)
     # Load coarse-mesh data
@@ -123,7 +124,11 @@ function fielddiffnorm(modeldatacoarse, modeldatafine)
     fensfine = modeldatafine["fens"]
     regionsfine = modeldatafine["regions"]
     targetfieldsfine = modeldatafine["targetfields"]
-    geometricaltolerance = modeldatafine["geometricaltolerance"]
+
+    # Tolerances
+    geometricaltolerance = modeldatacoarse["geometricaltolerance"]
+    parametrictolerance = get(modeldatacoarse, "parametrictolerance", 0.01);
+    
     geom = modeldatafine["geom"]
 
     @assert length(regionscoarse) == length(regionsfine)
@@ -138,7 +143,7 @@ function fielddiffnorm(modeldatacoarse, modeldatafine)
         fcoarsetransferred = deepcopy(ffine)
         fcoarsetransferred = transferfield!(fcoarsetransferred,
             fensfine, regionsfine[i]["femm"].integdata.fes, fcoarse,
-            fenscoarse, regionscoarse[i]["femm"].integdata.fes, geometricaltolerance)
+            fenscoarse, regionscoarse[i]["femm"].integdata.fes, geometricaltolerance; parametrictolerance = parametrictolerance)
         # Form the difference  field
         diffff = deepcopy(fcoarsetransferred)
         diffff.values[:] = ffine.values - fcoarsetransferred.values

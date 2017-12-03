@@ -209,14 +209,15 @@ end
         )  where {T<:Number, F<:NodalField{T}}
 
 Transfer a nodal field from a coarse mesh to a finer one.
-`ff` = the fine-mesh field (modified and also returned)
-`fensf` = finite element node set for the fine-mesh
-`fc` = the coarse-mesh field
-`fensc` = finite element node set for the fine-mesh,
-`fesc` = finite element set for the coarse mesh
-`tolerance` = tolerance in physical space for searches of the adjacent nodes
+    - `ff` = the fine-mesh field (modified and also returned)
+    - `fensf` = finite element node set for the fine-mesh
+    - `fc` = the coarse-mesh field
+    - `fensc` = finite element node set for the fine-mesh,
+    - `fesc` = finite element set for the coarse mesh
+    - `geometricaltolerance` = tolerance in physical space for searches of the adjacent nodes
+    - `parametrictolerance` = tolerance in parametric space for for check whether node is inside an element
 """
-function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENodeSet, fesc::FESet,  tolerance::FFlt)  where {T<:Number, F<:NodalField{T}}
+function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENodeSet, fesc::FESet, geometricaltolerance::FFlt; parametrictolerance::FFlt = 0.01)  where {T<:Number, F<:NodalField{T}}
     fill!(ff.values, Inf) # the "infinity" value indicates a missed node
     @assert count(fensf) == nents(ff)
     parametrictol = 0.01
@@ -232,7 +233,7 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENo
         pnl = find(x -> x == partitionnumbers[p], npf) # subset of fine-mesh nodes
         # Find the bounding box
         subbox = boundingbox(fensf.xyz[pnl, :])
-        tol = 2*tolerance # increase the box a bit
+        tol = 2*geometricaltolerance # increase the box a bit
         # Construct a sub mesh of the coarse mesh that covers the nodes from this partition
         sublist = selectelem(fensc, fesc, overlappingbox = subbox, inflate = tol)
         if !isempty(sublist) # there are some finite elements to work with
@@ -247,7 +248,7 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENo
             for i in pnl # for all nodes in the subset
                 nl = vselect(fenscsub.xyz; nearestto = fensf.xyz[i, :])
                 # For each node in the fine field try to find one in  the coarse field
-                if !isempty(nl) && norm(fensf.xyz[i, :] - fenscsub.xyz[nl[1], :]) < tolerance
+                if !isempty(nl) && norm(fensf.xyz[i, :] - fenscsub.xyz[nl[1], :]) < geometricaltolerance
                     # These nodes correspond in the  refined  and coarse mesh
                     ff.values[i, :] = fcsub.values[nl[1], :]
                 else
@@ -255,14 +256,14 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENo
                     # location of a coarse-mesh node. Then we have to search which
                     # element they fall into.
                     nodebox = initbox!(nodebox, vec(fensf.xyz[i, :]))
-                    nodebox = inflatebox!(nodebox, tolerance)
+                    nodebox = inflatebox!(nodebox, geometricaltolerance)
                     el = selectelem(fenscsub, fescsub; overlappingbox = nodebox)
                     for e = el
                         c = [k for k in fescsub.conn[e]] #c = view(fescsub.conn, e, :)
                         pc, success = map2parametric(fescsub, fenscsub.xyz[c, :],
                             vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
                         @assert success # this shouldn't be tripped; normally we succeed
-                        if inparametric(fescsub, pc; tolerance = parametrictol) # coarse mesh element encloses the node
+                        if inparametric(fescsub, pc; tolerance = parametrictolerance) # coarse mesh element encloses the node
                             N = bfun(fescsub,  pc)
                             ff.values[i, :] = transpose(N) * fcsub.values[c, :]
                             break
