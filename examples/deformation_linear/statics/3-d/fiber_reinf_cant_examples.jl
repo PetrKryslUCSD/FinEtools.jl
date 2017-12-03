@@ -564,8 +564,7 @@ function fiber_reinf_cant_yn_strong()
     
     gr = GaussRule(3, 2)
     
-    region = FDataDict("femm"=>FEMMDeforLinear(MR,
-    IntegData(fes, gr, CSys(3, 3, updatecs!)), material))
+    region = FDataDict("femm"=>FEMMDeforLinear(MR, IntegData(fes, gr), CSys(3, 3, updatecs!), material))
     
     lx0 = selectnode(fens, box=[0.0 0.0 -Inf Inf -Inf Inf], inflate=tolerance)
     
@@ -577,8 +576,7 @@ function fiber_reinf_cant_yn_strong()
         copy!(forceout, q0*[0.0; 0.0; 1.0])
     end
     
-    Trac = FDataDict("traction_vector"=>getshr!,
-    "femm"=>FEMMBase(IntegData(subset(bfes, sshearl), GaussRule(2, 3))))
+    Trac = FDataDict("traction_vector"=>getshr!, "femm"=>FEMMBase(IntegData(subset(bfes, sshearl), GaussRule(2, 3))))
     
     modeldata = FDataDict("fens"=>fens,
     "regions"=>[region],
@@ -601,8 +599,7 @@ function fiber_reinf_cant_yn_strong()
     #     scalars = [("Layer", fes.label)], vectors = [("displacement", u.values)])
     # @async run(`"paraview.exe" $File`)
     
-    modeldata["postprocessing"] = FDataDict("file"=>"fiber_reinf_cant_yn_strong",
-    "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy, "component"=>5)
+    modeldata["postprocessing"] = FDataDict("file"=>"fiber_reinf_cant_yn_strong", "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy, "component"=>5)
     modeldata = AlgoDeforLinearModule.exportstress(modeldata)
     File = modeldata["postprocessing"]["exported"][1]["file"]
     @async run(`"paraview.exe" $File`)
@@ -693,9 +690,8 @@ function fiber_reinf_cant_yn_strong_no_algo()
     
     gr = GaussRule(3, 2)
     
-    femm = FEMMDeforLinear(MR,
-    FEMMBase(fes, gr, CSys(updatecs!)), material)
-    
+    femm = FEMMDeforLinear(MR, IntegData(fes, gr), CSys(3, 3, updatecs!), material)
+
     lx0 = selectnode(fens, box=[0.0 0.0 -Inf Inf -Inf Inf], inflate=tolerance)
     
     geom = NodalField(fens.xyz)
@@ -707,18 +703,19 @@ function fiber_reinf_cant_yn_strong_no_algo()
     setebc!(u, lx0, true, 3, zeros(size(lx0)))
     applyebc!(u)
     
-    S = connectionmatrix(femm.femmbase, nnodes(geom))
+    S = connectionmatrix(femm, nnodes(geom))
+    
     numberdofs!(u)
     
     function getshr!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
         copy!(forceout, q0*[0.0; 0.0; 1.0])
     end
     
-    Tracfemm = FEMMBase(subset(bfes, sshearl), GaussRule(2, 3))
+    Tracfemm = FEMMBase(IntegData(subset(bfes, sshearl), GaussRule(2, 3)))
     
     println("K = stiffness(femm, geom, u)")
     @time K = stiffness(femm, geom, u)
-    fi = ForceIntensity(FFlt, getshr!);
+    fi = ForceIntensity(FFlt, 3, getshr!);
     println("F =  distribloads(Tracfemm, geom, u, fi, 2);")
     @time F =  distribloads(Tracfemm, geom, u, fi, 2);
     

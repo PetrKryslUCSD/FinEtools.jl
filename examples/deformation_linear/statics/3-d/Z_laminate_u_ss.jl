@@ -55,8 +55,7 @@ end
 
 gr = GaussRule(3, 3)
 
-region = FDataDict("femm"=>FEMMDeforLinear(MR,
-    IntegData(fes, gr, CSys(3, 3, updatecs!)), laminamaterial))
+region = FDataDict("femm"=>FEMMDeforLinear(MR, IntegData(fes, gr), CSys(3, 3, updatecs!), laminamaterial))
 
 lx0 = selectnode(fens, box=[0.0 0.0 -Inf Inf -Inf Inf], inflate=tolerance)
 lxa = selectnode(fens, box=[a a -Inf Inf -Inf Inf], inflate=tolerance)
