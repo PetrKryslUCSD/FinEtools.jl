@@ -81,6 +81,7 @@ Compute norm of the target field.
     - "regions" = array of regions
     - "targetfields" = array of fields, one for each region
     - "geom" = geometry field
+    - "elementsize" = representative element size,
 """
 function fieldnorm(modeldata)
     fens = modeldata["fens"]
@@ -103,6 +104,14 @@ end
     fielddiffnorm(modeldatacoarse, modeldatafine)
 
 Compute norm of the difference of the target fields.  
+
+For both the "coarse"- and "fine"-mesh `modeldata` the data dictionaries need to contain the mandatory keys:
+- "fens" = finite element node set
+- "regions" = array of regions
+- "targetfields" = array of fields, one for each region
+- "geom" = geometry field
+- "elementsize" = representative element size,
+- "geometricaltolerance" = geometrical tolerance (used in field transfer)
 """
 function fielddiffnorm(modeldatacoarse, modeldatafine)
     # Load coarse-mesh data
@@ -144,6 +153,10 @@ end
     evalconvergencestudy(modeldatasequence, File)
 
 Evaluate a convergence study from a model-data sequence.  
+
+`modeldatasequence` = array of `modeldata` dictionaries.
+
+Refer to methods `fieldnorm` and `fielddiffnorm` for details on the required keys in the dictionaries.
 """
 function evalconvergencestudy(modeldatasequence)
     # Find the element sizes
