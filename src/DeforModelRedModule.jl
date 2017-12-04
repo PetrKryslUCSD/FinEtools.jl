@@ -5,12 +5,6 @@ Module for  model reduction in models of deformation.
 """
 module DeforModelRedModule
 
-# export DeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,
-#        DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D
-# export nstressstrain, nthermstrain
-# export stresscomponentmap
-# export Blmat!
-
 using FinEtools
 
 abstract type DeforModelRed end;

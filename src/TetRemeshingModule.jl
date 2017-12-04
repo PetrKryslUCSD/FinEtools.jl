@@ -4,9 +4,6 @@ Module for remeshing tetrahedral triangulations.
 module TetRemeshingModule
 
 using FinEtools
-using FinEtools.FENodeToFEMapModule
-using FinEtools.MeshTetrahedronModule
-using FinEtools.MeshModificationModule
 import Base.length
 import Base.push!
 import Base.getindex
@@ -134,7 +131,7 @@ function coarsen(t::Array{Int, 2}, inputv::Array{Float64, 2}, tmid::Vector{Int};
     end 
     m = FENodeToFEMap(t, nv)
     v2t = deepcopy(m.map);# Map vertex to tetrahedron
-    e = MeshTetrahedronModule.T4meshedges(t);
+    e = T4meshedges(t);
     m = FENodeToFEMap(e, nv)
     v2e = deepcopy(m.map);# Map vertex to edge
     

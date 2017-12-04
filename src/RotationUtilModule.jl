@@ -5,8 +5,6 @@ Module to handle two-dimensional and three-dimensional rotations.
 """
 module RotationUtilModule
 
-# export rotmat,  rotmat3!, skewmat!, cross3, cross3!, cross2
-
 using FinEtools
 
 _I3 = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
@@ -50,12 +48,12 @@ function skewmat!(S, theta)
 end
 
 
-function cross3(theta::AbstractVector{T}, v::AbstractVector{T}) where T
-    @assert (length(theta)== 3) && (length(v)== 3) "Inputs must be 3-vectors"
-    return [ 0.0-theta[3]*v[2]+theta[2]*v[3];
-            theta[3]*v[1]+0.0-theta[1]*v[3];
-            -theta[2]*v[1]+theta[1]*v[2]+0.0];
-end
+# function cross3(theta::AbstractVector{T}, v::AbstractVector{T}) where T
+#     @assert (length(theta)== 3) && (length(v)== 3) "Inputs must be 3-vectors"
+#     return [ 0.0-theta[3]*v[2]+theta[2]*v[3];
+#             theta[3]*v[1]+0.0-theta[1]*v[3];
+#             -theta[2]*v[1]+theta[1]*v[2]+0.0];
+# end
 
 function cross3!(result::AbstractVector{T}, theta::AbstractVector{T}, v::AbstractVector{T}) where T
     @assert (length(theta)== 3) && (length(v)== 3) "Inputs must be 3-vectors"

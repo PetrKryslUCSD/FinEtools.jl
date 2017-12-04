@@ -5,12 +5,7 @@ Module for working with bounding boxes.
 """
 module BoxModule
 
-# export inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap
-
 using FinEtools
-using FinEtools
-
-
 
 """
     inbox(box::AbstractVector, x::AbstractVector)

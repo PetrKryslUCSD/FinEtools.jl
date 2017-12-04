@@ -6,7 +6,7 @@ Module for linear acoustics algorithms.
 module AlgoAcoustModule
 
 using FinEtools
-using FinEtools.AlgoBaseModule.dcheck!
+import FinEtools.AlgoBaseModule: dcheck!
 
 """
     steadystate(modeldata::FDataDict)
