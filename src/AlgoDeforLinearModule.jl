@@ -6,7 +6,7 @@ Module for algorithms used in linear deformation models.
 module AlgoDeforLinearModule
 
 using FinEtools
-using FinEtools.AlgoBaseModule.dcheck!
+import FinEtools.AlgoBaseModule: dcheck!
 if VERSION >= v"0.7-"
     using   IterativeEigenSolvers
 end

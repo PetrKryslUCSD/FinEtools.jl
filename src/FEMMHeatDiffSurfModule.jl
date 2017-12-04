@@ -6,10 +6,10 @@ system vectors for linear heat diffusion/conduction.
 """
 module FEMMHeatDiffSurfModule
 
-export  FEMMHeatDiffSurf
-export surfacetransfer,  surfacetransferloads,  nzebcsurfacetransferloads
+# export  FEMMHeatDiffSurf
+# export surfacetransfer,  surfacetransferloads,  nzebcsurfacetransferloads
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FESetModule
 using FinEtools.CSysModule
 using FinEtools.IntegDataModule

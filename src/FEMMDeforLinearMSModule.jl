@@ -6,11 +6,11 @@ system vectors for linear deformation models:  mean-strain  formulation.
 """
 module FEMMDeforLinearMSModule
 
-export FEMMDeforLinearMSH8, FEMMDeforLinearMST10
-export stiffness, nzebcloadsstiffness, thermalstrainloads,
-       inspectintegpoints
+# export FEMMDeforLinearMSH8, FEMMDeforLinearMST10
+# export stiffness, nzebcloadsstiffness, thermalstrainloads,
+#        inspectintegpoints
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FESetModule
 using FinEtools.FESetModule.gradN!
 using FinEtools.CSysModule
@@ -121,7 +121,7 @@ function buffers2(self::FEMMDeforLinearAbstractMS, geom::NodalField, u::NodalFie
     nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
     mdim = manifdim(fes); # manifold dimension of the element
-    nstrs = nstsstn(self.mr);  # number of stresses
+    nstrs = nstressstrain(self.mr);  # number of stresses
     elmatdim = ndn*nne;             # dimension of the element matrix
     # Prepare buffers
     elmat = fill(zero(FFlt), elmatdim, elmatdim);      # element matrix -- buffer
@@ -305,11 +305,11 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}, 
     dTe = fill(zero(FFlt), nodesperelem(fes)) # nodal temperatures -- buffer
     ue = fill(zero(FFlt), size(elmat, 1)); # array of node displacements -- buffer
     qpdT = 0.0; # node temperature increment
-    qpstrain = fill(zero(FFlt), nstsstn(self.mr), 1); # total strain -- buffer
-    qpthstrain = fill(zero(FFlt), nthstn(self.mr)); # thermal strain -- buffer
-    qpstress = fill(zero(FFlt), nstsstn(self.mr)); # stress -- buffer
-    out1 = fill(zero(FFlt), nstsstn(self.mr)); # stress -- buffer
-    out =  fill(zero(FFlt), nstsstn(self.mr));# output -- buffer
+    qpstrain = fill(zero(FFlt), nstressstrain(self.mr), 1); # total strain -- buffer
+    qpthstrain = fill(zero(FFlt), nthermstrain(self.mr)); # thermal strain -- buffer
+    qpstress = fill(zero(FFlt), nstressstrain(self.mr)); # stress -- buffer
+    out1 = fill(zero(FFlt), nstressstrain(self.mr)); # stress -- buffer
+    out =  fill(zero(FFlt), nstressstrain(self.mr));# output -- buffer
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
         i = felist[ilist];
@@ -377,11 +377,11 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}
     dTe = fill(zero(FFlt), nodesperelem(fes)) # nodal temperatures -- buffer
     ue = fill(zero(FFlt), size(elmat, 1)); # array of node displacements -- buffer
     qpdT = 0.0; # node temperature increment
-    qpstrain = fill(zero(FFlt), nstsstn(self.mr), 1); # total strain -- buffer
-    qpthstrain = fill(zero(FFlt), nthstn(self.mr)); # thermal strain -- buffer
-    qpstress = fill(zero(FFlt), nstsstn(self.mr)); # stress -- buffer
-    out1 = fill(zero(FFlt), nstsstn(self.mr)); # stress -- buffer
-    out =  fill(zero(FFlt), nstsstn(self.mr));# output -- buffer
+    qpstrain = fill(zero(FFlt), nstressstrain(self.mr), 1); # total strain -- buffer
+    qpthstrain = fill(zero(FFlt), nthermstrain(self.mr)); # thermal strain -- buffer
+    qpstress = fill(zero(FFlt), nstressstrain(self.mr)); # stress -- buffer
+    out1 = fill(zero(FFlt), nstressstrain(self.mr)); # stress -- buffer
+    out =  fill(zero(FFlt), nstressstrain(self.mr));# output -- buffer
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
         i = felist[ilist];
@@ -452,11 +452,11 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt
     dTe = fill(zero(FFlt), nodesperelem(fes)) # nodal temperatures -- buffer
     ue = fill(zero(FFlt), size(elmat, 1)); # array of node displacements -- buffer
     qpdT = 0.0; # node temperature increment
-    qpstrain = fill(zero(FFlt), nstsstn(self.mr), 1); # total strain -- buffer
-    qpthstrain = fill(zero(FFlt), nthstn(self.mr)); # thermal strain -- buffer
-    qpstress = fill(zero(FFlt), nstsstn(self.mr)); # stress -- buffer
-    rout1 = fill(zero(FFlt), nstsstn(self.mr)); # stress -- buffer
-    rout =  fill(zero(FFlt), nstsstn(self.mr));# output -- buffer
+    qpstrain = fill(zero(FFlt), nstressstrain(self.mr), 1); # total strain -- buffer
+    qpthstrain = fill(zero(FFlt), nthermstrain(self.mr)); # thermal strain -- buffer
+    qpstress = fill(zero(FFlt), nstressstrain(self.mr)); # stress -- buffer
+    rout1 = fill(zero(FFlt), nstressstrain(self.mr)); # stress -- buffer
+    rout =  fill(zero(FFlt), nstressstrain(self.mr));# output -- buffer
     sbout = deepcopy(rout)
     sbout1 = deepcopy(sbout)
     sout = deepcopy(rout)

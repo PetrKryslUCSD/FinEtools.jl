@@ -5,9 +5,9 @@ Module for  orthotropic elastic material.
 """
 module MatDeforElastOrthoModule
 
-export MatDeforElastOrtho
+# export MatDeforElastOrtho
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.DeforModelRedModule
 using FinEtools.MatDeforModule
 
@@ -166,13 +166,13 @@ Update material state.
 
 Output:
 `stress` = stress vector, allocated by the caller with a size of the number of
-  stress and strain components, `nstsstn`. The components of the stress vector are
+  stress and strain components, `nstressstrain`. The components of the stress vector are
   calculated and stored in the `stress` vector.
 `output` =  array which is (if necessary) allocated  in an appropriate size, filled
   with the output quantity, and returned.
 """
 function update3d!(self::MatDeforElastOrtho,  stress::FFltVec, output::FFltVec,  strain::FFltVec, thstrain::FFltVec=zeros(6), t::FFlt= 0.0, dt::FFlt= 0.0,  loc::FFltMat=zeros(3,1), label::FInt=0, quantity=:nothing)
-    @assert length(stress) == nstsstn(self.mr)
+    @assert length(stress) == nstressstrain(self.mr)
     A_mul_B!(stress, self.D, strain-thstrain);
     if quantity == :nothing
         #Nothing to be copied to the output array
@@ -249,13 +249,13 @@ Update material state.
 
 Output:
 `stress` = stress vector, allocated by the caller with a size of the number of
-  stress and strain components, `nstsstn`. The components of the stress vector are
+  stress and strain components, `nstressstrain`. The components of the stress vector are
   calculated and stored in the `stress` vector.
 `output` =  array which is (if necessary) allocated  in an appropriate size, filled
   with the output quantity, and returned.
 """
 function update2dstrs!(self::MatDeforElastOrtho, stress::FFltVec,  output::FFltVec,  strain::FFltVec, thstrain::FFltVec=zeros(3), t::FFlt= 0.0, dt::FFlt= 0.0,  loc::FFltMat=zeros(3,1), label::FInt=0, quantity=:nothing)
-    @assert length(stress) == nstsstn(self.mr)
+    @assert length(stress) == nstressstrain(self.mr)
     D = zeros(3, 3)
     tangentmoduli2dstrs!(self, D, t, dt, loc, label)
     A_mul_B!(stress, D, strain-thstrain);
@@ -288,7 +288,7 @@ end
 Compute thermal strain from the supplied temperature increment.
 """
 function thermalstrain2dstrs!(self::MatDeforElastOrtho, thstrain::FFltVec, dT= 0.0)
-    @assert length(thstrain) == nthstn(self.mr)
+    @assert length(thstrain) == nthermstrain(self.mr)
     thstrain[1] = self.CTE1*dT
     thstrain[2] = self.CTE2*dT
     thstrain[3] = 0.0
@@ -335,7 +335,7 @@ Update material state.
 
 Output:
 `stress` = stress vector, allocated by the caller with a size of the number of
-  stress and strain components, `nstsstn`. The components of the stress vector are
+  stress and strain components, `nstressstrain`. The components of the stress vector are
   calculated and stored in the `stress` vector.
 `output` =  array which is (if necessary) allocated  in an appropriate size, filled
   with the output quantity, and returned.
@@ -346,7 +346,7 @@ minimum,  but rather  the  three-dimensional maximum (1) and minimum (3).
 The intermediate principal stress is (2).
 """
 function update2dstrn!(self::MatDeforElastOrtho,  stress::FFltVec, output::FFltVec, strain::FFltVec, thstrain::FFltVec=zeros(4), t::FFlt= 0.0, dt::FFlt= 0.0, loc::FFltMat=zeros(3,1), label::FInt=0, quantity=:nothing)
-    @assert length(stress) == nstsstn(self.mr)
+    @assert length(stress) == nstressstrain(self.mr)
     D = zeros(3, 3)
     tangentmoduli2dstrn!(self, D, t, dt, loc, label)
     A_mul_B!(stress, D, strain-thstrain[1:3]);
@@ -391,7 +391,7 @@ strain, and finally for the through the thickness strain.
 thstrain = [ex, ey, 0.0, ez].
 """
 function thermalstrain2dstrn!(self::MatDeforElastOrtho, thstrain::FFltVec, dT= 0.0)
-    @assert length(thstrain) == nthstn(self.mr)
+    @assert length(thstrain) == nthermstrain(self.mr)
     thstrain[1] = self.CTE1*dT
     thstrain[2] = self.CTE2*dT
     thstrain[3] = 0.0
@@ -437,13 +437,13 @@ Update material state.
 
 Output:
 `stress` = stress vector, allocated by the caller with a size of the number of
-  stress and strain components, `nstsstn`. The components of the stress vector are
+  stress and strain components, `nstressstrain`. The components of the stress vector are
   calculated and stored in the `stress` vector.
 `output` =  array which is (if necessary) allocated  in an appropriate size, filled
   with the output quantity, and returned.
 """
 function update2daxi!(self::MatDeforElastOrtho,  stress::FFltVec, output::FFltVec, strain::FFltVec, thstrain::FFltVec=zeros(3), t::FFlt= 0.0, dt::FFlt= 0.0, loc::FFltMat=zeros(3,1), label::FInt=0, quantity=:nothing)
-    @assert length(stress) == nstsstn(self.mr)
+    @assert length(stress) == nstressstrain(self.mr)
     D = zeros(4, 4)
     tangentmoduli2daxi!(self, D, t, dt, loc, label)
     A_mul_B!(stress, D, strain-thstrain);
@@ -479,7 +479,7 @@ The thermal strain is evaluated  for the  three normal strains and the shear
 strain.
 """
 function thermalstrain2daxi!(self::MatDeforElastOrtho, thstrain::FFltVec, dT= 0.0)
-    @assert length(thstrain) == nthstn(self.mr)
+    @assert length(thstrain) == nthermstrain(self.mr)
     thstrain[1] = self.CTE1*dT
     thstrain[2] = self.CTE2*dT
     thstrain[3] = self.CTE3*dT

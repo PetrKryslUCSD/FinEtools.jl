@@ -7,10 +7,10 @@ system vectors for linear deformation models with distributed-spring supports
 """
 module FEMMDeforWinklerModule
 
-export FEMMDeforWinkler
-export surfacenormalspringstiffness
+# export FEMMDeforWinkler
+# export surfacenormalspringstiffness
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FESetModule
 using FinEtools.CSysModule
 using FinEtools.IntegDataModule

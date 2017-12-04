@@ -5,14 +5,8 @@ Module for elemental fields.
 """
 module ElementalFieldModule
 
-export ElementalField
-export nelems
-
 using FinEtools
-using FinEtools.FTypesModule
-using FinEtools.FieldModule
 using FinEtools.FieldModule.@add_Field_fields
-
 
 """
     ElementalField{T<:Number}

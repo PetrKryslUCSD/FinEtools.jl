@@ -5,9 +5,9 @@ Module  to manage  distributed force intensity.
 """
 module ForceIntensityModule
 
-using FinEtools.FTypesModule
+using FinEtools
 
-export ForceIntensity, updateforce!
+# export ForceIntensity, updateforce!
 
 """
     ForceIntensity{T<:Number, F<:Function}

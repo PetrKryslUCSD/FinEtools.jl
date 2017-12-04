@@ -925,15 +925,15 @@ function test()
     d = A * b
     # println("$(d)")
     @test norm(c - d) < 1.0e-6
-    e = RotationUtilModule.cross3(a, b)
+    e = cross(a, b)
     @test norm(c - e) < 1.0e-6
     f = zeros(3)
-    RotationUtilModule.cross3!(f, a, b)
+    cross3!(f, a, b)
     @test norm(c - f) < 1.0e-6
 
     a = vec([0.1102, -0.135])
     b = vec([-0.137487, 0.351721])
-    c = RotationUtilModule.cross2(a, b)
+    c = cross2(a, b)
     # println("$(c)")
     @test norm(c - 0.0201989092) < 1.0e-6
 end

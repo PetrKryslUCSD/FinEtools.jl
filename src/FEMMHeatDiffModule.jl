@@ -6,10 +6,10 @@ system vectors for linear heat conduction/diffusion.
 """
 module FEMMHeatDiffModule
 
-export  FEMMHeatDiff
-export conductivity,  nzebcloadsconductivity
+# export  FEMMHeatDiff
+# export conductivity,  nzebcloadsconductivity
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FESetModule
 using FinEtools.FESetModule.gradN!
 using FinEtools.CSysModule

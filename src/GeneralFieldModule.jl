@@ -5,10 +5,10 @@ Module for general fields.
 """
 module GeneralFieldModule
 
-export GeneralField
+# export GeneralField
 
 using FinEtools
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FieldModule
 using FinEtools.FieldModule.@add_Field_fields
 

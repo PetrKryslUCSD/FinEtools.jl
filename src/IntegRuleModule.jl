@@ -4,10 +4,11 @@ Module for numerical integration rules.
 """
 module IntegRuleModule
 
-using FinEtools.FTypesModule
+# export IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule
+
+using FinEtools
 
 abstract type IntegRule end
-export IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule
 
 """
 TriRule

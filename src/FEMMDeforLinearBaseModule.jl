@@ -6,11 +6,11 @@ system vectors for linear deformation models.
 """
 module FEMMDeforLinearBaseModule
 
-export FEMMDeforLinearAbstract
-export stiffness, nzebcloadsstiffness, mass, thermalstrainloads,
-       inspectintegpoints
+# export FEMMDeforLinearAbstract
+# export stiffness, nzebcloadsstiffness, mass, thermalstrainloads,
+#        inspectintegpoints
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FESetModule
 using FinEtools.FESetModule.gradN!
 using FinEtools.CSysModule
@@ -33,7 +33,7 @@ function buffers(self::FEMMDeforLinearAbstract, geom::NodalField, u::NodalField)
     nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
     mdim = manifdim(fes); # manifold dimension of the element
-    nstrs = nstsstn(self.mr);  # number of stresses
+    nstrs = nstressstrain(self.mr);  # number of stresses
     elmatdim = ndn*nne;             # dimension of the element matrix
     # Prepare buffers
     elmat = fill(zero(FFlt), elmatdim, elmatdim);      # element matrix -- buffer
@@ -185,9 +185,9 @@ function  thermalstrainloads(self::FEMMDeforLinearAbstract, assembler::A, geom::
     t= 0.0
     dt = 0.0
     DeltaT = fill(zero(FFlt), nodesperelem(fes))
-    strain = fill(zero(FFlt), nstsstn(self.mr)); # total strain -- buffer
-    thstrain = fill(zero(FFlt), nthstn(self.mr)); # thermal strain -- buffer
-    thstress = fill(zero(FFlt), nstsstn(self.mr)); # thermal stress -- buffer
+    strain = fill(zero(FFlt), nstressstrain(self.mr)); # total strain -- buffer
+    thstrain = fill(zero(FFlt), nthermstrain(self.mr)); # thermal strain -- buffer
+    thstress = fill(zero(FFlt), nstressstrain(self.mr)); # thermal stress -- buffer
     startassembly!(assembler,  u.nfreedofs);
     for i = 1:count(fes) # Loop over elements
         gathervalues_asvec!(dT, DeltaT, fes.conn[i]);# retrieve element temperatures
@@ -263,11 +263,11 @@ function inspectintegpoints(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt
     sdim = ndofs(geom);            # number of space dimensions
     xe = fill(zero(FFlt), nne, sdim); # array of node coordinates -- buffer
     qpdT = 0.0; # node temperature increment
-    qpstrain = fill(zero(FFlt), nstsstn(self.mr), 1); # total strain -- buffer
-    qpthstrain = fill(zero(FFlt), nthstn(self.mr)); # thermal strain -- buffer
-    qpstress = fill(zero(FFlt), nstsstn(self.mr)); # stress -- buffer
-    out1 = fill(zero(FFlt), nstsstn(self.mr)); # stress -- buffer
-    out =  fill(zero(FFlt), nstsstn(self.mr));# output -- buffer
+    qpstrain = fill(zero(FFlt), nstressstrain(self.mr), 1); # total strain -- buffer
+    qpthstrain = fill(zero(FFlt), nthermstrain(self.mr)); # thermal strain -- buffer
+    qpstress = fill(zero(FFlt), nstressstrain(self.mr)); # stress -- buffer
+    out1 = fill(zero(FFlt), nstressstrain(self.mr)); # stress -- buffer
+    out =  fill(zero(FFlt), nstressstrain(self.mr));# output -- buffer
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
         i = felist[ilist];

@@ -5,9 +5,9 @@ Module  for generation of meshes composed of line (curve) elements.
 """
 module MeshLineModule
 
-export L2block, L2blockx, L3blockx
+# export L2block, L2blockx, L3blockx
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FESetModule
 using FinEtools.FENodeSetModule
 using FinEtools.MeshModificationModule

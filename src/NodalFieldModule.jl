@@ -5,11 +5,11 @@ Module for nodal fields.
 """
 module NodalFieldModule
 
-export NodalField
-export nnodes
+# export NodalField
+# export nnodes
 
 using FinEtools
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FieldModule
 using FinEtools.FieldModule.@add_Field_fields
 

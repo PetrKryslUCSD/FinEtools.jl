@@ -6,13 +6,13 @@ system vectors for linear acoustics.
 """
 module FEMMAcoustModule
 
-export FEMMAcoust
-export acousticmass, nzebcloadsacousticmass
-export acousticstiffness, nzebcloadsacousticstiffness
+# export FEMMAcoust
+# export acousticmass, nzebcloadsacousticmass
+# export acousticstiffness, nzebcloadsacousticstiffness
 
 import Base.Complex
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FESetModule
 using FinEtools.IntegDataModule
 using FinEtools.FEMMBaseModule
@@ -21,10 +21,7 @@ using FinEtools.NodalFieldModule
 using FinEtools.ForceIntensityModule
 using FinEtools.MatAcoustFluidModule
 using FinEtools.AssemblyModule
-using FinEtools.MatrixUtilityModule.add_mggt_ut_only!
-using FinEtools.MatrixUtilityModule.add_nnt_ut_only!
-using FinEtools.MatrixUtilityModule.complete_lt!
-using FinEtools.MatrixUtilityModule: locjac!
+using FinEtools.MatrixUtilityModule: add_mggt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
 
 """
     FEMMAcoust{S<:FESet}

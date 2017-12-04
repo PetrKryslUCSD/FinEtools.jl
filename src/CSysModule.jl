@@ -5,11 +5,9 @@ Module for management of coordinate systems.
 """
 module CSysModule
 
-export CSys
-export updatecsmat!
+# export CSys, updatecsmat!
 
-using FinEtools.FTypesModule
-using FinEtools.RotationUtilModule
+using FinEtools
 
 """
 Type for coordinate system transformations.
@@ -146,8 +144,8 @@ function gen_iso_csmat!(csmatout::FFltMat,
         if mdim == 1 # curve-like finite element
             copy!(csmatout, e1);
         elseif mdim == 2 # surface-like finite element
-            n = RotationUtilModule.cross3(e1, vec(tangents[:,2]/norm(tangents[:,2])));
-            e2 = RotationUtilModule.cross3(n, e1);
+            n = cross(e1, vec(tangents[:,2]/norm(tangents[:,2])));
+            e2 = cross(n, e1);
             e2 = e2/norm(e2);
             csmatout[:,1] = e1
             csmatout[:,2] = e2

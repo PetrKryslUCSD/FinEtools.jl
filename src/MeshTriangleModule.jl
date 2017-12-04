@@ -5,9 +5,9 @@ Module  for generation of meshes composed of triangles.
 """
 module MeshTriangleModule
 
-export  T3blockx, T3block,  T3toT6,  T6block,  Q4toT3,  T3refine, T6blockx
+# export  T3blockx, T3block,  T3toT6,  T6block,  Q4toT3,  T3refine, T6blockx
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FESetModule
 using FinEtools.FENodeSetModule
 using FinEtools.MeshUtilModule

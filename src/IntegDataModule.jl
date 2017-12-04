@@ -5,12 +5,11 @@ Module to manage geometry data.
 """
 module IntegDataModule
 
-export  IntegData
-export Jacobianpoint,  Jacobiancurve,  Jacobiansurface,  Jacobianvolume,
- Jacobianmdim,  integrationdata
+# export  IntegData
+# export Jacobianpoint,  Jacobiancurve,  Jacobiansurface,  Jacobianvolume,
+#  Jacobianmdim,  integrationdata
 
 using FinEtools
-using FinEtools.FTypesModule
 using FinEtools.FESetModule
 using FinEtools.IntegRuleModule
 using FinEtools.NodalFieldModule

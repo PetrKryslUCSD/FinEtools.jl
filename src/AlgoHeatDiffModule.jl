@@ -6,7 +6,7 @@ Module for algorithms in linear heat conduction/diffusion  models.
 module AlgoHeatDiffModule
 
 using FinEtools
-using FinEtools.AlgoBaseModule.dcheck!
+import FinEtools.AlgoBaseModule: dcheck!
 
 """
     steadystate(modeldata::FDataDict)
