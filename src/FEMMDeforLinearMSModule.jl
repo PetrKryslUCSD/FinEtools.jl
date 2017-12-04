@@ -6,32 +6,21 @@ system vectors for linear deformation models:  mean-strain  formulation.
 """
 module FEMMDeforLinearMSModule
 
-# export FEMMDeforLinearMSH8, FEMMDeforLinearMST10
-# export stiffness, nzebcloadsstiffness, thermalstrainloads,
-#        inspectintegpoints
-
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.FESetModule.gradN!
-using FinEtools.CSysModule
-using FinEtools.IntegDataModule
-using FinEtools.FEMMBaseModule
-using FinEtools.FEMMDeforLinearBaseModule
-using FinEtools.FieldModule
-using FinEtools.NodalFieldModule
-using FinEtools.ElementalFieldModule
-using FinEtools.ForceIntensityModule
-using FinEtools.AssemblyModule
-using FinEtools.DeforModelRedModule
-using FinEtools.MatDeforModule
-using FinEtools.MatDeforElastIsoModule
+using FinEtools.FTypesModule
+import FinEtools.FENodeSetModule: FENodeSet
+import FinEtools.FESetModule: FESet, FESetH8, FESetT10, manifdim, nodesperelem, gradN!
+import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianvolume
+import FinEtools.FEMMDeforLinearBaseModule: FEMMDeforLinearAbstract
+import FinEtools.DeforModelRedModule: DeforModelRed, DeforModelRed3D
+import FinEtools.MatDeforModule: MatDefor
+import FinEtools.MatDeforElastIsoModule: MatDeforElastIso
+import FinEtools.FieldModule: ndofs
+import FinEtools.NodalFieldModule: NodalField
+import FinEtools.CSysModule: CSys, updatecsmat!
+import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, startassembly!, assemble!, makematrix!
 using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, loc!, jac!, locjac!
-import FinEtools.FEMMDeforLinearBaseModule.stiffness
-import FinEtools.FEMMDeforLinearBaseModule.nzebcloadsstiffness
-import FinEtools.FEMMDeforLinearBaseModule.mass
-import FinEtools.FEMMDeforLinearBaseModule.thermalstrainloads
-import FinEtools.FEMMDeforLinearBaseModule.inspectintegpoints
-import FinEtools.FEMMBaseModule.associategeometry!
+import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass, thermalstrainloads, inspectintegpoints
+import FinEtools.FEMMBaseModule: associategeometry!
 
 abstract type FEMMDeforLinearAbstractMS <: FEMMDeforLinearAbstract end
 

@@ -6,11 +6,14 @@ system vectors for linear deformation models.
 """
 module FEMMDeforLinearModule
 
-# export FEMMDeforLinear
-# export stiffness, nzebcloadsstiffness, thermalstrainloads,
-#        inspectintegpoints
-
-using FinEtools
+using FinEtools.FTypesModule
+import FinEtools.FENodeSetModule: FENodeSet
+import FinEtools.FESetModule: FESet, manifdim
+import FinEtools.IntegDataModule: IntegData
+import FinEtools.FEMMDeforLinearBaseModule: FEMMDeforLinearAbstract
+import FinEtools.DeforModelRedModule: DeforModelRed
+import FinEtools.MatDeforModule: MatDefor
+import FinEtools.CSysModule: CSys
 
 """
     FEMMDeforLinear{S<:FESet, F<:Function, P<:PropertyDeformationLinear}

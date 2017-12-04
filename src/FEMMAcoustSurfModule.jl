@@ -6,25 +6,19 @@ system vectors for linear acoustics.
 """
 module FEMMAcoustSurfModule
 
-# export FEMMAcoustSurf
-# export acousticABC, pressure2resultantforce, pressure2resultanttorque
-
 import Base.Complex
 
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.IntegDataModule
-using FinEtools.FEMMBaseModule
-using FinEtools.FieldModule
-using FinEtools.NodalFieldModule
-using FinEtools.GeneralFieldModule
-using FinEtools.ForceIntensityModule
-using FinEtools.RotationUtilModule
-using FinEtools.AssemblyModule
-using FinEtools.MatrixUtilityModule.add_mggt_ut_only!
-using FinEtools.MatrixUtilityModule.add_nnt_ut_only!
-using FinEtools.MatrixUtilityModule.complete_lt!
-using FinEtools.MatrixUtilityModule: locjac!
+using FinEtools.FTypesModule
+import FinEtools.FENodeSetModule: FENodeSet
+import FinEtools.FESetModule: FESet, gradN!, nodesperelem, manifdim
+import FinEtools.MatAcoustFluidModule: MatAcoustFluid
+import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobiansurface
+import FinEtools.FieldModule: ndofs, gatherdofnums!
+import FinEtools.NodalFieldModule: NodalField 
+import FinEtools.GeneralFieldModule: GeneralField 
+import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysmatAssemblerSparse
+import FinEtools.FEMMBaseModule: FEMMAbstractBase
+import FinEtools.MatrixUtilityModule: add_mggt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
 
 """
     FEMMAcoustSurf{S<:FESet, F<:Function, M} <: FEMMAbstractBase
@@ -57,14 +51,12 @@ end
 
 """
     acousticABC(self::FEMMAcoustSurf, assembler::A,
-      geom::NodalFieldModule.NodalField,
-      Pdot::NodalFieldModule.NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
+      geom::NodalField,
+      Pdot::NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
 
 Compute the acoustic ABC (Absorbing Boundary Condition) matrix.
 """
-function acousticABC(self::FEMMAcoustSurf, assembler::A,
-    geom::NodalFieldModule.NodalField,
-    Pdot::NodalFieldModule.NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
+function acousticABC(self::FEMMAcoustSurf, assembler::A, geom::NodalField, Pdot::NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
     fes = self.integdata.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
@@ -100,9 +92,7 @@ function acousticABC(self::FEMMAcoustSurf, assembler::A,
     return makematrix!(assembler);
 end
 
-function acousticABC(self::FEMMAcoustSurf,
-    geom::NodalFieldModule.NodalField,
-    Pdot::NodalFieldModule.NodalField{T}) where {T<:Number}
+function acousticABC(self::FEMMAcoustSurf, geom::NodalField, Pdot::NodalField{T}) where {T<:Number}
     # Were we supplied assembler object?  If not make a default.
     assembler  =  SysmatAssemblerSparseSymm();
     return acousticABC(self, assembler, geom, Pdot);
@@ -110,18 +100,14 @@ end
 
 """
     pressure2resultantforce(self::FEMMAcoustSurf, assembler::A,
-      geom::NodalFieldModule.NodalField,
-      P::NodalFieldModule.NodalField{T},
+      geom::NodalField,
+      P::NodalField{T},
        Force::Field) where {T<:Number, A<:SysmatAssemblerBase}
-
-Compute.
 
 Compute the rectangular coupling matrix that transcribes given pressure
 on the surface into the resultant force acting on the surface.
 """
-function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A,
-    geom::NodalFieldModule.NodalField, P::NodalFieldModule.NodalField{T},
-    Force::GeneralField) where {T<:Number, A<:SysmatAssemblerBase}
+function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Force::GeneralField) where {T<:Number, A<:SysmatAssemblerBase}
     fes = self.integdata.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
@@ -156,25 +142,22 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A,
     return makematrix!(assembler);
 end
 
-function pressure2resultantforce(self::FEMMAcoustSurf,
-    geom::NodalFieldModule.NodalField,
-    P::NodalFieldModule.NodalField{T},
-    Force::GeneralField) where {T<:Number}
+function pressure2resultantforce(self::FEMMAcoustSurf, geom::NodalField, P::NodalField{T}, Force::GeneralField) where {T<:Number}
     assembler  =  SysmatAssemblerSparse();
     return pressure2resultantforce(self, assembler, geom, P, Force)
 end
 
 """
     pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A,
-      geom::NodalFieldModule.NodalField,
-      P::NodalFieldModule.NodalField{T},
+      geom::NodalField,
+      P::NodalField{T},
       Torque::GeneralField, CG::FFltVec) where {T<:Number, A<:SysmatAssemblerBase}
 
 Compute the rectangular coupling matrix that transcribes given pressure
 on the surface into the resultant torque acting on the surface with respect
 to the CG.
 """
-function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::NodalFieldModule.NodalField, P::NodalFieldModule.NodalField{T}, Torque::GeneralField, CG::FFltVec) where {T<:Number,  A<:SysmatAssemblerBase}
+function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Torque::GeneralField, CG::FFltVec) where {T<:Number,  A<:SysmatAssemblerBase}
     fes = self.integdata.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
@@ -209,10 +192,7 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::Noda
     return makematrix!(assembler);
 end
 
-function pressure2resultanttorque(self::FEMMAcoustSurf,
-    geom::NodalFieldModule.NodalField,
-    P::NodalFieldModule.NodalField{T},
-    Torque::GeneralField, CG::FFltVec) where {T<:Number}
+function pressure2resultanttorque(self::FEMMAcoustSurf, geom::NodalField, P::NodalField{T}, Torque::GeneralField, CG::FFltVec) where {T<:Number}
     assembler  =  SysmatAssemblerSparse();
     return pressure2resultanttorque(self, assembler, geom, P, Torque, CG)
 end

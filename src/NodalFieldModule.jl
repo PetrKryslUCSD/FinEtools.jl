@@ -5,13 +5,9 @@ Module for nodal fields.
 """
 module NodalFieldModule
 
-# export NodalField
-# export nnodes
-
-using FinEtools
-using FinEtools
-using FinEtools.FieldModule
-using FinEtools.FieldModule.@add_Field_fields
+using FinEtools.FTypesModule
+import FinEtools.FieldModule: Field, nents
+import FinEtools.FieldModule.@add_Field_fields
 
 """
     NodalField{T<:Number}

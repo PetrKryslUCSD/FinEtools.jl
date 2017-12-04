@@ -5,12 +5,8 @@ Module to construct a map from finite element nodes to the finite elements.
 """
 module FENodeToFEMapModule
 
-# export FENodeToFEMap
+using FinEtools.FTypesModule
 
-using FinEtools
-
-  #
-    #
     # Map from finite element nodes to the finite elements connecting them.
         # For each  node referenced in the connectivity of
         # the finite element set on input, the numbers of the individual

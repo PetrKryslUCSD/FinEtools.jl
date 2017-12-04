@@ -5,23 +5,17 @@ Module for comments/base operations on interiors and boundaries of domains.
 """
 module FEMMBaseModule
 
-# export FEMMAbstractBase, FEMMBase
-# export associategeometry!, integratefieldfunction, integratefunction,
-#     transferfield!, distribloads, connectionmatrix,
-#     fieldfromintegpoints, elemfieldfromintegpoints
-
-using FinEtools
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.IntegRuleModule
-using FinEtools.NodalFieldModule
-using FinEtools.MeshSelectionModule: vselect
-using FinEtools.ForceIntensityModule
-using FinEtools.CSysModule
-using FinEtools.IntegDataModule
-using FinEtools.AssemblyModule
-using FinEtools.MatrixUtilityModule: locjac!
-
+using FinEtools.FTypesModule
+import FinEtools.FENodeSetModule: FENodeSet
+import FinEtools.FESetModule: FESet, manifdim, nodesperelem
+import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianmdim
+import FinEtools.CSysModule: CSys
+import FinEtools.FieldModule: ndofs, gatherdofnums!, gathervalues_asmat! 
+import FinEtools.NodalFieldModule: NodalField 
+import FinEtools.ElementalFieldModule: ElementalField 
+import FinEtools.AssemblyModule: SysvecAssemblerBase, startassembly!, assemble!, makematrix!, SysvecAssembler, makevector!
+import FinEtools.ForceIntensityModule: ForceIntensity, updateforce!
+import FinEtools.MatrixUtilityModule: locjac!
 """
     FEMMAbstractBase
 

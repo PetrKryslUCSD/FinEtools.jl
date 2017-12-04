@@ -1,13 +1,12 @@
+"""
+    VoxelTetMeshingModule
+
+Module for meshing of voxel data sets with tetrahedra.  
+"""
 module VoxelTetMeshingModule
 
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.TetRemeshingModule
-using FinEtools.VoxelBoxModule
-using FinEtools.MeshTetrahedronModule
-using FinEtools.MeshModificationModule
-
-# export ElementSizeWeightFunction, ImageMesher, mesh!, volumes
+using FinEtools.FTypesModule
+import FinEtools.VoxelBoxModule: VoxelBoxVolume
 
 mutable struct  ElementSizeWeightFunction
     influenceweight::FFlt

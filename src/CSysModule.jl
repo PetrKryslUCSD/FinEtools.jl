@@ -5,9 +5,7 @@ Module for management of coordinate systems.
 """
 module CSysModule
 
-# export CSys, updatecsmat!
-
-using FinEtools
+using FinEtools.FTypesModule
 
 """
 Type for coordinate system transformations.

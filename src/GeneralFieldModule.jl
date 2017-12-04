@@ -5,12 +5,9 @@ Module for general fields.
 """
 module GeneralFieldModule
 
-# export GeneralField
-
-using FinEtools
-using FinEtools
-using FinEtools.FieldModule
-using FinEtools.FieldModule.@add_Field_fields
+using FinEtools.FTypesModule
+import FinEtools.FieldModule.Field
+import FinEtools.FieldModule.@add_Field_fields
 
 """
     GeneralField{T<:Number} <: Field

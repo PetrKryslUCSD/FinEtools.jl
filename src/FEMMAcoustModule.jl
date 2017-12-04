@@ -6,30 +6,26 @@ system vectors for linear acoustics.
 """
 module FEMMAcoustModule
 
-# export FEMMAcoust
-# export acousticmass, nzebcloadsacousticmass
-# export acousticstiffness, nzebcloadsacousticstiffness
-
 import Base.Complex
 
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.IntegDataModule
-using FinEtools.FEMMBaseModule
-using FinEtools.FieldModule
-using FinEtools.NodalFieldModule
-using FinEtools.ForceIntensityModule
-using FinEtools.MatAcoustFluidModule
-using FinEtools.AssemblyModule
-using FinEtools.MatrixUtilityModule: add_mggt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
+using FinEtools.FTypesModule
+import FinEtools.FENodeSetModule: FENodeSet
+import FinEtools.FESetModule: FESet, gradN!, nodesperelem, manifdim
+import FinEtools.MatAcoustFluidModule: MatAcoustFluid
+import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianvolume
+import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!
+import FinEtools.NodalFieldModule: NodalField 
+import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysvecAssembler, makevector!
+import FinEtools.FEMMBaseModule: FEMMAbstractBase
+import FinEtools.MatrixUtilityModule: add_mggt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
 
 """
     FEMMAcoust{S<:FESet}
 
-Class for linear acoustics finite element modeling machine.
+Type for linear acoustics finite element modeling machine.
 """
 mutable struct FEMMAcoust{S<:FESet, F<:Function, M} <: FEMMAbstractBase
-    integdata::IntegData{S, F} # geometry data finite element modeling machine
+    integdata::IntegData{S, F} # geometry data 
     material::M # material object
 end
 
@@ -55,8 +51,8 @@ end
 
 """
     acousticmass(self::FEMMAcoust,
-      assembler::A, geom::NodalFieldModule.NodalField,
-      P::NodalFieldModule.NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
+      assembler::A, geom::NodalField,
+      P::NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
 
 Compute the acoustic mass matrix.
 
@@ -67,9 +63,7 @@ assembler  =  matrix assembler
 geom = geometry field
 P = acoustic (perturbation) pressure field
 """
-function acousticmass(self::FEMMAcoust,
-    assembler::A, geom::NodalFieldModule.NodalField,
-    P::NodalFieldModule.NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
+function acousticmass(self::FEMMAcoust, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
     fes = self.integdata.fes
     dofnums, loc, J, gradN, elmat, elvec, elvecfix =   buffers(self, geom, P)
     # Precompute basis f. values + basis f. gradients wrt parametric coor
@@ -84,7 +78,7 @@ function acousticmass(self::FEMMAcoust,
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
             Jac = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
             # gradient WRT global Cartesian coordinates
-            FESetModule.gradN!(fes, gradN, gradNparams[j], J);
+            gradN!(fes, gradN, gradNparams[j], J);
             afactor = (Jac*w[j]);
             add_mggt_ut_only!(elmat, gradN, afactor)
         end # Loop over quadrature points
@@ -95,9 +89,7 @@ function acousticmass(self::FEMMAcoust,
     return makematrix!(assembler);
 end
 
-function acousticmass(self::FEMMAcoust,
-    geom::NodalFieldModule.NodalField,
-    P::NodalFieldModule.NodalField{T}) where {T<:Number}
+function acousticmass(self::FEMMAcoust, geom::NodalField, P::NodalField{T}) where {T<:Number}
     # Make the default assembler object.
     assembler  =  SysmatAssemblerSparseSymm();
     return acousticmass(self, assembler, geom, P);
@@ -110,9 +102,7 @@ end
 
 Compute load vector for nonzero EBC for fixed pressure..
 """
-function nzebcloadsacousticmass(self::FEMMAcoust, assembler::A,
-    geom::NodalField, P::NodalField{T}) where {T<:Number,
-    A<:SysvecAssemblerBase}
+function nzebcloadsacousticmass(self::FEMMAcoust, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:SysvecAssemblerBase}
     fes = self.integdata.fes
     dofnums, loc, J, gradN, elmat, elvec, elvecfix = buffers(self, geom, P)
     # Precompute basis f. values + basis f. gradients wrt parametric coor
@@ -127,7 +117,7 @@ function nzebcloadsacousticmass(self::FEMMAcoust, assembler::A,
                 locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
                 Jac = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
                 # gradient WRT global Cartesian coordinates
-                FESetModule.gradN!(fes, gradN, gradNparams[j], J);
+                gradN!(fes, gradN, gradNparams[j], J);
                 afactor = (Jac*w[j]);
                 add_mggt_ut_only!(elmat, gradN, afactor)
             end # Loop over quadrature points
@@ -139,24 +129,20 @@ function nzebcloadsacousticmass(self::FEMMAcoust, assembler::A,
     return  makevector!(assembler);
 end
 
-function nzebcloadsacousticmass(self::FEMMAcoust,
-    geom::NodalField,  P::NodalField{T}) where {T<:Number}
+function nzebcloadsacousticmass(self::FEMMAcoust, geom::NodalField, P::NodalField{T}) where {T<:Number}
     assembler  =  SysvecAssembler(P.values[1])
     return nzebcloadsacousticmass(self, assembler, geom, P);
 end
 
 """
     acousticstiffness(self::FEMMAcoust, assembler::A,
-      geom::NodalFieldModule.NodalField,
-      Pddot::NodalFieldModule.NodalField{T}) where {T<:Number,
+      geom::NodalField,
+      Pddot::NodalField{T}) where {T<:Number,
       A<:SysmatAssemblerBase}
 
 Compute the acoustic stiffness matrix.
 """
-function acousticstiffness(self::FEMMAcoust, assembler::A,
-    geom::NodalFieldModule.NodalField,
-    Pddot::NodalFieldModule.NodalField{T}) where {T<:Number,
-    A<:SysmatAssemblerBase}
+function acousticstiffness(self::FEMMAcoust, assembler::A, geom::NodalField, Pddot::NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
     fes = self.integdata.fes
     dofnums, loc, J, gradN, elmat, elvec, elvecfix = buffers(self, geom, Pddot)
     # Precompute basis f. values + basis f. gradients wrt parametric coor
@@ -183,9 +169,7 @@ function acousticstiffness(self::FEMMAcoust, assembler::A,
     return makematrix!(assembler);
 end
 
-function acousticstiffness(self::FEMMAcoust,
-    geom::NodalFieldModule.NodalField,
-    Pddot::NodalFieldModule.NodalField{T}) where {T<:Number}
+function acousticstiffness(self::FEMMAcoust, geom::NodalField, Pddot::NodalField{T}) where {T<:Number}
     # Make the default assembler object.
     assembler  =  SysmatAssemblerSparseSymm();
     return acousticstiffness(self, assembler, geom, Pddot);
@@ -193,13 +177,13 @@ end
 
 """
     nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A,
-      geom::NodalFieldModule.NodalField,
-      Pddot::NodalFieldModule.NodalField{T}) where {T<:Number,
+      geom::NodalField,
+      Pddot::NodalField{T}) where {T<:Number,
       A<:SysvecAssemblerBase}
 
 Compute load vector for nonzero EBC for fixed second-order pressure rate.
 """
-function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A, geom::NodalFieldModule.NodalField, Pddot::NodalFieldModule.NodalField{T}) where {T<:Number, A<:SysvecAssemblerBase}
+function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A, geom::NodalField, Pddot::NodalField{T}) where {T<:Number, A<:SysvecAssemblerBase}
     fes = self.integdata.fes
     dofnums, loc, J, gradN, elmat, elvec, elvecfix = buffers(self, geom, Pddot)
     # Precompute basis f. values + basis f. gradients wrt parametric coor
@@ -229,9 +213,7 @@ function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A, geom::Nodal
     return makevector!(assembler);
 end
 
-function nzebcloadsacousticstiffness(self::FEMMAcoust,
-    geom::NodalFieldModule.NodalField,
-    Pddot::NodalFieldModule.NodalField{T}) where {T<:Number}
+function nzebcloadsacousticstiffness(self::FEMMAcoust, geom::NodalField, Pddot::NodalField{T}) where {T<:Number}
     assembler  =  SysvecAssembler(Pddot.values[1])#T(0.0)
     return nzebcloadsacousticstiffness(self, assembler, geom, Pddot)
 end

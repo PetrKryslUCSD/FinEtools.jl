@@ -5,10 +5,7 @@ Module for mesh import  functions.
 """
 module MeshImportModule
 
-using FinEtools
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.FENodeSetModule
+using FinEtools.FTypesModule
 
 """
 !!! note

@@ -5,16 +5,10 @@ Module to manage geometry data.
 """
 module IntegDataModule
 
-# export  IntegData
-# export Jacobianpoint,  Jacobiancurve,  Jacobiansurface,  Jacobianvolume,
-#  Jacobianmdim,  integrationdata
-
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.IntegRuleModule
-using FinEtools.NodalFieldModule
-using FinEtools.ForceIntensityModule
-using FinEtools.AssemblyModule
+using FinEtools.FTypesModule
+import FinEtools.FESetModule: FESet, FESet0Manifold, FESet1Manifold, FESet2Manifold, FESet3Manifold, Jacobian, bfun, bfundpar
+import FinEtools.FENodeSetModule: FENodeSet
+import FinEtools.IntegRuleModule: IntegRule
 
 """
     IntegData{T<:FESet}
@@ -105,7 +99,7 @@ Evaluate the point Jacobian.
 `N` = matrix of basis function values at the quadrature point.
 """
 function Jacobianpoint(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet0Manifold, CC}
-    return FinEtools.FESetModule.Jacobian(self.fes, J)::FFlt
+    return Jacobian(self.fes, J)::FFlt
 end
 
 """
@@ -226,7 +220,7 @@ Evaluate the curve Jacobian.
 `N` = matrix of basis function values at the quadrature point.
 """
 function Jacobiancurve(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet1Manifold, CC}
-    return FinEtools.FESetModule.Jacobian(self.fes, J)::FFlt
+    return Jacobian(self.fes, J)::FFlt
 end
 
 """
@@ -322,7 +316,7 @@ Evaluate the surface Jacobian.
 `N` = matrix of basis function values at the quadrature point.
 """
 function Jacobiansurface(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet2Manifold, CC}
-    return FinEtools.FESetModule.Jacobian(self.fes, J)
+    return Jacobian(self.fes, J)
 end
 
 """
@@ -386,7 +380,7 @@ Evaluate the volume Jacobian.
 `N` = matrix of basis function values at the quadrature point.
 """
 function Jacobianvolume(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet3Manifold, CC}
-    return FinEtools.FESetModule.Jacobian(self.fes, J)::FFlt
+    return Jacobian(self.fes, J)::FFlt
 end
 
 """
@@ -421,8 +415,8 @@ function  integrationdata(self::IntegData)
     Ns = Array{FFltMat}(1,npts);
     gradNparams = Array{FFltMat}(1,npts);
     for j=1:npts
-        Ns[j] = FESetModule.bfun(self.fes,vec(pc[j,:]));
-        gradNparams[j] = FESetModule.bfundpar(self.fes,vec(pc[j,:]));
+        Ns[j] = bfun(self.fes,vec(pc[j,:]));
+        gradNparams[j] = bfundpar(self.fes,vec(pc[j,:]));
     end
     return npts, Ns, gradNparams, w, pc
 end

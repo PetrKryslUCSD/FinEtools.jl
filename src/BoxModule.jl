@@ -5,7 +5,7 @@ Module for working with bounding boxes.
 """
 module BoxModule
 
-using FinEtools
+using FinEtools.FTypesModule
 
 """
     inbox(box::AbstractVector, x::AbstractVector)

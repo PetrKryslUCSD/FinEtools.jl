@@ -6,21 +6,19 @@ system vectors for linear heat conduction/diffusion.
 """
 module FEMMHeatDiffModule
 
-# export  FEMMHeatDiff
-# export conductivity,  nzebcloadsconductivity
-
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.FESetModule.gradN!
-using FinEtools.CSysModule
-using FinEtools.IntegDataModule
-using FinEtools.FEMMBaseModule
-using FinEtools.FieldModule
-using FinEtools.NodalFieldModule
-using FinEtools.ForceIntensityModule
-using FinEtools.MatHeatDiffModule
-using FinEtools.AssemblyModule
-using FinEtools.MatrixUtilityModule: add_gkgt_ut_only!, complete_lt!, locjac!
+using FinEtools.FTypesModule
+import FinEtools.FENodeSetModule: FENodeSet
+import FinEtools.FESetModule: FESet, nodesperelem, manifdim, gradN!
+import FinEtools.MatHeatDiffModule: MatHeatDiff
+import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianvolume
+import FinEtools.CSysModule: CSys, updatecsmat!
+import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!
+import FinEtools.NodalFieldModule: NodalField 
+import FinEtools.ElementalFieldModule: ElementalField 
+import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
+import FinEtools.ForceIntensityModule: ForceIntensity
+import FinEtools.FEMMBaseModule: FEMMAbstractBase
+import FinEtools.MatrixUtilityModule: add_gkgt_ut_only!, complete_lt!, locjac!
 
 # Type for heat diffusion finite element modeling machine.
 mutable struct FEMMHeatDiff{S<:FESet, F<:Function, M<:MatHeatDiff} <: FEMMAbstractBase

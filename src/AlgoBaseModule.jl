@@ -5,7 +5,7 @@ Module for base  algorithms.
 """
 module AlgoBaseModule
 
-using FinEtools
+using FinEtools.FTypesModule
 
 function _keymatch(key::String, allowed_keys::Array{String})
     matched_key = nothing

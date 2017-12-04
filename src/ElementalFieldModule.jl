@@ -5,8 +5,10 @@ Module for elemental fields.
 """
 module ElementalFieldModule
 
-using FinEtools
-using FinEtools.FieldModule.@add_Field_fields
+using FinEtools.FTypesModule
+import FinEtools.FieldModule: Field, nents
+import FinEtools.FieldModule.@add_Field_fields
+
 
 """
     ElementalField{T<:Number}

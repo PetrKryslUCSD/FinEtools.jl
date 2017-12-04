@@ -5,11 +5,12 @@ Module for assemblers  of system matrices and vectors.
 """
 module AssemblyModule
 
-using FinEtools
+using FinEtools.FTypesModule
 
 const  inv_dofnum=0;            # invalid degree of freedom number -- no equation
 
 abstract type SysmatAssemblerBase end;
+
 
 mutable struct SysmatAssemblerSparse{T<:Number} <: SysmatAssemblerBase
     # Type for assembling of a sparse global matrix from elementwise matrices.

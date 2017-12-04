@@ -5,13 +5,9 @@ Module for mesh modification operations.
 """
 module MeshModificationModule
 
-# export  meshboundary,  fusenodes,  compactnodes,  mergemeshes,  mergenmeshes,
-#     mergenodes,  renumberconn!,  meshsmoothing,  mirrormesh, nodepartitioning, 
-#     interior2boundary
-
-using FinEtools
-using FinEtools.FENodeSetModule
-using FinEtools.FESetModule
+using FinEtools.FTypesModule
+import FinEtools.FESetModule: FESet, count, boundaryconn, boundaryfe, updateconn!, connasarray, fromarray!
+import FinEtools.FENodeSetModule: FENodeSet
 using Base.Sort
 using Base.Order
 
@@ -38,9 +34,9 @@ supplied list of finite elements of manifold dimension (n).
 """
 function meshboundary(fes::T) where {T<:FESet}
     # Form all hyperfaces, non-duplicates are boundary cells
-    hypf = FESetModule.boundaryconn(fes);    # get the connectivity of the boundary elements
+    hypf = boundaryconn(fes);    # get the connectivity of the boundary elements
     bdryconn = myunique2(hypf);
-    make = FESetModule.boundaryfe(fes);     # get the function that can make a boundary element
+    make = boundaryfe(fes);     # get the function that can make a boundary element
     return make(bdryconn);
 end
 
@@ -235,7 +231,7 @@ function fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance:: FFlt)
 end
 
 """
-    compactnodes(fens::FENodeSetModule.FENodeSet, connected::Vector{Bool})
+    compactnodes(fens::FENodeSet, connected::Vector{Bool})
 
 Compact the finite element node set by deleting unconnected nodes.
 
@@ -263,7 +259,7 @@ fes = renumberconn!(fes, new_numbering);
 Finally, check that the mesh is valid:
 validate_mesh(fens, fes);
 """
-function compactnodes(fens::FENodeSetModule.FENodeSet, connected::BitArray{1})
+function compactnodes(fens::FENodeSet, connected::BitArray{1})
     @assert length(connected) == count(fens)
     new_numbering = zeros(FInt,count(fens),1);
     nxyz = deepcopy(fens.xyz);
@@ -276,7 +272,7 @@ function compactnodes(fens::FENodeSetModule.FENodeSet, connected::BitArray{1})
         end
     end
     #new_numbering = new_numbering[1:id-1];
-    fens = FENodeSetModule.FENodeSet(nxyz[1:id-1,:]);
+    fens = FENodeSet(nxyz[1:id-1,:]);
     return fens, vec(new_numbering)
 end
 
@@ -342,7 +338,7 @@ function mergenmeshes(meshes::Array{Tuple{FENodeSet, FESet}}, tolerance::FFlt)
     for j=2:length(meshes)
         fens1, fes1 = meshes[j];
         fens, new_indexes_of_fens1_nodes = fusenodes(fens1, fens, tolerance);
-        FESetModule.updateconn!(fes1,new_indexes_of_fens1_nodes);
+        updateconn!(fes1,new_indexes_of_fens1_nodes);
         push!(outputfes, fes1)
     end
     return fens, outputfes
@@ -458,7 +454,7 @@ function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt, candidates::FI
     xyzm = xyzm[1:nnodes,:];
     # Renumber the cells
     conns = connasarray(fes);
-    for i = 1:FESetModule.count(fes)
+    for i = 1:count(fes)
         conn = conns[i,:];
         conns[i,:] = id1[conn];
     end
@@ -470,7 +466,7 @@ function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt, candidates::FI
 end
 
 """
-    renumberconn!(fes::FESetModule.FESet, new_numbering::FIntVec)
+    renumberconn!(fes::FESet, new_numbering::FIntVec)
 
 Renumber the nodes in the connectivity of the finite elements based on a new
 numbering for the nodes.
@@ -489,7 +485,7 @@ fes = renumberconn!(fes, new_numbering);
 Finally, check that the mesh is valid:
 validate_mesh(fens, fes);
 """
-function renumberconn!(fes::FESetModule.FESet, new_numbering::FIntVec)
+function renumberconn!(fes::FESet, new_numbering::FIntVec)
     conn = connasarray(fes)
     for i=1:size(conn,1)
         c = conn[i,:];

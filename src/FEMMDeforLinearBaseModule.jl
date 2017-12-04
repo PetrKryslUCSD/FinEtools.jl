@@ -6,24 +6,16 @@ system vectors for linear deformation models.
 """
 module FEMMDeforLinearBaseModule
 
-# export FEMMDeforLinearAbstract
-# export stiffness, nzebcloadsstiffness, mass, thermalstrainloads,
-#        inspectintegpoints
-
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.FESetModule.gradN!
-using FinEtools.CSysModule
-using FinEtools.IntegDataModule
-using FinEtools.FEMMBaseModule
-using FinEtools.FieldModule
-using FinEtools.NodalFieldModule
-using FinEtools.ElementalFieldModule
-using FinEtools.ForceIntensityModule
-using FinEtools.AssemblyModule
-using FinEtools.DeforModelRedModule
-using FinEtools.MatDeforModule
-using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, locjac!
+using FinEtools.FTypesModule
+import FinEtools.FENodeSetModule: FENodeSet
+import FinEtools.FESetModule: gradN!, nodesperelem, manifdim
+import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianvolume
+import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!
+import FinEtools.NodalFieldModule: NodalField 
+import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
+import FinEtools.FEMMBaseModule: FEMMAbstractBase
+import FinEtools.CSysModule: CSys, updatecsmat!
+import FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, locjac!
 
 abstract type FEMMDeforLinearAbstract <: FEMMAbstractBase end
 

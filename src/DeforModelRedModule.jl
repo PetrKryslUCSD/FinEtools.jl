@@ -5,7 +5,7 @@ Module for  model reduction in models of deformation.
 """
 module DeforModelRedModule
 
-using FinEtools
+using FinEtools.FTypesModule
 
 abstract type DeforModelRed end;
 struct DeforModelRed1D <: DeforModelRed

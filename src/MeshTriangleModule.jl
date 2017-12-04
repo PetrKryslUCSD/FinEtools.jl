@@ -5,12 +5,9 @@ Module  for generation of meshes composed of triangles.
 """
 module MeshTriangleModule
 
-# export  T3blockx, T3block,  T3toT6,  T6block,  Q4toT3,  T3refine, T6blockx
-
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.FENodeSetModule
-using FinEtools.MeshUtilModule
+using FinEtools.FTypesModule
+import FinEtools.FESetModule: FESet, FESetT3, FESetT6, FESetQ4
+import FinEtools.FENodeSetModule: FENodeSet
 
 """
     T3blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol=:a)
@@ -78,16 +75,16 @@ function T3block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, orientation::Sym
 end
 
 """
-    T3toT6(fens::FENodeSetModule.FENodeSet, fes::FESetModule.FESetT3)
+    T3toT6(fens::FENodeSet, fes::FESetT3)
 
 Convert a mesh of triangle T3 (three-node) to triangle T6.
 """
-function T3toT6(fens::FENodeSetModule.FENodeSet, fes::FESetModule.FESetT3)
+function T3toT6(fens::FENodeSet, fes::FESetT3)
     nedges=3;
     ec = [1 2; 2 3; 3 1];
     conns = connasarray(fes);
     # Additional node numbers are numbered from here
-    newn=FENodeSetModule.count(fens)+1;
+    newn=count(fens)+1;
     # make a search structure for edges
     edges=MeshUtilModule.makecontainer();
     for i= 1:size(conns,1)
@@ -125,8 +122,8 @@ function T3toT6(fens::FENodeSetModule.FENodeSet, fes::FESetModule.FESetT3)
         nconns[nc,:] =vcat(vec(conn), vec(econn));
         nc= nc+ 1;
     end
-    fens =FENodeSetModule.FENodeSet(xyz);
-    fes = FESetModule.FESetT6(nconns) ;
+    fens =FENodeSet(xyz);
+    fes = FESetT6(nconns) ;
     return fens,fes;
 end
 
@@ -173,7 +170,7 @@ function Q4toT3(fens::FENodeSet, fes::FESetQ4, orientation::Symbol=:default)
         nconns[nc,:] =conn[connl2];
         nc= nc+ 1;
     end
-    nfes = FESetModule.FESetT3(nconns);
+    nfes = FESetT3(nconns);
     return fens,nfes            # I think I should not be overwriting the input!
 end
 
@@ -194,7 +191,7 @@ function T3refine(fens::FENodeSet,fes::FESetT3)
         nconn[nc,:] =c[[3,6,5]];        nc= nc+ 1;
         nconn[nc,:] =c[[4,5,6]];        nc= nc+ 1;
     end
-    nfes = FESetModule.FESetT3(nconn);
+    nfes = FESetT3(nconn);
     return fens,nfes            # I think I should not be overwriting the input!
 end
 

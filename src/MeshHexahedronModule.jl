@@ -5,18 +5,13 @@ Module for generation of  hexahedral meshes.
 """
 module MeshHexahedronModule
 
-# export  H8block,  H8blockx,  H8sphere,  H8refine, H8hexahedron, H8extrudeQ4,
-#     H8spheren, H8voximg,  H8layeredplatex, H8elliphole, H8toH27,  H27block,
-#     H20block,  H8toH20, H20blockx, H27blockx
-
-
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.FENodeSetModule
-using FinEtools.MeshUtilModule
-using FinEtools.MeshModificationModule
-using FinEtools.MeshSelectionModule
-using FinEtools.MeshQuadrilateralModule: Q4elliphole
+using FinEtools.FTypesModule
+import FinEtools.FESetModule: FESet, FESetQ4, FESetH8, FESetH20, FESetH27, subset, bfun, connasarray, setlabel!, updateconn!
+import FinEtools.FENodeSetModule: FENodeSet, count
+import FinEtools.MeshQuadrilateralModule: Q4elliphole
+import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!
+import FinEtools.MeshModificationModule: meshboundary, mergemeshes
+import FinEtools.MeshSelectionModule: selectelem, connectednodes
 
 """
     H8block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
@@ -77,9 +72,9 @@ function H8blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec)
         end
     end
     # create the nodes
-    fens = FENodeSetModule.FENodeSet(xyz);
+    fens = FENodeSet(xyz);
     # Create the finite elements
-    fes = FESetModule.FESetH8(conns);
+    fes = FESetH8(conns);
 
     return fens, fes;
 end
@@ -119,14 +114,14 @@ function H8sphere(radius::FFlt, nrefine::FInt)
         4  3  12  13  8  7  15  14;
         5  6  7  8  9  10  15  14];
 
-    fens = FENodeSetModule.FENodeSet(xyz);
-    fes = FESetModule.FESetH8(conns);
+    fens = FENodeSet(xyz);
+    fes = FESetH8(conns);
     for i = 1:nrefine
         fens, fes = H8refine(fens, fes);
-        bg = MeshModificationModule.meshboundary(fes);
-        l = MeshSelectionModule.selectelem(fens, bg, facing=true,
+        bg = meshboundary(fes);
+        l = selectelem(fens, bg, facing=true,
             direction=[1, 1, 1], dotmin= 0.01);
-        cn = MeshSelectionModule.connectednodes(FESetModule.subset(bg, l))   ;
+        cn = connectednodes(subset(bg, l))   ;
         for j=1:length(cn)
             fens.xyz[cn[j], :]=fens.xyz[cn[j], :]*radius/norm(fens.xyz[cn[j], :]);
         end
@@ -135,11 +130,11 @@ function H8sphere(radius::FFlt, nrefine::FInt)
 end
 
 """
-    H8refine(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
+    H8refine(fens::FENodeSet,  fes::FESetH8)
 
 Refine a mesh of H8 hexahedrals by octasection.
 """
-function H8refine(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
+function H8refine(fens::FENodeSet,  fes::FESetH8)
     fens, fes = H8toH27(fens, fes);
     conn=connasarray(fes);
     nconn=zeros(FInt, 8*size(conn, 1), 8);
@@ -156,16 +151,16 @@ function H8refine(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
         nconn[nc, :] =conn27[[25, 27, 24, 20, 16, 26, 15, 8]];        nc= nc+ 1;
     end
 
-    fes=FESetModule.FESetH8(nconn);
+    fes=FESetH8(nconn);
     return fens,  fes
 end
 
 """
-    H8toH27(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
+    H8toH27(fens::FENodeSet,  fes::FESetH8)
 
     Convert a mesh of hexahedra H8 to hexahedra H27.
 """
-function   H8toH27(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
+function   H8toH27(fens::FENodeSet,  fes::FESetH8)
     nedges=12;
     nfaces=6;
     ec = [1   2; 2   3; 3   4; 4   1; 5   6; 6   7; 7   8; 8   5; 1   5; 2   6; 3   7; 4   8;];
@@ -178,30 +173,30 @@ function   H8toH27(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
     conns = connasarray(fes);
     labels = deepcopy(fes.label)
     # Additional node numbers are numbered from here
-    newn=FENodeSetModule.count(fens)+1;
+    newn=count(fens)+1;
     # make a search structure for edges
-    edges=MeshUtilModule.makecontainer();
+    edges=makecontainer();
     for i= 1:size(conns, 1)
         conn = conns[i, :];
         for J = 1:nedges
             ev=conn[ec[J, :]];
-            newn = MeshUtilModule.addhyperface!(edges,  ev,  newn);
+            newn = addhyperface!(edges,  ev,  newn);
         end
     end
     # make a search structure for faces
-    faces=MeshUtilModule.makecontainer();
+    faces=makecontainer();
     for i= 1:size(conns, 1)
         conn = conns[i, :];
         for J = 1:nfaces
             fv=conn[fc[J, :]];
-            newn = MeshUtilModule.addhyperface!(faces,  fv,  newn);
+            newn = addhyperface!(faces,  fv,  newn);
         end
     end
     # make a search structure for volumes
-    volumes=MeshUtilModule.makecontainer();
+    volumes=makecontainer();
     for i= 1:size(conns, 1)
       conn = conns[i, :];
-      newn = MeshUtilModule.addhyperface!(volumes,  conn,  newn);
+      newn = addhyperface!(volumes,  conn,  newn);
     end
     xyz1 =fens.xyz;             # Pre-existing nodes
    # Allocate for vertex nodes plus edge nodes plus face nodes
@@ -245,22 +240,22 @@ function   H8toH27(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
         econn=zeros(FInt, 1, nedges);
         for J = 1:nedges
             ev=conn[ec[J, :]];
-            h, n=MeshUtilModule.findhyperface!(edges,  ev);
+            h, n=findhyperface!(edges,  ev);
             econn[J]=n;
         end
         fconn=zeros(FInt, 1, nfaces);
         for J = 1:nfaces
             fv=conn[fc[J, :]];
-            h, n=MeshUtilModule.findhyperface!(faces,  fv);
+            h, n=findhyperface!(faces,  fv);
             fconn[J]=n;
         end
-        h, n=MeshUtilModule.findhyperface!(volumes,  conn);
+        h, n=findhyperface!(volumes,  conn);
         vconn=n;
         nconns[nc, :] =vcat(vec(conn),  vec(econn),  vec(fconn),  vec([vconn]))
         nc= nc+ 1;
     end
-    fens =FENodeSetModule.FENodeSet(xyz);
-    fes = FESetModule.FESetH27(nconns) ;
+    fens =FENodeSet(xyz);
+    fes = FESetH27(nconns) ;
     setlabel!(fes, labels);
     return fens, fes;
 end
@@ -299,10 +294,10 @@ function H8hexahedron(xyz::FFltMat, nL::FInt, nW::FInt, nH::FInt; blockfun=nothi
 
     fens, fes= blockfun(2.0, 2.0, 2.0, nL, nW, nH);
 
-    dummy = FESetModule.FESetH8(reshape(collect(1:8), 1, 8))
+    dummy = FESetH8(reshape(collect(1:8), 1, 8))
     pxyz=fens.xyz;
-    for i=1:FENodeSetModule.count(fens)
-        N = FESetModule.bfun(dummy, broadcast(-, pxyz[i, :], 1.0));# shift coordinates by -1
+    for i=1:count(fens)
+        N = bfun(dummy, broadcast(-, pxyz[i, :], 1.0));# shift coordinates by -1
         pxyz[i, :] =N'*xyz;
     end
     fens.xyz = pxyz;
@@ -355,8 +350,8 @@ function doextrude(fens, fes::FESetQ4, nLayers, extrusionh)
             gc=gc+1;
         end
     end
-    efes = FESetModule.FESetH8(hconn);
-    efens = FENodeSetModule.FENodeSet(xyz);
+    efes = FESetH8(hconn);
+    efens = FENodeSet(xyz);
     return efens, efes
 end
 
@@ -372,7 +367,7 @@ function H8extrudeQ4(fens::FENodeSet,  fes::FESetQ4, nLayers::FInt,
     id[cn[:]]=vec([i for i in 1:length(cn)]);
     q4fes= deepcopy(fes);
     updateconn!(q4fes, id);
-    q4fens = FENodeSetModule.FENodeSet(fens.xyz[cn[:], :]);
+    q4fens = FENodeSet(fens.xyz[cn[:], :]);
     h8fens, h8fes= doextrude(q4fens, q4fes, nLayers, extrusionh);
     return h8fens, h8fes
 end
@@ -491,24 +486,24 @@ function H20blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec)
 end
 
 """
-    H8toH20(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
+    H8toH20(fens::FENodeSet,  fes::FESetH8)
 
 Convert a mesh of hexahedra H8 to hexahedra H20.
 """
-function   H8toH20(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
+function   H8toH20(fens::FENodeSet,  fes::FESetH8)
     nedges=12;
     ec = [1   2; 2   3; 3   4; 4   1; 5   6; 6   7; 7   8; 8   5; 1   5; 2   6; 3   7; 4   8;];
     conns = connasarray(fes);
     labels = deepcopy(fes.label)
     # Additional node numbers are numbered from here
-    newn=FENodeSetModule.count(fens)+1;
+    newn=count(fens)+1;
     # make a search structure for edges
-    edges=MeshUtilModule.makecontainer();
+    edges=makecontainer();
     for i= 1:size(conns, 1)
         conn = conns[i, :];
         for J = 1:nedges
             ev=conn[ec[J, :]];
-            newn = MeshUtilModule.addhyperface!(edges,  ev,  newn);
+            newn = addhyperface!(edges,  ev,  newn);
         end
     end
     xyz1 =fens.xyz;             # Pre-existing nodes
@@ -533,14 +528,14 @@ function   H8toH20(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetH8)
         econn=zeros(FInt, 1, nedges);
         for J = 1:nedges
             ev=conn[ec[J, :]];
-            h, n=MeshUtilModule.findhyperface!(edges,  ev);
+            h, n=findhyperface!(edges,  ev);
             econn[J]=n;
         end
         nconns[nc, :] =vcat(vec(conn),  vec(econn))
         nc= nc+ 1;
     end
-    fens =FENodeSetModule.FENodeSet(xyz);
-    fes = FESetModule.FESetH20(nconns) ;
+    fens =FENodeSet(xyz);
+    fes = FESetH20(nconns) ;
     setlabel!(fes, labels);
     return fens, fes;
 end
@@ -637,8 +632,8 @@ function H8voximg(img::Array{DataT, 3}, voxdims::FFltVec,
             xyz[j, k] = v[j, k]*voxdims[k]
         end
     end
-    fens  = FENodeSetModule.FENodeSet(xyz);
-    fes = FESetModule.FESetH8(h);
+    fens  = FENodeSet(xyz);
+    fes = FESetH8(h);
     setlabel!(fes, hmid)
     return fens, fes;
 end

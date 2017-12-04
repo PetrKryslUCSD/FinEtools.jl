@@ -5,11 +5,9 @@ Module for  orthotropic elastic material.
 """
 module MatDeforElastOrthoModule
 
-# export MatDeforElastOrtho
-
-using FinEtools
-using FinEtools.DeforModelRedModule
-using FinEtools.MatDeforModule
+using FinEtools.FTypesModule
+import FinEtools.DeforModelRedModule: DeforModelRed, DeforModelRed3D, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed1D
+import FinEtools.MatDeforModule: MatDefor
 
 """
     MatDeforElastOrtho

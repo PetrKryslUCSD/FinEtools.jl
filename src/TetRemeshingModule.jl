@@ -3,7 +3,7 @@ Module for remeshing tetrahedral triangulations.
 """
 module TetRemeshingModule
 
-using FinEtools
+using FinEtools.FTypesModule
 import Base.length
 import Base.push!
 import Base.getindex

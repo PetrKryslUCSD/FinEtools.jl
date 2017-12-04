@@ -5,14 +5,10 @@ Module  for generation of meshes composed of tetrahedra.
 """
 module MeshTetrahedronModule
 
-# export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10layeredplatex, T4meshedges, T4voximg
-
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.FENodeSetModule
-using FinEtools.MeshUtilModule
-using FinEtools.MeshModificationModule
-using FinEtools.MeshSelectionModule
+using FinEtools.FTypesModule
+import FinEtools.FESetModule: count, FESetT4, FESetT10, setlabel!
+import FinEtools.FENodeSetModule: FENodeSet
+import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!
 
 """
     T4block(Length::FFlt, Width::FFlt, Height::FFlt,
@@ -95,7 +91,7 @@ function T4blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec, orientation::Symbol)
         end
     end
 
-    fens=FENodeSetModule.FENodeSet(xyzs);
+    fens=FENodeSet(xyzs);
 
     function node_numbers(i::FInt, j::FInt, k::FInt, nL::FInt, nW::FInt, nH::FInt)
         f=(k-1)*((nL+1)*(nW+1))+(j-1)*(nL+1)+i;
@@ -122,27 +118,27 @@ function T4blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec, orientation::Symbol)
             end
         end
     end
-    fes = FESetModule.FESetT4(conns[1:gc-1, :]);
+    fes = FESetT4(conns[1:gc-1, :]);
 
     return fens, fes
 end
 
 """
-    T4toT10(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetT4)
+    T4toT10(fens::FENodeSet,  fes::FESetT4)
 
 Convert a mesh of tetrahedra of type T4 (four-node) to tetrahedra T10.
 """
-function  T4toT10(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetT4)
+function  T4toT10(fens::FENodeSet,  fes::FESetT4)
     nedges=6;
     ec = [1  2; 2  3; 3  1; 4  1; 4  2; 4  3];
     # Additional node numbers are numbered from here
-    newn = FENodeSetModule.count(fens)+1;
+    newn = count(fens)+1;
     # make a search structure for edges
-    edges = MeshUtilModule.makecontainer();
+    edges = makecontainer();
     for i= 1:length(fes.conn)
         for J = 1:nedges
             ev=fes.conn[i][ec[J,:]];
-            newn = MeshUtilModule.addhyperface!(edges,  ev,  newn);
+            newn = addhyperface!(edges,  ev,  newn);
         end
     end
     xyz1 =fens.xyz;             # Pre-existing nodes
@@ -159,7 +155,7 @@ function  T4toT10(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetT4)
           xyz[C[J].n, :] = mean(xyz[ix, :], 1);
         end
     end
-    fens = FENodeSetModule.FENodeSet(xyz);
+    fens = FENodeSet(xyz);
     # construct new geometry cells
     nconn=zeros(FInt, length(fes.conn), 10);
     nc=1;
@@ -167,14 +163,14 @@ function  T4toT10(fens::FENodeSetModule.FENodeSet,  fes::FESetModule.FESetT4)
         econn=zeros(FInt, 1, nedges);
         for J = 1:nedges
             ev=fes.conn[i][ec[J,:]];
-            h, n=MeshUtilModule.findhyperface!(edges,  ev);
+            h, n=findhyperface!(edges,  ev);
             econn[J]=n;
         end
         nconn[nc, :] = vcat([j for j in fes.conn[i]], vec(econn))
         nc= nc+ 1;
     end
     labels = deepcopy(fes.label)
-    fes = FESetModule.FESetT10(nconn);
+    fes = FESetT10(nconn);
     fes = setlabel!(fes, labels)
     return fens, fes;
 end
@@ -460,8 +456,8 @@ function T4voximg(img::Array{DataT, 3}, voxdims::FFltVec, voxval::Array{DataT, 1
             xyz[j, k] = v[j, k]*voxdims[k]
         end
     end
-    fens  = FENodeSetModule.FENodeSet(xyz);
-    fes = FESetModule.FESetT4(t);
+    fens  = FENodeSet(xyz);
+    fes = FESetT4(t);
     setlabel!(fes, tmid)
     return fens, fes;
 end

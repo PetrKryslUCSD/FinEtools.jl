@@ -5,12 +5,9 @@ Module  for generation of meshes composed of line (curve) elements.
 """
 module MeshLineModule
 
-# export L2block, L2blockx, L3blockx
-
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.FENodeSetModule
-using FinEtools.MeshModificationModule
+using FinEtools.FTypesModule
+import FinEtools.FENodeSetModule: FENodeSet
+import FinEtools.FESetModule: FESetL2, FESetL3
 
 """
 L2block(Length::FFlt, nL::FInt)
@@ -32,9 +29,9 @@ function L2blockx(xs::FFltVec)
     ncells=length(xs)-1;
 
     # create the nodes
-    fens = FENodeSetModule.FENodeSet(xyz);
+    fens = FENodeSet(xyz);
     # Create the finite elements
-    fes = FESetModule.FESetL2([(1:ncells) (2:ncells+1)]);
+    fes = FESetL2([(1:ncells) (2:ncells+1)]);
 
     return fens,fes;
 end
@@ -55,9 +52,9 @@ function L3blockx(xs::FFltVec)
         nxyz[i, :] = mean(fens.xyz[[k for k in fes.conn[i]], :], 1)
         nconn[i, :] = vcat([k for k in fes.conn[i]], [N])
     end
-    fens = FENodeSetModule.FENodeSet([fens.xyz; nxyz]);
+    fens = FENodeSet([fens.xyz; nxyz]);
     # Create the finite elements
-    fes = FESetModule.FESetL3(nconn);
+    fes = FESetL3(nconn);
 
     return fens,fes;
 end

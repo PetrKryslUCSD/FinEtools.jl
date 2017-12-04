@@ -5,22 +5,9 @@ Module for export of meshes and data defined on meshes.
 """
 module MeshExportModule
 
-# export vtkexportmesh
-# export AbaqusExporter, close, HEADING, COMMENT, PART, END_PART,
-#     ASSEMBLY, END_ASSEMBLY, INSTANCE, END_INSTANCE, NODE, ELEMENT,
-#     NSET_NSET, ELSET_ELSET, ORIENTATION, MATERIAL,
-#     ELASTIC, EXPANSION, DENSITY, SECTION_CONTROLS, SOLID_SECTION,
-#     SURFACE_SECTION, STEP_PERTURBATION_STATIC, STEP_FREQUENCY,
-#     STEP_PERTURBATION_BUCKLE, BOUNDARY, DLOAD, CLOAD, TEMPERATURE,
-#     END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
-# export savecsv
-# export NASTRANExporter, close, CEND, BEGIN_BULK, ENDDATA, GRID, PSOLID, MAT1, CTETRA
-# export STLExporter, solid, facet, endsolid
-
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.FENodeSetModule
-using FinEtools
+using FinEtools.FTypesModule
+import FinEtools.FESetModule: FESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
+import FinEtools.FENodeSetModule: FENodeSet
 import Base.close
 
 ################################################################################

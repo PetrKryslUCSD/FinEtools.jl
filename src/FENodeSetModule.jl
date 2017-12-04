@@ -5,10 +5,7 @@ Module for the finite element node set.
 """
 module FENodeSetModule
 
-# export FENodeSet
-# export  spacedim,  xyz3,  count
-
-using FinEtools
+using FinEtools.FTypesModule
 import Base.count
 
 """

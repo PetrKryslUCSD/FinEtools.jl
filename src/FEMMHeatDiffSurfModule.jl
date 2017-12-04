@@ -6,22 +6,15 @@ system vectors for linear heat diffusion/conduction.
 """
 module FEMMHeatDiffSurfModule
 
-# export  FEMMHeatDiffSurf
-# export surfacetransfer,  surfacetransferloads,  nzebcsurfacetransferloads
-
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.CSysModule
-using FinEtools.IntegDataModule
-using FinEtools.FEMMBaseModule
-using FinEtools.FieldModule
-using FinEtools.NodalFieldModule
-using FinEtools.ForceIntensityModule
-using FinEtools.MatHeatDiffModule
-using FinEtools.AssemblyModule
-using FinEtools.MatrixUtilityModule.add_nnt_ut_only!
-using FinEtools.MatrixUtilityModule.complete_lt!
-using FinEtools.MatrixUtilityModule: locjac!
+using FinEtools.FTypesModule
+import FinEtools.FENodeSetModule: FENodeSet
+import FinEtools.FESetModule: FESet, nodesperelem, manifdim
+import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobiansurface
+import FinEtools.FieldModule: ndofs
+import FinEtools.NodalFieldModule: NodalField 
+import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
+import FinEtools.FEMMBaseModule: FEMMAbstractBase
+import FinEtools.MatrixUtilityModule: add_gkgt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
 
 # Type for heat diffusion finite element modeling machine for boundary integrals.
 mutable struct FEMMHeatDiffSurf{S<:FESet, F<:Function} <: FEMMAbstractBase

@@ -8,16 +8,7 @@ module FESetModule
 import Base.count
 import Base.cat
 
-# export FESet,  FESet0Manifold,  FESet1Manifold,  FESet2Manifold,  FESet3Manifold
-# export manifdim, nodesperelem, count, fromarray!, connasarray, setlabel!, subset, cat, updateconn!
-# export bfun, bfundpar, map2parametric, inparametric, centroidparametric
-# export FESetP1
-# export FESetL2, FESetL3
-# export FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6
-# export FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
-
-using FinEtools
-using FinEtools.RotationUtilModule
+using FinEtools.FTypesModule
 
 abstract type FESet{NODESPERELEM} end
 abstract type FESet0Manifold{NODESPERELEM} <: FESet{NODESPERELEM} end
@@ -315,7 +306,7 @@ function Jacobian(self::T, J::FFltMat)::FFlt where {T<:FESet2Manifold}
         @inbounds Jac = (J[1, 1]*J[2, 2] - J[2, 1]*J[1, 2])
         return Jac::FFlt;# is det(J);% Compute the Jacobian
     else
-        return norm(RotationUtilModule.cross(J[:, 1], J[:, 2]))::FFlt;
+        return norm(cross(J[:, 1], J[:, 2]))::FFlt;
     end
 end
 

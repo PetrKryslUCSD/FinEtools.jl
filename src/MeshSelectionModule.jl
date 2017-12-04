@@ -5,16 +5,14 @@ Module for  selection of mesh entities.
 """
 module MeshSelectionModule
 
-# export connectedelems, connectednodes,  selectnode,  selectelem,  findunconnnodes
-
-using FinEtools
-using FinEtools
-using FinEtools.FENodeSetModule
-using FinEtools.FESetModule
-using FinEtools.RotationUtilModule
+using FinEtools.FTypesModule
+import FinEtools.FESetModule: FESet, bfundpar, nodesperelem, manifdim, connasarray
+import FinEtools.FENodeSetModule: FENodeSet, spacedim
+import FinEtools.BoxModule: inflatebox!
+import FinEtools.FENodeToFEMapModule: FENodeToFEMap
 
 """
-    connectednodes(fes::FESetModule.FESet)
+    connectednodes(fes::FESet)
 
 Extract the node numbers of the nodes  connected by given finite elements.
 
@@ -22,25 +20,25 @@ Extract the list of unique node numbers for the nodes that are connected by the
 finite element set `fes`. Note that it is assumed that all the FEs are of the same
 type (the same number of connected nodes by each cell).
 """
-function connectednodes(fes::FESetModule.FESet)
+function connectednodes(fes::FESet)
     return unique(connasarray(fes)[:]);
 end
 
 """
-    selectnode(fens::FENodeSetModule.FENodeSet; args...)
+    selectnode(fens::FENodeSet; args...)
 
 Select nodes using some criterion.
 
 See the function `vselect()` for examples of the criteria.
 """
-function selectnode(fens::FENodeSetModule.FENodeSet; args...)
+function selectnode(fens::FENodeSet; args...)
     nodelist = vselect(fens.xyz; args...)
     nodelist = squeeze(reshape(nodelist,1,length(nodelist)), 1);
     return nodelist
 end
 
 """
-    selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:FESet}
+    selectelem(fens::FENodeSet, fes::T; args...) where {T<:FESet}
 
 Select finite elements.
 
@@ -111,7 +109,7 @@ Should we consider the element only if all its nodes are in?
 ## Output
 `felist` = list of finite elements from the set that satisfy the criteria
 """
-function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:FESet}
+function selectelem(fens::FENodeSet, fes::T; args...) where {T<:FESet}
 
     # flood
     #
@@ -258,7 +256,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
             N = [Tangents[2,1],-Tangents[1,1]];
             return N/norm(N);
         elseif mdim==2 # 2-D fe
-            N=RotationUtilModule.cross(Tangents[:,1],Tangents[:,2])
+            N= cross(Tangents[:,1],Tangents[:,2])
             return N/norm(N);
         end
     end
@@ -274,7 +272,7 @@ function selectelem(fens::FENodeSetModule.FENodeSet, fes::T; args...) where {T<:
         if ( !Need_Evaluation)
             d = reshape(direction,1,sd)/norm(direction);
         end
-        Nder = FESetModule.bfundpar(fes, vec(param_coords));
+        Nder = bfundpar(fes, vec(param_coords));
         for i=1:length(fes.conn)
             xyz =xs[[j for j in fes.conn[i]],:];
             Tangents =xyz'*Nder;
@@ -606,7 +604,7 @@ end
 
 # NOTE: This operation is probably best done with the  node-to-element  map.
 # """
-#     connectedelems(fes::FESetModule.FESet, node_list::FIntVec)
+#     connectedelems(fes::FESet, node_list::FIntVec)
 #
 # Extract the numbers of the finite elements connected to given nodes.
 #
@@ -614,7 +612,7 @@ end
 #
 # Warning: this tends to be an expensive operation.
 # """
-# function connectedelems(fes::FESetModule.FESet, node_list::FIntVec)
+# function connectedelems(fes::FESet, node_list::FIntVec)
 #   cg=zeros(FInt,size(fes.conn,1));
 #   for j=1:size(fes.conn,1)
 #     cg[j]= length( intersect(fes.conn[j,:], node_list) );

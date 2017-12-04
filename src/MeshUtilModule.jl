@@ -5,7 +5,7 @@ Module for mesh utility functions used in other meshing modules.
 """
 module MeshUtilModule
 
-using FinEtools
+using FinEtools.FTypesModule
 if VERSION < v"0.7-"
     import Base.IntSet
     Set = IntSet

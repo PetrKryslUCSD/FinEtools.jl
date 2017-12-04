@@ -5,14 +5,11 @@ Module  for generation of meshes composed of quadrilaterals.
 """
 module MeshQuadrilateralModule
 
-# export Q4annulus, Q4quadrilateral, Q4elliphole, Q4block, Q4blockx, Q4refine
-# export Q8block, Q4toQ8, Q8annulus, Q8blockx
-
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.FENodeSetModule
-using FinEtools.MeshModificationModule
-using FinEtools.MeshUtilModule
+using FinEtools.FTypesModule
+import FinEtools.FESetModule: FESet, FESetQ4, FESetQ8, bfun, cat, connasarray
+import FinEtools.FENodeSetModule: FENodeSet, count
+import FinEtools.MeshModificationModule: mergemeshes
+import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!
 
 """
     Q4annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
@@ -28,7 +25,7 @@ function Q4annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
     trex=max(rin,rex);
     fens,fes =Q4block(trex-trin,Angl,nr,nc);
     xy=fens.xyz;
-    for i=1:FENodeSetModule.count(fens)
+    for i=1:count(fens)
         r=trin+xy[i,1]; a=xy[i,2];
         xy[i,:]=[r*cos(a) r*sin(a)];
     end
@@ -63,10 +60,10 @@ function Q4quadrilateral(xyz::FFltMat, nL::FInt, nW::FInt)
         xyz1=nxyz1;
     end
 
-    dummy = FESetModule.FESetQ4(reshape(collect(1:4),1,4))
+    dummy = FESetQ4(reshape(collect(1:4),1,4))
     pxyz = fens.xyz;
-    for i = 1:FENodeSetModule.count(fens)
-        N = FESetModule.bfun(dummy, broadcast(-, pxyz[i,:], 1.0));# shift coordinates by -1
+    for i = 1:count(fens)
+        N = bfun(dummy, broadcast(-, pxyz[i,:], 1.0));# shift coordinates by -1
         pxyz[i,:] = N'*xyz;
     end
     copy!(fens.xyz, xyz1);
@@ -101,8 +98,8 @@ function Q4elliphole(xradius::FFlt, yradius::FFlt, L::FFlt, H::FFlt,
         if (fens == nothing)
             fens = fens1; fes = fes1;
         else
-            fens,fes1,fes2 = MeshModificationModule.mergemeshes(fens1, fes1, fens, fes, tolerance);
-            fes = FESetModule.cat(fes1,fes2);
+            fens,fes1,fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance);
+            fes = cat(fes1,fes2);
         end
     end
     for i= 1:nL
@@ -111,8 +108,8 @@ function Q4elliphole(xradius::FFlt, yradius::FFlt, L::FFlt, H::FFlt,
         (nL-i)/nL*L  H;
         xradius*cos((nH+i)*dA)   yradius*sin((nH+i)*dA)];
         fens1,fes1 = Q4quadrilateral(xy,nW,1);
-        fens,fes1,fes2 = MeshModificationModule.mergemeshes(fens1, fes1, fens, fes, tolerance);
-        fes = FESetModule.cat(fes1, fes2);
+        fens,fes1,fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance);
+        fes = cat(fes1, fes2);
     end
     return fens,fes
 end
@@ -157,7 +154,7 @@ function Q4blockx(xs::FFltVec, ys::FFltVec)
         end
     end
     # create the nodes
-    fens = FENodeSetModule.FENodeSet(xyz);
+    fens = FENodeSet(xyz);
 
     #preallocate connectivity matrix
     conn = zeros(FInt, ncells, 4);
@@ -176,7 +173,7 @@ function Q4blockx(xs::FFltVec, ys::FFltVec)
         end
     end
     # create the cells
-    fes = FESetModule.FESetQ4(conn);
+    fes = FESetQ4(conn);
 
     return fens,fes;
 end
@@ -207,12 +204,12 @@ function Q4toQ8(fens::FENodeSet, fes::FESetQ4)
     # Additional node numbers are numbered from here
     newn = count(fens)+1;
     # make a search structure for edges
-    edges = MeshUtilModule.makecontainer();
+    edges = makecontainer();
     for i= 1:size(conns,1)
         conn = conns[i,:];
         for J = 1:nedges
             ev = conn[ec[J,:]];
-            newn = MeshUtilModule.addhyperface!(edges, ev, newn);
+            newn = addhyperface!(edges, ev, newn);
         end
     end
     xyz1 =fens.xyz;             # Pre-existing nodes
@@ -237,7 +234,7 @@ function Q4toQ8(fens::FENodeSet, fes::FESetQ4)
         econn=zeros(FInt,1,nedges);
         for J = 1:nedges
             ev=conn[ec[J,:]];
-            h,n = MeshUtilModule.findhyperface!(edges, ev);
+            h,n = findhyperface!(edges, ev);
             econn[J]=n;
         end
         nconns[nc,:] =vcat(vec(conn), vec(econn));
@@ -268,13 +265,13 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
     ec = [1  2; 2  3; 3  4; 4  1];
     # make a search structure for edges
     # Additional node numbers are numbered from here
-    newn=FENodeSetModule.count(fens)+1;
+    newn=count(fens)+1;
     # make a search structure for edges
-    edges=MeshUtilModule.makecontainer();
+    edges=makecontainer();
     for i= 1:length(fes.conn)
         for J = 1:nedges
             ev=fes.conn[i][ec[J,:]];
-            newn = MeshUtilModule.addhyperface!(edges, ev, newn);
+            newn = addhyperface!(edges, ev, newn);
         end
     end
     newn=  newn+length(fes.conn) # add the interior nodes to the total
@@ -299,14 +296,14 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
         econn=zeros(FInt,1,nedges);
         for J = 1:nedges
             ev=fes.conn[i][ec[J,:]];
-            h,n=MeshUtilModule.findhyperface!(edges, ev);
+            h,n=findhyperface!(edges, ev);
             econn[J]=n;
         end
         
         inn=size(xyz,1)-length(fes.conn)+i
 
         xyz[inn,:]=mean(xyz[[k for k in fes.conn[i]],:],1); # interior node
-        #h,inn=MeshUtilModule.findhyperface!(faces, conn);
+        #h,inn=findhyperface!(faces, conn);
         nconn[nc,:] =[fes.conn[i][1] econn[1] inn econn[4]];
         nc= nc+ 1;
         nconn[nc,:] =[fes.conn[i][2] econn[2] inn econn[1]];
@@ -316,8 +313,8 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
         nconn[nc,:] =[fes.conn[i][4] econn[4] inn econn[3]];
         nc= nc+ 1;
     end
-    fens =FENodeSetModule.FENodeSet(xyz);
-    nfes = FESetModule.FESetQ4(nconn);
+    fens =FENodeSet(xyz);
+    nfes = FESetQ4(nconn);
     return fens,nfes            # I think I should not be overwriting the input!
 end
 
@@ -336,7 +333,7 @@ function Q8annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
     trex=max(rin,rex);
     fens,fes = Q8block(trex-trin,Angl,nr,nc);
     xy=fens.xyz;
-    for i=1:FENodeSetModule.count(fens)
+    for i=1:count(fens)
         r=trin+xy[i,1]; a=xy[i,2];
         xy[i,:]=[r*cos(a) r*sin(a)];
     end

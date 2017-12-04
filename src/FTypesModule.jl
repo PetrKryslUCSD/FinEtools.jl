@@ -2,11 +2,16 @@
     FTypesModule
 
 Module to define  basic types.
+
+These are the types of quantities used in FinEtools. They are all exported.
+
+export FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec
+export FDataDict
 """
 module FTypesModule
 
-# export FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec
-# export FDataDict
+export FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec
+export FDataDict
 
 import Base.Complex
 

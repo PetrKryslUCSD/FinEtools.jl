@@ -5,16 +5,8 @@ Module to support general operations for deformation material models.
 """
 module MatDeforModule
 
-# export MatDefor
-# export strain2x2tto3v!, strain3vto2x2t!, strain3x3tto6v!, strain6vto3x3t!,
-#        strain9vto6v!, strain6vto9v!, strain9vto3x3t!, strain3x3tto9v!
-# export stress2x2to3v!, stress3vto2x2t!, stress3vto3x3t!, stress4vto3x3t!,
-#        stress6vto3x3t!, stress3x3tto6v!, stress9vto6v!,  stress6vto9v!
-# export rotstressvec, strainvectorrotation, stressvectorrotation,
-#        rotatecompliance!, rotatestiffness!
-
-using FinEtools
-using FinEtools.DeforModelRedModule
+using FinEtools.FTypesModule
+import FinEtools.DeforModelRedModule: DeforModelRed3D, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed1D
 
 """
     MatDefor

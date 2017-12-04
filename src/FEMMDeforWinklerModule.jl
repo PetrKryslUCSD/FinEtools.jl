@@ -7,20 +7,15 @@ system vectors for linear deformation models with distributed-spring supports
 """
 module FEMMDeforWinklerModule
 
-# export FEMMDeforWinkler
-# export surfacenormalspringstiffness
-
-using FinEtools
-using FinEtools.FESetModule
-using FinEtools.CSysModule
-using FinEtools.IntegDataModule
-using FinEtools.FEMMBaseModule
-using FinEtools.FieldModule
-using FinEtools.NodalFieldModule
-using FinEtools.ForceIntensityModule
-using FinEtools.AssemblyModule
-using FinEtools.DeforModelRedModule
-using FinEtools.MatrixUtilityModule: add_nnt_ut_only!, complete_lt!, locjac!
+using FinEtools.FTypesModule
+import FinEtools.FENodeSetModule: FENodeSet
+import FinEtools.FESetModule: FESet, nodesperelem, manifdim
+import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobiansurface
+import FinEtools.FieldModule: ndofs
+import FinEtools.NodalFieldModule: NodalField 
+import FinEtools.FEMMBaseModule: FEMMAbstractBase
+import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!
+import FinEtools.MatrixUtilityModule: add_nnt_ut_only!, complete_lt!, locjac!
 
 """
     FEMMDeforWinkler{S<:FESet, F<:Function}
