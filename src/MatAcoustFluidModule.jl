@@ -5,9 +5,9 @@ Module for acoustic-fluid  material.
 """
 module MatAcoustFluidModule
 
-export MatAcoustFluid
+# export MatAcoustFluid
 
-using FinEtools.FTypesModule
+using FinEtools
 
 # Class for acoustic fluid models of Mats.
 struct MatAcoustFluid

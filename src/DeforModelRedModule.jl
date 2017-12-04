@@ -5,13 +5,13 @@ Module for  model reduction in models of deformation.
 """
 module DeforModelRedModule
 
-export DeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,
-       DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D
-export nstsstn, nthstn, noutsts
-export stresscomponentmap
-export Blmat!
+# export DeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,
+#        DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D
+# export nstressstrain, nthermstrain
+# export stresscomponentmap
+# export Blmat!
 
-using FinEtools.FTypesModule
+using FinEtools
 
 abstract type DeforModelRed end;
 struct DeforModelRed1D <: DeforModelRed
@@ -26,27 +26,27 @@ struct DeforModelRed3D <: DeforModelRed
 end
 
 """
-    nstsstn(::Type{DeforModelRed})::FInt
+    nstressstrain(::Type{DeforModelRed})::FInt
 
 How many stress components involved in the balance equation (and how many
 strain components) are there for each model reduction type?
 """
-nstsstn(::Type{DeforModelRed1D})::FInt = 1;
-nstsstn(::Type{DeforModelRed2DStrain})::FInt = 3;
-nstsstn(::Type{DeforModelRed2DStress})::FInt = 3;
-nstsstn(::Type{DeforModelRed2DAxisymm})::FInt = 4;
-nstsstn(::Type{DeforModelRed3D})::FInt = 6;
+nstressstrain(::Type{DeforModelRed1D})::FInt = 1;
+nstressstrain(::Type{DeforModelRed2DStrain})::FInt = 3;
+nstressstrain(::Type{DeforModelRed2DStress})::FInt = 3;
+nstressstrain(::Type{DeforModelRed2DAxisymm})::FInt = 4;
+nstressstrain(::Type{DeforModelRed3D})::FInt = 6;
 
 """
-    nthstn(::Type{DeforModelRed1D})::FInt
+    nthermstrain(::Type{DeforModelRed1D})::FInt
 
 How many thermal strain components are there for each model reduction type?
 """
-nthstn(::Type{DeforModelRed1D})::FInt = 1;
-nthstn(::Type{DeforModelRed2DStrain})::FInt = 4;
-nthstn(::Type{DeforModelRed2DStress})::FInt = 3;
-nthstn(::Type{DeforModelRed2DAxisymm})::FInt = 4;
-nthstn(::Type{DeforModelRed3D})::FInt = 6;
+nthermstrain(::Type{DeforModelRed1D})::FInt = 1;
+nthermstrain(::Type{DeforModelRed2DStrain})::FInt = 4;
+nthermstrain(::Type{DeforModelRed2DStress})::FInt = 3;
+nthermstrain(::Type{DeforModelRed2DAxisymm})::FInt = 4;
+nthermstrain(::Type{DeforModelRed3D})::FInt = 6;
 
 """
     stresscomponentmap(::Type{DeforModelRed1D})
@@ -110,8 +110,8 @@ coordinate system, the output strains are in the material coordinate system.*
   dimensions (here `mdim == 1`).
 
 Output:
-`B` = strain-displacement matrix, where  `size(B) = [nstsstn,nnodes*dim]`;
-  here nstsstn= number of strains, dim = Number of spatial
+`B` = strain-displacement matrix, where  `size(B) = [nstressstrain,nnodes*dim]`;
+  here nstressstrain= number of strains, dim = Number of spatial
   dimensions of the embedding space, and nnodes = number of
   finite element nodes on the element. The strain components are ordered as
   shown  in `stresscomponentmap`. The matrix is passed in as a buffer,
@@ -122,7 +122,7 @@ function Blmat!(MR::Type{DeforModelRed1D}, B::FFltMat,
   N::FFltMat, gradN::FFltMat, c::FFltMat, Rm::FFltMat)
   nnodes = size(gradN,1);
   @assert (dim = size(c,2)) >= 1;
-  @assert size(B) == (nstsstn(MR), dim*nnodes)
+  @assert size(B) == (nstressstrain(MR), dim*nnodes)
   fill!(B,0.0);
   @inbounds for i= 1:nnodes
     @inbounds for j=1:dim
@@ -157,8 +157,8 @@ material coordinate system.*
   dimensions (here `mdim == 2`).
 
 Output:
-`B` = strain-displacement matrix, where  `size(B) = [nstsstn,nnodes*dim]`;
-  here nstsstn= number of strains, dim = Number of spatial
+`B` = strain-displacement matrix, where  `size(B) = [nstressstrain,nnodes*dim]`;
+  here nstressstrain= number of strains, dim = Number of spatial
   dimensions of the embedding space, and nnodes = number of
   finite element nodes on the element. The strain components are ordered as
   shown  in `stresscomponentmap`. The matrix is passed in as a buffer,
@@ -169,7 +169,7 @@ function Blmat!(MR::Type{DeforModelRed2DStrain}, B::FFltMat,
   N::FFltMat, gradN::FFltMat, c::FFltMat, Rm::FFltMat)
   nnodes = size(gradN,1);
   @assert (dim = size(c,2)) == 2;
-  @assert size(B) == (nstsstn(MR), dim*nnodes)
+  @assert size(B) == (nstressstrain(MR), dim*nnodes)
   fill!(B,0.0);
   @inbounds for i= 1:nnodes
     k=dim*(i-1);
@@ -206,8 +206,8 @@ material coordinate system.*
   dimensions (here `mdim=2`).
 
 Output:
-`B` = strain-displacement matrix, where  `size(B) = [nstsstn,nnodes*dim]`;
-  here nstsstn= number of strains, dim = Number of spatial
+`B` = strain-displacement matrix, where  `size(B) = [nstressstrain,nnodes*dim]`;
+  here nstressstrain= number of strains, dim = Number of spatial
   dimensions of the embedding space, and nnodes = number of
   finite element nodes on the element. The strain components are ordered as
   shown  in `stresscomponentmap`. The matrix is passed in as a buffer,
@@ -218,7 +218,7 @@ function Blmat!(MR::Type{DeforModelRed2DStress}, B::FFltMat,
   N::FFltMat, gradN::FFltMat, c::FFltMat, Rm::FFltMat)
   nnodes = size(gradN,1);
   @assert (dim = size(c,2)) >= 2;
-  @assert size(B) == (nstsstn(MR), dim*nnodes)
+  @assert size(B) == (nstressstrain(MR), dim*nnodes)
   fill!(B,0.0);
   @inbounds for i= 1:nnodes
     k=dim*(i-1);
@@ -255,8 +255,8 @@ material coordinate system.*
   of the embedding space (here `ndim=3`).
 
 Output:
-`B` = strain-displacement matrix, where  `size(B) = [nstsstn,nnodes*dim]`;
-  here nstsstn= number of strains, dim = Number of spatial
+`B` = strain-displacement matrix, where  `size(B) = [nstressstrain,nnodes*dim]`;
+  here nstressstrain= number of strains, dim = Number of spatial
   dimensions of the embedding space, and nnodes = number of
   finite element nodes on the element. The strain components are ordered as
   shown  in `stresscomponentmap`. The matrix is passed in as a buffer,
@@ -267,7 +267,7 @@ function Blmat!(MR::Type{DeforModelRed2DAxisymm}, B::FFltMat,
   N::FFltMat, gradN::FFltMat, c::FFltMat, Rm::FFltMat)
   nnodes = size(gradN,1);
   @assert (dim = size(c,2)) == 2;
-  @assert size(B) == (nstsstn(MR), dim*nnodes)
+  @assert size(B) == (nstressstrain(MR), dim*nnodes)
   r = c[1]; # distance from the axis of symmetry
   # if practically zero, clamped it to machine epsilon because we need to divide with it
   if r <= eps(1.0)
@@ -308,8 +308,8 @@ system.*
   of the embedding space (here `ndim=3`).
 
 Output:
-`B` = strain-displacement matrix, where  `size(B) = [nstsstn,nnodes*dim]`;
-  here nstsstn= number of strains, dim = Number of spatial
+`B` = strain-displacement matrix, where  `size(B) = [nstressstrain,nnodes*dim]`;
+  here nstressstrain= number of strains, dim = Number of spatial
   dimensions of the embedding space, and nnodes = number of
   finite element nodes on the element. The strain components are ordered as
   shown  in `stresscomponentmap`. The matrix is passed in as a buffer,
@@ -320,7 +320,7 @@ function Blmat!(MR::Type{DeforModelRed3D}, B::FFltMat,
   N::FFltMat, gradN::FFltMat, c::FFltMat, Rm::FFltMat)
   nnodes = size(gradN,1);
   @assert (dim = size(c,2)) == 3;
-  @assert size(B) == (nstsstn(MR), dim*nnodes)
+  @assert size(B) == (nstressstrain(MR), dim*nnodes)
   fill!(B,0.0);
   @inbounds for i= 1:nnodes
     k=dim*(i-1);

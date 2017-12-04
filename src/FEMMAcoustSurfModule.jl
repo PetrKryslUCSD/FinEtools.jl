@@ -6,12 +6,12 @@ system vectors for linear acoustics.
 """
 module FEMMAcoustSurfModule
 
-export FEMMAcoustSurf
-export acousticABC, pressure2resultantforce, pressure2resultanttorque
+# export FEMMAcoustSurf
+# export acousticABC, pressure2resultantforce, pressure2resultanttorque
 
 import Base.Complex
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FESetModule
 using FinEtools.IntegDataModule
 using FinEtools.FEMMBaseModule

@@ -5,9 +5,9 @@ Module to handle two-dimensional and three-dimensional rotations.
 """
 module RotationUtilModule
 
-export rotmat,  rotmat3!, skewmat!, cross3, cross3!, cross2
+# export rotmat,  rotmat3!, skewmat!, cross3, cross3!, cross2
 
-using FinEtools.FTypesModule
+using FinEtools
 
 _I3 = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
 

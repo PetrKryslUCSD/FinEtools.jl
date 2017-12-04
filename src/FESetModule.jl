@@ -8,15 +8,15 @@ module FESetModule
 import Base.count
 import Base.cat
 
-export FESet,  FESet0Manifold,  FESet1Manifold,  FESet2Manifold,  FESet3Manifold
-export manifdim, nodesperelem, count, fromarray!, connasarray, setlabel!, subset, cat, updateconn!
-export bfun, bfundpar, map2parametric, inparametric, centroidparametric
-export FESetP1
-export FESetL2, FESetL3
-export FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6
-export FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
+# export FESet,  FESet0Manifold,  FESet1Manifold,  FESet2Manifold,  FESet3Manifold
+# export manifdim, nodesperelem, count, fromarray!, connasarray, setlabel!, subset, cat, updateconn!
+# export bfun, bfundpar, map2parametric, inparametric, centroidparametric
+# export FESetP1
+# export FESetL2, FESetL3
+# export FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6
+# export FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.RotationUtilModule
 
 abstract type FESet{NODESPERELEM} end

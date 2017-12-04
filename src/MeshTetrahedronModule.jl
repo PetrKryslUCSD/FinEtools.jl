@@ -5,9 +5,9 @@ Module  for generation of meshes composed of tetrahedra.
 """
 module MeshTetrahedronModule
 
-export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10layeredplatex, T4meshedges, T4voximg
+# export  T4block, T4blockx, T4toT10, T10block, T10blockx, T10layeredplatex, T4meshedges, T4voximg
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FESetModule
 using FinEtools.FENodeSetModule
 using FinEtools.MeshUtilModule

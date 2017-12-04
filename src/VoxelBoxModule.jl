@@ -9,12 +9,12 @@ module VoxelBoxModule
 
 import Base.size
 
-export VoxelBoxVolume, voxeldims, size,
-    fillvolume!, fillsolid!,
-    intersectionop, unionop, complementop, differenceop,
-    solidsphere, solidhalfspace, solidbox, solidcylinder,
-    trim, pad, threshold,
-    vtkexport
+# export VoxelBoxVolume, voxeldims, size,
+#     fillvolume!, fillsolid!,
+#     intersectionop, unionop, complementop, differenceop,
+#     solidsphere, solidhalfspace, solidbox, solidcylinder,
+#     trim, pad, threshold,
+#     vtkexport
 
 mutable struct VoxelBoxVolume{CoordT<:Number,DataT<:Number}
     origin::Array{CoordT,1}

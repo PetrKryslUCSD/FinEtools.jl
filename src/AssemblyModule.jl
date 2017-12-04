@@ -5,12 +5,12 @@ Module for assemblers  of system matrices and vectors.
 """
 module AssemblyModule
 
-export SysmatAssemblerBase, SysmatAssemblerSparse, SysmatAssemblerSparseSymm
-export startassembly!, assemble!, makematrix!
-export SysvecAssemblerBase, SysvecAssembler
-export startassembly!, assemble!, makevector!
+# export SysmatAssemblerBase, SysmatAssemblerSparse, SysmatAssemblerSparseSymm
+# export startassembly!, assemble!, makematrix!
+# export SysvecAssemblerBase, SysvecAssembler
+# export startassembly!, assemble!, makevector!
 
-using FinEtools.FTypesModule
+using FinEtools
 
 const  inv_dofnum=0;            # invalid degree of freedom number -- no equation
 

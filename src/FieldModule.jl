@@ -5,14 +5,14 @@ Module for abstract fields.
 """
 module FieldModule
 
-using FinEtools.FTypesModule
+using FinEtools
 import Base.copy!
 
-export Field
-export ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!,
-    gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!,
-    gatherfixedvalues_asmat!, numberdofs!, setebc!, applyebc!,
-    scattersysvec!, copy!, wipe!
+# export Field
+# export ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!,
+#     gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!,
+#     gatherfixedvalues_asmat!, numberdofs!, setebc!, applyebc!,
+#     scattersysvec!, copy!, wipe!
 
 """
     Abstract field.

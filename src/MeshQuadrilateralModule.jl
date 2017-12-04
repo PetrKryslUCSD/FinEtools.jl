@@ -5,10 +5,10 @@ Module  for generation of meshes composed of quadrilaterals.
 """
 module MeshQuadrilateralModule
 
-export Q4annulus, Q4quadrilateral, Q4elliphole, Q4block, Q4blockx, Q4refine
-export Q8block, Q4toQ8, Q8annulus, Q8blockx
+# export Q4annulus, Q4quadrilateral, Q4elliphole, Q4block, Q4blockx, Q4refine
+# export Q8block, Q4toQ8, Q8annulus, Q8blockx
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FESetModule
 using FinEtools.FENodeSetModule
 using FinEtools.MeshModificationModule

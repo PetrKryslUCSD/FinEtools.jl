@@ -6,11 +6,11 @@ system vectors for linear deformation models.
 """
 module FEMMDeforLinearModule
 
-export FEMMDeforLinear
-export stiffness, nzebcloadsstiffness, thermalstrainloads,
-       inspectintegpoints
+# export FEMMDeforLinear
+# export stiffness, nzebcloadsstiffness, thermalstrainloads,
+#        inspectintegpoints
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FESetModule
 using FinEtools.CSysModule
 using FinEtools.IntegDataModule

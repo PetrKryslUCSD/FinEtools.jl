@@ -5,13 +5,13 @@ Module for comments/base operations on interiors and boundaries of domains.
 """
 module FEMMBaseModule
 
-export FEMMAbstractBase, FEMMBase
-export associategeometry!, integratefieldfunction, integratefunction,
-    transferfield!, distribloads, connectionmatrix,
-    fieldfromintegpoints, elemfieldfromintegpoints
+# export FEMMAbstractBase, FEMMBase
+# export associategeometry!, integratefieldfunction, integratefunction,
+#     transferfield!, distribloads, connectionmatrix,
+#     fieldfromintegpoints, elemfieldfromintegpoints
 
 using FinEtools
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FESetModule
 using FinEtools.IntegRuleModule
 using FinEtools.NodalFieldModule

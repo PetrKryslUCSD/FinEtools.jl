@@ -1,6 +1,6 @@
 using FinEtools
 using FinEtools.TetRemeshingModule
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.VoxelBoxModule
 using FinEtools.VoxelTetMeshingModule
 using FinEtools.MeshExportModule

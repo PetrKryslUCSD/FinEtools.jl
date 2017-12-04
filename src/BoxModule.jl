@@ -5,10 +5,10 @@ Module for working with bounding boxes.
 """
 module BoxModule
 
-export inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap
+# export inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap
 
 using FinEtools
-using FinEtools.FTypesModule
+using FinEtools
 
 
 

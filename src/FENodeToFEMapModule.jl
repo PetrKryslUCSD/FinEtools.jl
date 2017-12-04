@@ -5,9 +5,9 @@ Module to construct a map from finite element nodes to the finite elements.
 """
 module FENodeToFEMapModule
 
-export FENodeToFEMap
+# export FENodeToFEMap
 
-using FinEtools.FTypesModule
+using FinEtools
 
   #
     #

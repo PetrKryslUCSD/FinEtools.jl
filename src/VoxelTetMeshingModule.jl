@@ -1,13 +1,13 @@
 module VoxelTetMeshingModule
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FESetModule
 using FinEtools.TetRemeshingModule
 using FinEtools.VoxelBoxModule
 using FinEtools.MeshTetrahedronModule
 using FinEtools.MeshModificationModule
 
-export ElementSizeWeightFunction, ImageMesher, mesh!, volumes
+# export ElementSizeWeightFunction, ImageMesher, mesh!, volumes
 
 mutable struct  ElementSizeWeightFunction
     influenceweight::FFlt

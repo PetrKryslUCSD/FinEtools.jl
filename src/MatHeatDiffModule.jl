@@ -5,9 +5,9 @@ Module for linear heat diffusion material models.
 """
 module MatHeatDiffModule
 
-export MatHeatDiff
+# export MatHeatDiff
 
-using FinEtools.FTypesModule
+using FinEtools
 
 # Type for heat diffusion models of materials.
 struct MatHeatDiff

@@ -5,12 +5,12 @@ Module for generation of  hexahedral meshes.
 """
 module MeshHexahedronModule
 
-export  H8block,  H8blockx,  H8sphere,  H8refine, H8hexahedron, H8extrudeQ4,
-    H8spheren, H8voximg,  H8layeredplatex, H8elliphole, H8toH27,  H27block,
-    H20block,  H8toH20, H20blockx, H27blockx
+# export  H8block,  H8blockx,  H8sphere,  H8refine, H8hexahedron, H8extrudeQ4,
+#     H8spheren, H8voximg,  H8layeredplatex, H8elliphole, H8toH27,  H27block,
+#     H20block,  H8toH20, H20blockx, H27blockx
 
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FESetModule
 using FinEtools.FENodeSetModule
 using FinEtools.MeshUtilModule

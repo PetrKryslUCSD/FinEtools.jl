@@ -2980,7 +2980,7 @@ mmmremeshingm1m.test()
 module mmvoxel_bracket_mesh
 using FinEtools
 using FinEtools.TetRemeshingModule
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.VoxelBoxModule
 using FinEtools.VoxelTetMeshingModule
 using FinEtools.MeshExportModule

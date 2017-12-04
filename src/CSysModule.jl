@@ -5,10 +5,9 @@ Module for management of coordinate systems.
 """
 module CSysModule
 
-export CSys
-export updatecsmat!
+# export CSys, updatecsmat!
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.RotationUtilModule
 
 """

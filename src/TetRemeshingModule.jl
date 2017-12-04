@@ -3,7 +3,7 @@ Module for remeshing tetrahedral triangulations.
 """
 module TetRemeshingModule
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FENodeToFEMapModule
 using FinEtools.MeshTetrahedronModule
 using FinEtools.MeshModificationModule

@@ -5,11 +5,11 @@ Module for mesh modification operations.
 """
 module MeshModificationModule
 
-export  meshboundary,  fusenodes,  compactnodes,  mergemeshes,  mergenmeshes,
-    mergenodes,  renumberconn!,  meshsmoothing,  mirrormesh, nodepartitioning, 
-    interior2boundary
+# export  meshboundary,  fusenodes,  compactnodes,  mergemeshes,  mergenmeshes,
+#     mergenodes,  renumberconn!,  meshsmoothing,  mirrormesh, nodepartitioning, 
+#     interior2boundary
 
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FENodeSetModule
 using FinEtools.FESetModule
 using Base.Sort

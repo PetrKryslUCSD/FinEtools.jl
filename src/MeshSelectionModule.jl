@@ -5,10 +5,10 @@ Module for  selection of mesh entities.
 """
 module MeshSelectionModule
 
-export connectedelems, connectednodes,  selectnode,  selectelem,  findunconnnodes
+# export connectedelems, connectednodes,  selectnode,  selectelem,  findunconnnodes
 
 using FinEtools
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FENodeSetModule
 using FinEtools.FESetModule
 using FinEtools.RotationUtilModule

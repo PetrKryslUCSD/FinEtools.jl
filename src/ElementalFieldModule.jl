@@ -5,11 +5,11 @@ Module for elemental fields.
 """
 module ElementalFieldModule
 
-export ElementalField
-export nelems
+# export ElementalField
+# export nelems
 
 using FinEtools
-using FinEtools.FTypesModule
+using FinEtools
 using FinEtools.FieldModule
 using FinEtools.FieldModule.@add_Field_fields
 
