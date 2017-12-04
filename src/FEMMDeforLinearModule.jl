@@ -11,19 +11,6 @@ module FEMMDeforLinearModule
 #        inspectintegpoints
 
 using FinEtools
-using FinEtools.FESetModule
-using FinEtools.CSysModule
-using FinEtools.IntegDataModule
-using FinEtools.FEMMBaseModule
-using FinEtools.FEMMDeforLinearBaseModule
-using FinEtools.FieldModule
-using FinEtools.NodalFieldModule
-using FinEtools.ElementalFieldModule
-using FinEtools.ForceIntensityModule
-using FinEtools.AssemblyModule
-using FinEtools.DeforModelRedModule
-using FinEtools.MatDeforModule
-using FinEtools.FENodeToFEMapModule
 
 """
     FEMMDeforLinear{S<:FESet, F<:Function, P<:PropertyDeformationLinear}

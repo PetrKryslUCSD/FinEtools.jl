@@ -172,53 +172,64 @@ export MatDeforElastOrtho
 
 include("AssemblyModule.jl")
 using FinEtools.AssemblyModule: SysmatAssemblerBase, SysmatAssemblerSparse, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysvecAssemblerBase, SysvecAssembler, startassembly!, assemble!, makevector!
-# Exported: 
+# Exported: types and methods for  sparse matrix assembly  and vector assembly
 export SysmatAssemblerBase, SysmatAssemblerSparse, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysvecAssemblerBase, SysvecAssembler, startassembly!, assemble!, makevector!
 
 include("IntegRuleModule.jl")
 using FinEtools.IntegRuleModule: IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule
+# Exported: type for various integration rules
 export IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule
 
 include("IntegDataModule.jl")
 using FinEtools.IntegDataModule: IntegData, otherdimensionunity, Jacobianpoint, Jacobiancurve, Jacobiansurface, Jacobianvolume, Jacobianmdim, integrationdata
+# Exported: type to handle  integration data for various manifold dimensions
 export IntegData, otherdimensionunity, Jacobianpoint, Jacobiancurve, Jacobiansurface, Jacobianvolume, Jacobianmdim, integrationdata
 
 include("FEMMBaseModule.jl")
 using FinEtools.FEMMBaseModule: FEMMAbstractBase, FEMMBase, associategeometry!, integratefieldfunction, integratefunction, transferfield!, distribloads, connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints
+# Exported: type base discretization methods
 export FEMMAbstractBase, FEMMBase, associategeometry!, integratefieldfunction, integratefunction, transferfield!, distribloads, connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints
 
 include("FEMMHeatDiffModule.jl")
 using FinEtools.FEMMHeatDiffModule: FEMMHeatDiff, conductivity, nzebcloadsconductivity
+# Exported: type  for linear heat diffusion and discretization methods
 export FEMMHeatDiff, conductivity, nzebcloadsconductivity
 
 include("FEMMHeatDiffSurfModule.jl")
 using FinEtools.FEMMHeatDiffSurfModule: FEMMHeatDiffSurf, surfacetransfer, surfacetransferloads, nzebcsurfacetransferloads
+# Exported: type  for linear heat diffusion boundary conditions and discretization methods
 export FEMMHeatDiffSurf, surfacetransfer, surfacetransferloads, nzebcsurfacetransferloads
 
 include("FEMMAcoustModule.jl")
 using FinEtools.FEMMAcoustModule: FEMMAcoust, acousticmass, nzebcloadsacousticmass,
 acousticstiffness, nzebcloadsacousticstiffness
+# Exported: type for linear acoustics  and discretization methods
 export FEMMAcoust, acousticmass, nzebcloadsacousticmass,
     acousticstiffness, nzebcloadsacousticstiffness
 
 include("FEMMAcoustSurfModule.jl")
 using FinEtools.FEMMAcoustSurfModule: FEMMAcoustSurf, acousticABC, pressure2resultantforce, pressure2resultanttorque
+# Exported: type for acoustic absorbing boundary condition  and  transformation matrices from pressure  to resultants
 export FEMMAcoustSurf, acousticABC, pressure2resultantforce, pressure2resultanttorque
 
 include("FEMMDeforLinearBaseModule.jl")
 using FinEtools.FEMMDeforLinearBaseModule: FEMMDeforLinearAbstract, stiffness, nzebcloadsstiffness, thermalstrainloads, mass, inspectintegpoints
+# Exported: abstract type for linear information, discretization methods for the abstract type 
 export FEMMDeforLinearAbstract, stiffness, nzebcloadsstiffness, thermalstrainloads, mass, inspectintegpoints
 
 include("FEMMDeforLinearModule.jl")
-using FinEtools.FEMMDeforLinearModule: FEMMDeforLinear, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
-export FEMMDeforLinear, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
+using FinEtools.FEMMDeforLinearModule: FEMMDeforLinear
+# Exported: type for linear deformation
+export FEMMDeforLinear
 
 include("FEMMDeforWinklerModule.jl")
 using FinEtools.FEMMDeforWinklerModule: FEMMDeforWinkler, surfacenormalspringstiffness
+# Exported: type for distributed-spring support, discretization method 
 export FEMMDeforWinkler, surfacenormalspringstiffness
 
 include("FEMMDeforLinearMSModule.jl")
 using FinEtools.FEMMDeforLinearMSModule: FEMMDeforLinearMSH8, FEMMDeforLinearMST10, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
+# Exported: type for mean-strain solid elements, discretization methods
 export FEMMDeforLinearMSH8, FEMMDeforLinearMST10, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
 
 include("VoxelBoxModule.jl")
