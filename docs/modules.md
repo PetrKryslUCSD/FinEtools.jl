@@ -2,15 +2,14 @@
 
 # Modules
 
-FinEtools modules fall into several  categories. It is usually enough to do `using FinEtools`,
-but in some  cases modules need to be  brought into the scope individually.
+The FinEtools package consists of many modules which fall into several  categories. The top-level module, `FinEtools`, includes all other modules and exports functions to constitute the public interface. The user is free to generate their own public interface, however. More details are provided [here.](rollyourown.html)
+
 
 - Top-level:
-     `FinEtools` is the  top-level module.   
+     `FinEtools` is the  top-level module.  For interactive use it is enough to do `using FinEtools`, however in some  cases functions from modules need to be  brought into the scope individually (most importantly, the algorithm modules). 
 
 - Utilities:
-`FTypesModule` (types),    `PhysicalUnitModule` (definitions of  numbers with physical units),       
-`AssemblyModule` (assembly of elementwise matrices and vectors),   `CSysModule` (coordinate system module),    `MatrixUtilityModule` (utilities for operations on elementwise matrices), `BoxModule`  (support for working with bounding boxes),  `ForceIntensityModule` (force-intensity module),        `RotationUtilModule` (support for spatial rotations).
+`FTypesModule` (types), `PhysicalUnitModule` (definitions of  numbers with physical units), `AssemblyModule` (assembly of elementwise matrices and vectors),   `CSysModule` (coordinate system module),    `MatrixUtilityModule` (utilities for operations on elementwise matrices), `BoxModule`  (support for working with bounding boxes),  `ForceIntensityModule` (force-intensity module),        `RotationUtilModule` (support for spatial rotations).
 
 - Mesh  entities: 
   `FENodeSetModule`, `FESetModule` (node set and finite element set  types).  
