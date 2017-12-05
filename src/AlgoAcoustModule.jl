@@ -5,11 +5,14 @@ Module for linear acoustics algorithms.
 """
 module AlgoAcoustModule
 
-using FinEtools
+using FinEtools.FTypesModule
 import FinEtools.AlgoBaseModule: dcheck!
 import FinEtools.FieldModule: ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!
 import FinEtools.NodalFieldModule: NodalField, nnodes
-import FinEtools.FEMMBaseModule: associategeometry!
+import FinEtools.FEMMBaseModule: associategeometry!, distribloads
+import FinEtools.FEMMAcoustModule: acousticmass, acousticstiffness, nzebcloadsacousticmass, nzebcloadsacousticstiffness 
+import FinEtools.FEMMAcoustSurfModule: acousticABC
+import FinEtools.ForceIntensityModule: ForceIntensity
 
 """
     steadystate(modeldata::FDataDict)

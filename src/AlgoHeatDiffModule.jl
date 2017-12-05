@@ -5,12 +5,15 @@ Module for algorithms in linear heat conduction/diffusion  models.
 """
 module AlgoHeatDiffModule
 
-using FinEtools
+using FinEtools.FTypesModule
 import FinEtools.AlgoBaseModule: dcheck!
 import FinEtools.FieldModule: ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!
 import FinEtools.NodalFieldModule: NodalField, nnodes
-import FinEtools.FEMMBaseModule: associategeometry!
-
+import FinEtools.FEMMBaseModule: associategeometry!, distribloads
+import FinEtools.FEMMHeatDiffModule: conductivity, nzebcloadsconductivity
+import FinEtools.FEMMHeatDiffSurfModule: surfacetransfer, surfacetransferloads, nzebcsurfacetransferloads
+import FinEtools.ForceIntensityModule: ForceIntensity
+import FinEtools.MeshSelectionModule: connectednodes
 """
     steadystate(modeldata::FDataDict)
 
