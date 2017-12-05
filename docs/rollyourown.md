@@ -12,16 +12,18 @@ Here are two ways in which this can be accomplished.
 
 1. The user exports his or her own additions from the module `add2FinEtools` (the name of this module is not obligatory, it can be anything). In addition, the public interface to the FinEtools package needs to be brought in separately.
 
-```
-using FinEtools
-using add2FinEtools
-```
+    ```
+    using FinEtools
+    using add2FinEtools
+    ```
 
 2. The user may change entirely the public interface to the FinEtools package by selectively including parts of the `FinEtools.jl` file and the code to export his or her own functionality in a single module, let us say `myFinEtools` (this name is arbitrary), so that when the user invokes
 
-```
-using myFinEtools
-```
+    ```
+    using myFinEtools
+    ```
 
-all the functions that ACCORDING to the USER constitute the public interface to the FinEtools package and to the user's own additions are exported. 
+Method 1 has the advantage that the interface definition of the FinEtools package itself does not change, which means that code does not need to be touched. It also has a disadvantage that the interface to FinEtools does not change which means that if there is a conflict with one of the exported functions from FinEtools, it needs to be resolved by fiddling with other packages.
+
+Method 2 has the advantage that when there is a conflict between one of the exported FinEtools functions and some other function, be it from another package or the user's own, the conflict can be resolved by changing the public interface to FinEtools. Also, in this method the USER has the power to define the public interface to the FinEtools package, and if the user decides that nothing should be exported for implicit resolution of symbols, that is easily accomplished.
 
