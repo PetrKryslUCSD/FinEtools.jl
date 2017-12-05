@@ -11,7 +11,7 @@ import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, manifdim
 import FinEtools.IntegDataModule: IntegData
 import FinEtools.FEMMDeforLinearBaseModule: FEMMDeforLinearAbstract
-import FinEtools.DeforModelRedModule: DeforModelRed
+import FinEtools.DeforModelRedModule: DeforModelRed, DeforModelRed2DAxisymm
 import FinEtools.MatDeforModule: MatDefor
 import FinEtools.CSysModule: CSys
 

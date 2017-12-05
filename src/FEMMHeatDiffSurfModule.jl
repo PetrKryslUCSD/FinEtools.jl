@@ -10,7 +10,7 @@ using FinEtools.FTypesModule
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, nodesperelem, manifdim
 import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobiansurface
-import FinEtools.FieldModule: ndofs
+import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!
 import FinEtools.NodalFieldModule: NodalField 
 import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 import FinEtools.FEMMBaseModule: FEMMAbstractBase
@@ -18,7 +18,7 @@ import FinEtools.MatrixUtilityModule: add_gkgt_ut_only!, add_nnt_ut_only!, compl
 
 # Type for heat diffusion finite element modeling machine for boundary integrals.
 mutable struct FEMMHeatDiffSurf{S<:FESet, F<:Function} <: FEMMAbstractBase
-    integdata::IntegData{S, F} # geometry data finite element modeling machine
+    integdata::IntegData{S, F} # geometry data
     surfacetransfercoeff::FFlt # material object
 end
 

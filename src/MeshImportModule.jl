@@ -6,6 +6,9 @@ Module for mesh import  functions.
 module MeshImportModule
 
 using FinEtools.FTypesModule
+import FinEtools.FENodeSetModule: FENodeSet
+import FinEtools.FESetModule: FESet, FESetT4, FESetT10, FESetH8, FESetH20, setlabel!
+import FinEtools.MeshModificationModule: renumberconn!
 
 """
 !!! note

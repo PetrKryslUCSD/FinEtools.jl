@@ -8,6 +8,9 @@ import Base.length
 import Base.push!
 import Base.getindex
 import Base.copy!
+import FinEtools.FENodeToFEMapModule: FENodeToFEMap
+import FinEtools.MeshTetrahedronModule: T4meshedges
+import FinEtools.MeshModificationModule: interior2boundary
 
 """
     _IntegerBuffer

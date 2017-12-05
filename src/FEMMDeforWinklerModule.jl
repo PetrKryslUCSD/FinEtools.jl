@@ -11,7 +11,7 @@ using FinEtools.FTypesModule
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, nodesperelem, manifdim
 import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobiansurface
-import FinEtools.FieldModule: ndofs
+import FinEtools.FieldModule: ndofs, gatherdofnums!
 import FinEtools.NodalFieldModule: NodalField 
 import FinEtools.FEMMBaseModule: FEMMAbstractBase
 import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!
@@ -24,7 +24,7 @@ Type for normal spring support  (Winkler).
 """
 # Class for heat diffusion finite element modeling machine.
 mutable struct FEMMDeforWinkler{S<:FESet, F<:Function} <: FEMMAbstractBase
-    integdata::IntegData{S, F} # geometry data finite element modeling machine
+    integdata::IntegData{S, F} # geometry data
 end
 
 """
@@ -36,7 +36,7 @@ Compute the stiffness matrix of surface normal spring.
 Rationale: consider continuously distributed springs between the surface of the
 solid body and the 'ground', in the direction normal to the surface. If the
 spring coefficient becomes large, we have an approximate method of enforcing the
-normal displacement to the surface.
+normal displacement to the surface.gas
 """
 function surfacenormalspringstiffness(self::FEMMDeforWinkler, assembler::A,
     geom::NodalField{FFlt}, u::NodalField{T},

@@ -6,7 +6,11 @@ Module for meshing of voxel data sets with tetrahedra.
 module VoxelTetMeshingModule
 
 using FinEtools.FTypesModule
-import FinEtools.VoxelBoxModule: VoxelBoxVolume
+import FinEtools.VoxelBoxModule: VoxelBoxVolume, voxeldims
+import FinEtools.MeshTetrahedronModule: T4voximg, tetv
+import FinEtools.FESetModule: connasarray
+import FinEtools.MeshModificationModule: interior2boundary, vertexneighbors, smoothertaubin
+import FinEtools.TetRemeshingModule: coarsen
 
 mutable struct  ElementSizeWeightFunction
     influenceweight::FFlt
@@ -55,13 +59,13 @@ end
 
 function coarsenvolume!(self::ImageMesher, desired_element_size::FFlt)
     vertex_weight = evaluateweights(self)
-    self.t, self.v, self.tmid = TetRemeshingModule.coarsen(self.t, self.v, self.tmid; surface_coarsening = false, desired_ts = desired_element_size, vertex_weight = vertex_weight);
+    self.t, self.v, self.tmid = coarsen(self.t, self.v, self.tmid; surface_coarsening = false, desired_ts = desired_element_size, vertex_weight = vertex_weight);
     return self;
 end
   
 function coarsensurface!(self::ImageMesher, desired_element_size::FFlt)
     vertex_weight = evaluateweights(self)
-    self.t, self.v, self.tmid = TetRemeshingModule.coarsen(self.t, self.v, self.tmid; surface_coarsening = true, desired_ts = desired_element_size, vertex_weight = vertex_weight);
+    self.t, self.v, self.tmid = coarsen(self.t, self.v, self.tmid; surface_coarsening = true, desired_ts = desired_element_size, vertex_weight = vertex_weight);
     return self;
 end
  
@@ -71,7 +75,7 @@ function volumes!(V::Array{FFlt, 1}, v::Array{FFlt, 2}, t::Array{Int, 2})
         v21, v22, v23 = v[t[i, 2], :]
         v31, v32, v33 = v[t[i, 3], :]
         v41, v42, v43 = v[t[i, 4], :]
-        V[i] = MeshTetrahedronModule.tetv(v11, v12, v13, v21, v22, v23, v31, v32, v33, v41, v42, v43) 
+        V[i] = tetv(v11, v12, v13, v21, v22, v23, v31, v32, v33, v41, v42, v43) 
     end
     return V
 end
@@ -82,7 +86,7 @@ function allnonnegativevolumes(v, t)
         v21, v22, v23 = v[t[i, 2], :]
         v31, v32, v33 = v[t[i, 3], :]
         v41, v42, v43 = v[t[i, 4], :]
-        if MeshTetrahedronModule.tetv(v11, v12, v13, v21, v22, v23, v31, v32, v33, v41, v42, v43) < 0.0
+        if tetv(v11, v12, v13, v21, v22, v23, v31, v32, v33, v41, v42, v43) < 0.0
              return false
         end 
     end
@@ -100,12 +104,12 @@ function smooth!(self::ImageMesher, npass::Int = 5)
     f = interior2boundary(self.t, [1 3 2; 1 2 4; 2 3 4; 1 4 3])
     
     # find neighbors for the SURFACE vertices
-    fvn = MeshModificationModule.vertexneighbors(f, size(self.v, 1));
+    fvn = vertexneighbors(f, size(self.v, 1));
     # Smoothing considering only surface connections
     fv = FFltMat[]
     trialfv = deepcopy(self.v)
     for pass = 1:npass
-        fv =  MeshModificationModule.smoothertaubin(trialfv, fvn, bv, 1, 0.5, -0.5);
+        fv =  smoothertaubin(trialfv, fvn, bv, 1, 0.5, -0.5);
         V = volumes!(V, fv, self.t)
         for i = 1:length(V)
             if V[i] < 0.0 # smoothing is only allowed if it results in non-negative volume
@@ -117,13 +121,13 @@ function smooth!(self::ImageMesher, npass::Int = 5)
     end
     
     # find neighbors for the VOLUME vertices
-    vn =  MeshModificationModule.vertexneighbors(self.t, size(self.v, 1));
+    vn =  vertexneighbors(self.t, size(self.v, 1));
     # Smoothing considering all connections through the volume
     bv[vec(f)]=true;
     v = FFltMat[]
     trialv = deepcopy(fv)
     for pass = 1:npass
-        v = MeshModificationModule.smoothertaubin(trialv, vn, bv, 1, 0.5, -0.5); 
+        v = smoothertaubin(trialv, vn, bv, 1, 0.5, -0.5); 
         anynegative = true; chk=1
         while anynegative
             # println("Checking volumes $chk")

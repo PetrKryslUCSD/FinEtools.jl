@@ -98,13 +98,13 @@ using FinEtools.MeshExportModule: STLExporter, solid, facet, endsolid
 # Exported: STL export
 export STLExporter, solid, facet, endsolid
 
-include("MeshImportModule.jl")
-using FinEtools.MeshImportModule
-
 include("MeshModificationModule.jl")
 using FinEtools.MeshModificationModule: meshboundary,  fusenodes,  compactnodes,  mergemeshes, mergenmeshes, mergenodes,  renumberconn!,  meshsmoothing, mirrormesh, nodepartitioning, interior2boundary
 # Exported: extraction of boundary, fusing of nodes  and merging of meshes, mesh smoothing,  node partitioning
 export  meshboundary,  fusenodes,  compactnodes,  mergemeshes, mergenmeshes, mergenodes,  renumberconn!,  meshsmoothing, mirrormesh, nodepartitioning, interior2boundary
+
+include("MeshImportModule.jl")
+using FinEtools.MeshImportModule
 
 include("MeshQuadrilateralModule.jl")
 using FinEtools.MeshQuadrilateralModule: Q4annulus, Q4quadrilateral, Q4elliphole, Q4block, Q4blockx, Q4refine, Q8block, Q4toQ8, Q8annulus, Q8blockx

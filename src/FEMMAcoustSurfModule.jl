@@ -26,7 +26,7 @@ import FinEtools.MatrixUtilityModule: add_mggt_ut_only!, add_nnt_ut_only!, compl
 Class for linear acoustics finite element modeling machine.
 """
 mutable struct FEMMAcoustSurf{S<:FESet, F<:Function, M, NF<:Function} <: FEMMAbstractBase
-    integdata::IntegData{S, F} # geometry data finite element modeling machine
+    integdata::IntegData{S, F} # geometry data
     material::M # material object
     getnormal!::NF # get the  normal to the surface
 end

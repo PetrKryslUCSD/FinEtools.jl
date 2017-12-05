@@ -14,19 +14,21 @@ import FinEtools.FEMMDeforLinearBaseModule: FEMMDeforLinearAbstract
 import FinEtools.DeforModelRedModule: DeforModelRed, DeforModelRed3D
 import FinEtools.MatDeforModule: MatDefor
 import FinEtools.MatDeforElastIsoModule: MatDeforElastIso
-import FinEtools.FieldModule: ndofs
+import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!, gathervalues_asmat!
 import FinEtools.NodalFieldModule: NodalField
 import FinEtools.CSysModule: CSys, updatecsmat!
+import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat! 
 import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, startassembly!, assemble!, makematrix!
 using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, loc!, jac!, locjac!
 import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass, thermalstrainloads, inspectintegpoints
 import FinEtools.FEMMBaseModule: associategeometry!
+import FinEtools.MatDeforModule: rotstressvec
 
 abstract type FEMMDeforLinearAbstractMS <: FEMMDeforLinearAbstract end
 
 mutable struct FEMMDeforLinearMSH8{MR<:DeforModelRed, S<:FESetH8, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstractMS
     mr::Type{MR}
-    integdata::IntegData{S, F} # geometry data finite element modeling machine
+    integdata::IntegData{S, F} # geometry data
     mcsys::CSys # updater of the material orientation matrix
     material::M # material object
     stabilization_material::MatDeforElastIso
@@ -49,7 +51,7 @@ end
 
 mutable struct FEMMDeforLinearMST10{MR<:DeforModelRed, S<:FESetT10, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstractMS
     mr::Type{MR}
-    integdata::IntegData{S, F} # geometry data finite element modeling machine
+    integdata::IntegData{S, F} # geometry data
     mcsys::CSys # updater of the material orientation matrix
     material::M # material object
     stabilization_material::MatDeforElastIso
@@ -577,6 +579,7 @@ function inspectintegpoints(self::FEMMDeforLinearAbstractMS, geom::NodalField{FF
         return _iip_meanonly(self, geom, u, dT, felist,
             inspector, idat, quantity; context...);
     end
+    return idat
 end
 
 function inspectintegpoints(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt},  u::NodalField{T}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}

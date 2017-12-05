@@ -10,6 +10,16 @@ import FinEtools.AlgoBaseModule: dcheck!
 if VERSION >= v"0.7-"
     using   IterativeEigenSolvers
 end
+import FinEtools.FieldModule: Field, ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!
+import FinEtools.NodalFieldModule: NodalField, nnodes
+import FinEtools.FEMMBaseModule: associategeometry!, distribloads, fieldfromintegpoints, elemfieldfromintegpoints
+import FinEtools.FEMMDeforLinearBaseModule: stiffness, mass, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
+import FinEtools.FEMMDeforLinearMSModule: stiffness, mass, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
+import FinEtools.DeforModelRedModule: stresscomponentmap
+import FinEtools.ForceIntensityModule: ForceIntensity
+import FinEtools.MeshModificationModule: meshboundary
+import FinEtools.MeshExportModule: vtkexportmesh
+
 
 """
     AlgoDeforLinearModule.linearstatics(modeldata::FDataDict)

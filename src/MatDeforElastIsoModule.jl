@@ -1,8 +1,8 @@
 module MatDeforElastIsoModule
 
 using FinEtools.FTypesModule
-import FinEtools.DeforModelRedModule: DeforModelRed, DeforModelRed3D, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed1D
-import FinEtools.MatDeforModule: MatDefor
+import FinEtools.DeforModelRedModule: DeforModelRed, DeforModelRed3D, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed1D, nstressstrain, nthermstrain
+import FinEtools.MatDeforModule: MatDefor, stress6vto3x3t!, stress3vto2x2t!, stress4vto3x3t!, stress4vto3x3t!
 
 const mI = Matrix(Diagonal([1.0, 1.0, 1.0, 0.5, 0.5, 0.5]))
 const m1 = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0];

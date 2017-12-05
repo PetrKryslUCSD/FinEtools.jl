@@ -22,7 +22,7 @@ import FinEtools.MatrixUtilityModule: add_gkgt_ut_only!, complete_lt!, locjac!
 
 # Type for heat diffusion finite element modeling machine.
 mutable struct FEMMHeatDiff{S<:FESet, F<:Function, M<:MatHeatDiff} <: FEMMAbstractBase
-    integdata::IntegData{S, F} # geometry data finite element modeling machine
+    integdata::IntegData{S, F} # geometry data
     mcsys::CSys # updater of the material orientation matrix
     material::M # material object
 end

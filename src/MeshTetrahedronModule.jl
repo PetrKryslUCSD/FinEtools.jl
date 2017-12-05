@@ -9,6 +9,7 @@ using FinEtools.FTypesModule
 import FinEtools.FESetModule: count, FESetT4, FESetT10, setlabel!
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!
+import FinEtools.MeshSelectionModule: selectelem
 
 """
     T4block(Length::FFlt, Width::FFlt, Height::FFlt,

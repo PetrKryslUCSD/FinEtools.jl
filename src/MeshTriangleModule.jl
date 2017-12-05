@@ -6,8 +6,9 @@ Module  for generation of meshes composed of triangles.
 module MeshTriangleModule
 
 using FinEtools.FTypesModule
-import FinEtools.FESetModule: FESet, FESetT3, FESetT6, FESetQ4
+import FinEtools.FESetModule: FESet, FESetT3, FESetT6, FESetQ4, connasarray
 import FinEtools.FENodeSetModule: FENodeSet
+import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!
 
 """
     T3blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol=:a)
@@ -86,12 +87,12 @@ function T3toT6(fens::FENodeSet, fes::FESetT3)
     # Additional node numbers are numbered from here
     newn=count(fens)+1;
     # make a search structure for edges
-    edges=MeshUtilModule.makecontainer();
+    edges=makecontainer();
     for i= 1:size(conns,1)
         conn = conns[i,:];
         for J = 1:nedges
             ev=conn[ec[J,:]];
-            newn = MeshUtilModule.addhyperface!(edges, ev, newn);
+            newn = addhyperface!(edges, ev, newn);
         end
     end
     xyz1 =fens.xyz;             # Pre-existing nodes
@@ -116,7 +117,7 @@ function T3toT6(fens::FENodeSet, fes::FESetT3)
         econn=zeros(FInt,1,nedges);
         for J = 1:nedges
             ev=conn[ec[J,:]];
-            h,n=MeshUtilModule.findhyperface!(edges, ev);
+            h,n=findhyperface!(edges, ev);
             econn[J]=n;
         end
         nconns[nc,:] =vcat(vec(conn), vec(econn));

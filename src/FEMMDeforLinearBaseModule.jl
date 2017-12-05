@@ -10,12 +10,14 @@ using FinEtools.FTypesModule
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: gradN!, nodesperelem, manifdim
 import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianvolume
-import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!
-import FinEtools.NodalFieldModule: NodalField 
+import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!, gathervalues_asmat!
+import FinEtools.NodalFieldModule: NodalField, nnodes 
 import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
-import FinEtools.FEMMBaseModule: FEMMAbstractBase
+import FinEtools.FEMMBaseModule: FEMMAbstractBase, inspectintegpoints
 import FinEtools.CSysModule: CSys, updatecsmat!
+import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat! 
 import FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, locjac!
+import FinEtools.MatDeforModule: rotstressvec
 
 abstract type FEMMDeforLinearAbstract <: FEMMAbstractBase end
 
@@ -235,7 +237,7 @@ Inspect integration point quantities.
 ### Return
 The updated inspector data is returned.
 """
-function inspectintegpoints(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
+function inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {FEMM<:FEMMDeforLinearAbstract, T<:Number, F<:Function}
     fes = self.integdata.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
     dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix = buffers(self, geom, u)
@@ -292,7 +294,7 @@ function inspectintegpoints(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt
     return idat; # return the updated inspector data
 end
 
-function inspectintegpoints(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt},  u::NodalField{T}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
+function inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {FEMM<:FEMMDeforLinearAbstract, T<:Number, F<:Function}
     dT = NodalField(fill(zero(FFlt), nnodes(geom), 1)) # zero difference in temperature
     return inspectintegpoints(self, geom, u, dT, felist, inspector, idat, quantity; context...);
 end

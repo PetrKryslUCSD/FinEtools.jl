@@ -7,7 +7,7 @@ module MeshHexahedronModule
 
 using FinEtools.FTypesModule
 import FinEtools.FESetModule: FESet, FESetQ4, FESetH8, FESetH20, FESetH27, subset, bfun, connasarray, setlabel!, updateconn!
-import FinEtools.FENodeSetModule: FENodeSet, count
+import FinEtools.FENodeSetModule: FENodeSet, count, xyz3
 import FinEtools.MeshQuadrilateralModule: Q4elliphole
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!
 import FinEtools.MeshModificationModule: meshboundary, mergemeshes

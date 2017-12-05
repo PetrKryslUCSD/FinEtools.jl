@@ -6,6 +6,7 @@ Module for base  algorithms.
 module AlgoBaseModule
 
 using FinEtools.FTypesModule
+import FinEtools.FEMMBaseModule: integratefieldfunction, transferfield!
 
 function _keymatch(key::String, allowed_keys::Array{String})
     matched_key = nothing

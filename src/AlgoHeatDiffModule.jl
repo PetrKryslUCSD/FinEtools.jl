@@ -7,6 +7,9 @@ module AlgoHeatDiffModule
 
 using FinEtools
 import FinEtools.AlgoBaseModule: dcheck!
+import FinEtools.FieldModule: ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!
+import FinEtools.NodalFieldModule: NodalField, nnodes
+import FinEtools.FEMMBaseModule: associategeometry!
 
 """
     steadystate(modeldata::FDataDict)

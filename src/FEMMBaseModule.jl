@@ -7,15 +7,19 @@ module FEMMBaseModule
 
 using FinEtools.FTypesModule
 import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: FESet, manifdim, nodesperelem
+import FinEtools.FESetModule: FESet, manifdim, nodesperelem, subset, map2parametric, inparametric, centroidparametric, bfun
 import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianmdim
 import FinEtools.CSysModule: CSys
-import FinEtools.FieldModule: ndofs, gatherdofnums!, gathervalues_asmat! 
-import FinEtools.NodalFieldModule: NodalField 
-import FinEtools.ElementalFieldModule: ElementalField 
+import FinEtools.FieldModule: ndofs, nents, gatherdofnums!, gathervalues_asmat! 
+import FinEtools.NodalFieldModule: NodalField, nnodes
+import FinEtools.ElementalFieldModule: ElementalField, nelems
 import FinEtools.AssemblyModule: SysvecAssemblerBase, startassembly!, assemble!, makematrix!, SysvecAssembler, makevector!
 import FinEtools.ForceIntensityModule: ForceIntensity, updateforce!
 import FinEtools.MatrixUtilityModule: locjac!
+import FinEtools.BoxModule: initbox!, boundingbox, inflatebox!
+import FinEtools.MeshModificationModule: nodepartitioning, compactnodes, renumberconn!
+import FinEtools.MeshSelectionModule: selectelem, vselect, findunconnnodes, connectednodes
+
 """
     FEMMAbstractBase
 
@@ -29,7 +33,7 @@ abstract type FEMMAbstractBase; end
 Class for base finite element modeling machine.
 """
 mutable struct FEMMBase{S<:FESet, F<:Function} <: FEMMAbstractBase
-    integdata::IntegData{S, F} # geometry data finite element modeling machine
+    integdata::IntegData{S, F} # geometry data
     mcsys::CSys # updater of the material orientation matrix
 end
 
@@ -51,13 +55,23 @@ There may be operations that could benefit from pre-computations
 that involve a geometry field. If so, associating the geometry
 field gives the FEMM a chance to save on repeated computations.
 
-Geometry field is normally passed into any routine that evaluates some forms
-(integrals) over the mesh.  Whenever the geometry passed into a routine is not
-consistent with the one for which `associategeometry!()` was called before,
-`associategeometry!()` needs to be called with the new geometry field.
+Geometry field is normally passed into any routine that evaluates some 
+forms (integrals) over the mesh.  Whenever the geometry passed into a 
+routine is not consistent with the one for which `associategeometry!()` 
+was called before, `associategeometry!()` needs to be called with 
+the new geometry field.
 """
 function associategeometry!(self::FEMMAbstractBase,  geom::NodalField{FFlt})
     return self # default is no-op
+end
+
+"""
+    inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {FEMM<:FEMMAbstractBase, T<:Number, F<:Function}
+
+Inspect integration points.  
+"""
+function inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {FEMM<:FEMMAbstractBase, T<:Number, F<:Function}
+    return idat # default is no-op
 end
 
 """
