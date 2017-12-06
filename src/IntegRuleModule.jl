@@ -4,7 +4,7 @@ Module for numerical integration rules.
 """
 module IntegRuleModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 abstract type IntegRule end
 

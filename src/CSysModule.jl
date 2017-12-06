@@ -5,7 +5,7 @@ Module for management of coordinate systems.
 """
 module CSysModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 """
 Type for coordinate system transformations.

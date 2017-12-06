@@ -5,7 +5,7 @@ Module for export of meshes and data defined on meshes.
 """
 module MeshExportModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FESetModule: FESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
 import FinEtools.FENodeSetModule: FENodeSet
 import Base.close

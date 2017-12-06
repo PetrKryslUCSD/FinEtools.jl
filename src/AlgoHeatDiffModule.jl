@@ -5,7 +5,7 @@ Module for algorithms in linear heat conduction/diffusion  models.
 """
 module AlgoHeatDiffModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.AlgoBaseModule: dcheck!
 import FinEtools.FieldModule: ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!
 import FinEtools.NodalFieldModule: NodalField, nnodes

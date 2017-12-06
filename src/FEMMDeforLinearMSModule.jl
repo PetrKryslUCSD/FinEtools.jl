@@ -6,7 +6,7 @@ system vectors for linear deformation models:  mean-strain  formulation.
 """
 module FEMMDeforLinearMSModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, FESetH8, FESetT10, manifdim, nodesperelem, gradN!
 import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianvolume

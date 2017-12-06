@@ -8,7 +8,7 @@ module FESetModule
 import Base.count
 import Base.cat
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 abstract type FESet{NODESPERELEM} end
 abstract type FESet0Manifold{NODESPERELEM} <: FESet{NODESPERELEM} end

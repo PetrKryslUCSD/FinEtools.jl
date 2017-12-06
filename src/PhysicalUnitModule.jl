@@ -5,7 +5,7 @@ Module  to handle use of physical units in constant definitions.
 """
 module PhysicalUnitModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 """
     physunitdict(;system_of_units = :SI, base_time_units = :SEC)

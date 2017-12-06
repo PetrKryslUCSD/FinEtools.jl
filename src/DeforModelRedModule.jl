@@ -5,7 +5,7 @@ Module for  model reduction in models of deformation.
 """
 module DeforModelRedModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 abstract type DeforModelRed end;
 struct DeforModelRed1D <: DeforModelRed

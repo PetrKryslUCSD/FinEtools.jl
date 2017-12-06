@@ -6,7 +6,7 @@ system vectors for linear heat conduction/diffusion.
 """
 module FEMMHeatDiffModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, nodesperelem, manifdim, gradN!
 import FinEtools.MatHeatDiffModule: MatHeatDiff

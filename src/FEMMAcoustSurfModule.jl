@@ -8,7 +8,7 @@ module FEMMAcoustSurfModule
 
 import Base.Complex
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, gradN!, nodesperelem, manifdim
 import FinEtools.MatAcoustFluidModule: MatAcoustFluid

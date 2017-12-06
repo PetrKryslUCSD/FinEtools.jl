@@ -5,7 +5,7 @@ Module for general fields.
 """
 module GeneralFieldModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FieldModule.Field
 import FinEtools.FieldModule.@add_Field_fields
 

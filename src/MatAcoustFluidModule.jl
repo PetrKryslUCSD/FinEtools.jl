@@ -5,7 +5,7 @@ Module for acoustic-fluid  material.
 """
 module MatAcoustFluidModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 # Class for acoustic fluid models of Mats.
 struct MatAcoustFluid

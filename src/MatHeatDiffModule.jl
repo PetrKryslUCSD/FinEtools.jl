@@ -5,7 +5,7 @@ Module for linear heat diffusion material models.
 """
 module MatHeatDiffModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 # Type for heat diffusion models of materials.
 struct MatHeatDiff

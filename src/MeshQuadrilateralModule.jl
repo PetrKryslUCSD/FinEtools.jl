@@ -5,7 +5,7 @@ Module  for generation of meshes composed of quadrilaterals.
 """
 module MeshQuadrilateralModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FESetModule: FESet, FESetQ4, FESetQ8, bfun, cat, connasarray
 import FinEtools.FENodeSetModule: FENodeSet, count
 import FinEtools.MeshModificationModule: mergemeshes
@@ -40,13 +40,13 @@ Mesh of a general quadrilateral given by the location of the vertices.
 """
 function Q4quadrilateral(xyz::FFltMat, nL::FInt, nW::FInt)
     npts=size(xyz,1);
-    if npts==2
+    if npts==2 # In this case the quadrilateral must be defined in two dimensions
         lo=minimum(xyz,1);
         hi=maximum(xyz,1);
         xyz=[[lo[1] lo[2]];
-        [hi[1] lo[2]];
-        [hi[1] hi[2]];
-        [lo[1] hi[2]]];
+            [hi[1] lo[2]];
+            [hi[1] hi[2]];
+            [lo[1] hi[2]]];
     elseif npts!=4
         error("Need 2 or 4 points");
     end
@@ -61,12 +61,12 @@ function Q4quadrilateral(xyz::FFltMat, nL::FInt, nW::FInt)
     end
 
     dummy = FESetQ4(reshape(collect(1:4),1,4))
-    pxyz = fens.xyz;
+    pxyz = xyz1;
     for i = 1:count(fens)
         N = bfun(dummy, broadcast(-, pxyz[i,:], 1.0));# shift coordinates by -1
         pxyz[i,:] = N'*xyz;
     end
-    copy!(fens.xyz, xyz1);
+    fens.xyz = deepcopy(pxyz);
     return fens,fes
 end
 

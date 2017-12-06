@@ -10,9 +10,6 @@ export FDataDict
 """
 module FTypesModule
 
-export FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec
-export FDataDict
-
 import Base.Complex
 
 const FInt = Int

@@ -5,7 +5,7 @@ Module for assemblers  of system matrices and vectors.
 """
 module AssemblyModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 const  inv_dofnum=0;            # invalid degree of freedom number -- no equation
 

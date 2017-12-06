@@ -5,7 +5,7 @@ Module  for generation of meshes composed of line (curve) elements.
 """
 module MeshLineModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESetL2, FESetL3
 

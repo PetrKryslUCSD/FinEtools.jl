@@ -3,7 +3,7 @@ Module for remeshing tetrahedral triangulations.
 """
 module TetRemeshingModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import Base.length
 import Base.push!
 import Base.getindex

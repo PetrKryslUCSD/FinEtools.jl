@@ -5,7 +5,7 @@ Module  for generation of meshes composed of tetrahedra.
 """
 module MeshTetrahedronModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FESetModule: count, FESetT4, FESetT10, setlabel!
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!

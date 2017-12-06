@@ -5,7 +5,7 @@ Module to manage geometry data.
 """
 module IntegDataModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FESetModule: FESet, FESet0Manifold, FESet1Manifold, FESet2Manifold, FESet3Manifold, Jacobian, bfun, bfundpar
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.IntegRuleModule: IntegRule

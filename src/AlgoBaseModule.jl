@@ -5,7 +5,7 @@ Module for base  algorithms.
 """
 module AlgoBaseModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FEMMBaseModule: integratefieldfunction, transferfield!
 
 function _keymatch(key::String, allowed_keys::Array{String})

@@ -5,7 +5,7 @@ Module for comments/base operations on interiors and boundaries of domains.
 """
 module FEMMBaseModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, manifdim, nodesperelem, subset, map2parametric, inparametric, centroidparametric, bfun
 import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianmdim

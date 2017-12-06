@@ -5,7 +5,7 @@ Module for meshing of voxel data sets with tetrahedra.
 """
 module VoxelTetMeshingModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.VoxelBoxModule: VoxelBoxVolume, voxeldims
 import FinEtools.MeshTetrahedronModule: T4voximg, tetv
 import FinEtools.FESetModule: connasarray

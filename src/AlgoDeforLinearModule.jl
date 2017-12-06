@@ -5,7 +5,7 @@ Module for algorithms used in linear deformation models.
 """
 module AlgoDeforLinearModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.AlgoBaseModule: dcheck!
 if VERSION >= v"0.7-"
     using   IterativeEigenSolvers

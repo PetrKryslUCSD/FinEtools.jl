@@ -6,7 +6,7 @@ system vectors for linear deformation models.
 """
 module FEMMDeforLinearModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, manifdim
 import FinEtools.IntegDataModule: IntegData

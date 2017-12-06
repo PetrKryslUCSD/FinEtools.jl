@@ -5,7 +5,7 @@ Module for  selection of mesh entities.
 """
 module MeshSelectionModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FESetModule: FESet, bfundpar, nodesperelem, manifdim, connasarray
 import FinEtools.FENodeSetModule: FENodeSet, spacedim
 import FinEtools.BoxModule: inflatebox!, initbox!, updatebox!, boxesoverlap

@@ -5,7 +5,7 @@ Module for mesh modification operations.
 """
 module MeshModificationModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FESetModule: FESet, count, boundaryconn, boundaryfe, updateconn!, connasarray, fromarray!
 import FinEtools.FENodeSetModule: FENodeSet
 using Base.Sort

@@ -5,7 +5,7 @@ Module for elemental fields.
 """
 module ElementalFieldModule
 
-using FinEtools.FTypesModule
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FieldModule: Field, nents
 import FinEtools.FieldModule.@add_Field_fields
 
