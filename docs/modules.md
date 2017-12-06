@@ -2,11 +2,11 @@
 
 # Modules
 
-The FinEtools package consists of many modules which fall into several  categories. The top-level module, `FinEtools`, includes all other modules and exports functions to constitute the public interface. The user is free to generate their own public interface, however. More details are provided [here.](rollyourown.html)
+The FinEtools package consists of many modules which fall into several  categories. The top-level module, `FinEtools`, includes all other modules and exports functions to constitute the public interface. The user is free to generate their own public interface, however. More details are provided [here](rollyourown.html).
 
 
 - Top-level:
-     `FinEtools` is the  top-level module.  For interactive use it is enough to do `using FinEtools`, however in some  cases functions from modules need to be  brought into the scope individually (most importantly, the algorithm modules). 
+     `FinEtools` is the  top-level module.  For interactive use it is enough to do `using FinEtools`, however in some  cases functions from modules need to be  brought into the scope individually (most importantly, the algorithm modules). This is the ONLY  module that EXPORTS  functions. The entire  public (i. e. exported) interface of the FinEtools package is specified  in the file `FinEtools.jl` (i. e. in the `FinEtools` module). The user is free to specify his or her own set of exported functions from the FinEtools package to create an [ad hoc public interface](rollyourown.html).
 
 - Utilities:
 `FTypesModule` (types), `PhysicalUnitModule` (definitions of  numbers with physical units), `AssemblyModule` (assembly of elementwise matrices and vectors),   `CSysModule` (coordinate system module),    `MatrixUtilityModule` (utilities for operations on elementwise matrices), `BoxModule`  (support for working with bounding boxes),  `ForceIntensityModule` (force-intensity module),        `RotationUtilModule` (support for spatial rotations).
