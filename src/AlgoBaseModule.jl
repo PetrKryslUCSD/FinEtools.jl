@@ -21,7 +21,7 @@ function _keymatch(key::String, allowed_keys::Array{String})
 end
 
 function dcheck!(d::FDataDict, recognized_keys::Array{String})
-    notmatched = Array{String}(0)
+    notmatched = fill("", 0)
     for  key in keys(d)
         matched_key = _keymatch(key, recognized_keys)
         if matched_key == nothing

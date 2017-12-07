@@ -324,7 +324,7 @@ function exportdeformation(modeldata::FDataDict)
         region = regions[i]
         femm = region["femm"]
         rfile = ffile * "$i" * ".vtk";
-        vectors = Array{Tuple{String, FFltMat}}(0)
+        vectors = Tuple{String, FFltMat}[]
         for ixxxx = 1:length(us)
             push!(vectors, (us[ixxxx][1], us[ixxxx][2].values))
         end
@@ -792,7 +792,7 @@ function exportmode(modeldata::FDataDict)
         @assert 0 < mode <= length(omega) "Invalid mode number $mode"
         scattersysvec!(modeldata["u"], W[:,mode])
     else
-        us = Array{Tuple{String, Field}}(0)
+        us = Tuple{String, Field}[]
         u = modeldata["u"]
         for ixxxx in mode
             @assert 0 < ixxxx <= length(omega) "Invalid mode number $ixxxx"

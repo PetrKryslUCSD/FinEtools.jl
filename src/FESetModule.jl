@@ -29,7 +29,7 @@ macro define_FESet(NAME, MANIFOLD, NODESPERELEM)
         mutable struct $NAME <: $MANIFOLD{$NODESPERELEM}
             @add_FESet_fields $NODESPERELEM
             function $NAME(conn::FIntMat)
-                self = new(Array{NTuple{$NODESPERELEM, FInt}, 1}(0), FInt[])
+                self = new(NTuple{$NODESPERELEM, FInt}[], FInt[])
                 self = fromarray!(self, conn)
                 setlabel!(self, 0)
                 return self

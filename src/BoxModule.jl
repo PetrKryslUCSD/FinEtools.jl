@@ -94,7 +94,7 @@ Returns `box` = bounding box
     for 3-D `box=[minx,maxx,miny,maxy,minz,maxz]`
 """
 function boundingbox(x::AbstractArray)
-    return updatebox!(Array{FFlt}(0), x)
+    return updatebox!(FFlt[], x)
 end
 
 function inflatebox!(box::AbstractVector, inflatevalue::Number)

@@ -41,7 +41,7 @@ mutable struct  ImageMesher{CoordT,DataT}
 end
 
 function ImageMesher(box::VoxelBoxVolume{CoordT,DataT}, emptyvoxel::DataT, notemptyvoxel::Vector{DataT}) where {CoordT,DataT} 
-    return ImageMesher(box, 0.0, emptyvoxel, notemptyvoxel, Vector{ElementSizeWeightFunction}(0), false, Array{Int, 2}(0, 0), Array{FFlt, 2}(0, 0), Vector{Int}(0))
+    return ImageMesher(box, 0.0, emptyvoxel, notemptyvoxel, ElementSizeWeightFunction[], false, Array{Int, 2}(0, 0), Array{FFlt, 2}(0, 0), Int[])
 end
 
 function evaluateweights(self::ImageMesher)
