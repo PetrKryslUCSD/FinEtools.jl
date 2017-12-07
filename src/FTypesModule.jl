@@ -14,7 +14,7 @@ import Base.Complex
 
 const FInt = Int
 const FFlt = Float64
-const FCplxFlt = Complex{Float64}
+const FCplxFlt = Complex{FFlt}
 FMat{T<:Number} = Matrix{T}
 FVec{T<:Number} = Vector{T}
 const FFltVec = FVec{FFlt}
