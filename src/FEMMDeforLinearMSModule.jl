@@ -24,6 +24,10 @@ import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass
 import FinEtools.FEMMBaseModule: associategeometry!
 import FinEtools.MatDeforModule: rotstressvec
 
+if VERSION < v"0.7-"
+    pairs(as) = as
+end
+
 abstract type FEMMDeforLinearAbstractMS <: FEMMDeforLinearAbstract end
 
 mutable struct FEMMDeforLinearMSH8{MR<:DeforModelRed, S<:FESetH8, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstractMS
@@ -120,9 +124,9 @@ function buffers2(self::FEMMDeforLinearAbstractMS, geom::NodalField, u::NodalFie
     loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- buffer
     J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- buffer
     csmatTJ = fill(zero(FFlt), mdim, mdim); # intermediate result -- buffer
-    AllgradN = Array{FFltMat}(npts);
+    AllgradN = FFltMat[];
     for ixxxx = 1:npts
-        AllgradN[ixxxx] = fill(zero(FFlt), nne, mdim);
+        push!(AllgradN, fill(zero(FFlt), nne, mdim));
     end
     Jac = fill(zero(FFlt), npts);
     MeangradN = fill(zero(FFlt), nne, mdim); # intermediate result -- buffer
@@ -282,8 +286,8 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}, 
     stabmat = self.stabilization_material
     # Sort out  the output requirements
     outputcsys = deepcopy(self.mcsys); # default: report the stresses in the material coord system
-    for arg in context
-        sy,  val = arg
+    for apair in pairs(context)
+        sy, val = apair
         if sy == :outputcsys
             outputcsys = val
         end
@@ -354,8 +358,8 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}
     stabmat = self.stabilization_material
     # Sort out  the output requirements
     outputcsys = deepcopy(self.mcsys); # default: report the stresses in the material coord system
-    for arg in context
-        sy,  val = arg
+    for apair in pairs(context)
+        sy, val = apair
         if sy == :outputcsys
             outputcsys = val
         end
@@ -429,8 +433,8 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt
     stabmat = self.stabilization_material
     # Sort out  the output requirements
     outputcsys = deepcopy(self.mcsys); # default: report the stresses in the material coord system
-    for arg in context
-        sy,  val = arg
+    for apair in pairs(context)
+        sy, val = apair
         if sy == :outputcsys
             outputcsys = val
         end
@@ -563,8 +567,8 @@ The updated inspector data is returned.
 """
 function inspectintegpoints(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
     reportat = :meanonly
-    for (i, arg) in enumerate(context)
-        sy, val = arg
+    for apair in pairs(context)
+        sy, val = apair
         if sy == :reportat
             reportat = val
         end

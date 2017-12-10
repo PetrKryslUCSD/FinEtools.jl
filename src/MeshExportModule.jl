@@ -10,6 +10,10 @@ import FinEtools.FESetModule: FESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4
 import FinEtools.FENodeSetModule: FENodeSet
 import Base.close
 
+if VERSION < v"0.7-"
+    pairs(as) = as
+end
+
 ################################################################################
 # VTK export
 ################################################################################
@@ -790,8 +794,13 @@ end
 Save arrays as a CSV file.
 """
 function savecsv(name::String; kwargs...)
-    colnames = Symbol[k for (k,v) in kwargs]
-    columns = Any[v for (k,v) in kwargs]
+    colnames = Symbol[]
+    columns = Any[]
+    for apair in pairs(kwargs)
+        sy, val = apair
+        push!(colnames, sy)
+        push!(columns, val)
+    end
     ncol = length(colnames)
     nrow = length(columns[1])
     if !ismatch(r"^.*\.csv$", name) &&

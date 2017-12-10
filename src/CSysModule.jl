@@ -32,7 +32,7 @@ where
 curves  in the element, `fe_label`= finite element label.
 """
 function CSys(sdim::FInt, mdim::FInt, computecsmat::F) where {F<:Function}
-    csmat = Array{FFlt}(sdim, mdim); # Allocate buffer, in preparation for the first call
+    csmat = fill(zero(FFlt), sdim, mdim); # Allocate buffer, in preparation for the first call
     return CSys(false, false, computecsmat, csmat);
 end
 
@@ -77,7 +77,7 @@ for this specific situation, `CSys(dim::FInt)`. That will be much more efficient
 `gen_iso_csmat`
 """
 function CSys(sdim::FInt, mdim::FInt)
-    csmat = Array{FFlt}(sdim, mdim); # Allocate buffer, prepare for the first call
+    csmat = fill(zero(FFlt), sdim, mdim); # Allocate buffer, prepare for the first call
     function updatebuffer!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
       gen_iso_csmat!(csmatout, XYZ, tangents, fe_label)
       return  csmatout

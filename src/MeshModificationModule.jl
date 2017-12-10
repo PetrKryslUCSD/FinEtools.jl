@@ -11,6 +11,10 @@ import FinEtools.FENodeSetModule: FENodeSet
 using Base.Sort
 using Base.Order
 
+if VERSION < v"0.7-"
+    pairs(as) = as
+end
+
 """
     interior2boundary(interiorconn::Array{Int, 2}, extractb::Array{Int, 2})
 
@@ -505,12 +509,12 @@ fixedv = Boolean array, one entry per vertex: is the vertex iimmovable (true)
     or movable  (false)
 npass = number of passes (default 2)
 """
-function vsmoothing(v::FFltMat, t::FIntMat; options...)
+function vsmoothing(v::FFltMat, t::FIntMat; kwargs...)
     fixedv = falses(size(v,1))
     npass = 2;
     method =:taubin;
-    for arg in options
-        sy, val = arg
+    for apair in pairs(kwargs)
+        sy, val = apair
         if sy==:method
             method=val
         elseif sy==:fixedv
@@ -614,9 +618,9 @@ Returns an array of integer vectors, element I holds an array of numbers of node
 which are connected to node I (including node I).  
 """
 function vertexneighbors(conn::FIntMat, nvertices::FInt)
-    vn = Array{FIntVec}(nvertices)
-    for I= 1:length(vn)
-        vn[I]=FInt[];          # preallocate
+    vn = FIntVec[]; sizehint!(vn, nvertices)
+    for I= 1:nvertices
+        push!(vn, FInt[]);          # preallocate
     end
     for I= 1:size(conn,1)
         for r= 1:size(conn,2)
@@ -631,7 +635,7 @@ end
 
 """
     mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
-      Point::FFltVec; args...) where {T<:FESet}
+      Point::FFltVec; kwargs...) where {T<:FESet}
 
 Mirror a 2-D mesh in a plane given by its normal and one point.
 
@@ -647,12 +651,12 @@ fens1,gcells1 = mirror_mesh(fens, gcells,...
           [-1,0,0], [0,0,0], @(c)c([1, 4, 3, 2, 5, 8, 7, 6]));
 """
 function mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
-    Point::FFltVec; args...) where {T<:FESet}
+    Point::FFltVec; kwargs...) where {T<:FESet}
     # Treat optional arguments.
     # Simply switch the order of nodes.  Works for simplexes...
     renumb(conn) = conn[end:-1:1];
-    for arg in args
-        sy, val = arg
+    for apair in pairs(kwargs)
+        sy, val = apair
         if sy == :renumb
             renumb = val
         end

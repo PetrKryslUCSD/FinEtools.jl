@@ -20,6 +20,10 @@ import FinEtools.BoxModule: initbox!, boundingbox, inflatebox!
 import FinEtools.MeshModificationModule: nodepartitioning, compactnodes, renumberconn!
 import FinEtools.MeshSelectionModule: selectelem, vselect, findunconnnodes, connectednodes
 
+if VERSION < v"0.7-"
+    pairs(as) = as
+end
+
 """
     FEMMAbstractBase
 
@@ -558,8 +562,8 @@ function fieldfromintegpoints(self::FEMM,
     sdim = ndofs(geom);            # number of space dimensions
     nodevalmethod = :invdistance
     reportat = :default
-    for (i, arg) in enumerate(context)
-        sy, val = arg
+    for apair in pairs(context)
+        sy, val = apair
         if sy == :nodevalmethod
             nodevalmethod = val
         end

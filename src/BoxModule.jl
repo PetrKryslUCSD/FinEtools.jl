@@ -37,7 +37,7 @@ Initialize a bounding box with a single point.
 function initbox!(box::AbstractVector, x::AbstractVector)
     sdim = length(x)
     if length(box) < 2*sdim
-        box = Array{FFlt}(2*sdim)
+        box = fill(zero(FFlt), 2*sdim)
     end
     for i = 1:sdim
         box[2*i-1] = box[2*i] = x[i];
@@ -62,7 +62,7 @@ If the  `box` does not have  the correct dimensions,  it is correctly sized.
 function updatebox!(box::AbstractVector, x::AbstractArray)
     sdim = size(x,2)
     if length(box) < 2*sdim
-        box = Array{FFlt}(2*sdim)
+        box = fill(zero(FFlt), 2*sdim)
         for i = 1:size(x,2)
             box[2*i-1] = Inf;
             box[2*i]   = -Inf;

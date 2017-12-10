@@ -19,6 +19,10 @@ import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat!
 import FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, locjac!
 import FinEtools.MatDeforModule: rotstressvec
 
+if VERSION < v"0.7-"
+    pairs(as) = as
+end
+
 abstract type FEMMDeforLinearAbstract <: FEMMAbstractBase end
 
 function buffers(self::FEMMDeforLinearAbstract, geom::NodalField, u::NodalField)
@@ -58,7 +62,7 @@ function mass(self::FEMMDeforLinearAbstract,  assembler::A,  geom::NodalField{FF
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
     dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat = buffers(self, geom, u)  # Prepare buffers
     rho::FFlt = self.material.mass_density; # mass density
-    NexpTNexp = Array{FFltMat}(1, npts);# basis f. matrix -- buffer
+    NexpTNexp = FFltMat[];# basis f. matrix -- buffer
     ndn = ndofs(u)
     Indn = [i==j ? one(FFlt) : zero(FFlt) for i=1:ndn, j=1:ndn] # "identity"
     for j = 1:npts # This quantity is the same for all quadrature points
@@ -66,7 +70,7 @@ function mass(self::FEMMDeforLinearAbstract,  assembler::A,  geom::NodalField{FF
         for l1 = 1:nodesperelem(fes)
             Nexp[1:ndn, (l1-1)*ndn+1:(l1)*ndn] = Indn * Ns[j][l1];
         end
-        NexpTNexp[j] = Nexp'*Nexp;
+        push!(NexpTNexp, Nexp'*Nexp);
     end
     startassembly!(assembler,  size(elmat,1),  size(elmat,2),  count(fes), u.nfreedofs,  u.nfreedofs);
     for i = 1:count(fes) # Loop over elements
@@ -243,8 +247,8 @@ function inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T
     dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix = buffers(self, geom, u)
     # Sort out  the output requirements
     outputcsys = self.mcsys; # default: report the stresses in the material coord system
-    for arg in context
-        sy,  val = arg
+    for apair in pairs(context)
+        sy, val = apair
         if sy == :outputcsys
             outputcsys = val
         end

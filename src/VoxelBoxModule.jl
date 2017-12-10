@@ -16,7 +16,7 @@ mutable struct VoxelBoxVolume{CoordT<:Number,DataT<:Number}
 end
 
 function VoxelBoxVolume(::Type{CoordT}, ::Type{DataT}) where {CoordT<:Number,DataT<:Number}
-    V = VoxelBoxVolume(zeros(CoordT, 3), zeros(CoordT, 3), Array{DataT}(0, 0, 0));
+    V = VoxelBoxVolume(zeros(CoordT, 3), zeros(CoordT, 3), fill(zero(DataT), 0, 0, 0));
     return V
 end
 
@@ -29,7 +29,7 @@ end
 
 function VoxelBoxVolume(data::Array{DataT,3}, boxdim::Array{CoordT,1})  where {CoordT<:Number,DataT<:Number}
     V = VoxelBoxVolume(CoordT,DataT);
-    copy!(V.boxdim, boxdim)
+    V.boxdim = deepcopy(boxdim)
     V.data = deepcopy(data)
     return V
 end

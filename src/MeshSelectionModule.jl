@@ -11,6 +11,10 @@ import FinEtools.FENodeSetModule: FENodeSet, spacedim
 import FinEtools.BoxModule: inflatebox!, initbox!, updatebox!, boxesoverlap
 import FinEtools.FENodeToFEMapModule: FENodeToFEMap
 
+if VERSION < v"0.7-"
+    pairs(as) = as
+end
+
 """
     connectednodes(fes::FESet)
 
@@ -25,20 +29,20 @@ function connectednodes(fes::FESet)
 end
 
 """
-    selectnode(fens::FENodeSet; args...)
+    selectnode(fens::FENodeSet; kwargs...)
 
 Select nodes using some criterion.
 
 See the function `vselect()` for examples of the criteria.
 """
-function selectnode(fens::FENodeSet; args...)
-    nodelist = vselect(fens.xyz; args...)
+function selectnode(fens::FENodeSet; kwargs...)
+    nodelist = vselect(fens.xyz; kwargs...)
     nodelist = squeeze(reshape(nodelist,1,length(nodelist)), 1);
     return nodelist
 end
 
 """
-    selectelem(fens::FENodeSet, fes::T; args...) where {T<:FESet}
+    selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
 
 Select finite elements.
 
@@ -109,13 +113,7 @@ Should we consider the element only if all its nodes are in?
 ## Output
 `felist` = list of finite elements from the set that satisfy the criteria
 """
-function selectelem(fens::FENodeSet, fes::T; args...) where {T<:FESet}
-
-    # flood
-    #
-    # Select all FEs connected together (Starting from node 13):
-    #     fe_select(fens,fes,struct ('flood', true, 'startfen', 13))
-    #
+function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
 
     # smoothpatch
     #
@@ -137,8 +135,8 @@ function selectelem(fens::FENodeSet, fes::T; args...) where {T<:FESet}
     # nearestto = nothing; smoothpatch = nothing;
     startnode = 0; dotmin = 0.01
     overlappingbox = nothing
-    for arg in args
-        sy, val = arg
+    for apair in pairs(kwargs)
+        sy, val = apair
         if sy == :flood
             flood = val
         elseif sy == :facing
@@ -155,8 +153,8 @@ function selectelem(fens::FENodeSet, fes::T; args...) where {T<:FESet}
     end
 
     if flood != nothing
-        for arg in args
-            sy, val = arg
+        for apair in pairs(kwargs)
+            sy, val = apair
             if sy == :startnode
                 startnode = val
             end
@@ -167,8 +165,8 @@ function selectelem(fens::FENodeSet, fes::T; args...) where {T<:FESet}
         facing = true;
         direction = nothing
         dotmin = 0.01;
-        for arg in args
-            sy, val = arg
+        for apair in pairs(kwargs)
+            sy, val = apair
             if sy == :direction
                 direction = val
             elseif (sy == :dotmin) || (sy == :tolerance)# allow for obsolete keyword  to work
@@ -420,7 +418,7 @@ function selectelem(fens::FENodeSet, fes::T; args...) where {T<:FESet}
     #   Should we consider the element only if all its nodes are in?
     allinvalue = (allin == nothing) || ((allin != nothing) && (allin))
     # Select elements whose nodes are in the selected node list
-    nodelist = selectnode(fens; args...);
+    nodelist = selectnode(fens; kwargs...);
     nper = nodesperelem(fes)
     for i = 1:length(fes.conn)
         common = intersect(fes.conn[i], vec(nodelist));
@@ -439,13 +437,13 @@ function selectelem(fens::FENodeSet, fes::T; args...) where {T<:FESet}
 end
 
 """
-    vselect(v::FFltMat; args...)
+    vselect(v::FFltMat; kwargs...)
 
 Select locations (vertices) from the array based on some criterion.
 
 ## Arguments
 `v` = array of locations, one location per row
-`args` = pairs of keyword argument/value
+`kwargs` = pairs of keyword argument/value
 
 ## Selection criteria
 
@@ -478,7 +476,7 @@ if it isn't apply as such, it will be normalized internally.
 nh = selectnode(fens, nearestto = [R+Ro/2, 0.0, 0.0] )
 ```
 """
-function vselect(v::FFltMat; args...)
+function vselect(v::FFltMat; kwargs...)
 
     # Helper functions
     inrange(rangelo::FFlt,rangehi::FFlt,x::FFlt) = ((x>=rangelo) && (x<=rangehi));
@@ -486,8 +484,8 @@ function vselect(v::FFltMat; args...)
     # Extract arguments
     box = nothing; distance = nothing; from = nothing; plane  =  nothing;
     thickness = nothing; nearestto = nothing; inflate = 0.0;
-    for arg in args
-        sy, val = arg
+    for apair in pairs(kwargs)
+        sy, val = apair
         if sy == :box
             box = val
         elseif sy == :distance
