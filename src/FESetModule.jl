@@ -69,7 +69,7 @@ Set  the connectivity from an integer array.
 """
 function fromarray!(self::FESet{NODESPERELEM}, conn::FIntMat) where {NODESPERELEM}
     @assert size(conn, 2) == NODESPERELEM
-    self.conn = Array{NTuple{NODESPERELEM, FInt}, 1}(size(conn, 1));
+    self.conn = fill(tuple(fill(0, NODESPERELEM)...), size(conn, 1));
     for i = 1:length(self.conn)
         self.conn[i] = ntuple(y -> conn[i, y], NODESPERELEM);
     end
@@ -82,7 +82,7 @@ end
 Return the connectivity  as an integer array. 
 """
 function connasarray(self::FESet{NODESPERELEM}) where {NODESPERELEM}
-    conn = zeros(FInt, length(self.conn), NODESPERELEM)
+    conn = fill(zero(FInt), length(self.conn), NODESPERELEM)
     for i = 1:size(conn, 1)
         for j = 1:NODESPERELEM
             conn[i, j] = self.conn[i][j]

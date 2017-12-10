@@ -412,13 +412,13 @@ function  integrationdata(self::IntegData)
     w::FFltMat  =  self.integration_rule.weights ;
     npts::FInt = self.integration_rule.npts;
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    Ns = Array{FFltMat}(1,npts);
-    gradNparams = Array{FFltMat}(1,npts);
+    Ns = FFltMat[];
+    gradNparams = FFltMat[];
     for j=1:npts
-        Ns[j] = bfun(self.fes,vec(pc[j,:]));
-        gradNparams[j] = bfundpar(self.fes,vec(pc[j,:]));
+        push!(Ns, bfun(self.fes,vec(pc[j,:])));
+        push!(gradNparams, bfundpar(self.fes,vec(pc[j,:])));
     end
-    return npts, Ns, gradNparams, w, pc
+    return npts, reshape(Ns, 1,npts), reshape(gradNparams, 1,npts), w, pc
 end
 
 

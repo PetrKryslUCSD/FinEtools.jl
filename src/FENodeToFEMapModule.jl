@@ -39,12 +39,10 @@ Map from finite element nodes to the finite elements connecting them.
 `nmax` = largest possible node number
 """
 function FENodeToFEMap(conn::C, nmax::FInt) where {C<:Tuple}
-    #n=  maximum(conns[:]);#
-    map = Array{FIntVec}(nmax)
-    for i = 1:length(map)
-        map[i] = []  # initially empty arrays
+    map = FIntVec[]; sizehint!(map, nmax)
+    for i = 1:nmax
+        push!(map, [])  # initially empty arrays
     end
-
     for i = 1:length(conn)
         for j = 1:length(conn[i])
             ni = conn[i][j];
@@ -55,12 +53,10 @@ function FENodeToFEMap(conn::C, nmax::FInt) where {C<:Tuple}
 end
 
 function FENodeToFEMap(conns::FIntMat, nmax::FInt)
-    #n=  maximum(conns[:]);#largest node number
-    map = Array{FIntVec}(nmax)
-    for i = 1:length(map)
-        map[i] = []  # initially empty arrays
+    map = FIntVec[]; sizehint!(map, nmax)
+    for i = 1:nmax
+        push!(map, [])  # initially empty arrays
     end
-
     for i = 1:size(conns,2)
         for j = 1:size(conns,1)
             ni = conns[j,i];
