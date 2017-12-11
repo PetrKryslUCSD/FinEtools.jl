@@ -12,6 +12,8 @@
 
 ## News
 
+- 12/10/2017: A use-case package explaining how to integrate FinEtools with  the user's own code is [available as](https://github.com/PetrKryslUCSD/FinEtoolsUseCase).
+
 - 11/18/2017:  The documentation of the design principles  and  organization of the package is published as [Github pages](https://petrkryslucsd.github.io/FinEtools.jl). (At the moment incomplete,  but under rapid development.  Please don't hesitate to contact me if something is unclear.)
 
 - 10/21/2017: Global RMS error norms can now be evaluated for multi-region  models.
