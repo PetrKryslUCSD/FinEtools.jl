@@ -48,9 +48,9 @@ function FENodeToFEMap(conn::Vector{NTuple{N, IT}}, nmax::FInt) where {N, IT<:In
     for i = 1:nmax
         push!(map, [])  # initially empty arrays
     end
-    for i = 1:length(conn)
-        for j = 1:length(conn[i])
-            ni = conn[i][j];
+    for j = 1:length(conn)
+        for i = 1:length(conn[j])
+            ni = conn[j][i];
             push!(map[ni],j)
         end
     end
@@ -62,8 +62,8 @@ function FENodeToFEMap(conns::FIntMat, nmax::FInt)
     for i = 1:nmax
         push!(map, [])  # initially empty arrays
     end
-    for i = 1:size(conns,2)
-        for j = 1:size(conns,1)
+    for j = 1:size(conns,1)
+        for i = 1:size(conns,2)
             ni = conns[j,i];
             push!(map[ni],j)
         end

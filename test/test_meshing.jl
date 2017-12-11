@@ -3070,14 +3070,27 @@ module miscellan3m
 using FinEtools
 using Compat.Test
 function test()
-  Lx=1900.0;# length of the box, millimeters
-  Ly=800.0; # length of the box, millimeters
+    Lx=1900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
 
-  fens,fes = Q4block(Lx,Ly,3,2); # Mesh
-  # show(fes.conn)
+    fens,fes = Q4block(Lx,Ly,3,2); # Mesh
+    # show(fes.conn)
 
-  fen2fe1  = FENodeToFEMap(connasarray(fes), count(fens))
-  fen2fe2  = FENodeToFEMap(fes.conn, count(fens))
+    fen2fe1  = FENodeToFEMap(connasarray(fes), count(fens))
+    # display(connasarray(fes))
+    # display(fen2fe1)
+    fen2fe2  = FENodeToFEMap(fes.conn, count(fens))
+    # display(fes.conn)
+    # display(fen2fe2)
+    identical = true
+    for i = 1:length(fen2fe1.map)
+        identical = identical && (fen2fe1.map[i] == fen2fe2.map[i])
+        # if !(fen2fe1.map[i] == fen2fe2.map[i])
+        #     display(fen2fe1.map[i])
+        #     display(fen2fe2.map[i])
+        # end 
+    end
+    @test identical
 end
 end
 using .miscellan3m
