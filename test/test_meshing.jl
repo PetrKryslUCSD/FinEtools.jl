@@ -3066,5 +3066,20 @@ end
 using .mmvoxel_bracket_mesh
 mmvoxel_bracket_mesh.test()
 
+module miscellan3m
+using FinEtools
+using Compat.Test
+function test()
+  Lx=1900.0;# length of the box, millimeters
+  Ly=800.0; # length of the box, millimeters
 
+  fens,fes = Q4block(Lx,Ly,3,2); # Mesh
+  # show(fes.conn)
+
+  fen2fe1  = FENodeToFEMap(connasarray(fes), count(fens))
+  fen2fe2  = FENodeToFEMap(fes.conn, count(fens))
+end
+end
+using .miscellan3m
+miscellan3m.test()
 
