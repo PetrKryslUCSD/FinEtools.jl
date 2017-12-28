@@ -164,6 +164,7 @@ end # LE1NAFEMS_MSH8
 
 
 function LE1NAFEMS_MSH8_convergence()
+    # Example from the "Improved Stress Recovery for Mean-strain Finite Elements" paper by Sivapuram and Krysl, 2017
     println("LE1NAFEMS, 3D version. MSH8"        )
     t0 = time()
     
@@ -179,7 +180,7 @@ function LE1NAFEMS_MSH8_convergence()
     for extrapolation in [:extraptrend :extrapmean]
         sigyderrs[extrapolation] = FFltVec[]
         nelems = []
-        for ref in 0:1:5
+        for ref in 0:1:4
             Thickness = Thick0
             # Thickness = Thick0/2^ref
             tolerance = Thickness/2^ref/1000.; # Geometrical tolerance
@@ -245,7 +246,7 @@ function LE1NAFEMS_MSH8_convergence()
             
             println("$extrapolation, $(count(fes)), $(sigyd/phun("MPa"))")
             push!(nelems, count(fes))
-            push!(sigyderrs[extrapolation], abs(sigyd/sigma_yD - 1.0))
+            push!(sigyderrs[extrapolation], (sigyd/sigma_yD - 1.0))
             # File =  "a.vtk"
             # vtkexportmesh(File, fes.conn, geom.values,
             # FinEtools.MeshExportModule.H8; vectors=[("u", u.values)],
@@ -347,6 +348,7 @@ end # LE1NAFEMS_MSH8_export
 
 
 function LE1NAFEMS_MST10_convergence()
+    # Example from the "Improved Stress Recovery for Mean-strain Finite Elements" paper by Sivapuram and Krysl, 2017
     println("LE1NAFEMS, 3D version. MST10"        )
     t0 = time()
     
