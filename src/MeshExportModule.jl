@@ -12,6 +12,8 @@ import Base.close
 
 if VERSION < v"0.7-"
     pairs(as) = as
+else
+    using Printf
 end
 
 ################################################################################
