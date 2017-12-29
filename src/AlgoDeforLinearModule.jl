@@ -7,9 +7,9 @@ module AlgoDeforLinearModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.AlgoBaseModule: dcheck!
-if VERSION >= v"0.7-"
-    using   IterativeEigenSolvers
-end
+# if VERSION >= v"0.7-"
+#     using   IterativeEigenSolvers
+# end
 import FinEtools.FieldModule: Field, ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!
 import FinEtools.NodalFieldModule: NodalField, nnodes
 import FinEtools.FEMMBaseModule: associategeometry!, distribloads, fieldfromintegpoints, elemfieldfromintegpoints
