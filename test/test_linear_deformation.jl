@@ -652,7 +652,7 @@ module scratch2_06102017
 using FinEtools
 using Compat.Test
 if VERSION >= v"0.7-"
-    using   IterativeEigenSolvers
+    using   IterativeEigensolvers
 end
 function test()
   # println("""
@@ -1634,7 +1634,7 @@ numberdofs!(u)
 
 el1femm =  FEMMBase(IntegData(subset(bdryfes,bcl), GaussRule(1, 3)))
 function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-  copy!(forceout, XYZ/norm(XYZ)*press)
+  copyto!(forceout, XYZ/norm(XYZ)*press)
   return forceout
 end
 fi = ForceIntensity(FFlt, 2, pressureloading!); # pressure normal to the internal cylindrical surface
@@ -1731,6 +1731,9 @@ mmpipemmPSmmm.test()
 module mmOrthotropicmm
 using FinEtools
 using Compat.Test
+if VERSION < v"0.7-"
+    copyto! = copy!
+end
 function test()
 
   # Orthotropic balloon inflation, axially symmetric model
@@ -1792,7 +1795,7 @@ function test()
 
   el1femm =  FEMMBase(IntegData(subset(bdryfes,icl), GaussRule(1, 3), true))
   function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    copy!(forceout, XYZ/norm(XYZ)*p)
+    copyto!(forceout, XYZ/norm(XYZ)*p)
     return forceout
   end
   fi = ForceIntensity(FFlt, 2, pressureloading!); # pressure normal to the internal cylindrical surface
@@ -1993,6 +1996,9 @@ module mmCanttronglymm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
+if VERSION < v"0.7-"
+    copyto! = copy!
+end
 function test()
   # println("""
   # Cantilever example.  Strongly orthotropic material. Orientation "y".
@@ -2059,7 +2065,7 @@ function test()
   rotmat3!(csmat, -45.0/180.0*pi*[0,1,0])
 
   function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    copy!(csmatout, csmat)
+    copyto!(csmatout, csmat)
   end
 
   gr = GaussRule(3, 2)
@@ -2073,7 +2079,7 @@ function test()
   ex03 = FDataDict( "displacement"=>  0.0, "component"=> 3, "node_list"=>lx0 )
 
   function getshr!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    copy!(forceout, q0*[0.0; 0.0; 1.0])
+    copyto!(forceout, q0*[0.0; 0.0; 1.0])
   end
 
   Trac = FDataDict("traction_vector"=>getshr!,
@@ -2689,7 +2695,7 @@ using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
 if VERSION >= v"0.7-"
-    using   IterativeEigenSolvers
+    using   IterativeEigensolvers
 end
 function test()
 
@@ -2782,6 +2788,9 @@ muunit_cube_modes_exportmmm.test()
 module mmpipemmPSmorthom
 using FinEtools
 using Compat.Test
+if VERSION < v"0.7-"
+    copyto! = copy!
+end
 
 mutable struct MyIData
     c::FInt
@@ -2932,7 +2941,7 @@ numberdofs!(u)
 
 el1femm =  FEMMBase(IntegData(subset(bdryfes,bcl), GaussRule(1, 3)))
 function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-  copy!(forceout, XYZ/norm(XYZ)*press)
+  copyto!(forceout, XYZ/norm(XYZ)*press)
   return forceout
 end
 fi = ForceIntensity(FFlt, 2, pressureloading!); # pressure normal to the internal cylindrical surface
@@ -4982,7 +4991,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
 if VERSION >= v"0.7-"
-    using   IterativeEigenSolvers
+    using   IterativeEigensolvers
 end
 function test()
     # println("""
@@ -5159,7 +5168,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
 if VERSION >= v"0.7-"
-    using   IterativeEigenSolvers
+    using   IterativeEigensolvers
 end
 function test()
     # println("""
@@ -5332,7 +5341,7 @@ csmat = zeros(3, 3)
 rotmat3!(csmat, -45.0/180.0*pi*[0,1,0])
 
 function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-  copy!(csmatout, csmat)
+  copyto!(csmatout, csmat)
 end
 
 femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3, 2)), CSys(3, 3, updatecs!), material)
@@ -5352,7 +5361,7 @@ applyebc!(u)
 numberdofs!(u)
 
 function getshr!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-  copy!(forceout, q0*[0.0; 0.0; 1.0])
+  copyto!(forceout, q0*[0.0; 0.0; 1.0])
 end
 
 Tracfemm = FEMMBase(IntegData(subset(bfes, sshearl), GaussRule(2, 3)))
@@ -5470,7 +5479,7 @@ function test()
 
     el1femm =  FEMMBase(IntegData(subset(bdryfes,icl), GaussRule(1, 3), true))
     function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-      copy!(forceout, XYZ/norm(XYZ)*p)
+      copyto!(forceout, XYZ/norm(XYZ)*p)
       return forceout
     end
     fi = ForceIntensity(FFlt, 2, pressureloading!); # pressure normal to the internal cylindrical surface

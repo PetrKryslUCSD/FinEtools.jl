@@ -22,6 +22,10 @@ import FinEtools.MatDeforModule: rotstressvec
 if VERSION < v"0.7-"
     pairs(as) = as
 end
+if VERSION >= v"0.7-"
+    At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)
+    A_mul_B!(C, A, B) = Base.LinAlg.mul!(C, A, B)
+end
 
 abstract type FEMMDeforLinearAbstract <: FEMMAbstractBase end
 
@@ -288,7 +292,7 @@ function inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T
             out = self.material.update!(self.material, qpstress, out, vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
             if (quantity == :Cauchy)   # Transform stress tensor,  if that is "out"
                 (length(out1) >= length(out)) || (out1 = zeros(length(out)))
-                rotstressvec(self.mr, out1, out, self.mcsys.csmat')# To global coord sys
+                rotstressvec(self.mr, out1, out, transpose(self.mcsys.csmat))# To global coord sys
                 rotstressvec(self.mr, out, out1, outputcsys.csmat)# To output coord sys
             end
             # Call the inspector

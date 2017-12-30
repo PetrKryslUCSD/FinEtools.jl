@@ -8,6 +8,13 @@ module MatDeforElastOrthoModule
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.DeforModelRedModule: DeforModelRed, DeforModelRed3D, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed1D, nstressstrain, nthermstrain
 import FinEtools.MatDeforModule: MatDefor, stress6vto3x3t!, stress3vto2x2t!, stress4vto3x3t!, stress4vto3x3t!
+if VERSION < v"0.7-"
+    copyto! = copy!
+end
+if VERSION >= v"0.7-"
+    At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)
+    A_mul_B!(C, A, B) = Base.LinAlg.mul!(C, A, B)
+end
 
 """
     MatDeforElastOrtho
@@ -144,7 +151,7 @@ Calculate the material stiffness matrix.
 `D` = matrix of tangent moduli, 6 x 6, supplied as a buffer and overwritten.
 """
 function tangentmoduli3d!(self::MatDeforElastOrtho,  D::FFltMat,  t::FFlt, dt::FFlt, loc::FFltMat, label::FInt)
-    copy!(D,self.D);
+    copyto!(D,self.D);
     return D
 end
 
@@ -176,7 +183,7 @@ function update3d!(self::MatDeforElastOrtho,  stress::FFltVec, output::FFltVec, 
         #Nothing to be copied to the output array
     elseif quantity == :cauchy || quantity == :Cauchy
         (length(output) >= 6) || (output = zeros(6)) # make sure we can store it
-        copy!(output, stress);
+        copyto!(output, stress);
     elseif quantity == :pressure || quantity == :Pressure
         output[1]  =  -sum(stress[1:3])/3.
     elseif quantity == :princCauchy || quantity == :princcauchy
@@ -184,7 +191,7 @@ function update3d!(self::MatDeforElastOrtho,  stress::FFltVec, output::FFltVec, 
         t = stress6vto3x3t!(t,stress);
         ep = eig(t);
         (length(output) >= 3) || (output = zeros(3)) # make sure we can store it
-        copy!(output,  sort(ep[1], rev=true));
+        copyto!(output,  sort(ep[1], rev=true));
     elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
         s1=stress[1]; s2=stress[2]; s3=stress[3];
         s4=stress[4]; s5=stress[5]; s6=stress[6];
@@ -261,7 +268,7 @@ function update2dstrs!(self::MatDeforElastOrtho, stress::FFltVec,  output::FFltV
         #Nothing to be copied to the output array
     elseif quantity == :cauchy || quantity == :Cauchy
         (length(output) >= 3) || (output = zeros(3)) # make sure we can store it
-        copy!(output, stress);
+        copyto!(output, stress);
     elseif quantity == :pressure || quantity == :Pressure
         (length(output) >= 1) || (output = zeros(1)) # make sure we can store it
         output[1] = -sum(stress[1:2])/3.
@@ -270,7 +277,7 @@ function update2dstrs!(self::MatDeforElastOrtho, stress::FFltVec,  output::FFltV
         t = stress3vto2x2t!(t,stress);
         ep = eig(t);
         (length(output) >= 2) || (output = zeros(2)) # make sure we can store it
-        copy!(output,  sort(ep[1], rev=true));
+        copyto!(output,  sort(ep[1], rev=true));
     elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
         s1=stress[1]; s2=stress[2]; s3=0.0;
         s4=stress[3]; s5=0.0; s6=0.0;
@@ -355,7 +362,7 @@ function update2dstrn!(self::MatDeforElastOrtho,  stress::FFltVec, output::FFltV
         # thstrain[4] =The through the thickness thermal strain
         sz = dot(self.D[3, 1:2], strain[1:2]-thstrain[1:2])-self.D[3,3]*thstrain[4];
         (length(output) >= 4) || (output = zeros(4)) # make sure we can store it
-        copy!(output, stress); output[4] = sz
+        copyto!(output, stress); output[4] = sz
     elseif quantity == :pressure || quantity == :Pressure
         (length(output) >= 1) || (output = zeros(1)) # make sure we can store it
         sz = dot(self.D[3, 1:2], strain[1:2]-thstrain[1:2])-self.D[3,3]*thstrain[4];
@@ -367,7 +374,7 @@ function update2dstrn!(self::MatDeforElastOrtho,  stress::FFltVec, output::FFltV
         t = stress4vto3x3t!(t, vcat(stress[1:3], [sz]));
         ep = eig(t);
         (length(output) >= 3) || (output = zeros(3)) # make sure we can store it
-        copy!(output,  sort(ep[1], rev=true));
+        copyto!(output,  sort(ep[1], rev=true));
     elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
         (length(output) >= 1) || (output = zeros(1)) # make sure we can store it
         sz = dot(self.D[3, 1:2], strain[1:2]-thstrain[1:2])-self.D[3,3]*thstrain[4];
@@ -449,7 +456,7 @@ function update2daxi!(self::MatDeforElastOrtho,  stress::FFltVec, output::FFltVe
         #Nothing to be copied to the output array
     elseif quantity == :cauchy || quantity == :Cauchy
         (length(output) >= 4) || (output = zeros(4)) # make sure we can store it
-        copy!(output, stress);
+        copyto!(output, stress);
     elseif quantity == :pressure || quantity == :Pressure
         (length(output) >= 1) || (output = zeros(1)) # make sure we can store it
         output[1] = -sum(stress[[1,2,3]])/3.
@@ -458,7 +465,7 @@ function update2daxi!(self::MatDeforElastOrtho,  stress::FFltVec, output::FFltVe
         t = stress4vto3x3t!(t, stress[[1,2,4,3]]);
         ep = eig(t);
         (length(output) >= 3) || (output = zeros(3)) # make sure we can store it
-        copy!(output,  sort(ep[1], rev=true));
+        copyto!(output,  sort(ep[1], rev=true));
     elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
         s1=stress[1]; s2=stress[2]; s3=stress[3];
         s4=stress[4]; s5=0.0; s6=0.0;

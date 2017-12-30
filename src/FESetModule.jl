@@ -7,6 +7,12 @@ module FESetModule
 
 import Base.count
 import Base.cat
+if VERSION < v"0.7-"
+    copyto! = copy!
+end
+if VERSION >= v"0.7-"
+    At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)
+end
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
@@ -147,7 +153,7 @@ function setlabel!(self::T, val::FIntVec) where {T<:FESet}
     #    Set the label of this set.
     @assert size(self.conn, 1)==length(val) "Must get one  label per finite element connectivity"
     self.label=zeros(FInt, size(self.conn, 1));
-    copy!(self.label, val);
+    copyto!(self.label, val);
     return self
 end
 

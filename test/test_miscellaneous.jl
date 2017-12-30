@@ -894,7 +894,7 @@ function test()
     geom  =  NodalField(fens.xyz)
     u = deepcopy(geom)
     setebc!(u)
-    copy!(u, geom)
+    copyto!(u, geom)
     @test norm(u.values - geom.values) < 1.0e-5
     wipe!(u)
     numberdofs!(u)

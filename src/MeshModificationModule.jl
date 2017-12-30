@@ -14,6 +14,9 @@ using Base.Order
 if VERSION < v"0.7-"
     pairs(as) = as
 end
+if VERSION < v"0.7-"
+    copyto! = copy!
+end
 
 """
     interior2boundary(interiorconn::Array{Int, 2}, extractb::Array{Int, 2})
@@ -554,7 +557,7 @@ The modified  node set.
 function meshsmoothing(fens::FENodeSet, fes::T; options...) where {T<:FESet}
     v = deepcopy(fens.xyz)
     v = vsmoothing(v, connasarray(fes); options...)
-    copy!(fens.xyz, v)
+    copyto!(fens.xyz, v)
     return fens
 end
 

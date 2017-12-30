@@ -9,6 +9,11 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, FESetT4, FESetT10, FESetH8, FESetH20, setlabel!
 import FinEtools.MeshModificationModule: renumberconn!
+if VERSION >= v"0.7-"
+    using Unicode: uppercase
+    import Base.replace
+    replace(s::AbstractString, pat, f) = replace(s, pat => f)
+end
 
 """
 !!! note

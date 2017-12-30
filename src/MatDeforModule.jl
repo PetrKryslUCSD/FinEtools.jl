@@ -7,6 +7,9 @@ module MatDeforModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.DeforModelRedModule: DeforModelRed3D, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed1D
+if VERSION < v"0.7-"
+    copyto! = copy!
+end
 
 """
     MatDefor
@@ -465,7 +468,7 @@ Calculate the rotation of the stress vector to the
      basis vectors
 """
 function  rotstressvec(::Type{DeforModelRed1D},  outstress::FFltVec,  instress::FFltVec,  Rm::FFltMat)
-    copy!(outstress, instress)
+    copyto!(outstress, instress)
     return outstress
 end
 

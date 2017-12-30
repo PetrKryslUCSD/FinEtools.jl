@@ -6,6 +6,9 @@ Module to handle two-dimensional and three-dimensional rotations.
 module RotationUtilModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+if VERSION < v"0.7-"
+    copyto! = copy!
+end
 
 _I3 = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
 
@@ -29,7 +32,7 @@ function rotmat3!(Rmout::FFltMat, a::FFltVec)
         ca = cos(na);
         sa = sin(na);
         aa = a*a';
-        copy!(Rmout, ca * (_I3-aa) + sa/na*thetatilde + aa);
+        copyto!(Rmout, ca * (_I3-aa) + sa/na*thetatilde + aa);
     end
 end
 

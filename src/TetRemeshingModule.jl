@@ -11,6 +11,9 @@ import Base.copy!
 import FinEtools.FENodeToFEMapModule: FENodeToFEMap
 import FinEtools.MeshTetrahedronModule: T4meshedges
 import FinEtools.MeshModificationModule: interior2boundary
+if VERSION < v"0.7-"
+    copyto! = copy!
+end
 
 """
     _IntegerBuffer
@@ -47,7 +50,7 @@ function getindex(b::_IntegerBuffer, i::Int)
     return b.a[i]
 end 
 
-function copy!(d::_IntegerBuffer, s::_IntegerBuffer)
+function copyto!(d::_IntegerBuffer, s::_IntegerBuffer)
     @assert length(d.a) == length(s.a)
     empty!(d)
     @inbounds for i = 1:length(s) # @inbounds 
@@ -373,7 +376,7 @@ function availelist!(availe::_IntegerBuffer, selist::_IntegerBuffer, elayer::Vec
             break;
         end
     end
-    return copy!(availe, trim!(selist, min(length(selist), maxnt))), newcurrvlayer
+    return copyto!(availe, trim!(selist, min(length(selist), maxnt))), newcurrvlayer
 end
 
 function anynegvol1(t::Array{Int,2}, whichtets::Vector{Int}, vt::Array{Float64,2}, whichv::Int, otherv::Int)

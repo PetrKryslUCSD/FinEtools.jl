@@ -6,6 +6,9 @@ Module for management of coordinate systems.
 module CSysModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+if VERSION < v"0.7-"
+    copyto! = copy!
+end
 
 """
 Type for coordinate system transformations.
@@ -135,12 +138,12 @@ function gen_iso_csmat!(csmatout::FFltMat,
     XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     sdim, mdim = size(tangents);
     if sdim == mdim # finite element embedded in space of the same dimension
-        copy!(csmatout, [i==j ? one(FFlt) : zero(FFlt) for i=1:sdim, j=1:sdim]);
+        copyto!(csmatout, [i==j ? one(FFlt) : zero(FFlt) for i=1:sdim, j=1:sdim]);
     else # lower-dimensional finite element embedded in space of higher dimension
         @assert 0 < mdim < 3
         e1 = tangents[:,1]/norm(tangents[:,1]);
         if mdim == 1 # curve-like finite element
-            copy!(csmatout, e1);
+            copyto!(csmatout, e1);
         elseif mdim == 2 # surface-like finite element
             n = cross(e1, vec(tangents[:,2]/norm(tangents[:,2])));
             e2 = cross(n, e1);

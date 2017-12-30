@@ -3,7 +3,7 @@ module mmrrigid
 using FinEtools
 using Compat.Test
 if VERSION >= v"0.7-"
-    using   IterativeEigenSolvers
+    using   IterativeEigensolvers
 end
 function test()
 
@@ -70,7 +70,7 @@ module fahyL2example
 using FinEtools
 using Compat.Test
 if VERSION >= v"0.7-"
-    using   IterativeEigenSolvers
+    using   IterativeEigensolvers
 end
 function test()
 # println("""
@@ -143,7 +143,7 @@ module mmfahyH8example
 using FinEtools
 using Compat.Test
 if VERSION >= v"0.7-"
-    using   IterativeEigenSolvers
+    using   IterativeEigensolvers
 end
 function test()
 
@@ -204,7 +204,7 @@ module mmfahyH27example
 using FinEtools
 using Compat.Test
 if VERSION >= v"0.7-"
-    using   IterativeEigenSolvers
+    using   IterativeEigensolvers
 end
 function test()
 
@@ -294,7 +294,7 @@ function test()
     nLx = selectnode(fens,box = [0.0 Lx  0.0 0.0 0.0 0.0], inflate = Lx/1.0e5)
 
     geom  =  NodalField(fens.xyz)
-    P = NodalField(fill(zero(Complex128), size(fens.xyz,1),1))
+    P = NodalField(fill(zero(Complex{Float64}), size(fens.xyz,1),1))
 
     numberdofs!(P)
 
@@ -505,7 +505,7 @@ L10 = selectelem(fens,bfes,facing = true, direction = [+1.0 0.0 0.0])
 nLx = selectnode(fens,box = [0.0 Lx  0.0 0.0 0.0 0.0], inflate = Lx/1.0e5)
 
 geom  =  NodalField(fens.xyz)
-P = NodalField(fill(zero(Complex128), size(fens.xyz,1),1))
+P = NodalField(fill(zero(Complex{Float64}), size(fens.xyz,1),1))
 
 numberdofs!(P)
 
@@ -984,14 +984,14 @@ function test()
     tAu1 = tAu0 + dt/2*(tAv0+tAv1);
     # show(tTa1)
     # Reset for the next time step
-    copy!(vP0, vP1);
-    copy!(vQ0, vQ1);
+    copyto!(vP0, vP1);
+    copyto!(vQ0, vQ1);
     P0 = deepcopy(P1);
-    copy!(L0, L1);
-    copy!(La0, La1);
-    copy!(tTa0, tTa1); copy!(tAa0, tAa1)
-    copy!(tTv0, tTv1); copy!(tAv0, tAv1)
-    copy!(tTu0, tTu1); copy!(tAu0, tAu1)
+    copyto!(L0, L1);
+    copyto!(La0, La1);
+    copyto!(tTa0, tTa1); copyto!(tAa0, tAa1)
+    copyto!(tTv0, tTv1); copyto!(tAv0, tAv1)
+    copyto!(tTu0, tTu1); copyto!(tAu0, tAu1)
   end
   tTa_store[:, step] = tTa1
   tAa_store[:, step] = tAa1
@@ -1155,6 +1155,9 @@ mmbbaffledmm.test()
 module mmtransientmm1mm
 using FinEtools
 using Compat.Test
+if VERSION < v"0.7-"
+    copyto! = copy!
+end
 function test()
     rho = 1.21*phun("kg/m^3");# mass density
     c  = 343.0*phun("m/s");# sound speed
@@ -1262,10 +1265,10 @@ function test()
         vP1 = vP0 + (dt/2)*(vPd0+vPd1);
         scattersysvec!(P1, vP1); # store current pressure
         # Swap variables for the next step
-        copy!(vP0, vP1)
-        copy!(vPd0, vPd1)
-        copy!(P0, P1)
-        copy!(Pdd0, Pdd1)
+        copyto!(vP0, vP1)
+        copyto!(vPd0, vPd1)
+        copyto!(P0, P1)
+        copyto!(Pdd0, Pdd1)
         # Graphics output
         # File  =   "baffled_piston-$(step).vtk"
         # vtkexportmesh(File, fes.conn, fens.xyz, FinEtools.MeshExportModule.H8;

@@ -14,6 +14,9 @@ import FinEtools.FENodeToFEMapModule: FENodeToFEMap
 if VERSION < v"0.7-"
     pairs(as) = as
 end
+if VERSION < v"0.7-"
+    copyto! = copy!
+end
 
 """
     connectednodes(fes::FESet)
@@ -232,7 +235,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
         pfelist = zeros(FInt, count(fes));
         felist[fen2fe.map[startnode]] = 1;
         while true
-            copy!(pfelist, felist);
+            copyto!(pfelist, felist);
             markedl = find(x -> x != 0, felist)
             for j = markedl
                 for k = fes.conn[j]
@@ -421,13 +424,18 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
     nodelist = selectnode(fens; kwargs...);
     nper = nodesperelem(fes)
     for i = 1:length(fes.conn)
-        common = intersect(fes.conn[i], vec(nodelist));
+        found = 0
+        for nd in fes.conn[i]
+            if nd in nodelist 
+                found = found + 1 
+            end 
+        end
         if allinvalue
-            if length(common) == nper
+            if found == nper
                 felist[i] =i;
             end
         else
-            if length(common) >= 1
+            if found >= 1
                 felist[i] =i;
             end
         end

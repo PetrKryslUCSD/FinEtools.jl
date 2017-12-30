@@ -27,6 +27,10 @@ import FinEtools.MatDeforModule: rotstressvec
 if VERSION < v"0.7-"
     pairs(as) = as
 end
+if VERSION >= v"0.7-"
+    At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)
+    A_mul_B!(C, A, B) = Base.LinAlg.mul!(C, A, B)
+end
 
 abstract type FEMMDeforLinearAbstractMS <: FEMMDeforLinearAbstract end
 
@@ -340,7 +344,7 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}, 
         out = realmat.update!(realmat, qpstress, out, vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(out1) >= length(out)) || (out1 = zeros(length(out)))
-            rotstressvec(self.mr, out1, out, self.mcsys.csmat')# To global coord sys
+            rotstressvec(self.mr, out1, out, transpose(self.mcsys.csmat))# To global coord sys
             rotstressvec(self.mr, out, out1, outputcsys.csmat)# To output coord sys
         end
         # Call the inspector
@@ -413,7 +417,7 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}
             vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(out1) >= length(out)) || (out1 = zeros(length(out)))
-            rotstressvec(self.mr, out1, out, self.mcsys.csmat')# To global coord sys
+            rotstressvec(self.mr, out1, out, transpose(self.mcsys.csmat))# To global coord sys
             rotstressvec(self.mr, out, out1, outputcsys.csmat)# To output coord sys
         end
         # Call the inspector for each node location
@@ -495,7 +499,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt
             vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(rout1) >= length(rout)) || (rout1 = zeros(length(rout)))
-            rotstressvec(self.mr, rout1, rout, self.mcsys.csmat')# To global coord sys
+            rotstressvec(self.mr, rout1, rout, transpose(self.mcsys.csmat))# To global coord sys
             rotstressvec(self.mr, rout, rout1, outputcsys.csmat)# To output coord sys
         end
         # STABILIZATION Material updates the state and returns the output
@@ -503,7 +507,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt
             vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(sbout1) >= length(sbout)) || (sbout1 = zeros(length(sbout)))
-            rotstressvec(self.mr, sbout1, sbout, self.mcsys.csmat')# To global coord sys
+            rotstressvec(self.mr, sbout1, sbout, transpose(self.mcsys.csmat))# To global coord sys
             rotstressvec(self.mr, sbout, sbout1, outputcsys.csmat)# To output coord sys
         end
         for j = 1:npts # Loop over quadrature points (STABILIZATION material)
@@ -519,7 +523,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt
                 vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
             if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
                 (length(sout1) >= length(sout)) || (sout1 = zeros(length(sout)))
-                rotstressvec(self.mr, sout1, sout, self.mcsys.csmat')# To global coord sys
+                rotstressvec(self.mr, sout1, sout, transpose(self.mcsys.csmat))# To global coord sys
                 rotstressvec(self.mr, sout, sout1, outputcsys.csmat)# To output coord sys
             end
             sstoredout[j, :] .= sout # store  the output for this quadrature point

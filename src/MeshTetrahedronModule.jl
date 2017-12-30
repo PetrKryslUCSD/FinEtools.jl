@@ -235,17 +235,18 @@ function T10layeredplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
         oz = collect(linspace(sum(ts[1:layer-1]), sum(ts[1:layer]), nts[layer]+1))
         zs = vcat(zs, oz[2:end])
     end
-    fens, fes = T4blockx(xs, ys, zs, orientation);
-    List = selectelem(fens, fes, box = [-Inf Inf -Inf Inf 0.0 ts[1]],
+    @time fens, fes = T4blockx(xs, ys, zs, orientation);
+    @time List = selectelem(fens, fes, box = [-Inf Inf -Inf Inf 0.0 ts[1]],
             inflate = tolerance)
     fes.label[List] = 1
     for layer = 2:length(ts)
-        List = selectelem(fens, fes,
+        @time List = selectelem(fens, fes,
             box = [-Inf Inf -Inf Inf sum(ts[1:layer-1]) sum(ts[1:layer])],
             inflate = tolerance)
         fes.label[List] = layer
     end
-    return T4toT10(fens, fes)
+    @time fens, fes =  T4toT10(fens, fes)
+    return fens, fes
 end
 
 """

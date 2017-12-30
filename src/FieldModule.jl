@@ -7,6 +7,11 @@ module FieldModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import Base.copy!
+if VERSION < v"0.7-"
+    copyto! = copy!
+else
+    import Base.copyto!
+end
 
 """
     Abstract field.
@@ -49,15 +54,15 @@ Number of nodes associated with the field.
 nents(self::Field)  = size(self.values, 1)
 
 """
-    copy!(DEST::F,  SRC::F) where {F<:Field}
+    copyto!(DEST::F,  SRC::F) where {F<:Field}
 
 Copy data from one field to another.
 """
-function copy!(DEST::F,  SRC::F) where {F<:Field}
-    copy!(DEST.values, SRC.values)
-    copy!(DEST.dofnums, SRC.dofnums)
-    copy!(DEST.is_fixed, SRC.is_fixed)
-    copy!(DEST.fixed_values, SRC.fixed_values)
+function copyto!(DEST::F,  SRC::F) where {F<:Field}
+    copyto!(DEST.values, SRC.values)
+    copyto!(DEST.dofnums, SRC.dofnums)
+    copyto!(DEST.is_fixed, SRC.is_fixed)
+    copyto!(DEST.fixed_values, SRC.fixed_values)
     DEST.nfreedofs = SRC.nfreedofs
     return  DEST
 end

@@ -11,6 +11,9 @@ import FinEtools.MeshTetrahedronModule: T4voximg, tetv
 import FinEtools.FESetModule: connasarray
 import FinEtools.MeshModificationModule: interior2boundary, vertexneighbors, smoothertaubin
 import FinEtools.TetRemeshingModule: coarsen
+if VERSION < v"0.7-"
+    copyto! = copy!
+end
 
 mutable struct  ElementSizeWeightFunction
     influenceweight::FFlt
@@ -117,7 +120,7 @@ function smooth!(self::ImageMesher, npass::Int = 5)
                 fv[c, :] = trialfv[c, :]# undo the smoothing
             end 
         end
-        copy!(trialfv, fv)
+        copyto!(trialfv, fv)
     end
     
     # find neighbors for the VOLUME vertices
@@ -142,11 +145,11 @@ function smooth!(self::ImageMesher, npass::Int = 5)
             end
             chk = chk+1
         end
-        copy!(trialv, v)
+        copyto!(trialv, v)
     end
 
     # # Correction of the vertices of the surface
-    # copy!(trialv, v)
+    # copyto!(trialv, v)
     # for i= 1:length(fvn)
     #     if (!isempty(fvn[i]))
     #         v[i,:] = fv[i,:];
@@ -163,7 +166,7 @@ function smooth!(self::ImageMesher, npass::Int = 5)
         error("shouldn't be here")
     end 
 
-    copy!(self.v, v) # save the final result
+    copyto!(self.v, v) # save the final result
     return self
 end
 
