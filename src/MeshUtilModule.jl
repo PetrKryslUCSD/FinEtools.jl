@@ -35,7 +35,7 @@ function addhyperface!(container,hyperface,newn)
         push!(C,HyperFaceContainer(other,newn)); newn=newn+1;#new node added
     end
     container[anchor]= C; # set the new array
-    return newn           # return the number of the added node, possibly unchanged
+    return newn # return the number of the added node, possibly unchanged
 end
 
 function findhyperface!(container,hyperface)
