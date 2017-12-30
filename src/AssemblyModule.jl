@@ -216,13 +216,14 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
     S = sparse(self.rowbuffer[1:self.buffer_pointer-1],
                self.colbuffer[1:self.buffer_pointer-1],
                self.matbuffer[1:self.buffer_pointer-1],
-               self.ndofs+1, self.ndofs+1);
-    S = S+S';    # construct the other triangle
+               self.ndofs+1, self.ndofs+1);   
+    S = S+transpose(S);    # construct the other triangle
     @inbounds for j=1:size(S,1)
         S[j,j]=S[j,j]/2.0;      # the diagonal is there twice; fix it;
     end
     self=SysmatAssemblerSparse(0.0*self.matbuffer[1])# get rid of the buffers
-    return S[1:end-1,1:end-1]
+    S = S[1:end-1,1:end-1]
+    return S
 end
 
 
