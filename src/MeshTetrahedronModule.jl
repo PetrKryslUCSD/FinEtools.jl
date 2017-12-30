@@ -167,7 +167,14 @@ function  T4toT10(fens::FENodeSet,  fes::FESetT4)
             h, n=findhyperface!(edges,  ev);
             econn[J]=n;
         end
-        nconn[nc, :] = vcat([j for j in fes.conn[i]], vec(econn))
+        wn = 1
+        for j in fes.conn[i]
+            nconn[nc, wn] = j; wn = wn + 1 
+        end
+        for j in econn
+            nconn[nc, wn] = j; wn = wn + 1 
+        end
+        # nconn[nc, :] = vcat([j for j in fes.conn[i]], vec(econn))
         nc= nc+ 1;
     end
     labels = deepcopy(fes.label)
@@ -236,12 +243,10 @@ function T10layeredplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
         zs = vcat(zs, oz[2:end])
     end
     @time fens, fes = T4blockx(xs, ys, zs, orientation);
-    @time List = selectelem(fens, fes, box = [-Inf Inf -Inf Inf 0.0 ts[1]],
-            inflate = tolerance)
+    @time List = selectelem(fens, fes, box = [-Inf Inf -Inf Inf 0.0 ts[1]], inflate = tolerance)
     fes.label[List] = 1
     for layer = 2:length(ts)
-        @time List = selectelem(fens, fes,
-            box = [-Inf Inf -Inf Inf sum(ts[1:layer-1]) sum(ts[1:layer])],
+        @time List = selectelem(fens, fes, box = [-Inf Inf -Inf Inf sum(ts[1:layer-1]) sum(ts[1:layer])],
             inflate = tolerance)
         fes.label[List] = layer
     end
