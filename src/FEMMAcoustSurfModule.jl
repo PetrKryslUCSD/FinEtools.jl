@@ -20,7 +20,8 @@ import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, Sysma
 import FinEtools.FEMMBaseModule: FEMMAbstractBase
 import FinEtools.MatrixUtilityModule: add_mggt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
 if VERSION < v"0.7-"
-    copyto! = copy!
+    import Base.copy!
+    copyto!(de, sr) = copy!(de, sr)
 end
 
 """

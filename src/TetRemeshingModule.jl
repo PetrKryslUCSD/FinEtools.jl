@@ -12,7 +12,8 @@ import FinEtools.FENodeToFEMapModule: FENodeToFEMap
 import FinEtools.MeshTetrahedronModule: T4meshedges
 import FinEtools.MeshModificationModule: interior2boundary
 if VERSION < v"0.7-"
-    copyto! = copy!
+    import Base.copy!
+    copyto!(de, sr) = copy!(de, sr)
 end
 
 """

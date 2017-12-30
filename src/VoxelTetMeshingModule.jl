@@ -12,7 +12,8 @@ import FinEtools.FESetModule: connasarray
 import FinEtools.MeshModificationModule: interior2boundary, vertexneighbors, smoothertaubin
 import FinEtools.TetRemeshingModule: coarsen
 if VERSION < v"0.7-"
-    copyto! = copy!
+    import Base.copy!
+    copyto!(de, sr) = copy!(de, sr)
 end
 
 mutable struct  ElementSizeWeightFunction

@@ -8,7 +8,8 @@ module FESetModule
 import Base.count
 import Base.cat
 if VERSION < v"0.7-"
-    copyto! = copy!
+    import Base.copy!
+    copyto!(de, sr) = copy!(de, sr)
 end
 if VERSION >= v"0.7-"
     At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)

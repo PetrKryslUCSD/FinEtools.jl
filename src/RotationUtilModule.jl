@@ -7,7 +7,8 @@ module RotationUtilModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 if VERSION < v"0.7-"
-    copyto! = copy!
+    import Base.copy!
+    copyto!(de, sr) = copy!(de, sr)
 end
 
 _I3 = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]

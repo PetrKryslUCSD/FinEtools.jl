@@ -15,7 +15,8 @@ if VERSION < v"0.7-"
     pairs(as) = as
 end
 if VERSION < v"0.7-"
-    copyto! = copy!
+    import Base.copy!
+    copyto!(de, sr) = copy!(de, sr)
 end
 
 """

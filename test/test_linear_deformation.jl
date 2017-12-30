@@ -1484,6 +1484,10 @@ mmmmunitmccubemm.test()
 module mmpipemmPSmmm
 using FinEtools
 using Compat.Test
+if VERSION < v"0.7-"
+    import Base.copy!
+    copyto!(de, sr) = copy!(de, sr)
+end
 
 mutable struct MyIData
     c::FInt
@@ -1732,7 +1736,8 @@ module mmOrthotropicmm
 using FinEtools
 using Compat.Test
 if VERSION < v"0.7-"
-    copyto! = copy!
+    import Base.copy!
+    copyto!(de, sr) = copy!(de, sr)
 end
 function test()
 
@@ -2789,7 +2794,8 @@ module mmpipemmPSmorthom
 using FinEtools
 using Compat.Test
 if VERSION < v"0.7-"
-    copyto! = copy!
+    import Base.copy!
+    copyto!(de, sr) = copy!(de, sr)
 end
 
 mutable struct MyIData

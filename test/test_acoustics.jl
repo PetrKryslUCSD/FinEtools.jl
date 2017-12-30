@@ -1155,9 +1155,6 @@ mmbbaffledmm.test()
 module mmtransientmm1mm
 using FinEtools
 using Compat.Test
-if VERSION < v"0.7-"
-    copyto! = copy!
-end
 function test()
     rho = 1.21*phun("kg/m^3");# mass density
     c  = 343.0*phun("m/s");# sound speed
