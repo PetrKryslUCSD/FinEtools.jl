@@ -12,7 +12,9 @@ import FinEtools.MeshModificationModule: renumberconn!
 if VERSION >= v"0.7-"
     using Unicode: uppercase
     import Base.replace
-    replace(s::AbstractString, pat, f) = replace(s, pat => f)
+    _replace(s::AbstractString, pat, f) = replace(s, pat => f)
+else
+    _replace(s::AbstractString, pat, f) = replace(s, pat, f)
 end
 
 """
@@ -62,7 +64,7 @@ function import_NASTRAN(filename; allocationchunk=chunk)
             if size(node, 1) < nnode
                 node = vcat(node, zeros(allocationchunk, 4))
             end
-            A = split(replace(temp, ",", " "))
+            A = split(_replace(temp, ",", " "))
             for  six = 1:4
                 node[nnode, six] = parse(Float64, A[six+1])
             end
@@ -74,7 +76,7 @@ function import_NASTRAN(filename; allocationchunk=chunk)
             if size(elem, 1) < nelem
                 elem = vcat(elem, zeros(FInt, allocationchunk, maxnodel + 3))
             end
-            A = split(replace(temp, ",", " "))
+            A = split(_replace(temp, ",", " "))
             elem[nelem, 1] = parse(FInt, A[2])
             elem[nelem, 2] = parse(FInt, A[3])
             if length(A) == 7  #  nodes per element  equals  4
@@ -85,7 +87,7 @@ function import_NASTRAN(filename; allocationchunk=chunk)
                     temp  = lines[current_line]
                     current_line = current_line + 1
                     temp = strip(temp)
-                    Acont = split(replace(temp, ",", " "))
+                    Acont = split(_replace(temp, ",", " "))
                     A = vcat(A, Acont)
                 end
             end
@@ -176,7 +178,7 @@ function import_ABAQUS(filename; allocationchunk=chunk)
             if size(node, 1) < nnode # if needed, allocate more space
                 node = vcat(node, zeros(allocationchunk, 4))
             end
-            A = split(replace(temp, ",", " "))
+            A = split(_replace(temp, ",", " "))
             for  six = 1:length(A)
                 node[nnode, six] = parse(Float64, A[six])
             end
