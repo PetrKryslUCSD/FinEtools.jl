@@ -4,7 +4,7 @@
 
 There are many instances of problem definitions where it is important to partition meshes into subsets. As an example,  consider a tube consisting of inner ABS core and  outer fiber-reinforced  laminate  layer. The mesh may consist  of hexahedra.  This mesh would then need to be partitioned into two subsets, because the materials and the  material orientation data  are different between the two regions.
 
-As another example, consider a simple beam  of rectangular cross-section, clamped  at one end,  and  loaded with shear tractions at the  free end. The  entire boundary of the beam needs to be separated  into three subsets:  the first subset,  for the traction-free boundary, is ignored. The second subset, for the clamped cross-section, is extracted  and  its nodes  are used  to  formulate the essential boundary condition. The third subset is extracted and used to define and FEM machine to compute the load vector due to the shear traction.
+As another example, consider a simple beam  of rectangular cross-section, clamped  at one end,  and  loaded with shear tractions at the  free end. The  entire boundary of the beam needs to be separated  into three subsets:  the first subset,  for the traction-free boundary, is ignored. The second subset, for the clamped cross-section, is extracted  and  its nodes  are used  to  formulate the essential boundary condition. The third subset is extracted and used to define an FEM machine to compute the load vector due to the shear traction.
 
 There are  several  ways  in which mesh entities (nodes and finite elements) can be selected. The simplest uses element labels: some mesh-generation routines label the generated elements. For example,
 
