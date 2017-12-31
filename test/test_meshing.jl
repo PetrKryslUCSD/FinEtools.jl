@@ -110,6 +110,9 @@ function test()
   vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.Q4);
   # @async run(`"paraview.exe" $File`)
   rm(File)
+  vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.Q4);
+  # @async run(`"paraview.exe" $File`)
+  rm(File)
 
   # println("Done")
   true
