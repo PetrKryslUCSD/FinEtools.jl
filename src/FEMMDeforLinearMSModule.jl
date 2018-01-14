@@ -18,7 +18,7 @@ import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, g
 import FinEtools.NodalFieldModule: NodalField
 import FinEtools.CSysModule: CSys, updatecsmat!
 import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat! 
-import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, startassembly!, assemble!, makematrix!
+import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, loc!, jac!, locjac!
 import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass, thermalstrainloads, inspectintegpoints
 import FinEtools.FEMMBaseModule: associategeometry!
@@ -139,7 +139,7 @@ function buffers2(self::FEMMDeforLinearAbstractMS, geom::NodalField, u::NodalFie
     B = fill(zero(FFlt), nstrs, elmatdim); # strain-displacement matrix -- buffer
     DB = fill(zero(FFlt), nstrs, elmatdim); # strain-displacement matrix -- buffer
     Bbar = fill(zero(FFlt), nstrs, elmatdim); # strain-displacement matrix -- buffer
-    elvecfix = fill(zero(FFlt), elmatdim, 1); # vector of prescribed displ. -- buffer
+    elvecfix = fill(zero(FFlt), elmatdim); # vector of prescribed displ. -- buffer
     elvec = fill(zero(FFlt), elmatdim); # element vector -- buffer
     return dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix
 end
@@ -281,6 +281,64 @@ function stiffness(self::FEMMDeforLinearAbstractMS, assembler::A,
     return makematrix!(assembler);
 end
 
+
+"""
+nzebcloadsstiffness(self::FEMMDeforLinearAbstract,  assembler::A,
+  geom::NodalField{FFlt},
+  u::NodalField{T}) where {A<:SysvecAssemblerBase, T<:Number}
+
+Compute load vector for nonzero EBC for fixed displacement.
+"""
+function nzebcloadsstiffness(self::FEMMDeforLinearAbstractMS,  assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:SysvecAssemblerBase, T<:Number}
+    fes = self.integdata.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
+    realmat = self.material
+    stabmat = self.stabilization_material
+    realmat.tangentmoduli!(realmat, D, 0.0, 0.0, loc, 0)
+    stabmat.tangentmoduli!(stabmat, Dstab, 0.0, 0.0, loc, 0)
+    startassembly!(assembler,  u.nfreedofs);
+    for i = 1:count(fes) # Loop over elements
+        gatherfixedvalues_asvec!(u, elvecfix, fes.conn[i]);# retrieve element displacement vector
+        if norm(elvecfix, Inf) != 0.0   # Is the load nonzero?
+            # NOTE: the coordinate system should be evaluated at a single point within the
+            # element in order for the derivatives to be consistent at all quadrature points
+            loc = centroid!(self,  loc, geom.values, fes.conn[i])
+            updatecsmat!(self.mcsys, loc, J, fes.label[i]);
+            vol = 0.0; # volume of the element
+            fill!(MeangradN, 0.0) # mean basis function gradients
+            for j = 1:npts # Loop over quadrature points
+                jac!(J, geom.values, fes.conn[i], gradNparams[j]) 
+                Jac[j] = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
+                At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
+                gradN!(fes, AllgradN[j], gradNparams[j], csmatTJ);
+                dvol = Jac[j]*w[j]
+                MeangradN .= MeangradN .+ AllgradN[j]*dvol
+                vol = vol + dvol
+            end # Loop over quadrature points
+            MeangradN .= MeangradN/vol
+            Blmat!(self.mr, Bbar, Ns[1], MeangradN, loc, self.mcsys.csmat);
+            fill!(elmat,  0.0); # Initialize element matrix
+            add_btdb_ut_only!(elmat, Bbar, vol, D, DB)
+            add_btdb_ut_only!(elmat, Bbar, -self.phis[i]*vol, Dstab, DB)
+            for j = 1:npts # Loop over quadrature points
+                Blmat!(self.mr, B, Ns[j], AllgradN[j], loc, self.mcsys.csmat);
+                add_btdb_ut_only!(elmat, B, self.phis[i]*Jac[j]*w[j], Dstab, DB)
+            end # Loop over quadrature points
+            complete_lt!(elmat)
+            gatherdofnums!(u, dofnums, fes.conn[i]); # retrieve degrees of freedom
+            A_mul_B!(elvec, elmat, elvecfix)
+            assemble!(assembler,  -elvec,  dofnums); # assemble element load vector
+        end
+    end # Loop over elements
+    return makevector!(assembler);
+end
+
+function nzebcloadsstiffness(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}, u::NodalField{T}) where {T<:Number}
+    assembler = SysvecAssembler()
+    return  nzebcloadsstiffness(self, assembler, geom, u);
+end
+
 function _iip_meanonly(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
     fes = self.integdata.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
@@ -293,7 +351,7 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}, 
     for apair in pairs(context)
         sy, val = apair
         if sy == :outputcsys
-            outputcsys = val
+            outputcsys = deepcopy(val)
         end
     end
     t= 0.0
