@@ -176,13 +176,13 @@ function LE1NAFEMS_MSH8_convergence()
     
     sigyderrs = Dict{Symbol, FFltVec}()
     
-    nelems = []
+    nnodes = []
     for extrapolation in [:extraptrend :extrapmean]
         sigyderrs[extrapolation] = FFltVec[]
-        nelems = []
+        nnodes = []
         for ref in 0:1:4
-            Thickness = Thick0
-            # Thickness = Thick0/2^ref
+            # Thickness = Thick0
+            Thickness = Thick0/2^ref
             tolerance = Thickness/2^ref/1000.; # Geometrical tolerance
             
             fens,fes = H8block(1.0, pi/2, Thickness, 2^ref*5, 2^ref*6, 1)
@@ -245,7 +245,7 @@ function LE1NAFEMS_MSH8_convergence()
             println("Sigma_y =$(sigyd/phun("MPa")) vs $(sigma_yD/phun("MPa")) [MPa]")
             
             println("$extrapolation, $(count(fes)), $(sigyd/phun("MPa"))")
-            push!(nelems, count(fes))
+            push!(nnodes, count(fes))
             push!(sigyderrs[extrapolation], (sigyd/sigma_yD - 1.0))
             # File =  "a.vtk"
             # vtkexportmesh(File, fes.conn, geom.values,
@@ -256,7 +256,7 @@ function LE1NAFEMS_MSH8_convergence()
     end
     
     File = "LE1NAFEMS_MSH8_convergence.CSV"
-    savecsv(File, nelems=vec(nelems), sigyderrtrend=vec(sigyderrs[:extraptrend]), sigyderrdefault=vec(sigyderrs[:extrapmean]))
+    savecsv(File, nnodes=vec(nnodes), sigyderrtrend=vec(sigyderrs[:extraptrend]), sigyderrmean=vec(sigyderrs[:extrapmean]))
     
 end # LE1NAFEMS_MSH8_convergence
 
@@ -360,13 +360,13 @@ function LE1NAFEMS_MST10_convergence()
     
     sigyderrs = Dict{Symbol, FFltVec}()
     
-    nelems = []
+    nnodes = []
     for extrapolation in [:extraptrend :extrapmean]
         sigyderrs[extrapolation] = FFltVec[]
-        nelems = []
+        nnodes = []
         for ref in 0:1:4
-            Thickness = Thick0
-            # Thickness = Thick0/2^ref
+            # Thickness = Thick0
+            Thickness = Thick0/2^ref
             tolerance = Thickness/2^ref/1000.; # Geometrical tolerance
             
             fens,fes = T10block(1.0, pi/2, Thickness, 2^ref*5, 2^ref*6, 1; orientation = :b)
@@ -424,13 +424,12 @@ function LE1NAFEMS_MST10_convergence()
             thecorneru = mean(thecorneru, 1)[1]/phun("mm")
             println("displacement =$(thecorneru) vs -0.10215 [MM]")
             
-            fld = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
-            nodevalmethod = :averaging, reportat = extrapolation)
+            fld = fieldfromintegpoints(femm, geom, u, :Cauchy, 2; nodevalmethod = :averaging, reportat = extrapolation)
             sigyd = mean(fld.values[nl,1], 1)[1]
             println("Sigma_y =$(sigyd/phun("MPa")) vs $(sigma_yD/phun("MPa")) [MPa]")
             
             println("$extrapolation, $(count(fes)), $(sigyd/phun("MPa"))")
-            push!(nelems, count(fes))
+            push!(nnodes, count(fens))
             push!(sigyderrs[extrapolation], abs(sigyd/sigma_yD - 1.0))
             # File =  "a.vtk"
             # vtkexportmesh(File, fes.conn, geom.values,
@@ -441,7 +440,7 @@ function LE1NAFEMS_MST10_convergence()
     end
     
     File = "LE1NAFEMS_MST10_convergence.CSV"
-    savecsv(File, nelems=vec(nelems), sigyderrtrend=vec(sigyderrs[:extraptrend]), sigyderrdefault=vec(sigyderrs[:extrapmean]))
+    savecsv(File, nnodes=vec(nnodes), sigyderrtrend=vec(sigyderrs[:extraptrend]), sigyderrdefault=vec(sigyderrs[:extrapmean]))
     
 end # LE1NAFEMS_MST10_convergence
 
@@ -460,7 +459,7 @@ function LE1NAFEMS_MST10_one()
     
     for extrapolation in [:extraptrend]
         sigyderrs[extrapolation] = FFltVec[]
-        nelems = []
+        nnodes = []
         for ref in 1:1
             Thickness = Thick0
             # Thickness = Thick0/2^ref
@@ -526,7 +525,7 @@ function LE1NAFEMS_MST10_one()
             println("Sigma_y =$(sigyd/phun("MPa")) vs $(sigma_yD/phun("MPa")) [MPa]")
             
             println("$extrapolation, $(count(fes)), $(sigyd/phun("MPa"))")
-            push!(nelems, count(fes))
+            push!(nnodes, count(fens))
             push!(sigyderrs[extrapolation], abs(sigyd/sigma_yD - 1.0))
             File =  "LE1NAFEMS_MST10_a.vtk"
             vtkexportmesh(File, fes.conn, geom.values,
@@ -541,7 +540,7 @@ function LE1NAFEMS_MST10_one()
     # using DataFrames
     # using CSV
     #
-    # df = DataFrame(nelems=vec(nelems),
+    # df = DataFrame(nnodes=vec(nnodes),
     #     sigyderrtrend=vec(sigyderrs[:extraptrend]),
     #     sigyderrdefault=vec(sigyderrs[:extrapmean]))
     # File = "LE1NAFEMS_MST10_convergence.CSV"
@@ -697,10 +696,10 @@ function LE1NAFEMS_MST10_S_convergence()
     
     sigyderrs = Dict{Symbol, FFltVec}()
     
-    nelems = []
+    nnodes = []
     for extrapolation in [:extraptrend :extrapmean]
         sigyderrs[extrapolation] = FFltVec[]
-        nelems = []
+        nnodes = []
         for ref in 0:1:4
             Thickness = Thick0
             # Thickness = Thick0/2^ref
@@ -766,7 +765,7 @@ function LE1NAFEMS_MST10_S_convergence()
             println("Sigma_y =$(sigyd/phun("MPa")) vs $(sigma_yD/phun("MPa")) [MPa]")
             
             println("$extrapolation, $(count(fes)), $(sigyd/phun("MPa"))")
-            push!(nelems, count(fes))
+            push!(nnodes, count(fens))
             push!(sigyderrs[extrapolation], abs(sigyd/sigma_yD - 1.0))
             # File =  "a.vtk"
             # vtkexportmesh(File, fes.conn, geom.values,
@@ -777,7 +776,7 @@ function LE1NAFEMS_MST10_S_convergence()
     end
     
     File = "LE1NAFEMS_MST10_S_convergence.CSV"
-    savecsv(File, nelems=vec(nelems), sigyderrtrend=vec(sigyderrs[:extraptrend]), sigyderrdefault=vec(sigyderrs[:extrapmean]))
+    savecsv(File, nnodes=vec(nnodes), sigyderrtrend=vec(sigyderrs[:extraptrend]), sigyderrdefault=vec(sigyderrs[:extrapmean]))
     
 end # LE1NAFEMS_MST10_S_convergence
 
