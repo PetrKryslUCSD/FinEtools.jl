@@ -4,9 +4,24 @@ using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshUtilModule
 using FinEtools.AlgoBaseModule
 
-displacement_fun_x(x) = dot([0.0, 0.01, 0.0, 0.0, 0.0, -0.001, 0.0, 0.002, 0.0, 0.0], [1.0, x[1], x[2], x[3], x[1] * x[2], x[1] * x[3], x[2] * x[3], x[1]^2, x[2]^2, x[3]^2])
-displacement_fun_y(x) = dot([0.0, 0.0, 0.003, 0.0, 0.03, 0.0, 0.007, 0.0, 0.008, -0.007], [1.0, x[1], x[2], x[3], x[1] * x[2], x[1] * x[3], x[2] * x[3], x[1]^2, x[2]^2, x[3]^2])
-displacement_fun_z(x) = dot([0.0, 0.0, 0.0, 0.007, 0.008, 0.0, -0.05, 0.0, 0.0, 0.0], [1.0, x[1], x[2], x[3], x[1] * x[2], x[1] * x[3], x[2] * x[3], x[1]^2, x[2]^2, x[3]^2])
+# Orthotropic material 
+E1 = 2.5e6*phun("PSI"); E2 = 1e6*phun("PSI"); E3 = E2;
+G12 = 0.5e6*phun("PSI");  G13 = G12; G23 = 0.2e6*phun("PSI")
+nu12 =  0.25; nu13 =  0.25; nu23 =  0.25;
+# Coefficients of thermal expansion
+CTE1 = CTE2 = CTE3 = 0.0 
+
+angles = vec([-15.0]);
+nLayers = length(angles)
+
+# The material coordinate system function is defined as:
+function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    rotmat3!(csmatout, angles[fe_label]/180.0*pi* [0.0; 1.0; 0.0]);
+end
+
+displacement_fun_x(x) = dot([0.0, 0.001, 0.0, 0.001, 0.0, -0.001, 0.0, 0.002, 0.0, 0.001], [1.0, x[1], x[2], x[3], x[1] * x[2], x[1] * x[3], x[2] * x[3], x[1]^2, x[2]^2, x[3]^2])
+displacement_fun_y(x) = dot([0.0, 0.0, 0.0003, 0.0, 0.003, -0.002, 0.007, 0.0, 0.008, -0.007], [1.0, x[1], x[2], x[3], x[1] * x[2], x[1] * x[3], x[2] * x[3], x[1]^2, x[2]^2, x[3]^2])
+displacement_fun_z(x) = dot([0.0, 0.0, 0.0, 0.00007, 0.008, 0.003, -0.015, 0.002, -0.003, 0.0001], [1.0, x[1], x[2], x[3], x[1] * x[2], x[1] * x[3], x[2] * x[3], x[1]^2, x[2]^2, x[3]^2])
 
 function All_EBC_2dir_MST10_conv()
     elementtag = "MST10"
@@ -17,27 +32,20 @@ function All_EBC_2dir_MST10_conv()
     for (extrap, nodevalmeth) = zip([:extrapmean, :extraptrend, :default], [:averaging, :averaging, :invdistance])
         filebase = "All_EBC_2dir_$(elementtag)_$(extrap)"
         modeldatasequence = FDataDict[]
-        for Refinement = [1, 2, 4, 8, 16]
+        for Refinement = [3, 6, 12, 24]
             
-            # Orthotropic material 
-            E1 = 2.0e9*phun("Pa"); E2 = 2.0e9*phun("Pa"); E3 = 1.0e9*phun("Pa");
-            G12 = 0.2e9*phun("Pa");  G13 = G12; G23 = 0.2e9*phun("Pa")
-            nu12 = nu13 = nu23 =  0.25;
-            # Coefficients of thermal expansion
-            CTE1 = CTE2 = CTE3 = 0.0 
             # This is the material  model
             MR = DeforModelRed3D
             material = MatDeforElastOrtho(MR, 0.0, E1, E2, E3, nu12, nu13, nu23, G12, G13, G23, CTE1, CTE2, CTE3)
+            # material = MatDeforElastIso(MR, E1, nu12)
             # dimensions of the plate
-            a = 70.0*phun("mm"); 
+            a = 100.0*phun("mm"); 
             b = 100.0*phun("mm"); 
-            t = 50.0*phun("mm"); 
+            t = 100.0*phun("mm"); 
             # Transverse loading
             q0 = 1000.0*phun("Pa")
             
             # Here we define the layout and the thicknesses of the layers.
-            angles = vec([45.0]);
-            nLayers = length(angles)
             ts = t/nLayers * ones(nLayers); # layer thicknesses
             
             tolerance = 0.0001*t
@@ -52,11 +60,6 @@ function All_EBC_2dir_MST10_conv()
             fens,fes = T10layeredplatex(xs, ys, ts, nts)
             println("Mesh: na, nb, nts = $na, $nb, $nts")
             println("count(fens) = $(count(fens))")
-            
-            # The material coordinate system function is defined as:
-            function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-                rotmat3!(csmatout, angles[fe_label]/180.0*pi* [0.0; 0.0; 1.0]);
-            end
             
             # The volume integrals are evaluated using this rule
             gr = SimplexRule(3, 4)
@@ -154,27 +157,20 @@ function All_EBC_2dir_MSH8_conv()
     for (extrap, nodevalmeth) = zip([:extrapmean, :extraptrend, :default], [:averaging, :averaging, :invdistance])
         filebase = "All_EBC_2dir_$(elementtag)_$(extrap)"
         modeldatasequence = FDataDict[]
-        for Refinement = [1, 2, 4, 8, 16]
+        for Refinement = [3, 6, 12, 24]
             
-            # Orthotropic material 
-            E1 = 2.0e9*phun("Pa"); E2 = 2.0e9*phun("Pa"); E3 = 1.0e9*phun("Pa");
-            G12 = 0.2e9*phun("Pa");  G13 = G12; G23 = 0.2e9*phun("Pa")
-            nu12 = nu13 = nu23 =  0.25;
-            # Coefficients of thermal expansion
-            CTE1 = CTE2 = CTE3 = 0.0 
             # This is the material  model
             MR = DeforModelRed3D
             material = MatDeforElastOrtho(MR, 0.0, E1, E2, E3, nu12, nu13, nu23, G12, G13, G23, CTE1, CTE2, CTE3)
+            # material = MatDeforElastIso(MR, E1, nu12)
             # dimensions of the plate
-            a = 70.0*phun("mm"); 
+            a = 100.0*phun("mm"); 
             b = 100.0*phun("mm"); 
-            t = 50.0*phun("mm"); 
+            t = 100.0*phun("mm"); 
             # Transverse loading
             q0 = 1000.0*phun("Pa")
             
             # Here we define the layout and the thicknesses of the layers.
-            angles = vec([45.0]);
-            nLayers = length(angles)
             ts = t/nLayers * ones(nLayers); # layer thicknesses
             
             tolerance = 0.0001*t
@@ -189,12 +185,7 @@ function All_EBC_2dir_MSH8_conv()
             fens,fes = H8layeredplatex(xs, ys, ts, nts)
             println("Mesh: na, nb, nts = $na, $nb, $nts")
             println("count(fens) = $(count(fens))")
-            
-            # The material coordinate system function is defined as:
-            function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-                rotmat3!(csmatout, angles[fe_label]/180.0*pi* [0.0; 0.0; 1.0]);
-            end
-            
+             
             # The volume integrals are evaluated using this rule
             gr = GaussRule(3, 2)
             
@@ -291,27 +282,20 @@ function All_EBC_2dir_T10_conv()
     for (extrap, nodevalmeth) = zip([:default], [:invdistance])
         filebase = "All_EBC_2dir_$(elementtag)_$(extrap)"
         modeldatasequence = FDataDict[]
-        for Refinement = [1, 2, 4, 8, 16]
+        for Refinement = [3, 6, 12, 24]
             
-            # Orthotropic material 
-            E1 = 2.0e9*phun("Pa"); E2 = 2.0e9*phun("Pa"); E3 = 1.0e9*phun("Pa");
-            G12 = 0.2e9*phun("Pa");  G13 = G12; G23 = 0.2e9*phun("Pa")
-            nu12 = nu13 = nu23 =  0.25;
-            # Coefficients of thermal expansion
-            CTE1 = CTE2 = CTE3 = 0.0 
             # This is the material  model
             MR = DeforModelRed3D
             material = MatDeforElastOrtho(MR, 0.0, E1, E2, E3, nu12, nu13, nu23, G12, G13, G23, CTE1, CTE2, CTE3)
+            # material = MatDeforElastIso(MR, E1, nu12)
             # dimensions of the plate
-            a = 70.0*phun("mm"); 
+            a = 100.0*phun("mm"); 
             b = 100.0*phun("mm"); 
-            t = 50.0*phun("mm"); 
+            t = 100.0*phun("mm"); 
             # Transverse loading
             q0 = 1000.0*phun("Pa")
             
             # Here we define the layout and the thicknesses of the layers.
-            angles = vec([45.0]);
-            nLayers = length(angles)
             ts = t/nLayers * ones(nLayers); # layer thicknesses
             
             tolerance = 0.0001*t
@@ -326,12 +310,7 @@ function All_EBC_2dir_T10_conv()
             fens,fes = T10layeredplatex(xs, ys, ts, nts)
             println("Mesh: na, nb, nts = $na, $nb, $nts")
             println("count(fens) = $(count(fens))")
-            
-            # The material coordinate system function is defined as:
-            function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-                rotmat3!(csmatout, angles[fe_label]/180.0*pi* [0.0; 0.0; 1.0]);
-            end
-            
+             
             # The volume integrals are evaluated using this rule
             gr = SimplexRule(3, 4)
             
@@ -428,27 +407,21 @@ function All_EBC_2dir_H8_conv()
     for (extrap, nodevalmeth) = zip([:default], [:invdistance])
         filebase = "All_EBC_2dir_$(elementtag)_$(extrap)"
         modeldatasequence = FDataDict[]
-        for Refinement = [1, 2, 4, 8, 16]
+        for Refinement = [3, 6, 12, 24]
             
-            # Orthotropic material 
-            E1 = 2.0e9*phun("Pa"); E2 = 2.0e9*phun("Pa"); E3 = 1.0e9*phun("Pa");
-            G12 = 0.2e9*phun("Pa");  G13 = G12; G23 = 0.2e9*phun("Pa")
-            nu12 = nu13 = nu23 =  0.25;
-            # Coefficients of thermal expansion
-            CTE1 = CTE2 = CTE3 = 0.0 
+            
             # This is the material  model
             MR = DeforModelRed3D
             material = MatDeforElastOrtho(MR, 0.0, E1, E2, E3, nu12, nu13, nu23, G12, G13, G23, CTE1, CTE2, CTE3)
+            # material = MatDeforElastIso(MR, E1, nu12)
             # dimensions of the plate
-            a = 70.0*phun("mm"); 
+            a = 100.0*phun("mm"); 
             b = 100.0*phun("mm"); 
-            t = 50.0*phun("mm"); 
+            t = 100.0*phun("mm"); 
             # Transverse loading
             q0 = 1000.0*phun("Pa")
             
             # Here we define the layout and the thicknesses of the layers.
-            angles = vec([45.0]);
-            nLayers = length(angles)
             ts = t/nLayers * ones(nLayers); # layer thicknesses
             
             tolerance = 0.0001*t
@@ -463,12 +436,7 @@ function All_EBC_2dir_H8_conv()
             fens,fes = H8layeredplatex(xs, ys, ts, nts)
             println("Mesh: na, nb, nts = $na, $nb, $nts")
             println("count(fens) = $(count(fens))")
-            
-            # The material coordinate system function is defined as:
-            function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-                rotmat3!(csmatout, angles[fe_label]/180.0*pi* [0.0; 0.0; 1.0]);
-            end
-            
+             
             # The volume integrals are evaluated using this rule
             gr = GaussRule(3, 2)
             
