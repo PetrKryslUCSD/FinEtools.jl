@@ -26,6 +26,9 @@ end
 if VERSION >= v"0.7-"
     At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)
 end
+if VERSION >= v"0.7-"
+    using SparseArrays
+end
 
 """
     FEMMAbstractBase

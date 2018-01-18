@@ -1,4 +1,7 @@
 using FinEtools
+if VERSION >= v"0.7-"
+    using SparseArrays
+end
 
 println("Rigid movable hemisphere in  water. Time-dependent simulation.
 ")

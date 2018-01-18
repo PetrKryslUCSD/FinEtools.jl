@@ -746,6 +746,9 @@ mmtransientsphere.test()
 module mmhhemispheremm
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    using SparseArrays
+end
 function test()
 
   # println("Rigid movable hemisphere in  water. Time-dependent simulation.

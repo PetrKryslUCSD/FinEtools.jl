@@ -1,4 +1,7 @@
 using FinEtools
+if VERSION >= v"0.7-"
+    using SparseArrays
+end
 
 println("Rigid movable sphere in  water. Time-dependent simulation.
 Analytical solution: uamplHW=P_amplitude/(rho*c^2)./(omega/c)*3/(2*rhos/rho+1);

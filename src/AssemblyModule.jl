@@ -7,6 +7,10 @@ module AssemblyModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
+if VERSION >= v"0.7-"
+    using SparseArrays
+end
+
 const  inv_dofnum=0;            # invalid degree of freedom number -- no equation
 
 abstract type SysmatAssemblerBase end;
