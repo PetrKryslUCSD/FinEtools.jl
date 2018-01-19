@@ -261,7 +261,7 @@ function coarsen(t::Array{Int, 2}, inputv::Array{Float64, 2}, tmid::Vector{Int};
     return cleanoutput(t,deepcopy(transpose(vt)),tmid);
 end
 
-function collapseedge!(e::Array{Int, 2}, es::Vector{Float64}, elayer::Vector{Int}, vlayer::Vector{Int}, t::Array{Int, 2}, vt::Array{Float64, 2}, v2t::Vector{Vector{Int}}, v2e::Vector{Vector{Int}}, vertex_weight::Vector{Float64}, dei::Int)
+function collapseedge!(e::Array{Int, 2}, es::Vector{Float64}, elayer::Vector{Int}, vlayer::Vector{Int}, t::Array{Int, 2}, vt::AbstractArray{Float64, 2}, v2t::Vector{FIntVec}, v2e::Vector{FIntVec}, vertex_weight::Vector{Float64}, dei::Int)
     result = false;
     # if the operation would result in inverted tetrahedra, cancel it
     de1, de2 = e[dei, 1], e[dei, 2];
@@ -333,7 +333,7 @@ function collapseedge!(e::Array{Int, 2}, es::Vector{Float64}, elayer::Vector{Int
     return  true;
 end
 
-function edgelengths(ens::Vector{Int}, vt::Array{Float64, 2}, e::Array{Int, 2}, vertex_weight::Vector{Float64})
+function edgelengths(ens::Vector{Int}, vt::AbstractArray{Float64, 2}, e::Array{Int, 2}, vertex_weight::Vector{Float64})
     eLengths = zeros(length(ens))
     for i = 1:length(ens)
         en = ens[i]
@@ -343,7 +343,7 @@ function edgelengths(ens::Vector{Int}, vt::Array{Float64, 2}, e::Array{Int, 2}, 
 end
 
 # Weighted length of the edge between 2 vertices
-function elength(vt::Array{Float64, 2}, vertex_weight::Vector{Float64}, i1::Int, i2::Int)
+function elength(vt::AbstractArray{Float64, 2}, vertex_weight::Vector{Float64}, i1::Int, i2::Int)
     @inbounds return max(vertex_weight[i1], vertex_weight[i2]) * 
         sqrt((vt[1,i2] - vt[1,i1])^2 + (vt[2,i2] - vt[2,i1])^2 + (vt[3,i2] - vt[3,i1])^2);
 end
@@ -380,7 +380,7 @@ function availelist!(availe::_IntegerBuffer, selist::_IntegerBuffer, elayer::Vec
     return copyto!(availe, trim!(selist, min(length(selist), maxnt))), newcurrvlayer
 end
 
-function anynegvol1(t::Array{Int,2}, whichtets::Vector{Int}, vt::Array{Float64,2}, whichv::Int, otherv::Int)
+function anynegvol1(t::Array{Int,2}, whichtets::Vector{Int}, vt::AbstractArray{Float64,2}, whichv::Int, otherv::Int)
     for iS1 in whichtets
         i1, i2, i3, i4 = t[iS1,:]; # nodes of the tetrahedron
         if (i1 == whichv) 
