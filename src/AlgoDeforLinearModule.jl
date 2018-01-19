@@ -23,7 +23,9 @@ import FinEtools.DeforModelRedModule: stresscomponentmap
 import FinEtools.ForceIntensityModule: ForceIntensity
 import FinEtools.MeshModificationModule: meshboundary
 import FinEtools.MeshExportModule: vtkexportmesh
-
+if VERSION >= v"0.7-"
+    using SparseArrays
+end
 
 """
     AlgoDeforLinearModule.linearstatics(modeldata::FDataDict)
