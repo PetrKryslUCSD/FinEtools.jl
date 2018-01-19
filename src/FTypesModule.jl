@@ -15,8 +15,8 @@ import Base.Complex
 const FInt = Int
 const FFlt = Float64
 const FCplxFlt = Complex{FFlt}
-FMat{T<:Number} = Matrix{T}
-FVec{T<:Number} = Vector{T}
+FMat{T<:Number} = AbstractArray{T, 2}
+FVec{T<:Number} = AbstractVector{T}
 const FFltVec = FVec{FFlt}
 const FIntVec = FVec{FInt}
 const FFltMat = FMat{FFlt}
