@@ -15,6 +15,9 @@ if VERSION < v"0.7-"
 else
     using Printf
 end
+if VERSION >= v"0.7-"
+    ismatch(r, s) = contains(s, r)
+end
 
 ################################################################################
 # VTK export
