@@ -9,7 +9,9 @@ if VERSION < v"0.7-"
     pairs(as) = as
 end
 if VERSION >= v"0.7-"
-    At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)
+    my_At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)
+else
+    my_At_mul_B!(C, A, B) = At_mul_B!(C, A, B)
 end
 if VERSION >= v"0.7-"
     using SparseArrays
@@ -29,16 +31,7 @@ import FinEtools.MatrixUtilityModule: locjac!
 import FinEtools.BoxModule: initbox!, boundingbox, inflatebox!
 import FinEtools.MeshModificationModule: nodepartitioning, compactnodes, renumberconn!
 import FinEtools.MeshSelectionModule: selectelem, vselect, findunconnnodes, connectednodes
-
-if VERSION < v"0.7-"
-    pairs(as) = as
-end
-if VERSION >= v"0.7-"
-    At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)
-end
-if VERSION >= v"0.7-"
-    using SparseArrays
-end
+import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 
 """
     FEMMAbstractBase
@@ -127,7 +120,7 @@ function integratefieldfunction(self::FEMMAbstractBase,
         gathervalues_asmat!(afield, a, fes.conn[i]);# retrieve element dofs
         for j = 1:npts #Loop over all integration points
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
-            At_mul_B!(val, Ns[j], a);# Field value at the quadrature point
+            my_At_mul_B!(val, Ns[j], a);# Field value at the quadrature point
             Jac = Jacobianmdim(self.integdata, J, loc, fes.conn[i],  Ns[j], m);
             result = result + fh(loc,val)*Jac*w[j];
         end
@@ -750,6 +743,64 @@ function elemfieldfromintegpoints(self::FEMM,
     T<:Number}
     dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
     return elemfieldfromintegpoints(self, geom, u, dT, quantity, component; context...)
+end
+
+
+function  buffers(self::FEMM, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:FEMMAbstractBase, T}
+    # Constants
+    fes = self.integdata.fes
+    nfes = count(fes); # number of finite elements in the set
+    ndn = ndofs(afield); # number of degrees of freedom per node
+    nne = nodesperelem(fes); # number of nodes for element
+    sdim = ndofs(geom);   # number of space dimensions
+    mdim = manifdim(fes); # manifold dimension of the element
+    Kedim = ndn*nne;      # dimension of the element matrix
+    elmat = fill(zero(FFlt), Kedim, Kedim); # buffer
+    dofnums = fill(zero(FInt), Kedim); # buffer
+    loc = fill(zero(FFlt), 1, sdim); # buffer
+    J = fill(zero(FFlt), sdim, mdim); # buffer
+    gradN = fill(zero(FFlt), nne, mdim); # buffer
+    return dofnums, loc, J, gradN, elmat
+end
+
+"""
+    innerproduct(self::FEMMHeatDiff,
+      assembler::A, geom::NodalField{FFlt},
+      temp::NodalField{FFlt}) where {A<:SysmatAssemblerBase}
+
+Compute the conductivity matrix.
+"""
+function innerproduct(self::FEMM, assembler::A, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:FEMMAbstractBase, A<:SysmatAssemblerBase, T}
+    fes = self.integdata.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    NexpTNexp = FFltMat[];# basis f. matrix -- buffer
+    ndn = ndofs(afield)
+    Indn = [i==j ? one(FFlt) : zero(FFlt) for i=1:ndn, j=1:ndn] # "identity"
+    for j = 1:npts # This quantity is the same for all quadrature points
+        Nexp = fill(zero(FFlt), ndn, size(elmat,1))
+        for l1 = 1:nodesperelem(fes)
+            Nexp[1:ndn, (l1-1)*ndn+1:(l1)*ndn] = Indn * Ns[j][l1];
+        end
+        push!(NexpTNexp, Nexp'*Nexp);
+    end
+    startassembly!(assembler,  size(elmat,1),  size(elmat,2),  count(fes), afield.nfreedofs,  afield.nfreedofs);
+    for i = 1:count(fes) # Loop over elements
+        fill!(elmat, 0.0); # Initialize element matrix
+        for j = 1:npts # Loop over quadrature points
+            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            thefactor::FFlt =(Jac*w[j]);
+            elmat .+= NexpTNexp[j]*thefactor
+        end # Loop over quadrature points
+        gatherdofnums!(afield,  dofnums,  fes.conn[i]);# retrieve degrees of freedom
+        assemble!(assembler,  elmat,  dofnums,  dofnums);# assemble symmetric matrix
+    end # Loop over elements
+    return makematrix!(assembler);
+end
+
+function innerproduct(self::FEMM, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:FEMMAbstractBase, A<:SysmatAssemblerBase, T}
+    assembler = SysmatAssemblerSparseSymm();
+    return innerproduct(self, assembler, geom, afield);
 end
 
 end
