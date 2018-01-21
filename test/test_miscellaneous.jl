@@ -1339,3 +1339,67 @@ end
 end
 using .minnerproduct1
 minnerproduct1.test()
+
+module minnerproduct2
+using FinEtools
+using Compat.Test
+if VERSION >= v"0.7-"
+    using IterativeEigensolvers
+end
+function test()
+    kappa = 0.2*[1.0 0; 0 1.0]; # conductivity matrix
+    magn = 0.06;# heat flux along the boundary
+    rin =  1.0;#internal radius
+    rex =  2.0;#external radius
+    nr = 2; nc = 20;
+    Angle = 2*pi;
+    thickness =  1.0;
+    tolerance = min(rin/nr,  rin/nc/2/pi)/10000;
+    
+    fens, fes  =  Q4annulus(rin, rex, nr, nc, Angle)
+    fens, fes  =  mergenodes(fens,  fes,  tolerance);
+    edge_fes  =  meshboundary(fes);
+    
+    geom = NodalField(fens.xyz)
+    Temp = NodalField(zeros(size(fens.xyz, 1), 1))
+    
+    l1  = selectnode(fens; box=[0.0 0.0 -rex -rex],  inflate = tolerance)
+    setebc!(Temp, l1, 1; val=zero(FFlt))
+    applyebc!(Temp)
+    
+    numberdofs!(Temp)
+    
+    material = MatHeatDiff(kappa)
+    femm = FEMMHeatDiff(IntegData(fes,  GaussRule(2, 2)),  material)
+    
+    K = conductivity(femm,  geom,  Temp)
+    
+    l1 = selectelem(fens, edge_fes, box=[-1.1*rex -0.9*rex -0.5*rex 0.5*rex]);
+    el1femm = FEMMBase(IntegData(subset(edge_fes, l1),  GaussRule(1, 2)))
+    fi = ForceIntensity(FFlt[-magn]);#entering the domain
+    F1 = (-1.0)* distribloads(el1femm,  geom,  Temp,  fi,  2);
+    
+    l1 = selectelem(fens, edge_fes, box=[0.9*rex 1.1*rex -0.5*rex 0.5*rex]);
+    el1femm =  FEMMBase(IntegData(subset(edge_fes, l1),  GaussRule(1, 2)))
+    fi = ForceIntensity(FFlt[+magn]);#leaving the domain
+    F2 = (-1.0)* distribloads(el1femm,  geom,  Temp,  fi,  2);
+    
+    F3 = nzebcloadsconductivity(femm,  geom,  Temp);
+    
+    F = (F1+F2+F3)
+    U = K\F
+    scattersysvec!(Temp, U[:])
+    
+    InnerProductM = FinEtools.FEMMBaseModule.innerproduct(femm, SysmatAssemblerSparseHRZLumpingSymm(), geom,  Temp)
+    # println("InnerProductM = $(InnerProductM)")
+
+    d,v,nev,nconv = eigs(InnerProductM; nev=7, which=:SM)
+    # println("Smallest Eigenvalues: $(d)")
+    @test abs(d[1] - 0.086911) / 0.086911 < 1.0e-6
+    
+    true
+
+end
+end
+using .minnerproduct2
+minnerproduct2.test()
