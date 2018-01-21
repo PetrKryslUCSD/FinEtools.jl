@@ -11,8 +11,12 @@ if VERSION >= v"0.7-"
     using   IterativeEigensolvers
 end
 if VERSION >= v"0.7-"
-    At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)
-    A_mul_B!(C, A, B) = Base.LinAlg.mul!(C, A, B)
+    using SparseArrays
+end
+if VERSION >= v"0.7-"
+    my_A_mul_B!(C, A, B) = Base.LinAlg.mul!(C, A, B)
+else
+    my_A_mul_B!(C, A, B) = A_mul_B!(C, A, B)
 end
 import FinEtools.FieldModule: Field, ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!
 import FinEtools.NodalFieldModule: NodalField, nnodes
@@ -23,9 +27,6 @@ import FinEtools.DeforModelRedModule: stresscomponentmap
 import FinEtools.ForceIntensityModule: ForceIntensity
 import FinEtools.MeshModificationModule: meshboundary
 import FinEtools.MeshExportModule: vtkexportmesh
-if VERSION >= v"0.7-"
-    using SparseArrays
-end
 
 """
     AlgoDeforLinearModule.linearstatics(modeldata::FDataDict)
@@ -873,8 +874,8 @@ function ssit(K, M; nev::Int=6, evshift::FFlt = 0.0,
         else    
             v, r = qr(u; full=false)  # economy factorization
         end
-        A_mul_B!(Kv, K, v)
-        A_mul_B!(Mv, M, v)
+        my_A_mul_B!(Kv, K, v)
+        my_A_mul_B!(Mv, M, v)
         for j = 1:nvecs
             lamb[j] = dot(v[:, j], Kv[:, j]) / dot(v[:, j], Mv[:, j])
             lamberr[j] = abs(lamb[j] - plamb[j])/abs(lamb[j])
