@@ -20,7 +20,7 @@ end
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, manifdim, nodesperelem, subset, map2parametric, inparametric, centroidparametric, bfun
-import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianmdim
+import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianmdim, Jacobianvolume
 import FinEtools.CSysModule: CSys
 import FinEtools.FieldModule: ndofs, nents, gatherdofnums!, gathervalues_asmat! 
 import FinEtools.NodalFieldModule: NodalField, nnodes
@@ -768,10 +768,11 @@ end
       assembler::A, geom::NodalField{FFlt},
       temp::NodalField{FFlt}) where {A<:SysmatAssemblerBase}
 
-Compute the conductivity matrix.
+Compute the inner-product matrix.
 """
 function innerproduct(self::FEMM, assembler::A, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:FEMMAbstractBase, A<:SysmatAssemblerBase, T}
     fes = self.integdata.fes
+    dofnums, loc, J, gradN, elmat = buffers(self, geom, afield)
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
     NexpTNexp = FFltMat[];# basis f. matrix -- buffer
     ndn = ndofs(afield)
