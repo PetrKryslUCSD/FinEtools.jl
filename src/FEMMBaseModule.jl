@@ -798,7 +798,7 @@ function innerproduct(self::FEMM, assembler::A, geom::NodalField{FFlt}, afield::
     return makematrix!(assembler);
 end
 
-function innerproduct(self::FEMM, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:FEMMAbstractBase, A<:SysmatAssemblerBase, T}
+function innerproduct(self::FEMM, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:FEMMAbstractBase, T}
     assembler = SysmatAssemblerSparseSymm();
     return innerproduct(self, assembler, geom, afield);
 end
