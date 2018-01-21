@@ -291,4 +291,130 @@ function makevector!(self::SysvecAssembler)
 end
 
 
+"""
+    SysmatAssemblerSparseHRZLumpingSymm{T<:Number} <: SysmatAssemblerBase
+
+Assembler for a SYMMETRIC LUMPED square matrix  assembled from  SYMMETRIC squared
+matrices. 
+
+Reference: A note on mass lumping and related processes in the finite element method,
+E. Hinton, T. Rock, O. C. Zienkiewicz, Earthquake Engineering & Structural Dynamics,
+volume 4, number 3, 245--249, 1976.
+}
+
+"""
+mutable struct SysmatAssemblerSparseHRZLumpingSymm{T<:Number} <: SysmatAssemblerBase
+    # Type for assembling of a sparse global matrix from elementwise matrices.
+    buffer_length:: FInt;
+    matbuffer::FVec{T};
+    rowbuffer::FIntVec;
+    colbuffer::FIntVec;
+    buffer_pointer:: FInt;
+    ndofs:: FInt;
+end
+
+# AssemblyModule.SysmatAssemblerSparse()
+function SysmatAssemblerSparseHRZLumpingSymm(zer::T=0.0) where {T<:Number}
+    return SysmatAssemblerSparseHRZLumpingSymm{T}(0,[zer],[0],[0],0,0)
+end
+
+"""
+    startassembly!(self::SysmatAssemblerSparseHRZLumpingSymm{T},
+      elem_mat_dim::FInt, ignore1::FInt, elem_mat_nmatrices::FInt,
+      ndofs::FInt, ignore2::FInt) where {T<:Number}
+
+Start the assembly of a SYMMETRIC square global matrix.
+"""
+function startassembly!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, elem_mat_dim::FInt, ignore1::FInt, elem_mat_nmatrices::FInt, ndofs::FInt,ignore2::FInt) where {T<:Number}
+    # Start the assembly of a global matrix.
+    # The method makes buffers for matrix assembly. It must be called before
+    # the first call to the method assemble.
+    # elem_mat_nrows= number of rows in typical element matrix,
+    # elem_mat_ncols= number of columns in a typical element matrix,
+    # elem_mat_nmatrices= number of element matrices,
+    # ndofs_row= Total number of equations in the row direction,
+    # ndofs_col= Total number of equations in the column direction.
+    self.buffer_length = elem_mat_nmatrices*elem_mat_dim^2;
+    self.rowbuffer = zeros(FInt,self.buffer_length);
+    self.colbuffer = zeros(FInt,self.buffer_length);
+    self.matbuffer = zeros(T,self.buffer_length);
+    self.buffer_pointer = 1;
+    self.ndofs =ndofs;
+    return self
+end
+
+"""
+    assemble!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, mat::FMat{T},
+      dofnums::FIntMat, ignore::FIntMat) where {T<:Number}
+
+Assembly of a HRZ-lumped square symmetric matrix.
+"""
+function assemble!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, mat::FMat{T},  dofnums::FIntVec, ignore::FIntVec) where {T<:Number}
+    # Assembly of a HRZ-lumped square symmetric matrix.
+    # The method assembles the scaled diagonal of the square symmetric matrix using the two vectors of equation numbers for the rows and columns.
+    nrows=length(dofnums); ncolumns=nrows;
+    p = self.buffer_pointer
+    @assert p+ncolumns*nrows <= self.buffer_length+1
+    @assert size(mat) == (nrows, ncolumns)
+    # Now comes the lumping procedure
+    em2 = sum(sum(mat, 1));
+    dem2 = sum(diag(mat));
+    ffactor = em2/dem2 # total-element-mass compensation factor
+    @inbounds for j=1:ncolumns
+        @inbounds for i=j:nrows
+            if i == j # only the diagonal elements are assembled
+                self.matbuffer[p] = mat[i,j]*ffactor # serialized matrix
+                self.rowbuffer[p] = dofnums[i];
+                self.colbuffer[p] = dofnums[j];
+                p=p+1
+            end
+        end
+    end
+    self.buffer_pointer=p;
+    return self
+end
+
+"""
+    assemble!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, mat::FMat{T},
+        dofnums::FIntMat, ignore::FIntMat) where {T<:Number}
+
+Assembly of a HRZ-lumped square symmetric matrix.
+"""
+function assemble!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, mat::FMat{T}, dofnums::FIntMat, ignore::FIntMat) where {T<:Number}
+    return assemble!(self, mat, vec(dofnums), vec(ignore))
+end
+
+"""
+    makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
+
+Make a sparse SYMMETRIC SQUARE matrix.
+"""
+function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
+    # Make a sparse matrix.
+    # The method makes a sparse matrix from the assembly buffers.
+    @assert length(self.rowbuffer) >= self.buffer_pointer-1
+    @assert length(self.colbuffer) >= self.buffer_pointer-1
+    @inbounds for j=1:self.buffer_pointer-1
+        if self.rowbuffer[j] == inv_dofnum
+            self.rowbuffer[j]=self.ndofs+1;
+        end
+        if self.colbuffer[j] == inv_dofnum
+            self.colbuffer[j]=self.ndofs+1;
+        end
+    end
+    S = sparse(self.rowbuffer[1:self.buffer_pointer-1],
+               self.colbuffer[1:self.buffer_pointer-1],
+               self.matbuffer[1:self.buffer_pointer-1],
+               self.ndofs+1, self.ndofs+1);   
+    S = S+copy(transpose(S)); # This is to address the lack of a function for adding together a sparse matrix with a transpose of the sparse matrix; at the moment (January 2018), this defaults to the addition of two dense matrices and the result is DENSE. Hence a copy of the transpose needs to be made.
+    #   S = S+transpose(S);    # construct the other triangle
+    @inbounds for j=1:size(S,1)
+        S[j,j]=S[j,j]/2.0;      # the diagonal is there twice; fix it;
+    end
+    self=SysmatAssemblerSparse(0.0*self.matbuffer[1])# get rid of the buffers
+    S = S[1:end-1,1:end-1]
+    return S
+end
+
+
 end
