@@ -221,7 +221,8 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
                self.colbuffer[1:self.buffer_pointer-1],
                self.matbuffer[1:self.buffer_pointer-1],
                self.ndofs+1, self.ndofs+1);   
-    S = S+transpose(S);    # construct the other triangle
+    S = S+copy(transpose(S)); # This is to address the lack of a function for adding together a sparse matrix with a transpose of the sparse matrix; at the moment (January 2018), this defaults to the addition of two dense matrices and the result is DENSE. Hence a copy of the transpose needs to be made.
+    #   S = S+transpose(S);    # construct the other triangle
     @inbounds for j=1:size(S,1)
         S[j,j]=S[j,j]/2.0;      # the diagonal is there twice; fix it;
     end
