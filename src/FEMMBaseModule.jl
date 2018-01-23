@@ -768,7 +768,7 @@ end
       assembler::A, geom::NodalField{FFlt},
       temp::NodalField{FFlt}) where {A<:SysmatAssemblerBase}
 
-Compute the inner-product matrix.
+Compute the inner-product (Gram) matrix.
 """
 function innerproduct(self::FEMM, assembler::A, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:FEMMAbstractBase, A<:SysmatAssemblerBase, T}
     fes = self.integdata.fes
