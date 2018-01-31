@@ -8,6 +8,7 @@ module MeshModificationModule
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FESetModule: FESet, count, boundaryconn, boundaryfe, updateconn!, connasarray, fromarray!
 import FinEtools.FENodeSetModule: FENodeSet
+import FinEtools.BoxModule: boundingbox, inflatebox!, intersectboxes, inbox
 using Base.Sort
 using Base.Order
 
@@ -185,22 +186,40 @@ needs to be updated to refer to the same nodes in  the set `fens` as
      `updateconn!(fes, new_indexes_of_fens1_nodes);`
 """
 function fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance:: FFlt)
-    xyz1::FFltMat = deepcopy(fens1.xyz);
-    id1::FIntVec = collect(1:size(xyz1,1));
+    xyz1 = deepcopy(fens1.xyz);
+    id1 = collect(1:size(xyz1,1));
     dim =size(xyz1,2);
-    xyz2::FFltMat = deepcopy(fens2.xyz);
-    id2::FIntVec = collect(1:size(xyz2,1));
-    n1::FFlt= 0.0
-    # Mark nodes from the first array that are duplicated in the second
-    if (tolerance>0.0) # should we attempt to merge nodes?
+    xyz2 = deepcopy(fens2.xyz);
+    id2 = collect(1:size(xyz2,1));
+    # Decide which nodes should be checked for proximity
+    ib = intersectboxes(inflatebox!(boundingbox(xyz1), tolerance), inflatebox!(boundingbox(xyz2), tolerance))
+    node1in = fill(false, size(xyz1,1));
+    node2in = fill(false, size(xyz2,1));
+    if length(ib) > 0
         for i=1:size(xyz1,1)
-            for rx=1:size(xyz2,1)
-                n1= 0.0
-                for cx=1:size(xyz2,2)
-                    n1=n1+abs(xyz2[rx,cx]-xyz1[i,cx]);
-                end
-                if (n1<tolerance)
-                    id1[i] =-rx; break;
+            node1in[i] = inbox(ib, @view xyz1[i, :])
+        end
+        for i=1:size(xyz2,1)
+            node2in[i] = inbox(ib, @view xyz2[i, :])
+        end
+    end 
+    # Mark nodes from the first array that are duplicated in the second
+    if (tolerance > 0.0) # should we attempt to merge nodes?
+        for i=1:size(xyz1,1)
+            if node1in[i]
+                for rx=1:size(xyz2,1)
+                    if node2in[rx]
+                        n1::FFlt= 0.0
+                        for cx=1:size(xyz2,2)
+                            n1=n1+abs(xyz2[rx,cx]-xyz1[i,cx]);
+                            if (n1 >= tolerance) # shortcut: if the distance is already too large, stop checking
+                                break
+                            end
+                        end
+                        if (n1 < tolerance)
+                            id1[i] = -rx; break;
+                        end
+                    end 
                 end
             end
         end
@@ -208,7 +227,9 @@ function fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance:: FFlt)
     # Generate  fused arrays of the nodes
     xyzm = zeros(FFlt,size(xyz1,1)+size(xyz2,1),dim);
     for rx=1:size(xyz2,1)
-        xyzm[rx,:]=xyz2[rx,:];
+        for cx=1:size(xyz2,2)
+            xyzm[rx,cx]=xyz2[rx,cx];
+        end
     end
     idm = zeros(FInt,size(xyz1,1)+size(xyz2,1));
     for rx=1:size(xyz2,1)
