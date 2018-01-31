@@ -15,9 +15,9 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 # Exported: basic numerical types, type of data dictionary
 export FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
-using FinEtools.BoxModule: inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap
+using FinEtools.BoxModule: inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap, intersectboxes
 # Exported: methods for manipulating and testing boxes
-export inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap
+export inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap, intersectboxes
 
 using FinEtools.PhysicalUnitModule: phun
 # Exported: function for evaluating physical units
