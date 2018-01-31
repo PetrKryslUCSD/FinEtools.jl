@@ -395,3 +395,8 @@ or in other words use the tuple-based connectivity..
 -- Instead of a geometry field, pass the finite element nodes? Then the node data could be stored as immutable, with possible performance gains.
 
 -- Have  multiple concrete types for fields? Some mutable, some immutable?
+
+-- When fusing nodes, how about finding the intersection of the bounding boxes, then
+finding which nodes fall into those boxes, and then only checking for proximity for those nodes?
+
+-- Why are there so many allocations in fusenodes()?
