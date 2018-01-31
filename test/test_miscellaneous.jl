@@ -278,13 +278,13 @@ function test()
   xs = [93.0734, 92.8633, 92.7252]
     hs = [0.1000, 0.0500, 0.0250]
   solnestim, beta, c, residual = AlgoBaseModule.richextrapol(xs, hs)
-  # println("$((solnestim, beta, c))")
+  # # println("$((solnestim, beta, c))")
   @test norm([solnestim, beta, c] - [92.46031652777476, 0.6053628424093497, -2.471055221256022]) < 1.e-5
 
   sol = [231.7, 239.1, 244.8]
   h = [(4.0/5.)^i for i in 0:1:2]
   solnestim, beta, c, residual = AlgoBaseModule.richextrapol(sol, h)
-  # println("$((solnestim, beta, c))")
+  # # println("$((solnestim, beta, c))")
   @test norm([solnestim, beta, c] - [263.91176470588067, 1.1697126080157385, 32.21176470588068]) < 1.e-5
 
 end
@@ -436,7 +436,7 @@ function test()
     axisymmetric = true
     femm  =  FEMMBase(IntegData(bfes, PointRule(), axisymmetric))
     S = integratefunction(femm, geom, (x) ->  1.0, 1)
-    # println(" Length  of the circle = $(S)")
+    # # println(" Length  of the circle = $(S)")
     @test abs(S - 2*pi*L)/S < 1.0e-5
 end
 end
@@ -458,7 +458,7 @@ function test()
 
     femm  =  FEMMBase(IntegData(bfes, PointRule(), t))
     S = integratefunction(femm, geom, (x) ->  1.0, 1)
-    # println("Length  of the boundary curve = $(S)")
+    # # println("Length  of the boundary curve = $(S)")
     @test abs(S - t)/S < 1.0e-5
 end
 end
@@ -480,7 +480,7 @@ function test()
 
     femm  =  FEMMBase(IntegData(bfes, PointRule(), t*W))
     S = integratefunction(femm, geom, (x) ->  1.0, 2)
-    # println("Length  of the boundary curve = $(S)")
+    # # println("Length  of the boundary curve = $(S)")
     @test abs(S - t*W)/S < 1.0e-5
 end
 end
@@ -502,7 +502,7 @@ function test()
 axisymmetric = true
     femm  =  FEMMBase(IntegData(bfes, PointRule(), axisymmetric, W))
     S = integratefunction(femm, geom, (x) ->  1.0, 2)
-    # println("Length  of the boundary curve = $(S)")
+    # # println("Length  of the boundary curve = $(S)")
     @test abs(S - 2*pi*L*W)/S < 1.0e-5
 end
 end
@@ -524,7 +524,7 @@ function test()
 axisymmetric = true
     femm  =  FEMMBase(IntegData(bfes, PointRule(), axisymmetric, W*t))
     S = integratefunction(femm, geom, (x) ->  1.0, 3)
-    # println("Length  of the boundary curve = $(S)")
+    # # println("Length  of the boundary curve = $(S)")
     @test abs(S - 2*pi*L*W*t)/S < 1.0e-5
 end
 end
@@ -546,7 +546,7 @@ function test()
 axisymmetric = false
     femm  =  FEMMBase(IntegData(bfes, PointRule(), axisymmetric, L*W*t))
     S = integratefunction(femm, geom, (x) ->  1.0, 3)
-    # println("Length  of the boundary curve = $(S)")
+    # # println("Length  of the boundary curve = $(S)")
     @test abs(S - L*W*t)/S < 1.0e-5
 end
 end
@@ -621,20 +621,20 @@ function test()
     @test norm(b1 - b2) < 1.0e-4
     c = [-1.0, 3.0, -0.5]
     b3 = updatebox!(b1, c)
-    # println("$(b3)")
+    # # println("$(b3)")
     @test norm(b3 - [-1.0, 0.999928, 0.248077, 3.0, -0.5, 0.93455]) < 1.0e-4
     x = [0.25 1.1 -0.3]
     @test inbox(b3, x)
     @test inbox(b3, c)
     @test inbox(b3, a[2, :])
     b4 = boundingbox(-a)
-    # println("$(b3)")
-    # println("$(b4)")
-    # println("$(boxesoverlap(b3, b4))")
+    # # println("$(b3)")
+    # # println("$(b4)")
+    # # println("$(boxesoverlap(b3, b4))")
     @test !boxesoverlap(b3, b4)
     b5 = updatebox!(b3, [0.0 -0.4 0.0])
-    # println("$(b5)")
-    # println("$(boxesoverlap(b5, b4))")
+    # # println("$(b5)")
+    # # println("$(boxesoverlap(b5, b4))")
     @test boxesoverlap(b5, b4)
 end
 end
@@ -773,7 +773,7 @@ function test()
     bfes = meshboundary(fes)
     femm  =  FEMMBase(IntegData(bfes, GaussRule(2, 4)))
     S27 = integratefunction(femm, geom, (x) ->  1.0)
-    # println("$((S20-S27)/S20)")
+    # # println("$((S20-S27)/S20)")
 
     @test abs((S20-S27)/S20) < 1.0e-5
 end
@@ -815,7 +815,7 @@ function test()
 
     femm  =  FEMMBase(IntegData(fes, GaussRule(3, 4)))
     V27 = integratefunction(femm, geom, (x) ->  1.0)
-    # println("$((S20-S27)/S20)")
+    # # println("$((S20-S27)/S20)")
 
     @test abs((V20-V27)/V20) < 1.0e-5
 end
@@ -919,11 +919,11 @@ function test()
     a = vec([0.1102, -0.369506, -0.0167305])
     b = vec([0.0824301, -0.137487, 0.351721])
     c = cross(a, b)
-    # println("$(c)")
+    # # println("$(c)")
     A = zeros(3, 3)
     skewmat!(A, a)
     d = A * b
-    # println("$(d)")
+    # # println("$(d)")
     @test norm(c - d) < 1.0e-6
     e = cross(a, b)
     @test norm(c - e) < 1.0e-6
@@ -934,7 +934,7 @@ function test()
     a = vec([0.1102, -0.135])
     b = vec([-0.137487, 0.351721])
     c = cross2(a, b)
-    # println("$(c)")
+    # # println("$(c)")
     @test norm(c - 0.0201989092) < 1.0e-6
 end
 end
@@ -971,8 +971,8 @@ function test()
     gradNparams = FESetModule.bfundpar(fes, vec([0.0]));
     J = transpose(fens.xyz) * gradNparams
     CSysModule.gen_iso_csmat!(csmatout, mean(fens.xyz, 1), J, 0)
-    # println("$(csmatout)")
-    # println("$(norm(vec(csmatout)))")
+    # # println("$(csmatout)")
+    # # println("$(norm(vec(csmatout)))")
     @test norm(csmatout - [0.894427; 0.0; 0.447214]) < 1.0e-5
 end
 end
@@ -1000,10 +1000,10 @@ function test()
     for i = 1:length(fes.conn[1])
         J += reshape(fens.xyz[fes.conn[1][i], :], 3, 1) * reshape(gradNparams[i, :], 1, 2)
     end
-    # println("J = $(J)")
+    # # println("J = $(J)")
     @test norm(J - [1.0 0.0; 0.0 2.0; 0.25 -0.25]) < 1.0e-5
     CSysModule.gen_iso_csmat!(csmatout, mean(fens.xyz, 1), J, 0)
-    # println("csmatout = $(csmatout)")
+    # # println("csmatout = $(csmatout)")
     @test norm(csmatout - [0.970143 0.0291979; 0.0 0.992727; 0.242536 -0.116791]) < 1.0e-5
     try rm(File); catch end
 end
@@ -1063,8 +1063,8 @@ function test()
     femm = FEMMBase(IntegData(fes, GaussRule(3, 2)))
     C = connectionmatrix(femm, count(fens))
     Degree = [length(find(x->x!=0, C[j,:])) for j in 1:size(C, 1)]
-    # println("Maximum degree  = $(maximum(Degree))")
-    # println("Minimum degree  = $(minimum(Degree))")
+    # # println("Maximum degree  = $(maximum(Degree))")
+    # # println("Minimum degree  = $(minimum(Degree))")
     @test maximum(Degree) == 27
     @test minimum(Degree) == 8
 end
@@ -1231,7 +1231,7 @@ function test()
     nl, nt, nw = 6, 8, 9;
 
     fens,fes  = H20block(L,W,t, nl,nw,nt)
-    # println("Mesh: $(count(fes))")
+    # # println("Mesh: $(count(fes))")
     for ixxxx = 1:count(fens)
         x,y,z = fens.xyz[ixxxx, :]
         fens.xyz[ixxxx, :] = [x+a*sin(y) y+x/10*a*sin(z) z+y*a*sin(x)]
@@ -1246,8 +1246,8 @@ function test()
 
     subregion1list = selectelem(fens, fes, box = [0.0 L/2 -Inf Inf -Inf Inf], inflate = t/1000)
     subregion2list = setdiff(1:count(fes), subregion1list)
-    # println("Sub mesh 1: $(length(subregion1list))")
-    # println("Sub mesh 2: $(length(subregion2list))")
+    # # println("Sub mesh 1: $(length(subregion1list))")
+    # # println("Sub mesh 2: $(length(subregion2list))")
 
     fes1 = subset(fes, subregion1list)
     connected1 = findunconnnodes(fens, fes1);
@@ -1267,8 +1267,8 @@ function test()
     V20p = integratefunction(femm1, geom1, (x) ->  1.0)
     femm2  =  FEMMBase(IntegData(fes2, GaussRule(3, 4)))
     V20p += integratefunction(femm2, geom2, (x) ->  1.0)
-    # println("V20p = $(V20p)")
-    # println("V20 = $(V20)")
+    # # println("V20p = $(V20p)")
+    # # println("V20 = $(V20)")
 
     @test abs(V20 - V20p)/V20 < 1.0e-6
 
@@ -1330,7 +1330,7 @@ function test()
     InnerProduct = FinEtools.FEMMBaseModule.innerproduct(femm,  geom,  Temp)
 
     d,v,nev,nconv = eigs(InnerProduct; nev=7, which=:SM)
-    # println("Smallest Eigenvalues: $(d)")
+    # # println("Smallest Eigenvalues: $(d)")
     @test abs(d[1] - 9.60413e-5) / 9.60413e-5 < 1.0e-6
     
     true
@@ -1391,10 +1391,10 @@ function test()
     scattersysvec!(Temp, U[:])
     
     InnerProductM = FinEtools.FEMMBaseModule.innerproduct(femm, SysmatAssemblerSparseHRZLumpingSymm(), geom,  Temp)
-    # println("InnerProductM = $(InnerProductM)")
+    # # println("InnerProductM = $(InnerProductM)")
 
     d,v,nev,nconv = eigs(InnerProductM; nev=7, which=:SM)
-    # println("Smallest Eigenvalues: $(d)")
+    # # println("Smallest Eigenvalues: $(d)")
     @test abs(d[1] - 0.086911) / 0.086911 < 1.0e-6
     
     true
@@ -1403,3 +1403,61 @@ end
 end
 using .minnerproduct2
 minnerproduct2.test()
+
+module mboxintersection_1
+using FinEtools
+using Compat.Test
+function test()
+    a = [ 0.042525  0.455813  0.528458
+    0.580612  0.933498  0.929843
+    0.99648   0.800709  0.00175703
+    0.433793  0.119944  0.966154
+    0.793678  0.693062  0.919114]
+    b1 = boundingbox(a)
+    # println("b1 = $(b1)")
+    a = [ 0.86714   0.311569   0.780585
+    0.415177  0.60264    0.906292
+    0.114056  0.0389293  0.733558
+    0.657139  0.156761   0.83009
+    0.890426  0.310158   0.516064]
+    b2 = boundingbox(a)
+    # println("b2 = $(b2)")
+    b = intersectboxes(b1, b2)
+    # println("b = $(b)")
+    @test norm(b - [0.114056, 0.890426, 0.119944, 0.60264, 0.516064, 0.906292]) < 1.0e-4
+    
+    b1 = [0.042525, 0.49648, 0.119944, 0.933498, 0.00175703, 0.966154]
+    b2 = [0.514056, 0.890426, 0.0389293, 0.60264, 0.516064, 0.906292]
+    # println("b1 = $(b1)")
+    # println("b2 = $(b2)")
+    b = intersectboxes(b1, b2)
+    # println("b = $(b)")
+    @test length(b) == 0
+
+    b1 = [0.042525, 0.69648, 0.119944, 0.933498, 0.00175703, 0.966154]
+    b2 = [0.514056, 0.890426, 0.0389293, 0.060264, 0.516064, 0.906292]
+    # println("b1 = $(b1)")
+    # println("b2 = $(b2)")
+    b = intersectboxes(b1, b2)
+    # println("b = $(b)")
+    @test length(b) == 0
+
+    b1 = [0.042525, 0.69648, 0.119944, 0.933498]
+    b2 = [0.514056, 0.890426, 0.0389293, 0.060264]
+    # println("b1 = $(b1)")
+    # println("b2 = $(b2)")
+    b = intersectboxes(b1, b2)
+    # println("b = $(b)")
+    @test length(b) == 0
+
+    b1 = [0.042525, 0.69648, 0.119944, 0.933498]
+    b2 = [0.514056, 0.890426, 0.0389293, 0.160264]
+    # println("b1 = $(b1)")
+    # println("b2 = $(b2)")
+    b = intersectboxes(b1, b2)
+    # # println("b = $(b)")
+    @test norm(b - [0.514056, 0.69648, 0.119944, 0.160264]) < 1.0e-4
+end
+end
+using .mboxintersection_1
+mboxintersection_1.test()
