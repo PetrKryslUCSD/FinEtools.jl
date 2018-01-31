@@ -207,6 +207,7 @@ function fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance:: FFlt)
     if (tolerance > 0.0) # should we attempt to merge nodes?
         for i=1:size(xyz1,1)
             if node1in[i]
+                breakoff = false
                 for rx=1:size(xyz2,1)
                     if node2in[rx]
                         n1::FFlt= 0.0
@@ -217,9 +218,12 @@ function fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance:: FFlt)
                             end
                         end
                         if (n1 < tolerance)
-                            id1[i] = -rx; break;
+                            id1[i] = -rx; breakoff = true;
                         end
                     end 
+                    if breakoff
+                        break
+                    end
                 end
             end
         end
