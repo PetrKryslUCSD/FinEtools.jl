@@ -16,7 +16,7 @@ function test()
 end
 end
 using .miscellaneous2mm
-miscellaneous2mm.test()
+ miscellaneous2mm.test()
 
 module mmmQ4blockneous2mm
 using FinEtools
@@ -40,7 +40,7 @@ function test()
 end
 end
 using .mmmQ4blockneous2mm
-mmmQ4blockneous2mm.test()
+ mmmQ4blockneous2mm.test()
 
 module miimportexportm
 using FinEtools
@@ -59,7 +59,7 @@ function test()
 end
 end
 using .miimportexportm
-miimportexportm.test()
+ miimportexportm.test()
 
 module miimportexportm2
 using FinEtools
@@ -79,7 +79,7 @@ function test()
 end
 end
 using .miimportexportm2
-miimportexportm2.test()
+ miimportexportm2.test()
 
 module mmmLshapemmm
 using FinEtools
@@ -119,7 +119,7 @@ function test()
 end
 end
 using .mmmLshapemmm
-mmmLshapemmm.test()
+ mmmLshapemmm.test()
 
 module mAbaqusmmiimportmmm
 using FinEtools
@@ -209,7 +209,7 @@ function test()
 end
 end
 using .mAbaqusmmiimportmmm
-mAbaqusmmiimportmmm.test()
+ mAbaqusmmiimportmmm.test()
 
 module mmsmoothingm1
 using FinEtools
@@ -260,7 +260,7 @@ function test()
 end
 end
 using .mmsmoothingm1
-mmsmoothingm1.test()
+ mmsmoothingm1.test()
 
 
 module mmsmoothingm2
@@ -312,7 +312,7 @@ function test()
 end
 end
 using .mmsmoothingm2
-mmsmoothingm2.test()
+ mmsmoothingm2.test()
 
 module mmbracketmm
 using FinEtools
@@ -338,7 +338,7 @@ function test()
 end
 end
 using .mmbracketmm
-mmbracketmm.test()
+ mmbracketmm.test()
 
 module mmmMergem1
 using FinEtools
@@ -387,7 +387,7 @@ function test()
 end
 end
 using .mmmMergem1
-mmmMergem1.test()
+ mmmMergem1.test()
 
 
 module mmmMergem2
@@ -437,7 +437,7 @@ function test()
 end
 end
 using .mmmMergem2
-mmmMergem2.test()
+ mmmMergem2.test()
 
 
 module mmmMergem3
@@ -487,7 +487,7 @@ function test()
 end
 end
 using .mmmMergem3
-mmmMergem3.test()
+ mmmMergem3.test()
 
 
 module mAbaqusmmiimport_1m
@@ -581,7 +581,7 @@ function test()
 end
 end
 using .mAbaqusmmiimport_1m
-mAbaqusmmiimport_1m.test()
+ mAbaqusmmiimport_1m.test()
 
 
 module mmfflood1
@@ -633,7 +633,7 @@ function test()
 end
 end
 using .mmfflood1
-mmfflood1.test()
+ mmfflood1.test()
 
 
 module mmfflood2
@@ -686,7 +686,7 @@ function test()
 end
 end
 using .mmfflood2
-mmfflood2.test()
+ mmfflood2.test()
 
 module mt4orientation2
 using FinEtools
@@ -714,7 +714,7 @@ function test()
 end
 end
 using .mt4orientation2
-mt4orientation2.test()
+ mt4orientation2.test()
 
 module mmAbaqusexport3
 using FinEtools
@@ -808,7 +808,7 @@ function test()
 end
 end
 using .mmAbaqusexport3
-mmAbaqusexport3.test()
+ mmAbaqusexport3.test()
 
 
 module mttriangles13
@@ -831,7 +831,7 @@ function test()
 end
 end
 using .mttriangles13
-mttriangles13.test()
+ mttriangles13.test()
 
 module mttriangles14
 using FinEtools
@@ -855,7 +855,7 @@ function test()
 end
 end
 using .mttriangles14
-mttriangles14.test()
+ mttriangles14.test()
 
 module mselecte1
 using FinEtools
@@ -920,7 +920,7 @@ function test()
 end
 end
 using .mselecte1
-mselecte1.test()
+ mselecte1.test()
 
 
 module mselecte2
@@ -951,7 +951,7 @@ function test()
 end
 end
 using .mselecte2
-mselecte2.test()
+ mselecte2.test()
 
 module mMeyer_Piening_1
 using FinEtools
@@ -1000,7 +1000,7 @@ function test()
 end
 end
 using .mMeyer_Piening_1
-mMeyer_Piening_1.test()
+ mMeyer_Piening_1.test()
 
 
 module mMeyer_Piening_2
@@ -1051,7 +1051,7 @@ function test()
 end
 end
 using .mMeyer_Piening_2
-mMeyer_Piening_2.test()
+ mMeyer_Piening_2.test()
 
 
 module mMeyer_Piening_3
@@ -1102,7 +1102,7 @@ function test()
 end
 end
 using .mMeyer_Piening_3
-mMeyer_Piening_3.test()
+ mMeyer_Piening_3.test()
 
 module mmtetblocksmm
 using FinEtools
@@ -1152,7 +1152,7 @@ function test()
 end
 end
 using .mmtetblocksmm
-mmtetblocksmm.test()
+ mmtetblocksmm.test()
 
 module momap2para1
 using FinEtools
@@ -1171,7 +1171,7 @@ function test()
 end
 end
 using .momap2para1
-momap2para1.test()
+ momap2para1.test()
 
 module momap2para2
 using FinEtools
@@ -1195,7 +1195,7 @@ function test()
 end
 end
 using .momap2para2
-momap2para2.test()
+ momap2para2.test()
 
 module momap2para3
 using FinEtools
@@ -1262,7 +1262,7 @@ function test()
 end
 end
 using .momap2para3
-momap2para3.test()
+ momap2para3.test()
 
 module momap2para4
 using FinEtools
@@ -1338,7 +1338,7 @@ function test()
 end
 end
 using .momap2para4
-momap2para4.test()
+ momap2para4.test()
 
 module momap2para5
 using FinEtools
@@ -1415,7 +1415,7 @@ Meshing = T4blockx
 end
 end
 using .momap2para5
-momap2para5.test()
+ momap2para5.test()
 
 
 module momap2para6
@@ -1493,7 +1493,7 @@ Meshing = H20blockx
 end
 end
 using .momap2para6
-momap2para6.test()
+ momap2para6.test()
 
 module momap2para7
 using FinEtools
@@ -1570,7 +1570,7 @@ Meshing = H8blockx
 end
 end
 using .momap2para7
-momap2para7.test()
+ momap2para7.test()
 
 module momap2para8
 using FinEtools
@@ -1647,7 +1647,7 @@ Meshing = H27blockx
 end
 end
 using .momap2para8
-momap2para8.test()
+ momap2para8.test()
 
 
 module momap2para9
@@ -1724,7 +1724,7 @@ Meshing = Q4blockx
 end
 end
 using .momap2para9
-momap2para9.test()
+ momap2para9.test()
 
 
 module momap2para10
@@ -1801,7 +1801,7 @@ Meshing = Q8blockx
 end
 end
 using .momap2para10
-momap2para10.test()
+ momap2para10.test()
 
 
 module momap2para11
@@ -1878,7 +1878,7 @@ Meshing = T3blockx
 end
 end
 using .momap2para11
-momap2para11.test()
+ momap2para11.test()
 
 
 module momap2para12
@@ -1955,7 +1955,7 @@ Meshing = T6blockx
 end
 end
 using .momap2para12
-momap2para12.test()
+ momap2para12.test()
 
 
 module momap2para13
@@ -2029,7 +2029,7 @@ Meshing = L2blockx
 end
 end
 using .momap2para13
-momap2para13.test()
+ momap2para13.test()
 
 module momap2para14
 using FinEtools
@@ -2104,7 +2104,7 @@ Meshing = L3blockx
 end
 end
 using .momap2para14
-momap2para14.test()
+ momap2para14.test()
 
 module mpointmm1
 using FinEtools
@@ -2127,7 +2127,7 @@ function test()
 end
 end
 using .mpointmm1
-mpointmm1.test()
+ mpointmm1.test()
 
 module ml314
 using FinEtools
@@ -2155,7 +2155,7 @@ Meshing = L3blockx
 end
 end
 using .ml314
-ml314.test()
+ ml314.test()
 
 module mtetmeshedges1
 using FinEtools
@@ -2608,7 +2608,7 @@ function test()
 end
 end
 using .mtetmeshedges1
-mtetmeshedges1.test()
+ mtetmeshedges1.test()
 
 module minterior2boundary1
 using FinEtools
@@ -2872,7 +2872,7 @@ function test()
 end
 end
 using .minterior2boundary1
-minterior2boundary1.test()
+ minterior2boundary1.test()
 
 module mrremeshing1
 using FinEtools
@@ -2919,7 +2919,7 @@ V = integratefunction(femm, geom, (x) ->  1.0)
 end
 end
 using .mrremeshing1
-mrremeshing1.test()
+ mrremeshing1.test()
 
 module mmmbbracketmtet1
 using FinEtools
@@ -2940,7 +2940,7 @@ function test()
 end
 end
 using .mmmbbracketmtet1
-mmmbbracketmtet1.test()
+ mmmbbracketmtet1.test()
 
 
 module mmmremeshingm1m
@@ -2978,7 +2978,7 @@ function test()
 end
 end
 using .mmmremeshingm1m
-mmmremeshingm1m.test()
+ mmmremeshingm1m.test()
 
 module mmvoxel_bracket_mesh
 using FinEtools
@@ -3067,7 +3067,7 @@ function test()
 end
 end
 using .mmvoxel_bracket_mesh
-mmvoxel_bracket_mesh.test()
+ mmvoxel_bracket_mesh.test()
 
 module miscellan3m
 using FinEtools
@@ -3097,5 +3097,5 @@ function test()
 end
 end
 using .miscellan3m
-miscellan3m.test()
+ miscellan3m.test()
 
