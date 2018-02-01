@@ -186,38 +186,41 @@ needs to be updated to refer to the same nodes in  the set `fens` as
      `updateconn!(fes, new_indexes_of_fens1_nodes);`
 """
 function fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance:: FFlt)
-    xyz1 = deepcopy(fens1.xyz);
-    id1 = collect(1:size(xyz1,1));
-    dim =size(xyz1,2);
-    xyz2 = deepcopy(fens2.xyz);
-    id2 = collect(1:size(xyz2,1));
+    @assert size(fens1.xyz, 2) == size(fens2.xyz, 2)
+    dim::FInt = size(fens1.xyz,2);
+    nn1::FInt = count(fens1)
+    nn2::FInt = count(fens2)
+    xyz1 = zeros(FFlt,nn1,dim); copyto!(xyz1, fens1.xyz)#::FFltMat = copy(fens1.xyz::FFltMat)
+    id1 = collect(1:nn1);
+    xyz2 = zeros(FFlt,nn2,dim); copyto!(xyz2, fens2.xyz)#xyz2::FFltMat = copy(fens2.xyz::FFltMat)
+    id2 = collect(1:nn2);
     # Decide which nodes should be checked for proximity
-    ib = intersectboxes(inflatebox!(boundingbox(xyz1), tolerance), inflatebox!(boundingbox(xyz2), tolerance))
-    node1in = fill(false, size(xyz1,1));
-    node2in = fill(false, size(xyz2,1));
+    ib::FFltVec = intersectboxes(inflatebox!(boundingbox(xyz1), tolerance), inflatebox!(boundingbox(xyz2), tolerance))
+    node1in = fill(false, nn1);
+    node2in = fill(false, nn2);
     if length(ib) > 0
-        for i=1:size(xyz1,1)
+        for i=1:nn1
             node1in[i] = inbox(ib, @view xyz1[i, :])
         end
-        for i=1:size(xyz2,1)
+        for i=1:nn2
             node2in[i] = inbox(ib, @view xyz2[i, :])
         end
     end 
     # Mark nodes from the first array that are duplicated in the second
     if (tolerance > 0.0) # should we attempt to merge nodes?
-        for i=1:size(xyz1,1)
+        for i=1:nn1
             if node1in[i]
                 breakoff = false
-                for rx=1:size(xyz2,1)
+                for rx=1:nn2
                     if node2in[rx]
-                        n1::FFlt= 0.0
-                        for cx=1:size(xyz2,2)
-                            n1=n1+abs(xyz2[rx,cx]-xyz1[i,cx]);
-                            if (n1 >= tolerance) # shortcut: if the distance is already too large, stop checking
+                        distance::FFlt= 0.0
+                        for cx=1:dim
+                            distance = distance + abs(xyz2[rx,cx]-xyz1[i,cx]);
+                            if (distance >= tolerance) # shortcut: if the distance is already too large, stop checking
                                 break
                             end
                         end
-                        if (n1 < tolerance)
+                        if (distance < tolerance)
                             id1[i] = -rx; breakoff = true;
                         end
                     end 
@@ -228,32 +231,33 @@ function fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance:: FFlt)
             end
         end
     end
-    # Generate  fused arrays of the nodes
-    xyzm = zeros(FFlt,size(xyz1,1)+size(xyz2,1),dim);
-    for rx=1:size(xyz2,1)
-        for cx=1:size(xyz2,2)
-            xyzm[rx,cx]=xyz2[rx,cx];
+    # Generate  fused arrays of the nodes. First copy in the nodes from the second set...
+    xyzm = zeros(FFlt,nn1+nn2,dim);
+    for rx = 1:nn2
+        for cx = 1:dim
+            xyzm[rx,cx] = xyz2[rx,cx];
         end
     end
-    idm = zeros(FInt,size(xyz1,1)+size(xyz2,1));
-    for rx=1:size(xyz2,1)
-        idm[rx]=rx;
+    idm = zeros(FInt,nn1+nn2);
+    for rx = 1:nn2
+        idm[rx] = rx;
     end
-    mid=size(xyz2,1)+1;
-    for i=1:size(xyz1,1) # and then we pick only non-duplicated fens1
+    mid=nn2+1;
+    # ...and then we add in only non-duplicated nodes from the first set
+    for i=1:nn1 
         if id1[i]>0
-            id1[i]=mid;
-            idm[mid]=mid;
-            for cx=1:size(xyz1,2)
-                xyzm[mid,cx]=xyz1[i,cx];
+            id1[i] = mid;
+            idm[mid] = mid;
+            for cx = 1:dim
+                xyzm[mid,cx] = xyz1[i,cx];
             end
-            mid=mid+1;
+            mid = mid+1;
         else
-            id1[i]=id2[-id1[i]];
+            id1[i] = id2[-id1[i]];
         end
     end
-    nnodes =mid-1;
-    xyzm =xyzm[1:nnodes,:];
+    nnodes = mid-1;
+    xyzm = xyzm[1:nnodes,:];
 
     # Create the fused Node set
     fens = FENodeSet(xyzm);
@@ -335,6 +339,7 @@ fes2 will in fact remain the same.
 function mergemeshes(fens1::FENodeSet, fes1::T1,
     fens2::FENodeSet, fes2::T2, tolerance::FFlt) where {T1<:FESet,T2<:FESet}
     # Fuse the nodes
+    # @code_warntype fusenodes(fens1, fens2, tolerance);
     fens, new_indexes_of_fens1_nodes = fusenodes(fens1, fens2, tolerance);
     # Renumber the finite elements
     newfes1 = deepcopy(fes1)
