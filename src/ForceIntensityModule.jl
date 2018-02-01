@@ -32,7 +32,7 @@ The buffer `forceout` is filled with the value  of the force.
 """
 struct ForceIntensity{T<:Number, F<:Function}
     computeforce!::F # function to update the force
-    force::FVec{T}    # buffer where the current value of the force can be retrieved
+    force::Vector{T}    # buffer where the current value of the force can be retrieved
 end
 
 """

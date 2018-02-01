@@ -261,7 +261,7 @@ function coarsen(t::Array{Int, 2}, inputv::Array{Float64, 2}, tmid::Vector{Int};
     return cleanoutput(t,deepcopy(transpose(vt)),tmid);
 end
 
-function collapseedge!(e::Array{Int, 2}, es::Vector{Float64}, elayer::Vector{Int}, vlayer::Vector{Int}, t::Array{Int, 2}, vt::AbstractArray{Float64, 2}, v2t::Vector{FIntVec}, v2e::Vector{FIntVec}, vertex_weight::Vector{Float64}, dei::Int)
+function collapseedge!(e::Array{Int, 2}, es::Vector{Float64}, elayer::Vector{Int}, vlayer::Vector{Int}, t::Array{Int, 2}, vt::AbstractArray{Float64, 2}, v2t::Vector{Vector{FInt}}, v2e::Vector{Vector{FInt}}, vertex_weight::Vector{Float64}, dei::Int)
     result = false;
     # if the operation would result in inverted tetrahedra, cancel it
     de1, de2 = e[dei, 1], e[dei, 2];

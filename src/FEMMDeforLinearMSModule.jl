@@ -40,7 +40,7 @@ mutable struct FEMMDeforLinearMSH8{MR<:DeforModelRed, S<:FESetH8, F<:Function, M
     mcsys::CSys # updater of the material orientation matrix
     material::M # material object
     stabilization_material::MatDeforElastIso
-    phis::FFltVec
+    phis::Vector{FFlt}
 end
 
 function FEMMDeforLinearMSH8(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
@@ -63,7 +63,7 @@ mutable struct FEMMDeforLinearMST10{MR<:DeforModelRed, S<:FESetT10, F<:Function,
     mcsys::CSys # updater of the material orientation matrix
     material::M # material object
     stabilization_material::MatDeforElastIso
-    phis::FFltVec
+    phis::Vector{FFlt}
 end
 
 function FEMMDeforLinearMST10(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetT10, F<:Function, M<:MatDefor}

@@ -17,8 +17,8 @@ Used for integration on the standard triangle.
 """
 struct TriRule <: IntegRule
     npts::FInt
-    param_coords::FFltMat
-    weights::FFltMat
+    param_coords::Array{Float64, 2}
+    weights::Array{Float64, 2}
 end
 
 
@@ -94,8 +94,8 @@ struct GaussRule <: IntegRule
     dim::FInt
     order::FInt
     npts::FInt
-    param_coords::FFltMat
-    weights::FFltMat
+    param_coords::Array{Float64, 2}
+    weights::Array{Float64, 2}
 end
 
 """
@@ -170,8 +170,8 @@ Used for integration on the standard tetrahedron.
 """
 struct TetRule <: IntegRule
     npts::FInt
-    param_coords::FFltMat
-    weights::FFltMat
+    param_coords::Array{Float64, 2}
+    weights::Array{Float64, 2}
 end
 
 """
@@ -221,8 +221,8 @@ Used for integration on the standard "point" shape.
 """
 struct PointRule <: IntegRule
     npts::FInt
-    param_coords::FFltMat
-    weights::FFltMat
+    param_coords::Array{Float64, 2}
+    weights::Array{Float64, 2}
 end
 
 """
@@ -243,8 +243,8 @@ Used for integration on the standard triangle or the standard tetrahedron.
 """
 struct SimplexRule <: IntegRule
     npts::FInt
-    param_coords::FFltMat
-    weights::FFltMat
+    param_coords::Array{Float64, 2}
+    weights::Array{Float64, 2}
 end
 
 function SimplexRule(dim=1, npts=1)
