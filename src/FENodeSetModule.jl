@@ -20,7 +20,7 @@ xyz =
 """
 #
 mutable struct FENodeSet
-  xyz::FFltMat
+  xyz::Array{FFlt, 2}
 
   function FENodeSet(xyz::FFltMat)
     self = new(deepcopy(xyz)); # Need to make a COPY of the input array!

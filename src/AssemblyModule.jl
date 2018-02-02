@@ -19,9 +19,9 @@ abstract type SysmatAssemblerBase end;
 mutable struct SysmatAssemblerSparse{T<:Number} <: SysmatAssemblerBase
     # Type for assembling of a sparse global matrix from elementwise matrices.
     buffer_length::FInt;
-    matbuffer::FVec{T};
-    rowbuffer::FIntVec;
-    colbuffer::FIntVec;
+    matbuffer::Vector{T};
+    rowbuffer::Vector{FInt};
+    colbuffer::Vector{FInt};
     buffer_pointer::FInt;
     ndofs_row::FInt; ndofs_col::FInt;
 end
@@ -124,9 +124,9 @@ matrices.
 mutable struct SysmatAssemblerSparseSymm{T<:Number} <: SysmatAssemblerBase
     # Type for assembling of a sparse global matrix from elementwise matrices.
     buffer_length:: FInt;
-    matbuffer::FVec{T};
-    rowbuffer::FIntVec;
-    colbuffer::FIntVec;
+    matbuffer::Vector{T};
+    rowbuffer::Vector{FInt};
+    colbuffer::Vector{FInt};
     buffer_pointer:: FInt;
     ndofs:: FInt;
 end
@@ -240,7 +240,7 @@ mutable struct SysvecAssembler{T<:Number} <: SysvecAssemblerBase
     # % column vector from elementwise vectors.
     # 	% Fixed degrees of freedom numbers are given this value:
     #      % it indicates that this is not a valid free  degree of freedom number.
-    F_buffer::FVec{T};
+    F_buffer::Vector{T};
 end
 
 function SysvecAssembler(zero::T=0.0) where {T<:Number}
@@ -306,9 +306,9 @@ volume 4, number 3, 245--249, 1976.
 mutable struct SysmatAssemblerSparseHRZLumpingSymm{T<:Number} <: SysmatAssemblerBase
     # Type for assembling of a sparse global matrix from elementwise matrices.
     buffer_length:: FInt;
-    matbuffer::FVec{T};
-    rowbuffer::FIntVec;
-    colbuffer::FIntVec;
+    matbuffer::Vector{T};
+    rowbuffer::Vector{FInt};
+    colbuffer::Vector{FInt};
     buffer_pointer:: FInt;
     ndofs:: FInt;
 end

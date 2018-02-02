@@ -480,10 +480,10 @@ end
 
 
 struct InverseDistanceInspectorData
-    component::FIntVec
-    d::FFltVec # nodesperelem(integdata.fes)
-    sum_inv_dist::FFltVec # nnodes(geom)
-    sum_quant_inv_dist::FFltMat # nnodes(geom) x length(component)
+    component::Vector{FInt}
+    d::Vector{FFlt} # nodesperelem(integdata.fes)
+    sum_inv_dist::Vector{FFlt} # nnodes(geom)
+    sum_quant_inv_dist::Array{FFlt, 2} # nnodes(geom) x length(component)
 end
 
 
@@ -512,10 +512,10 @@ end
 
 
 struct AveragingInspectorData
-    component::FIntVec
-    d::FFltVec # nodesperelem(fes)
-    ncontrib::FIntVec # nnodes(geom)
-    sum_quant::FFltMat # nnodes(geom) x length(component)
+    component::Vector{FInt}
+    d::Vector{FFlt} # nodesperelem(fes)
+    ncontrib::Vector{FInt} # nnodes(geom)
+    sum_quant::Array{FFlt, 2} # nnodes(geom) x length(component)
 end
 
 # This is a simple nodal averaging inspector.
@@ -657,8 +657,8 @@ end
 
 
 struct MeanValueInspectorData
-    n_quant::FIntVec
-    sum_quant_value::FFltMat
+    n_quant::Vector{FInt}
+    sum_quant_value::Array{FFlt, 2}
 end
 
 """
