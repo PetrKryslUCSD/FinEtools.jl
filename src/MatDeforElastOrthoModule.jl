@@ -44,7 +44,7 @@ struct  MatDeforElastOrtho{MR<:DeforModelRed,  MTAN<:Function, MUPD<:Function, M
     CTE1::FFlt # three thermal expansion coefficients
     CTE2::FFlt # three thermal expansion coefficients
     CTE3::FFlt # three thermal expansion coefficients
-    D::FFltMat # cached matrix of tangent moduli
+    D::Array{FFlt, 2} # cached matrix of tangent moduli
     tangentmoduli!::MTAN
     update!::MUPD
     thermalstrain!::MTHS

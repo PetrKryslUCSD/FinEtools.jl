@@ -32,7 +32,7 @@ all the nodes that are connected to node 5 (including node 5
 itself).
 """
 struct FENodeToFEMap
-    map::Array{FIntVec,1}
+    map::Array{Vector{FInt},1}
 end
 
 

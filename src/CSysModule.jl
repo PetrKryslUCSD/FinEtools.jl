@@ -18,7 +18,7 @@ struct CSys{F<:Function}
     isconstant::Bool
     isidentity::Bool
     updatebuffer!::F # function to update the coordinate system matrix
-    csmat::FFltMat # the coordinate system matrix (buffer); see
+    csmat::Array{FFlt, 2} # the coordinate system matrix (buffer); see
 end
 
 

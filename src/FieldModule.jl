@@ -30,10 +30,10 @@ abstract type Field end
 
 macro add_Field_fields()
     return esc(:(
-    values::FMat{T};
-    dofnums::FIntMat;
+    values::Array{T, 2};
+    dofnums::Array{FInt, 2};
     is_fixed::Matrix{Bool};
-    fixed_values::FMat{T};;
+    fixed_values::Array{T, 2};;
     nfreedofs::FInt;
     )
     )

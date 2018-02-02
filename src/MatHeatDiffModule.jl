@@ -9,7 +9,7 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 
 # Type for heat diffusion models of materials.
 struct MatHeatDiff
-  thermal_conductivity::FFltMat;# Thermal conductivity
+  thermal_conductivity::Array{FFlt, 2};# Thermal conductivity
   specific_heat::FFlt;# Specific heat per unit volume
 end
 

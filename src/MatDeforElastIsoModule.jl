@@ -31,7 +31,7 @@ struct  MatDeforElastIso{MR<:DeforModelRed, MTAN<:Function, MUPD<:Function, MTHS
     E::FFlt # Young's modulus
     nu::FFlt # Poisson ratio
     CTE::FFlt # Coefficient of Thermal Expansion
-    D::FFltMat # cached matrix of 3D tangent moduli
+    D::Array{FFlt, 2} # cached matrix of 3D tangent moduli
     tangentmoduli!::MTAN
     update!::MUPD
     thermalstrain!::MTHS
