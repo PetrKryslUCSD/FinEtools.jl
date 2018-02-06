@@ -23,8 +23,7 @@ smallest coordinate in all three directions is  0 (origin)
 nL, nW, nH=number of elements in the three directions
 """
 function H8block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
-    return H8blockx(collect(linspace(0, Length, nL+1)),
-    collect(linspace(0, Width, nW+1)), collect(linspace(0, Height, nH+1)));
+    return H8blockx(collect(linspace(0, Length, nL+1)), collect(linspace(0, Width, nW+1)), collect(linspace(0, Height, nH+1)));
 end
 
 
@@ -45,17 +44,19 @@ function H8blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec)
 
 
     # first go along Length,  then Width,  and finally Height
-    function node_numbers(i, j, k, nL, nW, nH)
-        f=(k-1)*((nL+1)*(nW+1))+(j-1)*(nL+1)+i;
-        nn=[f (f+1)  f+(nL+1)+1 f+(nL+1)];
-        nn=[nn broadcast(+, nn, (nL+1)*(nW+1))];
-    end
+    # function node_numbers(i, j, k, nL, nW, nH)
+    #     f=(k-1)*((nL+1)*(nW+1))+(j-1)*(nL+1)+i;
+    #     nn=[f (f+1)  f+(nL+1)+1 f+(nL+1)];
+    #     nn=[nn broadcast(+, nn, (nL+1)*(nW+1))];
+    # end
 
     f=1;
     for k=1:(nH+1)
         for j=1:(nW+1)
             for i=1:(nL+1)
-                xyz[f, :]=[xs[i] ys[j] zs[k]];
+                xyz[f, 1] = xs[i]
+                xyz[f, 2] = ys[j]
+                xyz[f, 3] = zs[k];
                 f=f+1;
             end
         end
@@ -65,8 +66,16 @@ function H8blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec)
     for i=1:nL
         for j=1:nW
             for k=1:nH
-                nn=node_numbers(i, j, k, nL, nW, nH);
-                conns[gc, :]=nn;
+                f=(k-1)*((nL+1)*(nW+1))+(j-1)*(nL+1)+i;
+                conns[gc, 1] = f
+                conns[gc, 2] = (f+1)
+                conns[gc, 3] = f+(nL+1)+1
+                conns[gc, 4] = f+(nL+1)
+                f = f + (nL+1)*(nW+1)
+                conns[gc, 5] = f
+                conns[gc, 6] = (f+1)
+                conns[gc, 7] = f+(nL+1)+1
+                conns[gc, 8] = f+(nL+1)
                 gc=gc+1;
             end
         end
@@ -308,7 +317,7 @@ end
 """
     H27block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
 
-Create mesh of a 3-D block of H27 finite elements.  
+Create mesh of a 3-D block of H27 finite elements.
 """
 function H27block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
     fens, fes = H8block(Length, Width, Height, nL, nW, nH);
@@ -468,7 +477,7 @@ end
 """
     H20block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
 
-Create mesh of a 3-D block of H20 finite elements.  
+Create mesh of a 3-D block of H20 finite elements.
 """
 function H20block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
     fens, fes = H8block(Length, Width, Height, nL, nW, nH);

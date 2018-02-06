@@ -86,7 +86,9 @@ function T4blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec, orientation::Symbol)
     for k=1:(nH+1)
         for j=1:(nW+1)
             for i=1:(nL+1)
-                xyzs[f, :]=[xs[i] ys[j] zs[k]];
+                xyzs[f, 1] = xs[i]
+                xyzs[f, 2] = ys[j]
+                xyzs[f, 3] = zs[k];
                 f=f+1;
             end
         end
@@ -169,10 +171,10 @@ function  T4toT10(fens::FENodeSet,  fes::FESetT4)
         end
         wn = 1
         for j in fes.conn[i]
-            nconn[nc, wn] = j; wn = wn + 1 
+            nconn[nc, wn] = j; wn = wn + 1
         end
         for j in econn
-            nconn[nc, wn] = j; wn = wn + 1 
+            nconn[nc, wn] = j; wn = wn + 1
         end
         # nconn[nc, :] = vcat([j for j in fes.conn[i]], vec(econn))
         nc= nc+ 1;
@@ -257,7 +259,7 @@ end
 """
     tetv(X)
 
-Compute the volume of a tetrahedron.  
+Compute the volume of a tetrahedron.
 
 ```
 X = [0  4  3
@@ -272,15 +274,15 @@ function tetv(X::FFltMat)
     # @assert size(X, 1) == 4
     # @assert size(X, 2) == 3
     @inbounds let
-        A1 = X[2,1]-X[1,1]; 
-        A2 = X[2,2]-X[1,2]; 
-        A3 = X[2,3]-X[1,3]; 
-        B1 = X[3,1]-X[1,1]; 
-        B2 = X[3,2]-X[1,2]; 
-        B3 = X[3,3]-X[1,3]; 
-        C1 = X[4,1]-X[1,1]; 
-        C2 = X[4,2]-X[1,2]; 
-        C3 = X[4,3]-X[1,3]; 
+        A1 = X[2,1]-X[1,1];
+        A2 = X[2,2]-X[1,2];
+        A3 = X[2,3]-X[1,3];
+        B1 = X[3,1]-X[1,1];
+        B2 = X[3,2]-X[1,2];
+        B3 = X[3,3]-X[1,3];
+        C1 = X[4,1]-X[1,1];
+        C2 = X[4,2]-X[1,2];
+        C3 = X[4,3]-X[1,3];
         return one6th * ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
     end
 end
@@ -288,15 +290,15 @@ end
 function tetv(v11::FFlt, v12::FFlt, v13::FFlt, v21::FFlt, v22::FFlt, v23::FFlt, v31::FFlt, v32::FFlt, v33::FFlt, v41::FFlt, v42::FFlt, v43::FFlt)
     local one6th = 1.0/6
     @inbounds let
-        A1 = v21 - v11; 
-        A2 = v22 - v12; 
-        A3 = v23 - v13; 
-        B1 = v31 - v11; 
-        B2 = v32 - v12; 
-        B3 = v33 - v13; 
-        C1 = v41 - v11; 
-        C2 = v42 - v12; 
-        C3 = v43 - v13; 
+        A1 = v21 - v11;
+        A2 = v22 - v12;
+        A3 = v23 - v13;
+        B1 = v31 - v11;
+        B2 = v32 - v12;
+        B3 = v33 - v13;
+        C1 = v41 - v11;
+        C2 = v42 - v12;
+        C3 = v43 - v13;
         return one6th * ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
     end
 end
@@ -304,22 +306,22 @@ end
 """
     tetv1times6(v, i1, i2, i3, i4)
 
-Compute 6 times the volume of the tetrahedron.  
+Compute 6 times the volume of the tetrahedron.
 """
 function tetv1times6(v::FFltMat, i1::Int, i2::Int, i3::Int, i4::Int)
     # local one6th = 1.0/6
     # @assert size(X, 1) == 4
     # @assert size(X, 2) == 3
     @inbounds let
-        A1 = v[i2,1]-v[i1,1]; 
-        A2 = v[i2,2]-v[i1,2]; 
-        A3 = v[i2,3]-v[i1,3]; 
-        B1 = v[i3,1]-v[i1,1]; 
-        B2 = v[i3,2]-v[i1,2]; 
-        B3 = v[i3,3]-v[i1,3]; 
-        C1 = v[i4,1]-v[i1,1]; 
-        C2 = v[i4,2]-v[i1,2]; 
-        C3 = v[i4,3]-v[i1,3]; 
+        A1 = v[i2,1]-v[i1,1];
+        A2 = v[i2,2]-v[i1,2];
+        A3 = v[i2,3]-v[i1,3];
+        B1 = v[i3,1]-v[i1,1];
+        B2 = v[i3,2]-v[i1,2];
+        B3 = v[i3,3]-v[i1,3];
+        C1 = v[i4,1]-v[i1,1];
+        C2 = v[i4,2]-v[i1,2];
+        C3 = v[i4,3]-v[i1,3];
         return ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
     end
 end
@@ -327,7 +329,7 @@ end
 """
     T4meshedges(t::Array{Int, 2})
 
-Compute all the edges of the 4-node triangulation.  
+Compute all the edges of the 4-node triangulation.
 """
 function T4meshedges(t::Array{Int, 2})
     @assert size(t, 2) == 4
@@ -349,7 +351,7 @@ function T4meshedges(t::Array{Int, 2})
         m = n+1;
         while m <= size(e,1)
             if (ue[m,1] != c)
-                break; 
+                break;
             end
             m = m+1;
         end
@@ -425,7 +427,7 @@ function T4voximggen(img::Array{DataT, 3},  voxval::Array{DataT, 1}) where {Data
         end
         tmid[nt] = convert(FInt, img[I, J, K]);
     end
-        
+
     end
 
     nv =0;                      # number of vertices

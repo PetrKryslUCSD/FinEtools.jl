@@ -149,7 +149,8 @@ function Q4blockx(xs::FFltVec, ys::FFltVec)
     k = 1;
     for j = 1:(nW+1)
         for i = 1:(nL+1)
-            xyz[k,:] = [xs[i] ys[j]];
+            xyz[k, 1] = xs[i]
+            xyz[k, 2] = ys[j]
             k = k + 1;
         end
     end
@@ -159,16 +160,20 @@ function Q4blockx(xs::FFltVec, ys::FFltVec)
     #preallocate connectivity matrix
     conn = zeros(FInt, ncells, 4);
 
-    function  nodenumbers(i,j,nL,nW)
-        f = (j-1) * (nL+1) + i;
-        nn = [f, (f+1), f+(nL+1)+1, f+(nL+1)];
-        return nn
-    end
+    # function  nodenumbers(i,j,nL,nW)
+    #     f = (j-1) * (nL+1) + i;
+    #     nn = [f, (f+1), f+(nL+1)+1, f+(nL+1)];
+    #     return nn
+    # end
 
     k = 1;
     for i = 1:nL
         for j = 1:nW
-            conn[k,:] = nodenumbers(i,j,nL,nW);
+            f = (j-1) * (nL+1) + i;
+            conn[k, 1] = f
+            conn[k, 2] = (f+1)
+            conn[k, 3] = f+(nL+1)+1
+            conn[k, 4] = f+(nL+1)
             k = k + 1;
         end
     end
@@ -299,7 +304,7 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
             h,n=findhyperface!(edges, ev);
             econn[J]=n;
         end
-        
+
         inn=size(xyz,1)-length(fes.conn)+i
 
         xyz[inn,:]=mean(xyz[[k for k in fes.conn[i]],:],1); # interior node

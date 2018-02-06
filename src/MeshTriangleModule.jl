@@ -29,7 +29,8 @@ function T3blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol=:a)
     f=1;
     for j=1:(nW+1)
         for i=1:(nL+1)
-            xys[f,:]=[xs[i] ys[j]];
+            xys[f, 1] = xs[i]
+            xys[f, 2] = ys[j]
             f=f+1;
         end
     end
