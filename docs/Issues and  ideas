@@ -134,10 +134,6 @@ Implemented 05/01/2017
 -- return fens,nfes            # I think I should not be overwriting the input!
 What is that about?
 
--- Settings for the Atom editor:
- + Install the minimap, auto-indent, simple-drag-drop-text, highlight-selected,
- minimap-highlight-selected
-
 -- FEMMBaseModule:  redesign  integration methods  by parameterising with
 the function type.
 Implementation completed.
@@ -169,7 +165,7 @@ Replace with  positional arguments.
     and also update!() should probably use buffer passed in and filled.
     In order to avoid allocations...
 Implemented  05/22/2017: removed thermal stress. Stress and strain vectors are
-now passed in in as buffers.
+now passed in as buffers.
 
 -- stochastic lifestyle website
 
@@ -223,7 +219,7 @@ for i = 1:count(fb.fes)
             [i],  idi_inspector,  idat; output = output,  context...);
 end
 Implemented 06/03/2017: the inspector function now does not need to refer to
-data defined within a loop  over the finite elements,, and the inspector can be
+data defined within a loop  over the finite elements, and the inspector can be
 called just once for all the finite elements.
 
 -- inspectintegpoints:  the inspector function has been redefined.  The
