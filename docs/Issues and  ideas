@@ -340,7 +340,7 @@ User settings:
     "window.zoomLevel": 0,
     // When opening a file, `editor.tabSize` and `editor.insertSpaces` will be detected based on the file contents.
     "editor.detectIndentation": true,
-    // Controls if the editor should automatically adjust the indentation when users type, paste or move lines. Indentation rules of the language must be available. 
+    // Controls if the editor should automatically adjust the indentation when users type, paste or move lines. Indentation rules of the language must be available.
     "editor.autoIndent": true,
     "editor.wordWrap": "on",
     "editor.wrappingIndent": "indent",
@@ -365,7 +365,7 @@ C:\Program Files\Git\bin\bash.exe
 '.platform-linux atom-workspace, .platform-win32 atom-workspace':
   'alt-ctrl-shift-enter': 'platformio-ide-terminal:insert-selected-text'
 
--- Failures to indent code properly in Atom and VS code for lines with 
+-- Failures to indent code properly in Atom and VS code for lines with
 continuation are not specific to  Julia.
 Both fail for instance for  C-language code.
 
@@ -388,15 +388,20 @@ end
 
 -- Implement
 fen2fe  = FENodeToFEMap(fes, nnodes(geom))
-or in other words use the tuple-based connectivity..
+or in other words use the tuple-based connectivity. Status: implemented in November 2017.
 
--- Do not export ANYTHING? Then  one knows where methods come from because they need to be explicitly brought in.
+-- Do not export ANYTHING? Then  one knows where methods come from because
+they need to be explicitly brought in. Implemented: no source files export
+functions, only the top-level module exports the public interface.
 
--- Instead of a geometry field, pass the finite element nodes? Then the node data could be stored as immutable, with possible performance gains.
+-- Instead of a geometry field, pass the finite element nodes? Then the node
+data could be stored as immutable, with possible performance gains.
 
 -- Have  multiple concrete types for fields? Some mutable, some immutable?
 
--- When fusing nodes, how about finding the intersection of the bounding boxes, then
-finding which nodes fall into those boxes, and then only checking for proximity for those nodes?
+-- When fusing nodes, how about finding the intersection of the bounding
+boxes, then finding which nodes fall into those boxes, and then only
+checking for proximity for those nodes? Implemented: search speeded up by
+    a factor of around 3.
 
 -- Why are there so many allocations in fusenodes()?
