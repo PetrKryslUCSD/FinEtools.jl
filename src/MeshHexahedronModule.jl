@@ -227,7 +227,7 @@ function   H8toH27(fens::FENodeSet,  fes::FESetH8)
         for J = 1:length(C)
           ix = vec([item for item in C[J].o])
           push!(ix,  i)
-          xyz[C[J].n, :]=mean(xyz[ix, :], 1);
+          xyz[C[J].n, :]=mean(xyz[ix, :], dims = 1);
         end
     end
    # calculate the locations of the new nodes
@@ -237,7 +237,7 @@ function   H8toH27(fens::FENodeSet,  fes::FESetH8)
         for J = 1:length(C)
           ix = vec([item for item in C[J].o])
           push!(ix,  i)
-          xyz[C[J].n, :] = mean(xyz[ix, :], 1);
+          xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
         end
     end
     # calculate the locations of the new nodes
@@ -247,7 +247,7 @@ function   H8toH27(fens::FENodeSet,  fes::FESetH8)
         for J = 1:length(C)
           ix = vec([item for item in C[J].o])
           push!(ix,  i)
-          xyz[C[J].n, :] = mean(xyz[ix, :], 1);
+          xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
         end
     end
      # construct new geometry cells
@@ -294,8 +294,8 @@ function H8hexahedron(xyz::FFltMat, nL::FInt, nW::FInt, nH::FInt; blockfun=nothi
     npts=size(xyz, 1);
     @assert (npts == 2) || (npts == 8) "Need 2 or 8 points"
     if npts == 2
-        lo=minimum(xyz, 1);
-        hi=maximum(xyz, 1);
+        lo=minimum(xyz, dims = 1);
+        hi=maximum(xyz, dims = 1);
         xyz=[lo[1]  lo[2]  lo[3];
             hi[1]  lo[2]  lo[3];
             hi[1]  hi[2]  lo[3];
@@ -535,7 +535,7 @@ function   H8toH20(fens::FENodeSet,  fes::FESetH8)
         for J = 1:length(C)
             ix = vec([item for item in C[J].o])
             push!(ix,  i) # Add the anchor point as well
-            xyz[C[J].n, :] = mean(xyz[ix, :], 1);
+            xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
         end
     end
     # construct new geometry cells

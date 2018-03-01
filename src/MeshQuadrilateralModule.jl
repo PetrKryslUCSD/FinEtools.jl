@@ -233,7 +233,7 @@ function Q4toQ8(fens::FENodeSet, fes::FESetQ4)
         for J = 1:length(C)
             ix = vec([item for item in C[J].o])
             push!(ix,  i) # Add the anchor point as well
-            xyz[C[J].n, :] = mean(xyz[ix, :], 1);
+            xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
         end
     end
     # construct new geometry cells
@@ -296,7 +296,7 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
         for J = 1:length(C)
             ix = vec([item for item in C[J].o])
             push!(ix, i)
-            xyz[C[J].n,:] = mean(xyz[ix,:],1);
+            xyz[C[J].n,:] = mean(xyz[ix,:], dims = 1);
         end
     end
     # construct new geometry cells: for new elements out of one old one
@@ -312,7 +312,7 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
 
         inn=size(xyz,1)-length(fes.conn)+i
 
-        xyz[inn,:]=mean(xyz[[k for k in fes.conn[i]],:],1); # interior node
+        xyz[inn,:]=mean(xyz[[k for k in fes.conn[i]],:], dims = 1); # interior node
         #h,inn=findhyperface!(faces, conn);
         nconn[nc,:] =[fes.conn[i][1] econn[1] inn econn[4]];
         nc= nc+ 1;

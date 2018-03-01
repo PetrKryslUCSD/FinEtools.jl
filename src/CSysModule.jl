@@ -11,7 +11,7 @@ if VERSION < v"0.7-"
     copyto!(de, sr) = copy!(de, sr)
 end
 if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
+    import LinearAlgebra: norm, cross
 end
 
 """

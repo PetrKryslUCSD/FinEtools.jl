@@ -161,7 +161,7 @@ function  T4toT10(fens::FENodeSet,  fes::FESetT4)
         for J = 1:length(C)
           ix = vec([item for item in C[J].o])
           push!(ix,  i) # Add the anchor point as well
-          xyz[C[J].n, :] = mean(xyz[ix, :], 1);
+          xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
         end
     end
     fens = FENodeSet(xyz);

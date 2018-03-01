@@ -20,7 +20,7 @@ import FinEtools.ForceIntensityModule: ForceIntensity
 import FinEtools.FEMMBaseModule: FEMMAbstractBase
 import FinEtools.MatrixUtilityModule: add_gkgt_ut_only!, complete_lt!, locjac!
 if VERSION >= v"0.7-"
-    import LinearAlgebra: mul!
+    import LinearAlgebra: mul!, Transpose
     At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
     A_mul_B!(C, A, B) = mul!(C, A, B)
 end

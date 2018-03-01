@@ -109,7 +109,7 @@ function T3toT6(fens::FENodeSet, fes::FESetT3)
         for J = 1:length(C)
             ix = vec([item for item in C[J].o])
             push!(ix,  i)
-            xyz[C[J].n, :] = mean(xyz[ix, :], 1);
+            xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
         end
     end
     # construct new geometry cells

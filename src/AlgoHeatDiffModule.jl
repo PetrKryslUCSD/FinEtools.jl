@@ -17,6 +17,9 @@ import FinEtools.MeshSelectionModule: connectednodes
 if VERSION >= v"0.7-"
     using SparseArrays
 end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: cholfact
+end
 
 """
     steadystate(modeldata::FDataDict)

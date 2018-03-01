@@ -19,7 +19,7 @@ if VERSION < v"0.7-"
     copyto!(de, sr) = copy!(de, sr)
 end
 if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
+    import LinearAlgebra: norm, dot, cross
 end
 
 """
@@ -228,7 +228,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
                 felist[i] =i;   # matched this element
             end
         end
-        return  felist[find(x->x!=0, felist)]; # return the nonzero element numbers
+        return  felist[findall(x->x!=0, felist)]; # return the nonzero element numbers
     end
 
     # Select by flooding
@@ -240,7 +240,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
         felist[fen2fe.map[startnode]] = 1;
         while true
             copyto!(pfelist, felist);
-            markedl = find(x -> x != 0, felist)
+            markedl = findall(x -> x != 0, felist)
             for j = markedl
                 for k = fes.conn[j]
                     felist[fen2fe.map[k]] = 1;
@@ -250,7 +250,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
                 break;
             end
         end
-        return find(x -> x != 0, felist); # return the nonzero element numbers;
+        return findall(x -> x != 0, felist); # return the nonzero element numbers;
     end
 
     # Helper function: calculate the normal to a boundary finite element
@@ -290,7 +290,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
                 felist[i]=i;
             end
         end
-        return  felist[find(x->x!=0, felist)]; # return the nonzero element numbers
+        return  felist[findall(x->x!=0, felist)]; # return the nonzero element numbers
     end
 
 
@@ -347,7 +347,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
                 felist[i]=i; # this element overlaps the box
             end
         end
-        return  felist[find(x->x!=0, felist)]; # return the nonzero element numbers
+        return  felist[findall(x->x!=0, felist)]; # return the nonzero element numbers
     end
 
 
@@ -444,7 +444,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
             end
         end
     end
-    return felist[find(x->x!=0, felist)]; # return the nonzero element numbers
+    return felist[findall(x->x!=0, felist)]; # return the nonzero element numbers
 
 end
 

@@ -409,9 +409,9 @@ function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)
         if (id1[i]>0) # This node has not yet been marked for merging
             XYZ = reshape(xyz1[i,:], 1, dim);
             xyzd[:,:] = abs.(xyz1-c1*XYZ); #find the distances along  coordinate directions
-            d = sum(xyzd,2);
+            d = sum(xyzd, dims = 2);
             map!((x)->x<tolerance, m, d);
-            jx = find(m);
+            jx = findall(m);
             if (!isempty(jx))
                 minn = minimum(jx);
                 id1[jx] = -minn;
@@ -469,9 +469,9 @@ function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt, candidates::FI
             XYZ = reshape(xyz1[i,:], 1, dim);
             xyzd[:,:] = abs.(xyz1-c1*XYZ); #find the distances along  coordinate directions
             fill!(d, biggerthantolerance)
-            d[candidates] = sum(xyzd,2)[candidates];
+            d[candidates] = sum(xyzd, dims = 2)[candidates];
             map!((x) -> x<tolerance, m, d);
-            jx = find(m);
+            jx = findall(m);
             if (!isempty(jx))
                 minn = minimum(jx);
                 id1[jx] = -minn;
@@ -606,8 +606,7 @@ function  smoothertaubin(vinp::FFltMat, vneigh::Array{FIntVec,1}, fixedv::BitArr
             n=vneigh[r];
             if (length(n)>1) && (!fixedv[r])
                 ln1 = (length(n)-1)
-                nv[r,:] .= (1-damping_factor)*vec(v[r,:]) +
-                           damping_factor*(vec(sum(v[n,:],1)) - vec(v[r,:]))/ln1;
+                nv[r,:] .= (1-damping_factor)*vec(v[r,:]) + damping_factor*(vec(sum(v[n,:], dims = 1)) - vec(v[r,:]))/ln1;
             end
         end
         v=deepcopy(nv);
@@ -617,8 +616,7 @@ function  smoothertaubin(vinp::FFltMat, vneigh::Array{FIntVec,1}, fixedv::BitArr
             n=vneigh[r];
             if (length(n)>1) && (!fixedv[r])
                 ln1 = (length(n)-1)
-                nv[r,:] .= (1-damping_factor)*vec(v[r,:]) +
-                           damping_factor*(vec(sum(v[n,:],1)) - vec(v[r,:]))/ln1;
+                nv[r,:] .= (1-damping_factor)*vec(v[r,:]) + damping_factor*(vec(sum(v[n,:], dims = 1)) - vec(v[r,:]))/ln1;
             end
         end
         v=deepcopy(nv);
@@ -637,8 +635,7 @@ function   smootherlaplace(vinp::FFltMat, vneigh::Array{FIntVec,1}, fixedv::BitA
             n=vneigh[r];
             if (length(n)>1) && (!fixedv[r])
                 ln1 = (length(n)-1)
-                nv[r,:] = (1-damping_factor)*vec(v[r,:]) +
-                          damping_factor*(vec(sum(v[n,:],1))-vec(v[r,:]))/ln1;
+                nv[r,:] = (1-damping_factor)*vec(v[r,:]) + damping_factor*(vec(sum(v[n,:], dims = 1))-vec(v[r,:]))/ln1;
             end
         end
         v=deepcopy(nv);
@@ -743,8 +740,8 @@ function nodepartitioning(fens::FENodeSet, npartitions = 2)
         c = classifypoints(d)
         @. ptng = 2*ptng - c
         if level > 1
-            i1 = find(x -> x == 1, c)
-            i0 = find(x -> x == 0, c)
+            i1 = findall(x -> x == 1, c)
+            i0 = findall(x -> x == 0, c)
             ptng1 = inertialcut(ptng[i1], X[i1, :], level - 1)
             ptng0 = inertialcut(ptng[i0], X[i0, :], level - 1)
             ptng[i1] = ptng1

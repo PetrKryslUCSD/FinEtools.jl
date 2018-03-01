@@ -9,7 +9,7 @@ if VERSION < v"0.7-"
     pairs(as) = as
 end
 if VERSION >= v"0.7-"
-    import LinearAlgebra: mul!
+    import LinearAlgebra: mul!, Transpose
     my_At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 else
     my_At_mul_B!(C, A, B) = At_mul_B!(C, A, B)

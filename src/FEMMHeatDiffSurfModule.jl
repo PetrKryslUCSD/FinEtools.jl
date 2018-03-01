@@ -16,10 +16,7 @@ import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, Sysma
 import FinEtools.FEMMBaseModule: FEMMAbstractBase
 import FinEtools.MatrixUtilityModule: add_gkgt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
 if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
+    import LinearAlgebra: norm, dot, cross
 end
 
 # Type for heat diffusion finite element modeling machine for boundary integrals.

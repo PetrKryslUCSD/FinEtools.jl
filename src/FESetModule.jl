@@ -15,7 +15,7 @@ if VERSION >= v"0.7-"
     At_mul_B!(C, A, B) = LinearAlgebra.mul!(C, Transpose(A), B)
 end
 if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
+    import LinearAlgebra: norm, cross
 end
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
