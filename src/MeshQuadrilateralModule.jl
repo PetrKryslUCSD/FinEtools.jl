@@ -11,6 +11,12 @@ import FinEtools.FENodeSetModule: FENodeSet, count
 import FinEtools.MeshModificationModule: mergemeshes
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!
 
+if VERSION >= v"0.7-"
+    linspc(start, stop, length)  = range(start, stop = stop, length = length)
+else
+    linspc(start, stop, length)  = linspace(start, stop, length)  
+end
+
 """
     Q4annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
 
@@ -122,8 +128,7 @@ Mesh of a rectangle, Q4 elements.
 Divided into elements: nL, nW in the first, second (x,y).
 """
 function Q4block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt)
-    return Q4blockx(collect(linspace(0.0,Length,nL+1)),
-        collect(linspace(0.0,Width,nW+1)));
+    return Q4blockx(collect(linspc(0.0,Length,nL+1)), collect(linspc(0.0,Width,nW+1)));
 end
 
 """

@@ -10,12 +10,17 @@ import FinEtools.FESetModule: FESet, FESetT3, FESetT6, FESetQ4, connasarray
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!
 
+if VERSION >= v"0.7-"
+    linspc(start, stop, length)  = range(start, stop = stop, length = length)
+else
+    linspc(start, stop, length)  = linspace(start, stop, length)  
+end
+
 """
     T3blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol=:a)
 
 T3 Mesh of a rectangle.
 """
-# T3 Mesh of a rectangle.
 function T3blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol=:a)
     if (orientation!=:a) && (orientation!=:b)
         error("Cannot handle orientation : $orientation")
@@ -69,11 +74,8 @@ end
 
 T3 Mesh of a rectangle.
 """
-#
 function T3block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, orientation::Symbol=:a)
-    return T3blockx(FFltVec(linspace(0.0,Length,nL+1)),
-                    FFltVec(linspace(0.0,Width,nW+1)),
-                    orientation)
+    return T3blockx(FFltVec(linspc(0.0,Length,nL+1)), FFltVec(linspc(0.0,Width,nW+1)), orientation)
 end
 
 """

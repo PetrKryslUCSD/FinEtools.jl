@@ -23,8 +23,9 @@ if VERSION < v"0.7-"
     pairs(as) = as
 end
 if VERSION >= v"0.7-"
-    At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)
-    A_mul_B!(C, A, B) = Base.LinAlg.mul!(C, A, B)
+    import LinearAlgebra: mul!
+    At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
+    A_mul_B!(C, A, B) = mul!(C, A, B)
 end
 if VERSION >= v"0.7-"
     import LinearAlgebra: norm

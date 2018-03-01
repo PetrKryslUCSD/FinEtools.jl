@@ -67,7 +67,7 @@ function ontosphere(xyz::FFltMat,radius::FFlt)
 end
 
 """
-    gradedspace(start::T, finish::T, N::Int)  where {T<:Number}
+    gradedspace(start::T, stop::T, N::Int)  where {T<:Number}
 
 Generate quadratic space.
 
@@ -75,14 +75,14 @@ Generate a quadratic sequence of numbers between start and finish.
 This sequence corresponds to separation of adjacent numbers that
 increases linearly from start to finish.
 """
-function gradedspace(start::T, finish::T, N::Int, strength=2)  where {T<:Number}
-    x = linspace(0.0, 1.0, N);
+function gradedspace(start::T, stop::T, N::Int, strength=2)  where {T<:Number}
+    x = range(0.0, stop = 1.0, length = N);
     x = x.^strength
     # for i = 1:strength
     #     x = cumsum(x);
     # end
     x = x/maximum(x);
-    out = start .* (1.0 .- x) .+ finish .* x;
+    out = start .* (1.0 .- x) .+ stop .* x;
 end
 
 
