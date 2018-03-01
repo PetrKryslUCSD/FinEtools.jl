@@ -28,8 +28,11 @@ if VERSION < v"0.7-"
     pairs(as) = as
 end
 if VERSION >= v"0.7-"
-    At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)
-    A_mul_B!(C, A, B) = Base.LinAlg.mul!(C, A, B)
+    At_mul_B!(C, A, B) = LinearAlgebra.mul!(C, Transpose(A), B)
+    A_mul_B!(C, A, B) = LinearAlgebra.mul!(C, A, B)
+end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
 end
 
 abstract type FEMMDeforLinearAbstractMS <: FEMMDeforLinearAbstract end

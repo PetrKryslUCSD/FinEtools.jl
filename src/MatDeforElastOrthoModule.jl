@@ -12,8 +12,8 @@ if VERSION < v"0.7-"
     copyto! = copy!
 end
 if VERSION >= v"0.7-"
-    At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)
-    A_mul_B!(C, A, B) = Base.LinAlg.mul!(C, A, B)
+    At_mul_B!(C, A, B) = LinearAlgebra.mul!(C, Transpose(A), B)
+    A_mul_B!(C, A, B) = LinearAlgebra.mul!(C, A, B)
 end
 
 """

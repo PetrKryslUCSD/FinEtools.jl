@@ -16,13 +16,15 @@ import FinEtools.NodalFieldModule: NodalField
 import FinEtools.FEMMBaseModule: FEMMAbstractBase
 import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!
 import FinEtools.MatrixUtilityModule: add_nnt_ut_only!, complete_lt!, locjac!
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
+end
 
 """
     FEMMDeforWinkler{S<:FESet, F<:Function}
 
 Type for normal spring support  (Winkler).
 """
-# Class for heat diffusion finite element modeling machine.
 mutable struct FEMMDeforWinkler{S<:FESet, F<:Function} <: FEMMAbstractBase
     integdata::IntegData{S, F} # geometry data
 end

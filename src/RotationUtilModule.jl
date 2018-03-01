@@ -10,6 +10,9 @@ if VERSION < v"0.7-"
     import Base.copy!
     copyto!(de, sr) = copy!(de, sr)
 end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
+end
 
 _I3 = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
 

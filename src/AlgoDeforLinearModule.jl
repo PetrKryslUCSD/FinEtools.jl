@@ -14,7 +14,8 @@ if VERSION >= v"0.7-"
     using SparseArrays
 end
 if VERSION >= v"0.7-"
-    my_A_mul_B!(C, A, B) = Base.LinAlg.mul!(C, A, B)
+    import LinearAlgebra: mul!
+    my_A_mul_B!(C, A, B) = mul!(C, A, B)
 else
     my_A_mul_B!(C, A, B) = A_mul_B!(C, A, B)
 end

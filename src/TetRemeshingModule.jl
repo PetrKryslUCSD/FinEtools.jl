@@ -15,6 +15,9 @@ if VERSION < v"0.7-"
     import Base.copy!
     copyto!(de, sr) = copy!(de, sr)
 end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
+end
 
 """
     _IntegerBuffer

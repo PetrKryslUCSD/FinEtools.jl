@@ -9,12 +9,16 @@ if VERSION < v"0.7-"
     pairs(as) = as
 end
 if VERSION >= v"0.7-"
-    my_At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)
+    import LinearAlgebra: mul!
+    my_At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 else
     my_At_mul_B!(C, A, B) = At_mul_B!(C, A, B)
 end
 if VERSION >= v"0.7-"
     using SparseArrays
+end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
 end
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict

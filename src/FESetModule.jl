@@ -12,7 +12,10 @@ if VERSION < v"0.7-"
     copyto!(de, sr) = copy!(de, sr)
 end
 if VERSION >= v"0.7-"
-    At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)
+    At_mul_B!(C, A, B) = LinearAlgebra.mul!(C, Transpose(A), B)
+end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
 end
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
