@@ -8,6 +8,7 @@ module MeshLineModule
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESetL2, FESetL3
+import FinEtools.MeshUtilModule: linearspace
 
 """
 L2block(Length::FFlt, nL::FInt)
