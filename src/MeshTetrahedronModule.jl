@@ -8,7 +8,7 @@ module MeshTetrahedronModule
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FESetModule: count, FESetT4, FESetT10, setlabel!
 import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!
+import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
 import FinEtools.MeshSelectionModule: selectelem
 
 """

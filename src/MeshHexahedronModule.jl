@@ -9,7 +9,7 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 import FinEtools.FESetModule: FESet, FESetQ4, FESetH8, FESetH20, FESetH27, subset, bfun, connasarray, setlabel!, updateconn!
 import FinEtools.FENodeSetModule: FENodeSet, count, xyz3
 import FinEtools.MeshQuadrilateralModule: Q4elliphole
-import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!
+import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
 import FinEtools.MeshModificationModule: meshboundary, mergemeshes
 import FinEtools.MeshSelectionModule: selectelem, connectednodes
 
@@ -27,7 +27,7 @@ smallest coordinate in all three directions is  0 (origin)
 nL, nW, nH=number of elements in the three directions
 """
 function H8block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
-    return H8blockx(collect(linearspace(0, Length, nL+1)), collect(linearspace(0, Width, nW+1)), collect(linearspace(0, Height, nH+1)));
+    return H8blockx(collect(linearspace(0.0, Length, nL+1)), collect(linearspace(0.0, Width, nW+1)), collect(linearspace(0.0, Height, nH+1)));
 end
 
 
@@ -667,11 +667,11 @@ function H8layeredplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec)
     tolerance = minimum(abs.(ts))/maximum(nts)/10.;
     @assert length(ts) >= 1
     layer = 1
-    zs = collect(linearspace(0,ts[layer],nts[layer]+1))
+    zs = collect(linearspace(0.0,ts[layer],nts[layer]+1))
     fens, fes = H8blockx(xs, ys, zs);
     setlabel!(fes, layer);
     for layer = 2:length(ts)
-        zs = collect(linearspace(0,ts[layer],nts[layer]+1))
+        zs = collect(linearspace(0.0,ts[layer],nts[layer]+1))
         fens1, fes1 = H8blockx(xs, ys, zs);
         setlabel!(fes1, layer);
         fens1.xyz[:, 3] = fens1.xyz[:, 3] .+ sum(ts[1:layer-1]);
