@@ -11,12 +11,6 @@ import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!
 import FinEtools.MeshSelectionModule: selectelem
 
-if VERSION >= v"0.7-"
-    linspc(start, stop, length)  = range(start, stop = stop, length = length)
-else
-    linspc(start, stop, length)  = linspace(start, stop, length)  
-end
-
 """
     T4block(Length::FFlt, Width::FFlt, Height::FFlt,
        nL::FInt, nW::FInt, nH::FInt, orientation::Symbol)
@@ -34,9 +28,9 @@ third direction (x, y, z).
 """
 function T4block(Length::FFlt, Width::FFlt, Height::FFlt,
   nL::FInt, nW::FInt, nH::FInt, orientation::Symbol=:a)
-    return T4blockx(collect(linspc(0.0, Length, nL+1)),
-                    collect(linspc(0.0, Width, nW+1)),
-                    collect(linspc(0.0, Height, nH+1)), orientation);
+    return T4blockx(collect(linearspace(0.0, Length, nL+1)),
+                    collect(linearspace(0.0, Width, nW+1)),
+                    collect(linearspace(0.0, Height, nH+1)), orientation);
 end
 
 """
@@ -245,9 +239,9 @@ function T10layeredplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
     tolerance = minimum(abs.(ts))/maximum(nts)/10.;
     @assert length(ts) >= 1
     @assert sum(nts) >= length(ts)
-    zs = collect(linspc(0.0, ts[1], nts[1]+1))
+    zs = collect(linearspace(0.0, ts[1], nts[1]+1))
     for layer = 2:length(ts)
-        oz = collect(linspc(sum(ts[1:layer-1]), sum(ts[1:layer]), nts[layer]+1))
+        oz = collect(linearspace(sum(ts[1:layer-1]), sum(ts[1:layer]), nts[layer]+1))
         zs = vcat(zs, oz[2:end])
     end
     fens, fes = T4blockx(xs, ys, zs, orientation);
@@ -346,7 +340,7 @@ function T4meshedges(t::Array{Int, 2})
             4  2
             4  3];
     e = vcat(t[:,ec[1,:]], t[:,ec[2,:]], t[:,ec[3,:]], t[:,ec[4,:]], t[:,ec[5,:]], t[:,ec[6,:]])
-    e = sort(e, 2);
+    e = sort(e; dims = 2);
     ix = sortperm(e[:,1]);
     e = e[ix,:];
     ue = deepcopy(e)

@@ -1336,7 +1336,7 @@ module mmmmmAnnularQ8mmmmm
 using FinEtools
 using Compat.Test
 if VERSION >= v"0.7-"
-  import LinearAlgebra: norm
+  import LinearAlgebra: norm, cholfact
 end
 function test()
 

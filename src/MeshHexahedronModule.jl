@@ -14,11 +14,6 @@ import FinEtools.MeshModificationModule: meshboundary, mergemeshes
 import FinEtools.MeshSelectionModule: selectelem, connectednodes
 
 if VERSION >= v"0.7-"
-    linspc(start, stop, length)  = range(start, stop = stop, length = length)
-else
-    linspc(start, stop, length)  = linspace(start, stop, length)  
-end
-if VERSION >= v"0.7-"
     import LinearAlgebra: norm
 end
 
@@ -32,7 +27,7 @@ smallest coordinate in all three directions is  0 (origin)
 nL, nW, nH=number of elements in the three directions
 """
 function H8block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
-    return H8blockx(collect(linspc(0, Length, nL+1)), collect(linspc(0, Width, nW+1)), collect(linspc(0, Height, nH+1)));
+    return H8blockx(collect(linearspace(0, Length, nL+1)), collect(linearspace(0, Width, nW+1)), collect(linearspace(0, Height, nH+1)));
 end
 
 
@@ -468,7 +463,7 @@ function H8spheren(radius::FFlt, nperradius::FInt)
             nxyz[j, :] = nxyz[j, :]*(nperradius-layer[j]+1)/nperradius*radius/norm(nxyz[j, :]);
         end
     end
-    s =  collect(linspc(0.,  1.,  length(layer)));
+    s =  collect(linearspace(0.,  1.,  length(layer)));
     # println("s=$s")
     # println("layer = $layer")
     for j = 1:size(xyz, 1)
@@ -672,11 +667,11 @@ function H8layeredplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec)
     tolerance = minimum(abs.(ts))/maximum(nts)/10.;
     @assert length(ts) >= 1
     layer = 1
-    zs = collect(linspc(0,ts[layer],nts[layer]+1))
+    zs = collect(linearspace(0,ts[layer],nts[layer]+1))
     fens, fes = H8blockx(xs, ys, zs);
     setlabel!(fes, layer);
     for layer = 2:length(ts)
-        zs = collect(linspc(0,ts[layer],nts[layer]+1))
+        zs = collect(linearspace(0,ts[layer],nts[layer]+1))
         fens1, fes1 = H8blockx(xs, ys, zs);
         setlabel!(fes1, layer);
         fens1.xyz[:, 3] = fens1.xyz[:, 3] .+ sum(ts[1:layer-1]);

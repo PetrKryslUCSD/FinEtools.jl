@@ -9,19 +9,13 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESetL2, FESetL3
 
-if VERSION >= v"0.7-"
-    linspc(start, stop, length)  = range(start, stop = stop, length = length)
-else
-    linspc(start, stop, length)  = linspace(start, stop, length)  
-end
-
 """
 L2block(Length::FFlt, nL::FInt)
 
 Mesh of a 1-D block of L2 finite elements.
 """
 function L2block(Length::FFlt, nL::FInt)
-    fens,fes = L2blockx(collect(squeeze(linspc(0,Length,nL+1)',1)));
+    fens,fes = L2blockx(collect(squeeze(linearspace(0,Length,nL+1)',1)));
 end
 
 
@@ -55,7 +49,7 @@ function L3blockx(xs::FFltVec)
     N = count(fens)
     for i = 1:count(fes)
         N = N + 1
-        nxyz[i, :] = mean(fens.xyz[[k for k in fes.conn[i]], :], 1)
+        nxyz[i, :] = mean(fens.xyz[[k for k in fes.conn[i]], :], dims = 1)
         nconn[i, :] = vcat([k for k in fes.conn[i]], [N])
     end
     fens = FENodeSet([fens.xyz; nxyz]);

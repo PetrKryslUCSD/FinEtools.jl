@@ -255,7 +255,7 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENo
     npartitions = length(partitionnumbers)
     # Go through all the partitions
     for p = 1:npartitions
-        pnl = find(x -> x == partitionnumbers[p], npf) # subset of fine-mesh nodes
+        pnl = findall(x -> x == partitionnumbers[p], npf) # subset of fine-mesh nodes
         # Find the bounding box
         subbox = boundingbox(fensf.xyz[pnl, :])
         tol = 2*geometricaltolerance # increase the box a bit
@@ -266,7 +266,7 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENo
             connected = findunconnnodes(fensc, fescsub);
             fenscsub, newnumber = compactnodes(fensc, connected); # nodes of the sub mesh
             fescsub = renumberconn!(fescsub, newnumber); # elements of the sub mesh
-            present = find(x -> x > 0, newnumber)
+            present = findall(x -> x > 0, newnumber)
             fcsub  =  NodalField(fc.values[present, :]) # reduce the coarse-mesh field to the sub mesh
             # Now we can find the values at the nodes of the subset of the fine mesh 
             # working only with the sub mesh of the coarse mesh

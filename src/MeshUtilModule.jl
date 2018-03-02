@@ -13,6 +13,9 @@ else
     import Base.BitSet
     Set = BitSet
 end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
+end
 
 mutable struct HyperFaceContainer
     o::Set # numbers of the other nodes on the hyperface
@@ -67,6 +70,22 @@ function ontosphere(xyz::FFltMat,radius::FFlt)
 end
 
 """
+    linearspace(start::T, stop::T, N::Int)  where {T<:Number}
+
+Generate linear space.
+
+Generate a linear sequence of numbers between start and top (i. e. sequence 
+of number with uniform intervals inbetween).
+"""
+function linearspace(start::T, stop::T, N::Int)  where {T<:Number}
+    if VERSION >= v"0.7-"
+        return range(start, stop = stop, length = N)
+    else
+        return linspace(start, stop, N)  
+    end
+end
+
+"""
     gradedspace(start::T, stop::T, N::Int)  where {T<:Number}
 
 Generate quadratic space.
@@ -84,7 +103,6 @@ function gradedspace(start::T, stop::T, N::Int, strength=2)  where {T<:Number}
     x = x/maximum(x);
     out = start .* (1.0 .- x) .+ stop .* x;
 end
-
 
 # function inbox(box::FFltVec,sdim::FInt,x::FFltVec)
 #     for i=1:sdim

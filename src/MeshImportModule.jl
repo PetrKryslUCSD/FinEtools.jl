@@ -16,6 +16,9 @@ if VERSION >= v"0.7-"
 else
     _replace(s::AbstractString, pat, f) = replace(s, pat, f)
 end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
+end
 
 """
 !!! note

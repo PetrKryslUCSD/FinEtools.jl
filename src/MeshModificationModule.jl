@@ -20,7 +20,10 @@ if VERSION < v"0.7-"
     copyto!(de, sr) = copy!(de, sr)
 end
 if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
+    import LinearAlgebra: norm, svd
+end
+if VERSION >= v"0.7-"
+    import Random: randperm
 end
 
 """
@@ -728,7 +731,7 @@ function nodepartitioning(fens::FENodeSet, npartitions = 2)
     @assert npartitions >= 2
     # Recursive inertial cut routine
     function inertialcut(ptng, X, level)
-        Xmean = mean(X, 1);
+        Xmean = mean(X, dims = 1);
         X = X .- Xmean  # move the center of the point cloud to the origin
         if VERSION < v"0.7-"
             U, S, V = svd(X, thin=true);
