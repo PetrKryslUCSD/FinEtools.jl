@@ -18,6 +18,9 @@ end
 if VERSION >= v"0.7-"
     ismatch(r, s) = contains(s, r)
 end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cross
+end
 
 ################################################################################
 # VTK export

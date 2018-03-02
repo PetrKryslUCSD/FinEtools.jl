@@ -283,7 +283,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
             Tangents =xyz'*Nder;
             N = normal(Tangents);
             if (Need_Evaluation)
-                d = direction(mean(xyz,1));
+                d = direction(mean(xyz, dims = 1));
                 d = reshape(d,1,sd)/norm(d);
             end
             if (dot(vec(N),vec(d)) > dotmin)

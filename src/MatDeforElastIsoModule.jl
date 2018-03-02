@@ -7,10 +7,10 @@ if VERSION < v"0.7-"
     copyto! = copy!
 end
 if VERSION >= v"0.7-"
-    At_mul_B!(C, A, B) = LinearAlgebra.mul!(C, Transpose(A), B)
-    A_mul_B!(C, A, B) = LinearAlgebra.mul!(C, A, B)
+    import LinearAlgebra: Diagonal, mul!
+    At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
+    A_mul_B!(C, A, B) = mul!(C, A, B)
 end
-import LinearAlgebra: Diagonal
 
 const mI = Matrix(Diagonal([1.0, 1.0, 1.0, 0.5, 0.5, 0.5]))
 const m1 = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0];
