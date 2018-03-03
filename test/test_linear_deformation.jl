@@ -1,8 +1,14 @@
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
+end
 module mmLE11NAFEMSQ8algo2
 using FinEtools
 using FinEtools.AlgoDeforLinearModule: linearstatics, exportdeformation,
 exportstress, exportstresselementwise
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
     # NAFEMS LE11 benchmark with Q8 elements.
     # # This is a test recommended by the National Agency for Finite Element
@@ -386,7 +392,9 @@ module cookstress_1
 using Compat.Test
 using FinEtools
 using FinEtools.MeshExportModule
-
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
   # println("Cook membrane problem,  plane stress."        )
   t0 = time()
@@ -626,7 +634,7 @@ function test()
   # plotly()
   #
   # # Plot the analytical solution.
-  # r = linspace(a,b,100);
+  # r = linearspace(a,b,100);
   # plot(r, radial_stress(r))
   # # Plot the computed  integration-point data
   # plot!(idat.r, idat.s, m=:circle, color=:red)
@@ -786,7 +794,7 @@ function  Twisted_beam(dir)
   nl = selectnode(fens, box = [L L -100*W 100*W -100*W 100*W],inflate = tolerance);
   nl1 = selectnode(fens, nearestto = fens.xyz[nl[1],:]+ tolerance/30*rand(size(fens.xyz, 2)));
   @test nl[1] == nl1[1]
-  theutip = mean(u.values[nl,:],1)
+  theutip = mean(u.values[nl,:], dims = 1)
   # println("displacement  = $(theutip[dir]) as compared to converged $uex")
   @test    abs(theutip[dir]-uex)<1.0e-5
 
@@ -1250,8 +1258,8 @@ function test()
   # Generate mesh
   na = 8 # number of elements along the side of the plate
   nb = 24 # number of elements along the side of the plate
-  xs = collect(linspace(0.0, a, na+1))
-  ys = collect(linspace(0.0, b, nb+1))
+  xs = collect(linearspace(0.0, a, na+1))
+  ys = collect(linearspace(0.0, b, nb+1))
   ts = h/nLayers*ones(nLayers);# layer thicknesses
   nts= 3*ones(Int, nLayers);# number of elements per layer
   fens,fes = H8layeredplatex(xs, ys, ts, nts)
@@ -1424,7 +1432,9 @@ mmmultimaterial_beam_xz.test()
 module mmmmunitmccubemm
 using FinEtools
 using Compat.Test
-
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
 
   # println("""
@@ -1488,7 +1498,9 @@ if VERSION < v"0.7-"
     import Base.copy!
     copyto!(de, sr) = copy!(de, sr)
 end
-
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross, dot
+end
 mutable struct MyIData
     c::FInt
     r::FFltVec
@@ -1722,7 +1734,7 @@ idat = inspectintegpoints(femm, geom, u, collect(1:count(fes)),
 # plotly()
 #
 # # Plot the analytical solution.
-# r = linspace(a,b,100);
+# r = linearspace(a,b,100);
 # plot(r, radial_stress(r))
 # # Plot the computed  integration-point data
 # scatter!(idat.r, idat.s, m=:circle, color=:red)
@@ -1738,6 +1750,9 @@ using Compat.Test
 if VERSION < v"0.7-"
     import Base.copy!
     copyto!(de, sr) = copy!(de, sr)
+end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
 end
 function test()
 
@@ -1840,6 +1855,9 @@ module mmCookmm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
   # println("Cook plane stress, with quadratic triangles.")
   E = 1.0;
@@ -1919,6 +1937,9 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
   # println("Cook plane stress, with quadratic triangles. With orthotropic  material model.")
   E = 1.0;
@@ -2004,6 +2025,9 @@ using Compat.Test
 if VERSION < v"0.7-"
     copyto! = copy!
 end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
   # println("""
   # Cantilever example.  Strongly orthotropic material. Orientation "y".
@@ -2047,9 +2071,9 @@ function test()
   na = 4*n # number of elements lengthwise
   nb = n # number of elements through the wwith
   nt = n # number of elements through the thickness
-  xs = collect(linspace(0.0, a, na+1))
-  ys = collect(linspace(0.0, b, nb+1))
-  ts = collect(linspace(0.0, t, nt+1))
+  xs = collect(linearspace(0.0, a, na+1))
+  ys = collect(linearspace(0.0, b, nb+1))
+  ts = collect(linearspace(0.0, t, nt+1))
   fens,fes = H8blockx(xs, ys, ts)
   fens,fes = H8toH20(fens,fes)
   bfes = meshboundary(fes)
@@ -2173,8 +2197,8 @@ function test()
   L = 10.0*phun("in") # side of the square plate
   nL = 8 # number of elements along the side of the plate
   tolerance = 0.0001*phun("in")
-  xs = collect(linspace(0.0, L/2, nL+1))
-  ys = collect(linspace(0.0, L/2, nL+1))
+  xs = collect(linearspace(0.0, L/2, nL+1))
+  ys = collect(linearspace(0.0, L/2, nL+1))
   ts = [0.028; 0.75; 0.028]*phun("in")
   nts = [2; 3;  2; ] # number of elements through the thickness
   tmag = 100*phun("psi")
@@ -2252,7 +2276,9 @@ mmmNAFEMS_R0031_3m.test()
 module mmtwistedmsh8mmm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 using Compat.Test
 function test()
 
@@ -2322,7 +2348,7 @@ function test()
 
   # Extract the solution
   nl = selectnode(fens, box = [L L -100*W 100*W -100*W 100*W],inflate = tolerance);
-  theutip = mean(u.values[nl,:],1)
+  theutip = mean(u.values[nl,:], dims = 1)
   # println("displacement  = $(theutip[dir]) as compared to converged $uex")
   @test abs(theutip[dir]-uex)/uex < 0.0012
 
@@ -2375,6 +2401,9 @@ mmtwistedmsh8mmm.test()
 module mmunitmmccubemmvibrationmmms
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
 
   # println("""
@@ -2433,6 +2462,9 @@ module mmtwistedbeamisomm
 using FinEtools
 using Compat.Test
 using FinEtools.AlgoDeforLinearModule
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
   E = 0.29e8;
   nu = 0.22;
@@ -2486,7 +2518,7 @@ function test()
 
   # Extract the solution
   nl = selectnode(fens, box = [L L -100*W 100*W -100*W 100*W],inflate = tolerance);
-  theutip = mean(u.values[nl,:],1)
+  theutip = mean(u.values[nl,:], dims = 1)
   # println("displacement  = $(theutip[dir]) as compared to converged $uex")
     # println("normalized displacement  = $(theutip[dir]/uex*100) %")
     @test abs(theutip[dir]/uex*100-99.85504856450584) < 1.0e-6
@@ -2565,6 +2597,9 @@ mmtwistedbeamisomm.test()
 module mmtwistedbeamoorthomm
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 using FinEtools.AlgoDeforLinearModule
 function test()
   E = 0.29e8;
@@ -2619,7 +2654,7 @@ function test()
 
   # Extract the solution
   nl = selectnode(fens, box = [L L -100*W 100*W -100*W 100*W],inflate = tolerance);
-  theutip = mean(u.values[nl,:],1)
+  theutip = mean(u.values[nl,:], dims = 1)
   # println("displacement  = $(theutip[dir]) as compared to converged $uex")
     # println("normalized displacement  = $(theutip[dir]/uex*100) %")
     @test abs(theutip[dir]/uex*100-99.85504856450584) < 1.0e-6
@@ -2701,6 +2736,9 @@ using FinEtools.MeshExportModule
 using Compat.Test
 if VERSION >= v"0.7-"
     using   IterativeEigensolvers
+end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
 end
 function test()
 
@@ -2797,7 +2835,9 @@ if VERSION < v"0.7-"
     import Base.copy!
     copyto!(de, sr) = copy!(de, sr)
 end
-
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross, dot
+end
 mutable struct MyIData
     c::FInt
     r::FFltVec
@@ -3031,7 +3071,7 @@ idat = inspectintegpoints(femm, geom, u, collect(1:count(fes)),
 # plotly()
 #
 # # Plot the analytical solution.
-# r = linspace(a,b,100);
+# r = linearspace(a,b,100);
 # plot(r, radial_stress(r))
 # # Plot the computed  integration-point data
 # scatter!(idat.r, idat.s, m=:circle, color=:red)
@@ -3216,7 +3256,7 @@ function test()
   # plotly()
   #
   # # Plot the analytical solution.
-  # r = linspace(a,b,100);
+  # r = linearspace(a,b,100);
   # plot(r, radial_stress(r))
   # # Plot the computed  integration-point data
   # plot!(idat.r, idat.s, m=:circle, color=:red)
@@ -3240,6 +3280,9 @@ scratch1_06092017_ortho.test()
 module mmLE11Q8mm
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
 
   # NAFEMS LE11 benchmark with Q8 elements.
@@ -3357,6 +3400,9 @@ mmLE11Q8mm.test()
 module mmLE11Q8mmortho
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
 
   # NAFEMS LE11 benchmark with Q8 elements.
@@ -3475,6 +3521,9 @@ mmLE11Q8mmortho.test()
 module mLE11Q8aximmm
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
   # NAFEMS LE11 benchmark with Q8 elements.
   # # This is a test recommended by the National Agency for Finite Element
@@ -3643,6 +3692,9 @@ mLE11Q8aximmm.test()
 module mLE11Q8aximorthom
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
   # NAFEMS LE11 benchmark with Q8 elements.
   # # This is a test recommended by the National Agency for Finite Element
@@ -3812,6 +3864,9 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
 
 
@@ -3978,6 +4033,9 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
 
 
@@ -4145,6 +4203,9 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
 
 
@@ -4312,6 +4373,9 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
 
 
@@ -4478,6 +4542,9 @@ using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
 
 
@@ -4999,6 +5066,9 @@ using Compat.Test
 if VERSION >= v"0.7-"
     using   IterativeEigensolvers
 end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
     # println("""
     # Vibration modes of truncated cylindrical shell.
@@ -5097,6 +5167,9 @@ mmtruncatedmfreem1.test()
 module mmFV32mm1
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
     # println("""
     # FV32: Cantilevered tapered membrane
@@ -5175,6 +5248,9 @@ using FinEtools.AlgoDeforLinearModule
 using Compat.Test
 if VERSION >= v"0.7-"
     using   IterativeEigensolvers
+end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
 end
 function test()
     # println("""
@@ -5275,6 +5351,9 @@ module mfiber_reinf_cant_yn_strong_Abaqus
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: Symmetric, cholfact
+end
 function test()
 
 
@@ -5322,9 +5401,9 @@ n = 2
 na = 4*n # number of elements lengthwise
 nb = 2*n # number of elements through the depth
 nt = n # number of elements through the thickness
-xs = collect(linspace(0.0, a, na+1))
-ys = collect(linspace(0.0, b, nb+1))
-ts = collect(linspace(0.0, t, nt+1))
+xs = collect(linearspace(0.0, a, na+1))
+ys = collect(linearspace(0.0, b, nb+1))
+ts = collect(linearspace(0.0, t, nt+1))
 # println("Mesh generation")
 fens,fes = H8blockx(xs, ys, ts)
 fens,fes = H8toH20(fens,fes)
@@ -5436,6 +5515,9 @@ mfiber_reinf_cant_yn_strong_Abaqus.test()
 module mmorthoballoonpenaltymm
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
 
     # Orthotropic balloon inflation, axially symmetric model
@@ -5618,6 +5700,9 @@ using FinEtools
 using FinEtools.FENodeSetModule
 using FinEtools.MeshExportModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
     Area = 2.0*phun("in^2")
     E = 30e6*phun("psi") # Young's modulus
@@ -5688,6 +5773,9 @@ using FinEtools
 using FinEtools.FENodeSetModule
 using FinEtools.MeshExportModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
     Area = 1.5
     E = 1.0e7 # Young's modulus
@@ -5766,6 +5854,9 @@ module mmmLE10expiAbaqus2mmmm
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
 
 
@@ -5922,6 +6013,9 @@ using FinEtools.MeshExportModule
 # using DataFrames
 # using CSV
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
     E = 210000*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6045,11 +6139,11 @@ function test()
                 nodevalmethod = :averaging, reportat = extrapolation)
             sigy = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
                 nodevalmethod = :averaging, reportat = extrapolation)
-            sigyA = mean(sigy.values[nlA,1], 1)[1]
+            sigyA = mean(sigy.values[nlA,1], dims = 1)[1]
             sigyAtrue = sigmatt([Ri, 0.0, 0.0])
             # println("sig_y@A =$(sigyA/phun("MPa")) vs $(sigyAtrue/phun("MPa")) [MPa]")
             @test abs(sigyA/phun("MPa") - -0.8521990950600441) < 1.0e-3
-            sigxB = mean(sigx.values[nlB,1], 1)[1]
+            sigxB = mean(sigx.values[nlB,1], dims = 1)[1]
             sigxBtrue = sigmatt([0.0, Ri, 0.0])
             # println("sig_x@B =$(sigxB/phun("MPa")) vs $(sigxBtrue/phun("MPa")) [MPa]")
             @test abs(sigxB/phun("MPa") - 2.7749827820003374) < 1.0e-3
@@ -6084,6 +6178,9 @@ using FinEtools.MeshImportModule: import_ABAQUS
 # using DataFrames
 # using CSV
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
     E = 210000*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6233,11 +6330,11 @@ function test()
                 nodevalmethod = :averaging, reportat = extrapolation)
             sigy = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
                 nodevalmethod = :averaging, reportat = extrapolation)
-            sigyA = mean(sigy.values[nlAallz,1], 1)[1]
+            sigyA = mean(sigy.values[nlAallz,1], dims = 1)[1]
             sigyAtrue = sigmayy([Ri, 0.0, 0.0])
             # println("sig_y@A =$(sigyA/phun("MPa")) vs $(sigyAtrue/phun("MPa")) [MPa]")
             @test abs(sigyA/phun("MPa") - -0.8513053526935438)/(sigyAtrue/phun("MPa")) < 1.0e-4
-            sigxB = mean(sigx.values[nlBallz,1], 1)[1]
+            sigxB = mean(sigx.values[nlBallz,1], dims = 1)[1]
             sigxBtrue = sigmaxx([0.0, Ri, 0.0])
             # println("sig_x@B =$(sigxB/phun("MPa")) vs $(sigxBtrue/phun("MPa")) [MPa]")
             # @test abs(sigxB/phun("MPa") - 2.789413093796375)/3.0 < 1.0e-4
@@ -6271,6 +6368,9 @@ module mplate_w_hole_MST10m
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
     E = 2.4*phun("MEGA*PA");# 210e3 MPa
     nu = 0.49995;
@@ -6401,11 +6501,11 @@ function test()
                 nodevalmethod = :averaging, reportat = extrapolation)
             sigy = fieldfromintegpoints(femm, geom, u, :Cauchy, 2;
                 nodevalmethod = :averaging, reportat = extrapolation)
-            sigyA = mean(sigy.values[nlA,1], 1)[1]
+            sigyA = mean(sigy.values[nlA,1], dims = 1)[1]
             sigyAtrue = sigmatt([Ri, 0.0, 0.0])
             # println("sig_y@A =$(sigyA/phun("MPa")) vs $(sigyAtrue/phun("MPa")) [MPa]")
             @test  abs(sigyA/phun("MPa") - -0.6705333234697736)/(sigyAtrue/phun("MPa")) < 1.0e-4
-            sigxB = mean(sigx.values[nlB,1], 1)[1]
+            sigxB = mean(sigx.values[nlB,1], dims = 1)[1]
             sigxBtrue = sigmatt([0.0, Ri, 0.0])
             # println("sig_x@B =$(sigxB/phun("MPa")) vs $(sigxBtrue/phun("MPa")) [MPa]")
             @test  abs(sigxB/phun("MPa") - 2.301542874107758)/3.0 < 1.0e-4
@@ -6429,6 +6529,9 @@ mplate_w_hole_MST10m.test()
 module mmLE1NAFEMSsstress
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
     E = 210e3*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6609,6 +6712,9 @@ module mmLE11malgo
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
 
 
@@ -6725,8 +6831,10 @@ mmLE11malgo.test()
 module mmtwistedmsh8ort
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
 
   # println("""
@@ -6802,7 +6910,7 @@ function test()
 
   # Extract the solution
   nl = selectnode(fens, box = [L L -100*W 100*W -100*W 100*W],inflate = tolerance);
-  theutip = mean(u.values[nl,:],1)
+  theutip = mean(u.values[nl,:], dims = 1)
   # println("displacement  = $(theutip[dir]) as compared to converged $uex")
   @test abs(theutip[dir]-uex)/uex < 0.0012
 
@@ -6855,8 +6963,10 @@ mmtwistedmsh8ort.test()
 module mmtwistedmsh9ort
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cholfact, cross
+end
 function test()
 
     # println("""
@@ -6931,7 +7041,7 @@ function test()
 
     # Extract the solution
     nl = selectnode(fens, box = [L L -100*W 100*W -100*W 100*W],inflate = tolerance);
-    theutip = mean(u.values[nl,:],1)
+    theutip = mean(u.values[nl,:], dims = 1)
     # println("displacement  = $(theutip[dir]) as compared to converged $uex")
     @test abs(theutip[dir]-uex)/uex < 0.0012
 
@@ -7199,8 +7309,8 @@ function test()
         nL, nh = Refinement * 2 * 4, Refinement*1;
         nts= Refinement * 2 * ones(Int, nLayers);# number of elements per layer
         
-        xs = collect(linspace(0.0, L, nL+1))
-        ys = collect(linspace(0.0, h, nh+1))
+        xs = collect(linearspace(0.0, L, nL+1))
+        ys = collect(linearspace(0.0, h, nh+1))
         
         fens,fes = H8layeredplatex(xs, ys, ts, nts)
         # println("count(fens) = $(count(fens))")

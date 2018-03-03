@@ -22,6 +22,9 @@ mmiscellaneous1mmm.test()
 module mstressconversionm
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
+end
 function test()
   symmtens(N) = begin t=rand(N, N); t = (t+t')/2.0; end
   t = symmtens(2)
@@ -274,6 +277,9 @@ module mrichmmm
 using FinEtools
 using FinEtools.AlgoBaseModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
+end
 function test()
   xs = [93.0734, 92.8633, 92.7252]
     hs = [0.1000, 0.0500, 0.0250]
@@ -556,6 +562,9 @@ mmmeasurementm12.test()
 module mmpartitioning1m
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
+end
 function test()
     a = 10. # radius of the hole
     nC = 20
@@ -582,6 +591,9 @@ mmpartitioning1m.test()
 module mmpartitioning2m
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
+end
 function test()
     H = 100. # strip width
     a = 10. # radius of the hole
@@ -606,6 +618,9 @@ mmpartitioning2m.test()
 module mmboxm1
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
+end
 function test()
     a = [0.431345 0.611088 0.913161;
     0.913581 0.459229 0.82186;
@@ -883,6 +898,9 @@ mmmiscellaneous3.test()
 module mmmfieldmm1
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
+end
 function test()
     W = 4.1;
     L = 12.;
@@ -915,6 +933,9 @@ module mmcrossm
 using FinEtools
 using FinEtools.RotationUtilModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, cross
+end
 function test()
     a = vec([0.1102, -0.369506, -0.0167305])
     b = vec([0.0824301, -0.137487, 0.351721])
@@ -960,6 +981,9 @@ using FinEtools
 using FinEtools.FESetModule
 using FinEtools.CSysModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
+end
 function test()
     L = 2.0
     nl = 1
@@ -970,7 +994,7 @@ function test()
     csmatout = zeros(FFlt, 3, 1)
     gradNparams = FESetModule.bfundpar(fes, vec([0.0]));
     J = transpose(fens.xyz) * gradNparams
-    CSysModule.gen_iso_csmat!(csmatout, mean(fens.xyz, 1), J, 0)
+    CSysModule.gen_iso_csmat!(csmatout, mean(fens.xyz, dims = 1), J, 0)
     # # println("$(csmatout)")
     # # println("$(norm(vec(csmatout)))")
     @test norm(csmatout - [0.894427; 0.0; 0.447214]) < 1.0e-5
@@ -985,6 +1009,9 @@ using FinEtools.FESetModule
 using FinEtools.CSysModule
 using FinEtools.MeshExportModule
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
+end
 function test()
     L = 2.0
     nl = 1
@@ -1002,7 +1029,7 @@ function test()
     end
     # # println("J = $(J)")
     @test norm(J - [1.0 0.0; 0.0 2.0; 0.25 -0.25]) < 1.0e-5
-    CSysModule.gen_iso_csmat!(csmatout, mean(fens.xyz, 1), J, 0)
+    CSysModule.gen_iso_csmat!(csmatout, mean(fens.xyz, dims = 1), J, 0)
     # # println("csmatout = $(csmatout)")
     @test norm(csmatout - [0.970143 0.0291979; 0.0 0.992727; 0.242536 -0.116791]) < 1.0e-5
     try rm(File); catch end
@@ -1062,7 +1089,7 @@ function test()
     fens,fes  = H8block(h,l,2.0*pi,nh,nl,nc)
     femm = FEMMBase(IntegData(fes, GaussRule(3, 2)))
     C = connectionmatrix(femm, count(fens))
-    Degree = [length(find(x->x!=0, C[j,:])) for j in 1:size(C, 1)]
+    Degree = [length(findall(x->x!=0, C[j,:])) for j in 1:size(C, 1)]
     # # println("Maximum degree  = $(maximum(Degree))")
     # # println("Minimum degree  = $(minimum(Degree))")
     @test maximum(Degree) == 27
@@ -1109,8 +1136,8 @@ using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
 function test()
-    xs = collect(linspace( 1.0, 3.0, 4))
-    ys = collect(linspace(-1.0, 5.0, 5))
+    xs = collect(linearspace( 1.0, 3.0, 4))
+    ys = collect(linearspace(-1.0, 5.0, 5))
     fens, fes = T3blockx(xs, ys, :a)
     @test count(fes) == 4*3*2
 
@@ -1141,8 +1168,8 @@ using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
 function test()
-    xs = collect(linspace( 1.0, 3.0, 4))
-    ys = collect(linspace(-1.0, 5.0, 5))
+    xs = collect(linearspace( 1.0, 3.0, 4))
+    ys = collect(linearspace(-1.0, 5.0, 5))
     fens, fes = Q4blockx(xs, ys)
     fens, fes = Q4toQ8(fens, fes)
     @test count(fes) == 4*3
@@ -1174,9 +1201,9 @@ using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
 function test()
-    xs = collect(linspace( 1.0, 3.0, 4))
-    ys = collect(linspace(-1.0, 5.0, 5))
-    zs = collect(linspace(+2.0, 5.0, 7))
+    xs = collect(linearspace( 1.0, 3.0, 4))
+    ys = collect(linearspace(-1.0, 5.0, 5))
+    zs = collect(linearspace(+2.0, 5.0, 7))
     fens, fes = T4blockx(xs, ys, zs, :a)
     @test count(fes) == 432
 
@@ -1253,14 +1280,14 @@ function test()
     connected1 = findunconnnodes(fens, fes1);
     fens1, new_numbering1 = compactnodes(fens, connected1);
     fes1 = renumberconn!(fes1, new_numbering1);
-    present = find(x -> x > 0, new_numbering1)
+    present = findall(x -> x > 0, new_numbering1)
     geom1  =  NodalField(fens.xyz[present, :])
 
     fes2 = subset(fes, subregion2list)
     connected2 = findunconnnodes(fens, fes2);
     fens2, new_numbering2 = compactnodes(fens, connected2);
     fes2 = renumberconn!(fes2, new_numbering2);
-    present = find(x -> x > 0, new_numbering2)
+    present = findall(x -> x > 0, new_numbering2)
     geom2  =  NodalField(fens.xyz[present, :])
 
     femm1  =  FEMMBase(IntegData(fes1, GaussRule(3, 4)))
@@ -1407,6 +1434,9 @@ minnerproduct2.test()
 module mboxintersection_1
 using FinEtools
 using Compat.Test
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm
+end
 function test()
     a = [ 0.042525  0.455813  0.528458
     0.580612  0.933498  0.929843
