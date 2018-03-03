@@ -16,6 +16,9 @@ import FinEtools.ForceIntensityModule: ForceIntensity
 if VERSION >= v"0.7-"
     using SparseArrays
 end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: norm, lufact, cross
+end
 
 """
     steadystate(modeldata::FDataDict)

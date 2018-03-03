@@ -20,7 +20,7 @@ if VERSION < v"0.7-"
     copyto!(de, sr) = copy!(de, sr)
 end
 if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, svd
+    import LinearAlgebra: norm, svd, dot
 end
 if VERSION >= v"0.7-"
     import Random: randperm

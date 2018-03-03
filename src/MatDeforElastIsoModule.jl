@@ -7,9 +7,12 @@ if VERSION < v"0.7-"
     copyto! = copy!
 end
 if VERSION >= v"0.7-"
-    import LinearAlgebra: Diagonal, mul!
+    import LinearAlgebra: Transpose, Diagonal, mul!
     At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
     A_mul_B!(C, A, B) = mul!(C, A, B)
+end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: eig, eigvals, norm, cholfact, cross, dot
 end
 
 const mI = Matrix(Diagonal([1.0, 1.0, 1.0, 0.5, 0.5, 0.5]))

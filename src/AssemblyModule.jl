@@ -10,6 +10,9 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 if VERSION >= v"0.7-"
     using SparseArrays
 end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: diag
+end
 
 const  inv_dofnum=0;            # invalid degree of freedom number -- no equation
 
@@ -357,7 +360,7 @@ function assemble!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, mat::FMat{T},  
     @assert p+ncolumns*nrows <= self.buffer_length+1
     @assert size(mat) == (nrows, ncolumns)
     # Now comes the lumping procedure
-    em2 = sum(sum(mat, 1));
+    em2 = sum(sum(mat, dims = 1));
     dem2 = sum(diag(mat));
     ffactor = em2/dem2 # total-element-mass compensation factor
     @inbounds for j=1:ncolumns

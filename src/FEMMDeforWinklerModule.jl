@@ -17,7 +17,7 @@ import FinEtools.FEMMBaseModule: FEMMAbstractBase
 import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!
 import FinEtools.MatrixUtilityModule: add_nnt_ut_only!, complete_lt!, locjac!
 if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
+    import LinearAlgebra: norm, cross
 end
 
 """

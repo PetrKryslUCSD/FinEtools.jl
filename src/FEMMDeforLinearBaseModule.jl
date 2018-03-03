@@ -23,12 +23,12 @@ if VERSION < v"0.7-"
     pairs(as) = as
 end
 if VERSION >= v"0.7-"
-    import LinearAlgebra: mul!
+    import LinearAlgebra: Transpose, mul!
     At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
     A_mul_B!(C, A, B) = mul!(C, A, B)
 end
 if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
+    import LinearAlgebra: norm, dot
 end
 
 abstract type FEMMDeforLinearAbstract <: FEMMAbstractBase end

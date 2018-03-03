@@ -16,6 +16,9 @@ if VERSION >= v"0.7-"
     At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
     A_mul_B!(C, A, B) = mul!(C, A, B)
 end
+if VERSION >= v"0.7-"
+    import LinearAlgebra: eig, eigvals, rank, dot
+end
 
 """
     MatDeforElastOrtho

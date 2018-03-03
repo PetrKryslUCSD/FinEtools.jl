@@ -28,6 +28,9 @@ import FinEtools.DeforModelRedModule: stresscomponentmap
 import FinEtools.ForceIntensityModule: ForceIntensity
 import FinEtools.MeshModificationModule: meshboundary
 import FinEtools.MeshExportModule: vtkexportmesh
+if VERSION >= v"0.7-"
+    import LinearAlgebra: eig, qr, dot, cholfact
+end
 
 """
     AlgoDeforLinearModule.linearstatics(modeldata::FDataDict)
@@ -882,7 +885,7 @@ function ssit(K, M; nev::Int=6, evshift::FFlt = 0.0,
             lamberr[j] = abs(lamb[j] - plamb[j])/abs(lamb[j])
             converged[j] = lamberr[j] <= tol
         end
-        nconv = length(find(converged[1:nev]))
+        nconv = length(findall(converged[1:nev]))
         verbose && println("nconv = $(nconv)")
         if nconv >= nev # converged on all requested eigenvalues
             break
