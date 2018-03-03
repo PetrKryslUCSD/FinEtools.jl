@@ -59,7 +59,7 @@ function import_NASTRAN(filename; allocationchunk=chunk)
             if size(node, 1) < nnode
                 node = vcat(node, zeros(allocationchunk, 4))
             end
-            A = split(_replace(temp, ",", " "))
+            A = split(replace(temp, "," => " "))
             for  six = 1:4
                 node[nnode, six] = parse(Float64, A[six+1])
             end

@@ -3349,7 +3349,7 @@ mmLE11Q8mm.test()
 module mmLE11Q8mmortho
 using FinEtools
 using Compat.Test
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
   # NAFEMS LE11 benchmark with Q8 elements.
@@ -3468,7 +3468,7 @@ mmLE11Q8mmortho.test()
 module mLE11Q8aximmm
 using FinEtools
 using Compat.Test
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
   # NAFEMS LE11 benchmark with Q8 elements.
   # # This is a test recommended by the National Agency for Finite Element
