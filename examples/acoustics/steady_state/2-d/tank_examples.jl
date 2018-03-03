@@ -30,9 +30,9 @@ function tank_piston_platten()
     
     
     xs = vec([0.0 Platten_radius Piston_radius Tank_radius])
-    ys = vec(vcat(vec(linspace(0.0, Platten_height, 4)),
-    vec(linspace(Platten_height+Gap_height/4, Platten_height+Gap_height, 3)),
-    vec(linspace(Platten_height+Gap_height+Piston_height/4, Tank_height, 3))))
+    ys = vec(vcat(vec(linearspace(0.0, Platten_height, 4)),
+    vec(linearspace(Platten_height+Gap_height/4, Platten_height+Gap_height, 3)),
+    vec(linearspace(Platten_height+Gap_height+Piston_height/4, Tank_height, 3))))
     
     fens, fes = Q4blockx(xs, ys)
     
@@ -115,9 +115,9 @@ function tank_piston_platten_pressure()
     Tolerance = Platten_radius/1.0e6
     
     xs = vec([0.0 Platten_radius Piston_radius Tank_radius])
-    ys = vec(vcat(vec(linspace(0.0, Platten_height, 4)),
-    vec(linspace(Platten_height+Gap_height/4, Platten_height+Gap_height, 3)),
-    vec(linspace(Platten_height+Gap_height+Piston_height/4, Tank_height, 3))))
+    ys = vec(vcat(vec(linearspace(0.0, Platten_height, 4)),
+    vec(linearspace(Platten_height+Gap_height/4, Platten_height+Gap_height, 3)),
+    vec(linearspace(Platten_height+Gap_height+Piston_height/4, Tank_height, 3))))
     
     fens, fes = Q4blockx(xs, ys)
     
@@ -160,8 +160,8 @@ function tank_piston_platten_pressure()
     modeldata = FinEtools.AlgoAcoustModule.steadystate(modeldata)
     geom = modeldata["geom"]
     P = modeldata["P"]
-    println("Minimum/maximum pressure, real= $(minimum(real(P.values)))/$(maximum(real(P.values))))")
-    println("Minimum/maximum pressure, imag= $(minimum(imag(P.values)))/$(maximum(imag(P.values))))")
+    println("Minimum/maximum pressure, real= $(minimum(real(P.values)))/$(maximum(real(P.values)))")
+    println("Minimum/maximum pressure, imag= $(minimum(imag(P.values)))/$(maximum(imag(P.values)))")
     
     println("Total time elapsed = ",time() - t0,"s")
     

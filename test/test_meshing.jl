@@ -214,9 +214,7 @@ using .mAbaqusmmiimportmmm
 module mmsmoothingm1
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
 
     # println("""
@@ -269,9 +267,7 @@ using .mmsmoothingm1
 module mmsmoothingm2
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
 
     # println("""
@@ -1163,9 +1159,7 @@ using .mmtetblocksmm
 module momap2para1
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     X = [-1.0 -1.0; 2.0 0.4; 1.0 2.3; -2.0 1.0]
     fens = FENodeSet(X);
@@ -1185,9 +1179,7 @@ using .momap2para1
 module momap2para2
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     X = [-1.0 -1.0; 2.0 0.4; 1.0 2.3; -2.0 1.0]
     fens = FENodeSet(X);
@@ -1214,9 +1206,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1281,9 +1271,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1357,9 +1345,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1435,9 +1421,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1512,9 +1496,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1589,9 +1571,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1667,9 +1647,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1744,9 +1722,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1821,9 +1797,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1898,9 +1872,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1975,9 +1947,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cross
-end
+import LinearAlgebra: norm, cross
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -2048,9 +2018,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cross
-end
+import LinearAlgebra: norm, cross
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -2170,9 +2138,7 @@ module mtetmeshedges1
 using FinEtools
 using FinEtools.MeshTetrahedronModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cross
-end
+import LinearAlgebra: norm, cross
 t =[
      1    17    13    14
      6     5     2    18
@@ -2625,9 +2591,7 @@ using .mtetmeshedges1
 module minterior2boundary1
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cross
-end
+import LinearAlgebra: norm, cross
 function test()
     t =[
          1    17    13    14
