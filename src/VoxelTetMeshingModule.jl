@@ -11,13 +11,7 @@ import FinEtools.MeshTetrahedronModule: T4voximg, tetv
 import FinEtools.FESetModule: connasarray
 import FinEtools.MeshModificationModule: interior2boundary, vertexneighbors, smoothertaubin
 import FinEtools.TetRemeshingModule: coarsen
-if VERSION < v"0.7-"
-    import Base.copy!
-    copyto!(de, sr) = copy!(de, sr)
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 
 mutable struct  ElementSizeWeightFunction
     influenceweight::FFlt

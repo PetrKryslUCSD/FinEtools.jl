@@ -2,7 +2,6 @@ module Meyer_Piening_examples
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshUtilModule
-
 function Meyer_Piening_sandwich()
     println("""
     Meyer-Piening sandwich plate
@@ -324,7 +323,7 @@ function Meyer_Piening_sandwich_H20()
     nts= Refinement * [1, 2, 1];# number of elements per layer
     strength = 1.5
     sp = (a, b, n) -> MeshUtilModule.gradedspace(a, b, n, strength)
-    sp = (a, b, n) -> linspace(a, b, n)
+    sp = (a, b, n) -> linearspace(a, b, n)
     xs = unique(vcat(reverse(collect(sp(Lx/2, 0.0, nL+1))),
     collect(sp(Lx/2, Sx/2, nSx-nL+1))))
     ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1))),
@@ -816,7 +815,7 @@ function Meyer_Piening_sandwich_MSH8()
     nts= Refinement * [1, 2, 1];# number of elements per layer
     strength = 1.5
     sp = (a, b, n) -> MeshUtilModule.gradedspace(a, b, n, strength)
-    sp = (a, b, n) -> linspace(a, b, n)
+    sp = (a, b, n) -> linearspace(a, b, n)
     xs = unique(vcat(reverse(collect(sp(Lx/2, 0.0, nL+1))),
     collect(sp(Lx/2, Sx/2, nSx-nL+1))))
     ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1))),
@@ -1066,7 +1065,7 @@ function Meyer_Piening_sandwich_MST10()
     nts= Refinement * [1, 2, 1];# number of elements per layer
     strength = 1.5
     sp = (a, b, n) -> MeshUtilModule.gradedspace(a, b, n, strength)
-    sp = (a, b, n) -> linspace(a, b, n)
+    sp = (a, b, n) -> linearspace(a, b, n)
     xs = unique(vcat(reverse(collect(sp(Lx/2, 0.0, nL+1))),
     collect(sp(Lx/2, Sx/2, nSx-nL+1))))
     ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1))),
@@ -1322,7 +1321,7 @@ function Meyer_Piening_sandwich_MST10_timing()
     nts= Refinement * [1, 2, 1];# number of elements per layer
     strength = 1.5
     sp = (a, b, n) -> MeshUtilModule.gradedspace(a, b, n, strength)
-    sp = (a, b, n) -> linspace(a, b, n)
+    sp = (a, b, n) -> linearspace(a, b, n)
     xs = unique(vcat(reverse(collect(sp(Lx/2, 0.0, nL+1))),
     collect(sp(Lx/2, Sx/2, nSx-nL+1))))
     ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1))),
@@ -1584,7 +1583,7 @@ function Meyer_Piening_sandwich_T10_timing()
     nts= Refinement * [1, 2, 1];# number of elements per layer
     strength = 1.5
     sp = (a, b, n) -> MeshUtilModule.gradedspace(a, b, n, strength)
-    sp = (a, b, n) -> linspace(a, b, n)
+    sp = (a, b, n) -> linearspace(a, b, n)
     xs = unique(vcat(reverse(collect(sp(Lx/2, 0.0, nL+1))),
     collect(sp(Lx/2, Sx/2, nSx-nL+1))))
     ys = unique(vcat(reverse(collect(MeshUtilModule.gradedspace(Ly/2, 0.0, nL+1))),

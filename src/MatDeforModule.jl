@@ -7,10 +7,6 @@ module MatDeforModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.DeforModelRedModule: DeforModelRed3D, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed1D
-if VERSION < v"0.7-"
-    import Base.copy!
-    copyto!(de, sr) = copy!(de, sr)
-end
 
 """
     MatDefor

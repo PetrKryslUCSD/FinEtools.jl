@@ -7,9 +7,7 @@ module AlgoBaseModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FEMMBaseModule: integratefieldfunction, transferfield!
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 
 function _keymatch(key::String, allowed_keys::Array{String})
     matched_key = nothing

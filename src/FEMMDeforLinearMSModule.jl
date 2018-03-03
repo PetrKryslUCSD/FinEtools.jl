@@ -23,18 +23,10 @@ using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, 
 import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass, thermalstrainloads, inspectintegpoints
 import FinEtools.FEMMBaseModule: associategeometry!
 import FinEtools.MatDeforModule: rotstressvec
-
-if VERSION < v"0.7-"
-    pairs(as) = as
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: mul!, Transpose
-    At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
-    A_mul_B!(C, A, B) = mul!(C, A, B)
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, qr, diag, dot, cond
-end
+import LinearAlgebra: mul!, Transpose
+At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
+A_mul_B!(C, A, B) = mul!(C, A, B)
+import LinearAlgebra: norm, qr, diag, dot, cond
 
 abstract type FEMMDeforLinearAbstractMS <: FEMMDeforLinearAbstract end
 

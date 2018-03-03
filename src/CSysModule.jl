@@ -6,13 +6,7 @@ Module for management of coordinate systems.
 module CSysModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-if VERSION < v"0.7-"
-    import Base.copy!
-    copyto!(de, sr) = copy!(de, sr)
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cross
-end
+import LinearAlgebra: norm, cross
 
 """
 Type for coordinate system transformations.

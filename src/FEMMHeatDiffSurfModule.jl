@@ -15,9 +15,7 @@ import FinEtools.NodalFieldModule: NodalField
 import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 import FinEtools.FEMMBaseModule: FEMMAbstractBase
 import FinEtools.MatrixUtilityModule: add_gkgt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, dot, cross
-end
+import LinearAlgebra: norm, dot, cross
 
 # Type for heat diffusion finite element modeling machine for boundary integrals.
 mutable struct FEMMHeatDiffSurf{S<:FESet, F<:Function} <: FEMMAbstractBase

@@ -1,14 +1,9 @@
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
 module mmLE11NAFEMSQ8algo2
 using FinEtools
 using FinEtools.AlgoDeforLinearModule: linearstatics, exportdeformation,
 exportstress, exportstresselementwise
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
     # NAFEMS LE11 benchmark with Q8 elements.
     # # This is a test recommended by the National Agency for Finite Element
@@ -392,9 +387,7 @@ module cookstress_1
 using Compat.Test
 using FinEtools
 using FinEtools.MeshExportModule
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
   # println("Cook membrane problem,  plane stress."        )
   t0 = time()
@@ -659,9 +652,7 @@ module scratch2_06102017
 
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    using   IterativeEigensolvers
-end
+using   IterativeEigensolvers
 function test()
   # println("""
   #         % Vibration modes of unit cube  of almost incompressible material.
@@ -1432,9 +1423,7 @@ mmmultimaterial_beam_xz.test()
 module mmmmunitmccubemm
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
   # println("""
@@ -1494,13 +1483,7 @@ mmmmunitmccubemm.test()
 module mmpipemmPSmmm
 using FinEtools
 using Compat.Test
-if VERSION < v"0.7-"
-    import Base.copy!
-    copyto!(de, sr) = copy!(de, sr)
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross, dot
-end
+import LinearAlgebra: norm, cholfact, cross, dot
 mutable struct MyIData
     c::FInt
     r::FFltVec
@@ -1747,13 +1730,7 @@ mmpipemmPSmmm.test()
 module mmOrthotropicmm
 using FinEtools
 using Compat.Test
-if VERSION < v"0.7-"
-    import Base.copy!
-    copyto!(de, sr) = copy!(de, sr)
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
   # Orthotropic balloon inflation, axially symmetric model
@@ -1855,9 +1832,7 @@ module mmCookmm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
   # println("Cook plane stress, with quadratic triangles.")
   E = 1.0;
@@ -1937,9 +1912,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
   # println("Cook plane stress, with quadratic triangles. With orthotropic  material model.")
   E = 1.0;
@@ -2022,12 +1995,7 @@ module mmCanttronglymm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-if VERSION < v"0.7-"
-    copyto! = copy!
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
   # println("""
   # Cantilever example.  Strongly orthotropic material. Orientation "y".
@@ -2276,9 +2244,7 @@ mmmNAFEMS_R0031_3m.test()
 module mmtwistedmsh8mmm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 using Compat.Test
 function test()
 
@@ -2401,9 +2367,7 @@ mmtwistedmsh8mmm.test()
 module mmunitmmccubemmvibrationmmms
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
   # println("""
@@ -2462,9 +2426,7 @@ module mmtwistedbeamisomm
 using FinEtools
 using Compat.Test
 using FinEtools.AlgoDeforLinearModule
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
   E = 0.29e8;
   nu = 0.22;
@@ -2597,9 +2559,7 @@ mmtwistedbeamisomm.test()
 module mmtwistedbeamoorthomm
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 using FinEtools.AlgoDeforLinearModule
 function test()
   E = 0.29e8;
@@ -2734,12 +2694,8 @@ module muunit_cube_modes_exportmmm
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    using   IterativeEigensolvers
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+using  IterativeEigensolvers
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
 
@@ -2831,13 +2787,8 @@ muunit_cube_modes_exportmmm.test()
 module mmpipemmPSmorthom
 using FinEtools
 using Compat.Test
-if VERSION < v"0.7-"
-    import Base.copy!
-    copyto!(de, sr) = copy!(de, sr)
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross, dot
-end
+import LinearAlgebra: norm, cholfact, cross, dot
+
 mutable struct MyIData
     c::FInt
     r::FFltVec
@@ -3280,9 +3231,7 @@ scratch1_06092017_ortho.test()
 module mmLE11Q8mm
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
   # NAFEMS LE11 benchmark with Q8 elements.
@@ -3400,8 +3349,6 @@ mmLE11Q8mm.test()
 module mmLE11Q8mmortho
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
 end
 function test()
 
@@ -3521,8 +3468,6 @@ mmLE11Q8mmortho.test()
 module mLE11Q8aximmm
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
 end
 function test()
   # NAFEMS LE11 benchmark with Q8 elements.
@@ -3692,9 +3637,7 @@ mLE11Q8aximmm.test()
 module mLE11Q8aximorthom
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
   # NAFEMS LE11 benchmark with Q8 elements.
   # # This is a test recommended by the National Agency for Finite Element
@@ -3864,9 +3807,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
 
@@ -4033,9 +3974,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
 
@@ -4203,9 +4142,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
 
@@ -4373,9 +4310,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
 
@@ -4542,9 +4477,7 @@ using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
 
@@ -5063,12 +4996,8 @@ module mmtruncatedmfreem1
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    using   IterativeEigensolvers
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+using   IterativeEigensolvers
+import LinearAlgebra: norm, cholfact, cross
 function test()
     # println("""
     # Vibration modes of truncated cylindrical shell.
@@ -5167,9 +5096,7 @@ mmtruncatedmfreem1.test()
 module mmFV32mm1
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
     # println("""
     # FV32: Cantilevered tapered membrane
@@ -5246,12 +5173,8 @@ module mmtruncatedmfreem2
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    using   IterativeEigensolvers
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+using   IterativeEigensolvers
+import LinearAlgebra: norm, cholfact, cross
 function test()
     # println("""
     # Vibration modes of truncated cylindrical shell.
@@ -5351,9 +5274,7 @@ module mfiber_reinf_cant_yn_strong_Abaqus
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: Symmetric, cholfact
-end
+import LinearAlgebra: Symmetric, cholfact
 function test()
 
 
@@ -5515,9 +5436,7 @@ mfiber_reinf_cant_yn_strong_Abaqus.test()
 module mmorthoballoonpenaltymm
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
     # Orthotropic balloon inflation, axially symmetric model
@@ -5700,9 +5619,7 @@ using FinEtools
 using FinEtools.FENodeSetModule
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
     Area = 2.0*phun("in^2")
     E = 30e6*phun("psi") # Young's modulus
@@ -5773,9 +5690,7 @@ using FinEtools
 using FinEtools.FENodeSetModule
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
     Area = 1.5
     E = 1.0e7 # Young's modulus
@@ -5854,9 +5769,7 @@ module mmmLE10expiAbaqus2mmmm
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
 
@@ -6013,9 +5926,7 @@ using FinEtools.MeshExportModule
 # using DataFrames
 # using CSV
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
     E = 210000*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6178,9 +6089,7 @@ using FinEtools.MeshImportModule: import_ABAQUS
 # using DataFrames
 # using CSV
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
     E = 210000*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6368,9 +6277,7 @@ module mplate_w_hole_MST10m
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
     E = 2.4*phun("MEGA*PA");# 210e3 MPa
     nu = 0.49995;
@@ -6529,9 +6436,7 @@ mplate_w_hole_MST10m.test()
 module mmLE1NAFEMSsstress
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
     E = 210e3*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6712,9 +6617,7 @@ module mmLE11malgo
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
 
@@ -6832,9 +6735,7 @@ module mmtwistedmsh8ort
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
   # println("""
@@ -6964,9 +6865,7 @@ module mmtwistedmsh9ort
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cholfact, cross
-end
+import LinearAlgebra: norm, cholfact, cross
 function test()
 
     # println("""

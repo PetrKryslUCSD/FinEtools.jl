@@ -19,13 +19,7 @@ import FinEtools.GeneralFieldModule: GeneralField
 import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysmatAssemblerSparse
 import FinEtools.FEMMBaseModule: FEMMAbstractBase
 import FinEtools.MatrixUtilityModule: add_mggt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
-if VERSION < v"0.7-"
-    import Base.copy!
-    copyto!(de, sr) = copy!(de, sr)
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cross
-end
+import LinearAlgebra: norm, cross
 
 """
     FEMMAcoustSurf{S<:FESet, F<:Function, M} <: FEMMAbstractBase

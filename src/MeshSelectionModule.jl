@@ -10,17 +10,7 @@ import FinEtools.FESetModule: FESet, bfundpar, nodesperelem, manifdim, connasarr
 import FinEtools.FENodeSetModule: FENodeSet, spacedim
 import FinEtools.BoxModule: inflatebox!, initbox!, updatebox!, boxesoverlap
 import FinEtools.FENodeToFEMapModule: FENodeToFEMap
-
-if VERSION < v"0.7-"
-    pairs(as) = as
-end
-if VERSION < v"0.7-"
-    import Base.copy!
-    copyto!(de, sr) = copy!(de, sr)
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, dot, cross
-end
+import LinearAlgebra: norm, dot, cross
 
 """
     connectednodes(fes::FESet)

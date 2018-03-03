@@ -19,14 +19,10 @@ import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, Sysma
 import FinEtools.ForceIntensityModule: ForceIntensity
 import FinEtools.FEMMBaseModule: FEMMAbstractBase
 import FinEtools.MatrixUtilityModule: add_gkgt_ut_only!, complete_lt!, locjac!
-if VERSION >= v"0.7-"
-    import LinearAlgebra: mul!, Transpose
-    At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
-    A_mul_B!(C, A, B) = mul!(C, A, B)
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: mul!, Transpose
+At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
+A_mul_B!(C, A, B) = mul!(C, A, B)
+import LinearAlgebra: norm
 
 # Type for heat diffusion finite element modeling machine.
 mutable struct FEMMHeatDiff{S<:FESet, F<:Function, M<:MatHeatDiff} <: FEMMAbstractBase

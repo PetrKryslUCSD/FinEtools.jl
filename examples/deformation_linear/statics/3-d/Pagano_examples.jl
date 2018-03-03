@@ -48,8 +48,8 @@ function Pagano_3lay_cyl_bend_MST10_conv()
                 nL, nh = Refinement * 2 * 6, 1;
                 nts= Refinement * 2 * ones(Int, nLayers);# number of elements per layer
                 
-                xs = collect(linspace(0.0, L, nL+1))
-                ys = collect(linspace(0.0, h, nh+1))
+                xs = collect(linearspace(0.0, L, nL+1))
+                ys = collect(linearspace(0.0, h, nh+1))
                 fens,fes = T10layeredplatex(xs, ys, ts, nts)
                 display(typeof(fes))
                 println("Mesh: nL, nh, nts = $nL, $nh, $nts")
@@ -234,8 +234,8 @@ function Pagano_3lay_cyl_bend_H8_conv()
                 nL, nh = Refinement * 2 * 6, 1;
                 nts= Refinement * 2 * ones(Int, nLayers);# number of elements per layer
                 
-                xs = collect(linspace(0.0, L, nL+1))
-                ys = collect(linspace(0.0, h, nh+1))
+                xs = collect(linearspace(0.0, L, nL+1))
+                ys = collect(linearspace(0.0, h, nh+1))
                 fens,fes = H8layeredplatex(xs, ys, ts, nts)
                 
                 println("Mesh: nL, nh, nts = $nL, $nh, $nts")
@@ -417,8 +417,8 @@ function Pagano_3lay_cyl_bend_MSH8_conv()
                 nL, nh = Refinement * 2 * 6, 1;
                 nts= Refinement * 2 * ones(Int, nLayers);# number of elements per layer
                 
-                xs = collect(linspace(0.0, L, nL+1))
-                ys = collect(linspace(0.0, h, nh+1))
+                xs = collect(linearspace(0.0, L, nL+1))
+                ys = collect(linearspace(0.0, h, nh+1))
                 fens,fes = H8layeredplatex(xs, ys, ts, nts)
                 
                 println("Mesh: nL, nh, nts = $nL, $nh, $nts")
@@ -598,8 +598,8 @@ function Pagano_3lay_cyl_bend_T10_conv()
                 nL, nh = Refinement * 2 * 6, 1;
                 nts= Refinement * 2 * ones(Int, nLayers);# number of elements per layer
                 
-                xs = collect(linspace(0.0, L, nL+1))
-                ys = collect(linspace(0.0, h, nh+1))
+                xs = collect(linearspace(0.0, L, nL+1))
+                ys = collect(linearspace(0.0, h, nh+1))
                 fens,fes = T10layeredplatex(xs, ys, ts, nts)
                 
                 println("Mesh: nL, nh, nts = $nL, $nh, $nts")

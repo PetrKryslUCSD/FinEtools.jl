@@ -12,10 +12,7 @@ import FinEtools.MeshQuadrilateralModule: Q4elliphole
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
 import FinEtools.MeshModificationModule: meshboundary, mergemeshes
 import FinEtools.MeshSelectionModule: selectelem, connectednodes
-
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 
 """
     H8block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)

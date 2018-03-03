@@ -6,18 +6,12 @@ Module for assemblers  of system matrices and vectors.
 module AssemblyModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-
-if VERSION >= v"0.7-"
-    using SparseArrays
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: diag
-end
+import SparseArrays: sparse
+import LinearAlgebra: diag
 
 const  inv_dofnum=0;            # invalid degree of freedom number -- no equation
 
 abstract type SysmatAssemblerBase end;
-
 
 mutable struct SysmatAssemblerSparse{T<:Number} <: SysmatAssemblerBase
     # Type for assembling of a sparse global matrix from elementwise matrices.

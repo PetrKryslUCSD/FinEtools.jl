@@ -11,20 +11,8 @@ import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.BoxModule: boundingbox, inflatebox!, intersectboxes, inbox
 using Base.Sort
 using Base.Order
-
-if VERSION < v"0.7-"
-    pairs(as) = as
-end
-if VERSION < v"0.7-"
-    import Base.copy!
-    copyto!(de, sr) = copy!(de, sr)
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, svd, dot
-end
-if VERSION >= v"0.7-"
-    import Random: randperm
-end
+import LinearAlgebra: norm, svd, dot
+import Random: randperm
 
 """
     interior2boundary(interiorconn::Array{Int, 2}, extractb::Array{Int, 2})
@@ -733,11 +721,7 @@ function nodepartitioning(fens::FENodeSet, npartitions = 2)
     function inertialcut(ptng, X, level)
         Xmean = mean(X, dims = 1);
         X = X .- Xmean  # move the center of the point cloud to the origin
-        if VERSION < v"0.7-"
-            U, S, V = svd(X, thin=true);
-        else
-            U, S, V = svd(X, full=false);
-        end
+        U, S, V = svd(X, full=false);
         v = V[:, 1];
         d = X * v
         c = classifypoints(d)

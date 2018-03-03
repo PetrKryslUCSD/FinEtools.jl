@@ -5,22 +5,10 @@ Module for comments/base operations on interiors and boundaries of domains.
 """
 module FEMMBaseModule
 
-if VERSION < v"0.7-"
-    pairs(as) = as
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: mul!, Transpose
-    my_At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
-else
-    my_At_mul_B!(C, A, B) = At_mul_B!(C, A, B)
-end
-if VERSION >= v"0.7-"
-    using SparseArrays
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
-
+import LinearAlgebra: mul!, Transpose
+my_At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
+import SparseArrays: sparse
+import LinearAlgebra: norm
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, manifdim, nodesperelem, subset, map2parametric, inparametric, centroidparametric, bfun

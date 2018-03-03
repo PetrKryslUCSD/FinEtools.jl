@@ -22,9 +22,7 @@ mmiscellaneous1mmm.test()
 module mstressconversionm
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
   symmtens(N) = begin t=rand(N, N); t = (t+t')/2.0; end
   t = symmtens(2)
@@ -277,9 +275,7 @@ module mrichmmm
 using FinEtools
 using FinEtools.AlgoBaseModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
   xs = [93.0734, 92.8633, 92.7252]
     hs = [0.1000, 0.0500, 0.0250]
@@ -562,9 +558,7 @@ mmmeasurementm12.test()
 module mmpartitioning1m
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     a = 10. # radius of the hole
     nC = 20
@@ -591,9 +585,7 @@ mmpartitioning1m.test()
 module mmpartitioning2m
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     H = 100. # strip width
     a = 10. # radius of the hole
@@ -618,9 +610,7 @@ mmpartitioning2m.test()
 module mmboxm1
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     a = [0.431345 0.611088 0.913161;
     0.913581 0.459229 0.82186;
@@ -898,9 +888,7 @@ mmmiscellaneous3.test()
 module mmmfieldmm1
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     W = 4.1;
     L = 12.;
@@ -933,9 +921,7 @@ module mmcrossm
 using FinEtools
 using FinEtools.RotationUtilModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cross
-end
+import LinearAlgebra: norm, cross
 function test()
     a = vec([0.1102, -0.369506, -0.0167305])
     b = vec([0.0824301, -0.137487, 0.351721])
@@ -981,9 +967,7 @@ using FinEtools
 using FinEtools.FESetModule
 using FinEtools.CSysModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     L = 2.0
     nl = 1
@@ -1009,9 +993,7 @@ using FinEtools.FESetModule
 using FinEtools.CSysModule
 using FinEtools.MeshExportModule
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     L = 2.0
     nl = 1
@@ -1307,9 +1289,7 @@ mxmeasurementm3a1.test()
 module minnerproduct1
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    using IterativeEigensolvers
-end
+using IterativeEigensolvers
 function test()
     kappa = 0.2*[1.0 0; 0 1.0]; # conductivity matrix
     magn = 0.06;# heat flux along the boundary
@@ -1370,9 +1350,7 @@ minnerproduct1.test()
 module minnerproduct2
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    using IterativeEigensolvers
-end
+using IterativeEigensolvers
 function test()
     kappa = 0.2*[1.0 0; 0 1.0]; # conductivity matrix
     magn = 0.06;# heat flux along the boundary
@@ -1434,9 +1412,7 @@ minnerproduct2.test()
 module mboxintersection_1
 using FinEtools
 using Compat.Test
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm
-end
+import LinearAlgebra: norm
 function test()
     a = [ 0.042525  0.455813  0.528458
     0.580612  0.933498  0.929843

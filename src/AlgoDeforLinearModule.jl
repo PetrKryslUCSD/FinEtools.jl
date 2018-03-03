@@ -7,18 +7,10 @@ module AlgoDeforLinearModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.AlgoBaseModule: dcheck!
-if VERSION >= v"0.7-"
-    using   IterativeEigensolvers
-end
-if VERSION >= v"0.7-"
-    using SparseArrays
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: mul!
-    my_A_mul_B!(C, A, B) = mul!(C, A, B)
-else
-    my_A_mul_B!(C, A, B) = A_mul_B!(C, A, B)
-end
+using IterativeEigensolvers: eigs
+import SparseArrays: spzeros
+import LinearAlgebra: mul!
+my_A_mul_B!(C, A, B) = mul!(C, A, B)
 import FinEtools.FieldModule: Field, ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!
 import FinEtools.NodalFieldModule: NodalField, nnodes
 import FinEtools.FEMMBaseModule: associategeometry!, distribloads, fieldfromintegpoints, elemfieldfromintegpoints
@@ -28,9 +20,7 @@ import FinEtools.DeforModelRedModule: stresscomponentmap
 import FinEtools.ForceIntensityModule: ForceIntensity
 import FinEtools.MeshModificationModule: meshboundary
 import FinEtools.MeshExportModule: vtkexportmesh
-if VERSION >= v"0.7-"
-    import LinearAlgebra: eig, qr, dot, cholfact
-end
+import LinearAlgebra: eig, qr, dot, cholfact
 
 """
     AlgoDeforLinearModule.linearstatics(modeldata::FDataDict)
@@ -873,11 +863,7 @@ function ssit(K, M; nev::Int=6, evshift::FFlt = 0.0,
     Mv = zeros(size(M, 1), size(v, 2))
     for i = 1:maxiter
         u = factor\(M*v)
-        if VERSION < v"0.7-"
-            v, r = qr(u; thin=true)  # economy factorization
-        else    
-            v, r = qr(u; full=false)  # economy factorization
-        end
+        v, r = qr(u; full=false)  # economy factorization
         my_A_mul_B!(Kv, K, v)
         my_A_mul_B!(Mv, M, v)
         for j = 1:nvecs

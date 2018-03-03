@@ -1,6 +1,6 @@
 module Fahy_examples
 using FinEtools
-using PyCall
+using Gaston
 
 function fahy_H20_example()
     println("""
@@ -192,16 +192,20 @@ function fahy_L2_example()
     println("Total time elapsed  =  ",time() - t0,"s")
     
     
-    @pyimport matplotlib.pyplot as plt
-    plt.style[:use]("seaborn-whitegrid")
-    fig = plt.figure() 
-    ax = plt.axes()
-    en = 2
+    # @pyimport matplotlib.pyplot as plt
+    # plt.style[:use]("seaborn-whitegrid")
+    # fig = plt.figure() 
+    # ax = plt.axes()
+    # en = 2
+    # ix = sortperm(geom.values[:])
+    # ax[:plot](geom.values[:][ix], v[:,en][ix], color = "blue")
+    # ax[:set_xlabel]("x")
+    # ax[:set_ylabel]("P")
+    # plt.show()
+    
+    set(axis="normal", plotstyle="linespoints", linewidth=2, pointsize = 2, color = "black", xlabel = "x", ylabel = "P", grid="on", title = "")
     ix = sortperm(geom.values[:])
-    ax[:plot](geom.values[:][ix], v[:,en][ix], color = "blue")
-    ax[:set_xlabel]("x")
-    ax[:set_ylabel]("P")
-    plt.show()
+    plot(geom.values[:][ix], v[:,2][ix], legend = "Pressure mode", marker = "edmd")
     
     true
     

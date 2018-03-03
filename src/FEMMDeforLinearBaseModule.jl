@@ -18,18 +18,10 @@ import FinEtools.CSysModule: CSys, updatecsmat!
 import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat! 
 import FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, locjac!
 import FinEtools.MatDeforModule: rotstressvec
-
-if VERSION < v"0.7-"
-    pairs(as) = as
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: Transpose, mul!
-    At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
-    A_mul_B!(C, A, B) = mul!(C, A, B)
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, dot
-end
+import LinearAlgebra: Transpose, mul!
+At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
+A_mul_B!(C, A, B) = mul!(C, A, B)
+import LinearAlgebra: norm, dot
 
 abstract type FEMMDeforLinearAbstract <: FEMMAbstractBase end
 

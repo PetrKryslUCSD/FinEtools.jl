@@ -7,18 +7,9 @@ module FESetModule
 
 import Base.count
 import Base.cat
-if VERSION < v"0.7-"
-    import Base.copy!
-    copyto!(de, sr) = copy!(de, sr)
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: mul!, Transpose
-    At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
-end
-if VERSION >= v"0.7-"
-    import LinearAlgebra: norm, cross
-end
-
+import LinearAlgebra: mul!, Transpose
+At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
+import LinearAlgebra: norm, cross
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 abstract type FESet{NODESPERELEM} end
