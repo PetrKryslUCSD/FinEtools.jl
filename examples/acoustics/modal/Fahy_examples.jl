@@ -1,6 +1,7 @@
 module Fahy_examples
 using FinEtools
 using Gaston
+using IterativeEigensolvers
 
 function fahy_H20_example()
     println("""
@@ -36,7 +37,7 @@ function fahy_H20_example()
     C = acousticmass(femm, geom, P);
     
     d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
-    d = d - OmegaShift;
+    d = d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
     println("Eigenvalues: $fs [Hz]")
     
@@ -87,7 +88,7 @@ function fahy_H27_example()
     C = acousticmass(femm, geom, P);
     
     d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
-    d = d - OmegaShift;
+    d = d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
     println("Eigenvalues: $fs [Hz]")
     
@@ -134,7 +135,7 @@ function fahy_H8_example()
     C = acousticmass(femm, geom, P);
     
     d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
-    d = d - OmegaShift;
+    d = d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
     println("Eigenvalues: $fs [Hz]")
     
@@ -184,7 +185,7 @@ function fahy_L2_example()
     C  =  acousticmass(femm, geom, P);
     
     d,v,nev,nconv  = eigs(C+OmegaShift*S, S; nev = neigvs, which = :SM)
-    d  =  d - OmegaShift;
+    d  =  d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
     println("Eigenvalues: $fs [Hz]")
     
