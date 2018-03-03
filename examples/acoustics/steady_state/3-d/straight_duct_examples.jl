@@ -1,6 +1,6 @@
 module straight_duct_examples
 using FinEtools
-using PyCall
+using Gaston
 
 function straight_duct_H8_example()
     t0  =  time()
@@ -31,7 +31,7 @@ function straight_duct_H8_example()
     nLx = selectnode(fens,box = [0.0 Lx  0.0 0.0 0.0 0.0], inflate = Lx/1.0e5)
     
     geom  =  NodalField(fens.xyz)
-    P  =  NodalField(zeros(Complex128,size(fens.xyz,1),1))
+    P  =  NodalField(zeros(ComplexF64,size(fens.xyz,1),1))
     
     numberdofs!(P)
     
@@ -65,17 +65,23 @@ function straight_duct_H8_example()
     scalars = [("Pressure", scalars)])
     @async run(`"paraview.exe" $File`)
     
-    @pyimport matplotlib.pyplot as plt
-    plt.style[:use]("seaborn-whitegrid")
-    fig = plt.figure() 
-    ax = plt.axes()
+    # @pyimport matplotlib.pyplot as plt
+    # plt.style[:use]("seaborn-whitegrid")
+    # fig = plt.figure() 
+    # ax = plt.axes()
+    # ix = sortperm(geom.values[nLx,1])
+    # ax[:plot](geom.values[nLx,1][ix], real(P.values)[nLx][ix], color = :blue, label = "real")
+    # ax[:plot](geom.values[nLx,1][ix], imag(P.values)[nLx][ix], color = :red, label  =  "imag")
+    # ax[:set_xlabel]("x coordinate")
+    # ax[:set_ylabel]("Pressure")
+    # plt.show()
+    set(axis="normal", plotstyle="linespoints", linewidth=3, pointsize = 2, color = "black", xlabel = "x coordinate", ylabel = "Pressure", grid="on", title = "")
     ix = sortperm(geom.values[nLx,1])
-    ax[:plot](geom.values[nLx,1][ix], real(P.values)[nLx][ix], color = :blue, label = "real")
-    ax[:plot](geom.values[nLx,1][ix], imag(P.values)[nLx][ix], color = :red, label  =  "imag")
-    ax[:set_xlabel]("x coordinate")
-    ax[:set_ylabel]("Pressure")
-    plt.show()
-    
+    f = figure()
+    plot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], legend = "real", marker = "ecircle")
+    plot!(geom.values[nLx,1][ix], imag(P.values)[nLx][ix], legend = "imag", marker = "edmd")
+    figure(f)
+
     true
     
 end # straight_duct_H8_example
@@ -110,7 +116,7 @@ function straight_duct_T10_example()
     nLx = selectnode(fens,box = [0.0 Lx  0.0 0.0 0.0 0.0], inflate = Lx/1.0e5)
     
     geom  =  NodalField(fens.xyz)
-    P  =  NodalField(zeros(Complex128,size(fens.xyz,1),1))
+    P  =  NodalField(zeros(ComplexF64,size(fens.xyz,1),1))
     
     numberdofs!(P)
     
@@ -144,17 +150,23 @@ function straight_duct_T10_example()
     scalars = [("Pressure", scalars)])
     @async run(`"paraview.exe" $File`)
     
-    @pyimport matplotlib.pyplot as plt
-    plt.style[:use]("seaborn-whitegrid")
-    fig = plt.figure() 
-    ax = plt.axes()
+    # @pyimport matplotlib.pyplot as plt
+    # plt.style[:use]("seaborn-whitegrid")
+    # fig = plt.figure() 
+    # ax = plt.axes()
+    # ix = sortperm(geom.values[nLx,1])
+    # ax[:plot](geom.values[nLx,1][ix], real(P.values)[nLx][ix], color = :blue, label = "real")
+    # ax[:plot](geom.values[nLx,1][ix], imag(P.values)[nLx][ix], color = :red, label  =  "imag")
+    # ax[:set_xlabel]("x coordinate")
+    # ax[:set_ylabel]("Pressure")
+    # plt.show()
+    set(axis="normal", plotstyle="linespoints", linewidth=3, pointsize = 2, color = "black", xlabel = "x coordinate", ylabel = "Pressure", grid="on", title = "")
     ix = sortperm(geom.values[nLx,1])
-    ax[:plot](geom.values[nLx,1][ix], real(P.values)[nLx][ix], color = :blue, label = "real")
-    ax[:plot](geom.values[nLx,1][ix], imag(P.values)[nLx][ix], color = :red, label  =  "imag")
-    ax[:set_xlabel]("x coordinate")
-    ax[:set_ylabel]("Pressure")
-    plt.show()
-    
+    f = figure()
+    plot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], legend = "real", marker = "ecircle")
+    plot!(geom.values[nLx,1][ix], imag(P.values)[nLx][ix], legend = "imag", marker = "edmd")
+    figure(f)
+
     true
     
 end # straight_duct_T10_example
@@ -189,7 +201,7 @@ function straight_duct_T4_example()
     nLx = selectnode(fens,box = [0.0 Lx  0.0 0.0 0.0 0.0], inflate = Lx/1.0e5)
     
     geom  =  NodalField(fens.xyz)
-    P  =  NodalField(zeros(Complex128,size(fens.xyz,1),1))
+    P  =  NodalField(zeros(ComplexF64,size(fens.xyz,1),1))
     
     numberdofs!(P)
     
@@ -223,17 +235,23 @@ function straight_duct_T4_example()
     scalars = [("Pressure", scalars)])
     @async run(`"paraview.exe" $File`)
     
-    @pyimport matplotlib.pyplot as plt
-    plt.style[:use]("seaborn-whitegrid")
-    fig = plt.figure() 
-    ax = plt.axes()
+    # @pyimport matplotlib.pyplot as plt
+    # plt.style[:use]("seaborn-whitegrid")
+    # fig = plt.figure() 
+    # ax = plt.axes()
+    # ix = sortperm(geom.values[nLx,1])
+    # ax[:plot](geom.values[nLx,1][ix], real(P.values)[nLx][ix], color = :blue, label = "real")
+    # ax[:plot](geom.values[nLx,1][ix], imag(P.values)[nLx][ix], color = :red, label  =  "imag")
+    # ax[:set_xlabel]("x coordinate")
+    # ax[:set_ylabel]("Pressure")
+    # plt.show()
+    set(axis="normal", plotstyle="linespoints", linewidth=3, pointsize = 2, color = "black", xlabel = "x coordinate", ylabel = "Pressure", grid="on", title = "")
     ix = sortperm(geom.values[nLx,1])
-    ax[:plot](geom.values[nLx,1][ix], real(P.values)[nLx][ix], color = :blue, label = "real")
-    ax[:plot](geom.values[nLx,1][ix], imag(P.values)[nLx][ix], color = :red, label  =  "imag")
-    ax[:set_xlabel]("x coordinate")
-    ax[:set_ylabel]("Pressure")
-    plt.show()
-    
+    f = figure()
+    plot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], legend = "real", marker = "ecircle")
+    plot!(geom.values[nLx,1][ix], imag(P.values)[nLx][ix], legend = "imag", marker = "edmd")
+    figure(f)
+
     true
     
 end # straight_duct_T4_example
