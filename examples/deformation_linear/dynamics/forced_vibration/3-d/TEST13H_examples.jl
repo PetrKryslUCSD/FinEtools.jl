@@ -1,7 +1,7 @@
 module TEST13H_examples
 using FinEtools
 using FinEtools.AlgoDeforLinearModule: ssit
-using PyCall
+using Gaston
 
 function TEST13H_hva()
     # Harmonic forced vibration problem is solved for a homogeneous square plate,
@@ -39,7 +39,7 @@ function TEST13H_hva()
     tolerance = t/nt/100;
     # neigvs = 11;
     # OmegaShift = (2*pi*0.5) ^ 2; # to resolve rigid body modes
-    frequencies = vcat(linspace(0,2.377,20), linspace(2.377,15,70))
+    frequencies = vcat(linearspace(0.0,2.377,20), linearspace(2.377,15.0,70))
     
     # Compute the parameters of Rayleigh damping. For the two selected
     # frequencies we have the relationship between the damping ratio and
@@ -109,40 +109,25 @@ function TEST13H_hva()
     midpoint = selectnode(fens, box=[L/2 L/2 L/2 L/2 0 0], inflate=tolerance);
     midpointdof = u.dofnums[midpoint, 3]
     
-    @pyimport matplotlib.pyplot as plt
-    plt.style[:use]("seaborn-whitegrid")
-    
-    fig = plt.figure() 
-    ax = plt.axes()
     umidAmpl = abs.(U1[midpointdof, :])/phun("MM")
-    ax[:plot](vec(frequencies), vec(umidAmpl), linestyle="solid", marker=:o, label="")
-    ax[:grid](linestyle="--", linewidth=0.5, color="0.25", zorder=-10)
-    ax[:set_xlabel]("Frequency [Hz]")
-    ax[:set_ylabel]("Midpoint  displacement amplitude [mm]")
-    plt.title("Thin plate midpoint Amplitude FRF")
-    plt.show()
-    
-    fig = plt.figure() 
-    ax = plt.axes()
+    set(axis="semilogx", plotstyle="linespoints", linewidth=4, pointsize = 2, color = "blue", xlabel = "Frequency [Hz]", ylabel = "Midpoint  displacement amplitude [mm]", grid="on", title = "Thin plate midpoint Amplitude FRF")
+    f = figure()
+    plot(vec(frequencies), vec(umidAmpl), legend = "", marker = "edmd")
+    figure(f)
+
     umidReal = real.(U1[midpointdof, :])/phun("MM")
-    ax[:plot](vec(frequencies), vec(umidReal), linestyle="solid", marker=:o, label="")
     umidImag = imag.(U1[midpointdof, :])/phun("MM")
-    ax[:plot](vec(frequencies), vec(umidImag), linestyle="solid", marker=:x, label="")
-    ax[:grid](linestyle="--", linewidth=0.5, color="0.25", zorder=-10)
-    ax[:set_xlabel]("Frequency [Hz]")
-    ax[:set_ylabel]("Displacement FRF [mm]")
-    plt.title("Thin plate midpoint Real/Imag FRF")
-    plt.show()
+    set(axis="semilogx", plotstyle="linespoints", linewidth=4, pointsize = 2, xlabel = "Frequency [Hz]", ylabel = "Displacement FRF [mm]", grid="on", title = "Thin plate midpoint Real/Imag FRF")
+    f = figure()
+    plot(vec(frequencies), vec(umidReal), color = "red", legend = "real", marker = "ecircle")
+    plot!(vec(frequencies), vec(umidImag), color = "blue", legend = "imag", marker = "x")
+    figure(f)
     
-    fig = plt.figure() 
-    ax = plt.axes()
     umidPhase = atan2.(umidImag,umidReal)/pi*180 
-    ax[:plot](vec(frequencies), vec(umidPhase), linestyle="solid", marker=:+, label="")
-    ax[:grid](linestyle="--", linewidth=0.5, color="0.25", zorder=-10)
-    ax[:set_xlabel]("Frequency [Hz]")
-    ax[:set_ylabel]("Phase shift [deg]")
-    plt.title("Thin plate midpoint FRF Phase")
-    plt.show()
+    set(axis="semilogx", plotstyle="linespoints", linewidth=4, pointsize = 2, xlabel = "Frequency [Hz]", ylabel = "Phase shift [deg]", grid="on", title = "Thin plate midpoint FRF Phase")
+    f = figure()
+    plot(vec(frequencies), vec(umidPhase), color = "blue", legend = "", marker = "x")
+    figure(f)
     true
 end # TEST13H_hva
 
