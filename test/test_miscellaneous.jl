@@ -1467,3 +1467,38 @@ end
 end
 using .mboxintersection_1
 mboxintersection_1.test()
+
+module mmmsearcconnectedelements
+using FinEtools
+using Compat.Test
+function test()
+    rin =  1.0;#internal radius
+    rex =  2.0;#external radius
+    nr = 20; nc = 180;
+    Angle = 2*pi;
+    tolerance = min(rin/nr,  rin/nc/2/pi)/10000;
+
+
+    fens, fes  =  Q4annulus(rin, rex, nr, nc, Angle)
+    fens, fes  =  mergenodes(fens,  fes,  tolerance);
+
+    anode = [13, 3, 1961, 61, 43]
+    global connectedcount = 0
+    for i = 1:count(fes)
+        for m = 1:length(anode)
+            if in(anode[m], fes.conn[i])
+                global connectedcount = connectedcount + 1 
+                break
+            end
+        end
+    end
+    # println("connectedcount = $(connectedcount)")
+
+    connectedele = connectedelems(fes, anode, count(fens))
+    # println("connectedele = $(connectedele)")
+
+    @test connectedcount == length(connectedele)
+end
+end
+using .mmmsearcconnectedelements
+mmmsearcconnectedelements.test()

@@ -24,6 +24,22 @@ type (the same number of connected nodes by each cell).
 function connectednodes(fes::FESet)
     return unique(connasarray(fes)[:]);
 end
+ 
+"""
+    connectedelems(fes::FESet, node_list::FIntVec)
+
+Extract the list of numbers for the fes  that are connected to given nodes.
+"""
+function connectedelems(fes::FESet, node_list::FIntVec, nmax::FInt)
+    f2fm = FENodeToFEMap(fes.conn, nmax)
+    cg = zeros(FInt, count(fes)); # No elements are part of the group to begin with
+    for j = node_list # for all nodes in the list
+        for i = 1:length(f2fm.map[j])
+            cg[f2fm.map[j][i]] = 1   # Mark element as being part of the group
+        end
+    end
+    return findall(v -> (v != 0), cg)
+end
 
 """
     selectnode(fens::FENodeSet; kwargs...)
