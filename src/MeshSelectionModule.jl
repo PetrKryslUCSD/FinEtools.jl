@@ -562,14 +562,14 @@ function vselect(v::FFltMat; kwargs...)
             end
         end
     elseif plane != nothing
-        normal = plane[1:3];
+        normal = plane[1:end-1];
         normal = vec(normal/norm(normal));
         thicknessvalue = 0.0;
         if thickness != nothing
             thicknessvalue = thickness;
         end
         t = thicknessvalue+inflatevalue;
-        distance = plane[4];
+        distance = plane[end];
         for i = 1:size(v,1)
             ad = dot(v[i,:], normal);
             if abs(distance-ad)<t

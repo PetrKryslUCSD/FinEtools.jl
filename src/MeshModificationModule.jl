@@ -714,6 +714,7 @@ Compute the inertial partitioning of the nodes.
 
 `npartitions` = number of partitions, but note that the actual number of
 partitions is going to be an even number.
+
 """
 function nodepartitioning(fens::FENodeSet, npartitions = 2)
     @assert npartitions >= 2
