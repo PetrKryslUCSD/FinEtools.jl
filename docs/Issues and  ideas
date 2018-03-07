@@ -401,3 +401,11 @@ checking for proximity for those nodes? Implemented: search speeded up by
     a factor of around 3.
 
 -- Why are there so many allocations in fusenodes()?
+
+-- Number all degrees of freedom (instead of just the free ones). This will 
+then allow the assembler to assemble the entire matrix, not just 
+the free-free block. How to supply the number of degrees of freedom to the 
+assembler when it is getting constructed? Actually, all methods allow
+for the assembler to be constructed outside of the method. In that case,
+we can construct that assembler not just from the number of free degrees 
+of freedom, but from the total number of  degrees of freedom.
