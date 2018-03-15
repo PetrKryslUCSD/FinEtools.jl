@@ -409,3 +409,15 @@ assembler when it is getting constructed? Actually, all methods allow
 for the assembler to be constructed outside of the method. In that case,
 we can construct that assembler not just from the number of free degrees 
 of freedom, but from the total number of  degrees of freedom.
+
+-- Naming of formal parameters that are modified inside a function:
+module mmmmmmmmmmmm
+function f2!(a!) 
+  a![1] = 2; 
+end
+end 
+B=[5]
+using .mmmmmmmmmmmm: f2!
+f2!(B)
+println("B = $(B)")
+I like that a! is telling me inside the function that I’m changing something passed in as argument.

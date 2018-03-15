@@ -7,7 +7,7 @@ module AlgoBaseModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FEMMBaseModule: integratefieldfunction, transferfield!
-import LinearAlgebra: norm
+import LinearAlgebra: norm, dot
 
 function _keymatch(key::String, allowed_keys::Array{String})
     matched_key = nothing
@@ -184,6 +184,29 @@ function evalconvergencestudy(modeldatasequence)
     convergencerate = p[1]
 
     return elementsizes, errornorms, convergencerate
+end
+
+"""
+    conjugategradient(A, b, x0, maxiter)
+
+Compute one or more iterations of the conjugate gradient process.  
+"""
+function conjugategradient(A::T, b::FFltVec, x0::FFltVec, maxiter::FInt) where {T}
+    x = deepcopy(x0);
+    gt = deepcopy(x0);
+    d = deepcopy(x0);
+    gt .= A*x - b;# transpose of gradient: g = x'*A-b';
+    @. d = gt
+    for iter = 1:maxiter
+        Ad = A*d;
+        rho = dot(d, Ad);
+        alpha = -dot(gt, d)/rho; # alpha =(-g*d)/(d'*A*d);
+        @. x += alpha * d;
+        gt .= A*x - b;# negative transpose of gradient
+        beta = dot(gt, Ad)/rho; # beta =(g*A*d)/(d'*A*d);
+        @. d = beta*d - gt;
+    end
+    return x
 end
 
 end

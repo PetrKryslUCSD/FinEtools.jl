@@ -1502,3 +1502,32 @@ end
 end
 using .mmmsearcconnectedelements
 mmmsearcconnectedelements.test()
+
+module mconjugategradient1
+using FinEtools
+using Compat.Test
+using SparseArrays
+import LinearAlgebra: norm, dot, lufact, diff, cross
+import FinEtools.AlgoBaseModule: conjugategradient
+
+function test()
+    # >> A = gallery('lehmer',6),
+    A =[  1.0000    0.5000    0.3333    0.2500    0.2000    0.1667
+        0.5000    1.0000    0.6667    0.5000    0.4000    0.3333
+        0.3333    0.6667    1.0000    0.7500    0.6000    0.5000
+        0.2500    0.5000    0.7500    1.0000    0.8000    0.6667
+        0.2000    0.4000    0.6000    0.8000    1.0000    0.8333
+        0.1667    0.3333    0.5000    0.6667    0.8333    1.0000]
+    b =[0.8147
+        0.9058
+        0.1270
+        0.9134
+        0.6324
+        0.0975]
+    x0 = fill(zero(FFlt), 6)    
+    maxiter = 20
+    x = conjugategradient(A, b, x0, maxiter) 
+end
+end
+using .mconjugategradient1
+mconjugategradient1.test()
