@@ -386,6 +386,8 @@ tolerance of each other. The nodes are glued together by merging the
 nodes that fall within a box of size `tolerance`. The merged node
 set, `fens`, and the finite element set, `fes`, with renumbered  connectivities
 are returned.
+
+Warning: This tends to be an expensive operation!
 """
 function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)
     maxnn = count(fens) + 1
@@ -447,15 +449,17 @@ function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt, candidates::FI
     xyz1 = fens.xyz;
     dim  = size(xyz1,2);
     id1 = collect(1:count(fens));
-    d = zeros(size(xyz1,1));
+    d = fill(100.0*tolerance, size(xyz1, 1))
     # Mark nodes from the array that are duplicated
     for ic = 1:length(candidates)
         i = candidates[ic]
         if (id1[i] > 0) # This node has not yet been marked for merging
-            XYZ = reshape(xyz1[i,:], 1, dim);
-            copyto!(d, sum(abs.(xyz1 .- XYZ), dims = 2)); #find the distances along  coordinate directions
+            XYZ = xyz1[i,:];
             minn = maxnn
-            @inbounds for jx = 1:length(d)
+            for kx = candidates
+                d[kx] = sum(abs.(xyz1[kx,:] .- XYZ))
+            end
+            @inbounds for jx = candidates
                 if d[jx] < tolerance
                     minn = min(jx, minn);
                     id1[jx] = -minn;
