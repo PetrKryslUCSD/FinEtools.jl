@@ -12,6 +12,9 @@
 
 ## News
 
+- 03/20/2018: FinEtools version to be used with Julia 0.7 and above is at the moment being developed in a separate branch,
+path_to_0.7. At the moment the package runs and tests cleanly with 0.7.
+
 - 12/10/2017: A use-case package explaining how to integrate FinEtools with  the user's own code is [available here](https://github.com/PetrKryslUCSD/FinEtoolsUseCase).
 
 - 11/18/2017:  The documentation of the design principles  and  organization of the package is published as [Github pages](https://petrkryslucsd.github.io/FinEtools.jl). (At the moment incomplete,  but under rapid development.  Please don't hesitate to contact me if something is unclear.)
