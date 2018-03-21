@@ -384,29 +384,27 @@ Merge together  nodes of a single node set.
 Merge by gluing together nodes from a single node set located within
 tolerance of each other. The nodes are glued together by merging the
 nodes that fall within a box of size `tolerance`. The merged node
-set, fens, and the finite element set with renumbered  connectivities
+set, `fens`, and the finite element set, `fes`, with renumbered  connectivities
 are returned.
 """
 function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)
+    maxnn = count(fens) + 1
     xyz1 = fens.xyz;
     dim  = size(xyz1,2);
     id1 = collect(1:count(fens));
-    c1 = ones(size(xyz1,1),1);
-    xyzd = zeros(size(xyz1));
     d = zeros(size(xyz1,1));
-    m = trues(size(xyz1,1));
     # Mark nodes from the array that are duplicated
     for i = 1:count(fens)
-        if (id1[i]>0) # This node has not yet been marked for merging
+        if (id1[i] > 0) # This node has not yet been marked for merging
             XYZ = reshape(xyz1[i,:], 1, dim);
-            xyzd[:,:] = abs.(xyz1-c1*XYZ); #find the distances along  coordinate directions
-            d = sum(xyzd, dims = 2);
-            map!((x)->x<tolerance, m, d);
-            jx = findall(m);
-            if (!isempty(jx))
-                minn = minimum(jx);
-                id1[jx] = -minn;
-                id1[minn] = minn;
+            copyto!(d, sum(abs.(xyz1 .- XYZ), dims = 2)); #find the distances along  coordinate directions
+            minn = maxnn
+            @inbounds for jx = 1:length(d)
+                if d[jx] < tolerance
+                    minn = min(jx, minn);
+                    id1[jx] = -minn;
+                    id1[minn] = minn;
+                end
             end
         end
     end
@@ -445,28 +443,24 @@ Similar to `mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)`, but only
 the candidate nodes are considered for merging.
 """
 function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt, candidates::FIntVec)
+    maxnn = count(fens) + 1
     xyz1 = fens.xyz;
     dim  = size(xyz1,2);
     id1 = collect(1:count(fens));
-    c1 = ones(size(xyz1,1),1);
-    xyzd = zeros(size(xyz1));
     d = zeros(size(xyz1,1));
-    m = trues(size(xyz1,1));
-    biggerthantolerance = 1000*tolerance
     # Mark nodes from the array that are duplicated
     for ic = 1:length(candidates)
         i = candidates[ic]
-        if (id1[i]>0) # This node has not yet been marked for merging
+        if (id1[i] > 0) # This node has not yet been marked for merging
             XYZ = reshape(xyz1[i,:], 1, dim);
-            xyzd[:,:] = abs.(xyz1-c1*XYZ); #find the distances along  coordinate directions
-            fill!(d, biggerthantolerance)
-            d[candidates] = sum(xyzd, dims = 2)[candidates];
-            map!((x) -> x<tolerance, m, d);
-            jx = findall(m);
-            if (!isempty(jx))
-                minn = minimum(jx);
-                id1[jx] = -minn;
-                id1[minn] = minn;
+            copyto!(d, sum(abs.(xyz1 .- XYZ), dims = 2)); #find the distances along  coordinate directions
+            minn = maxnn
+            @inbounds for jx = 1:length(d)
+                if d[jx] < tolerance
+                    minn = min(jx, minn);
+                    id1[jx] = -minn;
+                    id1[minn] = minn;
+                end
             end
         end
     end
@@ -747,7 +741,7 @@ function nodepartitioning(fens::FENodeSet, npartitions = 2)
                 c[ixxxx] = 1
             elseif d[ixxxx] > medd
                 c[ixxxx] = 0
-            else
+            else # disambiguate d[ixxxx] == 0.0
                 if toggle > 0
                     c[ixxxx] = 1
                 else
