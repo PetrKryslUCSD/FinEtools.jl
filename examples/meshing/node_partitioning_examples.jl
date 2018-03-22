@@ -78,6 +78,32 @@ function node_partitioning_3()
     @async run(`"paraview.exe" $File`)
     
 end # node_partitioning_3
+ 
+function node_partitioning_4()
+    H = 30. # strip width
+    R = 10. # radius of the hole
+    L = 20. # length of the strip
+    nL = 15
+    nH = 10
+    nR = 5
+    fens,fes = H8block(L, H, R, nL, nH, nR)
+
+    npartitions = 16
+    partitioning = nodepartitioning(fens, npartitions)
+    partitionnumbers = unique(partitioning)
+    @test norm(sort(partitionnumbers) - sort(1:npartitions)) < 1.e-5
+
+    # Visualize partitioning
+    for gp = partitionnumbers
+      groupnodes = findall(k -> k == gp, partitioning)
+      File =  "partition-nodes-$(gp).vtk"
+      vtkexportmesh(File, fens, FESetP1(reshape(groupnodes, length(groupnodes), 1)))
+    end 
+    File =  "partition-mesh.vtk"
+    vtkexportmesh(File, fens, fes)
+    @async run(`"paraview.exe" $File`)
+end
+
 
 function allrun()
     println("#####################################################") 
@@ -89,6 +115,9 @@ function allrun()
     println("#####################################################") 
     println("# node_partitioning_3 ")
     node_partitioning_3()
+    println("#####################################################") 
+    println("# node_partitioning_4 ")
+    node_partitioning_4()
     return true
 end # function allrun
 
