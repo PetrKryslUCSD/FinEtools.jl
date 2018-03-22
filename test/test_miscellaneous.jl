@@ -563,19 +563,19 @@ function test()
     a = 10. # radius of the hole
     nC = 20
     nR = 4
-    fens,fes = Q4annulus(a, 1.5*a, nR, nC, 2*pi)
+    fens,fes = Q4annulus(a, 1.5*a, nR, nC, 1.9*pi)
 
     npartitions = 8
     partitioning = nodepartitioning(fens, npartitions)
     partitionnumbers = unique(partitioning)
-    @test norm(partitionnumbers - [1
+    @test norm(sort(partitionnumbers) - sort([1
     3
     2
     5
     6
     7
     8
-    4]) < 1.e-5
+    4])) < 1.e-5
 end
 end
 using .mmpartitioning1m
@@ -598,14 +598,45 @@ function test()
     npartitions = 4
     partitioning = nodepartitioning(fens, npartitions)
     partitionnumbers = unique(partitioning)
-    @test norm(partitionnumbers - [1
+    @test norm(sort(partitionnumbers) - sort([1
     3
     4
-    2]) < 1.e-5
+    2])) < 1.e-5
 end
 end
 using .mmpartitioning2m
 mmpartitioning2m.test()
+
+module mmpartitioning3m
+using FinEtools
+using Compat.Test
+import LinearAlgebra: norm
+function test()
+    H = 30. # strip width
+    R = 10. # radius of the hole
+    L = 20. # length of the strip
+    nL = 15
+    nH = 10
+    nR = 5
+    fens,fes = H8block(L, H, R, nL, nH, nR)
+
+    npartitions = 16
+    partitioning = nodepartitioning(fens, npartitions)
+    partitionnumbers = unique(partitioning)
+    @test norm(sort(partitionnumbers) - sort(1:npartitions)) < 1.e-5
+
+    # for gp = partitionnumbers
+    #   groupnodes = findall(k -> k == gp, partitioning)
+    #   File =  "partition-nodes-$(gp).vtk"
+    #   vtkexportmesh(File, fens, FESetP1(reshape(groupnodes, length(groupnodes), 1)))
+    # end 
+    # File =  "partition-mesh.vtk"
+    # vtkexportmesh(File, fens, fes)
+    # @async run(`"paraview.exe" $File`)
+end
+end
+using .mmpartitioning3m
+mmpartitioning3m.test()
 
 module mmboxm1
 using FinEtools
