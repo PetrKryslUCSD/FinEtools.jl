@@ -802,7 +802,7 @@ function savecsv(name::String; kwargs...)
     end
     ncol = length(colnames)
     nrow = length(columns[1])
-    if !occursin(name, r"^.*\.csv$") && !occursin(name, r"^.*\.CSV$")
+    if !occursin(r"^.*\.csv$", name) && !occursin(r"^.*\.CSV$", name)
         name = name * ".csv"
     end
     open(name, "w") do fid
