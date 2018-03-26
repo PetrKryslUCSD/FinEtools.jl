@@ -13,7 +13,6 @@ using Base.Sort
 using Base.Order
 import LinearAlgebra: norm, svd, dot, eigfact
 import Random: randperm
-using Gaston
 
 """
     interior2boundary(interiorconn::Array{Int, 2}, extractb::Array{Int, 2})
