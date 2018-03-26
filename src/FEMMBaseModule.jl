@@ -5,18 +5,10 @@ Module for comments/base operations on interiors and boundaries of domains.
 """
 module FEMMBaseModule
 
-if VERSION < v"0.7-"
-    pairs(as) = as
-end
-if VERSION >= v"0.7-"
-    my_At_mul_B!(C, A, B) = Base.LinAlg.mul!(C, Transpose(A), B)
-else
-    my_At_mul_B!(C, A, B) = At_mul_B!(C, A, B)
-end
-if VERSION >= v"0.7-"
-    using SparseArrays
-end
-
+import LinearAlgebra: mul!, Transpose
+my_At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
+import SparseArrays: sparse
+import LinearAlgebra: norm
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, manifdim, nodesperelem, subset, map2parametric, inparametric, centroidparametric, bfun
@@ -251,7 +243,7 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENo
     npartitions = length(partitionnumbers)
     # Go through all the partitions
     for p = 1:npartitions
-        pnl = find(x -> x == partitionnumbers[p], npf) # subset of fine-mesh nodes
+        pnl = findall(x -> x == partitionnumbers[p], npf) # subset of fine-mesh nodes
         # Find the bounding box
         subbox = boundingbox(fensf.xyz[pnl, :])
         tol = 2*geometricaltolerance # increase the box a bit
@@ -262,7 +254,7 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENo
             connected = findunconnnodes(fensc, fescsub);
             fenscsub, newnumber = compactnodes(fensc, connected); # nodes of the sub mesh
             fescsub = renumberconn!(fescsub, newnumber); # elements of the sub mesh
-            present = find(x -> x > 0, newnumber)
+            present = findall(x -> x > 0, newnumber)
             fcsub  =  NodalField(fc.values[present, :]) # reduce the coarse-mesh field to the sub mesh
             # Now we can find the values at the nodes of the subset of the fine mesh 
             # working only with the sub mesh of the coarse mesh

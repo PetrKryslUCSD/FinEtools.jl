@@ -13,9 +13,8 @@ import FinEtools.FEMMBaseModule: associategeometry!, distribloads
 import FinEtools.FEMMAcoustModule: acousticmass, acousticstiffness, nzebcloadsacousticmass, nzebcloadsacousticstiffness 
 import FinEtools.FEMMAcoustSurfModule: acousticABC
 import FinEtools.ForceIntensityModule: ForceIntensity
-if VERSION >= v"0.7-"
-    using SparseArrays
-end
+import SparseArrays: spzeros
+import LinearAlgebra: norm, lufact, cross
 
 """
     steadystate(modeldata::FDataDict)

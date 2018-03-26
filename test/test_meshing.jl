@@ -214,6 +214,7 @@ using .mAbaqusmmiimportmmm
 module mmsmoothingm1
 using FinEtools
 using Compat.Test
+import LinearAlgebra: norm
 function test()
 
     # println("""
@@ -266,6 +267,7 @@ using .mmsmoothingm1
 module mmsmoothingm2
 using FinEtools
 using Compat.Test
+import LinearAlgebra: norm
 function test()
 
     # println("""
@@ -694,9 +696,9 @@ using FinEtools.MeshImportModule
 using FinEtools.MeshExportModule
 using Compat.Test
 function test()
-    xs = collect(linspace(0.0, 2.0, 5))
-    ys = collect(linspace(0.0, 1.0, 6).^2)
-    zs = collect(linspace(0.0, 1.0, 3))
+    xs = collect(linearspace(0.0, 2.0, 5))
+    ys = collect(linearspace(0.0, 1.0, 6).^2)
+    zs = collect(linearspace(0.0, 1.0, 3))
     fens, fes = T4blockx(xs, ys, zs, :a)
     @test count(fes) == 240
     fens, fes = T4blockx(xs, ys, zs, :b)
@@ -816,8 +818,8 @@ using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
 function test()
-    xs = collect(linspace( 1.0, 3.0, 4))
-    ys = collect(linspace(-1.0, 3.0, 4))
+    xs = collect(linearspace( 1.0, 3.0, 4))
+    ys = collect(linearspace(-1.0, 3.0, 4))
     fens, fes = T3blockx(xs, ys, :a)
     @test count(fes) == 3*3*2
     fens, fes = T3blockx(xs, ys, :b)
@@ -838,8 +840,8 @@ using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
 function test()
-    xs = collect(linspace( 1.0, 3.0, 4))
-    ys = collect(linspace(-1.0, 3.0, 5))
+    xs = collect(linearspace( 1.0, 3.0, 4))
+    ys = collect(linearspace(-1.0, 3.0, 5))
     fens, fes = Q4blockx(xs, ys)
     fens, fes = Q4toT3(fens, fes)
     @test count(fes) == 3*4*2
@@ -1115,9 +1117,9 @@ function test()
     # Select how find the mesh should be
     Refinement = 5
     nA, nB, nC = Refinement * 1, Refinement * 2, Refinement * 1;
-    xs = reshape(collect(linspace(0.0, A, nA + 1)), nA + 1, 1)
-    ys = reshape(collect(linspace(0.0, A, nB + 1)), nB + 1, 1)
-    zs = reshape(collect(linspace(0.0, A, nC + 1)), nC + 1, 1)
+    xs = reshape(collect(linearspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linearspace(0.0, A, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linearspace(0.0, A, nC + 1)), nC + 1, 1)
     fens,fes = T10blockx(xs, ys, zs, :b)
     # println("$(count(fens))")
     # println("$(count(fes))")
@@ -1157,6 +1159,7 @@ using .mmtetblocksmm
 module momap2para1
 using FinEtools
 using Compat.Test
+import LinearAlgebra: norm
 function test()
     X = [-1.0 -1.0; 2.0 0.4; 1.0 2.3; -2.0 1.0]
     fens = FENodeSet(X);
@@ -1176,6 +1179,7 @@ using .momap2para1
 module momap2para2
 using FinEtools
 using Compat.Test
+import LinearAlgebra: norm
 function test()
     X = [-1.0 -1.0; 2.0 0.4; 1.0 2.3; -2.0 1.0]
     fens = FENodeSet(X);
@@ -1202,9 +1206,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-
-
-
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1213,9 +1215,9 @@ function test()
     # Select how find the mesh should be
     Refinement = 2
     nA, nB, nC = Refinement * 1, Refinement * 2, Refinement * 4;
-    xs = reshape(collect(linspace(0.0, A, nA + 1)), nA + 1, 1)
-    ys = reshape(collect(linspace(0.0, B, nB + 1)), nB + 1, 1)
-    zs = reshape(collect(linspace(0.0, C, nC + 1)), nC + 1, 1)
+    xs = reshape(collect(linearspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linearspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
     fensc,fesc = T10blockx(xs, ys, zs, :b)
     fc = NodalField(zeros(count(fensc), 1))
     for i = 1:count(fensc)
@@ -1229,9 +1231,9 @@ function test()
 
     Refinement = Refinement + 1
     nA, nB, nC = Refinement * 1, Refinement * 2, Refinement * 4;
-    xs = reshape(collect(linspace(0.0, A, nA + 1)), nA + 1, 1)
-    ys = reshape(collect(linspace(0.0, B, nB + 1)), nB + 1, 1)
-    zs = reshape(collect(linspace(0.0, C, nC + 1)), nC + 1, 1)
+    xs = reshape(collect(linearspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linearspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
     fensf,fesf = T10blockx(xs, ys, zs, :b)
     ff = NodalField(zeros(count(fensf), 1))
     tolerance = min(A/nA, B/nB, C/nC)/1000.0
@@ -1269,9 +1271,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-
-
-
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1280,9 +1280,9 @@ function test()
     # Select how find the mesh should be
     Refinement = 2
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = reshape(collect(linspace(0.0, A, nA + 1)), nA + 1, 1)
-    ys = reshape(collect(linspace(0.0, B, nB + 1)), nB + 1, 1)
-    zs = reshape(collect(linspace(0.0, C, nC + 1)), nC + 1, 1)
+    xs = reshape(collect(linearspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linearspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
     fensc,fesc = T10blockx(xs, ys, zs, :b)
 
     centroidpc = centroidparametric(fesc)
@@ -1303,9 +1303,9 @@ function test()
 
     Refinement = Refinement + 1
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = reshape(collect(linspace(0.0, A, nA + 1)), nA + 1, 1)
-    ys = reshape(collect(linspace(0.0, B, nB + 1)), nB + 1, 1)
-    zs = reshape(collect(linspace(0.0, C, nC + 1)), nC + 1, 1)
+    xs = reshape(collect(linearspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linearspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
     fensf,fesf = T10blockx(xs, ys, zs, :b)
     tolerance = min(A/nA, B/nB, C/nC)/1000.0
 
@@ -1345,21 +1345,19 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-
-
-
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
     C = 100.0*phun("m") # span of the plate
-
-Meshing = T4blockx
+   
+    Meshing = T4blockx
     # Select how find the mesh should be
     Refinement = 2
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = reshape(collect(linspace(0.0, A, nA + 1)), nA + 1, 1)
-    ys = reshape(collect(linspace(0.0, B, nB + 1)), nB + 1, 1)
-    zs = reshape(collect(linspace(0.0, C, nC + 1)), nC + 1, 1)
+    xs = reshape(collect(linearspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linearspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
     fensc,fesc = Meshing(xs, ys, zs, :b)
 
     centroidpc = centroidparametric(fesc)
@@ -1380,9 +1378,9 @@ Meshing = T4blockx
 
     Refinement = Refinement + 1
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = reshape(collect(linspace(0.0, A, nA + 1)), nA + 1, 1)
-    ys = reshape(collect(linspace(0.0, B, nB + 1)), nB + 1, 1)
-    zs = reshape(collect(linspace(0.0, C, nC + 1)), nC + 1, 1)
+    xs = reshape(collect(linearspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linearspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
     fensf,fesf = Meshing(xs, ys, zs, :b)
     tolerance = min(A/nA, B/nB, C/nC)/1000.0
 
@@ -1423,21 +1421,19 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-
-
-
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
     C = 100.0*phun("m") # span of the plate
 
-Meshing = H20blockx
+    Meshing = H20blockx
     # Select how find the mesh should be
     Refinement = 2
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
-    ys = collect(linspace(0.0, B, nB + 1))
-    zs = collect(linspace(0.0, C, nC + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
+    ys = collect(linearspace(0.0, B, nB + 1))
+    zs = collect(linearspace(0.0, C, nC + 1))
     fensc,fesc = Meshing(xs, ys, zs)
 
     centroidpc = centroidparametric(fesc)
@@ -1458,9 +1454,9 @@ Meshing = H20blockx
 
     Refinement = Refinement + 1
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
-    ys = collect(linspace(0.0, B, nB + 1))
-    zs = collect(linspace(0.0, C, nC + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
+    ys = collect(linearspace(0.0, B, nB + 1))
+    zs = collect(linearspace(0.0, C, nC + 1))
     fensf,fesf = Meshing(xs, ys, zs)
     tolerance = min(A/nA, B/nB, C/nC)/1000.0
 
@@ -1500,21 +1496,19 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-
-
-
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
     C = 100.0*phun("m") # span of the plate
 
-Meshing = H8blockx
+    Meshing = H8blockx
     # Select how find the mesh should be
     Refinement = 2
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
-    ys = collect(linspace(0.0, B, nB + 1))
-    zs = collect(linspace(0.0, C, nC + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
+    ys = collect(linearspace(0.0, B, nB + 1))
+    zs = collect(linearspace(0.0, C, nC + 1))
     fensc,fesc = Meshing(xs, ys, zs)
 
     centroidpc = centroidparametric(fesc)
@@ -1535,9 +1529,9 @@ Meshing = H8blockx
 
     Refinement = Refinement + 1
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
-    ys = collect(linspace(0.0, B, nB + 1))
-    zs = collect(linspace(0.0, C, nC + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
+    ys = collect(linearspace(0.0, B, nB + 1))
+    zs = collect(linearspace(0.0, C, nC + 1))
     fensf,fesf = Meshing(xs, ys, zs)
     tolerance = min(A/nA, B/nB, C/nC)/1000.0
 
@@ -1577,21 +1571,19 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-
-
-
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
     C = 100.0*phun("m") # span of the plate
 
-Meshing = H27blockx
+    Meshing = H27blockx
     # Select how find the mesh should be
     Refinement = 2
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
-    ys = collect(linspace(0.0, B, nB + 1))
-    zs = collect(linspace(0.0, C, nC + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
+    ys = collect(linearspace(0.0, B, nB + 1))
+    zs = collect(linearspace(0.0, C, nC + 1))
     fensc,fesc = Meshing(xs, ys, zs)
 
     centroidpc = centroidparametric(fesc)
@@ -1612,9 +1604,9 @@ Meshing = H27blockx
 
     Refinement = Refinement + 1
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
-    ys = collect(linspace(0.0, B, nB + 1))
-    zs = collect(linspace(0.0, C, nC + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
+    ys = collect(linearspace(0.0, B, nB + 1))
+    zs = collect(linearspace(0.0, C, nC + 1))
     fensf,fesf = Meshing(xs, ys, zs)
     tolerance = min(A/nA, B/nB, C/nC)/1000.0
 
@@ -1655,9 +1647,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-
-
-
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1667,8 +1657,8 @@ Meshing = Q4blockx
     # Select how find the mesh should be
     Refinement = 2
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
-    ys = collect(linspace(0.0, B, nB + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
+    ys = collect(linearspace(0.0, B, nB + 1))
     fensc,fesc = Meshing(xs, ys)
 
     centroidpc = centroidparametric(fesc)
@@ -1689,9 +1679,9 @@ Meshing = Q4blockx
 
     Refinement = Refinement + 1
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
-    ys = collect(linspace(0.0, B, nB + 1))
-    zs = collect(linspace(0.0, C, nC + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
+    ys = collect(linearspace(0.0, B, nB + 1))
+    zs = collect(linearspace(0.0, C, nC + 1))
     fensf,fesf = Meshing(xs, ys)
     tolerance = min(A/nA, B/nB, C/nC)/1000.0
 
@@ -1732,9 +1722,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-
-
-
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1744,8 +1732,8 @@ Meshing = Q8blockx
     # Select how find the mesh should be
     Refinement = 2
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
-    ys = collect(linspace(0.0, B, nB + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
+    ys = collect(linearspace(0.0, B, nB + 1))
     fensc,fesc = Meshing(xs, ys)
 
     centroidpc = centroidparametric(fesc)
@@ -1766,9 +1754,9 @@ Meshing = Q8blockx
 
     Refinement = Refinement + 1
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
-    ys = collect(linspace(0.0, B, nB + 1))
-    zs = collect(linspace(0.0, C, nC + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
+    ys = collect(linearspace(0.0, B, nB + 1))
+    zs = collect(linearspace(0.0, C, nC + 1))
     fensf,fesf = Meshing(xs, ys)
     tolerance = min(A/nA, B/nB, C/nC)/1000.0
 
@@ -1809,9 +1797,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-
-
-
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1821,8 +1807,8 @@ Meshing = T3blockx
     # Select how find the mesh should be
     Refinement = 2
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
-    ys = collect(linspace(0.0, B, nB + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
+    ys = collect(linearspace(0.0, B, nB + 1))
     fensc,fesc = Meshing(xs, ys)
 
     centroidpc = centroidparametric(fesc)
@@ -1843,9 +1829,9 @@ Meshing = T3blockx
 
     Refinement = Refinement + 1
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
-    ys = collect(linspace(0.0, B, nB + 1))
-    zs = collect(linspace(0.0, C, nC + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
+    ys = collect(linearspace(0.0, B, nB + 1))
+    zs = collect(linearspace(0.0, C, nC + 1))
     fensf,fesf = Meshing(xs, ys)
     tolerance = min(A/nA, B/nB, C/nC)/1000.0
 
@@ -1886,9 +1872,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-
-
-
+import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1898,8 +1882,8 @@ Meshing = T6blockx
     # Select how find the mesh should be
     Refinement = 2
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
-    ys = collect(linspace(0.0, B, nB + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
+    ys = collect(linearspace(0.0, B, nB + 1))
     fensc,fesc = Meshing(xs, ys)
 
     centroidpc = centroidparametric(fesc)
@@ -1920,9 +1904,9 @@ Meshing = T6blockx
 
     Refinement = Refinement + 1
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
-    ys = collect(linspace(0.0, B, nB + 1))
-    zs = collect(linspace(0.0, C, nC + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
+    ys = collect(linearspace(0.0, B, nB + 1))
+    zs = collect(linearspace(0.0, C, nC + 1))
     fensf,fesf = Meshing(xs, ys)
     tolerance = min(A/nA, B/nB, C/nC)/1000.0
 
@@ -1963,9 +1947,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-
-
-
+import LinearAlgebra: norm, cross
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -1975,7 +1957,7 @@ Meshing = L2blockx
     # Select how find the mesh should be
     Refinement = 2
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
     fensc,fesc = Meshing(xs)
 
     centroidpc = centroidparametric(fesc)
@@ -1996,7 +1978,7 @@ Meshing = L2blockx
 
     Refinement = Refinement + 1
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
     fensf,fesf = Meshing(xs)
     tolerance = min(A/nA, B/nB, C/nC)/1000.0
 
@@ -2036,9 +2018,7 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-
-
-
+import LinearAlgebra: norm, cross
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -2048,7 +2028,7 @@ Meshing = L3blockx
     # Select how find the mesh should be
     Refinement = 2
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
     fensc,fesc = Meshing(xs)
 #     println("fensc = $(fensc)")
 # println("fesc = $(fesc)")
@@ -2071,7 +2051,7 @@ Meshing = L3blockx
 
     Refinement = Refinement + 1
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
     fensf,fesf = Meshing(xs)
     tolerance = min(A/nA, B/nB, C/nC)/1000.0
 
@@ -2134,9 +2114,6 @@ using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
 using Compat.Test
-
-
-
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -2146,7 +2123,7 @@ Meshing = L3blockx
     # Select how find the mesh should be
     Refinement = 2
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
-    xs = collect(linspace(0.0, A, nA + 1))
+    xs = collect(linearspace(0.0, A, nA + 1))
     fensc,fesc = Meshing(xs)
     bfes = meshboundary(fesc)
     @test count(bfes) == 2
@@ -2161,6 +2138,7 @@ module mtetmeshedges1
 using FinEtools
 using FinEtools.MeshTetrahedronModule
 using Compat.Test
+import LinearAlgebra: norm, cross
 t =[
      1    17    13    14
      6     5     2    18
@@ -2573,7 +2551,7 @@ function tetmeshedges(t::Array{Int, 2})
             4  2
             4  3];
     e = vcat(t[:,ec[1,:]], t[:,ec[2,:]], t[:,ec[3,:]], t[:,ec[4,:]], t[:,ec[5,:]], t[:,ec[6,:]])
-    e = sort(e, 2);
+    e = sort(e, dims = 2);
     ix = sortperm(e[:,1]);
     e = e[ix,:];
     ue = deepcopy(e)
@@ -2613,6 +2591,7 @@ using .mtetmeshedges1
 module minterior2boundary1
 using FinEtools
 using Compat.Test
+import LinearAlgebra: norm, cross
 function test()
     t =[
          1    17    13    14
@@ -2967,7 +2946,7 @@ function test()
     im.elementsizeweightfunctions = [ElementSizeWeightFunction(20.0, vec([0.0, 2.5, 2.5]), 1.0), ElementSizeWeightFunction(1.0, vec([0.0, 2.5, 2.5]), 3.5)]
     mesh!(im, 1.01)
     # println("Mesh size: final = $(size(im.t,1))")
-    @test size(im.t,1) == 113857
+    @test (size(im.t,1) - 113857.)/113857 <= 0.0013
     fens = FENodeSet(im.v)
     fes = FESetT4(im.t)
     setlabel!(fes, im.tmid)
@@ -3018,7 +2997,7 @@ function test()
         checkvolumes(im)
         #println("Mesh size: final = $(size(im.t,1))")
         V = volumes(im)
-        @test length(find(x -> x <= 0.0, V)) == 0
+        @test length(findall(x -> x <= 0.0, V)) == 0
         # println("length(find(x -> x <= 0.0, V)) = $(length(find(x -> x <= 0.0, V)))")
         # open("im$(i)" * ".jls", "w") do file
         #     serialize(file, im)
@@ -3028,8 +3007,8 @@ function test()
     fens = FENodeSet(im.v)
     fes = FESetT4(im.t)
     setlabel!(fes, im.tmid)
-
-    @test count(fes) == 14086
+    #println("count(fes) = $(count(fes))")
+    @test abs(count(fes) - 14086) / 14086 <= 0.004
     
     # bfes = meshboundary(fes)
     # list = selectelem(fens, fes; overlappingbox = boundingbox([0.2018 2.1537 3.9064]), inflate = 0.01, allin = false)

@@ -1,6 +1,6 @@
 module straight_duct_examples
 using FinEtools
-using PyCall
+using Gaston
 
 function straight_duct_Q8_example()
     t0  =  time()
@@ -31,7 +31,7 @@ function straight_duct_Q8_example()
     nLx = selectnode(fens,box = [0.0 Lx  0.0 0.0], inflate = Lx/1.0e5)
     
     geom  =  NodalField(fens.xyz)
-    P  =  NodalField(zeros(Complex128,size(fens.xyz,1),1))
+    P  =  NodalField(zeros(ComplexF64,size(fens.xyz,1),1))
     
     numberdofs!(P)
     
@@ -64,16 +64,22 @@ function straight_duct_Q8_example()
     vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.Q8;  scalars = [("Pressure", scalars)])
     @async run(`"paraview.exe" $File`)
     
-    @pyimport matplotlib.pyplot as plt
-    plt.style[:use]("seaborn-whitegrid")
-    fig = plt.figure() 
-    ax = plt.axes()
+    # @pyimport matplotlib.pyplot as plt
+    # plt.style[:use]("seaborn-whitegrid")
+    # fig = plt.figure() 
+    # ax = plt.axes()
+    # ix = sortperm(geom.values[nLx,1])
+    # ax[:plot](geom.values[nLx,1][ix], real(P.values)[nLx][ix], marker=:o, color = :blue, label = "real")
+    # ax[:plot](geom.values[nLx,1][ix], imag(P.values)[nLx][ix], marker=:d,  color = :red, label  =  "imag")
+    # plt.legend()
+    # plt.show()
+    f = figure()
+    set(axis="normal", plotstyle="linespoints", linewidth=2, pointsize = 2, color = "black", xlabel = "x", ylabel = "Pressure", grid="on", title = "")
     ix = sortperm(geom.values[nLx,1])
-    ax[:plot](geom.values[nLx,1][ix], real(P.values)[nLx][ix], marker=:o, color = :blue, label = "real")
-    ax[:plot](geom.values[nLx,1][ix], imag(P.values)[nLx][ix], marker=:d,  color = :red, label  =  "imag")
-    plt.legend()
-    plt.show()
-    
+    plot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], legend = "real", marker = "ecircle")
+    plot!(geom.values[nLx,1][ix], imag(P.values)[nLx][ix], legend = "imag", color = "red", marker = "edmd")
+    figure(f)
+
     true
     
 end # straight_duct_Q8_example
@@ -108,10 +114,9 @@ function straight_duct_T3_example()
     nLx = selectnode(fens,box = [0.0 Lx  0.0 0.0], inflate = Lx/1.0e5)
     
     geom  =  NodalField(fens.xyz)
-    P  =  NodalField(zeros(Complex128,size(fens.xyz,1),1))
+    P  =  NodalField(zeros(ComplexF64,size(fens.xyz,1),1))
     
     numberdofs!(P)
-    
     
     material = MatAcoustFluid(bulk,rho)
     femm  =  FEMMAcoust(IntegData(fes, TriRule(1)), material)
@@ -141,15 +146,23 @@ function straight_duct_T3_example()
     vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.T3; scalars = [("Pressure", scalars)])
     @async run(`"paraview.exe" $File`)
      
-    @pyimport matplotlib.pyplot as plt
-    plt.style[:use]("seaborn-whitegrid")
-    fig = plt.figure() 
-    ax = plt.axes()
+    # @pyimport matplotlib.pyplot as plt
+    # plt.style[:use]("seaborn-whitegrid")
+    # fig = plt.figure() 
+    # ax = plt.axes()
+    # ix = sortperm(geom.values[nLx,1])
+    # ax[:plot](geom.values[nLx,1][ix], real(P.values)[nLx][ix], marker=:o, color = :blue, label = "real")
+    # ax[:plot](geom.values[nLx,1][ix], imag(P.values)[nLx][ix], marker=:d,  color = :red, label  =  "imag")
+    # plt.legend()
+    # plt.show()
+    # fig = figure() 
+    # figure(fig)
+    set(axis="normal", plotstyle="linespoints", linewidth=2, pointsize = 2, color = "black", xlabel = "x", ylabel = "Pressure", grid="on", title = "")
+    f = figure()
     ix = sortperm(geom.values[nLx,1])
-    ax[:plot](geom.values[nLx,1][ix], real(P.values)[nLx][ix], marker=:o, color = :blue, label = "real")
-    ax[:plot](geom.values[nLx,1][ix], imag(P.values)[nLx][ix], marker=:d,  color = :red, label  =  "imag")
-    plt.legend()
-    plt.show()
+    plot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], legend = "real", marker = "ecircle")
+    plot!(geom.values[nLx,1][ix], imag(P.values)[nLx][ix], legend = "imag", color = "red", marker = "edmd")
+    figure(f)
     
     true
     

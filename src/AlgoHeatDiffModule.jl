@@ -14,9 +14,8 @@ import FinEtools.FEMMHeatDiffModule: conductivity, nzebcloadsconductivity
 import FinEtools.FEMMHeatDiffSurfModule: surfacetransfer, surfacetransferloads, nzebcsurfacetransferloads
 import FinEtools.ForceIntensityModule: ForceIntensity
 import FinEtools.MeshSelectionModule: connectednodes
-if VERSION >= v"0.7-"
-    using SparseArrays
-end
+import SparseArrays: spzeros
+import LinearAlgebra: cholfact
 
 """
     steadystate(modeldata::FDataDict)

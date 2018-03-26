@@ -65,9 +65,13 @@ using FinEtools.ElementalFieldModule: ElementalField, nelems
 # Exported: type of elemental field
 export ElementalField, nelems
 
-using FinEtools.MeshSelectionModule: connectednodes, selectnode, selectelem, findunconnnodes
+using FinEtools.MeshUtilModule: linearspace, gradedspace
+# Exported: functions to generate a sequence of numbers between start and stop
+export linearspace, gradedspace
+
+using FinEtools.MeshSelectionModule: connectednodes, connectedelems, selectnode, selectelem, findunconnnodes
 # Exported: functions to select (find) nodes and elements
-export connectednodes, selectnode, selectelem, findunconnnodes
+export connectednodes, connectedelems, selectnode, selectelem, findunconnnodes
 
 using FinEtools.MeshExportModule: vtkexportmesh
 # Exported: VTK export

@@ -10,14 +10,8 @@ import FinEtools.FESetModule: FESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4
 import FinEtools.FENodeSetModule: FENodeSet
 import Base.close
 
-if VERSION < v"0.7-"
-    pairs(as) = as
-else
-    using Printf
-end
-if VERSION >= v"0.7-"
-    ismatch(r, s) = contains(s, r)
-end
+using Printf
+import LinearAlgebra: norm, cross
 
 ################################################################################
 # VTK export
@@ -808,8 +802,8 @@ function savecsv(name::String; kwargs...)
     end
     ncol = length(colnames)
     nrow = length(columns[1])
-    if !ismatch(r"^.*\.csv$", name) &&
-        !ismatch(r"^.*\.CSV$", name)
+    if !contains(name, r"^.*\.csv$") &&
+        !contains(name, r"^.*\.CSV$")
         name = name * ".csv"
     end
     open(name, "w") do fid

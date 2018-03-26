@@ -11,10 +11,7 @@ import Base.copy!
 import FinEtools.FENodeToFEMapModule: FENodeToFEMap
 import FinEtools.MeshTetrahedronModule: T4meshedges
 import FinEtools.MeshModificationModule: interior2boundary
-if VERSION < v"0.7-"
-    import Base.copy!
-    copyto!(de, sr) = copy!(de, sr)
-end
+import LinearAlgebra: norm
 
 """
     _IntegerBuffer
@@ -195,7 +192,7 @@ function coarsen(t::Array{Int, 2}, inputv::Array{Float64, 2}, tmid::Vector{Int};
                 end
             end
         end
-        if isempty(find(p->p==0, vlayer)) || (norm(vlayer-oldvlayer)==0)
+        if isempty(findall(p->p==0, vlayer)) || (norm(vlayer-oldvlayer)==0)
             break;
         end
         currvlayer =currvlayer +1;
@@ -221,7 +218,7 @@ function coarsen(t::Array{Int, 2}, inputv::Array{Float64, 2}, tmid::Vector{Int};
     es = zeros(size(e,1));
     elayer = zeros(Int, size(e,1));
     es = edgelengths(collect(1:size(e,1)), vt, e, vertex_weight);
-    elayer = vec(minimum(hcat(vlayer[e[:,1]],vlayer[e[:,2]]), 2))
+    elayer = vec(minimum(hcat(vlayer[e[:,1]],vlayer[e[:,2]]), dims = 2))
     everfailed = zeros(Bool, size(e,1));
     minne = 200;    maxne = 400;# 36
     availe = _IntegerBuffer(zeros(Int, size(e,1)), 0) # Flexible  buffer to avoid allocations
@@ -421,7 +418,7 @@ function cleanoutput(t::Array{Int,2}, v::Array{Float64,2}, tmid::Array{Int,1})
     k=1;
     for i=1:size(t,1)
         if (t[i,1] != 0)# not deleted
-            if (!isempty(find(p -> p == 0, nn[t[i,:]])))
+            if (!isempty(findall(p -> p == 0, nn[t[i,:]])))
                 # error('Referring to deleted vertex')
                 t[i,:] = 0;
             else

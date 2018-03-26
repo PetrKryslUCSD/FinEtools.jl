@@ -8,14 +8,13 @@ module MeshTriangleModule
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FESetModule: FESet, FESetT3, FESetT6, FESetQ4, connasarray
 import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!
+import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
 
 """
     T3blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol=:a)
 
 T3 Mesh of a rectangle.
 """
-# T3 Mesh of a rectangle.
 function T3blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol=:a)
     if (orientation!=:a) && (orientation!=:b)
         error("Cannot handle orientation : $orientation")
@@ -69,11 +68,8 @@ end
 
 T3 Mesh of a rectangle.
 """
-#
 function T3block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, orientation::Symbol=:a)
-    return T3blockx(FFltVec(linspace(0.0,Length,nL+1)),
-                    FFltVec(linspace(0.0,Width,nW+1)),
-                    orientation)
+    return T3blockx(FFltVec(linearspace(0.0,Length,nL+1)), FFltVec(linearspace(0.0,Width,nW+1)), orientation)
 end
 
 """
@@ -107,7 +103,7 @@ function T3toT6(fens::FENodeSet, fes::FESetT3)
         for J = 1:length(C)
             ix = vec([item for item in C[J].o])
             push!(ix,  i)
-            xyz[C[J].n, :] = mean(xyz[ix, :], 1);
+            xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
         end
     end
     # construct new geometry cells

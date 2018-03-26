@@ -9,9 +9,10 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 import FinEtools.FESetModule: FESet, FESetQ4, FESetH8, FESetH20, FESetH27, subset, bfun, connasarray, setlabel!, updateconn!
 import FinEtools.FENodeSetModule: FENodeSet, count, xyz3
 import FinEtools.MeshQuadrilateralModule: Q4elliphole
-import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!
+import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
 import FinEtools.MeshModificationModule: meshboundary, mergemeshes
 import FinEtools.MeshSelectionModule: selectelem, connectednodes
+import LinearAlgebra: norm
 
 """
     H8block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
@@ -23,7 +24,7 @@ smallest coordinate in all three directions is  0 (origin)
 nL, nW, nH=number of elements in the three directions
 """
 function H8block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)
-    return H8blockx(collect(linspace(0, Length, nL+1)), collect(linspace(0, Width, nW+1)), collect(linspace(0, Height, nH+1)));
+    return H8blockx(collect(linearspace(0.0, Length, nL+1)), collect(linearspace(0.0, Width, nW+1)), collect(linearspace(0.0, Height, nH+1)));
 end
 
 
@@ -218,7 +219,7 @@ function   H8toH27(fens::FENodeSet,  fes::FESetH8)
         for J = 1:length(C)
           ix = vec([item for item in C[J].o])
           push!(ix,  i)
-          xyz[C[J].n, :]=mean(xyz[ix, :], 1);
+          xyz[C[J].n, :]=mean(xyz[ix, :], dims = 1);
         end
     end
    # calculate the locations of the new nodes
@@ -228,7 +229,7 @@ function   H8toH27(fens::FENodeSet,  fes::FESetH8)
         for J = 1:length(C)
           ix = vec([item for item in C[J].o])
           push!(ix,  i)
-          xyz[C[J].n, :] = mean(xyz[ix, :], 1);
+          xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
         end
     end
     # calculate the locations of the new nodes
@@ -238,7 +239,7 @@ function   H8toH27(fens::FENodeSet,  fes::FESetH8)
         for J = 1:length(C)
           ix = vec([item for item in C[J].o])
           push!(ix,  i)
-          xyz[C[J].n, :] = mean(xyz[ix, :], 1);
+          xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
         end
     end
      # construct new geometry cells
@@ -285,8 +286,8 @@ function H8hexahedron(xyz::FFltMat, nL::FInt, nW::FInt, nH::FInt; blockfun=nothi
     npts=size(xyz, 1);
     @assert (npts == 2) || (npts == 8) "Need 2 or 8 points"
     if npts == 2
-        lo=minimum(xyz, 1);
-        hi=maximum(xyz, 1);
+        lo=minimum(xyz, dims = 1);
+        hi=maximum(xyz, dims = 1);
         xyz=[lo[1]  lo[2]  lo[3];
             hi[1]  lo[2]  lo[3];
             hi[1]  hi[2]  lo[3];
@@ -459,7 +460,7 @@ function H8spheren(radius::FFlt, nperradius::FInt)
             nxyz[j, :] = nxyz[j, :]*(nperradius-layer[j]+1)/nperradius*radius/norm(nxyz[j, :]);
         end
     end
-    s =  collect(linspace(0.,  1.,  length(layer)));
+    s =  collect(linearspace(0.,  1.,  length(layer)));
     # println("s=$s")
     # println("layer = $layer")
     for j = 1:size(xyz, 1)
@@ -526,7 +527,7 @@ function   H8toH20(fens::FENodeSet,  fes::FESetH8)
         for J = 1:length(C)
             ix = vec([item for item in C[J].o])
             push!(ix,  i) # Add the anchor point as well
-            xyz[C[J].n, :] = mean(xyz[ix, :], 1);
+            xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
         end
     end
     # construct new geometry cells
@@ -663,11 +664,11 @@ function H8layeredplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec)
     tolerance = minimum(abs.(ts))/maximum(nts)/10.;
     @assert length(ts) >= 1
     layer = 1
-    zs = collect(linspace(0,ts[layer],nts[layer]+1))
+    zs = collect(linearspace(0.0,ts[layer],nts[layer]+1))
     fens, fes = H8blockx(xs, ys, zs);
     setlabel!(fes, layer);
     for layer = 2:length(ts)
-        zs = collect(linspace(0,ts[layer],nts[layer]+1))
+        zs = collect(linearspace(0.0,ts[layer],nts[layer]+1))
         fens1, fes1 = H8blockx(xs, ys, zs);
         setlabel!(fes1, layer);
         fens1.xyz[:, 3] = fens1.xyz[:, 3] .+ sum(ts[1:layer-1]);

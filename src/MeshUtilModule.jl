@@ -6,16 +6,11 @@ Module for mesh utility functions used in other meshing modules.
 module MeshUtilModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-if VERSION < v"0.7-"
-    import Base.IntSet
-    Set = IntSet
-else
-    import Base.BitSet
-    Set = BitSet
-end
+import Base.BitSet
+import LinearAlgebra: norm
 
 mutable struct HyperFaceContainer
-    o::Set # numbers of the other nodes on the hyperface
+    o::BitSet # numbers of the other nodes on the hyperface
     n::Int # new node number generated on the hyperface
 end
 
@@ -23,7 +18,7 @@ makecontainer() = Dict{FInt, Array{HyperFaceContainer}}();
 
 function addhyperface!(container,hyperface,newn)
     h=sort([i for i in hyperface])
-    anchor=h[1]; other= Set(h[2:end]);
+    anchor=h[1]; other= BitSet(h[2:end]);
     C=get(container,anchor,HyperFaceContainer[]);
     fnd=false;
     for k=1:length(C)
@@ -40,7 +35,7 @@ end
 
 function findhyperface!(container,hyperface)
     h=sort([i for i in hyperface])
-    anchor=h[1]; other= Set(h[2:end]);
+    anchor=h[1]; other= BitSet(h[2:end]);
     C=get(container,anchor,HyperFaceContainer[]);
     for k=1:length(C)
         if C[k].o == other
@@ -67,7 +62,19 @@ function ontosphere(xyz::FFltMat,radius::FFlt)
 end
 
 """
-    gradedspace(start::T, finish::T, N::Int)  where {T<:Number}
+    linearspace(start::T, stop::T, N::Int)  where {T<:Number}
+
+Generate linear space.
+
+Generate a linear sequence of numbers between start and top (i. e. sequence 
+of number with uniform intervals inbetween).
+"""
+function linearspace(start::T, stop::T, N::Int)  where {T<:Number}
+    return range(start, stop = stop, length = N)
+end
+
+"""
+    gradedspace(start::T, stop::T, N::Int)  where {T<:Number}
 
 Generate quadratic space.
 
@@ -75,16 +82,15 @@ Generate a quadratic sequence of numbers between start and finish.
 This sequence corresponds to separation of adjacent numbers that
 increases linearly from start to finish.
 """
-function gradedspace(start::T, finish::T, N::Int, strength=2)  where {T<:Number}
-    x = linspace(0.0, 1.0, N);
+function gradedspace(start::T, stop::T, N::Int, strength=2)  where {T<:Number}
+    x = range(0.0, stop = 1.0, length = N);
     x = x.^strength
     # for i = 1:strength
     #     x = cumsum(x);
     # end
     x = x/maximum(x);
-    out = start .* (1.0 .- x) .+ finish .* x;
+    out = start .* (1.0 .- x) .+ stop .* x;
 end
-
 
 # function inbox(box::FFltVec,sdim::FInt,x::FFltVec)
 #     for i=1:sdim

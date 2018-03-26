@@ -18,7 +18,6 @@ xyz =
     The location of node j is given by x[j,:].
 
 """
-#
 mutable struct FENodeSet
   xyz::Array{FFlt, 2}
 
@@ -34,7 +33,6 @@ end
 
 Number of dimensions of the space in which the node lives, 1, 2, or 3.
 """
-# Get the  dimension of the coordinate that defines the location  of the node.
 spacedim(self::FENodeSet) =size(self.xyz,2)
 
 """

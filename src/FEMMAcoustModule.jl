@@ -18,6 +18,7 @@ import FinEtools.NodalFieldModule: NodalField
 import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysvecAssembler, makevector!
 import FinEtools.FEMMBaseModule: FEMMAbstractBase
 import FinEtools.MatrixUtilityModule: add_mggt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
+import LinearAlgebra: norm
 
 """
     FEMMAcoust{S<:FESet}

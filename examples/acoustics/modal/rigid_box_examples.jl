@@ -1,5 +1,6 @@
 module rigid_box_examples
 using FinEtools
+using IterativeEigensolvers
 
 function rigid_box_Q4_example()
     println("""
@@ -34,8 +35,8 @@ function rigid_box_Q4_example()
     C = acousticmass(femm, geom, P);
     
     d,v,nev,nconv =eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
-    d = d - OmegaShift;
-    fs=real(sqrt(complex(d)))./(2*pi)
+    d = d .- OmegaShift;
+    fs=real(sqrt.(complex(d)))./(2*pi)
     println("Eigenvalues: $fs [Hz]")
     
     

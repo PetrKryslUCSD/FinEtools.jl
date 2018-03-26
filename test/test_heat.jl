@@ -1,6 +1,7 @@
 module mmmmPoiss_06122017
 using FinEtools
 using Compat.Test
+import LinearAlgebra: cholfact
 function test()
 
   # println("""
@@ -164,6 +165,7 @@ mmmmannulus_Q4_example_algo.test()
 module mmmmmPoisson_FE_Q4_1
 using FinEtools
 using Compat.Test
+import LinearAlgebra: cholfact
 function test()
   # println("""
   #
@@ -315,6 +317,7 @@ mmmmmPoisson_FE_example_algo.test()
 module mmmmmPoissonRm2
 using FinEtools
 using Compat.Test
+import LinearAlgebra: cholfact
 function test()
   # println("""
   # Heat conduction example described by Amuthan A. Ramabathiran
@@ -396,6 +399,7 @@ mmmmmPoissonRm2.test()
 module mmmmmmmmmNAFEMSm
 using FinEtools
 using Compat.Test
+import LinearAlgebra: norm
 function test()
   ## Two-dimensional heat transfer with convection: convergence study
   #
@@ -575,6 +579,7 @@ mmmmmmmmmNAFEMSm.test()
 module mmmmmmconvergence
 using FinEtools
 using Compat.Test
+import LinearAlgebra: norm
 function test()
   ## Two-dimensional heat transfer with convection: convergence study
   #
@@ -1291,7 +1296,7 @@ function test()
   F1 = distribloads(femm, geom, Temp, fi, 3);
 
   # println("Factorization")
-  K = cholfact(K)
+  # K = cholfact(K)
   # println("Solution of the factorized system")
   U = K\(F1+F2)
   scattersysvec!(Temp,U[:])
@@ -1320,6 +1325,7 @@ mmmmPoiss_07082017.test()
 module mmmmmAnnularQ8mmmmm
 using FinEtools
 using Compat.Test
+import LinearAlgebra: norm, cholfact
 function test()
 
   # println("""
@@ -1396,6 +1402,7 @@ mmmmmAnnularQ8mmmmm.test()
 module mmpnpConcreteColumnsymb_conv
 using FinEtools
 using Compat.Test
+import LinearAlgebra: norm, cholfact
 function test()
   a=2.5; dy=a/2*sin(15/180*pi); dx=a/2*cos(15/180*pi); Q=4.5; k=1.8; Dz=1.0;
   h= 5.;
@@ -1447,6 +1454,7 @@ module mmmmPoiss_08082017
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
+import LinearAlgebra: cholfact
 function test()
 
   # println("""
@@ -1537,6 +1545,7 @@ module mmmmmPoisson_FE_Q8_2
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
+import LinearAlgebra: cholfact
 function test()
   # println("""
   #
@@ -1713,6 +1722,7 @@ module mPoisson_FE_Q4toT3_2
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
+import LinearAlgebra: cholfact
 function test()
   # println("""
   #
@@ -1806,6 +1816,7 @@ module mPoisson_FE_T3_orientations
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
+import LinearAlgebra: cholfact
 function test()
     for orientation in [:a :b]
 
@@ -1898,6 +1909,7 @@ mPoisson_FE_T3_orientations.test()
 module mmT129b_l2_uqm
 using FinEtools
 using Compat.Test
+import LinearAlgebra: cholfact
 function test()
     L = 6.0;
     kappa = reshape([4.0], 1, 1);

@@ -8,7 +8,7 @@ module MeshTetrahedronModule
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FESetModule: count, FESetT4, FESetT10, setlabel!
 import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!
+import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
 import FinEtools.MeshSelectionModule: selectelem
 
 """
@@ -28,9 +28,9 @@ third direction (x, y, z).
 """
 function T4block(Length::FFlt, Width::FFlt, Height::FFlt,
   nL::FInt, nW::FInt, nH::FInt, orientation::Symbol=:a)
-    return T4blockx(collect(linspace(0.0, Length, nL+1)),
-                    collect(linspace(0.0, Width, nW+1)),
-                    collect(linspace(0.0, Height, nH+1)), orientation);
+    return T4blockx(collect(linearspace(0.0, Length, nL+1)),
+                    collect(linearspace(0.0, Width, nW+1)),
+                    collect(linearspace(0.0, Height, nH+1)), orientation);
 end
 
 """
@@ -155,7 +155,7 @@ function  T4toT10(fens::FENodeSet,  fes::FESetT4)
         for J = 1:length(C)
           ix = vec([item for item in C[J].o])
           push!(ix,  i) # Add the anchor point as well
-          xyz[C[J].n, :] = mean(xyz[ix, :], 1);
+          xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
         end
     end
     fens = FENodeSet(xyz);
@@ -239,9 +239,9 @@ function T10layeredplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
     tolerance = minimum(abs.(ts))/maximum(nts)/10.;
     @assert length(ts) >= 1
     @assert sum(nts) >= length(ts)
-    zs = collect(linspace(0.0, ts[1], nts[1]+1))
+    zs = collect(linearspace(0.0, ts[1], nts[1]+1))
     for layer = 2:length(ts)
-        oz = collect(linspace(sum(ts[1:layer-1]), sum(ts[1:layer]), nts[layer]+1))
+        oz = collect(linearspace(sum(ts[1:layer-1]), sum(ts[1:layer]), nts[layer]+1))
         zs = vcat(zs, oz[2:end])
     end
     fens, fes = T4blockx(xs, ys, zs, orientation);
@@ -340,7 +340,7 @@ function T4meshedges(t::Array{Int, 2})
             4  2
             4  3];
     e = vcat(t[:,ec[1,:]], t[:,ec[2,:]], t[:,ec[3,:]], t[:,ec[4,:]], t[:,ec[5,:]], t[:,ec[6,:]])
-    e = sort(e, 2);
+    e = sort(e; dims = 2);
     ix = sortperm(e[:,1]);
     e = e[ix,:];
     ue = deepcopy(e)

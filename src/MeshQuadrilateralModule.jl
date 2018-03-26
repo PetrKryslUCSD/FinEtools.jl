@@ -9,7 +9,7 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 import FinEtools.FESetModule: FESet, FESetQ4, FESetQ8, bfun, cat, connasarray
 import FinEtools.FENodeSetModule: FENodeSet, count
 import FinEtools.MeshModificationModule: mergemeshes
-import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!
+import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace, linearspace
 
 """
     Q4annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
@@ -41,8 +41,8 @@ Mesh of a general quadrilateral given by the location of the vertices.
 function Q4quadrilateral(xyz::FFltMat, nL::FInt, nW::FInt)
     npts=size(xyz,1);
     if npts==2 # In this case the quadrilateral must be defined in two dimensions
-        lo=minimum(xyz,1);
-        hi=maximum(xyz,1);
+        lo=minimum(xyz, dims = 1);
+        hi=maximum(xyz, dims = 1);
         xyz=[[lo[1] lo[2]];
             [hi[1] lo[2]];
             [hi[1] hi[2]];
@@ -122,8 +122,7 @@ Mesh of a rectangle, Q4 elements.
 Divided into elements: nL, nW in the first, second (x,y).
 """
 function Q4block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt)
-    return Q4blockx(collect(linspace(0.0,Length,nL+1)),
-        collect(linspace(0.0,Width,nW+1)));
+    return Q4blockx(collect(linearspace(0.0,Length,nL+1)), collect(linearspace(0.0,Width,nW+1)));
 end
 
 """
@@ -228,7 +227,7 @@ function Q4toQ8(fens::FENodeSet, fes::FESetQ4)
         for J = 1:length(C)
             ix = vec([item for item in C[J].o])
             push!(ix,  i) # Add the anchor point as well
-            xyz[C[J].n, :] = mean(xyz[ix, :], 1);
+            xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
         end
     end
     # construct new geometry cells
@@ -291,7 +290,7 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
         for J = 1:length(C)
             ix = vec([item for item in C[J].o])
             push!(ix, i)
-            xyz[C[J].n,:] = mean(xyz[ix,:],1);
+            xyz[C[J].n,:] = mean(xyz[ix,:], dims = 1);
         end
     end
     # construct new geometry cells: for new elements out of one old one
@@ -307,7 +306,7 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
 
         inn=size(xyz,1)-length(fes.conn)+i
 
-        xyz[inn,:]=mean(xyz[[k for k in fes.conn[i]],:],1); # interior node
+        xyz[inn,:]=mean(xyz[[k for k in fes.conn[i]],:], dims = 1); # interior node
         #h,inn=findhyperface!(faces, conn);
         nconn[nc,:] =[fes.conn[i][1] econn[1] inn econn[4]];
         nc= nc+ 1;

@@ -6,9 +6,7 @@ Module  to handle use of physical units in constant definitions.
 module PhysicalUnitModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-if VERSION >= v"0.7-"
-    using Unicode
-end
+# using Unicode
 
 """
     physunitdict(;system_of_units = :SI, base_time_units = :SEC)
@@ -321,9 +319,9 @@ function phun(str::String; system_of_units = :SI, base_time_units = :SEC)
         outstr = "";
         i = 1;
         while i <= length(str)
-            if isupper(str[i])
+            if isuppercase(str[i])
                 k = i+1;
-                while (k <= length(str)) && (isupper(str[k]))
+                while (k <= length(str)) && (isuppercase(str[k]))
                     k = k+1;
                 end
                 outstr = outstr * string(d[str[i:k-1]]);

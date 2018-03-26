@@ -1,6 +1,6 @@
 module baffled_piston_examples
 using FinEtools
-
+using LinearAlgebra
 
 function baffled_piston_H8_ABC_example_algo()
     rho = 1.21*phun("kg/m^3");# mass density

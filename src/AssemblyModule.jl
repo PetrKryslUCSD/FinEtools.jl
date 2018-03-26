@@ -6,15 +6,10 @@ Module for assemblers  of system matrices and vectors.
 module AssemblyModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-
-if VERSION >= v"0.7-"
-    using SparseArrays
-end
-
-const  inv_dofnum=0;            # invalid degree of freedom number -- no equation
+import SparseArrays: sparse
+import LinearAlgebra: diag
 
 abstract type SysmatAssemblerBase end;
-
 
 mutable struct SysmatAssemblerSparse{T<:Number} <: SysmatAssemblerBase
     # Type for assembling of a sparse global matrix from elementwise matrices.
@@ -54,8 +49,8 @@ function startassembly!(self::SysmatAssemblerSparse{T},
     self.colbuffer = zeros(FInt,self.buffer_length);
     self.matbuffer = zeros(T,self.buffer_length);
     self.buffer_pointer = 1;
-    self.ndofs_row =ndofs_row;
-    self.ndofs_col =ndofs_col;
+    self.ndofs_row = ndofs_row;
+    self.ndofs_col = ndofs_col;
     return self
 end
 
@@ -100,10 +95,10 @@ function makematrix!(self::SysmatAssemblerSparse)
     @assert length(self.rowbuffer) >= self.buffer_pointer-1
     @assert length(self.colbuffer) >= self.buffer_pointer-1
     @inbounds for j=1:self.buffer_pointer-1
-        if self.rowbuffer[j] == inv_dofnum
+        if (self.rowbuffer[j] > self.ndofs_row) || (self.rowbuffer[j] <= 0)
             self.rowbuffer[j]=self.ndofs_row+1;
         end
-        if self.colbuffer[j] == inv_dofnum
+        if (self.colbuffer[j] > self.ndofs_col) || (self.colbuffer[j] <= 0)
             self.colbuffer[j]=self.ndofs_col+1;
         end
     end
@@ -159,7 +154,7 @@ function startassembly!(self::SysmatAssemblerSparseSymm{T},
     self.colbuffer = zeros(FInt,self.buffer_length);
     self.matbuffer = zeros(T,self.buffer_length);
     self.buffer_pointer = 1;
-    self.ndofs =ndofs;
+    self.ndofs = ndofs;
     return self
 end
 
@@ -210,10 +205,10 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
     @assert length(self.rowbuffer) >= self.buffer_pointer-1
     @assert length(self.colbuffer) >= self.buffer_pointer-1
     @inbounds for j=1:self.buffer_pointer-1
-        if self.rowbuffer[j] == inv_dofnum
+        if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
             self.rowbuffer[j]=self.ndofs+1;
         end
-        if self.colbuffer[j] == inv_dofnum
+        if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
             self.colbuffer[j]=self.ndofs+1;
         end
     end
@@ -241,10 +236,11 @@ mutable struct SysvecAssembler{T<:Number} <: SysvecAssemblerBase
     # 	% Fixed degrees of freedom numbers are given this value:
     #      % it indicates that this is not a valid free  degree of freedom number.
     F_buffer::Vector{T};
+    ndofs::FInt
 end
 
 function SysvecAssembler(zero::T=0.0) where {T<:Number}
-    return SysvecAssembler([zero])
+    return SysvecAssembler([zero], 1)
 end
 
 """
@@ -257,9 +253,9 @@ The method makes the buffer for the vector assembly. It must be called before
 the first call to the method assemble.
 ndofs_row= Total number of degrees of freedom.
 """
-function startassembly!(self::SysvecAssembler{T},
-  ndofs_row::FInt) where {T<:Number}
-    self.F_buffer= zeros(T,ndofs_row);
+function startassembly!(self::SysvecAssembler{T},  ndofs_row::FInt) where {T<:Number}
+    self.ndofs = ndofs_row
+    self.F_buffer = zeros(T,self.ndofs);
 end
 
 """
@@ -275,7 +271,7 @@ function assemble!(self::SysvecAssembler{T}, vec::MV,
   dofnums::D) where {T<:Number, MV<:AbstractArray{T}, D<:AbstractArray{FInt}}
     for i = 1:length(dofnums)
         gi = dofnums[i];
-        if (gi != inv_dofnum)
+        if (0 < gi <= self.ndofs)
             self.F_buffer[gi] = self.F_buffer[gi] + vec[i];
         end
     end
@@ -339,7 +335,7 @@ function startassembly!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, elem_mat_d
     self.colbuffer = zeros(FInt,self.buffer_length);
     self.matbuffer = zeros(T,self.buffer_length);
     self.buffer_pointer = 1;
-    self.ndofs =ndofs;
+    self.ndofs = ndofs;
     return self
 end
 
@@ -357,7 +353,7 @@ function assemble!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, mat::FMat{T},  
     @assert p+ncolumns*nrows <= self.buffer_length+1
     @assert size(mat) == (nrows, ncolumns)
     # Now comes the lumping procedure
-    em2 = sum(sum(mat, 1));
+    em2 = sum(sum(mat, dims = 1));
     dem2 = sum(diag(mat));
     ffactor = em2/dem2 # total-element-mass compensation factor
     @inbounds for j=1:ncolumns
@@ -395,10 +391,10 @@ function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
     @assert length(self.rowbuffer) >= self.buffer_pointer-1
     @assert length(self.colbuffer) >= self.buffer_pointer-1
     @inbounds for j=1:self.buffer_pointer-1
-        if self.rowbuffer[j] == inv_dofnum
+        if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
             self.rowbuffer[j]=self.ndofs+1;
         end
-        if self.colbuffer[j] == inv_dofnum
+        if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
             self.colbuffer[j]=self.ndofs+1;
         end
     end

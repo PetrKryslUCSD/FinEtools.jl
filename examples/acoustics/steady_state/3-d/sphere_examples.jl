@@ -1,7 +1,7 @@
 module sphere_examples
 using FinEtools
 using FinEtools.MeshExportModule
-
+using LinearAlgebra
 
 function sphere_dipole_1()
     println("The interior sphere accelerates in the positive x-direction, generating
@@ -10,7 +10,7 @@ function sphere_dipole_1()
     rho = 1.21*phun("kg/m^3");# mass density
     c  = 343.0*phun("m/s");# sound speed
     bulk =  c^2*rho;
-    a_amplitude=1.*phun("mm/s^2");# amplitude of the  acceleration of the sphere
+    a_amplitude=1.0*phun("mm/s^2");# amplitude of the  acceleration of the sphere
     # omega = 2000*phun("rev/s");      # frequency of the incident wave
     R = 5.0*phun("mm"); # radius of the interior sphere
     Ro = 4*R # radius of the external sphere
@@ -139,8 +139,7 @@ function sphere_inc_example()
     
     # Hexahedral mesh
     fens,fes  =  H8spheren(Ro, nPerradius);
-    fens1,fes1 = mirrormesh(fens, fes, [-1.0, 0.0, 0.0], [0.0, 0.0, 0.0];
-    renumb =  r(c) = c[[1, 4, 3, 2, 5, 8, 7, 6]])
+    fens1,fes1 = mirrormesh(fens, fes, [-1.0, 0.0, 0.0], [0.0, 0.0, 0.0]; renumb = (c ->  (c[[1, 4, 3, 2, 5, 8, 7, 6]])))
     fens,newfes1,fes2 =  mergemeshes(fens1, fes1, fens, fes, tolerance)
     fes = cat(newfes1,fes2)
     
@@ -263,7 +262,7 @@ function sphere_scatterer_example()
     l = selectelem(fens, bfes, facing = true, direction = [1.0 1.0  1.0], dotmin= 0.001)
     ex(xyz, layer) = (R+layer/nlayers*(Ro-R))*xyz/norm(xyz)
     fens,fes  =  H8extrudeQ4(fens, subset(bfes,l), nlayers, ex);
-    fens1,fes1 = mirrormesh(fens, fes, [-1.0, 0.0, 0.0], [0.0, 0.0, 0.0]; renumb =  r(c) = c[[1, 4, 3, 2, 5, 8, 7, 6]])
+    fens1,fes1 = mirrormesh(fens, fes, [-1.0, 0.0, 0.0], [0.0, 0.0, 0.0]; renumb =  c ->  c[[1, 4, 3, 2, 5, 8, 7, 6]])
     fens,newfes1,fes2 =  mergemeshes(fens1, fes1, fens, fes, tolerance)
     fes = cat(newfes1,fes2)
     

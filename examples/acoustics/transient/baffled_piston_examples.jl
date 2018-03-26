@@ -1,9 +1,10 @@
-module scratch
+module baffled_piston_examples
 using FinEtools
-#
+using LinearAlgebra
+using Gaston
 
-
-rho = 1.21*phun("kg/m^3");# mass density
+function baffled_piston_H8_transient()
+    rho = 1.21*phun("kg/m^3");# mass density
 c  = 343.0*phun("m/s");# sound speed
 bulk =  c^2*rho;
 frequency=2000; # Hz
@@ -109,10 +110,10 @@ while t <=tfinal
     vP1 = vP0 + (dt/2)*(vPd0+vPd1);
     scattersysvec!(P1, vP1); # store current pressure
     # Swap variables for the next step
-    copy!(vP0, vP1)
-    copy!(vPd0, vPd1)
-    copy!(P0, P1)
-    copy!(Pdd0, Pdd1)
+    copyto!(vP0, vP1)
+    copyto!(vPd0, vPd1)
+    copyto!(P0, P1)
+    copyto!(Pdd0, Pdd1)
     # Graphics output
     File  =   "baffled_piston-$(step).vtk"
     vtkexportmesh(File, fes.conn, fens.xyz, FinEtools.MeshExportModule.H8;
@@ -123,10 +124,17 @@ while t <=tfinal
     println("step = $( step )")
 end
 
-using Plots
-plotly()
-plot(vec(ts), vec(Pnh))
-gui()
+
+
+set(axis="normal", plotstyle="linespoints", linewidth=4, pointsize = 2, color = "black", xlabel = "Time", ylabel = "Pnh", grid="on", title = "")
+f = figure()
+plot(vec(ts), vec(Pnh), legend = "", marker = "edmd")
+figure(f)
+
+# using Plots
+# plotly()
+# plot(vec(ts), vec(Pnh))
+# gui()
 println("$(Pnh[end])")
 
 # # Surface for the ABC
@@ -168,4 +176,13 @@ println("$(Pnh[end])")
 # # display(pl)
 #
 # true
-end
+end # baffled_piston_H8_transient
+
+function allrun()
+    println("#####################################################") 
+    println("# baffled_piston_H8_transient ")
+    baffled_piston_H8_transient()
+    return true
+end # function allrun
+
+end # module baffled_piston_examples

@@ -10,14 +10,7 @@ import FinEtools.FESetModule: FESet, bfundpar, nodesperelem, manifdim, connasarr
 import FinEtools.FENodeSetModule: FENodeSet, spacedim
 import FinEtools.BoxModule: inflatebox!, initbox!, updatebox!, boxesoverlap
 import FinEtools.FENodeToFEMapModule: FENodeToFEMap
-
-if VERSION < v"0.7-"
-    pairs(as) = as
-end
-if VERSION < v"0.7-"
-    import Base.copy!
-    copyto!(de, sr) = copy!(de, sr)
-end
+import LinearAlgebra: norm, dot, cross
 
 """
     connectednodes(fes::FESet)
@@ -30,6 +23,22 @@ type (the same number of connected nodes by each cell).
 """
 function connectednodes(fes::FESet)
     return unique(connasarray(fes)[:]);
+end
+ 
+"""
+    connectedelems(fes::FESet, node_list::FIntVec)
+
+Extract the list of numbers for the fes  that are connected to given nodes.
+"""
+function connectedelems(fes::FESet, node_list::FIntVec, nmax::FInt)
+    f2fm = FENodeToFEMap(fes.conn, nmax)
+    cg = zeros(FInt, count(fes)); # No elements are part of the group to begin with
+    for j = node_list # for all nodes in the list
+        for i = 1:length(f2fm.map[j])
+            cg[f2fm.map[j][i]] = 1   # Mark element as being part of the group
+        end
+    end
+    return findall(v -> (v != 0), cg)
 end
 
 """
@@ -225,7 +234,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
                 felist[i] =i;   # matched this element
             end
         end
-        return  felist[find(x->x!=0, felist)]; # return the nonzero element numbers
+        return  felist[findall(x->x!=0, felist)]; # return the nonzero element numbers
     end
 
     # Select by flooding
@@ -237,7 +246,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
         felist[fen2fe.map[startnode]] = 1;
         while true
             copyto!(pfelist, felist);
-            markedl = find(x -> x != 0, felist)
+            markedl = findall(x -> x != 0, felist)
             for j = markedl
                 for k = fes.conn[j]
                     felist[fen2fe.map[k]] = 1;
@@ -247,7 +256,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
                 break;
             end
         end
-        return find(x -> x != 0, felist); # return the nonzero element numbers;
+        return findall(x -> x != 0, felist); # return the nonzero element numbers;
     end
 
     # Helper function: calculate the normal to a boundary finite element
@@ -280,14 +289,14 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
             Tangents =xyz'*Nder;
             N = normal(Tangents);
             if (Need_Evaluation)
-                d = direction(mean(xyz,1));
+                d = direction(mean(xyz, dims = 1));
                 d = reshape(d,1,sd)/norm(d);
             end
             if (dot(vec(N),vec(d)) > dotmin)
                 felist[i]=i;
             end
         end
-        return  felist[find(x->x!=0, felist)]; # return the nonzero element numbers
+        return  felist[findall(x->x!=0, felist)]; # return the nonzero element numbers
     end
 
 
@@ -344,7 +353,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
                 felist[i]=i; # this element overlaps the box
             end
         end
-        return  felist[find(x->x!=0, felist)]; # return the nonzero element numbers
+        return  felist[findall(x->x!=0, felist)]; # return the nonzero element numbers
     end
 
 
@@ -441,7 +450,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
             end
         end
     end
-    return felist[find(x->x!=0, felist)]; # return the nonzero element numbers
+    return felist[findall(x->x!=0, felist)]; # return the nonzero element numbers
 
 end
 
@@ -475,10 +484,11 @@ list = selectnode(fens.xyz, distance=1.0+0.1/2^nref, from=[0. 0.],
 ```
 candidates = selectnode(fens, plane = [0.0 0.0 1.0 0.0], thickness = h/1000)
 ```
-The keyword `plane` defines the plane by its normal in its distance from the
-origin. Nodes are selected they lie on the plane,  or near the plane within the
-distance `thickness` from the plane. The normal is assumed to be of unit length,
-if it isn't apply as such, it will be normalized internally.
+The keyword `plane` defines the plane by its normal (the first two or three numbers) 
+and its distance from the origin (the last number). Nodes are selected they lie 
+on the plane,  or near the plane within the distance `thickness` from the plane. 
+The normal is assumed to be of unit length, if it isn't apply as such, it will be 
+normalized internally.
 
 ### nearestto
 ```
@@ -553,14 +563,14 @@ function vselect(v::FFltMat; kwargs...)
             end
         end
     elseif plane != nothing
-        normal = plane[1:3];
+        normal = plane[1:end-1];
         normal = vec(normal/norm(normal));
         thicknessvalue = 0.0;
         if thickness != nothing
             thicknessvalue = thickness;
         end
         t = thicknessvalue+inflatevalue;
-        distance = plane[4];
+        distance = plane[end];
         for i = 1:size(v,1)
             ad = dot(v[i,:], normal);
             if abs(distance-ad)<t
