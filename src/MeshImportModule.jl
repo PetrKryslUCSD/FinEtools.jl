@@ -9,7 +9,7 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, FESetT4, FESetT10, FESetH8, FESetH20, setlabel!
 import FinEtools.MeshModificationModule: renumberconn!
-import Unicode: uppercase
+import Unicode: uppercase, isdigit
 import LinearAlgebra: norm
 
 """
@@ -20,6 +20,25 @@ large, the chunk should be probably increased so that only a few reallocations
 are needed.
 """
 const chunk = 1000
+
+"""
+    fixupdecimal(s)
+
+Fix up an old style floating-point number without the exponent letter.  
+"""
+function fixupdecimal(s)
+    os = ""
+    for i = length(s):-1:1
+        os = s[i] * os
+        if (s[i] == '-') && (i > 1) && (uppercase(s[i-1]) != "E") && isdigit(s[i-1])
+            os = "E" * os
+        end
+        if (s[i] == '+') && (i > 1) && (uppercase(s[i-1]) != "E") && isdigit(s[i-1])
+            os = "E" * os
+        end
+    end
+    return os
+end 
 
 """
     import_NASTRAN(filename)
@@ -50,21 +69,32 @@ function import_NASTRAN(filename; allocationchunk=chunk)
         end
         temp  = lines[current_line]
         current_line = current_line + 1
-        temp = strip(temp)
-        temp = uppercase(temp)
-        if temp[1:4] == "GRID"
-            # Template:
-            #   GRID,1,,-1.32846E-017,3.25378E-033,0.216954
+        if (length(temp) >= 4) && (uppercase(temp[1:4]) == "GRID")
             nnode = nnode + 1
             if size(node, 1) < nnode
                 node = vcat(node, zeros(allocationchunk, 4))
             end
-            A = split(replace(temp, "," => " "))
-            for  six = 1:4
-                node[nnode, six] = parse(Float64, A[six+1])
+            fixedformat = (length(temp) == 72) # Is this fixed-format record? This is a guess based on the length of the line.
+            if fixedformat
+                # $------1-------2-------3-------4-------5-------6-------7-------8-------9-------0
+                # GRID*                  5               0-1.66618812195+1-3.85740337853+0
+                # *       1.546691269367+1               0
+                node[nnode, 1] = parse(Float64, fixupdecimal(temp[9:24]))
+                node[nnode, 2] = parse(Float64, fixupdecimal(temp[41:56]))
+                node[nnode, 3] = parse(Float64, fixupdecimal(temp[57:72]))
+                temp  = lines[current_line]
+                current_line = current_line + 1
+                node[nnode, 4] = parse(Float64, fixupdecimal(temp[9:24]))
+            else  
+                # Template:
+                #   GRID,1,,-1.32846E-017,3.25378E-033,0.216954
+                A = split(replace(temp, "," => " "))
+                for  six = 1:4
+                    node[nnode, six] = parse(Float64, A[six+1])
+                end
             end
         end # GRID
-        if temp[1:6] == "CTETRA"
+        if (length(temp) >= 6) && (uppercase(temp[1:6]) == "CTETRA")
             # Template:
             #   CTETRA,1,3,15,14,12,16,8971,4853,8972,4850,8973,4848
             nelem = nelem + 1
