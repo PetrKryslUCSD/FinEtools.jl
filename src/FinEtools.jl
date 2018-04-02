@@ -105,9 +105,9 @@ using FinEtools.AssemblyModule: SysmatAssemblerBase, SysmatAssemblerSparse, Sysm
 # Exported: types and methods for  sparse matrix assembly  and vector assembly
 export SysmatAssemblerBase, SysmatAssemblerSparse, SysmatAssemblerSparseSymm, SysmatAssemblerSparseHRZLumpingSymm, startassembly!, assemble!, makematrix!, SysvecAssemblerBase, SysvecAssembler, startassembly!, assemble!, makevector!
 
-using FinEtools.IntegRuleModule: IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule
+using FinEtools.IntegRuleModule: IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule
 # Exported: type for various integration rules
-export IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule
+export IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule
 
 using FinEtools.IntegDataModule: IntegData, otherdimensionunity, Jacobianpoint, Jacobiancurve, Jacobiansurface, Jacobianvolume, Jacobianmdim, integrationdata
 # Exported: type to handle  integration data for various manifold dimensions

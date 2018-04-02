@@ -265,4 +265,69 @@ function SimplexRule(dim=1, npts=1)
     end
 end
 
+
+"""
+    TrapezoidalRule
+
+The trapezoidal rule.
+
+The rule is applicable for a tensor product of  intervals -1 <=x<= +1.
+"""
+struct TrapezoidalRule <: IntegRule
+    dim::FInt
+    npts::FInt
+    param_coords::Array{Float64, 2}
+    weights::Array{Float64, 2}
+end
+
+"""
+    TrapezoidalRule(dim=1)
+
+Trapezoidal rule.
+"""
+function TrapezoidalRule(dim=1)
+    @assert 1 <= dim <= 3 "Trapezoidal rule of dimension $(dim) not available"
+    order = 2 # order of the trapezoidal rule: fixed
+    param_coords = [ -1.0 1.0 ];
+    weights  = [ 1.0 1.0 ];
+    if (dim==1)
+        param_coords = transpose(param_coords);
+        weights = weights;
+        npts=order^1
+        param_coords= reshape(param_coords',npts,1)
+        weights= reshape(weights,npts,1)
+    elseif (dim==2)
+        pc=param_coords;
+        w=weights;
+        npts=order^2
+        param_coords=zeros(FFlt,npts,2);
+        weights=zeros(FFlt,npts,1);
+        r=1
+        for i=1:order
+            for j=1:order
+                param_coords[r,:]=[pc[i] pc[j]];
+                weights[r]=w[i]*w[j];
+                r=r+1
+            end
+        end
+    else # (dim==3)
+        pc=param_coords;
+        w=weights;
+        npts=order^3
+        param_coords=zeros(FFlt,npts,3);
+        weights=zeros(FFlt,npts,1);
+        r=1
+        for i=1:order
+            for j=1:order
+                for k=1:order
+                    param_coords[r,:]=[pc[i] pc[j] pc[k]];
+                    weights[r]=w[i]*w[j]*w[k];
+                    r=r+1
+                end
+            end
+        end
+    end
+    return TrapezoidalRule(dim,npts,param_coords,weights)
+end
+
 end
