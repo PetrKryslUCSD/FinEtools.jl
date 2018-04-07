@@ -2089,9 +2089,10 @@ function test()
 
 #   File =  "a.vtk"
 #   MeshExportModule.vtkexportmesh(File, fes.conn, [geom.values Temp.values], MeshExportModule.T3; scalars=[("Temperature", Temp.values)])
-energ1 = transpose(U) * K * U
-println("energ1 = $(energ1)")
-println("energy(femm, geom, Temp) = $(energy(femm, geom, Temp))")
+  energ1 = transpose(U) * K * U
+  # println("energ1 = $(energ1)")
+  # println("energy(femm, geom, Temp) = $(energy(femm, geom, Temp))")
+  @test abs(energ1 - energy(femm, geom, Temp)) / energ1 < 1.0e-6
   true
 end
 end
