@@ -127,7 +127,7 @@ degrees of freedom,  then the next node and so on.
 `dest` = destination buffer: overwritten  inside,  must be preallocated
 in the correct size
 """
-function gathervalues_asvec!(self::Field, dest::AbstractArray{T, 1},    conn::CC) where {CC, T}
+function gathervalues_asvec!(self::Field, dest::AbstractArray{T, 1}, conn::CC) where {CC, T}
     en::FInt = 1;
     for i = 1:length(conn)
         for j = 1:size(self.values,2)

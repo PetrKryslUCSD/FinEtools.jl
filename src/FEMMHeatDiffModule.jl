@@ -12,7 +12,7 @@ import FinEtools.FESetModule: FESet, nodesperelem, manifdim, gradN!
 import FinEtools.MatHeatDiffModule: MatHeatDiff
 import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianvolume
 import FinEtools.CSysModule: CSys, updatecsmat!
-import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!
+import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!
 import FinEtools.NodalFieldModule: NodalField 
 import FinEtools.ElementalFieldModule: ElementalField 
 import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
@@ -22,7 +22,7 @@ import FinEtools.MatrixUtilityModule: add_gkgt_ut_only!, complete_lt!, locjac!
 import LinearAlgebra: mul!, Transpose
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
-import LinearAlgebra: norm
+import LinearAlgebra: norm, dot
 
 # Type for heat diffusion finite element modeling machine.
 mutable struct FEMMHeatDiff{S<:FESet, F<:Function, M<:MatHeatDiff} <: FEMMAbstractBase
@@ -142,5 +142,31 @@ function nzebcloadsconductivity(self::FEMMHeatDiff,  geom::NodalField{FFlt},   t
     return  nzebcloadsconductivity(self, assembler, geom, temp);
 end
 
+function energy(self::FEMMHeatDiff, geom::NodalField{FFlt},  temp::NodalField{FFlt}) where {A<:SysvecAssemblerBase}
+    fes = self.integdata.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    # Thermal conductivity matrix is in local  material coordinates.
+    kappa_bar = self.material.thermal_conductivity;
+    # Prepare assembler and buffers
+    dofnums, loc, J, RmTJ, gradN, kappa_bargradNT, elmat, elvec, elvecfix = buffers(self, geom, temp)
+    gradT = fill(0.0, 1, size(gradN, 2))
+    fluxT = deepcopy(gradT)
+    energy = 0.0
+    # Now loop over all finite elements in the set
+    for i = 1:count(fes) # Loop over elements
+        gathervalues_asvec!(temp, elvec, fes.conn[i]);# retrieve element coordinates
+        for j=1:npts # Loop over quadrature points
+            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            updatecsmat!(self.mcsys, loc, J, fes.label[i]);
+            At_mul_B!(RmTJ,  self.mcsys.csmat,  J); # local Jacobian matrix
+            gradN!(fes, gradN, gradNparams[j], RmTJ);
+            At_mul_B!(gradT, elvec, gradN) 
+            A_mul_B!(fluxT, gradT, kappa_bar) 
+            energy += dot(vec(gradT), vec(fluxT)) * (Jac*w[j])
+        end # Loop over quadrature points
+    end
+    return energy;
+end
 
 end
