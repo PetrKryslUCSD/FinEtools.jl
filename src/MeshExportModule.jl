@@ -802,6 +802,9 @@ function savecsv(name::String; kwargs...)
     end
     ncol = length(colnames)
     nrow = length(columns[1])
+    for j = 1:ncol
+        @assert length(columns[j]) == nrow "Columns must have the same number of rows"
+    end
     if !occursin(r"^.*\.csv$", name) && !occursin(r"^.*\.CSV$", name)
         name = name * ".csv"
     end
