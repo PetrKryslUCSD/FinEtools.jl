@@ -71,6 +71,51 @@ function richextrapol(solns::FFltVec, params::FFltVec)
     return solnestim, beta, c, residual
 end
 
+"""
+    bisect(fun, xl, xu, tolx, tolf)
+
+Implementation of the bisection method.
+
+Tolerance both on `x` and on `f(x)` is used.
+`fun` = function,
+`xl`= lower value of the bracket,
+`xu`= upper Value of the bracket,
+`tolx`= tolerance on the location of the root,
+`tolf`= tolerance on the function value
+"""
+function bisect(fun, xl, xu, tolx, tolf)
+    iter = 0;
+    if (xl > xu)
+        temp = xl; xl = xu; xu = temp;
+    end
+    fl = fun(xl);
+    fu = fun(xu);
+    @assert fl*fu < 0.0 "Need to get a bracket"
+    if fl == 0.0
+        xu = xl; 
+        return xl, xu;
+    end
+    if fu == 0.0
+        xl = xu;
+        return xl, xu;
+    end
+    while true
+        xr = (xu + xl) / 2.0; # bisect interval
+        fr = fun(xr); # value at the midpoint
+        if (fr*fl < 0.0)
+            xu = xr; fu = fr;# upper --> midpoint
+        elseif (fr == 0.0)
+            xl = xr; xu = xr;# exactly at the root
+        else
+            xl = xr; fl = fr;# lower --> midpoint
+        end
+        if (abs(xu-xl) < tolx) || (abs(fr) < tolf)
+            break; # We are done
+        end
+        iter = iter+1;
+    end
+    return xl, xu;
+end
 
 """
     fieldnorm(modeldata)

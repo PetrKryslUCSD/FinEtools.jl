@@ -1562,3 +1562,28 @@ end
 end
 using .mconjugategradient1
 mconjugategradient1.test()
+
+module mmbisecty
+using FinEtools
+using FinEtools.AlgoBaseModule: bisect
+using Compat.Test
+function test()
+    xs = [231.7, 239.1, 244.8]
+    hs = [(4.0/5.)^i for i in range(0, length = 3)]
+    approxerrors = diff(xs)
+    fun = y ->  approxerrors[1] / (hs[1]^y - hs[2]^y) - approxerrors[2] / (hs[2]^y - hs[3]^y)
+    
+    beta = bisect(fun, 0.001, 2.0, 0.00001, 0.00001)
+    beta = (beta[1] + beta[2]) / 2.0
+    @assert abs(beta - 1.1697) < 1.0e-4
+    gamm1 = hs[2]^beta / hs[1]^beta
+    gamm2 = hs[3]^beta / hs[2]^beta
+    estimtrueerror1 = approxerrors[1] ./ (1.0 - gamm1)
+    estimtrueerror2 = approxerrors[2] ./ (1.0 - gamm2)
+    # println("xs[1] + estimtrueerror1 = $(xs[1] + estimtrueerror1)")
+    # println("xs[2] + estimtrueerror2 = $(xs[2] + estimtrueerror2)")
+    true
+end
+end
+using .mmbisecty
+mmbisecty.test()
