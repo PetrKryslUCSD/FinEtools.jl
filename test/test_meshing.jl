@@ -2566,7 +2566,7 @@ function tetmeshedges(t::Array{Int, 2})
             end
             m = m+1;
         end
-        us = unique(ue[n:m-1,2], 1);
+        us = unique(ue[n:m-1,2], dims=1);
         ls =length(us);
         e[i:i+ls-1,1] = c;
         e[i:i+ls-1,2] = sort(us);
