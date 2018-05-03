@@ -1047,12 +1047,13 @@ end
 
 function h2libexporttri(theFile::String, Connectivity, Points)
     @assert size(Connectivity, 2) == 3 "Only triangles accepted"
+    adjust = 1 # the library is C-based and expects indexes to be zero-based
 
     ed = makehypfacedict(2)
     for i = 1:size(Connectivity, 1)
-        inserthypface!(ed, Connectivity[i, [1, 2]]])
-        inserthypface!(ed, Connectivity[i, [2, 3]]])
-        inserthypface!(ed, Connectivity[i, [3, 1]]])
+        inserthypface!(ed, Connectivity[i, [1, 2]])
+        inserthypface!(ed, Connectivity[i, [2, 3]])
+        inserthypface!(ed, Connectivity[i, [3, 1]])
     end
     ea = hypfacedicttoarray(ed)
 
@@ -1073,20 +1074,20 @@ function h2libexporttri(theFile::String, Connectivity, Points)
 
     for i= 1:size(ea, 1)
         for j= 1:size(ea,2)-1
-            print(fid, ea[i,j]-1, " ");
+            print(fid, ea[i,j]-adjust, " ");
         end
-        print(fid, ea[i,end]-1, "\n");
+        print(fid, ea[i,end]-adjust, "\n");
     end
 
     for i= 1:size(Connectivity, 1)
-        s = [hypfacen(ed, Connectivity[i, [1, 2]]]) hypfacen(ed, Connectivity[i, [2, 3]]]) hypfacen(ed, Connectivity[i, [3, 1]]])]
+        s = [hypfacen(ed, Connectivity[i, [2, 3]]) hypfacen(ed, Connectivity[i, [3, 1]]) hypfacen(ed, Connectivity[i, [1, 2]])]
         for j= 1:size(Connectivity,2)
-            print(fid, Connectivity[i,j]-1, " ");
+            print(fid, Connectivity[i,j]-adjust, " ");
         end
         for j= 1:length(s)-1
-            print(fid, s[j]-1, " ");
+            print(fid, s[j]-adjust, " ");
         end
-        print(fid, s[end]-1, "\n");
+        print(fid, s[end]-adjust, "\n");
     end
 
     fid=close(fid);

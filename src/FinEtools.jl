@@ -88,6 +88,7 @@ export NASTRANExporter, close, CEND, BEGIN_BULK, ENDDATA, GRID, PSOLID, MAT1, CT
 using FinEtools.MeshExportModule: STLExporter, solid, facet, endsolid
 # Exported: STL export
 export STLExporter, solid, facet, endsolid
+using FinEtools.MeshExportModule: h2libexporttri
 # Exported: H2Lib export
 export h2libexporttri
 
