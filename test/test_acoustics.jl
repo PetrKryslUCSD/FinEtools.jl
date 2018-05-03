@@ -1014,7 +1014,7 @@ function test()
 
   function find_peaks(t,y)
       p=Float64[];
-      dy=diff(y, 1);
+      dy=diff(y, dims=1)
       for j3=1:length(dy)-1
           if (dy[j3]*dy[j3+1]<0)
               push!(p, y[j3+1]);
