@@ -1587,3 +1587,25 @@ end
 end
 using .mmbisecty
 mmbisecty.test()
+
+module mmh2libexporttri
+using FinEtools
+import FinEtools.MeshExportModule: h2libexporttri
+using Compat.Test
+function test()
+triangles = [4 3 5
+3 1 2
+5 2 6
+6 2 7
+7 8 11
+8 10 11
+9 10 8
+2 9 8
+1 9 2
+3 2 5]
+vertices = [0.943089 0.528795; 0.704865 0.101195; 0.980527 0.225325; 0.126678 0.323197; 0.969361 0.376956; 0.339188 0.306131; 0.322906 0.244326; 0.327952 0.769903; 0.820541 0.766872; 0.919947 0.390552; 0.958515 0.533267]
+h2libexporttri("sample.tri", triangles, vertices)
+end
+end
+using .mmh2libexporttri
+mmh2libexporttri.test()
