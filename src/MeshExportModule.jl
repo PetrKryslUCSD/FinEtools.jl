@@ -988,4 +988,109 @@ function close(self::STLExporter)
     close(self.ios)
 end
 
+
+################################################################################
+# H2Lib triangular-surface export
+################################################################################
+
+import Base.BitSet
+
+mutable struct _HypFace
+    n::Int # serial number of the hyperface
+    hf::Array{Int} # numbers of vertices defining the hyperface
+    a::Int # anchor node number 
+    o::BitSet # numbers of the other nodes on the hyperface
+end
+
+mutable struct _HypFaceContainer
+    nv::Int # total number of vertices per hyperface
+    d::Dict{Int, Array{_HypFace}} # dictionary
+    n::Int # total number of hyperfaces in the container
+end
+
+makehypfacedict(nv) = _HypFaceContainer(nv, Dict{Int, Array{_HypFace}}(), 0);
+
+function hypfacen(container, hypf)
+    h = sort([i for i in hypf])
+    anchor = h[1]; other = BitSet(h[2:end]);
+    ca = get(container.d, anchor, _HypFace[]);
+    for k = 1:length(ca)
+        if (ca[k].a == anchor) && (ca[k].o == other)
+            return ca[k].n # do have this hyper face: here is its serial number
+        end
+    end
+    return 0 # do not have this hyper face
+end
+
+function inserthypface!(container, hypf)
+    if hypfacen(container, hypf) == 0
+        @assert length(hypf) == container.nv "Hyperface does not have the right number of vertices"
+        h = sort([i for i in hypf])
+        anchor = h[1]; other = BitSet(h[2:end]);
+        ca = get(container.d, anchor, _HypFace[]);
+        container.n = container.n + 1 
+        push!(ca, _HypFace(container.n, hypf, anchor, other)); 
+        container.d[anchor] = ca
+    end
+    return container
+end 
+
+function hypfacedicttoarray(container)
+    a = fill(0, container.n, container.nv)
+    for ca in values(container.d)
+        for i = 1:length(ca)
+            a[ca[i].n, :] = ca[i].hf
+        end
+    end
+    return a
+end
+
+function h2libexporttri(theFile::String, Connectivity, Points)
+    @assert size(Connectivity, 2) == 3 "Only triangles accepted"
+
+    ed = makehypfacedict(2)
+    for i = 1:size(Connectivity, 1)
+        inserthypface!(ed, Connectivity[i, [1, 2]]])
+        inserthypface!(ed, Connectivity[i, [2, 3]]])
+        inserthypface!(ed, Connectivity[i, [3, 1]]])
+    end
+    ea = hypfacedicttoarray(ed)
+
+    fid=open(theFile,"w");
+    if (fid == -1)
+        error(["Could not open " * theFile])
+        return nothing
+    end
+
+    print(fid, size(Points, 1), " ", size(ea, 1), " ", size(Connectivity, 1), "\n");
+
+    for i= 1:size(Points, 1)
+        for j= 1:size(Points,2)-1
+            print(fid,Points[i,j]," ");
+        end
+        print(fid,Points[i,end],"\n");
+    end
+
+    for i= 1:size(ea, 1)
+        for j= 1:size(ea,2)-1
+            print(fid, ea[i,j]-1, " ");
+        end
+        print(fid, ea[i,end]-1, "\n");
+    end
+
+    for i= 1:size(Connectivity, 1)
+        s = [hypfacen(ed, Connectivity[i, [1, 2]]]) hypfacen(ed, Connectivity[i, [2, 3]]]) hypfacen(ed, Connectivity[i, [3, 1]]])]
+        for j= 1:size(Connectivity,2)
+            print(fid, Connectivity[i,j]-1, " ");
+        end
+        for j= 1:length(s)-1
+            print(fid, s[j]-1, " ");
+        end
+        print(fid, s[end]-1, "\n");
+    end
+
+    fid=close(fid);
+    return true
+end 
+
 end

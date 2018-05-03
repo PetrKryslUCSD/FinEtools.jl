@@ -88,6 +88,8 @@ export NASTRANExporter, close, CEND, BEGIN_BULK, ENDDATA, GRID, PSOLID, MAT1, CT
 using FinEtools.MeshExportModule: STLExporter, solid, facet, endsolid
 # Exported: STL export
 export STLExporter, solid, facet, endsolid
+# Exported: H2Lib export
+export h2libexporttri
 
 using FinEtools.MeshModificationModule: meshboundary,  fusenodes,  compactnodes,  mergemeshes, mergenmeshes, mergenodes,  renumberconn!,  meshsmoothing, mirrormesh, nodepartitioning, interior2boundary
 # Exported: extraction of boundary, fusing of nodes  and merging of meshes, mesh smoothing,  node partitioning
