@@ -421,3 +421,11 @@ using .mmmmmmmmmmmm: f2!
 f2!(B)
 println("B = $(B)")
 I like that a! is telling me inside the function that I’m changing something passed in as argument.
+
+-- https://github.com/tonsky/FiraCode/wiki/VS-Code-Instructions
+// Controls the font size in pixels.
+    "editor.fontSize": 14,
+    // Controls the font family.
+    "editor.fontFamily": "Fira Code",
+    "editor.fontLigatures": true
+    

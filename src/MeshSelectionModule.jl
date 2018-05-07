@@ -243,13 +243,13 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
         fen2fe = FENodeToFEMap(connasarray(fes), count(fens))
         felist = zeros(FInt, count(fes));
         pfelist = zeros(FInt, count(fes));
-        felist[fen2fe.map[startnode]] = 1;
+        felist[fen2fe.map[startnode]] .= 1;
         while true
             copyto!(pfelist, felist);
             markedl = findall(x -> x != 0, felist)
             for j = markedl
                 for k = fes.conn[j]
-                    felist[fen2fe.map[k]] = 1;
+                    felist[fen2fe.map[k]] .= 1;
                 end
             end
             if sum(pfelist-felist) == 0 # If there are no more changes in this pass, we are done

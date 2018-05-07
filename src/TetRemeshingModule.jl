@@ -168,7 +168,7 @@ function coarsen(t::Array{Int, 2}, inputv::Array{Float64, 2}, tmid::Vector{Int};
                 end
             end
         else # not (surface_coarsening)
-            vlayer[f] = 1;# Mark all vertices on the boundary (layer 1) 
+            vlayer[f] .= 1;# Mark all vertices on the boundary (layer 1) 
             # The remaining (interior) vertices will be numbered below 
             # by  distance from the boundary 
         end
@@ -299,7 +299,7 @@ function collapseedge!(e::Array{Int, 2}, es::Vector{Float64}, elayer::Vector{Int
         i = del[k];
         (e[i,1] == vi2) ? ov = e[i,2] : ov = e[i,1]; 
         if ov in vl
-            e[i,:] = 0;# mark as deleted
+            e[i,:] .= 0;# mark as deleted
             es[i] = Inf;# indicate the deleted edge
             elayer[i] = 0;# indicate the deleted edge
         end

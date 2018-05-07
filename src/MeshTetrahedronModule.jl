@@ -246,11 +246,11 @@ function T10layeredplatex(xs::FFltVec, ys::FFltVec, ts::FFltVec, nts::FIntVec,
     end
     fens, fes = T4blockx(xs, ys, zs, orientation);
     List = selectelem(fens, fes, box = [-Inf Inf -Inf Inf 0.0 ts[1]], inflate = tolerance)
-    fes.label[List] = 1
+    fes.label[List] .= 1
     for layer = 2:length(ts)
         List = selectelem(fens, fes, box = [-Inf Inf -Inf Inf sum(ts[1:layer-1]) sum(ts[1:layer])],
             inflate = tolerance)
-        fes.label[List] = layer
+        fes.label[List] .= layer
     end
     fens, fes =  T4toT10(fens, fes)
     return fens, fes
@@ -357,7 +357,7 @@ function T4meshedges(t::Array{Int, 2})
         end
         us = unique(ue[n:m-1,2], dims=1);
         ls =length(us);
-        e[i:i+ls-1,1] = c;
+        e[i:i+ls-1,1] .= c;
         e[i:i+ls-1,2] = sort(us);
         i = i+ls;
         n = m;
@@ -440,8 +440,8 @@ function T4voximggen(img::Array{DataT, 3},  voxval::Array{DataT, 1}) where {Data
                 end
             end
         end
-        Slice[1, :, :] =Slice[2, :, :] ;
-        Slice[2, :, :] =0;
+        Slice[1, :, :] = Slice[2, :, :] ;
+        Slice[2, :, :] .= 0;
     end
     # Trim output arrays
     v = v[1:nv, :];

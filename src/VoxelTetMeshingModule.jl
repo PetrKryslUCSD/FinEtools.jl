@@ -124,7 +124,7 @@ function smooth!(self::ImageMesher, npass::Int = 5)
     # find neighbors for the VOLUME vertices
     vn =  vertexneighbors(self.t, size(self.v, 1));
     # Smoothing considering all connections through the volume
-    bv[vec(f)]=true;
+    bv[vec(f)] .= true;
     v = FFltMat[]
     trialv = deepcopy(fv)
     for pass = 1:npass

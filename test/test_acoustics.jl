@@ -695,7 +695,7 @@ function test()
 
   # Solve
   P0 = deepcopy(P)
-  P0.values[:] = 0.0; # initially all pressure is zero
+  P0.values[:] .= 0.0; # initially all pressure is zero
   vP0 = gathersysvec(P0);
   vP1 = fill!(similar(vP0), zero(eltype(vP0)))
   vQ0 = fill!(similar(vP0), zero(eltype(vP0)))
@@ -897,7 +897,7 @@ function test()
 
   # Solve
   P0 = deepcopy(P)
-  P0.values[:] = 0.0; # initially all pressure is zero
+  P0.values[:] .= 0.0; # initially all pressure is zero
   vP0 = gathersysvec(P0);
   vP1 = fill!(similar(vP0), zero(eltype(vP0)))
   vQ0 = fill!(similar(vP0), zero(eltype(vP0)))
@@ -1240,8 +1240,8 @@ function test()
     vPd1 = deepcopy(vP0)
 
     t = 0.0
-    P0.fixed_values[piston_fenids,1] = P_piston*sin(omega*t)
-    Pdd0.fixed_values[piston_fenids,1] = P_piston*(-omega^2)*sin(omega*t)
+    P0.fixed_values[piston_fenids,1] .= P_piston*sin(omega*t)
+    Pdd0.fixed_values[piston_fenids,1] .= P_piston*(-omega^2)*sin(omega*t)
     vP0 = gathersysvec!(P0, vP0)
 
     nh = selectnode(fens, nearestto = [R+Ro/2, 0.0, 0.0] )
@@ -1251,8 +1251,8 @@ function test()
     while t <=tfinal
         step = step  +1;
         t=t+dt;
-        P1.fixed_values[piston_fenids,1] = P_piston*sin(omega*t)
-        Pdd1.fixed_values[piston_fenids,1] = P_piston*(-omega^2)*sin(omega*t)
+        P1.fixed_values[piston_fenids,1] .= P_piston*sin(omega*t)
+        Pdd1.fixed_values[piston_fenids,1] .= P_piston*(-omega^2)*sin(omega*t)
         TMPF.fixed_values = P0.fixed_values + P1.fixed_values
         F = nzebcloadsacousticmass(femm, geom, TMPF);
         TMPF.fixed_values = Pdd0.fixed_values + Pdd1.fixed_values

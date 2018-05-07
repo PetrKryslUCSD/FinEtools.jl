@@ -442,14 +442,14 @@ function H8spheren(radius::FFlt, nperradius::FInt)
     bg = meshboundary(fes);
     l = selectelem(fens, bg; facing=true,  direction=[1. 1. 1.], dotmin = 0.01);
     cn = connectednodes(subset(bg, l))   ;
-    layer[cn] = 1;
+    layer[cn] .= 1;
     for j = 1:nperradius-1
         for k = 1:size(conn, 1)
             ll = layer[conn[k, :]];
             ml = minimum(ll);
             if (ml==j)
                 ix = isinf.(ll);
-                ll[ix] = j+1;
+                ll[ix] .= j+1;
                 layer[conn[k, :]] = ll;
             end
         end
@@ -616,8 +616,8 @@ function H8voximggen(img::Array{DataT, 3},
                 end
             end
         end
-        Slice[1, :, :] =Slice[2, :, :] ;
-        Slice[2, :, :] =0;
+        Slice[1, :, :] = Slice[2, :, :] ;
+        Slice[2, :, :] .= 0;
     end
     # Trim output arrays
     v=v[1:nv, :];

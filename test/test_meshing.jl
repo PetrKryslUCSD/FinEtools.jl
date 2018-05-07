@@ -242,7 +242,7 @@ function test()
     @test norm(before-fens.xyz[Int(N^2/2), :]) < 1.e-4
 
     fixedv = falses(count(fens))
-    fixedv[bnl] = true
+    fixedv[bnl] .= true
     fens = meshsmoothing(fens, fes; fixedv = fixedv, method = :laplace, npass = 100)
 
     after = [50.0438, 44.0315]
@@ -295,7 +295,7 @@ function test()
     @test norm(before-fens.xyz[Int(N^2/2), :]) < 1.e-4
 
     fixedv = falses(count(fens))
-    fixedv[bnl] = true
+    fixedv[bnl] .= true
     fens = meshsmoothing(fens, fes; fixedv = fixedv, method = :taubin, npass = 100)
 
     after = [50.0059, 43.6281]
@@ -1222,7 +1222,7 @@ function test()
     fc = NodalField(zeros(count(fensc), 1))
     for i = 1:count(fensc)
         x, y, z = fensc.xyz[i, :]
-        fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+        fc.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
     end
     File = "momap2para3-coarse.vtk"
     MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
@@ -1241,7 +1241,7 @@ function test()
     referenceff = NodalField(zeros(count(fensf), 1))
     for i = 1:count(fensf)
         x, y, z = fensf.xyz[i, :]
-        referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+        referenceff.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
     end
     File = "momap2para3-reference.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
@@ -1294,7 +1294,7 @@ function test()
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
-        fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+        fc.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
     end
     File = "momap2para3-coarse.vtk"
     MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
@@ -1315,7 +1315,7 @@ function test()
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
-        referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+        referenceff.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
     end
     File = "momap2para3-reference.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
@@ -1369,7 +1369,7 @@ function test()
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
-        fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+        fc.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
     end
     File = "momap2para3-coarse.vtk"
     MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
@@ -1390,7 +1390,7 @@ function test()
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
-        referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+        referenceff.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
     end
     File = "momap2para3-reference.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
@@ -1445,7 +1445,7 @@ function test()
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
-        fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+        fc.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
     end
     File = "momap2para3-coarse.vtk"
     MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
@@ -1466,7 +1466,7 @@ function test()
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
-        referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+        referenceff.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
     end
     File = "momap2para3-reference.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
@@ -1520,7 +1520,7 @@ function test()
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
-        fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+        fc.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
     end
     File = "momap2para3-coarse.vtk"
     MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
@@ -1541,7 +1541,7 @@ function test()
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
-        referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+        referenceff.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
     end
     File = "momap2para3-reference.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
@@ -1595,7 +1595,7 @@ function test()
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
-        fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+        fc.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
     end
     # File = "momap2para3-coarse.vtk"
     # MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
@@ -1616,7 +1616,7 @@ function test()
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
-        referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+        referenceff.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
     end
     # File = "momap2para3-reference.vtk"
     # MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
@@ -1670,7 +1670,7 @@ Meshing = Q4blockx
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y = centroid
-        fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
+        fc.values[i, :] .= sin(2*x/A) * cos(6.5*y/B)
     end
     # File = "momap2para3-coarse.vtk"
     # MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
@@ -1691,7 +1691,7 @@ Meshing = Q4blockx
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y = centroid
-        referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
+        referenceff.values[i, :] .= sin(2*x/A) * cos(6.5*y/B)
     end
     # File = "momap2para3-reference.vtk"
     # MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
@@ -1745,7 +1745,7 @@ Meshing = Q8blockx
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y = centroid
-        fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
+        fc.values[i, :] .= sin(2*x/A) * cos(6.5*y/B)
     end
     # File = "momap2para3-coarse.vtk"
     # MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
@@ -1766,7 +1766,7 @@ Meshing = Q8blockx
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y = centroid
-        referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
+        referenceff.values[i, :] .= sin(2*x/A) * cos(6.5*y/B)
     end
     # File = "momap2para3-reference.vtk"
     # MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
@@ -1820,7 +1820,7 @@ Meshing = T3blockx
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y = centroid
-        fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
+        fc.values[i, :] .= sin(2*x/A) * cos(6.5*y/B)
     end
     File = "momap2para3-coarse.vtk"
     MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
@@ -1841,7 +1841,7 @@ Meshing = T3blockx
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y = centroid
-        referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
+        referenceff.values[i, :] .= sin(2*x/A) * cos(6.5*y/B)
     end
     File = "momap2para3-reference.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
@@ -1895,7 +1895,7 @@ Meshing = T6blockx
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y = centroid
-        fc.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
+        fc.values[i, :] .= sin(2*x/A) * cos(6.5*y/B)
     end
     File = "momap2para12-coarse.vtk"
     MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
@@ -1916,7 +1916,7 @@ Meshing = T6blockx
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y = centroid
-        referenceff.values[i, :] = sin(2*x/A) * cos(6.5*y/B)
+        referenceff.values[i, :] .= sin(2*x/A) * cos(6.5*y/B)
     end
     File = "momap2para12-reference.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
@@ -2011,7 +2011,7 @@ Meshing = L2blockx
 end
 end
 using .momap2para13
- momap2para13.test()
+momap2para13.test()
 
 module momap2para14
 using FinEtools
@@ -2568,7 +2568,7 @@ function tetmeshedges(t::Array{Int, 2})
         end
         us = unique(ue[n:m-1,2], dims=1);
         ls =length(us);
-        e[i:i+ls-1,1] = c;
+        e[i:i+ls-1,1] .= c;
         e[i:i+ls-1,2] = sort(us);
         i = i+ls;
         n = m;
@@ -2873,7 +2873,7 @@ desired_ts =a;
 bfes = meshboundary(fes);
 f = connectednodes(bfes);
 bv = zeros(Bool, size(v,1));
-bv[f] = true;
+bv[f] .= true;
 
 # println("Mesh size: initial = $(size(t,1))")
 t0 = time()
