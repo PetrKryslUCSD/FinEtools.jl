@@ -1618,7 +1618,7 @@ function test()
     ps = range(0, stop=1.0, length = 1000)
     xs = sin.(40.0 * ps)
     ys = sin.(39.0 * ps)
-    @test abs(qvariance(ps, xs, ys) - cov(xs, ys)) < 1.0e-3
+    @test abs(qcovariance(ps, xs, ys) - cov(xs, ys)) < 1.0e-3
     true
 end
 end
@@ -1632,7 +1632,7 @@ using FinEtools.AlgoBaseModule: qtrap, qcovariance, qvariance
 function test()
     ps = range(0, stop=1.0, length = 1000)
     xs = sin.(40.0 * ps)
-    @test abs(qcovariance(ps, xs) - cov(xs)) < 1.0e-3
+    @test abs(qvariance(ps, xs) - cov(xs)) < 1.0e-3
     true
 end
 end
@@ -1647,9 +1647,7 @@ function test()
     ps = vec([0.0201161  0.0567767  0.123692  0.141182  0.196189  0.311646  0.463708   0.798094  0.832338  0.875213  0.880719  0.947033  0.993938  0.99884]) #sort(rand(20))
     xs = sin.(40.0 * ps)
     ys = sin.(39.0 * ps)
-    # println("qvariance(ps, xs, ys) = $(qvariance(ps, xs, ys))")
-    @test abs(qvariance(ps, xs, ys) - 0.2678930346128373) < 1.0e-6
-    # println("cov(xs, ys) = $(cov(xs, ys))")
+    @test abs(qcovariance(ps, xs, ys) - 0.2678930346128373) < 1.0e-6
     @test abs(cov(xs, ys) - 0.3917048440575396) < 1.0e-6
     true
 end

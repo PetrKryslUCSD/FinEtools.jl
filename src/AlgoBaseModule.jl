@@ -261,7 +261,8 @@ Compute the area under the curve given by a set of parameters along
 an interval and the values of the 'function' at those parameter values.  
 The parameter values need not be uniformly distributed.
 
-Trapezoidal rule is used to evaluate the integral.
+Trapezoidal rule is used to evaluate the integral. The 'function' is 
+assumed to vary linearly inbetween the given points.
 """
 function qtrap(ps, xs)
     @assert length(ps) == length(xs)
@@ -273,12 +274,18 @@ function qtrap(ps, xs)
 end
 
 """
-    qvariance(ps, xs, ys)
+    qcovariance(ps, xs, ys)
 
-Compute the variance for two functions given by the arrays `xs` and `ys` 
+Compute the covariance for two functions given by the arrays `xs` and `ys` 
 at the values of the parameter `ps`.  
+
+Notes: 
+– The mean is subtracted from both functions. 
+– This function is not particularly efficient: it computes the mean of 
+both functions and it allocates arrays instead of overwriting the 
+contents of the arguments.
 """
-function qvariance(ps, xs, ys)
+function qcovariance(ps, xs, ys)
     @assert length(ps) == length(xs) == length(ys)
     xmean = qtrap(ps, xs)
     ymean = qtrap(ps, ys)
@@ -288,11 +295,11 @@ function qvariance(ps, xs, ys)
 end
 
 """
-    qcovariance(ps, xs)
+    qvariance(ps, xs)
 
-Compute the covariance of a function given by the array `xs` at 
+Compute the variance of a function given by the array `xs` at 
 the values of the parameter `ps`.  
 """
-qcovariance(ps, xs) = qvariance(ps, xs, xs)
+qvariance(ps, xs) = qcovariance(ps, xs, xs)
 
 end
