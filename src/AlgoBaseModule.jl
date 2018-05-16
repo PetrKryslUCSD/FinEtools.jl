@@ -254,4 +254,45 @@ function conjugategradient(A::T, b::FFltVec, x0::FFltVec, maxiter::FInt) where {
     return x
 end
 
+"""
+    qtrap(ps, xs)
+
+Compute the area under the curve given by a set of parameters along 
+an interval and the values of the 'function' at those parameter values.  
+The parameter values need not be uniformly distributed.
+
+Trapezoidal rule is used to evaluate the integral.
+"""
+function qtrap(ps, xs)
+    @assert length(ps) == length(xs)
+    num = 0.0
+    for i = 1:length(ps)-1
+        num += (ps[i+1]-ps[i]) * (xs[i+1] + xs[i])/2.0
+    end
+    return num
+end
+
+"""
+    qvariance(ps, xs, ys)
+
+Compute the variance for two functions given by the arrays `xs` and `ys` 
+at the values of the parameter `ps`.  
+"""
+function qvariance(ps, xs, ys)
+    @assert length(ps) == length(xs) == length(ys)
+    xmean = qtrap(ps, xs)
+    ymean = qtrap(ps, ys)
+    zxs = xs .- xmean
+    zys = ys .- ymean
+    return qtrap(ps, zxs .* zys)
+end
+
+"""
+    qcovariance(ps, xs)
+
+Compute the covariance of a function given by the array `xs` at 
+the values of the parameter `ps`.  
+"""
+qcovariance(ps, xs) = qvariance(ps, xs, xs)
+
 end
