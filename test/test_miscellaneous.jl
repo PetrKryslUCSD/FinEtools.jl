@@ -1648,7 +1648,7 @@ function test()
     xs = sin.(40.0 * ps)
     ys = sin.(39.0 * ps)
     # println("qvariance(ps, xs, ys) = $(qvariance(ps, xs, ys))")
-    # @test abs(qvariance(ps, xs, ys) - 0.2678930346128373) < 1.0e-6
+    @test abs(qvariance(ps, xs, ys) - 0.2678930346128373) < 1.0e-6
     # println("cov(xs, ys) = $(cov(xs, ys))")
     @test abs(cov(xs, ys) - 0.3917048440575396) < 1.0e-6
     true
