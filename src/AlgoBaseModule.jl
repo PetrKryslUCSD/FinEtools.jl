@@ -287,8 +287,9 @@ contents of the arguments.
 """
 function qcovariance(ps, xs, ys)
     @assert length(ps) == length(xs) == length(ys)
-    xmean = qtrap(ps, xs)
-    ymean = qtrap(ps, ys)
+    pl = maximum(ps) - minimum(ps)
+    xmean = qtrap(ps, xs) / pl
+    ymean = qtrap(ps, ys) / pl
     zxs = xs .- xmean
     zys = ys .- ymean
     return qtrap(ps, zxs .* zys)
