@@ -1661,4 +1661,26 @@ using .mmqtrapm3
 mmqtrapm3.test()
 
 
+module mfixupdecimal1
+using FinEtools
+using Compat.Test
+using FinEtools.MeshImportModule: fixupdecimal
+function test()
+    s = fixupdecimal("-10.0-1")
+    @test parse(Float64, s) == -1.0
+    s = fixupdecimal("-10.033333-1")
+    @test parse(Float64, s) == -1.0033333
+    s = fixupdecimal("-100.33333-002")
+    @test parse(Float64, s) == -1.0033333
+    s = fixupdecimal("-1.0033333+0")
+    @test parse(Float64, s) == -1.0033333
+    s = fixupdecimal("-1.0033333+000")
+    @test parse(Float64, s) == -1.0033333
+    s = fixupdecimal(" +1.0033333+000 ")
+    @test parse(Float64, s) == +1.0033333
+    true
+end
+end
+using .mfixupdecimal1
+mfixupdecimal1.test()
 
