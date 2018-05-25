@@ -328,7 +328,7 @@ function test()
   # the hexahedral elements ...
   K = stiffness(femm, geom, u)
   # ...  and the elastic stiffness    of the springs on the contact surfaces of the cross-sections.
-  H = surfacenormalspringstiffness(xsfemm,  geom, u, springcoefficient)
+  H = surfacenormalspringstiffness(xsfemm,  geom, u, springcoefficient, SurfaceNormal(FFlt, 3))
 
   ##
   # The mechanical loads are computed from the thermal strains.
@@ -1033,7 +1033,7 @@ function test()
   # the hexahedral elements ...
   K = stiffness(femm, geom, u)
   # ...  and the elastic stiffness    of the springs on the contact surfaces of the cross-sections.
-  H = surfacenormalspringstiffness(xsfemm,  geom, u, springcoefficient)
+  H = surfacenormalspringstiffness(xsfemm,  geom, u, springcoefficient, SurfaceNormal(FFlt, 3))
 
   ##
   # The mechanical loads are computed from the thermal strains.
@@ -5506,8 +5506,8 @@ function test()
     springcoefficient =1.0e9/ (abs(p)/E1)
     xsfemm = FEMMDeforWinkler(IntegData(subset(bdryfes, lx), GaussRule(1, 3), true))
     ysfemm = FEMMDeforWinkler(IntegData(subset(bdryfes, ly), GaussRule(1, 3), true))
-    H = surfacenormalspringstiffness(xsfemm,  geom, u, springcoefficient) +
-        surfacenormalspringstiffness(ysfemm,  geom, u, springcoefficient)
+    H = surfacenormalspringstiffness(xsfemm,  geom, u, springcoefficient, SurfaceNormal(FFlt, 3)) +
+        surfacenormalspringstiffness(ysfemm,  geom, u, springcoefficient, SurfaceNormal(FFlt, 3))
     K =stiffness(femm, geom, u)
     U=  (K + H)\(F2)
     scattersysvec!(u,U[:])

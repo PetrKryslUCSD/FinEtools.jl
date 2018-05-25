@@ -16,6 +16,7 @@ import FinEtools.NodalFieldModule: NodalField
 import FinEtools.FEMMBaseModule: FEMMAbstractBase
 import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!
 import FinEtools.MatrixUtilityModule: add_nnt_ut_only!, complete_lt!, locjac!
+import FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 import LinearAlgebra: norm, cross
 
 """
@@ -40,7 +41,7 @@ normal displacement to the surface.gas
 """
 function surfacenormalspringstiffness(self::FEMMDeforWinkler, assembler::A,
     geom::NodalField{FFlt}, u::NodalField{T},
-    springconstant::FFlt) where {A<:SysmatAssemblerBase, T<:Number}
+    springconstant::FFlt, surfacenormal::SurfaceNormal) where {A<:SysmatAssemblerBase, T<:Number}
     integdata = self.integdata
     # Constants
     nfes = count(integdata.fes); # number of finite elements in the set
@@ -56,14 +57,17 @@ function surfacenormalspringstiffness(self::FEMMDeforWinkler, assembler::A,
     dofnums = zeros(FInt, Kedim); # degree of freedom array -- used as a buffer
     loc = zeros(FFlt, 1,sdim); # quadrature point location -- used as a buffer
     J = fill(zero(FFlt), sdim,mdim); # Jacobian matrix -- used as a buffer
+    Nn = zeros(FFlt, Kedim); # column vector
     startassembly!(assembler, Kedim, Kedim, nfes, u.nfreedofs, u.nfreedofs);
     for i = 1:nfes # Loop over elements
         fill!(Ke, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
             locjac!(loc, J, geom.values, integdata.fes.conn[i], Ns[j], gradNparams[j]) 
             Jac = Jacobiansurface(integdata, J, loc, integdata.fes.conn[i], Ns[j]);
-            n = surfacenormal(loc, J);# find the normal to the surface
-            Nn = reshape(n*Ns[j]', Kedim, 1);# The normal n is a column vector
+            n = updatenormal!(surfacenormal, loc, J, integdata.fes.label[i])
+            for k= 1:nne
+                Nn[(k-1)*sdim+1:k*sdim] .= n .* Ns[j][k];
+            end 
             add_nnt_ut_only!(Ke, Nn, springconstant*Jac*w[j])
         end # Loop over quadrature points
         complete_lt!(Ke)
@@ -75,30 +79,30 @@ end
 
 function surfacenormalspringstiffness(self::FEMMDeforWinkler,
               geom::NodalField{FFlt}, u::NodalField{T},
-              springconstant::FFlt) where {T<:Number}
+              springconstant::FFlt, surfacenormal::SurfaceNormal) where {T<:Number}
     assembler = SysmatAssemblerSparseSymm();
-    return surfacenormalspringstiffness(self, assembler, geom, u, springconstant);
+    return surfacenormalspringstiffness(self, assembler, geom, u, springconstant, surfacenormal);
 end
 
-"""
-    surfacenormal(loc::FFltMat,J::FFltMat)
+# """
+#     surfacenormal(loc::FFltMat,J::FFltMat)
 
-Compute local normal. This makes sense for bounding surfaces only.
-"""
-function  surfacenormal(loc::FFltMat, J::FFltMat)
-    norml= zeros(FFlt, length(loc))
-    # Produce a default normal
-    if (size(J,1)==3) && (size(J,2)==2)# surface in three dimensions
-        norml = cross(vec(J[:,1]),vec(J[:,2]));# outer normal to the surface
-        norml = norml/norm(norml);
-    elseif (size(J,1)==2)  && (size(J,2)==1)# curve in two dimensions
-        norml= [J[2,1];-J[1,1]];# outer normal to the contour
-        norml = norml/norm(norml);
-    else
-        error("No definition of normal vector");
-    end
-    return reshape(norml,length(norml),1) # return a column vector
-end
+# Compute local normal. This makes sense for bounding surfaces only.
+# """
+# function  surfacenormal(loc::FFltMat, J::FFltMat)
+#     norml= zeros(FFlt, length(loc))
+#     # Produce a default normal
+#     if (size(J,1)==3) && (size(J,2)==2)# surface in three dimensions
+#         norml = cross(vec(J[:,1]),vec(J[:,2]));# outer normal to the surface
+#         norml = norml/norm(norml);
+#     elseif (size(J,1)==2)  && (size(J,2)==1)# curve in two dimensions
+#         norml= [J[2,1];-J[1,1]];# outer normal to the contour
+#         norml = norml/norm(norml);
+#     else
+#         error("No definition of normal vector");
+#     end
+#     return reshape(norml,length(norml),1) # return a column vector
+# end
 
 
 end

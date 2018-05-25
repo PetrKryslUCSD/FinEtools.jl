@@ -419,14 +419,14 @@ function distribloads(self::FEMM, assembler::A,
         for j = 1:npts
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
             Jac = Jacobianmdim(self.integdata, J, loc, fes.conn[i],  Ns[j], m);
-            updateforce!(fi, loc, J, fes.label[i]); # retrieve the applied load
+            force = updateforce!(fi, loc, J, fes.label[i]); # retrieve the applied load
             Factor::FFlt = (Jac * w[j]);
             NkxF::FFlt = 0.0
             rx::FInt=1;
             for kx = 1:nne # all the nodes
                 NkxF = Ns[j][kx] * Factor
                 for mx = 1:ndn   # all the degrees of freedom
-                    Fe[rx] = Fe[rx] + NkxF * fi.force[mx];
+                    Fe[rx] = Fe[rx] + NkxF * force[mx];
                     rx = rx+1;    # next component of the vector
                 end
             end

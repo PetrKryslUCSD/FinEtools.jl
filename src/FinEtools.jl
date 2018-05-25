@@ -100,9 +100,17 @@ using FinEtools.MeshImportModule: import_NASTRAN, import_ABAQUS
 # Exported: mesh import functions
 export import_NASTRAN, import_ABAQUS
 
+using FinEtools.VectorCacheModule: VectorCache, updateretrieve!
+# Exported: vector-cache type and methods to invoke the update callback
+export VectorCache, updateretrieve!
+
 using FinEtools.ForceIntensityModule: ForceIntensity, updateforce!
 # Exported: force-intensity type and methods to invoke the update callback
 export ForceIntensity, updateforce!
+
+using FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
+# Exported: surface-normal evaluator type and methods to invoke the update callback
+export SurfaceNormal, updatenormal!
 
 using FinEtools.AssemblyModule: SysmatAssemblerBase, SysmatAssemblerSparse, SysmatAssemblerSparseSymm, SysmatAssemblerSparseHRZLumpingSymm, startassembly!, assemble!, makematrix!, SysvecAssemblerBase, SysvecAssembler, startassembly!, assemble!, makevector!
 # Exported: types and methods for  sparse matrix assembly  and vector assembly
