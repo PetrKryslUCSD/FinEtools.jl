@@ -248,6 +248,11 @@ function add_nnt_ut_only!(Ke::FFltMat, N::FFltMat, Jac_w_coeff::FFlt)
     return true
 end
 
+function add_nnt_ut_only!(Ke::FFltMat, N::FFltVec, Jac_w_coeff::FFlt)
+    return add_nnt_ut_only!(Ke, reshape(N, length(N), 1), Jac_w_coeff)
+end
+
+
 """
     add_btv!(elvec::FFltVec, B::FFltMat, sig::FFltMat, Jac_w_coeff::FFlt)
 

@@ -9,6 +9,7 @@ module SurfaceNormalModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.VectorCacheModule: VectorCache, updateretrieve!
+using LinearAlgebra: cross, norm
 
 """
     SurfaceNormal{T<:Number, F<:Function}
