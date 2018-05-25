@@ -66,7 +66,9 @@ function surfacenormalspringstiffness(self::FEMMDeforWinkler, assembler::A,
             Jac = Jacobiansurface(integdata, J, loc, integdata.fes.conn[i], Ns[j]);
             n = updatenormal!(surfacenormal, loc, J, integdata.fes.label[i])
             for k= 1:nne
-                Nn[(k-1)*sdim+1:k*sdim] .= n .* Ns[j][k];
+                for r = 1:sdim
+                    Nn[(k-1)*sdim+r] = n[r] * Ns[j][k];
+                end
             end 
             add_nnt_ut_only!(Ke, Nn, springconstant*Jac*w[j])
         end # Loop over quadrature points
