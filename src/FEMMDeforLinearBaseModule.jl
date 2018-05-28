@@ -16,8 +16,9 @@ import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, Sysma
 import FinEtools.FEMMBaseModule: FEMMAbstractBase, inspectintegpoints
 import FinEtools.CSysModule: CSys, updatecsmat!
 import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat! 
-import FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, locjac!
+import FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, locjac!, add_nnt_ut_only!
 import FinEtools.MatDeforModule: rotstressvec
+import FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 import LinearAlgebra: Transpose, mul!
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
@@ -90,6 +91,47 @@ end
 function mass(self::FEMMDeforLinearAbstract,  geom::NodalField{FFlt},  u::NodalField{T}) where {T<:Number}
     assembler = SysmatAssemblerSparseSymm();
     return mass(self, assembler, geom, u);
+end
+
+function damping_ABC(self::FEMMDeforLinearAbstract, assembler::A,
+                     geom::NodalField{FFlt}, u::NodalField{T},
+                     impedance::T, surfacenormal::SurfaceNormal) where {A<:SysmatAssemblerBase, T<:Number}
+    fes = self.integdata.fes
+    nfes = count(fes);
+    DoFperNode = ndofs(u);
+    nNodesperElem = nodesperelem(fes);
+    sdim = ndofs(geom);
+    mdim = manifdim(fes);
+    enDoF = DoFperNode * nNodesperElem;
+    npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdata);
+    startassembly!(assembler, enDoF, enDoF, nfes, u.nfreedofs, u.nfreedofs);
+    loc = zeros(FFlt, 1, sdim);
+    J = zeros(FFlt, sdim, mdim);
+    Ce = zeros(T, enDoF, enDoF);
+    Nn = zeros(FFlt, enDoF);
+    dofnums = zeros(FFlt, enDoF);
+    for i = 1:nfes
+        for j = 1:npts
+            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j])
+            Jac = Jacobiansurface(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            n = updatenormal!(surfacenormal, loc, J, integdata.fes.label[i]);
+            for k = 1:nNodesperElem
+                Nn[(k-1)*DoFperNode+1:k*DoFperNode] = n * Ns[j][k]
+            end
+            add_nnt_ut_only!(Ce, Nn, impedance*Jac*w[j]);
+        end
+        complete_lt!(Ce);
+        gatherdofnums!(u, dofnums, integdata.fes.conn[i]);
+        assemble!(assembler, Ce, dofnums, dofnums);
+        fill!(Ce, 0.0);
+    end
+    return makematrix!(assembler);
+end
+
+function damping_ABC(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt},
+                     u::NodalField{T}, impedance::T, surfacenormal::SurfaceNormal) where {T<:Number}
+    assembler = SysmatAssemblerSparseSymm();
+    return damping_ABC(self, assembler, geom, u, impedance, surfacenormal);
 end
 
 """
