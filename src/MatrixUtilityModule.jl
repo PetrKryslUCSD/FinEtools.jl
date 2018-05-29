@@ -234,7 +234,7 @@ The matrix `Ke` is modified.  The matrices `B` and `D` are not modified
 inside this function. The scratch buffer `DB` is overwritten
 during each call of this function.
 """
-function add_nnt_ut_only!(Ke::FMat{T}, N::FFltMat, Jac_w_coeff::FFlt) where {T<:Number}
+function add_nnt_ut_only!(Ke::FMat{T}, N::FFltMat, Jac_w_coeff::T) where {T<:Number}
     @assert size(Ke, 1) == size(Ke, 2)
     @assert size(N, 1) == size(Ke, 2)
     Kedim = size(N, 1)
