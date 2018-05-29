@@ -234,4 +234,8 @@ using FinEtools.FEMMDeforLinearMSModule: FEMMDeforLinearMSH8, FEMMDeforLinearMST
 # Exported: type for mean-strain solid elements, discretization methods
 export FEMMDeforLinearMSH8, FEMMDeforLinearMST10, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
 
+using FinEtools.FEMMDeforSurfaceDampingModule: FEMMDeforSurfaceDamping, dampingABC
+#Exported: type for surface damping (absorbing boundary conditions)
+export FEMMDeforSurfaceDamping, dampingABC
+
 end
