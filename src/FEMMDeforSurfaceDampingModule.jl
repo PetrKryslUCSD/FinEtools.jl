@@ -48,27 +48,27 @@ function dampingABC(self::FEMMDeforSurfaceDamping, assembler::A,
     Cedim = ndn * nne; # size of damping element matrix
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdata);
-    # Prepare assembler and temporaries
-    startassembly!(assembler, Cedim, Cedim, nfes, u.nfreedofs, u.nfreedofs);
     loc = zeros(FFlt, 1, sdim); # quadrature point coordinate -- used as a buffer
     J = zeros(FFlt, sdim, mdim); # Jacobian matrix -- used as a buffer
     Ce = zeros(T2, Cedim, Cedim); # element damping matrix -- used as a buffer
     Nn = zeros(FFlt, Cedim); # column vector
-    dofnums = zeros(FFlt, Cedim); # degrees of freedom array -- used as a buffer
+    dofnums = zeros(FInt, Cedim); # degree of freedom array -- used as a buffer
+    # Prepare assembler and temporaries
+    startassembly!(assembler, Cedim, Cedim, nfes, u.nfreedofs, u.nfreedofs);
     for i = 1:nfes # loop over finite elements
         fill!(Ce, 0.0); # Initialize element damping matrix
         for j = 1:npts # loop over quadrature points
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j])
             Jac = Jacobiansurface(self.integdata, J, loc, fes.conn[i], Ns[j]);
-            n = updatenormal!(surfacenormal, loc, J, integdata.fes.label[i]);
+            n = updatenormal!(surfacenormal, loc, J, self.integdata.fes.label[i]);
             for k = 1:nne
                 Nn[(k-1)*ndn+1:k*ndn] = n * Ns[j][k]
             end
             add_nnt_ut_only!(Ce, Nn, impedance*Jac*w[j]);
         end # end loop over quadrature points
-    complete_lt!(Ce);
-    gatherdofnums!(u, dofnums, integdata.fes.conn[i]); # retrieve degrees of freedom
-    assemble!(assembler, Ce, dofnums, dofnums); # assemble the element damping matrix
+        complete_lt!(Ce);
+        gatherdofnums!(u, dofnums, self.integdata.fes.conn[i]); # retrieve degrees of freedom
+        assemble!(assembler, Ce, dofnums, dofnums); # assemble the element damping matrix
     end # end loop over finite elements
     return makematrix!(assembler);
 end
