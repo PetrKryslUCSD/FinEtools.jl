@@ -1,5 +1,5 @@
 """
-    FEMMDeforSurfaceDamping
+    FEMMDeforSurfaceDampingModule
 
 Module for operations on boundaries of domains to construct damping matrix 
 for linear deformation models.
@@ -36,8 +36,8 @@ Compute the damping matrix of absorbing boundary conditions.
 """
 
 function dampingABC(self::FEMMDeforSurfaceDamping, assembler::A,
-                    geom::NodalField{FFlt}, u::NodalField{T1},
-                    impedance::T2, surfacenormal::SurfaceNormal) where {A<:SysmatAssemblerBase, T1<:Number, T2<:Number}
+    geom::NodalField{FFlt}, u::NodalField{T1},
+    impedance::T2, surfacenormal::SurfaceNormal) where {A<:SysmatAssemblerBase, T1<:Number, T2<:Number}
     fes = self.integdata.fes
     # Constants
     nfes = count(fes); # number of finite elements
@@ -73,7 +73,7 @@ function dampingABC(self::FEMMDeforSurfaceDamping, assembler::A,
     return makematrix!(assembler);
 end
 
-function dampingABC(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt},
+function dampingABC(self::FEMMDeforSurfaceDamping, geom::NodalField{FFlt},
     u::NodalField{T1}, impedance::T2, surfacenormal::SurfaceNormal) where {T1<:Number, T2<:Number}
     assembler = SysmatAssemblerSparseSymm();
     return dampingABC(self, assembler, geom, u, impedance, surfacenormal);
