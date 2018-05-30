@@ -274,10 +274,11 @@ function qtrap(ps, xs)
 end
 
 """
-    qcovariance(ps, xs, ys)
+    qcovariance(ps, xs, ys; ws = nothing)
 
 Compute the covariance for two functions given by the arrays `xs` and `ys` 
-at the values of the parameter `ps`.  
+at the values of the parameter `ps`. `ws` is the optional weights vector  
+with unit default weights.  
 
 Notes: 
 – The mean is subtracted from both functions. 
@@ -285,22 +286,26 @@ Notes:
 both functions and it allocates arrays instead of overwriting the 
 contents of the arguments.
 """
-function qcovariance(ps, xs, ys)
+function qcovariance(ps, xs, ys; ws = nothing)
     @assert length(ps) == length(xs) == length(ys)
     pl = maximum(ps) - minimum(ps)
-    xmean = qtrap(ps, xs) / pl
-    ymean = qtrap(ps, ys) / pl
+    if (ws == nothing)
+        ws = ones(FFlt, length(ps))
+    end
+    xmean = qtrap(ps, xs .* ws) / pl
+    ymean = qtrap(ps, ys .* ws) / pl
     zxs = xs .- xmean
     zys = ys .- ymean
-    return qtrap(ps, zxs .* zys)
+    return qtrap(ps, zxs .* zys .* ws)
 end
 
 """
-    qvariance(ps, xs)
+    qvariance(ps, xs; ws = nothing)
 
 Compute the variance of a function given by the array `xs` at 
-the values of the parameter `ps`.  
+the values of the parameter `ps`. `ws` is the optional weights vector  
+with unit default weights.    
 """
-qvariance(ps, xs) = qcovariance(ps, xs, xs)
+qvariance(ps, xs; ws = nothing) = qcovariance(ps, xs, xs; ws = ws)
 
 end
