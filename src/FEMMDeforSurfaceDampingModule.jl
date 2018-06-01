@@ -64,7 +64,7 @@ function dampingABC(self::FEMMDeforSurfaceDamping, assembler::A,
             for k = 1:nne
                 Nn[(k-1)*ndn+1:k*ndn] = n * Ns[j][k]
             end
-            add_nnt_ut_only!(Ce, Nn, impedance*Jac*w[j]);
+            add_nnt_ut_only!(Ce, Nn, (-1.0)*impedance*Jac*w[j]);
         end # end loop over quadrature points
         complete_lt!(Ce);
         gatherdofnums!(u, dofnums, self.integdata.fes.conn[i]); # retrieve degrees of freedom
