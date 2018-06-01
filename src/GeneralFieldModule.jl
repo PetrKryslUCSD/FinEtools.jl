@@ -34,7 +34,7 @@ function GeneralField(data::FMat{T}=[]) where {T<:Number}
     return GeneralField(values, dofnums, is_fixed, fixed_values, nfreedofs)
 end
 
-function GeneralField(data::FVec{T}=[]) where {T<:Number}
+function GeneralField(data::FVec{T}) where {T<:Number}
     return GeneralField(reshape(data, length(data), 1))
 end 
 
