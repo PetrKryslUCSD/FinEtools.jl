@@ -85,6 +85,9 @@ end
         m::FInt=-1) where {T<:Number, FL<:NodalField{T}, R, F<:Function}
 
 Integrate a nodal-field function over the discrete manifold.
+
+`afield` = field to be supply the values 
+`fh` = function taking position and the field value as arguments
 """
 function integratefieldfunction(self::FEMMAbstractBase,
     geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R;
@@ -98,9 +101,9 @@ function integratefieldfunction(self::FEMMAbstractBase,
     mdim = manifdim(fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdata);
-    a = fill(zero(FFlt), nne,ndn); # array of field DOFS-- used as a buffer
-    loc = fill(zero(FFlt), 1,sdim); # quadrature point location -- used as a buffer
-    val = fill(zero(FFlt), 1,ndn); # field value at the point -- used as a buffer
+    a = fill(zero(T), nne,ndn); # array of field DOFS-- used as a buffer
+    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
+    val = fill(zero(T), 1, ndn); # field value at the point -- used as a buffer
     J = fill(zero(FFlt), sdim,mdim); # Jacobian matrix -- used as a buffer
     if m >= 0
         # Either the manifold dimension was supplied
