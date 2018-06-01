@@ -12,7 +12,7 @@ import FinEtools.VectorCacheModule: VectorCache, updateretrieve!
 using LinearAlgebra: cross, norm
 
 """
-    SurfaceNormal{T<:Number, F<:Function}
+    SurfaceNormal{F<:Function}
 
 Exterior surface normal type.
 
@@ -28,12 +28,12 @@ getnormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
 
 The buffer `normalout` is filled with the value  of the normal vector.
 """
-struct SurfaceNormal{T<:Number, F<:Function}
-    cache::VectorCache{T, F}   # cache of the current value of the normal 
+struct SurfaceNormal{F<:Function}
+    cache::VectorCache{FFlt, F}   # cache of the current value of the normal 
 end
 
 """
-    SurfaceNormal(::Type{T}, ndimensions::FInt, computenormal!::F) where {T<:Number, F<:Function}
+    SurfaceNormal(ndimensions::FInt, computenormal!::F) where {F<:Function}
 
 Construct surface normal evaluator when the function to compute the normal vector is
 given. This function needs to have a signature of
@@ -47,18 +47,18 @@ and it needs to  fill in the buffer `normalout` with the current vector at the
 location `XYZ`, using if appropriate the information supplied in the Jacobian
 matrix `tangents`, and the label of the finite element, `fe_label`.
 """
-function SurfaceNormal(::Type{T}, ndimensions::FInt, computenormal!::F) where {T<:Number, F<:Function}
+function SurfaceNormal(ndimensions::FInt, computenormal!::F) where {F<:Function}
     # Allocate the buffer to be ready for the first call
-    return SurfaceNormal(VectorCache(computenormal!, zeros(T, ndimensions)));
+    return SurfaceNormal(VectorCache(computenormal!, zeros(FFlt, ndimensions)));
 end
 
 """
-    SurfaceNormal(::Type{T}, ndimensions::FInt) where {T<:Number}
+    SurfaceNormal(ndimensions::FInt) 
 
 Construct surface normal evaluator when the default calculation of the normal vector based 
 on the columns of the Jacobian matrix should be used. This function needs to have a signature of
 ```
-function computenormal!(normalout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
+function computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) 
     Calculate the normal and copy it into the buffer....
     return normalout # return the buffer
 end
@@ -69,9 +69,9 @@ matrix `tangents`, and the label of the finite element, `fe_label`.
 
 The normal vector has `ndimensions` entries.
 """
-function SurfaceNormal(::Type{T}, ndimensions::FInt) where {T<:Number}
-    function defaultcomputenormal!(normalout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-        fill!(normalout, 0.0 )
+function SurfaceNormal(ndimensions::FInt) 
+    function defaultcomputenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+        fill!(normalout, 0.0)
         # Produce a default normal
         if (size(tangents,1) == 3) && (size(tangents,2) == 2)# surface in three dimensions
             normalout[:] .= cross(vec(tangents[:,1]),vec(tangents[:,2]));# outer normal to the surface
@@ -85,28 +85,7 @@ function SurfaceNormal(::Type{T}, ndimensions::FInt) where {T<:Number}
         end
         return normalout
     end
-    return SurfaceNormal(VectorCache(defaultcomputenormal!, zeros(T, ndimensions)));
-end
-
-"""
-    SurfaceNormal(ndimensions::FInt)
-
-Construct surface normal evaluator when the default calculation of the normal vector based 
-on the columns of the Jacobian matrix should be used. This function needs to have a signature of
-```
-function computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    Calculate the normal and copy it into the buffer....
-    return normalout # return the buffer
-end
-```
-and it needs to  fill in the buffer `normalout` with the current vector at the
-location `XYZ`, using if appropriate the information supplied in the Jacobian
-matrix `tangents`, and the label of the finite element, `fe_label`.
-
-The normal vector has `ndimensions` entries.
-"""
-function SurfaceNormal(ndimensions::FInt)
-    return SurfaceNormal(FFlt, ndimensions);
+    return SurfaceNormal(VectorCache(defaultcomputenormal!, zeros(FFlt, ndimensions)));
 end
 
 """
