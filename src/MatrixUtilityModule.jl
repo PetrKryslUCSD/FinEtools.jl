@@ -223,16 +223,15 @@ function add_btdb_ut_only!(Ke::FFltMat, B::FFltMat, Jac_w::FFlt, D::FFltMat, DB:
 end
 
 """
-    add_nnt_ut_only!(Ke::FFltMat, N::FFltMat, Jac_w_coeff::FFlt)
+    add_nnt_ut_only!(Ke::FFltMat, Nn::FFltMat, Jac_w_coeff::FFlt)
 
 Add the product  `Nn*(Nn'*(coeff*(Jac*w(j)))`, to the elementwise matrix `Ke`.
 *Only upper triangle* is computed; the lower triangle is not touched.
 
 The matrix `Ke` is assumed to be suitably initialized.
 
-The matrix `Ke` is modified.  The matrices `B` and `D` are not modified
-inside this function. The scratch buffer `DB` is overwritten
-during each call of this function.
+The matrix `Ke` is modified.  The matrix `Nn` is not modified
+inside this function. 
 """
 function add_nnt_ut_only!(Ke::FMat{T}, N::FFltMat, Jac_w_coeff::T) where {T<:Number}
     @assert size(Ke, 1) == size(Ke, 2)
@@ -242,7 +241,7 @@ function add_nnt_ut_only!(Ke::FMat{T}, N::FFltMat, Jac_w_coeff::T) where {T<:Num
     nx::FInt = 0
     @inbounds for nx = 1:Kedim
         @inbounds for mx = 1:nx # only the upper triangle
-        Ke[mx,nx] = Ke[mx,nx] + N[mx]*(Jac_w_coeff)*N[nx]
+            Ke[mx,nx] = Ke[mx,nx] + N[mx]*(Jac_w_coeff)*N[nx]
         end
     end
     return true
