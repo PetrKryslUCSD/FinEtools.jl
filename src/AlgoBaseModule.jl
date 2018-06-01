@@ -288,12 +288,12 @@ contents of the arguments.
 """
 function qcovariance(ps, xs, ys; ws = nothing)
     @assert length(ps) == length(xs) == length(ys)
-    pl = maximum(ps) - minimum(ps)
     if (ws == nothing)
         ws = ones(FFlt, length(ps))
     end
-    xmean = qtrap(ps, xs .* ws) / pl
-    ymean = qtrap(ps, ys .* ws) / pl
+    ws = ws / qtrap(ps, ws)
+    xmean = qtrap(ps, xs .* ws)
+    ymean = qtrap(ps, ys .* ws)
     zxs = xs .- xmean
     zys = ys .- ymean
     return qtrap(ps, zxs .* zys .* ws)
