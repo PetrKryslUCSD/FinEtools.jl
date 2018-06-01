@@ -37,6 +37,10 @@ function ElementalField(data::FMat{T}=[]) where {T<:Number}
   return ElementalField(values, dofnums, is_fixed, fixed_values, nfreedofs)
 end
 
+function ElementalField(data::FVec{T}=[]) where {T<:Number}
+    return ElementalField(reshape(data, length(data), 1))
+end 
+
 """
     nelems(self::ElementalField)::FInt = nents(self)
 

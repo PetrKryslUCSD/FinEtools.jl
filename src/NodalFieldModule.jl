@@ -33,6 +33,10 @@ function NodalField(data::FMat{T}=[]) where {T<:Number}
     return NodalField(values, dofnums, is_fixed, fixed_values, nfreedofs)
 end
 
+function NodalField(data::FVec{T}=[]) where {T<:Number}
+    return NodalField(reshape(data, length(data), 1))
+end 
+
 """
     nnodes(self::NodalField)::FInt = nents(self)
 
