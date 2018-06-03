@@ -6,7 +6,7 @@ import FinEtools.MatDeforModule: MatDefor, stress6vto3x3t!, stress3vto2x2t!, str
 import LinearAlgebra: Transpose, Diagonal, mul!
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
-import LinearAlgebra: eig, eigvals, norm, cholfact, cross, dot
+import LinearAlgebra: eigen, eigvals, norm, cholesky, cross, dot
 
 const mI = Matrix(Diagonal([1.0, 1.0, 1.0, 0.5, 0.5, 0.5]))
 const m1 = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0];
@@ -129,9 +129,9 @@ function update3d!(self::MatDeforElastIso,  stress::FFltVec, output::FFltVec,  s
     elseif quantity == :princCauchy || quantity == :princcauchy
         t = zeros(FFlt,3,3)
         t = stress6vto3x3t!(t,stress);
-        ep = eig(t);
+        ep = eigen(t);
         (length(output) >= 3) || (output = zeros(3)) # make sure we can store it
-        copyto!(output,  sort(ep[1], rev=true));
+        copyto!(output,  sort(ep.values, rev=true));
     elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
         s1=stress[1]; s2=stress[2]; s3=stress[3];
         s4=stress[4]; s5=stress[5]; s6=stress[6];
@@ -217,9 +217,9 @@ function update2dstrs!(self::MatDeforElastIso, stress::FFltVec, output::FFltVec,
     elseif quantity == :princCauchy || quantity == :princcauchy
         t = zeros(FFlt,2,2)
         t = stress3vto2x2t!(t,stress);
-        ep = eig(t);
+        ep = eigen(t);
         (length(output) >= 2) || (output = zeros(2)) # make sure we can store it
-        copyto!(output,  sort(ep[1], rev=true));
+        copyto!(output,  sort(ep.values, rev=true));
     elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
         s1=stress[1]; s2=stress[2]; s3=0.0;
         s4=stress[3]; s5=0.0; s6=0.0;
@@ -314,9 +314,9 @@ function update2dstrn!(self::MatDeforElastIso,  stress::FFltVec, output::FFltVec
         t = zeros(FFlt, 3,3)
         sz = dot(self.D[3, 1:2], strain[1:2]-thstrain[1:2])-self.D[3,3]*thstrain[4];
         t = stress4vto3x3t!(t, vcat(stress[1:3], [sz]));
-        ep = eig(t);
+        ep = eigen(t);
         (length(output) >= 3) || (output = zeros(3)) # make sure we can store it
-        copyto!(output,  sort(ep[1], rev=true));
+        copyto!(output,  sort(ep.values, rev=true));
     elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
         (length(output) >= 1) || (output = zeros(1)) # make sure we can store it
         sz = dot(self.D[3, 1:2], strain[1:2]-thstrain[1:2])-self.D[3,3]*thstrain[4];
@@ -405,9 +405,9 @@ function update2daxi!(self::MatDeforElastIso,  stress::FFltVec, output::FFltVec,
     elseif quantity == :princCauchy || quantity == :princcauchy
         t = zeros(FFlt,3,3)
         t = stress4vto3x3t!(t, stress[[1,2,4,3]]);
-        ep = eig(t);
+        ep = eigen(t);
         (length(output) >= 3) || (output = zeros(3)) # make sure we can store it
-        copyto!(output,  sort(ep[1], rev=true));
+        copyto!(output,  sort(ep.values, rev=true));
     elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
         s1=stress[1]; s2=stress[2]; s3=stress[3];
         s4=stress[4]; s5=0.0; s6=0.0;
