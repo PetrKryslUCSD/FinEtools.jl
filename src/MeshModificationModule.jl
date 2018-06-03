@@ -11,7 +11,7 @@ import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.BoxModule: boundingbox, inflatebox!, intersectboxes, inbox
 using Base.Sort
 using Base.Order
-import LinearAlgebra: norm, svd, dot, eigfact
+import LinearAlgebra: norm, svd, dot, eigen
 import Random: randperm
 
 """
@@ -740,7 +740,7 @@ function nodepartitioning3(fens::FENodeSet, npartitions::Int = 2)
         end 
         longdir = fill(zero(FFlt), nspdim, length(parts))
         for p = parts
-            F = eigfact(MatrixMomentOfInertia[:, :, p])
+            F = eigen(MatrixMomentOfInertia[:, :, p])
             six = sortperm(F.values)
             longdir[:, p] = F.vectors[:, six[1]]
         end 
@@ -801,7 +801,7 @@ function nodepartitioning2(fens::FENodeSet, npartitions::Int = 2)
         end 
         longdir = fill(zero(FFlt), nspdim, length(parts))
         for p = parts
-            F = eigfact(MatrixMomentOfInertia[:, :, p])
+            F = eigen(MatrixMomentOfInertia[:, :, p])
             six = sortperm(F.values)
             longdir[:, p] = F.vectors[:, six[1]]
         end 
