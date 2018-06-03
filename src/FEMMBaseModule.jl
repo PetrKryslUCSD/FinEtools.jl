@@ -86,11 +86,12 @@ end
 
 Integrate a nodal-field function over the discrete manifold.
 
-`afield` = field to be supply the values 
-`fh` = function taking position and the field value as arguments
+`afield` = NODAL field to be supply the values 
+`fh` = function taking position and the field value as arguments, returning value of type `R`.
+
+Returns value of type `R`, which is initialized by `initial`.    
 """
-function integratefieldfunction(self::FEMMAbstractBase,
-    geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R;
+function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R;
     m::FInt=-1) where {T<:Number, FL<:NodalField{T}, R, F<:Function}
     fes = self.integdata.fes  # finite elements
     # Constants
@@ -129,8 +130,14 @@ end
         m::FInt=-1) where {T<:Number, FL<:ElementalField{T}, R, F<:Function}
 
 Integrate a elemental-field function over the discrete manifold.
-"""
-function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R; m::FInt=-1) where {T<:Number, FL<:ElementalField{T}, R, F<:Function}
+
+`afield` = ELEMENTAL field to be supply the values 
+`fh` = function taking position and the field value as arguments, returning value of type `R`.
+
+Returns value of type `R`, which is initialized by `initial`. 
+""" 
+function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R; 
+    m::FInt=-1) where {T<:Number, FL<:ElementalField{T}, R, F<:Function}
     fes = self.integdata.fes  # finite elements
     # Constants
     nfes = count(fes); # number of finite elements in the set
