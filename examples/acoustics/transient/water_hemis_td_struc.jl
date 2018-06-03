@@ -203,7 +203,7 @@ fabcp(dpdn, xyz, J, label) = abcp(dpdn, xyz, J, label, t)
 fi  =  ForceIntensity(FFlt, 1, fabcp);
 La0 = distribloads(abcfemm, geom, P1, fi, 2);
 
-A = lufact((2.0/dt)*S + D + (dt/2.)*Ctild);
+A = lu((2.0/dt)*S + D + (dt/2.)*Ctild);
 
 step = 1;
 while step <= nsteps

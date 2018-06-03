@@ -98,7 +98,7 @@ function sphere_dipole_1()
     dipfemm  =  FEMMAcoustSurf(IntegData(subset(bfes, linner), GaussRule(2, 2)), material)
     F  = distribloads(dipfemm, geom, P, fi, 2);
     
-    K = lufact((1.0+0.0im)*(-omega^2*S + omega*1.0im*D + C)) # We fake a complex matrix here
+    K = lu((1.0+0.0im)*(-omega^2*S + omega*1.0im*D + C)) # We fake a complex matrix here
     p = K\F  #
     
     scattersysvec!(P, p[:])
@@ -199,7 +199,7 @@ function sphere_inc_example()
     #F  =  F - distribloads(pfemm, nothing, geom, P, fi, 2);
     F  =  F + distribloads(abcfemm, geom, P, fi, 2);
     
-    K = lufact((1.0+0.0im)*(-omega^2*S + C)) # We fake a complex matrix here
+    K = lu((1.0+0.0im)*(-omega^2*S + C)) # We fake a complex matrix here
     p = K\F  #+omega*1.0im*D
     
     scattersysvec!(P,p[:])

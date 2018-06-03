@@ -97,7 +97,7 @@ function plate_w_hole_H20_stress()
         femm = associategeometry!(femm, geom)
         
         K = stiffness(femm, geom, u)
-        K = cholfact(K)
+        K = cholesky(K)
         U = K\(F2)
         scattersysvec!(u, U[:])
         
@@ -237,7 +237,7 @@ function plate_w_hole_MSH8_convergence()
             femm = associategeometry!(femm, geom)
             
             K = stiffness(femm, geom, u)
-            K = cholfact(K)
+            K = cholesky(K)
             U = K\(F2)
             scattersysvec!(u, U[:])
             
@@ -391,7 +391,7 @@ function plate_w_hole_MSH8_PE_convergence()
             femm = associategeometry!(femm, geom)
             
             K = stiffness(femm, geom, u)
-            K = cholfact(K)
+            K = cholesky(K)
             U = K\(F2)
             scattersysvec!(u, U[:])
             
@@ -545,7 +545,7 @@ function plate_w_hole_MST10_convergence()
             femm = associategeometry!(femm, geom)
             
             K = stiffness(femm, geom, u)
-            K = cholfact(K)
+            K = cholesky(K)
             U = K\(F2)
             scattersysvec!(u, U[:])
             
@@ -697,7 +697,7 @@ function plate_w_hole_MST10_PE_convergence()
             femm = associategeometry!(femm, geom)
             
             K = stiffness(femm, geom, u)
-            K = cholfact(K)
+            K = cholesky(K)
             U = K\(F2)
             scattersysvec!(u, U[:])
             
@@ -832,7 +832,7 @@ function plate_w_hole_MST10_stress()
         femm = associategeometry!(femm, geom)
         
         K = stiffness(femm, geom, u)
-        K = cholfact(K)
+        K = cholesky(K)
         U = K\(F2)
         scattersysvec!(u, U[:])
         
@@ -977,7 +977,7 @@ function plate_w_hole_RECT_H20_convergence()
             femm = associategeometry!(femm, geom)
             
             K = stiffness(femm, geom, u)
-            K = cholfact(K)
+            K = cholesky(K)
             U = K\(Fx + Fy)
             scattersysvec!(u, U[:])
             println("oof load = $(norm(Fx + Fy, 2))")
@@ -1134,7 +1134,7 @@ function plate_w_hole_RECT_MSH8_convergence()
             femm = associategeometry!(femm, geom)
             
             K = stiffness(femm, geom, u)
-            K = cholfact(K)
+            K = cholesky(K)
             U = K\(Fx + Fy)
             scattersysvec!(u, U[:])
             
@@ -1290,7 +1290,7 @@ function plate_w_hole_T10_PE_convergence()
             femm = associategeometry!(femm, geom)
             
             K = stiffness(femm, geom, u)
-            K = cholfact(K)
+            K = cholesky(K)
             U = K\(F2)
             scattersysvec!(u, U[:])
             
@@ -1423,7 +1423,7 @@ function plate_w_hole_T10_stress()
         femm = associategeometry!(femm, geom)
         
         K = stiffness(femm, geom, u)
-        K = cholfact(K)
+        K = cholesky(K)
         U = K\(F2)
         scattersysvec!(u, U[:])
         

@@ -1413,7 +1413,7 @@ function LE10NAFEMS_Abaqus_fine_MST10()
     femm = associategeometry!(femm, geom)
     
     K = stiffness(femm, geom, u)
-    K = cholfact(K)
+    K = cholesky(K)
     U = K\(F2)
     scattersysvec!(u, U[:])
     
@@ -1516,7 +1516,7 @@ function LE10NAFEMS_Abaqus_fine_MST10()
     femm = associategeometry!(femm, geom)
     
     K = stiffness(femm, geom, u)
-    K = cholfact(K)
+    K = cholesky(K)
     U = K\(F2)
     scattersysvec!(u, U[:])
     
@@ -1909,7 +1909,7 @@ function LE10NAFEMS_Abaqus_MST10()
     femm = associategeometry!(femm, geom)
     
     K = stiffness(femm, geom, u)
-    K = cholfact(K)
+    K = cholesky(K)
     U = K\(F2)
     scattersysvec!(u, U[:])
     
@@ -2012,7 +2012,7 @@ function LE10NAFEMS_Abaqus_MST10()
     femm = associategeometry!(femm, geom)
     
     K = stiffness(femm, geom, u)
-    K = cholfact(K)
+    K = cholesky(K)
     U = K\(F2)
     scattersysvec!(u, U[:])
     
@@ -2128,7 +2128,7 @@ function LE10NAFEMS_MSH8()
     femm = associategeometry!(femm, geom)
     
     K = stiffness(femm, geom, u)
-    K = cholfact(K)
+    K = cholesky(K)
     U = K\(F2)
     scattersysvec!(u, U[:])
     
@@ -2240,7 +2240,7 @@ function LE10NAFEMS_MSH8_alt_export()
     femm = associategeometry!(femm, geom)
     
     K = stiffness(femm, geom, u)
-    K = cholfact(K)
+    K = cholesky(K)
     U = K\(F2)
     scattersysvec!(u, U[:])
     
@@ -2381,7 +2381,7 @@ function LE10NAFEMS_MSH8_export()
     femm = associategeometry!(femm, geom)
     
     K = stiffness(femm, geom, u)
-    K = cholfact(K)
+    K = cholesky(K)
     U = K\(F2)
     scattersysvec!(u, U[:])
     
@@ -2522,7 +2522,7 @@ function LE10NAFEMS_MST10()
     femm = associategeometry!(femm, geom)
     
     K = stiffness(femm, geom, u)
-    K = cholfact(K)
+    K = cholesky(K)
     U = K\(F2)
     scattersysvec!(u, U[:])
     
@@ -2681,7 +2681,7 @@ function LE10NAFEMS_MST10_stresses_nodal()
             femm = associategeometry!(femm, geom)
             
             K = stiffness(femm, geom, u)
-            K = cholfact(K)
+            K = cholesky(K)
             U = K\(F2)
             scattersysvec!(u, U[:])
             
@@ -2792,7 +2792,7 @@ function LE10NAFEMS_MSH8_stresses_nodal()
             femm = associategeometry!(femm, geom)
             
             K = stiffness(femm, geom, u)
-            K = cholfact(K)
+            K = cholesky(K)
             U = K\(F2)
             scattersysvec!(u, U[:])
             

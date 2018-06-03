@@ -40,7 +40,7 @@ function test()
     H = surfacetransfer(cfemm, geom, Temp);
     show(H)
     # F3 = surfacetransferloads(femm, geom, temp, amb);
-    Factor = cholfact(K+H)
+    Factor = cholesky(K+H)
     U = Factor\(F1+F2)
     scattersysvec!(Temp, U[:])
     display(Temp)

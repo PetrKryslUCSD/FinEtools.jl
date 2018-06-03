@@ -46,7 +46,7 @@ function heat_juafem_example()
     @time F1 = distribloads(femm, geom, Temp, fi, 3);
     
     println("Factorization")
-    @time K = cholfact(K)
+    @time K = cholesky(K)
     println("Solution of the factorized system")
     @time U =  K\(F1)
     scattersysvec!(Temp, U[:])

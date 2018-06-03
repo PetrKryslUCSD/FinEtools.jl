@@ -59,7 +59,7 @@ function Planar_truss()
     lfemm = FEMMBase(IntegData(FESetP1(reshape([6], 1,1)), PointRule()))
     F = F + distribloads(lfemm,  geom,  u,  fi,  3);
     
-    K = cholfact(K)
+    K = cholesky(K)
     U=  K\F
     scattersysvec!(u, U[:])
     

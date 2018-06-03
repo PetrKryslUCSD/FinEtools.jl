@@ -95,7 +95,7 @@ function sphere_dipole_transient()
     dipfemm  =  FEMMAcoustSurf(IntegData(subset(bfes, linner), GaussRule(2, 2)), material)
     # F  = distribloads(dipfemm, geom, P, fi, 2);
     #
-    # K = lufact((1.0+0.0im)*(-omega^2*S + omega*1.0im*D + C)) # We fake a complex matrix here
+    # K = lu((1.0+0.0im)*(-omega^2*S + omega*1.0im*D + C)) # We fake a complex matrix here
     # p = K\F  #
     #
     # scattersysvec!(P, p[:])

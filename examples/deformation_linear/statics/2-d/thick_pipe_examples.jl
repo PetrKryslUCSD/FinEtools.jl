@@ -134,7 +134,7 @@ function thick_pipe_axi()
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), axisymmetric), material)
     
     K = stiffness(femm, geom, u)
-    #K=cholfact(K)
+    #K=cholesky(K)
     U =  K\(F2)
     scattersysvec!(u,U[:])
     
@@ -423,7 +423,7 @@ function thick_pipe_ps()
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2)), material)
     
     K =stiffness(femm, geom, u)
-    #K=cholfact(K)
+    #K=cholesky(K)
     U=  K\(F2)
     scattersysvec!(u, U[:])
     
@@ -658,7 +658,7 @@ function thick_pipe_ps_T6()
     femm = FEMMDeforLinear(MR, IntegData(fes, TriRule(3)), material)
     
     K =stiffness(femm, geom, u)
-    #K=cholfact(K)
+    #K=cholesky(K)
     U=  K\(F2)
     scattersysvec!(u, U[:])
     

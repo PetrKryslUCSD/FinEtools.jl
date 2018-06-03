@@ -719,9 +719,9 @@ function fiber_reinf_cant_yn_strong_no_algo()
     println("F =  distribloads(Tracfemm, geom, u, fi, 2);")
     @time F =  distribloads(Tracfemm, geom, u, fi, 2);
     
-    println("K = cholfact(K)")
+    println("K = cholesky(K)")
     K = (K + K')/2;
-    @time K = cholfact(Symmetric(K))
+    @time K = cholesky(Symmetric(K))
     println("U = K\\F")
     @time U = K\F
     # println("U = cg(K, F; tol=1e-3, maxiter=2000)")

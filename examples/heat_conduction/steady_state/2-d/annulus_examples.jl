@@ -53,7 +53,7 @@ function annulus_Q4_example()
     @time F3 = nzebcloadsconductivity(femm,  geom,  Temp);
     
     
-    @time K = cholfact(K)
+    @time K = cholesky(K)
     @time U = K\(F1+F2+F3)
     @time scattersysvec!(Temp, U[:])
     
@@ -186,7 +186,7 @@ function annulus_Q8_example()
     @time F3 = nzebcloadsconductivity(femm,  geom,  Temp);
     
     
-    @time K = cholfact(K)
+    @time K = cholesky(K)
     @time U = K\(F1+F2+F3)
     @time scattersysvec!(Temp, U[:])
     

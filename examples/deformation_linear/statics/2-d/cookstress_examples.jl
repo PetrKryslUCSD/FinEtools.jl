@@ -3,7 +3,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 if VERSION >= v"0.7-"
-    import LinearAlgebra: cholfact
+    import LinearAlgebra: cholesky
 end
 
 function cookstress()
@@ -49,7 +49,7 @@ function cookstress()
     femm = FEMMDeforLinear(MR, IntegData(fes,  TriRule(1)),  material)
     
     K = stiffness(femm,  geom,  u)
-    K = cholfact(K)
+    K = cholesky(K)
     U=  K\(F2)
     scattersysvec!(u, U[:])
     

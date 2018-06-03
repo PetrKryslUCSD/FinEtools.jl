@@ -299,7 +299,7 @@ function LE11NAFEMS_Q8_export_stress()
     
     K  = stiffness(femm, geom, u)
     F  =  thermalstrainloads(femm, geom, u, dT)
-    #K = cholfact(K)
+    #K = cholesky(K)
     U =   K\F
     scattersysvec!(u, U[:])
     
@@ -446,7 +446,7 @@ function LE11NAFEMS_Q8_stress()
     
     K  = stiffness(femm, geom, u)
     F  =  thermalstrainloads(femm, geom, u, dT)
-    #K = cholfact(K)
+    #K = cholesky(K)
     U =   K\F
     scattersysvec!(u, U[:])
     

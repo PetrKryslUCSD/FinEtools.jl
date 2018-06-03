@@ -50,7 +50,7 @@ function LE1NAFEMS()
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2)), material)
     
     K =stiffness(femm, geom, u)
-    K=cholfact(K)
+    K=cholesky(K)
     U=  K\(F2)
     scattersysvec!(u,U[:])
     
@@ -136,7 +136,7 @@ function LE1NAFEMS_Q4_convergence()
             femm = associategeometry!(femm, geom)
             
             K = stiffness(femm, geom, u)
-            K = cholfact(K)
+            K = cholesky(K)
             U = K\(F2)
             scattersysvec!(u, U[:])
             
@@ -229,7 +229,7 @@ function LE1NAFEMS_Q8_stress()
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 3)), material)
     
     K =stiffness(femm, geom, u)
-    K=cholfact(K)
+    K=cholesky(K)
     U=  K\(F2)
     scattersysvec!(u,U[:])
     

@@ -36,7 +36,7 @@ function T129b_l2_uq()
     fi = ForceIntensity(FFlt[Q]);
     F1 = distribloads(femm, geom, Temp, fi, 3);
     
-    K = cholfact(K)
+    K = cholesky(K)
     U = K\(F1+F2)
     scattersysvec!(Temp,U[:])
     

@@ -57,7 +57,7 @@ function Poisson_FE_example()
     @time F1 = distribloads(FEMMBase(IntegData(fes, TriRule(1))), geom, Temp, fi, 3);
     
     println("Factorization")
-    @time K = cholfact(K)
+    @time K = cholesky(K)
     println("Solution of the factorized system")
     @time U = K\(F1+F2)
     scattersysvec!(Temp,U[:])
@@ -192,7 +192,7 @@ function Poisson_FE_example_csys_1()
     @time F1 = distribloads(femm, geom, Temp, fi, 3);
     
     println("Factorization")
-    @time K = cholfact(K)
+    @time K = cholesky(K)
     println("Solution of the factorized system")
     @time U = K\(F1+F2)
     scattersysvec!(Temp,U[:])
@@ -270,7 +270,7 @@ function Poisson_FE_Q4_example()
     @time F1 = distribloads(femm, geom, Temp, fi, 3);
     
     println("Factorization")
-    @time K = cholfact(K)
+    @time K = cholesky(K)
     println("Solution of the factorized system")
     @time U=  K\(F1+F2)
     scattersysvec!(Temp, U[:])
