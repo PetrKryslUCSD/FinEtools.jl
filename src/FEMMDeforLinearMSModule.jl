@@ -583,8 +583,8 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt
             sstoredout[j, :] .= sout # store  the output for this quadrature point
         end # Loop over quadrature points
         #  Solve for the least-square fit parameters
-        Q, R = qr(A)
-        p = R \ (transpose(Q) * sstoredout)
+        fact = qr(A); 
+        p = UpperTriangular(fact.R)\(fact.Q'*sstoredout) # R \ (transpose(Q) * sstoredout)
         for nod = 1:size(xe, 1)
             #  Predict the value  of the output quantity at the node
             xdel = vec(@view xe[nod, :]) - vec(loc)
