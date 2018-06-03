@@ -3,7 +3,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule: linearstatics, exportdeformation,
 exportstress, exportstresselementwise
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
     # NAFEMS LE11 benchmark with Q8 elements.
     # # This is a test recommended by the National Agency for Finite Element
@@ -387,7 +387,7 @@ module cookstress_1
 using Compat.Test
 using FinEtools
 using FinEtools.MeshExportModule
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
   # println("Cook membrane problem,  plane stress."        )
   t0 = time()
@@ -431,7 +431,7 @@ function test()
   femm = FEMMDeforLinear(MR, IntegData(fes,  TriRule(1)),  material)
 
   K = stiffness(femm,  geom,  u)
-  K = cholfact(K)
+  K = cholesky(K)
   U=  K\(F2)
   scattersysvec!(u, U[:])
 
@@ -589,7 +589,7 @@ function test()
   femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), axisymmetric), material)
 
   K = stiffness(femm, geom, u)
-  #K=cholfact(K)
+  #K=cholesky(K)
   U =  K\(F2)
   scattersysvec!(u,U[:])
 
@@ -1172,7 +1172,7 @@ function test()
 
   K  = stiffness(femm, geom, u)
   F  =  thermalstrainloads(femm, geom, u, dT)
-  #K = cholfact(K)
+  #K = cholesky(K)
   U =   K\F
   scattersysvec!(u, U[:])
 
@@ -1423,7 +1423,7 @@ mmmultimaterial_beam_xz.test()
 module mmmmunitmccubemm
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
   # println("""
@@ -1483,7 +1483,7 @@ mmmmunitmccubemm.test()
 module mmpipemmPSmmm
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross, dot
+import LinearAlgebra: norm, cholesky, cross, dot
 mutable struct MyIData
     c::FInt
     r::FFltVec
@@ -1645,7 +1645,7 @@ material = MatDeforElastIso(MR, E, nu)
 femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2)), material)
 
 K =stiffness(femm, geom, u)
-#K=cholfact(K)
+#K=cholesky(K)
 U=  K\(F2)
 scattersysvec!(u, U[:])
 
@@ -1730,7 +1730,7 @@ mmpipemmPSmmm.test()
 module mmOrthotropicmm
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
   # Orthotropic balloon inflation, axially symmetric model
@@ -1832,7 +1832,7 @@ module mmCookmm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
   # println("Cook plane stress, with quadratic triangles.")
   E = 1.0;
@@ -1912,7 +1912,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
   # println("Cook plane stress, with quadratic triangles. With orthotropic  material model.")
   E = 1.0;
@@ -1995,7 +1995,7 @@ module mmCanttronglymm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
   # println("""
   # Cantilever example.  Strongly orthotropic material. Orientation "y".
@@ -2244,7 +2244,7 @@ mmmNAFEMS_R0031_3m.test()
 module mmtwistedmsh8mmm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 using Compat.Test
 function test()
 
@@ -2367,7 +2367,7 @@ mmtwistedmsh8mmm.test()
 module mmunitmmccubemmvibrationmmms
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
   # println("""
@@ -2426,7 +2426,7 @@ module mmtwistedbeamisomm
 using FinEtools
 using Compat.Test
 using FinEtools.AlgoDeforLinearModule
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
   E = 0.29e8;
   nu = 0.22;
@@ -2559,7 +2559,7 @@ mmtwistedbeamisomm.test()
 module mmtwistedbeamoorthomm
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 using FinEtools.AlgoDeforLinearModule
 function test()
   E = 0.29e8;
@@ -2695,7 +2695,7 @@ using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
 using  IterativeEigensolvers
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
 
@@ -2787,7 +2787,7 @@ muunit_cube_modes_exportmmm.test()
 module mmpipemmPSmorthom
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross, dot
+import LinearAlgebra: norm, cholesky, cross, dot
 
 mutable struct MyIData
     c::FInt
@@ -2950,7 +2950,7 @@ material = MatDeforElastOrtho(MR, E, nu)
 femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2)), material)
 
 K =stiffness(femm, geom, u)
-#K=cholfact(K)
+#K=cholesky(K)
 U=  K\(F2)
 scattersysvec!(u, U[:])
 
@@ -3169,7 +3169,7 @@ function test()
   femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), axisymmetric), material)
 
   K = stiffness(femm, geom, u)
-  #K=cholfact(K)
+  #K=cholesky(K)
   U =  K\(F2)
   scattersysvec!(u,U[:])
 
@@ -3231,7 +3231,7 @@ scratch1_06092017_ortho.test()
 module mmLE11Q8mm
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
   # NAFEMS LE11 benchmark with Q8 elements.
@@ -3310,7 +3310,7 @@ function test()
 
   K  = stiffness(femm, geom, u)
   F  =  thermalstrainloads(femm, geom, u, dT)
-  #K = cholfact(K)
+  #K = cholesky(K)
   U =   K\F
   scattersysvec!(u, U[:])
 
@@ -3349,7 +3349,7 @@ mmLE11Q8mm.test()
 module mmLE11Q8mmortho
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
   # NAFEMS LE11 benchmark with Q8 elements.
@@ -3429,7 +3429,7 @@ function test()
 
   K  = stiffness(femm, geom, u)
   F  =  thermalstrainloads(femm, geom, u, dT)
-  #K = cholfact(K)
+  #K = cholesky(K)
   U =   K\F
   scattersysvec!(u, U[:])
 
@@ -3468,7 +3468,7 @@ mmLE11Q8mmortho.test()
 module mLE11Q8aximmm
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
   # NAFEMS LE11 benchmark with Q8 elements.
   # # This is a test recommended by the National Agency for Finite Element
@@ -3546,7 +3546,7 @@ function test()
 
   K  = stiffness(femm, geom, u)
   F  =  thermalstrainloads(femm, geom, u, dT)
-  #K = cholfact(K)
+  #K = cholesky(K)
   U =   K\F
   scattersysvec!(u, U[:])
 
@@ -3637,7 +3637,7 @@ mLE11Q8aximmm.test()
 module mLE11Q8aximorthom
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
   # NAFEMS LE11 benchmark with Q8 elements.
   # # This is a test recommended by the National Agency for Finite Element
@@ -3715,7 +3715,7 @@ function test()
 
   K  = stiffness(femm, geom, u)
   F  =  thermalstrainloads(femm, geom, u, dT)
-  #K = cholfact(K)
+  #K = cholesky(K)
   U =   K\F
   scattersysvec!(u, U[:])
 
@@ -3807,7 +3807,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
 
@@ -3974,7 +3974,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
 
@@ -4142,7 +4142,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
 
@@ -4310,7 +4310,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
 
@@ -4477,7 +4477,7 @@ using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
 
@@ -4846,7 +4846,7 @@ function test()
     femm = associategeometry!(femm, geom)
 
     K = stiffness(femm, geom, u)
-    K = cholfact(K)
+    K = cholesky(K)
     U = K\(F2)
     scattersysvec!(u, U[:])
 
@@ -4956,7 +4956,7 @@ try rm(AE.filename) catch end
     femm = associategeometry!(femm, geom)
 
     K = stiffness(femm, geom, u)
-    K = cholfact(K)
+    K = cholesky(K)
     U = K\(F2)
     scattersysvec!(u, U[:])
 
@@ -4997,7 +4997,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
 using   IterativeEigensolvers
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
     # println("""
     # Vibration modes of truncated cylindrical shell.
@@ -5096,7 +5096,7 @@ mmtruncatedmfreem1.test()
 module mmFV32mm1
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
     # println("""
     # FV32: Cantilevered tapered membrane
@@ -5174,7 +5174,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
 using   IterativeEigensolvers
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
     # println("""
     # Vibration modes of truncated cylindrical shell.
@@ -5274,7 +5274,7 @@ module mfiber_reinf_cant_yn_strong_Abaqus
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-import LinearAlgebra: Symmetric, cholfact
+import LinearAlgebra: Symmetric, cholesky
 function test()
 
 
@@ -5380,7 +5380,7 @@ F =  distribloads(Tracfemm, geom, u, fi, 2);
 
 # println("Factorization")
 K = (K + K')/2;
-K = cholfact(Symmetric(K))
+K = cholesky(Symmetric(K))
 # println("U = K\\F")
 U = K\F
 # # println("U = cg(K, F; tol=1e-3, maxiter=2000)")
@@ -5436,7 +5436,7 @@ mfiber_reinf_cant_yn_strong_Abaqus.test()
 module mmorthoballoonpenaltymm
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
     # Orthotropic balloon inflation, axially symmetric model
@@ -5619,7 +5619,7 @@ using FinEtools
 using FinEtools.FENodeSetModule
 using FinEtools.MeshExportModule
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
     Area = 2.0*phun("in^2")
     E = 30e6*phun("psi") # Young's modulus
@@ -5671,7 +5671,7 @@ function test()
     -2.298535909385076]
     @test norm(F2/(phun("lbf")) - ref_F) < 1.0e-2
 
-   # K = cholfact(K)
+   # K = cholesky(K)
    # U=  K\(F2)
    # scattersysvec!(u, U[:])
 
@@ -5690,7 +5690,7 @@ using FinEtools
 using FinEtools.FENodeSetModule
 using FinEtools.MeshExportModule
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
     Area = 1.5
     E = 1.0e7 # Young's modulus
@@ -5737,7 +5737,7 @@ function test()
     lfemm = FEMMBase(IntegData(FESetP1(reshape([6], 1,1)), PointRule()))
     F = F + distribloads(lfemm,  geom,  u,  fi,  3);
 
-    K = cholfact(K)
+    K = cholesky(K)
     U=  K\F
     scattersysvec!(u, U[:])
     @test norm(u.values  - [ 0.0         0.0
@@ -5769,7 +5769,7 @@ module mmmLE10expiAbaqus2mmmm
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
 
@@ -5858,7 +5858,7 @@ function test()
     femm = associategeometry!(femm, geom)
 
     K = stiffness(femm, geom, u)
-    K = cholfact(K)
+    K = cholesky(K)
     U = K\(F2)
     scattersysvec!(u, U[:])
 
@@ -5926,7 +5926,7 @@ using FinEtools.MeshExportModule
 # using DataFrames
 # using CSV
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
     E = 210000*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6034,7 +6034,7 @@ function test()
             femm = associategeometry!(femm, geom)
 
             K = stiffness(femm, geom, u)
-            K = cholfact(K)
+            K = cholesky(K)
             U = K\(Fx + Fy)
             scattersysvec!(u, U[:])
 
@@ -6089,7 +6089,7 @@ using FinEtools.MeshImportModule: import_ABAQUS
 # using DataFrames
 # using CSV
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
     E = 210000*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6211,7 +6211,7 @@ function test()
             femm = associategeometry!(femm, geom)
 
             K = stiffness(femm, geom, u)
-            K = cholfact(K)
+            K = cholesky(K)
             U = K\(Fx + Fy)
             scattersysvec!(u, U[:])
             # println("oof load = $(norm(Fx + Fy, 2))")
@@ -6277,7 +6277,7 @@ module mplate_w_hole_MST10m
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
     E = 2.4*phun("MEGA*PA");# 210e3 MPa
     nu = 0.49995;
@@ -6392,7 +6392,7 @@ function test()
             femm = associategeometry!(femm, geom)
 
             K = stiffness(femm, geom, u)
-            K = cholfact(K)
+            K = cholesky(K)
             U = K\(F2)
             scattersysvec!(u, U[:])
 
@@ -6436,7 +6436,7 @@ mplate_w_hole_MST10m.test()
 module mmLE1NAFEMSsstress
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
     E = 210e3*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6494,7 +6494,7 @@ function test()
     femm = associategeometry!(femm, geom)
 
     K = stiffness(femm, geom, u)
-    K = cholfact(K)
+    K = cholesky(K)
     U = K\(F2)
     scattersysvec!(u, U[:])
 
@@ -6617,7 +6617,7 @@ module mmLE11malgo
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
 
@@ -6735,7 +6735,7 @@ module mmtwistedmsh8ort
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
   # println("""
@@ -6865,7 +6865,7 @@ module mmtwistedmsh9ort
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-import LinearAlgebra: norm, cholfact, cross
+import LinearAlgebra: norm, cholesky, cross
 function test()
 
     # println("""

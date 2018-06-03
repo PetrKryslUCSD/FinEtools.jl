@@ -51,7 +51,7 @@ Import tetrahedral (4- and 10-node) NASTRAN mesh (.nas file).
     3. The file needs to be free-form (data separated by commas).
 
 # Return
-Data dictionary, with `fens`, `fesets`
+Data dictionary, with `fens`, `fesets`.
 """
 function import_NASTRAN(filename; allocationchunk=chunk)
     lines = readlines(filename)

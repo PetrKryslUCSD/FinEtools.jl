@@ -346,7 +346,7 @@ mstraight_duct_H8_1.test()
 module mmsphere_dipole_1
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, lufact, cross
+import LinearAlgebra: norm, lu, cross
 function test()
 
 # println("The interior sphere accelerates in the positive x-direction, generating
@@ -443,7 +443,8 @@ fi  =  ForceIntensity(FCplxFlt, 1, dipole);
 dipfemm  =  FEMMAcoustSurf(IntegData(subset(bfes, linner), GaussRule(2, 2)), material)
 F  = distribloads(dipfemm, geom, P, fi, 2);
 
-K = lufact((1.0+0.0im)*(-omega^2*S + omega*1.0im*D + C)) # We fake a complex matrix here
+A = (1.0+0.0im)*(-omega^2*S + omega*1.0im*D + C)
+K = lu(A) # We fake a complex matrix here
 p = K\F  #
 
 scattersysvec!(P, p[:])
@@ -743,7 +744,7 @@ module mmhhemispheremm
 using FinEtools
 using Compat.Test
 using SparseArrays
-import LinearAlgebra: norm, dot, lufact, diff, cross
+import LinearAlgebra: norm, dot, lu, diff, cross
 function test()
 
   # println("Rigid movable hemisphere in  water. Time-dependent simulation.
@@ -946,7 +947,7 @@ function test()
   fi  =  ForceIntensity(FFlt, 1, fabcp);
   La0 = distribloads(abcfemm, geom, P1, fi, 2);
 
-  A = lufact((2.0/dt)*S + D + (dt/2.)*Ctild);
+  A = lu((2.0/dt)*S + D + (dt/2.)*Ctild);
 
   step = 1;
   while step <= nsteps

@@ -1538,7 +1538,7 @@ module mconjugategradient1
 using FinEtools
 using Compat.Test
 using SparseArrays
-import LinearAlgebra: norm, dot, lufact, diff, cross
+import LinearAlgebra: norm, dot, lu, diff, cross
 import FinEtools.AlgoBaseModule: conjugategradient
 
 function test()

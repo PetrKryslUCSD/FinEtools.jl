@@ -14,7 +14,7 @@ import FinEtools.FEMMAcoustModule: acousticmass, acousticstiffness, nzebcloadsac
 import FinEtools.FEMMAcoustSurfModule: acousticABC
 import FinEtools.ForceIntensityModule: ForceIntensity
 import SparseArrays: spzeros
-import LinearAlgebra: norm, lufact, cross
+import LinearAlgebra: norm, lu, cross
 
 """
     steadystate(modeldata::FDataDict)
@@ -165,7 +165,7 @@ function steadystate(modeldata::FDataDict)
     end
 
     # Solve for the pressures
-    K = lufact((-omega^2*S +omega*1.0im*D + C));
+    K = lu((-omega^2*S +omega*1.0im*D + C));
     vP = K\F;
     scattersysvec!(P, vP[:])
 

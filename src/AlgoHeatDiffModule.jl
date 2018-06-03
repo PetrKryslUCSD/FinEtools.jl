@@ -15,7 +15,7 @@ import FinEtools.FEMMHeatDiffSurfModule: surfacetransfer, surfacetransferloads, 
 import FinEtools.ForceIntensityModule: ForceIntensity
 import FinEtools.MeshSelectionModule: connectednodes
 import SparseArrays: spzeros
-import LinearAlgebra: cholfact
+import LinearAlgebra: cholesky
 
 """
     steadystate(modeldata::FDataDict)
@@ -194,7 +194,7 @@ function steadystate(modeldata::FDataDict)
     end
 
     # Solve for the temperatures
-    K = cholfact(K);
+    K = cholesky(K);
     U = K\F;
     scattersysvec!(temp, U[:])
 

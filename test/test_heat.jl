@@ -1,7 +1,7 @@
 module mmmmPoiss_06122017
 using FinEtools
 using Compat.Test
-import LinearAlgebra: cholfact
+import LinearAlgebra: cholesky
 function test()
 
   # println("""
@@ -59,7 +59,7 @@ function test()
   F1 = distribloads(femm, geom, Temp, fi, 3);
 
   # println("Factorization")
-  K = cholfact(K)
+  K = cholesky(K)
   # println("Solution of the factorized system")
   U = K\(F1+F2)
   scattersysvec!(Temp,U[:])
@@ -165,7 +165,7 @@ mmmmannulus_Q4_example_algo.test()
 module mmmmmPoisson_FE_Q4_1
 using FinEtools
 using Compat.Test
-import LinearAlgebra: cholfact
+import LinearAlgebra: cholesky
 function test()
   # println("""
   #
@@ -221,7 +221,7 @@ function test()
   F1 = distribloads(femm, geom, Temp, fi, 3);
 
   # println("Factorization")
-  K = cholfact(K)
+  K = cholesky(K)
   # println("Solution of the factorized system")
   U=  K\(F1+F2)
   scattersysvec!(Temp, U[:])
@@ -307,7 +307,7 @@ function test()
     E = integratefieldfunction(femm, geom, Temp, errfh, 0.0, m=3)
     # println("Error=$E")
 
-    @test E<00.0025
+    @test E < 0.0025
 
 end
 end
@@ -317,7 +317,7 @@ mmmmmPoisson_FE_example_algo.test()
 module mmmmmPoissonRm2
 using FinEtools
 using Compat.Test
-import LinearAlgebra: cholfact
+import LinearAlgebra: cholesky
 function test()
   # println("""
   # Heat conduction example described by Amuthan A. Ramabathiran
@@ -376,7 +376,7 @@ function test()
   F1 = distribloads(femm, geom, Temp, fi, 3);
 
   # println("Factorization")
-  K = cholfact(K)
+  K = cholesky(K)
   # println("Solution of the factorized system")
   U = K\(F1+F2)
   scattersysvec!(Temp,U[:])
@@ -1296,7 +1296,7 @@ function test()
   F1 = distribloads(femm, geom, Temp, fi, 3);
 
   # println("Factorization")
-  # K = cholfact(K)
+  # K = cholesky(K)
   # println("Solution of the factorized system")
   U = K\(F1+F2)
   scattersysvec!(Temp,U[:])
@@ -1325,7 +1325,7 @@ mmmmPoiss_07082017.test()
 module mmmmmAnnularQ8mmmmm
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, cholfact
+import LinearAlgebra: norm, cholesky
 function test()
 
   # println("""
@@ -1380,7 +1380,7 @@ function test()
   F3 = nzebcloadsconductivity(femm,  geom,  Temp);
 
 
-  K = cholfact(K)
+  K = cholesky(K)
   U = K\(F1+F2+F3)
   scattersysvec!(Temp, U[:])
 
@@ -1402,7 +1402,7 @@ mmmmmAnnularQ8mmmmm.test()
 module mmpnpConcreteColumnsymb_conv
 using FinEtools
 using Compat.Test
-import LinearAlgebra: norm, cholfact
+import LinearAlgebra: norm, cholesky
 function test()
   a=2.5; dy=a/2*sin(15/180*pi); dx=a/2*cos(15/180*pi); Q=4.5; k=1.8; Dz=1.0;
   h= 5.;
@@ -1436,7 +1436,7 @@ function test()
   H = surfacetransfer(cfemm, geom, Temp);
   # show(H)
   # F3 = surfacetransferloads(femm, geom, temp, amb);
-  Factor = cholfact(K+H)
+  Factor = cholesky(K+H)
   U = Factor\(F1+F2)
   scattersysvec!(Temp, U[:])
   # display(Temp)
@@ -1454,7 +1454,7 @@ module mmmmPoiss_08082017
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
-import LinearAlgebra: cholfact
+import LinearAlgebra: cholesky
 function test()
 
   # println("""
@@ -1513,7 +1513,7 @@ function test()
   F1 = distribloads(femm, geom, Temp, fi, 3);
 
   # println("Factorization")
-  K = cholfact(K)
+  K = cholesky(K)
   # println("Solution of the factorized system")
   U = K\(F1+F2)
   scattersysvec!(Temp,U[:])
@@ -1545,7 +1545,7 @@ module mmmmmPoisson_FE_Q8_2
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
-import LinearAlgebra: cholfact
+import LinearAlgebra: cholesky
 function test()
   # println("""
   #
@@ -1601,7 +1601,7 @@ function test()
   F1 = distribloads(femm, geom, Temp, fi, 3);
 
   # println("Factorization")
-  K = cholfact(K)
+  K = cholesky(K)
   # println("Solution of the factorized system")
   U=  K\(F1+F2)
   scattersysvec!(Temp, U[:])
@@ -1722,7 +1722,7 @@ module mPoisson_FE_Q4toT3_2
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
-import LinearAlgebra: cholfact
+import LinearAlgebra: cholesky
 function test()
   # println("""
   #
@@ -1779,7 +1779,7 @@ function test()
   F1 = distribloads(femm, geom, Temp, fi, 3);
 
   # println("Factorization")
-  K = cholfact(K)
+  K = cholesky(K)
   # println("Solution of the factorized system")
   U=  K\(F1+F2)
   scattersysvec!(Temp, U[:])
@@ -1816,7 +1816,7 @@ module mPoisson_FE_T3_orientations
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
-import LinearAlgebra: cholfact
+import LinearAlgebra: cholesky
 function test()
     for orientation in [:a :b]
 
@@ -1874,7 +1874,7 @@ function test()
         F1 = distribloads(femm, geom, Temp, fi, 3);
 
         # println("Factorization")
-        K = cholfact(K)
+        K = cholesky(K)
         # println("Solution of the factorized system")
         U=  K\(F1+F2)
         scattersysvec!(Temp, U[:])
@@ -1909,7 +1909,7 @@ mPoisson_FE_T3_orientations.test()
 module mmT129b_l2_uqm
 using FinEtools
 using Compat.Test
-import LinearAlgebra: cholfact
+import LinearAlgebra: cholesky
 function test()
     L = 6.0;
     kappa = reshape([4.0], 1, 1);
@@ -1941,7 +1941,7 @@ function test()
     fi = ForceIntensity(FFlt[Q]);
     F1 = distribloads(femm, geom, Temp, fi, 3);
 
-    K = cholfact(K)
+    K = cholesky(K)
     U = K\(F1+F2)
     scattersysvec!(Temp,U[:])
 
@@ -2027,7 +2027,7 @@ module mmmmPoiss_energy
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
-import LinearAlgebra: cholfact
+import LinearAlgebra: cholesky
 function test()
 
   # println("""

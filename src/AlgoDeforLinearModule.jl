@@ -20,7 +20,7 @@ import FinEtools.DeforModelRedModule: stresscomponentmap
 import FinEtools.ForceIntensityModule: ForceIntensity
 import FinEtools.MeshModificationModule: meshboundary
 import FinEtools.MeshExportModule: vtkexportmesh
-import LinearAlgebra: eig, qr, dot, cholfact
+import LinearAlgebra: eigen, qr, dot, cholesky
 
 """
     AlgoDeforLinearModule.linearstatics(modeldata::FDataDict)
@@ -252,7 +252,7 @@ function linearstatics(modeldata::FDataDict)
 
     tstart = time()
     # Solve the system of linear algebraic equations
-    K = cholfact(K);
+    K = cholesky(K);
     U = K\F;
     scattersysvec!(u, U[:])
     modeldata["timing"]["solution"] = time() - tstart
@@ -710,7 +710,7 @@ function modal(modeldata::FDataDict)
     # clear K; # Not needed anymore
     # mAt= mA';
     # [W,Omega]= eigs(@(bv)mAt\(mA\bv), u.nfreedofs, M, neigvs, 'SM', evopts);
-    #          [W,Omega]= eig(full(K+omega_shift*M), full(M));
+    #          [W,Omega]= eigen(full(K+omega_shift*M), full(M));
 
     d,v,nev,nconv = eigs(K+omega_shift*M, M; nev=neigvs, which=:SM)
     broadcast!(+, d, d, -omega_shift);
@@ -858,12 +858,13 @@ function ssit(K, M; nev::Int=6, evshift::FFlt = 0.0,
     niter = 0
     nconv = 0
     nmult = 0
-    factor = cholfact(K+evshift*M)
+    factor = cholesky(K+evshift*M)
     Kv = zeros(size(K, 1), size(v, 2))
     Mv = zeros(size(M, 1), size(v, 2))
     for i = 1:maxiter
         u = factor\(M*v)
-        v, r = qr(u; full=false)  # economy factorization
+        factorization = qr(u)  # ; full=falseeconomy factorization
+        v = Array(factorization.Q)
         my_A_mul_B!(Kv, K, v)
         my_A_mul_B!(Mv, M, v)
         for j = 1:nvecs
@@ -877,10 +878,10 @@ function ssit(K, M; nev::Int=6, evshift::FFlt = 0.0,
             break
         end
         if withrr
-            rrd,rrv = eig(transpose(v)*Kv, transpose(v)*Mv)
-            ix = sortperm(abs.(rrd))
-            rrd = rrd[ix]
-            rrv = rrv[:, ix]
+            decomp = eigen(transpose(v)*Kv, transpose(v)*Mv)
+            ix = sortperm(abs.(decomp.values))
+            rrd = decomp.values[ix]
+            rrv = decomp.vectors[:, ix]
             v = v*rrv
         end
         plamb, lamb = lamb, plamb # swap the eigenvalue arrays
