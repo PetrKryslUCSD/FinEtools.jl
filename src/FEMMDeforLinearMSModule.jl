@@ -23,7 +23,7 @@ using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, 
 import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass, thermalstrainloads, inspectintegpoints
 import FinEtools.FEMMBaseModule: associategeometry!
 import FinEtools.MatDeforModule: rotstressvec
-import LinearAlgebra: mul!, Transpose
+import LinearAlgebra: mul!, Transpose, UpperTriangular
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
 import LinearAlgebra: norm, qr, diag, dot, cond
@@ -584,7 +584,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt
         end # Loop over quadrature points
         #  Solve for the least-square fit parameters
         fact = qr(A); 
-        p = UpperTriangular(fact.R)\(fact.Q'*sstoredout) # R \ (transpose(Q) * sstoredout)
+        p = UpperTriangular(fact.R)\(transpose(Array(fact.Q))*sstoredout) # R \ (transpose(Q) * sstoredout)
         for nod = 1:size(xe, 1)
             #  Predict the value  of the output quantity at the node
             xdel = vec(@view xe[nod, :]) - vec(loc)
