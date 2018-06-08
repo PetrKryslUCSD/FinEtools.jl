@@ -1,5 +1,5 @@
 """
-    FEMMDeforSurfaceDamping
+    FEMMDeforSurfaceDampingModule
 
 Module for operations on the damping associated with absorbing boundary 
 conditions (ABC) representation of the effect of infinite extent 
@@ -36,8 +36,8 @@ end
 Compute the damping matrix associated with absorbing boundary conditions (ABC) representation of the effect of infinite extent of inviscid fluid next to the surface.
 """
 function dampingABC(self::FEMMDeforSurfaceDamping, assembler::A,
-                    geom::NodalField{FFlt}, u::NodalField{T1},
-                    impedance::T2, surfacenormal::SurfaceNormal) where {A<:SysmatAssemblerBase, T1<:Number, T2<:Number}
+    geom::NodalField{FFlt}, u::NodalField{T1},
+    impedance::T2, surfacenormal::SurfaceNormal) where {A<:SysmatAssemblerBase, T1<:Number, T2<:Number}
     fes = self.integdata.fes
     # Constants
     nfes = count(fes); # number of finite elements
