@@ -12,7 +12,9 @@
 
 ## News
 
-- 03/26/2018: Development of the package for Julio 0.6 is frozen. All development now goes towards 0.7.
+- 06/08/2018: FinEtools is now the registered package. The release 0.3.0 works with Julia 0.7.0-alpha.
+
+- 03/26/2018: Development of the package for Julia 0.6 is frozen. All development now goes towards 0.7.
 
 - 03/20/2018: FinEtools version to be used with Julia 0.7 and above is at the moment being developed in a separate branch,
 path_to_0.7. At this point the package runs and tests cleanly with 0.7.
