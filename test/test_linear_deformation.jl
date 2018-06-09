@@ -7276,6 +7276,7 @@ function test()
         
         modeldata["postprocessing"] = FDataDict("file"=>filebase * "-u")
         modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
+        try rm(modeldata["postprocessing"]["exported"][1]["file"]) catch end
         
         u = modeldata["u"]
         geom = modeldata["geom"]
@@ -7303,6 +7304,7 @@ function test()
         "quantity"=>:Cauchy, "component"=>collect(1:6), "outputcsys"=>CSys(3),
         "nodevalmethod"=>nodevalmeth, "reportat"=>extrap)
         modeldata = AlgoDeforLinearModule.exportstress(modeldata)
+        try rm(modeldata["postprocessing"]["exported"][1]["file"]) catch end
         
         modeldata["elementsize"] = 1.0/Refinement
         modeldata["geometricaltolerance"] = tolerance
