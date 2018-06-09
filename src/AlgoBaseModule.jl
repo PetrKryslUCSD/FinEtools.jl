@@ -277,8 +277,8 @@ end
     qcovariance(ps, xs, ys; ws = nothing)
 
 Compute the covariance for two functions given by the arrays `xs` and `ys` 
-at the values of the parameter `ps`. `ws` is the optional weights vector  
-with unit default weights.  
+at the values of the parameter `ps`. `ws` is the optional weights vector;  
+if it is not supplied, uniformly distributed default weights are assumed.  
 
 Notes: 
 – The mean is subtracted from both functions. 
@@ -291,11 +291,12 @@ function qcovariance(ps, xs, ys; ws = nothing)
     if (ws == nothing)
         ws = ones(FFlt, length(ps))
     end
-    ws = ws / qtrap(ps, ws)
+    @assert length(ws) == length(xs)
+    ws[:] = ws ./ qtrap(ps, ws) # Make sure the integral of the weight is equal to 1.0
     xmean = qtrap(ps, xs .* ws)
     ymean = qtrap(ps, ys .* ws)
-    zxs = xs .- xmean
-    zys = ys .- ymean
+    zxs = deepcopy(xs) .- xmean
+    zys = deepcopy(ys) .- ymean
     return qtrap(ps, zxs .* zys .* ws)
 end
 
