@@ -1619,6 +1619,7 @@ function test()
     ps = range(0, stop=1.0, length = 1000)
     xs = sin.(40.0 * ps)
     ys = sin.(39.0 * ps)
+    # println("qcovariance(ps, xs, ys) = $(qcovariance(ps, xs, ys))")
     @test abs(qcovariance(ps, xs, ys) - 0.422761407481519) < 1.0e-3
     true
 end
@@ -1635,6 +1636,7 @@ function test()
     xs = sin.(40.0 * ps)
     # @show qvariance(ps, xs)
     # @show cov(xs)
+    # println("qvariance(ps, xs) = $(qvariance(ps, xs))")
     @test abs(qvariance(ps, xs) - 0.504472271593515) < 1.0e-3
     true
 end
@@ -1652,8 +1654,10 @@ function test()
     xs = sin.(40.0 * ps)
     ys = sin.(39.0 * ps)
     # @show qcovariance(ps, xs, ys)
-    @test abs(qcovariance(ps, xs, ys) - 0.26790222024266713) < 1.0e-6
+    # println("qcovariance(ps, xs, ys) = $(qcovariance(ps, xs, ys))")
+    @test abs(qcovariance(ps, xs, ys) - 0.273726042904099) < 1.0e-6
     # @show cov(xs, ys)
+    # println("cov(xs, ys) = $(cov(xs, ys))")
     @test abs(cov(xs, ys) - 0.3917048440575396) < 1.0e-6
     true
 end
