@@ -12,7 +12,7 @@
 
 ## News
 
-- 06/08/2018: FinEtools is now the registered package. The release 0.3.0 works with Julia 0.7.0-alpha.
+- 06/08/2018: FinEtools is now a registered package. The release 0.3.0 works with Julia 0.7.0-alpha.
 
 - 03/26/2018: Development of the package for Julia 0.6 is frozen. All development now goes towards 0.7.
 
