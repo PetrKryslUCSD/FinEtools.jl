@@ -5938,32 +5938,32 @@ function test()
 
     function sigmaxx(x)
         local r = norm(x[1:2]);
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return sigma0*(1-Ri^2/r^2*(3/2*cos(2*th)+cos(4*th))+3/2*Ri^4/r^4*cos(4*th));
     end
     function sigmayy(x)
         local r=norm(x[1:2]);
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return -sigma0*(Ri^2/r^2*(1/2*cos(2*th)-cos(4*th))+3/2*Ri^4/r^4*cos(4*th));
     end
     function sigmaxy(x)
         local r=norm(x[1:2]);
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return -sigma0*(Ri^2/r^2*(1/2*sin(2*th)+sin(4*th))-3/2*Ri^4/r^4*sin(4*th));
     end
     function sigmarr(x)
         local r = norm(x[1:2]);
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return sigma0/2*(1-Ri^2/r^2) + sigma0/2*(1-4*Ri^2/r^2+3*Ri^4/r^4)*cos(2*th)
     end
     function sigmatt(x)
         local r = norm(x[1:2]);
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return sigma0/2*(1+Ri^2/r^2) - sigma0/2*(1+3*Ri^4/r^4)*cos(2*th)
     end
     function sigmart(x)
         local r = norm(x[1:2]);
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return -sigma0/2*(1+2*Ri^2/r^2-3*Ri^4/r^4)*sin(2*th)
     end
 
@@ -6101,32 +6101,32 @@ function test()
 
     function sigmaxx(x)
         local r = norm(vec(x[1:2]));
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return sigma0*(1-Ri^2/r^2*(3/2*cos(2*th)+cos(4*th))+3/2*Ri^4/r^4*cos(4*th));
     end
     function sigmayy(x)
         local r = norm(vec(x[1:2]));
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return -sigma0*(Ri^2/r^2*(1/2*cos(2*th)-cos(4*th))+3/2*Ri^4/r^4*cos(4*th));
     end
     function sigmaxy(x)
         local r = norm(vec(x[1:2]));
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return -sigma0*(Ri^2/r^2*(1/2*sin(2*th)+sin(4*th))-3/2*Ri^4/r^4*sin(4*th));
     end
     function sigmarr(x)
         local r = norm(vec(x[1:2]));
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return sigma0/2*(1-Ri^2/r^2) + sigma0/2*(1-4*Ri^2/r^2+3*Ri^4/r^4)*cos(2*th)
     end
     function sigmatt(x)
         local r = norm(vec(x[1:2]));
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return sigma0/2*(1+Ri^2/r^2) - sigma0/2*(1+3*Ri^4/r^4)*cos(2*th)
     end
     function sigmart(x)
         local r = norm(vec(x[1:2]));
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return -sigma0/2*(1+2*Ri^2/r^2-3*Ri^4/r^4)*sin(2*th)
     end
 
@@ -6289,32 +6289,32 @@ function test()
 
     function sigmaxx(x)
         local r = norm(x[1:2]);
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return sigma0*(1-Ri^2/r^2*(3/2*cos(2*th)+cos(4*th))+3/2*Ri^4/r^4*cos(4*th));
     end
     function sigmayy(x)
         local r=norm(x[1:2]);
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return -sigma0*(Ri^2/r^2*(1/2*cos(2*th)-cos(4*th))+3/2*Ri^4/r^4*cos(4*th));
     end
     function sigmaxy(x)
         local r=norm(x[1:2]);
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return -sigma0*(Ri^2/r^2*(1/2*sin(2*th)+sin(4*th))-3/2*Ri^4/r^4*sin(4*th));
     end
     function sigmarr(x)
         local r = norm(x[1:2]);
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return sigma0/2*(1-Ri^2/r^2) + sigma0/2*(1-4*Ri^2/r^2+3*Ri^4/r^4)*cos(2*th)
     end
     function sigmatt(x)
         local r = norm(x[1:2]);
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return sigma0/2*(1+Ri^2/r^2) - sigma0/2*(1+3*Ri^4/r^4)*cos(2*th)
     end
     function sigmart(x)
         local r = norm(x[1:2]);
-        local th = atan2(x[2],x[1]);
+        local th = atan(x[2],x[1]);
         return -sigma0/2*(1+2*Ri^2/r^2-3*Ri^4/r^4)*sin(2*th)
     end
 
