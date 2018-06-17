@@ -38,8 +38,7 @@ numnodesmap = Dict{Int, Int}(P1=>1, L2=>2, T3=>3,
     T10=>10, H20=>20)
 
 """
-    vtkexportmesh(theFile::String, fens::FENodeSet, fes::T;
-      opts...) where {T<:FESet}
+    vtkexportmesh(theFile::String, fens::FENodeSet, fes::T; opts...) where {T<:FESet}
 
 Export mesh to a VTK 1.0 file as an unstructured grid.
 
