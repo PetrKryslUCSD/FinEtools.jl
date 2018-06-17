@@ -10,7 +10,7 @@
 
 ## News
 
-- 06/08/2018: FinEtools is now a registered package. The release 0.3.0 works with Julia 0.7.0-alpha. The notebook examples need updating for 0.7 still.
+- 06/08/2018: FinEtools is now a registered package. The release 0.3.0 works with Julia 0.7.0-alpha. The notebook examples still need updating for 0.7.
 
 [Past news](oldnews.md)
 
@@ -20,7 +20,7 @@ Since  this package is not registered, please use cloning:
 ```julia
 Pkg.clone("https://github.com/PetrKryslUCSD/FinEtools.jl")
 ```
-Only version 0.6 and 0.7 (the nightly) builds of Julia  are supported. 
+Only version 0.7 (including the nightly) builds of Julia  are supported. 
 
 ## Testing
 
