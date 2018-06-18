@@ -26,8 +26,6 @@ function test()
     @test u.nfreedofs == 240
 
     material=MatDeforElastIso(MR, 00.0, E1, nu23, 0.0)
-    @show MR 
-    @show material.mr
 
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
 
