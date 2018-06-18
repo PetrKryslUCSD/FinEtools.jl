@@ -5,6 +5,8 @@ function test()
     MR = DeforModelRed2DAxisymm
     material = MatDeforElastIso(MR, 0.0, 1.0, 0.0, 0.0)
     @test MR == material.mr
+    femm = FEMMDeforLinear(MR, IntegData(FESetP1(reshape([1],1,1)), GaussRule(2, 2), true), material)
+
 end
 end
 using .mocylpull14a
