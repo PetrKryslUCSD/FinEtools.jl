@@ -3,7 +3,8 @@ using FinEtools
 using Compat.Test
 function test()
     MR = DeforModelRed2DAxisymm
-    @test MR == DeforModelRed2DAxisymm
+    material = MatDeforElastIso(MR, 0.0, 1.0, 0.0, 0.0)
+    @test MR == material.mr
 end
 end
 using .mocylpull14a
