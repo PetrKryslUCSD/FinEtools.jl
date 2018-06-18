@@ -28,6 +28,18 @@ function test()
     geom = NodalField(fens.xyz)
     u = NodalField(zeros(size(fens.xyz,1),2)) # displacement field
 
+    # the symmetry plane
+    l1 =selectnode(fens; box=[0 rex 0 0], inflate = tolerance)
+    setebc!(u,l1,true, 2, 0.0)
+    # The other end
+    l1 =selectnode(fens; box=[0 rex Length Length], inflate = tolerance)
+    setebc!(u,l1,true, 2, ua)
+
+    applyebc!(u)
+    numberdofs!(u)
+    # println("Number of degrees of freedom = $(u.nfreedofs)")
+    @test u.nfreedofs == 240
+
     # Property and material
     material=MatDeforElastIso(MR, 00.0, E1, nu23, 0.0)
     # @show mr 
