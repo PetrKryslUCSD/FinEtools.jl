@@ -22,7 +22,7 @@ function test()
 
     fens,fes = Q4block(rex-rin,Length,5,20);
     fens.xyz[:, 1] = fens.xyz[:, 1] .+ rin
-    # bdryfes = meshboundary(fes);
+    bdryfes = meshboundary(fes);
 
     # now we create the geometry and displacement fields
     geom = NodalField(fens.xyz)
