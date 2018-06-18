@@ -1,3 +1,17 @@
+module mocylpull14a
+using FinEtools
+using Compat.Test
+function test()
+    MR = DeforModelRed2DAxisymm
+    material = MatDeforElastIso(MR, 0.0, 1.0, 0.0, 0.0)
+    @test MR === material.mr
+    femm = FEMMDeforLinear(MR, IntegData(FESetP1(reshape([1],1,1)), GaussRule(2, 2), true), material)
+
+end
+end
+using .mocylpull14a
+mocylpull14a.test()
+
 module mocylpull14nnn
 using FinEtools
 using Compat.Test
@@ -50,9 +64,9 @@ function test()
 
     # Property and material
     material = MatDeforElastIso(MR, 00.0, E1, nu23, 0.0)
-    display(material)
+    # display(material)
     # println("$(material.D)")
-    @show MR
+    # @show MR
     
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
 
@@ -82,20 +96,6 @@ end
 end
 using .mocylpull14nnn
 mocylpull14nnn.test()
-
-module mocylpull14a
-using FinEtools
-using Compat.Test
-function test()
-    MR = DeforModelRed2DAxisymm
-    material = MatDeforElastIso(MR, 0.0, 1.0, 0.0, 0.0)
-    @test MR == material.mr
-    femm = FEMMDeforLinear(MR, IntegData(FESetP1(reshape([1],1,1)), GaussRule(2, 2), true), material)
-
-end
-end
-using .mocylpull14a
-mocylpull14a.test()
 
 module mmiscellaneous1mmm
 using FinEtools

@@ -23,7 +23,7 @@ thermalstrain!::MTHS
 ```
 """
 struct  MatDeforElastIso{MR<:DeforModelRed, MTAN<:Function, MUPD<:Function, MTHS<:Function} <: MatDefor
-    mr::Type{MR}
+    mr::Type{MR} # model reduction type
     mass_density::FFlt # mass density
     E::FFlt # Young's modulus
     nu::FFlt # Poisson ratio
