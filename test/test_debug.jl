@@ -15,24 +15,18 @@ function test()
     fens.xyz[:, 1] = fens.xyz[:, 1] .+ rin
     bdryfes = meshboundary(fes);
 
-    # now we create the geometry and displacement fields
     geom = NodalField(fens.xyz)
-    u = NodalField(zeros(size(fens.xyz,1),2)) # displacement field
-
-    # the symmetry plane
+    u = NodalField(zeros(size(fens.xyz,1),2)) 
     l1 =selectnode(fens; box=[0 rex 0 0], inflate = tolerance)
     setebc!(u,l1,true, 2, 0.0)
-    # The other end
     l1 =selectnode(fens; box=[0 rex Length Length], inflate = tolerance)
     setebc!(u,l1,true, 2, 0.0)
-
     applyebc!(u)
     numberdofs!(u)
-    # println("Number of degrees of freedom = $(u.nfreedofs)")
     @test u.nfreedofs == 240
 
     material=MatDeforElastIso(MR, 00.0, E1, nu23, 0.0)
-    @show mr 
+    @show MR 
     @show material.mr
 
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
