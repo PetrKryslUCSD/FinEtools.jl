@@ -1,3 +1,14 @@
+module mocylpull14a
+using FinEtools
+using Compat.Test
+function test()
+    MR = DeforModelRed2DAxisymm
+    @test MR == DeforModelRed2DAxisymm
+end
+end
+using .mocylpull14a
+mocylpull14a.test()
+
 module mmiscellaneous1mmm
 using FinEtools
 using Compat.Test
