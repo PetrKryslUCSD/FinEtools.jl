@@ -1,8 +1,3 @@
-julia 0.7-alpha
+julia 0.7
 Compat
-StatsBase
-LinearAlgebra
-Printf
-Random
-SparseArrays
 StatsBase
