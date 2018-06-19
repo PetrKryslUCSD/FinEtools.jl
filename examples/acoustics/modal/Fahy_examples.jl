@@ -1,7 +1,7 @@
 module Fahy_examples
 using FinEtools
 using Gaston
-using IterativeEigensolvers
+import Arpack: eigs
 
 function fahy_H20_example()
     println("""

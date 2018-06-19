@@ -2,7 +2,7 @@
 module mmrrigid
 using FinEtools
 using Compat.Test
-using   IterativeEigensolvers
+import Arpack: eigs
 import LinearAlgebra: norm
 function test()
 

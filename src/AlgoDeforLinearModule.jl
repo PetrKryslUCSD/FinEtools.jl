@@ -7,7 +7,7 @@ module AlgoDeforLinearModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.AlgoBaseModule: dcheck!
-using IterativeEigensolvers: eigs
+import Arpack: eigs
 import SparseArrays: spzeros
 import LinearAlgebra: mul!
 my_A_mul_B!(C, A, B) = mul!(C, A, B)

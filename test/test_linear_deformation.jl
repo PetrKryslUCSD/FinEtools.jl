@@ -736,7 +736,7 @@ module scratch2_06102017
 
 using FinEtools
 using Compat.Test
-using   IterativeEigensolvers
+import Arpack: eigs
 function test()
   # println("""
   #         % Vibration modes of unit cube  of almost incompressible material.
@@ -2778,7 +2778,7 @@ module muunit_cube_modes_exportmmm
 using FinEtools
 using FinEtools.MeshExportModule
 using Compat.Test
-using  IterativeEigensolvers
+import Arpack: eigs
 import LinearAlgebra: norm, cholesky, cross
 function test()
 
@@ -5080,7 +5080,7 @@ module mmtruncatedmfreem1
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-using   IterativeEigensolvers
+import Arpack: eigs
 import LinearAlgebra: norm, cholesky, cross
 function test()
     # println("""
@@ -5257,7 +5257,7 @@ module mmtruncatedmfreem2
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Compat.Test
-using   IterativeEigensolvers
+import Arpack: eigs
 import LinearAlgebra: norm, cholesky, cross
 function test()
     # println("""

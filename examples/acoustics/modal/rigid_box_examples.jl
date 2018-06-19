@@ -1,6 +1,6 @@
 module rigid_box_examples
 using FinEtools
-using IterativeEigensolvers
+import Arpack: eigs
 
 function rigid_box_Q4_example()
     println("""
