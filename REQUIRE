@@ -1,9 +1,0 @@
-julia 0.7-alpha
-Compat
-LinearAlgebra
-Printf
-Random
-SparseArrays
-Arpack
-StatsBase
-Unicode
