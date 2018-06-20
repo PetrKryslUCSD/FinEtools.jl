@@ -42,4 +42,4 @@ build_script:
       Pkg.build()"
 
 test_script:
-  - C:\projects\julia\bin\julia -e "Pkg.add(\"FinEtools\"); Pkg.test(\"FinEtools\")"
+  - C:\projects\julia\bin\julia -e "Pkg.test(\"FinEtools\")"
