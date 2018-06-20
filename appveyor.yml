@@ -44,4 +44,4 @@ build_script:
       Pkg.build()"
 
 test_script:
-  - C:\projects\julia\bin\julia -e "Pkg.add(\"FinEtools\", branch=\"master\"); Pkg.test(\"FinEtools\")"
+  - C:\projects\julia\bin\julia -e "Pkg.add(\"FinEtools\", v\"0.3\"); Pkg.test(\"FinEtools\")"
