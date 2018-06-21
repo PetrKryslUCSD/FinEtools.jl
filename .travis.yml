@@ -25,10 +25,10 @@ matrix:
 #  - if [ $TRAVIS_OS_NAME = osx ]; then brew install gcc; fi
 
 ## uncomment the following lines to override the default test script
-#script:
-#  - julia -e 'Pkg.clone(pwd()); Pkg.build("FinEtools"); Pkg.test("FinEtools"; coverage=true)'
+script:
+  - julia -e 'import Pkg; Pkg.develop(pwd()); Pkg.build("FinEtools"); Pkg.test("FinEtools"; coverage=true)'
 after_success:
   # push coverage results to Coveralls
-  - julia -e 'cd(Pkg.dir("FinEtools")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+  - julia -e 'import Pkg; cd(Pkg.dir("FinEtools")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
   # push coverage results to Codecov
-  - julia -e 'cd(Pkg.dir("FinEtools")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  - julia -e 'import Pkg; cd(Pkg.dir("FinEtools")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
