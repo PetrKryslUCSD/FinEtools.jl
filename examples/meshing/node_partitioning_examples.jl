@@ -138,7 +138,7 @@ function node_partitioning_5()
     npartitions = 4
     partitioning2 = nodepartitioning(fens, nincluded2, npartitions)
     partitioning2 = partitioning2 .+ npartitions1 # shift by the number of partitions in region 1
-    partitionnumbers = unique(partitioning2)
+    partitionnumbers = unique(vcat(partitioning1, partitioning2))
     npartitions = maximum(partitionnumbers)
 
     # Transfer the partitioning of region 2 into the overall partitioning
