@@ -120,15 +120,10 @@ function node_partitioning_5()
     end
     npartitions = 8
     partitioning1 = nodepartitioning(fens, nincluded1, npartitions)
-    partitionnumbers = unique(partitioning1)
-    npartitions1 = maximum(partitionnumbers)
+    npartitions1 = maximum(unique(partitioning1))
     
     # Transfer the partitioning of region 1 into the overall partitioning
-    for i = 1:length(nincluded1)
-        if nincluded1[i]
-            partitioning[i] = partitioning1[i]
-        end
-    end
+    partitioning[nincluded1] = partitioning1[nincluded1]
 
     # Find the partitioning of the nodes connected to region 2, but not region 1
     nincluded2 = fill(false, count(fens))
@@ -142,11 +137,7 @@ function node_partitioning_5()
     npartitions = maximum(partitionnumbers)
 
     # Transfer the partitioning of region 2 into the overall partitioning
-    for i = 1:length(nincluded2)
-        if nincluded2[i]
-            partitioning[i] = partitioning2[i]
-        end
-    end
+    partitioning[nincluded2] = partitioning2[nincluded2]
 
     # Visualize partitioning
     for gp = partitionnumbers
