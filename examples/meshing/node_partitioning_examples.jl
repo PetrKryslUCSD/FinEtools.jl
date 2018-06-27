@@ -1,6 +1,8 @@
 module node_partitioning_examples
 using FinEtools
-using PyCall
+using Gaston
+using Test
+import LinearAlgebra: norm
 
 function node_partitioning_1()
     
@@ -15,15 +17,15 @@ function node_partitioning_1()
     npartitions = 4
     partitioning = nodepartitioning(fens, npartitions)
     partitionnumbers = unique(partitioning)
+
+    set(axis="normal", plotstyle="points", linewidth=2, pointsize = 1, color = "black", xlabel = "x", ylabel = "y ", grid="on", title = "")
     
-    @pyimport matplotlib.pyplot as plt
-    fig = plt.figure() 
-    ax = plt.axes()
+    f = figure()
     for ixxxx = 1:length(partitionnumbers)
-        i1 = find(x -> x == partitionnumbers[ixxxx], partitioning)
-        ax[:plot](vec(fens.xyz[i1, 1]), vec(fens.xyz[i1, 2]), linestyle="none", marker=:o)
+        i1 = findall(x -> x == partitionnumbers[ixxxx], partitioning)
+        plot!(vec(fens.xyz[i1, 1]), vec(fens.xyz[i1, 2]))
     end
-    plt.show()
+    figure(f)
     
 end # node_partitioning_1
 
@@ -38,22 +40,15 @@ function node_partitioning_2()
     partitioning = nodepartitioning(fens, npartitions)
     partitionnumbers = unique(partitioning)
     
-    @pyimport matplotlib.pyplot as plt
-    plt.style[:use]("seaborn-whitegrid")
-    fig = plt.figure() 
-    ax = plt.axes()
+    set(axis="normal", plotstyle="points", linewidth=2, pointsize = 2, color = "black", xlabel = "x", ylabel = "y ", grid="on", title = "")
+    
+    f = figure()
     for ixxxx = 1:length(partitionnumbers)
-        i1 = find(x -> x == partitionnumbers[ixxxx], partitioning)
-        ax[:plot](vec(fens.xyz[i1, 1]), vec(fens.xyz[i1, 2]), linestyle="none", marker=:o)
+        i1 = findall(x -> x == partitionnumbers[ixxxx], partitioning)
+        plot!(vec(fens.xyz[i1, 1]), vec(fens.xyz[i1, 2]))
     end
-    ax[:set_xlabel]("x")
-    ax[:set_ylabel]("y")
-    plt.axis("equal")
-    plt.show()
-    
-    
-    
-    
+    figure(f)
+     
 end # node_partitioning_2
 
 
@@ -105,6 +100,67 @@ function node_partitioning_4()
 end
 
 
+function node_partitioning_5()
+    H = 30. # strip width
+    L = 20. # length of the strip
+    nL = 15
+    nH = 10
+    fens,fes = Q4block(L, H, nL, nH)
+    reg1 = selectelem(fens, fes; box = [0.0 L/3 0.0 H], inflate = L/nL/1000)
+    fes1 = subset(fes, reg1)
+    fes2 = subset(fes, setdiff(1:count(fes), reg1))
+
+    # Partitioning of all the nodes
+    partitioning = fill(0, count(fens))
+    
+    # Find the partitioning of the nodes in region 1
+    nincluded1 = fill(false, count(fens))
+    for i = connectednodes(fes1)
+        nincluded1[i] = true
+    end
+    npartitions = 8
+    partitioning1 = nodepartitioning(fens, nincluded1, npartitions)
+    partitionnumbers = unique(partitioning1)
+    npartitions1 = maximum(partitionnumbers)
+    
+    # Transfer the partitioning of region 1 into the overall partitioning
+    for i = 1:length(nincluded1)
+        if nincluded1[i]
+            partitioning[i] = partitioning1[i]
+        end
+    end
+
+    # Find the partitioning of the nodes connected to region 2, but not region 1
+    nincluded2 = fill(false, count(fens))
+    for i = connectednodes(fes2)
+        nincluded2[i] = (!nincluded1[i]) && true
+    end
+    npartitions = 4
+    partitioning2 = nodepartitioning(fens, nincluded2, npartitions)
+    partitioning2 = partitioning2 .+ npartitions1 # shift by the number of partitions in region 1
+    partitionnumbers = unique(partitioning2)
+    npartitions = maximum(partitionnumbers)
+
+    # Transfer the partitioning of region 2 into the overall partitioning
+    for i = 1:length(nincluded2)
+        if nincluded2[i]
+            partitioning[i] = partitioning2[i]
+        end
+    end
+
+    # Visualize partitioning
+    for gp = partitionnumbers
+      groupnodes = findall(k -> k == gp, partitioning)
+      File =  "partition-nodes-$(gp).vtk"
+      vtkexportmesh(File, fens, FESetP1(reshape(groupnodes, length(groupnodes), 1)))
+    end 
+    File =  "mesh-1.vtk"
+    vtkexportmesh(File, fens, fes1)
+    File =  "mesh-2.vtk"
+    vtkexportmesh(File, fens, fes2)
+    @async run(`"paraview.exe" $File`)
+end
+
 function allrun()
     println("#####################################################") 
     println("# node_partitioning_1 ")
@@ -118,6 +174,9 @@ function allrun()
     println("#####################################################") 
     println("# node_partitioning_4 ")
     node_partitioning_4()
+    println("#####################################################") 
+    println("# node_partitioning_5 ")
+    node_partitioning_5()
     return true
 end # function allrun
 

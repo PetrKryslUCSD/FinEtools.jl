@@ -705,7 +705,219 @@ function mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
     return fens1, fromarray!(fes1, conn)
 end
 
-function nodepartitioning3(fens::FENodeSet, npartitions::Int = 2)
+#####################################################
+#####################################################
+#####################################################
+function nodepartitioning3(fens::FENodeSet, nincluded::Vector{Bool}, npartitions::Int = 2)
+    function inertialcutpartitioning!(partitioning, parts, X)
+        nspdim = 3
+        StaticMoments = fill(zero(FFlt), nspdim, length(parts));
+        npart = fill(0, length(parts))
+        for spdim = 1:nspdim
+            @inbounds for j = 1:size(X, 1)
+                if nincluded[j] # Is the node to be included in the partitioning?
+                    jp = partitioning[j]
+                    StaticMoments[spdim, jp] += X[j, spdim]
+                    npart[jp] += 1 # count the nodes in the current partition
+                end 
+            end
+        end
+        CG = fill(zero(FFlt), nspdim, length(parts));
+        for p = parts
+            npart[p] = Int(npart[p] / nspdim)
+            CG[:, p] = StaticMoments[:, p] / npart[p] # center of gravity of each partition
+        end 
+        MatrixMomentOfInertia = fill(zero(FFlt), nspdim, nspdim, length(parts))
+        @inbounds for j = 1:size(X, 1)
+            if nincluded[j] # Is the node to be included in the partitioning?
+                jp = partitioning[j]
+                xj, yj, zj = X[j, 1] - CG[1, jp], X[j, 2] - CG[2, jp], X[j, 3] - CG[3, jp]
+                MatrixMomentOfInertia[1, 1, jp] += yj^2 + zj^2
+                MatrixMomentOfInertia[2, 2, jp] += xj^2 + zj^2
+                MatrixMomentOfInertia[3, 3, jp] += yj^2 + xj^2
+                MatrixMomentOfInertia[1, 2, jp] -= xj * yj
+                MatrixMomentOfInertia[1, 3, jp] -= xj * zj
+                MatrixMomentOfInertia[2, 3, jp] -= yj * zj
+            end 
+        end
+        for p = parts
+            MatrixMomentOfInertia[2, 1, p] = MatrixMomentOfInertia[1, 2, p]
+            MatrixMomentOfInertia[3, 1, p] = MatrixMomentOfInertia[3, 1, p]
+            MatrixMomentOfInertia[3, 2, p] = MatrixMomentOfInertia[3, 2, p]
+        end 
+        longdir = fill(zero(FFlt), nspdim, length(parts))
+        for p = parts
+            F = eigen(MatrixMomentOfInertia[:, :, p])
+            six = sortperm(F.values)
+            longdir[:, p] = F.vectors[:, six[1]]
+        end 
+        toggle = fill(one(FFlt), length(parts)); 
+        @inbounds for j = 1:size(X, 1)
+            if nincluded[j] # Is the node to be included in the partitioning?
+                jp = partitioning[j]
+                vx, vy, vz = longdir[:, jp]
+                xj, yj, zj = X[j, 1] - CG[1, jp], X[j, 2] - CG[2, jp], X[j, 3] - CG[3, jp]
+                d = xj * vx + yj * vy + zj * vz
+                c = 0
+                if d < 0.0
+                    c = 1
+                elseif d > 0.0
+                    c = 0
+                else # disambiguate d[ixxxx] == 0.0
+                    c = (toggle[jp] > 0) ? 1 : 0
+                    toggle[jp] = -toggle[jp]
+                end
+                partitioning[j] = 2 * jp - c
+            end 
+        end 
+    end
+    
+    nlevels = Int(round(ceil(log(npartitions)/log(2))))
+    partitioning = fill(1, count(fens))  # start with nodes assigned to partition 1
+    for level = 0:1:(nlevels - 1)
+        inertialcutpartitioning!(partitioning, collect(1:2^level), fens.xyz)
+    end
+    return partitioning
+end
+
+function nodepartitioning2(fens::FENodeSet, nincluded::Vector{Bool}, npartitions::Int = 2)
+    function inertialcutpartitioning!(partitions, parts, X)
+        nspdim = 2
+        StaticMoments = fill(zero(FFlt), nspdim, length(parts));
+        npart = fill(0, length(parts))
+        for spdim = 1:nspdim
+            @inbounds for j = 1:size(X, 1)
+                if nincluded[j] # Is the node to be included in the partitioning?
+                    jp = partitions[j]
+                    StaticMoments[spdim, jp] += X[j, spdim]
+                    npart[jp] += 1 # count the nodes in the current partition
+                end 
+            end
+        end
+        CG = fill(zero(FFlt), nspdim, length(parts));
+        for p = parts
+            npart[p] = Int(npart[p] / nspdim)
+            CG[:, p] = StaticMoments[:, p] / npart[p] # center of gravity of each partition
+        end 
+        MatrixMomentOfInertia = fill(zero(FFlt), nspdim, nspdim, length(parts))
+        @inbounds for j = 1:size(X, 1)
+            if nincluded[j] # Is the node to be included in the partitioning?
+                jp = partitions[j]
+                xj, yj = X[j, 1] - CG[1, jp], X[j, 2] - CG[2, jp]
+                MatrixMomentOfInertia[1, 1, jp] += yj^2
+                MatrixMomentOfInertia[2, 2, jp] += xj^2
+                MatrixMomentOfInertia[1, 2, jp] -= xj * yj
+            end 
+        end
+        for p = parts
+            MatrixMomentOfInertia[2, 1, p] = MatrixMomentOfInertia[1, 2, p]
+        end 
+        longdir = fill(zero(FFlt), nspdim, length(parts))
+        for p = parts
+            F = eigen(MatrixMomentOfInertia[:, :, p])
+            six = sortperm(F.values)
+            longdir[:, p] = F.vectors[:, six[1]]
+        end 
+        toggle = fill(one(FFlt), length(parts)); 
+        @inbounds for j = 1:size(X, 1)
+            if nincluded[j] # Is the node to be included in the partitioning?
+                jp = partitions[j]
+                vx, vy = longdir[:, jp]
+                xj, yj = X[j, 1] - CG[1, jp], X[j, 2] - CG[2, jp]
+                d = xj * vx + yj * vy
+                c = 0
+                if d < 0.0
+                    c = 1
+                elseif d > 0.0
+                    c = 0
+                else # disambiguate d[ixxxx] == 0.0
+                    c = (toggle[jp] > 0) ? 1 : 0
+                    toggle[jp] = -toggle[jp]
+                end
+                partitions[j] = 2 * jp - c
+            end 
+        end 
+    end
+    
+    nlevels = Int(round(ceil(log(npartitions)/log(2))))
+    partitions = fill(1, count(fens))  # start with nodes assigned to partition 1
+    for level = 0:1:(nlevels - 1)
+        inertialcutpartitioning!(partitions, collect(1:2^level), fens.xyz)
+    end
+    return partitions
+end
+
+"""
+    nodepartitioning(fens::FENodeSet, nincluded::Vector{Bool}, npartitions)
+
+Compute the inertial partitioning of the nodes.
+
+`nincluded` = Boolean array: is the node to be included in the partitioning or not?
+`npartitions` = number of partitions, but note that the actual number of
+partitions is going to be a power of two.
+
+The partitioning can be visualized for instance as:
+```julia
+partitioning = nodepartitioning(fens, npartitions)
+partitionnumbers = unique(partitioning)
+for gp = partitionnumbers
+  groupnodes = findall(k -> k == gp, partitioning)
+  File =  "partition-nodes-Dollar(gp).vtk"
+  vtkexportmesh(File, fens, FESetP1(reshape(groupnodes, length(groupnodes), 1)))
+end 
+File =  "partition-mesh.vtk"
+vtkexportmesh(File, fens, fes)
+@async run(`"paraview.exe" DollarFile`)
+```
+"""
+function nodepartitioning(fens::FENodeSet, nincluded::Vector{Bool}, npartitions::Int = 2)
+    @assert npartitions >= 2
+    if size(fens.xyz, 2) == 3
+        return nodepartitioning3(fens, nincluded, npartitions)
+    elseif size(fens.xyz, 2) == 2
+        return nodepartitioning2(fens, nincluded, npartitions)
+    else 
+        @warn "Not implemented for 1D"
+    end
+end 
+
+"""
+    nodepartitioning(fens::FENodeSet, npartitions)
+
+Compute the inertial partitioning of the nodes.
+
+`npartitions` = number of partitions, but note that the actual number of
+partitions is going to be a power of two.
+
+In this variant all the nodes are to be included in the partitioning.
+
+The partitioning can be visualized for instance as:
+```julia
+partitioning = nodepartitioning(fens, npartitions)
+partitionnumbers = unique(partitioning)
+for gp = partitionnumbers
+  groupnodes = findall(k -> k == gp, partitioning)
+  File =  "partition-nodes-Dollar(gp).vtk"
+  vtkexportmesh(File, fens, FESetP1(reshape(groupnodes, length(groupnodes), 1)))
+end 
+File =  "partition-mesh.vtk"
+vtkexportmesh(File, fens, fes)
+@async run(`"paraview.exe" DollarFile`)
+```
+"""
+function nodepartitioning(fens::FENodeSet, npartitions::Int = 2)
+    @assert npartitions >= 2
+    nincluded = fill(true, count(fens)) # The default is all nodes are included in the partitioning.
+    if size(fens.xyz, 2) == 3
+        return nodepartitioning3(fens, nincluded, npartitions)
+    elseif size(fens.xyz, 2) == 2
+        return nodepartitioning2(fens, nincluded, npartitions)
+    else 
+        @warn "Not implemented for 1D"
+    end
+end 
+
+function nodepartitioning3old(fens::FENodeSet, npartitions::Int = 2)
     function inertialcutpartitioning!(partitions, parts, X)
         nspdim = 3
         StaticMoments = fill(zero(FFlt), nspdim, length(parts));
@@ -771,7 +983,7 @@ function nodepartitioning3(fens::FENodeSet, npartitions::Int = 2)
     return partitions
 end
 
-function nodepartitioning2(fens::FENodeSet, npartitions::Int = 2)
+function nodepartitioning2old(fens::FENodeSet, npartitions::Int = 2)
     function inertialcutpartitioning!(partitions, parts, X)
         nspdim = 2
         StaticMoments = fill(zero(FFlt), nspdim, length(parts));
@@ -832,84 +1044,15 @@ function nodepartitioning2(fens::FENodeSet, npartitions::Int = 2)
     return partitions
 end
 
-"""
-    nodepartitioning(fens::FENodeSet, npartitions = 2)
-
-Compute the inertial partitioning of the nodes.
-
-`npartitions` = number of partitions, but note that the actual number of
-partitions is going to be an even number.
-
-The partitioning can be visualized for instance as:
-# partitioning = nodepartitioning(fens, npartitions)
-# partitionnumbers = unique(partitioning)
-# for gp = partitionnumbers
-#   groupnodes = findall(k -> k == gp, partitioning)
-#   File =  "partition-nodes-Dollar(gp).vtk"
-#   vtkexportmesh(File, fens, FESetP1(reshape(groupnodes, length(groupnodes), 1)))
-# end 
-# File =  "partition-mesh.vtk"
-# vtkexportmesh(File, fens, fes)
-# @async run(`"paraview.exe" DollarFile`)
-"""
-function nodepartitioning(fens::FENodeSet, npartitions::Int = 2)
+function nodepartitioningold(fens::FENodeSet, npartitions::Int = 2)
     @assert npartitions >= 2
     if size(fens.xyz, 2) == 3
-        return nodepartitioning3(fens, npartitions)
+        return nodepartitioning3old(fens, npartitions)
     elseif size(fens.xyz, 2) == 2
-        return nodepartitioning2(fens, npartitions)
+        return nodepartitioning2old(fens, npartitions)
     else 
         @warn "Not implemented for 1D"
     end
 end 
-
-# function nodepartitioning(fens::FENodeSet, npartitions::Int = 2)
-    #     @assert npartitions >= 2
-    #     # Recursive inertial cut routine
-    #     function inertialcut(ptng, X, level)
-    #         Xmean = mean(X, dims = 1);
-    #         X = X .- Xmean  # move the center of the point cloud to the origin
-    #         U, S, V = svd(X, full=false);
-    #         v = V[:, 1];
-    #         d = X * v
-    #         c = classifypoints(d)
-    #         @. ptng = 2*ptng - c
-    #         if level > 1
-    #             i1 = findall(x -> x == 1, c)
-    #             i0 = findall(x -> x == 0, c)
-    #             ptng1 = inertialcut(ptng[i1], X[i1, :], level - 1)
-    #             ptng0 = inertialcut(ptng[i0], X[i0, :], level - 1)
-    #             ptng[i1] = ptng1
-    #             ptng[i0] = ptng0
-    #         end
-    #         return ptng
-    #     end
-    #     # Which half of the domain do the nodes belong to?
-    #     function classifypoints(d)
-    #         c = zeros(FInt, length(d))
-    #         medd = median(d);
-    #         toggle = +1
-    #         for ixxxx = 1:length(d)
-    #             if d[ixxxx] < medd
-    #                 c[ixxxx] = 1
-    #             elseif d[ixxxx] > medd
-    #                 c[ixxxx] = 0
-    #             else # disambiguate d[ixxxx] == 0.0
-    #                 if toggle > 0
-    #                     c[ixxxx] = 1
-    #                 else
-    #                     c[ixxxx] = 0
-    #                 end
-    #                 toggle = -toggle
-    #             end
-    #         end
-    #         return c
-    #     end
-    
-    #     nlevels = Int(round(ceil(log(npartitions)/log(2))))
-    #     X = deepcopy(fens.xyz)
-    #     ptng = ones(FInt, size(X,1))
-    #     return  inertialcut(ptng, X, nlevels)
-    # end
 
 end
