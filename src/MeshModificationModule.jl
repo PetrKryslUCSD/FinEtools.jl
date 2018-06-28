@@ -705,10 +705,7 @@ function mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
     end
     return fens1, fromarray!(fes1, conn)
 end
-
-#####################################################
-#####################################################
-#####################################################
+ 
 function nodepartitioning3(fens::FENodeSet, nincluded::Vector{Bool}, npartitions::Int = 2)
     function inertialcutpartitioning!(partitioning, parts, X)
         nspdim = 3
@@ -851,7 +848,7 @@ end
 """
     nodepartitioning(fens::FENodeSet, nincluded::Vector{Bool}, npartitions)
 
-Compute the inertial partitioning of the nodes.
+Compute the inertial-cut partitioning of the nodes.
 
 `nincluded` = Boolean array: is the node to be included in the partitioning or not?
 `npartitions` = number of partitions, but note that the actual number of
@@ -885,7 +882,7 @@ end
 """
     nodepartitioning(fens::FENodeSet, npartitions)
 
-Compute the inertial partitioning of the nodes.
+Compute the inertial-cut partitioning of the nodes.
 
 `npartitions` = number of partitions, but note that the actual number of
 partitions is going to be a power of two.
@@ -918,6 +915,21 @@ function nodepartitioning(fens::FENodeSet, npartitions::Int = 2)
     end
 end 
 
+"""
+    nodepartitioning(fens::FENodeSet, fesarr, npartitions::Vector{Int})
+
+Compute the inertial-cut partitioning of the nodes.
+
+`fesarr` = array of finite element sets that represent regions
+`npartitions` = array of the number of partitions in each region. However 
+note that the actual number of partitions is going to be a power of two.
+
+The partitioning itself is carried out by `nodepartitioning()` with 
+a list of nodes to be included in the partitioning. For each region I
+the nodes included in the partitioning are those connected to 
+the elements of that region, but not to elements that belong to 
+any of the previous regions, 1…I-1.
+"""
 function nodepartitioning(fens::FENodeSet, fesarr, npartitions::Vector{Int})
     @assert length(fesarr) == length(npartitions)
     # Partitioning of all the nodes
