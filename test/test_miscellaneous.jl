@@ -1419,7 +1419,7 @@ mxmeasurementm3a1.test()
 module minnerproduct1
 using FinEtools
 using Compat.Test
-using IterativeEigensolvers
+using Arpack
 function test()
     kappa = 0.2*[1.0 0; 0 1.0]; # conductivity matrix
     magn = 0.06;# heat flux along the boundary
@@ -1480,7 +1480,7 @@ minnerproduct1.test()
 module minnerproduct2
 using FinEtools
 using Compat.Test
-using IterativeEigensolvers
+using Arpack
 function test()
     kappa = 0.2*[1.0 0; 0 1.0]; # conductivity matrix
     magn = 0.06;# heat flux along the boundary
