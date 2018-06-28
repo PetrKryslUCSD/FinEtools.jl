@@ -152,6 +152,35 @@ function node_partitioning_5()
     @async run(`"paraview.exe" $File`)
 end
 
+function node_partitioning_6()
+    H = 30. # strip width
+    L = 20. # length of the strip
+    nL = 15
+    nH = 10
+    fens,fes = Q4block(L, H, nL, nH)
+    reg1 = selectelem(fens, fes; box = [0.0 L/3 0.0 H], inflate = L/nL/1000)
+    reg2 = selectelem(fens, fes; box = [L/3 L 0.0 H/2], inflate = L/nL/1000)
+    reg3 = selectelem(fens, fes; box = [L/3 L H/2 H], inflate = L/nL/1000)
+    fesarr = vec([subset(fes, reg1) subset(fes, reg2) subset(fes, reg3)]) 
+    
+    # Partitioning of all the nodes
+    partitioning = nodepartitioning(fens, fesarr, vec([2 4 2]))
+    partitionnumbers = unique(partitioning)
+
+    # Visualize partitioning
+    for gp = partitionnumbers
+      groupnodes = findall(k -> k == gp, partitioning)
+      File =  "partition-nodes-$(gp).vtk"
+      vtkexportmesh(File, fens, FESetP1(reshape(groupnodes, length(groupnodes), 1)))
+    end 
+    for i = 1:length(fesarr)
+        File =  "mesh-$(i).vtk"
+        vtkexportmesh(File, fens, fesarr[i])
+    end
+    File =  "mesh-1.vtk"
+    @async run(`"paraview.exe" $File`)
+end
+
 function allrun()
     println("#####################################################") 
     println("# node_partitioning_1 ")
@@ -168,6 +197,9 @@ function allrun()
     println("#####################################################") 
     println("# node_partitioning_5 ")
     node_partitioning_5()
+    println("#####################################################") 
+    println("# node_partitioning_6 ")
+    node_partitioning_6()
     return true
 end # function allrun
 

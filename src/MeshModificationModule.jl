@@ -9,6 +9,7 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 import FinEtools.FESetModule: FESet, count, boundaryconn, boundaryfe, updateconn!, connasarray, fromarray!
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.BoxModule: boundingbox, inflatebox!, intersectboxes, inbox
+import FinEtools.MeshSelectionModule: connectednodes
 using Base.Sort
 using Base.Order
 import LinearAlgebra: norm, svd, dot, eigen
@@ -915,6 +916,35 @@ function nodepartitioning(fens::FENodeSet, npartitions::Int = 2)
     else 
         @warn "Not implemented for 1D"
     end
+end 
+
+function nodepartitioning(fens::FENodeSet, fesarr, npartitions::Vector{Int})
+    @assert length(fesarr) == length(npartitions)
+    # Partitioning of all the nodes
+    partitioning = fill(0, count(fens))
+    # Find the partitioning of the nodes in FESet 1
+    nincludedp = fill(false, count(fens))
+    for i = connectednodes(fesarr[1]) # For nodes connected by region 1
+        nincludedp[i] = true
+    end
+    partitioning1 = nodepartitioning(fens, nincludedp, npartitions[1])
+    totnpartitions = maximum(partitioning1)
+    # Transfer the partitioning of region 1 into the overall partitioning
+    partitioning[nincludedp] = partitioning1[nincludedp]
+    for i = 2:length(npartitions)
+        # Find the partitioning of the nodes in FESet i, but not in the preceding sets
+        nincluded = fill(false, count(fens))
+        for j = connectednodes(fesarr[i]) # For nodes connected by region i
+            nincluded[j] = !nincludedp[j] # Not included previously
+        end
+        partitioning1 = nodepartitioning(fens, nincluded, npartitions[i])
+        np = maximum(partitioning1) # Number of partitions for region i
+        partitioning1 = partitioning1 .+ totnpartitions # shift by the number of partitions in previous regions
+        totnpartitions = totnpartitions + np # Increment the number of partitions
+        partitioning[nincluded] = partitioning1[nincluded] # Update overall partitioning 
+        @. nincludedp = nincluded | nincludedp  # Update the list of nodes that have already been included
+    end
+    return partitioning
 end 
 
 end
