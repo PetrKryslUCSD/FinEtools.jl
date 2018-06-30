@@ -1788,4 +1788,45 @@ end
 using .mfixupdecimal1
 mfixupdecimal1.test()
 
+module mPartitioning6mmmmmm
+using FinEtools
+using LinearAlgebra: norm
+using Test
+function test()
+    H = 30. # strip width
+    L = 20. # length of the strip
+    nL = 15
+    nH = 10
+    fens,fes = Q4block(L, H, nL, nH)
+    reg1 = selectelem(fens, fes; box = [0.0 L/3 0.0 H], inflate = L/nL/1000)
+    reg2 = selectelem(fens, fes; box = [L/3 L 0.0 H/2], inflate = L/nL/1000)
+    reg3 = selectelem(fens, fes; box = [L/3 L H/2 H], inflate = L/nL/1000)
+    fesarr = vec([subset(fes, reg1) subset(fes, reg2) subset(fes, reg3)]) 
+    
+    # Partitioning of all the nodes
+    partitioning = nodepartitioning(fens, fesarr, vec([2 4 2]))
+   @test norm(partitioning .- [2, 2, 2, 2, 2, 2, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 2, 2, 2, 2, 2, 2, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 2, 2, 2, 2, 2, 2, 6, 6,
+   6, 6, 6, 5, 5, 5, 5, 5, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 1, 1, 1, 2, 2, 2, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 1, 1, 1, 1, 1, 1, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 1, 1, 1, 1, 1, 1, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 1, 1, 1, 1, 1, 1, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 1, 1, 1, 1, 1, 1, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]) == 0
+    partitionnumbers = unique(partitioning)
+
+    # Visualize partitioning
+    # for gp = partitionnumbers
+    #   groupnodes = findall(k -> k == gp, partitioning)
+    #   @show groupnodes
+    # #   File =  "partition-nodes-$(gp).vtk"
+    # #   vtkexportmesh(File, fens, FESetP1(reshape(groupnodes, length(groupnodes), 1)))
+    # end 
+    # for i = 1:length(fesarr)
+    #     File =  "mesh-$(i).vtk"
+    #     vtkexportmesh(File, fens, fesarr[i])
+    # end
+    # File =  "mesh-1.vtk"
+    # @async run(`"paraview.exe" $File`)
+end
+end
+using .mPartitioning6mmmmmm
+mPartitioning6mmmmmm.test()
+
+
+
 
