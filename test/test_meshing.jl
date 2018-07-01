@@ -1,6 +1,6 @@
 module miscellaneous2mm
 using FinEtools
-using Compat.Test
+using Test
 function test()
   rho=1.21*1e-9;# mass density
   c =345.0*1000;# millimeters per second
@@ -21,7 +21,7 @@ using .miscellaneous2mm
 module mmmQ4blockneous2mm
 using FinEtools
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
   rho=1.21*1e-9;# mass density
   c =345.0*1000;# millimeters per second
@@ -46,7 +46,7 @@ module miimportexportm
 using FinEtools
 using FinEtools.MeshImportModule
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
   output = MeshImportModule.import_NASTRAN(dirname(@__FILE__) * "/" * "Slot-coarser.nas";
     allocationchunk = 13)
@@ -65,7 +65,7 @@ module miimportexportm2
 using FinEtools
 using FinEtools.MeshImportModule
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
   output = MeshImportModule.import_NASTRAN(dirname(@__FILE__) * "/" * "Slot-coarser-2.nas";
     allocationchunk = 13)
@@ -83,7 +83,7 @@ using .miimportexportm2
 
 module mmmLshapemmm
 using FinEtools
-using Compat.Test
+using Test
 function test()
   # println("""
   # Meshing  for an L-shaped membrane.
@@ -125,7 +125,7 @@ module mAbaqusmmiimportmmm
 using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
-using Compat.Test
+using Test
 function test()
   ## Solid cylinder/taper/sphere—-temperature loading; quadratic brick mesh
 
@@ -213,7 +213,7 @@ using .mAbaqusmmiimportmmm
 
 module mmsmoothingm1
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
 
@@ -266,7 +266,7 @@ using .mmsmoothingm1
 
 module mmsmoothingm2
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
 
@@ -318,7 +318,7 @@ using .mmsmoothingm2
 
 module mmbracketmm
 using FinEtools
-using Compat.Test
+using Test
 function test()
 
     V = VoxelBoxVolume(Int, 6*[5,6,7], [4.0, 4.0, 5.0])
@@ -344,7 +344,7 @@ using .mmbracketmm
 
 module mmmMergem1
 using FinEtools
-using Compat.Test
+using Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -394,7 +394,7 @@ using .mmmMergem1
 
 module mmmMergem2
 using FinEtools
-using Compat.Test
+using Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -444,7 +444,7 @@ using .mmmMergem2
 
 module mmmMergem3
 using FinEtools
-using Compat.Test
+using Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -496,7 +496,7 @@ module mAbaqusmmiimport_1m
 using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
-using Compat.Test
+using Test
 function test()
 
 
@@ -588,7 +588,7 @@ using .mAbaqusmmiimport_1m
 
 module mmfflood1
 using FinEtools
-using Compat.Test
+using Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -640,7 +640,7 @@ using .mmfflood1
 
 module mmfflood2
 using FinEtools
-using Compat.Test
+using Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -694,7 +694,7 @@ module mt4orientation2
 using FinEtools
 using FinEtools.MeshImportModule
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
     xs = collect(linearspace(0.0, 2.0, 5))
     ys = collect(linearspace(0.0, 1.0, 6).^2)
@@ -722,7 +722,7 @@ module mmAbaqusexport3
 using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
-using Compat.Test
+using Test
 function test()
   ## Solid cylinder/taper/sphere—-temperature loading; quadratic brick mesh
 
@@ -816,7 +816,7 @@ using .mmAbaqusexport3
 module mttriangles13
 using FinEtools
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
     xs = collect(linearspace( 1.0, 3.0, 4))
     ys = collect(linearspace(-1.0, 3.0, 4))
@@ -838,7 +838,7 @@ using .mttriangles13
 module mttriangles14
 using FinEtools
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
     xs = collect(linearspace( 1.0, 3.0, 4))
     ys = collect(linearspace(-1.0, 3.0, 5))
@@ -862,7 +862,7 @@ using .mttriangles14
 module mselecte1
 using FinEtools
 
-using Compat.Test
+using Test
 function test()
 
     # println("""
@@ -928,7 +928,7 @@ using .mselecte1
 module mselecte2
 using FinEtools
 
-using Compat.Test
+using Test
 function test()
 
     W = 10.0;
@@ -958,7 +958,7 @@ using .mselecte2
 module mMeyer_Piening_1
 using FinEtools
 using FinEtools.MeshUtilModule
-using Compat.Test
+using Test
 function test()
 
     # Reference results from:
@@ -1008,7 +1008,7 @@ using .mMeyer_Piening_1
 module mMeyer_Piening_2
 using FinEtools
 using FinEtools.MeshUtilModule
-using Compat.Test
+using Test
 function test()
 
     # Reference results from:
@@ -1059,7 +1059,7 @@ using .mMeyer_Piening_2
 module mMeyer_Piening_3
 using FinEtools
 using FinEtools.MeshUtilModule
-using Compat.Test
+using Test
 function test()
 
     # Reference results from:
@@ -1108,7 +1108,7 @@ using .mMeyer_Piening_3
 
 module mmtetblocksmm
 using FinEtools
-using Compat.Test
+using Test
 function test()
     A = 5.0*phun("mm") # length  of loaded rectangle
     B = 20.0*phun("mm") # length  of loaded rectangle
@@ -1158,7 +1158,7 @@ using .mmtetblocksmm
 
 module momap2para1
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     X = [-1.0 -1.0; 2.0 0.4; 1.0 2.3; -2.0 1.0]
@@ -1178,7 +1178,7 @@ using .momap2para1
 
 module momap2para2
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     X = [-1.0 -1.0; 2.0 0.4; 1.0 2.3; -2.0 1.0]
@@ -1205,7 +1205,7 @@ module momap2para3
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
@@ -1270,7 +1270,7 @@ module momap2para4
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
@@ -1344,7 +1344,7 @@ module momap2para5
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
@@ -1420,7 +1420,7 @@ module momap2para6
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
@@ -1495,7 +1495,7 @@ module momap2para7
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
@@ -1570,7 +1570,7 @@ module momap2para8
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
@@ -1646,7 +1646,7 @@ module momap2para9
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
@@ -1721,7 +1721,7 @@ module momap2para10
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
@@ -1796,7 +1796,7 @@ module momap2para11
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
@@ -1871,7 +1871,7 @@ module momap2para12
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
@@ -1946,7 +1946,7 @@ module momap2para13
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm, cross
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
@@ -2017,7 +2017,7 @@ module momap2para14
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm, cross
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
@@ -2088,7 +2088,7 @@ using .momap2para14
 
 module mpointmm1
 using FinEtools
-using Compat.Test
+using Test
 function test()
     x::FFltMat = [i==j ? one(FFlt) : zero(FFlt) for i=1:4, j=1:3]
     fes = FESetP1(reshape([1 2 4 3], 4, 1))
@@ -2113,7 +2113,7 @@ module ml314
 using FinEtools
 using FinEtools.MeshSelectionModule: vselect
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
@@ -2137,7 +2137,7 @@ using .ml314
 module mtetmeshedges1
 using FinEtools
 using FinEtools.MeshTetrahedronModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm, cross
 t =[
      1    17    13    14
@@ -2590,7 +2590,7 @@ using .mtetmeshedges1
 
 module minterior2boundary1
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm, cross
 function test()
     t =[
@@ -2857,7 +2857,7 @@ module mrremeshing1
 using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.TetRemeshingModule
-using Compat.Test
+using Test
 function test()
 L= 0.3; 
 W = 0.3;
@@ -2902,7 +2902,7 @@ using .mrremeshing1
 
 module mmmbbracketmtet1
 using FinEtools
-using Compat.Test
+using Test
 function test()
     
     V = VoxelBoxVolume(Int, 6*[5,6,7], [4.0, 4.0, 5.0])
@@ -2925,7 +2925,7 @@ using .mmmbbracketmtet1
 module mmmremeshingm1m
 using FinEtools
 using FinEtools.VoxelTetMeshingModule
-using Compat.Test
+using Test
 function test()
     V = VoxelBoxVolume(Int, 8*[5,6,7], [4.0, 4.0, 5.0])
     
@@ -2966,7 +2966,7 @@ using FinEtools
 using FinEtools.VoxelBoxModule
 using FinEtools.VoxelTetMeshingModule
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
     V = VoxelBoxVolume(Int, 8*[5,6,7], [4.0, 4.0, 5.0])
     
@@ -3050,7 +3050,7 @@ using .mmvoxel_bracket_mesh
 
 module miscellan3m
 using FinEtools
-using Compat.Test
+using Test
 function test()
     Lx=1900.0;# length of the box, millimeters
     Ly=800.0; # length of the box, millimeters

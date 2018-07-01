@@ -1,7 +1,7 @@
 
 module mmrrigid
 using FinEtools
-using Compat.Test
+using Test
 import Arpack: eigs
 import LinearAlgebra: norm
 function test()
@@ -67,7 +67,7 @@ mmrrigid.test()
 module fahyL2example
 
 using FinEtools
-using Compat.Test
+using Test
 import Arpack: eigs
 function test()
 # println("""
@@ -138,7 +138,7 @@ fahyL2example.test()
 
 module mmfahyH8example
 using FinEtools
-using Compat.Test
+using Test
 import Arpack: eigs
 function test()
 
@@ -197,7 +197,7 @@ mmfahyH8example.test()
 
 module mmfahyH27example
 using FinEtools
-using Compat.Test
+using Test
 import Arpack: eigs
 function test()
 
@@ -257,7 +257,7 @@ mmfahyH27example.test()
 
 module mstraight_duct_H8_1
 using FinEtools
-using Compat.Test
+using Test
 function test()
     t0  =  time()
 
@@ -345,7 +345,7 @@ mstraight_duct_H8_1.test()
 
 module mmsphere_dipole_1
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm, lu, cross
 function test()
 
@@ -469,7 +469,7 @@ mmsphere_dipole_1.test()
 
 module mstraight_duct_T10_examplem
 using FinEtools
-using Compat.Test
+using Test
 function test()
 
 t0  =  time()
@@ -552,7 +552,7 @@ mstraight_duct_T10_examplem.test()
 
 module mmiintegrationmm
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
 rho = 1000.0*phun("kg/m^3");# mass density of water
@@ -617,7 +617,7 @@ mmiintegrationmm.test()
 
 module mmtransientsphere
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm, cross
 function test()
   # println("The interior sphere accelerates in the alternately in the positive
@@ -742,9 +742,10 @@ mmtransientsphere.test()
 
 module mmhhemispheremm
 using FinEtools
-using Compat.Test
+using Test
 using SparseArrays
 import LinearAlgebra: norm, dot, lu, diff, cross
+import Statistics: mean
 function test()
 
   # println("Rigid movable hemisphere in  water. Time-dependent simulation.
@@ -1053,7 +1054,7 @@ mmhhemispheremm.test()
 
 module mmbbaffledmm
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
 rho = 1.21*phun("kg/m^3");# mass density
@@ -1154,7 +1155,7 @@ mmbbaffledmm.test()
 
 module mmtransientmm1mm
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     rho = 1.21*phun("kg/m^3");# mass density
@@ -1293,7 +1294,7 @@ mmtransientmm1mm.test()
 module mmAnnularmm
 using FinEtools
 using FinEtools.AlgoAcoustModule
-using Compat.Test
+using Test
 function test()
 
 

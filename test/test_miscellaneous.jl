@@ -1,6 +1,6 @@
 module mocylpull14a
 using FinEtools
-using Compat.Test
+using Test
 function test()
     MR = DeforModelRed2DAxisymm
     material = MatDeforElastIso(MR, 0.0, 1.0, 0.0, 0.0)
@@ -14,7 +14,7 @@ mocylpull14a.test()
 
 module mocylpull14nnn
 using FinEtools
-using Compat.Test
+using Test
 function test()
     # Cylinder  compressed by enforced displacement, axially symmetric model
 
@@ -99,7 +99,7 @@ mocylpull14nnn.test()
 
 module mmiscellaneous1mmm
 using FinEtools
-using Compat.Test
+using Test
 function test()
   rho=1.21*1e-9;# mass density
   c =345.0*1000;# millimeters per second
@@ -120,7 +120,7 @@ mmiscellaneous1mmm.test()
 
 module mstressconversionm
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
   symmtens(N) = begin t=rand(N, N); t = (t+t')/2.0; end
@@ -189,7 +189,7 @@ mstressconversionm.test()
 
 module mmtwistedeexportmm
 using FinEtools
-using Compat.Test
+using Test
 using FinEtools.MeshExportModule
 function test()
   E = 0.29e8;
@@ -281,7 +281,7 @@ mmtwistedeexportmm.test()
 
 module mmtwistedeexport2mm
 using FinEtools
-using Compat.Test
+using Test
 using FinEtools.MeshExportModule
 function test()
   E = 0.29e8;
@@ -373,7 +373,7 @@ mmtwistedeexport2mm.test()
 module mrichmmm
 using FinEtools
 using FinEtools.AlgoBaseModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
   xs = [93.0734, 92.8633, 92.7252]
@@ -395,7 +395,7 @@ mrichmmm.test()
 
 module mmmeasurementm1
 using FinEtools
-using Compat.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -415,7 +415,7 @@ mmmeasurementm1.test()
 
 module mmmeasurementm2
 using FinEtools
-using Compat.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -436,7 +436,7 @@ mmmeasurementm2.test()
 
 module mmmeasurementm3
 using FinEtools
-using Compat.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -457,7 +457,7 @@ mmmeasurementm3.test()
 
 module mmmeasurementm4
 using FinEtools
-using Compat.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -478,7 +478,7 @@ mmmeasurementm4.test()
 
 module mmmeasurementm5
 using FinEtools
-using Compat.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -501,7 +501,7 @@ mmmeasurementm5.test()
 
 module mmmeasurementm6
 using FinEtools
-using Compat.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -524,7 +524,7 @@ mmmeasurementm6.test()
 
 module mmmeasurementm7
 using FinEtools
-using Compat.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -546,7 +546,7 @@ mmmeasurementm7.test()
 
 module mmmeasurementm8
 using FinEtools
-using Compat.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -568,7 +568,7 @@ mmmeasurementm8.test()
 
 module mmmeasurementm9
 using FinEtools
-using Compat.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -590,7 +590,7 @@ mmmeasurementm9.test()
 
 module mmmeasurementm10
 using FinEtools
-using Compat.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -612,7 +612,7 @@ mmmeasurementm10.test()
 
 module mmmeasurementm11
 using FinEtools
-using Compat.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -634,7 +634,7 @@ mmmeasurementm11.test()
 
 module mmmeasurementm12
 using FinEtools
-using Compat.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -656,7 +656,7 @@ mmmeasurementm12.test()
 
 module mmpartitioning1m
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     a = 10. # radius of the hole
@@ -683,7 +683,7 @@ mmpartitioning1m.test()
 
 module mmpartitioning2m
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     H = 100. # strip width
@@ -708,7 +708,7 @@ mmpartitioning2m.test()
 
 module mmpartitioning3m
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     H = 30. # strip width
@@ -739,7 +739,7 @@ mmpartitioning3m.test()
 
 module mmboxm1
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     a = [0.431345 0.611088 0.913161;
@@ -779,7 +779,7 @@ mmboxm1.test()
 
 module mmMeasurement_1
 using FinEtools
-using Compat.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -802,7 +802,7 @@ mmMeasurement_1.test()
 
 module mphunm2
 using FinEtools
-using Compat.Test
+using Test
 function test()
     for btu in [:SEC :MIN :HR :DY :YR :WK]
         t = 0.333*phun(base_time_units = btu, "s")
@@ -817,7 +817,7 @@ mphunm2.test()
 
 module mphunm3
 using FinEtools
-using Compat.Test
+using Test
 function test()
     for sou in [:SI :US :IMPERIAL :CGS :SIMM]
         t = 0.333*phun(system_of_units = sou, "s")
@@ -833,7 +833,7 @@ mphunm3.test()
 
 module mxmeasurementm1
 using FinEtools
-using Compat.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -853,7 +853,7 @@ mxmeasurementm1.test()
 
 module mxmeasurementm2
 using FinEtools
-using Compat.Test
+using Test
 function test()
     W = 1.1;
     L = 12.;
@@ -875,7 +875,7 @@ mxmeasurementm2.test()
 module mxmeasurementm3
 using FinEtools
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
     W = 4.1;
     L = 12.;
@@ -919,7 +919,7 @@ mxmeasurementm3.test()
 module mxmeasurementm4
 using FinEtools
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
     W = 4.1;
     L = 12.;
@@ -961,7 +961,7 @@ mxmeasurementm4.test()
 module mmmiscellaneous2
 using FinEtools
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
   rho=1.21*1e-9;# mass density
   c =345.0*1000;# millimeters per second
@@ -986,7 +986,7 @@ mmmiscellaneous2.test()
 module mmmiscellaneous3
 using FinEtools
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
   rho=1.21*1e-9;# mass density
   c =345.0*1000;# millimeters per second
@@ -1017,7 +1017,7 @@ mmmiscellaneous3.test()
 
 module mmmfieldmm1
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     W = 4.1;
@@ -1050,7 +1050,7 @@ mmmfieldmm1.test()
 module mmcrossm
 using FinEtools
 using FinEtools.RotationUtilModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm, cross
 function test()
     a = vec([0.1102, -0.369506, -0.0167305])
@@ -1080,7 +1080,7 @@ mmcrossm.test()
 
 module mstresscomponentmap
 using FinEtools
-using Compat.Test
+using Test
 function test()
     MR = DeforModelRed1D
     @test stresscomponentmap(MR)[:x] == 1
@@ -1096,8 +1096,9 @@ module mgen_iso_csmat1
 using FinEtools
 using FinEtools.FESetModule
 using FinEtools.CSysModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm
+import Statistics: mean
 function test()
     L = 2.0
     nl = 1
@@ -1122,8 +1123,9 @@ using FinEtools
 using FinEtools.FESetModule
 using FinEtools.CSysModule
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 import LinearAlgebra: norm
+import Statistics: mean
 function test()
     L = 2.0
     nl = 1
@@ -1152,7 +1154,7 @@ mgen_iso_csmat2.test()
 
 module mmfieldx1
 using FinEtools
-using Compat.Test
+using Test
 function test()
     f = NodalField(zeros(5, 1))
     setebc!(f, [3,4], true, 1;        val=7.0)
@@ -1192,7 +1194,7 @@ mmfieldx1.test()
 
 module mmconnection1
 using FinEtools
-using Compat.Test
+using Test
 function test()
     h = 0.05*phun("M");
     l = 10*h;
@@ -1213,7 +1215,7 @@ mmconnection1.test()
 
 module mmquadrature3
 using FinEtools
-using Compat.Test
+using Test
 function test()
     gr = GaussRule(1,1)
     @test gr.param_coords[1] == 0.0
@@ -1230,7 +1232,7 @@ mmquadrature3.test()
 
 module mmmatchingmm
 using FinEtools.AlgoBaseModule: FDataDict, dcheck!
-using Compat.Test
+using Test
 function test()
     d = FDataDict("postp"=>true, "preprocessing"=>nothing)
     recognized_keys = ["postprocessing", "something",  "else"]
@@ -1246,7 +1248,7 @@ mmmatchingmm.test()
 module mboundary13
 using FinEtools
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
     xs = collect(linearspace( 1.0, 3.0, 4))
     ys = collect(linearspace(-1.0, 5.0, 5))
@@ -1278,7 +1280,7 @@ mboundary13.test()
 module mboundary14
 using FinEtools
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
     xs = collect(linearspace( 1.0, 3.0, 4))
     ys = collect(linearspace(-1.0, 5.0, 5))
@@ -1311,7 +1313,7 @@ mboundary14.test()
 module mboundary15
 using FinEtools
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
     xs = collect(linearspace( 1.0, 3.0, 4))
     ys = collect(linearspace(-1.0, 5.0, 5))
@@ -1348,7 +1350,7 @@ mboundary15.test()
 module mmmCSVm
 using FinEtools
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
     @test savecsv("a", a = rand(3), b = rand(3))
     rm( "a.csv")
@@ -1361,7 +1363,7 @@ mmmCSVm.test()
 module mxmeasurementm3a1
 using FinEtools
 using FinEtools.MeshExportModule
-using Compat.Test
+using Test
 function test()
     W = 4.1;
     L = 12.;
@@ -1418,7 +1420,7 @@ mxmeasurementm3a1.test()
 
 module minnerproduct1
 using FinEtools
-using Compat.Test
+using Test
 using Arpack
 function test()
     kappa = 0.2*[1.0 0; 0 1.0]; # conductivity matrix
@@ -1479,7 +1481,7 @@ minnerproduct1.test()
 
 module minnerproduct2
 using FinEtools
-using Compat.Test
+using Test
 using Arpack
 function test()
     kappa = 0.2*[1.0 0; 0 1.0]; # conductivity matrix
@@ -1541,7 +1543,7 @@ minnerproduct2.test()
 
 module mboxintersection_1
 using FinEtools
-using Compat.Test
+using Test
 import LinearAlgebra: norm
 function test()
     a = [ 0.042525  0.455813  0.528458
@@ -1600,7 +1602,7 @@ mboxintersection_1.test()
 
 module mmmsearcconnectedelements
 using FinEtools
-using Compat.Test
+using Test
 function test()
     rin =  1.0;#internal radius
     rex =  2.0;#external radius
@@ -1635,7 +1637,7 @@ mmmsearcconnectedelements.test()
 
 module mconjugategradient1
 using FinEtools
-using Compat.Test
+using Test
 using SparseArrays
 import LinearAlgebra: norm, dot, lu, diff, cross
 import FinEtools.AlgoBaseModule: conjugategradient
@@ -1665,7 +1667,7 @@ mconjugategradient1.test()
 module mmbisecty
 using FinEtools
 using FinEtools.AlgoBaseModule: bisect
-using Compat.Test
+using Test
 function test()
     xs = [231.7, 239.1, 244.8]
     hs = [(4.0/5.)^i for i in range(0, length = 3)]
@@ -1690,7 +1692,7 @@ mmbisecty.test()
 module mmh2libexporttri
 using FinEtools
 import FinEtools.MeshExportModule: h2libexporttri
-using Compat.Test
+using Test
 function test()
 triangles = [4 3 5
 3 1 2
@@ -1712,7 +1714,7 @@ mmh2libexporttri.test()
 
 module mmqtrapm1
 using FinEtools
-using Compat.Test
+using Test
 using FinEtools.AlgoBaseModule: qtrap, qcovariance, qvariance
 function test()
     ps = range(0, stop=1.0, length = 1000)
@@ -1728,7 +1730,7 @@ mmqtrapm1.test()
 
 module mmqtrapm2
 using FinEtools
-using Compat.Test
+using Test
 using FinEtools.AlgoBaseModule: qtrap, qcovariance, qvariance
 function test()
     ps = range(0, stop=1.0, length = 1000)
@@ -1745,7 +1747,7 @@ mmqtrapm2.test()
 
 module mmqtrapm3
 using FinEtools
-using Compat.Test
+using Test
 using FinEtools.AlgoBaseModule: qtrap, qcovariance, qvariance
 using StatsBase
 function test()
@@ -1767,7 +1769,7 @@ mmqtrapm3.test()
 
 module mfixupdecimal1
 using FinEtools
-using Compat.Test
+using Test
 using FinEtools.MeshImportModule: fixupdecimal
 function test()
     s = fixupdecimal("-10.0-1")
