@@ -27,6 +27,7 @@ import LinearAlgebra: mul!, Transpose, UpperTriangular
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
 import LinearAlgebra: norm, qr, diag, dot, cond
+import Statistics: mean
 
 abstract type FEMMDeforLinearAbstractMS <: FEMMDeforLinearAbstract end
 

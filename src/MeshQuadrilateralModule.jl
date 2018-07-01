@@ -10,6 +10,7 @@ import FinEtools.FESetModule: FESet, FESetQ4, FESetQ8, bfun, cat, connasarray
 import FinEtools.FENodeSetModule: FENodeSet, count
 import FinEtools.MeshModificationModule: mergemeshes
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace, linearspace
+import Statistics: mean
 
 """
     Q4annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)

@@ -13,6 +13,7 @@ import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, l
 import FinEtools.MeshModificationModule: meshboundary, mergemeshes
 import FinEtools.MeshSelectionModule: selectelem, connectednodes
 import LinearAlgebra: norm
+import Statistics: mean
 
 """
     H8block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt)

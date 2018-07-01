@@ -11,6 +11,7 @@ import FinEtools.FENodeSetModule: FENodeSet, spacedim
 import FinEtools.BoxModule: inflatebox!, initbox!, updatebox!, boxesoverlap
 import FinEtools.FENodeToFEMapModule: FENodeToFEMap
 import LinearAlgebra: norm, dot, cross
+import Statistics: mean
 
 """
     connectednodes(fes::FESet)

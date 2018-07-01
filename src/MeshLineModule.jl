@@ -9,6 +9,7 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESetL2, FESetL3
 import FinEtools.MeshUtilModule: linearspace
+import Statistics: mean
 
 """
 L2block(Length::FFlt, nL::FInt)
