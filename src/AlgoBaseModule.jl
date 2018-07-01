@@ -8,6 +8,7 @@ module AlgoBaseModule
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FEMMBaseModule: integratefieldfunction, transferfield!
 import LinearAlgebra: norm, dot
+import Statistics: mean
 
 function _keymatch(key::String, allowed_keys::Array{String})
     matched_key = nothing

@@ -12,6 +12,7 @@ import FinEtools.FESetModule: connasarray
 import FinEtools.MeshModificationModule: interior2boundary, vertexneighbors, smoothertaubin
 import FinEtools.TetRemeshingModule: coarsen
 import LinearAlgebra: norm
+import Statistics: mean
 
 mutable struct  ElementSizeWeightFunction
     influenceweight::FFlt

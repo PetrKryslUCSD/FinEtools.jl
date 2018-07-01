@@ -10,6 +10,7 @@ import FinEtools.FESetModule: count, FESetT4, FESetT10, setlabel!
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
 import FinEtools.MeshSelectionModule: selectelem
+import Statistics: mean
 
 """
     T4block(Length::FFlt, Width::FFlt, Height::FFlt,
