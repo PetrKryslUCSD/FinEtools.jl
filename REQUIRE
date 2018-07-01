@@ -7,4 +7,5 @@ Printf
 Random
 SparseArrays
 StatsBase
+Statistics
 Unicode
