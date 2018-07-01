@@ -1,5 +1,6 @@
 module Poisson_examples
 using FinEtools
+import LinearAlgebra: cholesky
 
 function Poisson_FE_example()
     println("""
