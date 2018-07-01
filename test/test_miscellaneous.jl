@@ -1750,6 +1750,7 @@ using FinEtools
 using Test
 using FinEtools.AlgoBaseModule: qtrap, qcovariance, qvariance
 using StatsBase
+import Statistics: mean, cov
 function test()
     ps = vec([0.0201161  0.0567767  0.123692  0.141182  0.196189  0.311646  0.463708   0.798094  0.832338  0.875213  0.880719  0.947033  0.993938  0.99884]) #sort(rand(20))
     xs = sin.(40.0 * ps)

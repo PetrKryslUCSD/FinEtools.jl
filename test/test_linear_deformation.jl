@@ -923,6 +923,7 @@ mxxxx1_06102017.test()
 module mx_06112017
 using FinEtools
 using Test
+import Statistics: mean
 function test()
   ## Solid cylinder/taper/sphere—-temperature loading; quadratic brick mesh
   #
@@ -1298,6 +1299,7 @@ my_06112017.test()
 module mmmZenkourm
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
+import Statistics: mean
 using Test
 function test()
 
@@ -1569,6 +1571,8 @@ module mmpipemmPSmmm
 using FinEtools
 using Test
 import LinearAlgebra: norm, cholesky, cross, dot
+import Statistics: mean
+
 mutable struct MyIData
     c::FInt
     r::FFltVec
@@ -2081,6 +2085,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Test
 import LinearAlgebra: norm, cholesky, cross
+import Statistics: mean
 function test()
   # println("""
   # Cantilever example.  Strongly orthotropic material. Orientation "y".
@@ -2216,6 +2221,7 @@ module mmmNAFEMS_R0031_3m
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Test
+import Statistics: mean
 function test()
   # println("""
   # NAFEMS publication R0031/3 Composite plate test.
@@ -2331,6 +2337,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 import LinearAlgebra: norm, cholesky, cross
 using Test
+import Statistics: mean
 function test()
 
   # println("""
@@ -2512,6 +2519,7 @@ using FinEtools
 using Test
 using FinEtools.AlgoDeforLinearModule
 import LinearAlgebra: norm, cholesky, cross
+import Statistics: mean
 function test()
   E = 0.29e8;
   nu = 0.22;
@@ -2646,6 +2654,7 @@ using FinEtools
 using Test
 import LinearAlgebra: norm, cholesky, cross
 using FinEtools.AlgoDeforLinearModule
+import Statistics: mean
 function test()
   E = 0.29e8;
   nu = 0.22;
@@ -2873,6 +2882,7 @@ module mmpipemmPSmorthom
 using FinEtools
 using Test
 import LinearAlgebra: norm, cholesky, cross, dot
+import Statistics: mean
 
 mutable struct MyIData
     c::FInt
@@ -6013,6 +6023,7 @@ using FinEtools.MeshExportModule
 # using CSV
 using Test
 import LinearAlgebra: norm, cholesky, cross
+import Statistics: mean
 function test()
     E = 210000*phun("MEGA*PA");# 210e3 MPa
     nu = 0.3;
@@ -6365,6 +6376,7 @@ using FinEtools
 using FinEtools.MeshExportModule
 using Test
 import LinearAlgebra: norm, cholesky, cross
+import Statistics: mean
 function test()
     E = 2.4*phun("MEGA*PA");# 210e3 MPa
     nu = 0.49995;
@@ -6823,6 +6835,7 @@ using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using Test
 import LinearAlgebra: norm, cholesky, cross
+import Statistics: mean
 function test()
 
   # println("""

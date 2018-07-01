@@ -470,6 +470,7 @@ mmsphere_dipole_1.test()
 module mstraight_duct_T10_examplem
 using FinEtools
 using Test
+import Statistics: mean
 function test()
 
 t0  =  time()
