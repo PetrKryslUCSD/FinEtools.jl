@@ -1,7 +1,8 @@
 module LE1NAFEMS_examples
 using FinEtools
 using FinEtools.MeshExportModule
-using PyCall
+using LinearAlgebra: cholesky, norm
+using Gaston
 
 function LE1NAFEMS()
     println("LE1NAFEMS, plane stress.")
@@ -39,7 +40,7 @@ function LE1NAFEMS()
     el1femm =  FEMMBase(IntegData(subset(bdryfes,icl), GaussRule(1, 2)))
     function pfun(forceout::FFltVec, x::FFltMat, J::FFltMat, l::FInt)
         pt= [2.75/3.25*x[1] 3.25/2.75*x[2]]
-        copy!(forceout, vec(p*pt/norm(pt)))
+        copyto!(forceout, vec(p*pt/norm(pt)))
         return forceout
     end
     fi = ForceIntensity(FFlt, 2, pfun);
@@ -162,22 +163,11 @@ function LE1NAFEMS_Q4_convergence()
     end
     
     
-    @pyimport matplotlib.pyplot as plt
-    plt.style[:use]("seaborn-whitegrid")
-    fig = plt.figure() 
-    ax = plt.axes()
-    ax[:plot](vec(nelems), vec(sigyderrs[:extrapmean]), linestyle="none", marker=:o, label="Extrapolated stress")
-    ax[:grid](linestyle="--", linewidth=0.5, color=".25", zorder=-10)
-    ax[:set_xlabel]("Number of elements")
-    ax[:set_ylabel]("Norm. approx. error")
-    plt.legend()
-    plt.show()
-    # plt.xlim(0.0, 1.0)
-    # plt.axis("equal")
-    # 
-    # 
-    
-    
+    set(axis="loglog", plotstyle="linespoints", linewidth=2, pointsize = 2, color = "black", xlabel = "Number of elements", ylabel = "Norm. approx. error", grid="on", title = "")
+    f = figure()
+    plot(vec(Float64.(nelems)), vec(sigyderrs[:extrapmean]); legend="Extrapolated stress")
+    figure(f)
+    true
 end # LE1NAFEMS_Q4_convergence
 
 
@@ -217,7 +207,7 @@ function LE1NAFEMS_Q8_stress()
     el1femm =  FEMMBase(IntegData(subset(bdryfes,icl), GaussRule(1, 3)))
     function pfun(forceout::FFltVec, x::FFltMat, J::FFltMat, l::FInt)
         pt= [2.75/3.25*x[1] 3.25/2.75*x[2]]
-        copy!(forceout, vec(p*pt/norm(pt)))
+        copyto!(forceout, vec(p*pt/norm(pt)))
         return forceout
     end
     fi = ForceIntensity(FFlt, 2, pfun);
