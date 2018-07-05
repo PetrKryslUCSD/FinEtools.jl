@@ -1,6 +1,6 @@
 module T4NAFEMS_examples
 using FinEtools
-using FinEtools.AlgoBaseModule.richextrapol
+using FinEtools.AlgoBaseModule: richextrapol
 
 function T4NAFEMS_T3_algo()
     ## Two-dimensional heat transfer with convection: convergence study

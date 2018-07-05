@@ -1,6 +1,7 @@
 module annulus_examples
 using FinEtools
 using FinEtools.AlgoHeatDiffModule
+using LinearAlgebra: cholesky
 
 function annulus_Q4_example()
     println("""

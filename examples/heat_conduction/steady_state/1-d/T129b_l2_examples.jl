@@ -1,7 +1,8 @@
 module T129b_l2_examples
 using FinEtools
 using FinEtools.AlgoHeatDiffModule
-using PyCall
+using LinearAlgebra: cholesky
+using Gaston
 
 function T129b_l2_uq()
     L = 6.0;
@@ -43,12 +44,10 @@ function T129b_l2_uq()
     println("maximum(U)-0.1102 = $(maximum(U)-0.1102)")
     
     
-    @pyimport matplotlib.pyplot as plt
-    plt.style[:use]("seaborn-whitegrid")
-    fig = plt.figure() 
-    ax = plt.axes()
-    ax[:plot](vec(geom.values), vec(Temp.values), marker=:o, label="")
-    plt.show()
+    set(axis="normal", plotstyle="linespoints", linewidth=2, pointsize = 2, color = "black", xlabel = "Location", ylabel = "Temperature", grid="on", title = "")
+    f = figure()
+    plot(vec(geom.values), vec(Temp.values))
+    figure(f)
     
     # function errfh(loc,val)
     #     x = loc[1]
@@ -107,12 +106,10 @@ function T129b_l2_uq_algo()
     E = integratefieldfunction(femm, geom, Temp, errfh, 0.0, m=3)
     println("Error=$E")
     
-    @pyimport matplotlib.pyplot as plt
-    plt.style[:use]("seaborn-whitegrid")
-    fig = plt.figure() 
-    ax = plt.axes()
-    ax[:plot](vec(geom.values), vec(Temp.values), marker=:o, label="")
-    plt.show()
+    set(axis="normal", plotstyle="linespoints", linewidth=2, pointsize = 2, color = "black", xlabel = "Location", ylabel = "Temperature", grid="on", title = "")
+    f = figure()
+    plot(vec(geom.values), vec(Temp.values))
+    figure(f)
     
 end # T129b_l2_uq_algo
 

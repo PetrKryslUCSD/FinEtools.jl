@@ -1,7 +1,9 @@
-module mmmmmmmmmmmm
+module pnpConcreteColumnsymb_conv_examples
 using FinEtools
-using Compat.Test
-function test()
+using FinEtools.MeshExportModule
+using LinearAlgebra: cholesky
+
+function pnpConcreteColumnsymb_conv()
     println("""
     pnpConcreteColumnsymb_conv.
     Two-dimensional heat transfer with convection.
@@ -46,10 +48,13 @@ function test()
     display(Temp)
     
 end
-end
-using .mmmmmmmmmmmm
-mmmmmmmmmmmm.test()
 
+function allrun()
+    #println("#####################################################") 
+    println("# pnpConcreteColumnsymb_conv ")
+    pnpConcreteColumnsymb_conv()
+    return true
+end # function allrun
 
-
+end # module pnpConcreteColumnsymb_conv_examples
 
