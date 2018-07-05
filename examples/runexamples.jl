@@ -1,25 +1,22 @@
+"""
+    runexamples()
+
+Run all *_examples.jl files in the working folder.  
+"""
 function runexamples()
     origcwd = pwd()
-    packagedir = Pkg.dir("FinEtools")
-    cd(packagedir)
-    exds = readdir("./examples")
+    
+    pkgdir(pkg::String) = abspath(joinpath(dirname(Base.find_package(pkg)), ".."))
+   
+    println("\nExamples in folder $(pwd())\n")
 
-    function doex(ex1)
-        include(ex1)
-    end
-
-    for exd1 in exds
-        cd("./examples/" * exd1);
-        println("\nExamples in folder $(pwd())\n")
-        exss = readdir(".")
-        for ex1 in exss
-            n,ext = splitext(ex1)
-            if ext==".jl"
-                println("\nExample $ex1 in $(pwd()) ($n $ext)\n")
-                doex(ex1)
-            end
+    for ex1 in readdir(".")
+        if occursin(r".*_examples.jl", ex1)
+            println("\nExample $ex1 in $(pwd())\n")
+            include(ex1);
+            n, ext = splitext(ex1)
+            Meta.eval(Meta.parse("Main." * n * ".allrun()"))
         end
-        cd(packagedir)
     end
 
     cd(origcwd)
