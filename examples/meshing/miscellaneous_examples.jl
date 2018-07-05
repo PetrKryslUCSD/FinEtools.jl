@@ -72,8 +72,8 @@ function composite_plate_mesh()
     L = 200. # length of the strip
     nL = 15
     nH = 10
-    xs = collect(linspace(0.0, L, nL+1))
-    ys = collect(linspace(0.0, H, nH+1))
+    xs = collect(linearspace(0.0, L, nL+1))
+    ys = collect(linearspace(0.0, H, nH+1))
     ts = [0.5; 2.0; 0.5; 2.0]
     nts = [1; 2; 2; 1; ]
     fens,fes = H8layeredplatex(xs, ys, ts, nts)

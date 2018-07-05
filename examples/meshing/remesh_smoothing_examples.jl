@@ -18,7 +18,7 @@ function remesh1()
     bfes = meshboundary(fes);
     f = connectednodes(bfes);
     bv = zeros(Bool, size(v,1));
-    bv[f] = true;
+    bv[f] .= true;
     
     println("Mesh size: initial = $(size(t,1))")
     t0 = time()
@@ -64,7 +64,7 @@ function mesh_smoothing()
     println("$(fens.xyz[Int(N^2 / 2), :] )")
     
     fixedv = falses(count(fens))
-    fixedv[bnl] = true
+    fixedv[bnl] .= true
     fens = meshsmoothing(fens, fes; fixedv=fixedv, method=:taubin, npass=100)
     
     println("$(fens.xyz[Int(N^2 / 2), :] )")
