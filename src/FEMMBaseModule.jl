@@ -284,7 +284,7 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENo
                     for e = el
                         c = [k for k in fescsub.conn[e]] #c = view(fescsub.conn, e, :)
                         pc, success = map2parametric(fescsub, fenscsub.xyz[c, :],
-                            vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
+                            vec(fensf.xyz[i, :]); tolerance = 0.000001, maxiter =7)
                         @assert success # this shouldn't be tripped; normally we succeed
                         if inparametric(fescsub, pc; tolerance = parametrictolerance) # coarse mesh element encloses the node
                             N = bfun(fescsub,  pc)
@@ -349,7 +349,7 @@ end
 
 """
     transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
-        fc::F, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
+        fc::F, fensc::FENodeSet, fesc::FESet, geometricaltolerance::FFlt; parametrictolerance::FFlt = 0.01
         )  where {T<:Number, F<:ElementalField{T}}
 
 Transfer a elemental field from a coarse mesh to a finer one.
@@ -360,7 +360,7 @@ Transfer a elemental field from a coarse mesh to a finer one.
 `fesc` = finite element set for the coarse mesh
 `tolerance` = tolerance in physical space for searches of the adjacent nodes
 """
-function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENodeSet, fesc::FESet,  tolerance::FFlt)  where {T<:Number, F<:ElementalField{T}}
+function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENodeSet, fesc::FESet, geometricaltolerance::FFlt; parametrictolerance::FFlt = 0.01)  where {T<:Number, F<:ElementalField{T}}
     @assert count(fesf) == nents(ff)
     nodebox = initbox!([], vec(fensc.xyz[1, :]))
     centroidpc = centroidparametric(fesf)
@@ -370,13 +370,13 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENo
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         nodebox = initbox!(nodebox, vec(centroid))
-        nodebox = inflatebox!(nodebox, tolerance)
+        nodebox = inflatebox!(nodebox, geometricaltolerance)
         el = selectelem(fensc, fesc; overlappingbox = nodebox)
         foundone = false
         for e = el
             c = [k for k in fesc.conn[e]]
             pc, success = map2parametric(fesc, fensc.xyz[c, :],
-                vec(centroid); Tolerance = 0.000001, maxiter =9)
+                vec(centroid); tolerance = 0.000001, maxiter =9)
             # if !success
             # println("pc = $(pc)")
             # N1 = bfun(fesf, pc)

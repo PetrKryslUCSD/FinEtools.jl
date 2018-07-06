@@ -210,18 +210,19 @@ end
 
 """
     map2parametric(self::T, x::FFltMat, pt::FFltVec;
-        Tolerance = 0.001, maxiter =5) where {T<:FESet}
+        tolerance = 0.001, maxiter =5) where {T<:FESet}
 
 Map a spatial location to parametric coordinates.
 
 `x`=array of spatial coordinates of the nodes, size(x) = nbfuns x dim,
 `c`= spatial location
+`tolerance` = tolerance in parametric coordinates; default is 0.001.
 Returns
 `success` = Boolean flag, true if successful, false otherwise.
 `pc` = Returns a row array of parametric coordinates if the solution was
 successful, otherwise NaN are returned.
 """
-function map2parametric(self::T, x::FFltMat, pt::FFltVec; Tolerance = 0.001, maxiter =5) where {T<:FESet}
+function map2parametric(self::T, x::FFltMat, pt::FFltVec; tolerance = 0.001, maxiter =5) where {T<:FESet}
     sdim = size(x, 2); # number of space dimensions
     mdim = manifdim(self); # manifold dimension of the element
     ppc = zeros(mdim);
@@ -235,7 +236,7 @@ function map2parametric(self::T, x::FFltMat, pt::FFltVec; Tolerance = 0.001, max
         N = privbfun(self, pc);
         At_mul_B!(loc, N, x);# Iterated point location
         pc[:] = ppc .- (J\(vec(loc) - pt))
-        if (norm(pc-ppc) < Tolerance)
+        if (norm(pc-ppc) < tolerance)
             return pc, success;
         end
         ppc[:] = pc[:];
@@ -412,9 +413,9 @@ function privcentroidparametric(self::FESetP1)
 end
 
 function map2parametric(self::FESetP1, x::FFltMat, pt::FFltVec;
-    Tolerance = 0.001, maxiter =5)
+    tolerance = 0.001, maxiter =5)
     success = false; pc = [0.0]
-    if norm(vec(x) - pt) < Tolerance
+    if norm(vec(x) - pt) < tolerance
         success = true
     end
     return pc, success;
