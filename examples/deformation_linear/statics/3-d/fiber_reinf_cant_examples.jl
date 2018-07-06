@@ -2,8 +2,8 @@ module fiber_reinf_cant_examples
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 # using IterativeSolvers
-
-
+using Statistics: mean
+using LinearAlgebra: Symmetric, cholesky
 
 function fiber_reinf_cant_iso()
     println("""
@@ -50,9 +50,9 @@ function fiber_reinf_cant_iso()
     na = n # number of elements lengthwise
     nb = n # number of elements through the wwith
     nt = n # number of elements through the thickness
-    xs = collect(linspace(0.0, a, na+1))
-    ys = collect(linspace(0.0, b, nb+1))
-    ts = collect(linspace(0.0, t, nt+1))
+    xs = collect(linearspace(0.0, a, na+1))
+    ys = collect(linearspace(0.0, b, nb+1))
+    ts = collect(linearspace(0.0, t, nt+1))
     fens,fes = H8blockx(xs, ys, ts)
     fens,fes = H8toH20(fens,fes)
     bfes = meshboundary(fes)
@@ -72,7 +72,7 @@ function fiber_reinf_cant_iso()
     csmat = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
     
     function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-        copy!(csmatout, csmat)
+        copyto!(csmatout, csmat)
     end
     
     gr = GaussRule(3, 2)
@@ -86,7 +86,7 @@ function fiber_reinf_cant_iso()
     ex03 = FDataDict( "displacement"=>  0.0, "component"=> 3, "node_list"=>lx0 )
     
     function getshr!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-        copy!(forceout, q0*[0.0; 0.0; 1.0])
+        copyto!(forceout, q0*[0.0; 0.0; 1.0])
     end
     
     Trac = FDataDict("traction_vector"=>getshr!, "femm"=>FEMMBase(IntegData(subset(bfes, sshearl), GaussRule(2, 3))))
@@ -156,9 +156,9 @@ function fiber_reinf_cant_iso_stresses()
         na = n # number of elements lengthwise
         nb = n # number of elements through the wwith
         nt = n # number of elements through the thickness
-        xs = collect(linspace(0.0, a, na+1))
-        ys = collect(linspace(0.0, b, nb+1))
-        ts = collect(linspace(0.0, t, nt+1))
+        xs = collect(linearspace(0.0, a, na+1))
+        ys = collect(linearspace(0.0, b, nb+1))
+        ts = collect(linearspace(0.0, t, nt+1))
         fens,fes = H8blockx(xs, ys, ts)
         # fens,fes = H8toH20(fens,fes)
         bfes = meshboundary(fes)
@@ -178,7 +178,7 @@ function fiber_reinf_cant_iso_stresses()
         csmat = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
         
         function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-            copy!(csmatout, csmat)
+            copyto!(csmatout, csmat)
         end
         
         gr = GaussRule(3, 2)
@@ -193,7 +193,7 @@ function fiber_reinf_cant_iso_stresses()
         ex03 = FDataDict( "displacement"=>  0.0, "component"=> 3, "node_list"=>lx0 )
         
         function getshr!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-            copy!(forceout, q0*[0.0; 0.0; 1.0])
+            copyto!(forceout, q0*[0.0; 0.0; 1.0])
         end
         
         Trac = FDataDict("traction_vector"=>getshr!,
@@ -276,9 +276,9 @@ function fiber_reinf_cant_iso_stresses_MST10()
         na = n # number of elements lengthwise
         nb = n # number of elements through the wwith
         nt = n # number of elements through the thickness
-        xs = collect(linspace(0.0, a, na+1))
-        ys = collect(linspace(0.0, b, nb+1))
-        ts = collect(linspace(0.0, t, nt+1))
+        xs = collect(linearspace(0.0, a, na+1))
+        ys = collect(linearspace(0.0, b, nb+1))
+        ts = collect(linearspace(0.0, t, nt+1))
         fens,fes = T10blockx(xs, ys, ts)
         bfes = meshboundary(fes)
         # end cross-section surface  for the shear loading
@@ -297,7 +297,7 @@ function fiber_reinf_cant_iso_stresses_MST10()
         csmat = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
         
         function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-            copy!(csmatout, csmat)
+            copyto!(csmatout, csmat)
         end
         
         gr = SimplexRule(3, 4)
@@ -312,7 +312,7 @@ function fiber_reinf_cant_iso_stresses_MST10()
         ex03 = FDataDict( "displacement"=>  0.0, "component"=> 3, "node_list"=>lx0 )
         
         function getshr!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-            copy!(forceout, q0*[0.0; 0.0; 1.0])
+            copyto!(forceout, q0*[0.0; 0.0; 1.0])
         end
         
         Trac = FDataDict("traction_vector"=>getshr!,
@@ -402,9 +402,9 @@ function fiber_reinf_cant_iso_stresses_T10()
         na = n # number of elements lengthwise
         nb = n # number of elements through the wwith
         nt = n # number of elements through the thickness
-        xs = collect(linspace(0.0, a, na+1))
-        ys = collect(linspace(0.0, b, nb+1))
-        ts = collect(linspace(0.0, t, nt+1))
+        xs = collect(linearspace(0.0, a, na+1))
+        ys = collect(linearspace(0.0, b, nb+1))
+        ts = collect(linearspace(0.0, t, nt+1))
         fens,fes = T10blockx(xs, ys, ts)
         bfes = meshboundary(fes)
         # end cross-section surface  for the shear loading
@@ -423,7 +423,7 @@ function fiber_reinf_cant_iso_stresses_T10()
         csmat = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
         
         function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-            copy!(csmatout, csmat)
+            copyto!(csmatout, csmat)
         end
         
         gr = SimplexRule(3, 4)
@@ -438,7 +438,7 @@ function fiber_reinf_cant_iso_stresses_T10()
         ex03 = FDataDict( "displacement"=>  0.0, "component"=> 3, "node_list"=>lx0 )
         
         function getshr!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-            copy!(forceout, q0*[0.0; 0.0; 1.0])
+            copyto!(forceout, q0*[0.0; 0.0; 1.0])
         end
         
         Trac = FDataDict("traction_vector"=>getshr!,
@@ -536,9 +536,9 @@ function fiber_reinf_cant_yn_strong()
     na = 8*n # number of elements lengthwise
     nb = n # number of elements through the wwith
     nt = n # number of elements through the thickness
-    xs = collect(linspace(0.0, a, na+1))
-    ys = collect(linspace(0.0, b, nb+1))
-    ts = collect(linspace(0.0, t, nt+1))
+    xs = collect(linearspace(0.0, a, na+1))
+    ys = collect(linearspace(0.0, b, nb+1))
+    ts = collect(linearspace(0.0, t, nt+1))
     fens,fes = H8blockx(xs, ys, ts)
     fens,fes = H8toH20(fens,fes)
     bfes = meshboundary(fes)
@@ -559,7 +559,7 @@ function fiber_reinf_cant_yn_strong()
     rotmat3!(csmat, -45.0/180.0*pi*[0,1,0])
     
     function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-        copy!(csmatout, csmat)
+        copyto!(csmatout, csmat)
     end
     
     gr = GaussRule(3, 2)
@@ -573,7 +573,7 @@ function fiber_reinf_cant_yn_strong()
     ex03 = FDataDict( "displacement"=>  0.0, "component"=> 3, "node_list"=>lx0 )
     
     function getshr!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-        copy!(forceout, q0*[0.0; 0.0; 1.0])
+        copyto!(forceout, q0*[0.0; 0.0; 1.0])
     end
     
     Trac = FDataDict("traction_vector"=>getshr!, "femm"=>FEMMBase(IntegData(subset(bfes, sshearl), GaussRule(2, 3))))
@@ -655,13 +655,13 @@ function fiber_reinf_cant_yn_strong_no_algo()
     tolerance = 0.00001*t
     
     # Generate mesh
-    n = 20
+    n = 10
     na = n # number of elements lengthwise
     nb = n # number of elements through the wwith
     nt = n # number of elements through the thickness
-    xs = collect(linspace(0.0, a, na+1))
-    ys = collect(linspace(0.0, b, nb+1))
-    ts = collect(linspace(0.0, t, nt+1))
+    xs = collect(linearspace(0.0, a, na+1))
+    ys = collect(linearspace(0.0, b, nb+1))
+    ts = collect(linearspace(0.0, t, nt+1))
     println("fens,fes = H8blockx(xs, ys, ts)")
     @time fens,fes = H8blockx(xs, ys, ts)
     println("fens,fes = H8toH20(fens,fes)")
@@ -685,7 +685,7 @@ function fiber_reinf_cant_yn_strong_no_algo()
     rotmat3!(csmat, -45.0/180.0*pi*[0,1,0])
     
     function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-        copy!(csmatout, csmat)
+        copyto!(csmatout, csmat)
     end
     
     gr = GaussRule(3, 2)
@@ -708,7 +708,7 @@ function fiber_reinf_cant_yn_strong_no_algo()
     numberdofs!(u)
     
     function getshr!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-        copy!(forceout, q0*[0.0; 0.0; 1.0])
+        copyto!(forceout, q0*[0.0; 0.0; 1.0])
     end
     
     Tracfemm = FEMMBase(IntegData(subset(bfes, sshearl), GaussRule(2, 3)))

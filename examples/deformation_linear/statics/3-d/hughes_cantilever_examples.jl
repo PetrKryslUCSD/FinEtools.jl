@@ -2,6 +2,8 @@ module hughes_cantilever_examples
 using FinEtools
 using FinEtools.AlgoBaseModule: evalconvergencestudy
 using FinEtools.AlgoDeforLinearModule: linearstatics, exportstresselementwise, exportstress
+using Statistics: mean
+using LinearAlgebra: Symmetric, cholesky
 
 function evaluateerrors(filebase, modeldatasequence)
     println("")
@@ -80,9 +82,9 @@ function hughes_cantilever_stresses_MST10()
         nL = 3*n # number of elements lengthwise
         nc = 2*n # number of elements through the wwith
         nh = n # number of elements through the thickness
-        xs = collect(linspace(0.0, L, nL+1))
-        ys = collect(linspace(0.0, h, nh+1))
-        zs = collect(linspace(-c, +c, nc+1))
+        xs = collect(linearspace(0.0, L, nL+1))
+        ys = collect(linearspace(0.0, h, nh+1))
+        zs = collect(linearspace(-c, +c, nc+1))
         fens,fes = T10blockx(xs, ys, zs)
         bfes = meshboundary(fes)
         # end cross-section surface  for the shear loading
@@ -98,7 +100,7 @@ function hughes_cantilever_stresses_MST10()
         csmat = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
         
         function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-            copy!(csmatout, csmat)
+            copyto!(csmatout, csmat)
         end
         
         gr = SimplexRule(3, 4)
@@ -122,12 +124,12 @@ function hughes_cantilever_stresses_MST10()
         
         function getfrcL!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             W=2/3*c^3;
-            copy!(forceout, [0.0; 0.0; P/2/W*(c^2-XYZ[3]^2)])
+            copyto!(forceout, [0.0; 0.0; P/2/W*(c^2-XYZ[3]^2)])
         end
         
         function getfrc0!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             W=2/3*c^3;
-            copy!(forceout, [P*L/W*XYZ[3]; 0.0; -P/2/W*(c^2-XYZ[3]^2)])
+            copyto!(forceout, [P*L/W*XYZ[3]; 0.0; -P/2/W*(c^2-XYZ[3]^2)])
         end
         
         Trac0 = FDataDict("traction_vector"=>getfrc0!,
@@ -201,9 +203,9 @@ function hughes_cantilever_stresses_MST10_incompressible()
         nL = 3*n # number of elements lengthwise
         nc = 2*n # number of elements through the wwith
         nh = n # number of elements through the thickness
-        xs = collect(linspace(0.0, L, nL+1))
-        ys = collect(linspace(0.0, h, nh+1))
-        zs = collect(linspace(-c, +c, nc+1))
+        xs = collect(linearspace(0.0, L, nL+1))
+        ys = collect(linearspace(0.0, h, nh+1))
+        zs = collect(linearspace(-c, +c, nc+1))
         fens,fes = T10blockx(xs, ys, zs)
         bfes = meshboundary(fes)
         # end cross-section surface  for the shear loading
@@ -218,7 +220,7 @@ function hughes_cantilever_stresses_MST10_incompressible()
         csmat = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
         
         function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-            copy!(csmatout, csmat)
+            copyto!(csmatout, csmat)
         end
         
         gr = SimplexRule(3, 4)
@@ -242,12 +244,12 @@ function hughes_cantilever_stresses_MST10_incompressible()
         
         function getfrcL!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             W=2/3*c^3;
-            copy!(forceout, [0.0; 0.0; P/2/W*(c^2-XYZ[3]^2)])
+            copyto!(forceout, [0.0; 0.0; P/2/W*(c^2-XYZ[3]^2)])
         end
         
         function getfrc0!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             W=2/3*c^3;
-            copy!(forceout, [P*L/W*XYZ[3]; 0.0; -P/2/W*(c^2-XYZ[3]^2)])
+            copyto!(forceout, [P*L/W*XYZ[3]; 0.0; -P/2/W*(c^2-XYZ[3]^2)])
         end
         
         Trac0 = FDataDict("traction_vector"=>getfrc0!,
@@ -323,9 +325,9 @@ function hughes_cantilever_stresses_nodal_MST10()
         nL = 3*n # number of elements lengthwise
         nc = 2*n # number of elements through the wwith
         nh = n # number of elements through the thickness
-        xs = collect(linspace(0.0, L, nL+1))
-        ys = collect(linspace(0.0, h, nh+1))
-        zs = collect(linspace(-c, +c, nc+1))
+        xs = collect(linearspace(0.0, L, nL+1))
+        ys = collect(linearspace(0.0, h, nh+1))
+        zs = collect(linearspace(-c, +c, nc+1))
         fens,fes = T10blockx(xs, ys, zs)
         bfes = meshboundary(fes)
         # end cross-section surface  for the shear loading
@@ -340,7 +342,7 @@ function hughes_cantilever_stresses_nodal_MST10()
         csmat = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
         
         function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-            copy!(csmatout, csmat)
+            copyto!(csmatout, csmat)
         end
         
         gr = SimplexRule(3, 4) # rule for tetrahedral meshes
@@ -364,12 +366,12 @@ function hughes_cantilever_stresses_nodal_MST10()
         
         function getfrcL!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             W=2/3*c^3;
-            copy!(forceout, [0.0; 0.0; P/2/W*(c^2-XYZ[3]^2)])
+            copyto!(forceout, [0.0; 0.0; P/2/W*(c^2-XYZ[3]^2)])
         end
         
         function getfrc0!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             W=2/3*c^3;
-            copy!(forceout, [P*L/W*XYZ[3]; 0.0; -P/2/W*(c^2-XYZ[3]^2)])
+            copyto!(forceout, [P*L/W*XYZ[3]; 0.0; -P/2/W*(c^2-XYZ[3]^2)])
         end
         
         Trac0 = FDataDict("traction_vector"=>getfrc0!,
@@ -440,9 +442,9 @@ function hughes_cantilever_stresses_nodal_T10()
         nL = 3*n # number of elements lengthwise
         nc = 2*n # number of elements through the wwith
         nh = n # number of elements through the thickness
-        xs = collect(linspace(0.0, L, nL+1))
-        ys = collect(linspace(0.0, h, nh+1))
-        zs = collect(linspace(-c, +c, nc+1))
+        xs = collect(linearspace(0.0, L, nL+1))
+        ys = collect(linearspace(0.0, h, nh+1))
+        zs = collect(linearspace(-c, +c, nc+1))
         fens,fes = T10blockx(xs, ys, zs)
         bfes = meshboundary(fes)
         # end cross-section surface  for the shear loading
@@ -458,7 +460,7 @@ function hughes_cantilever_stresses_nodal_T10()
         csmat = [i==j? 1.0: 0.0 for i=1:3, j=1:3]
         
         function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-            copy!(csmatout, csmat)
+            copyto!(csmatout, csmat)
         end
         
         gr = SimplexRule(3, 4)
@@ -482,12 +484,12 @@ function hughes_cantilever_stresses_nodal_T10()
         
         function getfrcL!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             W=2/3*c^3;
-            copy!(forceout, [0.0; 0.0; P/2/W*(c^2-XYZ[3]^2)])
+            copyto!(forceout, [0.0; 0.0; P/2/W*(c^2-XYZ[3]^2)])
         end
         
         function getfrc0!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             W=2/3*c^3;
-            copy!(forceout, [P*L/W*XYZ[3]; 0.0; -P/2/W*(c^2-XYZ[3]^2)])
+            copyto!(forceout, [P*L/W*XYZ[3]; 0.0; -P/2/W*(c^2-XYZ[3]^2)])
         end
         
         Trac0 = FDataDict("traction_vector"=>getfrc0!,
@@ -558,9 +560,9 @@ function hughes_cantilever_stresses_T10()
         nL = 3*n # number of elements lengthwise
         nc = 2*n # number of elements through the wwith
         nh = n # number of elements through the thickness
-        xs = collect(linspace(0.0, L, nL+1))
-        ys = collect(linspace(0.0, h, nh+1))
-        zs = collect(linspace(-c, +c, nc+1))
+        xs = collect(linearspace(0.0, L, nL+1))
+        ys = collect(linearspace(0.0, h, nh+1))
+        zs = collect(linearspace(-c, +c, nc+1))
         fens,fes = T10blockx(xs, ys, zs)
         bfes = meshboundary(fes)
         # end cross-section surface  for the shear loading
@@ -576,7 +578,7 @@ function hughes_cantilever_stresses_T10()
         csmat = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
         
         function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-            copy!(csmatout, csmat)
+            copyto!(csmatout, csmat)
         end
         
         gr = SimplexRule(3, 4)
@@ -600,12 +602,12 @@ function hughes_cantilever_stresses_T10()
         
         function getfrcL!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             W=2/3*c^3;
-            copy!(forceout, [0.0; 0.0; P/2/W*(c^2-XYZ[3]^2)])
+            copyto!(forceout, [0.0; 0.0; P/2/W*(c^2-XYZ[3]^2)])
         end
         
         function getfrc0!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             W=2/3*c^3;
-            copy!(forceout, [P*L/W*XYZ[3]; 0.0; -P/2/W*(c^2-XYZ[3]^2)])
+            copyto!(forceout, [P*L/W*XYZ[3]; 0.0; -P/2/W*(c^2-XYZ[3]^2)])
         end
         
         Trac0 = FDataDict("traction_vector"=>getfrc0!,
@@ -681,9 +683,9 @@ function hughes_cantilever_stresses_T10_incompressible()
         nL = 3*n # number of elements lengthwise
         nc = 2*n # number of elements through the wwith
         nh = n # number of elements through the thickness
-        xs = collect(linspace(0.0, L, nL+1))
-        ys = collect(linspace(0.0, h, nh+1))
-        zs = collect(linspace(-c, +c, nc+1))
+        xs = collect(linearspace(0.0, L, nL+1))
+        ys = collect(linearspace(0.0, h, nh+1))
+        zs = collect(linearspace(-c, +c, nc+1))
         fens,fes = T10blockx(xs, ys, zs)
         bfes = meshboundary(fes)
         # end cross-section surface  for the shear loading
@@ -698,7 +700,7 @@ function hughes_cantilever_stresses_T10_incompressible()
         csmat = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
         
         function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-            copy!(csmatout, csmat)
+            copyto!(csmatout, csmat)
         end
         
         gr = SimplexRule(3, 4)
@@ -722,12 +724,12 @@ function hughes_cantilever_stresses_T10_incompressible()
         
         function getfrcL!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             W=2/3*c^3;
-            copy!(forceout, [0.0; 0.0; P/2/W*(c^2-XYZ[3]^2)])
+            copyto!(forceout, [0.0; 0.0; P/2/W*(c^2-XYZ[3]^2)])
         end
         
         function getfrc0!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             W=2/3*c^3;
-            copy!(forceout, [P*L/W*XYZ[3]; 0.0; -P/2/W*(c^2-XYZ[3]^2)])
+            copyto!(forceout, [P*L/W*XYZ[3]; 0.0; -P/2/W*(c^2-XYZ[3]^2)])
         end
         
         Trac0 = FDataDict("traction_vector"=>getfrc0!,

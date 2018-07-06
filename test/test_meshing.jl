@@ -1186,7 +1186,7 @@ function test()
     fes = FESetQ4(reshape([1 2 3 4], 1, 4))
     pt = [3.1 0.2]
     pc, success = map2parametric(fes, fens.xyz[[i for i in fes.conn[1]], :], vec(pt);
-        Tolerance = 0.000001, maxiter =7)
+        tolerance = 0.000001, maxiter =7)
     # println("pc = $(pc)")
     N = bfun(fes,  pc)
     pt1 = transpose(N) * fens.xyz[[i for i in fes.conn[1]], :]

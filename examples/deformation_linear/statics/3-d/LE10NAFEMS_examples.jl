@@ -4,6 +4,7 @@ using FinEtools.MeshExportModule
 using FinEtools.MeshImportModule
 using FinEtools.AlgoBaseModule: evalconvergencestudy
 using FinEtools.AlgoDeforLinearModule: linearstatics, exportstresselementwise, exportstress
+using LinearAlgebra: cholesky
 
 function LE10NAFEMS_Abaqus_fine_MST10()
     # Thick elliptical plate with an elliptical hole is clamped on its exterior
@@ -2630,7 +2631,8 @@ function LE10NAFEMS_MST10_stresses_nodal()
         for ref in  [0, 1, 2, 3]
             tolerance = Thickness/2^ref/1000.; # Geometrical tolerance
             
-            nr, nc, nt = 2^ref*5, 2^ref*6, 2^ref*2
+            # nr, nc, nt = 2^ref*5, 2^ref*6, 2^ref*2 # July 5, 2018
+            nr, nc, nt = 2^ref*3, 2^ref*4, 2^ref*2
             @assert nt % 2 == 0 "Number of elements through the thickness must be even"
             fens,fes = T10block(1.0, pi/2, Thickness, nr, nc, nt, orientation=:b)
             
