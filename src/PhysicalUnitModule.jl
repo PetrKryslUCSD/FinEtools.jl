@@ -241,7 +241,7 @@ function phun(str::String; system_of_units = :SI, base_time_units = :SEC)
     end
 
     ostr  =  replacesymbols(d, str);
-    val  =  Core.eval(Meta.parse(ostr));
+    val  =  Core.eval(Main, Meta.parse(ostr));
     return val
 end
 
