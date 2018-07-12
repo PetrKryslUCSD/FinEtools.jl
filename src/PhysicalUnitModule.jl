@@ -1,6 +1,5 @@
 """
     PhysicalUnitModule
-
 Module  to handle use of physical units in constant definitions.  
 """
 module PhysicalUnitModule
@@ -9,128 +8,30 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 # using Unicode
 
 """
-    physunitdict(;system_of_units = :SI, base_time_units = :SEC)
-
+    _physunitdict(system_of_units, base_time_units)
 Create a dictionary with physical unit conversion factors.
-
 Inputs:
---system_of_units
-
-if system_of_units  ==  'US' or system_of_units  ==  3
+--`system_of_units`
+if system_of_units  ==  :US 
    basic assumed units are American Engineering:
    LENGTH = FT, TIME = SEC, MASS = SLUG TEMPERATURE = RAN FORCE = LB
-
-elseif system_of_units  ==  'CGS' or system_of_units  ==  2,
+elseif system_of_units  ==  :CGS 
    basic assumed units are Centimeter,Gram,Second:
    LENGTH = CM, TIME = SEC, MASS = GM TEMPERATURE = K FORCE = DYNE
-
-elseif system_of_units  ==  'IMPERIAL' or system_of_units  ==  4,
+elseif system_of_units  ==  :IMPERIAL
    basic assumed units are Imperial:
    LENGTH = FT, TIME = SEC, MASS = SLUG TEMPERATURE = RAN FORCE = LB
-
 otherwise,
-   basic assumed units are SI (default):
+   basic assumed units are :SIM (equivalent to :SI, default):
    LENGTH = M , TIME = SEC, MASS = KG   TEMPERATURE = K   FORCE = N
-
---base_time_units defaults to SEC
-
+--`base_time_units` defaults to :SEC
 """
-function physunitdict(;system_of_units = :SI, base_time_units = :SEC)
-  # Outputs:
-    #    u  =  struct with fields
-    #         SEC,MIN,HR,DAY,WK,MONTH,YR,FT,SLUG,RAN,...
-    #         M,KG,K,CM,GM,DEG,REV,...
-    #         IN,NMI,YD,MM,MILE,G,LB,NT,OZ,LBM,KT,...
-    #         MPH,PSI,PA,BAR,ATM,TORR,mmHG,J,...
-    #         CAL,MEV,ERG,BTU,W,MW,HP,A,V,...
-    #         HZ,RPS,RPM,L,GAL,GPM
-    #
-    # SEC  =  second
-    #
-    # # time conversions
-    # MIN  =  Minute
-    # HR  =  hour
-    # DAY  =  Day
-    # WK  =  Week
-    # MONTH  =  Month
-    # YR  =  Year
-    #
-    #
-    # # prefixes
-    # NANO = 10^(-9)
-    # MICRO = 10^(-6);
-    # MILLI = 10^(-3);
-    # KILO = 10^3;
-    # MEGA = 10^6;
-    # GIGA = 10^9;
-    # TERA = 10^12;
-    #
-    # #  angles
-    # RAD = Radian (angle)
-    # DEG = Degree (angle)
-    # REV = Measure of angles in terms of revolutions
-    #
-    # # Length
-    # IN = Inch
-    # NMI = Nautical mile
-    # CM = Centimeter
-    # YD = Yard
-    # MM = Millimeter
-    # MILE = Mile
-    # G = Gravity acceleration
-    #
-    # # Temperature
-    # K =  Degrees Kelvin
-    # RAN =  Degrees Rankine
-    #
-    # # Force
-    # LB = Pound
-    # NT = newton
-    # OZ = ounce
-    # LBM =  Pound of mass
-    #
-    # # Speed
-    # KT = knot
-    # MPH = mile per hour
-    #
-    # # Pressure
-    # PSI = Pound per square inch
-    # PA =  Pascal
-    # BAR = Bar
-    # ATM = Atmosphere
-    # TORR = torr
-    # mmHG = mm Hg
-    # BA = CGS unit of pressure, dyne/cm^2
-    #
-    # # Work and power
-    # J =  Joule
-    # CAL  =  Calorie
-    # MEV  =  Mega electron volt
-    # ERG  =  erg
-    # BTU  =  BTU
-    # W = watt
-    # MW  =  Megawatt
-    # HP = Horsepower
-    #
-    # # Electric quantities
-    # COUL = Coulomb (charge);
-    # A  =  ampere
-    # V  =  volt
-    #
-    # HZ  =  Frequency (Hertz)
-    # RPS  =  Revolutions per second
-    # RPM  =   Revolutions per minute
-    #
-    # L  =  Liter
-    # GAL  =  Gallon
-    # GPM  =  Gallons per minute
-    #
+function _physunitdict(system_of_units, base_time_units)
 
     d =  Dict{String, FFlt}();
 
-    if base_time_units  ==  :SEC
-        uSEC  =  1.0;
-    elseif base_time_units  ==  :MIN
+    uSEC  =  1.0;
+    if base_time_units  ==  :MIN
         uSEC  =  1.0/60;
     elseif base_time_units  ==  :HR
         uSEC  =  1.0/(60*60);
@@ -140,8 +41,6 @@ function physunitdict(;system_of_units = :SI, base_time_units = :SEC)
         uSEC  =  1.0/(60*60*24*365);
     elseif base_time_units  ==  :WK
         uSEC  =  1.0/(60*60*24*7);
-    else
-        error("The only valid entries for the time base units are: SEC|MIN|HR|DY|YR")
     end
     d["SEC"] = uSEC;
 
@@ -156,8 +55,11 @@ function physunitdict(;system_of_units = :SI, base_time_units = :SEC)
     # base units for charge, time, angle (all systems)
     uCOUL = 1.0;uRAD = 1.0; d["COUL"] = uCOUL; d["RAD"] = uRAD;
 
-    # base units for length, mass, temperature (different for each system)
-
+    # Base units for length, mass, temperature (different for each system)
+    # :SI or :SIM (SI units using meters)
+    uM = 1.0; uKG = 1.0; uK = 1.0;						  # SI base units
+    uCM = uM/100.0; uGM = uKG/1000.0;               # CGS base units
+    uFT = uM/(3*(1/0.9144)); uSLUG = uKG*14.593903591998501; uRAN = uK/1.8; # US base units
     if system_of_units  ==  :US
         uFT = 1.0; uSLUG = 1.0; uRAN = 1.0;                     # US base units
         uM = uFT*3*(1/0.9144); uKG =  uSLUG/14.593903591998501; uK = 1.8*uRAN; # SI base units
@@ -173,10 +75,6 @@ function physunitdict(;system_of_units = :SI, base_time_units = :SEC)
     elseif system_of_units  ==  :SIMM #SI(mm)
         uM = 1000.0; uKG = 1.0e-3; uK = 1.0;						  # SI base units
         uCM = uM/100.0; uGM = uKG/1000.0;             # CGS base units
-        uFT = uM/(3*(1/0.9144)); uSLUG = uKG*14.593903591998501; uRAN = uK/1.8; # US base units
-    else #SI(m)
-        uM = 1.0; uKG = 1.0; uK = 1.0;						  # SI base units
-        uCM = uM/100.0; uGM = uKG/1000.0;               # CGS base units
         uFT = uM/(3*(1/0.9144)); uSLUG = uKG*14.593903591998501; uRAN = uK/1.8; # US base units
     end
     d["M"]   = uM;
@@ -299,22 +197,30 @@ end
 """
     phun(str::String; system_of_units = :SI, base_time_units = :SEC)
 
-Evaluate an expression in  physical units.
+Evaluate an expression in physical units.
 
 ## Example
+```
 pu = ustring -> phun(ustring; system_of_units = :SIMM)
 E1s = 130.0*pu("GPa")
+```
 yields
 1.3e+5 (in mega Pascal)
 whereas
+```
 130.0*phun("GPa"; system_of_units = :SI)
+```
 yields
 1.3e+11 (in Pascal)
 """
 function phun(str::String; system_of_units = :SI, base_time_units = :SEC)
-    d  =  physunitdict(system_of_units = system_of_units, base_time_units = base_time_units);
 
-    function replacesymbols(d::Dict{String, FFlt},str::String)
+    @assert system_of_units in [:SI :SIM :US :IMPERIAL :CGS :SIMM]
+    @assert base_time_units in [:SEC :MIN :HR :DY :YR :WK]
+    
+    d  =  _physunitdict(system_of_units, base_time_units);
+
+    function replacesymbols(d::Dict{String, FFlt}, str::String)
         str = uppercase(str);
         outstr = "";
         i = 1;
@@ -334,8 +240,8 @@ function phun(str::String; system_of_units = :SI, base_time_units = :SEC)
         return outstr
     end
 
-    ostr  =  replacesymbols(d,str);
-    val  =  eval(Meta.parse(ostr));
+    ostr  =  replacesymbols(d, str);
+    val  =  Core.eval(Meta.parse(ostr));
     return val
 end
 
