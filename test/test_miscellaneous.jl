@@ -805,6 +805,7 @@ using FinEtools
 using Test
 function test()
     for btu in [:SEC :MIN :HR :DY :YR :WK]
+        @show btu
         t = 0.333*phun(base_time_units = btu, "s")
         v = 2.0*phun(base_time_units = btu, "m/s")
         # display(v*t)

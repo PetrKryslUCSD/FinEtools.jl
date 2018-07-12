@@ -1,6 +1,6 @@
-module mocylpull14
+module mophysun13
 using FinEtools
-using Compat.Test
+using Test
 function test()
     E1=1.0;
     nu23=0.19;
@@ -34,6 +34,6 @@ function test()
     true
 end
 end
-using .mocylpull14
-mocylpull14.test()
+using .mophysun13
+mophysun13.test()
 
