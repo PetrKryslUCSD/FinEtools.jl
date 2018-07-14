@@ -78,15 +78,15 @@ end
 """
     add_mggt_ut_only!(Ke::FFltMat, gradN::FFltMat, mult::FFlt)
 
-Add the product `gradN*kappa_bar*gradNT*(Jac*w[j])` to the elementwise matrix `Ke`.
+Add the product `gradN*mult*gradNT*(Jac*w[j])` to the elementwise matrix `Ke`.
+The argument `mult` is a scalar.
 *Only upper triangle* is computed; the lower triangle is not touched.
 (Use `complete_lt!` to complete the lower triangle, if needed.)
 
 The matrix `Ke` is assumed to be suitably initialized.
 
-The matrix `Ke` is modified.  The matrices `gradN` and `kappa_bar` are not modified
-inside this function. The scratch buffer `kappa_bargradNT` is overwritten
-during each call of this function.
+The matrix `Ke` is modified.  The matrix `gradN` is not modified
+inside this function. 
 """
 function add_mggt_ut_only!(Ke::FFltMat, gradN::FFltMat, mult::FFlt)
     @assert size(Ke, 1) == size(Ke, 2)
