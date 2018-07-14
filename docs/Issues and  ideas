@@ -429,3 +429,4 @@ I like that a! is telling me inside the function that I’m changing something p
     "editor.fontFamily": "Fira Code",
     "editor.fontLigatures": true
     
+– Consider MMatrix as a buffer (https://discourse.julialang.org/t/inbounds-is-the-compiler-now-so-smart-that-this-is-no-longer-necessary/12357/17?u=petrkryslucsd)

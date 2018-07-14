@@ -1707,6 +1707,7 @@ triangles = [4 3 5
 3 2 5]
 vertices = [0.943089 0.528795; 0.704865 0.101195; 0.980527 0.225325; 0.126678 0.323197; 0.969361 0.376956; 0.339188 0.306131; 0.322906 0.244326; 0.327952 0.769903; 0.820541 0.766872; 0.919947 0.390552; 0.958515 0.533267]
 h2libexporttri("sample.tri", triangles, vertices)
+try rm("sample.tri"); catch end
 end
 end
 using .mmh2libexporttri

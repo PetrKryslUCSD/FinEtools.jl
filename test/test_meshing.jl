@@ -805,8 +805,9 @@ function test()
   File = "LE11NAFEMS_H8.vtk"
   MeshExportModule.vtkexportmesh(File, fens, fes)
   # @async run(`"paraview.exe" $File`)
-  # try rm(File) catch end
+  try rm(File) catch end
 
+  try rm(AE.filename) catch end
 end
 end
 using .mmAbaqusexport3
@@ -1900,7 +1901,7 @@ Meshing = T6blockx
     File = "momap2para12-coarse.vtk"
     MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
     # @async run(`"paraview.exe" $File`)
-    # try rm(File) catch end
+    try rm(File) catch end
 
     Refinement = Refinement + 1
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
@@ -1921,13 +1922,13 @@ Meshing = T6blockx
     File = "momap2para12-reference.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
     # @async run(`"paraview.exe" $File`)
-    # try rm(File) catch end
+    try rm(File) catch end
 
     ff = transferfield!(ff, fensf, fesf, fc, fensc, fesc, tolerance)
     File = "momap2para12-fine.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("ff", ff.values)])
     # @async run(`"paraview.exe" $File`)
-    # try rm(File) catch end
+    try rm(File) catch end
 
     diffff = ElementalField(referenceff.values - ff.values)
     femm  = FEMMBase(IntegData(fesf, SimplexRule(2, 3)))
@@ -1974,7 +1975,7 @@ Meshing = L2blockx
     File = "momap2para12-coarse.vtk"
     MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
     # @async run(`"paraview.exe" $File`)
-    # try rm(File) catch end
+    try rm(File) catch end
 
     Refinement = Refinement + 1
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
@@ -1993,13 +1994,13 @@ Meshing = L2blockx
     File = "momap2para12-reference.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
     # @async run(`"paraview.exe" $File`)
-    # try rm(File) catch end
+    try rm(File) catch end
 
     ff = transferfield!(ff, fensf, fesf, fc, fensc, fesc, tolerance)
     File = "momap2para12-fine.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("ff", ff.values)])
     # @async run(`"paraview.exe" $File`)
-    # try rm(File) catch end
+    try rm(File) catch end
 
     diffff = ElementalField(referenceff.values - ff.values)
     femm  = FEMMBase(IntegData(fesf, GaussRule(1, 3)))
@@ -2047,7 +2048,7 @@ Meshing = L3blockx
     File = "momap2para12-coarse.vtk"
     MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
     # @async run(`"paraview.exe" $File`)
-    # try rm(File) catch end
+    try rm(File) catch end
 
     Refinement = Refinement + 1
     nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
@@ -2066,13 +2067,13 @@ Meshing = L3blockx
     File = "momap2para12-reference.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
     # @async run(`"paraview.exe" $File`)
-    # try rm(File) catch end
+    try rm(File) catch end
 
     ff = transferfield!(ff, fensf, fesf, fc, fensc, fesc, tolerance)
     File = "momap2para12-fine.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("ff", ff.values)])
     # @async run(`"paraview.exe" $File`)
-    # try rm(File) catch end
+    try rm(File) catch end
 
     diffff = ElementalField(referenceff.values - ff.values)
     femm  = FEMMBase(IntegData(fesf, GaussRule(1, 3)))
