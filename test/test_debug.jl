@@ -27,8 +27,10 @@ function test()
 
     material=MatDeforElastIso(MR, 00.0, E1, nu23, 0.0)
     println("success? ")
+    @code_llvm FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
     println("failure? ")
+    @code_llvm FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
 
     true
