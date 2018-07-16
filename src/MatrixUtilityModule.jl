@@ -89,18 +89,16 @@ The matrix `Ke` is modified.  The matrix `gradN` is not modified
 inside this function. 
 """
 function add_mggt_ut_only!(Ke::FFltMat, gradN::FFltMat, mult::FFlt)
-    @assert size(Ke, 1) == size(Ke, 2)
     Kedim = size(Ke, 1)
+    @assert Kedim == size(Ke, 2) # Square matrix?
     nne, mdim = size(gradN)
-    mx::FInt = 0
-    nx::FInt = 0
-    px::FInt = 0
-    # A_mul_Bt!(kappa_bargradNT, kappa_bar, gradN); # intermediate result
+    @assert nne == Kedim # compatible matrices?
     @inbounds for nx = 1:Kedim # Do: Ce  =  Ce + gradN*((Jac*w[j]))*gradN' ;
         @inbounds for px = 1:mdim
-        @inbounds for mx = 1:nx # only the upper triangle
-            Ke[mx, nx] +=  gradN[mx, px]*(mult)*gradN[nx, px]
-        end
+            a = (mult)*gradN[nx, px]
+            @inbounds for mx = 1:nx # only the upper triangle
+                Ke[mx, nx] +=  gradN[mx, px] * a
+            end
         end
     end
     return true
