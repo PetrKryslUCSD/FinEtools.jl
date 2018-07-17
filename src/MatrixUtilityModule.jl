@@ -126,14 +126,11 @@ function add_gkgt_ut_only!(Ke::FFltMat, gradN::FFltMat, Jac_w::FFlt,
     nne, mdim = size(gradN)
     @assert size(kappa_bar) == (mdim, mdim)
     @assert size(kappa_bargradNT) == (mdim, nne)
-    mx::FInt = 0
-    nx::FInt = 0
-    px::FInt = 0
     # A_mul_Bt!(kappa_bargradNT, kappa_bar, gradN); # intermediate result
     @inbounds for nx = 1:nne
         @inbounds for mx = 1:mdim
         accum::FFlt  = 0.0
-        @inbounds for px = 1:mdim
+        @inbounds @simd for px = 1:mdim
             accum += kappa_bar[mx, px]*gradN[nx, px]
         end
         kappa_bargradNT[mx, nx] = Jac_w*accum
@@ -142,11 +139,11 @@ function add_gkgt_ut_only!(Ke::FFltMat, gradN::FFltMat, Jac_w::FFlt,
     # Ke = Ke + gradN*(kappa_bar*(Jac*w[j]))*gradN'; only upper triangle
     @inbounds for nx = 1:Kedim
         @inbounds for mx = 1:nx # only the upper triangle
-        accum::FFlt  = 0.0
-        @inbounds for px = 1:mdim
-            accum += gradN[mx, px]*kappa_bargradNT[px, nx]
-        end
-        Ke[mx, nx] += accum
+            accum::FFlt  = 0.0
+            @inbounds @simd for px = 1:mdim
+                accum += gradN[mx, px]*kappa_bargradNT[px, nx]
+            end
+            Ke[mx, nx] += accum
         end
     end
     return true
@@ -162,13 +159,11 @@ upper-triangle  entries  are copied  across the diagonal
 to the lower triangle.
 """
 function complete_lt!(Ke::FFltMat)
-    @assert size(Ke, 1) == size(Ke, 2)
     Kedim = size(Ke, 1)
-    mx::FInt = 0
-    nx::FInt = 0
+    @assert Kedim == size(Ke, 2)
     @inbounds for nx = 1:Kedim # complete the lower triangle
         @inbounds for mx = nx+1:Kedim
-        Ke[mx, nx] = Ke[nx, mx]
+            Ke[mx, nx] = Ke[nx, mx]
         end
     end
     return true
@@ -194,17 +189,14 @@ function add_btdb_ut_only!(Ke::FFltMat, B::FFltMat, Jac_w::FFlt, D::FFltMat, DB:
     nstr, Kedim = size(B)
     @assert size(D) == (nstr, nstr)
     @assert size(DB) == (nstr, Kedim)
-    mx::FInt = 0
-    nx::FInt = 0
-    px::FInt = 0
     # A_mul_B!(DB, D, B)    # intermediate product
     @inbounds for nx = 1:Kedim
         @inbounds for mx = 1:nstr
-        accum::FFlt  = 0.0
-        @inbounds for px = 1:nstr
-            accum += D[mx, px]*B[px, nx]
-        end
-        DB[mx, nx] = Jac_w*accum
+            accum::FFlt  = 0.0
+            @inbounds for px = 1:nstr
+                accum += D[mx, px]*B[px, nx]
+            end
+            DB[mx, nx] = Jac_w*accum
         end
     end
     #  Ke = Ke + (B'*(D*(Jac*w[j]))*B); only the upper triangle
@@ -232,14 +224,12 @@ The matrix `Ke` is modified.  The matrix `Nn` is not modified
 inside this function. 
 """
 function add_nnt_ut_only!(Ke::FMat{T}, N::FFltMat, Jac_w_coeff::T) where {T<:Number}
-    @assert size(Ke, 1) == size(Ke, 2)
-    @assert size(N, 1) == size(Ke, 2)
     Kedim = size(N, 1)
-    mx::FInt = 0
-    nx::FInt = 0
+    @assert Kedim == size(Ke, 2)
     @inbounds for nx = 1:Kedim
+        a = (Jac_w_coeff)*N[nx]
         @inbounds for mx = 1:nx # only the upper triangle
-            Ke[mx,nx] = Ke[mx,nx] + N[mx]*(Jac_w_coeff)*N[nx]
+            Ke[mx,nx] += N[mx] * a
         end
     end
     return true
@@ -266,11 +256,9 @@ function add_btv!(elvec::FFltVec, B::FFltMat, sig::FFltVec, Jac_w_coeff::FFlt)
     @assert size(B, 2) == length(elvec)
     Kedim = length(elvec)
     nsig = length(sig)
-    mx::FInt = 0
-    px::FInt = 0
     @inbounds for mx = 1:Kedim
         @inbounds for px = 1:nsig
-        elvec[mx] = elvec[mx] + B[px, mx]*Jac_w_coeff*sig[px]
+            elvec[mx] += B[px, mx]*Jac_w_coeff*sig[px]
         end
     end
     return true
