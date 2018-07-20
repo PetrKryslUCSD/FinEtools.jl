@@ -6,7 +6,7 @@ Module  for generation of meshes composed of tetrahedra.
 module MeshTetrahedronModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FESetModule: count, FESetT4, FESetT10, setlabel!
+import FinEtools.FESetModule: count, FESetT4, FESetT10, setlabel!, connasarray
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
 import FinEtools.MeshSelectionModule: selectelem
@@ -178,7 +178,7 @@ function  T4toT10(fens::FENodeSet,  fes::FESetT4)
             nconn[nc, wn] = j; wn = wn + 1
         end
         # nconn[nc, :] = vcat([j for j in fes.conn[i]], vec(econn))
-        nc= nc+ 1;
+        nc = nc+ 1;
     end
     labels = deepcopy(fes.label)
     fes = FESetT10(nconn);
@@ -472,4 +472,67 @@ function T4voximg(img::Array{DataT, 3}, voxdims::FFltVec, voxval::Array{DataT, 1
     return fens, fes;
 end
 
-end
+"""
+    T4refine(fens::FENodeSet, fes::FESetT4)
+
+Refine a mesh of 4-node tetrahedra by octasection.
+
+"""
+function T4refine(fens::FENodeSet, fes::FESetT4)
+    # Create a mesh with the right number of nodes, That is nodes at the vertices and midsides of the edges
+    nfens,fes10 = T4toT10(fens,fes); 
+    conna = connasarray(fes10); 
+    # Create array of connectivities of the four-node tetrahedra
+    nconna = fill(0, 8*size(conna,1), 4);
+    nc = 1;
+    for i= 1:size(conna,1)
+        nconna[nc, :] = conna[i, [1,5,7,8]];        nc = nc+ 1;
+        nconna[nc, :] = conna[i, [2,6,5,9]];        nc = nc+ 1;
+        nconna[nc, :] = conna[i, [3,7,6,10]];        nc = nc+ 1;
+        nconna[nc, :] = conna[i, [8,9,10,4]];        nc = nc+ 1;
+        nconna[nc, :] = conna[i, [6,7,5,9]];        nc = nc+ 1;
+        nconna[nc, :] = conna[i, [7,6,10,9]];        nc = nc+ 1;
+        nconna[nc, :] = conna[i, [9,7,5,8]];        nc = nc+ 1;
+        nconna[nc, :] = conna[i, [7,9,10,8]];        nc = nc+ 1;
+    end
+    nfes = FESetT4(nconna);
+    # Propagate the labels from the original elements to the eight elements derived from each original element
+    setlabel!(nfes, 0)
+    nc = 1
+    for i= 1:size(conna,1)
+        for j = 1:8
+            nfes.label[nc] = fes.label[i];        nc = nc+ 1;
+        end
+    end
+    return nfens, nfes
+end 
+
+function T10refine(fens::FENodeSet, fes::FESetT10)
+    conna = connasarray(fes); 
+    # Create array of connectivities of the four-node tetrahedra
+    nconna = fill(0, 8*size(conna,1), 4);
+    nc = 1;
+    for i= 1:size(conna,1)
+        nconna[nc, :] = conna[i, [1,5,7,8]];        nc = nc+ 1;
+        nconna[nc, :] = conna[i, [2,6,5,9]];        nc = nc+ 1;
+        nconna[nc, :] = conna[i, [3,7,6,10]];        nc = nc+ 1;
+        nconna[nc, :] = conna[i, [8,9,10,4]];        nc = nc+ 1;
+        nconna[nc, :] = conna[i, [6,7,5,9]];        nc = nc+ 1;
+        nconna[nc, :] = conna[i, [7,6,10,9]];        nc = nc+ 1;
+        nconna[nc, :] = conna[i, [9,7,5,8]];        nc = nc+ 1;
+        nconna[nc, :] = conna[i, [7,9,10,8]];        nc = nc+ 1;
+    end
+    nfes = FESetT4(nconna);
+    # Propagate the labels from the original elements to the eight elements derived from each original element
+    setlabel!(nfes, 0)
+    nc = 1
+    for i= 1:size(conna,1)
+        for j = 1:8
+            nfes.label[nc] = fes.label[i];        nc = nc+ 1;
+        end
+    end
+    # Now take the four-node tetrahedron mesh and converted to quadratic tetrahedra
+    return T4toT10(fens, nfes)
+end 
+
+end 
