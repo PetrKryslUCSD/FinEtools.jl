@@ -1,65 +1,107 @@
-module mophysun13
-using FinEtools
-using Test
-function test()
-    E1=1.0;
-    nu23=0.19;
-    rin=1.;
-    rex =1.2;
-    Length = 1*rex
-    tolerance=rin/1000.
+# using BenchmarkTools
 
-    MR = DeforModelRed2DAxisymm
+# @inline bis(a,b) = (a+b)/2
+# # Note, the benchmark that follows uses atol = sqrt(eps())
+# # but I decided to update it later to reflect the value of the upper bracket.
+# function bisection(f, a_, b_, atol = 2eps(promote_type(typeof(b_),Float64)(b_)))
+#     c = bis(a_,b_)
+#     z = f(c)
+#     if z > 0 #
+#         b = c
+#         a = typeof(b)(a_)
+#     else
+#         a = c
+#         b = typeof(a)(b_)
+#     end
+#     while abs(a - b) > atol
+#         c = bis(a,b)
+#         if f(c) > 0 #
+#             b = c
+#         else
+#             a = c
+#         end
+#     end
+#     a, b
+# end
 
-    fens,fes = Q4block(rex-rin,Length,5,20);
-    fens.xyz[:, 1] = fens.xyz[:, 1] .+ rin
-    bdryfes = meshboundary(fes);
+# f(x) = exp(x) - x^4
 
-    geom = NodalField(fens.xyz)
-    u = NodalField(zeros(size(fens.xyz,1),2)) 
-    l1 =selectnode(fens; box=[0 rex 0 0], inflate = tolerance)
-    setebc!(u,l1,true, 2, 0.0)
-    l1 =selectnode(fens; box=[0 rex Length Length], inflate = tolerance)
-    setebc!(u,l1,true, 2, 0.0)
-    applyebc!(u)
-    numberdofs!(u)
-    @test u.nfreedofs == 240
+# bisection(f,8,9)
 
-    material=MatDeforElastIso(MR, 00.0, E1, nu23, 0.0)
-    println("success? ")
-    # @code_llvm FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
-    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
-    println("failure? ")
-    # @code_llvm FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
-    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
+# function bisect1(fun, xl::Real, xu::Real, tolx::Real, tolf::Real)
+#     if (xl > xu)
+#         xl, xu = xu, xl
+#     end
+#     fl = fun(xl);
+#     fu = fun(xu);
+#     @assert fl*fu < 0.0 "Need to get a bracket"
+#     if fl == 0.0
+#         return xl, xl;
+#     end
+#     if fu == 0.0
+#         return xu, xu;
+#     end
+#     while true
+#         xr = (xu + xl) / 2 ; # bisect interval
+#         fr = fun(xr); # value at the midpoint
+#         if fr * fl < 0 # (fr < 0.0 && fl > 0.0) || (fr > 0.0 && fl < 0.0)
+#             xu, fu = xr, fr;# upper --> midpoint
+#         else
+#             xl, fl = xr, fr;# lower --> midpoint
+#         end
+#         (abs(fr) <= tolf) && return xl, xu;
+#         ((xu-xl) < tolx) && return xl, xu;
+#     end
+#     return xl, xu;
+# end
 
-    true
-end
-end
-using .mophysun13
-mophysun13.test()
+# tolx = 2eps(9.0)
+# tolf = √eps()
+# bisect1(f, 8.0, 9.0, tolx, tolf)
 
-module mmMeasurement_1
-using FinEtools
-using Test
-function test()
-    W = 1.1;
-    L = 12.;
-    t =  3.32;
-    nl, nt, nw = 5, 3, 4;
+# """
+#     bisection(f, a, b; fa = f(a), fb = f(b), ftol, wtol)
 
-    println("New segmentation fault?")
-    for orientation in [:a :b :ca :cb]
-        fens,fes  = T4block(L,W,t, nl,nw,nt, orientation)
-        geom  =  NodalField(fens.xyz)
+# Bisection algorithm for finding the root ``f(x) ≈ 0`` within the initial bracket
+# `[a,b]`.
 
-        femm  =  FEMMBase(IntegData(fes, TetRule(5)))
-        V = integratefunction(femm, geom, (x) ->  1.0)
-        @test abs(V - W*L*t)/V < 1.0e-5
-    end
+# Returns a named tuple
 
-end
-end
-using .mmMeasurement_1
-mmMeasurement_1.test()
+# `(x = x, fx = f(x), isroot = ::Bool, iter = ::Int, ismaxiter = ::Bool)`.
+
+# Terminates when either
+
+# 1. `abs(f(x)) < ftol` (`isroot = true`),
+# 2. the width of the bracket is `≤wtol` (`isroot = false`),
+# 3. `maxiter` number of iterations is reached. (`isroot = false, maxiter = true`).
+
+# which are tested for in the above order. Therefore, care should be taken not to make `wtol` too large.
+
+# """
+# function bisect2(f, a::Real, b::Real; fa::Real = f(a), fb::Real = f(b),
+#                    ftol = √eps(), wtol = 0, maxiter = 100)
+#     @assert fa * fb ≤ 0 "initial values don't bracket zero"
+#     @assert isfinite(a) && isfinite(b)
+#     _bisection(f, float.(promote(a, b, fa, fb, ftol, wtol))..., maxiter)
+# end
+
+# function _bisection(f, a, b, fa, fb, ftol, wtol, maxiter)
+#     iter = 0
+#     abs(fa) < ftol && return (x = a, fx = fa, isroot = true, iter = iter, ismaxiter = false)
+#     abs(fb) < ftol && return (x = b, fx = fb, isroot = true, iter = iter, ismaxiter = false)
+#     while true
+#         iter += 1
+#         m = (a + b) / 2
+#         fm = f(m)
+#         abs(fm) < ftol && return (x = m, fx = fm, isroot = true, iter = iter, ismaxiter = false)
+#         abs(b-a) ≤ wtol && return (x = m, fx = fm, isroot = false, iter = iter, ismaxiter = false)
+#         if fa * fm > 0
+#             a, fa = m, fm
+#         else
+#             b, fb = m, fm
+#         end
+#         iter == maxiter && return (x = m, fx = fm, isroot = false, iter = iter, ismaxiter = true)
+#     end
+# end
+
 
