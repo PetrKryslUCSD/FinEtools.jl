@@ -1,29 +1,87 @@
 using Test
 
-# module mmsparsem1
-# using FinEtools
-# using SparseArrays
-# using Test
-# function test()
-#     N = 10
-#     a = vec(rand(N))
-#     i = convert(Vector{Int64}, round.(rand(N) * N) .+ 1) 
-#     j = convert(Vector{Int64}, round.(rand(N) * N) .+ 1) 
-#     # println("i = $(i)")
-#     # println("j = $(j)")
-#     A = sparse(i, j, a, N+1, N+1)
-#     @test typeof(A * A) <: AbstractSparseMatrix
-#     true
-# end
-# end
-# using .mmsparsem1
-# mmsparsem1.test()
+module mt4refine1
+using FinEtools
+using FinEtools.MeshExportModule
+using Test
+function test()
+    xs = collect(linearspace(0.0, pi / 2, 5))
+    ys = collect(linearspace(0.0, 1.0, 6).^2)
+    zs = collect(linearspace(0.0, 1.0, 3))
+    fens, fes = T4blockx(xs, ys, zs, :a)
+    # for i = 1:count(fens)
+    #     a, y, z = fens.xyz[i,:]
+    #     fens.xyz[i,1] = sin(a) * (y + 0.5)
+    #     fens.xyz[i,2] = cos(a) * (y + 0.5)
+    #     fens.xyz[i,3] = z
+    # end
+    @test count(fes) == 240
+    bfes = meshboundary(fes)
+    @test count(bfes) == 2*2*(4*5 + 5*2 + 4*2)
+    fens, fes = T4refine(fens, fes)
+    for i = 1:count(fens)
+        a, y, z = fens.xyz[i,:]
+        fens.xyz[i,1] = sin(a) * (y + 0.5)
+        fens.xyz[i,2] = cos(a) * (y + 0.5)
+        fens.xyz[i,3] = z
+    end
+    @test count(fes) == 240*8
+    bfes = meshboundary(fes)
+    @test count(bfes) == 4*2*2*(4*5 + 5*2 + 4*2)
+
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegData(fes, SimplexRule(3, 4)))
+    V = integratefunction(femm, geom, (x) ->  1.0)
+    
+    File = "Refine-T4-a.vtk"
+    MeshExportModule.vtkexportmesh(File, fens, bfes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+end
+end
+using .mt4refine1
+mt4refine1.test()
 
 
-@time @testset "Miscellaneous" begin include("test_miscellaneous.jl") end
-@time @testset "Acoustics" begin include("test_acoustics.jl") end
-@time @testset "Heat diffusion" begin include("test_heat.jl") end
-@time @testset "Linear deformation" begin include("test_linear_deformation.jl") end
-@time @testset "Meshing" begin include("test_meshing.jl") end
-@time @testset "Voxel box" begin include("test_voxel_box.jl") end
+module mt4refine2
+using FinEtools
+using FinEtools.MeshExportModule
+using Test
+function test()
+    xs = collect(linearspace(0.0, pi / 2, 5))
+    ys = collect(linearspace(0.0, 1.0, 6).^2)
+    zs = collect(linearspace(0.0, 1.0, 3))
+    fens, fes = T4blockx(xs, ys, zs, :a)
+    fens, fes = T4toT10(fens, fes)
+    # for i = 1:count(fens)
+    #     a, y, z = fens.xyz[i,:]
+    #     fens.xyz[i,1] = sin(a) * (y + 0.5)
+    #     fens.xyz[i,2] = cos(a) * (y + 0.5)
+    #     fens.xyz[i,3] = z
+    # end
+    @test count(fes) == 240
+    bfes = meshboundary(fes)
+    @test count(bfes) == 2*2*(4*5 + 5*2 + 4*2)
+    fens, fes = T10refine(fens, fes)
+    for i = 1:count(fens)
+        a, y, z = fens.xyz[i,:]
+        fens.xyz[i,1] = sin(a) * (y + 0.5)
+        fens.xyz[i,2] = cos(a) * (y + 0.5)
+        fens.xyz[i,3] = z
+    end
+    @test count(fes) == 240*8
+    bfes = meshboundary(fes)
+    @test count(bfes) == 4*2*2*(4*5 + 5*2 + 4*2)
 
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegData(fes, SimplexRule(3, 4)))
+    V = integratefunction(femm, geom, (x) ->  1.0)
+    
+    File = "Refine-T10-a.vtk"
+    MeshExportModule.vtkexportmesh(File, fens, bfes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+end
+end
+using .mt4refine2
+mt4refine2.test()

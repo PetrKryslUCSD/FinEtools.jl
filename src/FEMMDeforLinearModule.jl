@@ -35,6 +35,7 @@ function FEMMDeforLinear(mr::Type{MR}, integdata::IntegData{S, F}, material::M) 
     return FEMMDeforLinear(mr, integdata, CSys(manifdim(integdata.fes)), material)
 end
 
+# FOR DEBUGGING ONLY: DELETE WHEN THE BUG HAS BEEN FIXED
 function FEMMDeforLinear(mr::Type{MR}, integdata::IntegData{S, F}, material::M, print) where {MR<:DeforModelRed, S<:FESet, F<:Function, M<:MatDefor}
     @show mr 
     @show material.mr
