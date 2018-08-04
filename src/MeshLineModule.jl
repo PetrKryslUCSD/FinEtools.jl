@@ -17,7 +17,7 @@ L2block(Length::FFlt, nL::FInt)
 Mesh of a 1-D block of L2 finite elements.
 """
 function L2block(Length::FFlt, nL::FInt)
-    fens,fes = L2blockx(collect(squeeze(linearspace(0.0,Length,nL+1)', dims=1)));
+    fens,fes = L2blockx(collect(dropdims(linearspace(0.0,Length,nL+1)', dims=1)));
 end
 
 

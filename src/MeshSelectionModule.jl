@@ -51,7 +51,7 @@ See the function `vselect()` for examples of the criteria.
 """
 function selectnode(fens::FENodeSet; kwargs...)
     nodelist = vselect(fens.xyz; kwargs...)
-    nodelist = squeeze(reshape(nodelist,1,length(nodelist)), dims=1);
+    nodelist = dropdims(reshape(nodelist,1,length(nodelist)), dims=1);
     return nodelist
 end
 
