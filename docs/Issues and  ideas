@@ -182,7 +182,7 @@ but it needs to be made more general for heterogeneous structures.
 and stick to it.
 const a = reshape(collect(1:1000),1000,1);
 @time vec(a);
-@time squeeze(a,2);
+@time dropdims(a,2);
 
 -- Acoustic ABC: surface FEMM?
 Implemented 05/30/2017
@@ -430,3 +430,5 @@ I like that a! is telling me inside the function that I’m changing something p
     "editor.fontLigatures": true
     
 – Consider MMatrix as a buffer (https://discourse.julialang.org/t/inbounds-is-the-compiler-now-so-smart-that-this-is-no-longer-necessary/12357/17?u=petrkryslucsd)
+
+- uview fast? https://discourse.julialang.org/t/views-performance-in-julia-1-0-dev/12871/2
