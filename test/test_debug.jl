@@ -1,6 +1,7 @@
 module mocylpull14nnn
 using FinEtools
 using Test
+using InteractiveUtils
 function test()
     # Cylinder  compressed by enforced displacement, axially symmetric model
 
@@ -50,29 +51,31 @@ function test()
 
     # Property and material
     material = MatDeforElastIso(MR, 00.0, E1, nu23, 0.0)
-    # display(material)
-    # println("$(material.D)")
-    # @show MR
     
+    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
+    println("========== With printing ==========")
+    @code_llvm FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
+    println("========== Original ==========")
+    @code_llvm FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
 
-    K =stiffness(femm, geom, u)
-    F = nzebcloadsstiffness(femm, geom, u)
-    U=  K\(F)
-    scattersysvec!(u,U[:])
+    # K =stiffness(femm, geom, u)
+    # F = nzebcloadsstiffness(femm, geom, u)
+    # U=  K\(F)
+    # scattersysvec!(u,U[:])
 
-    fld= fieldfromintegpoints(femm, geom, u, :princCauchy, 1)
-    # println("Minimum/maximum = $(minimum(fld.values))/$(maximum(fld.values))")
-    @test abs(minimum(fld.values) - 0.0) < 1.0e-5
-    @test abs(maximum(fld.values) - 0.0) < 1.0e-5
-    fld= fieldfromintegpoints(femm, geom, u, :princCauchy, 2)
-    # println("Minimum/maximum = $(minimum(fld.values))/$(maximum(fld.values))")
-    @test abs(minimum(fld.values) - 0.0) < 1.0e-5
-    @test abs(maximum(fld.values) - 0.0) < 1.0e-5
-    fld= fieldfromintegpoints(femm, geom, u, :princCauchy, 3)
-    # println("Minimum/maximum = $(minimum(fld.values))/$(maximum(fld.values))")
-    @test abs(minimum(fld.values) - -0.050) < 1.0e-5
-    @test abs(maximum(fld.values) - -0.04999999999999919) < 1.0e-5
+    # fld= fieldfromintegpoints(femm, geom, u, :princCauchy, 1)
+    # # println("Minimum/maximum = $(minimum(fld.values))/$(maximum(fld.values))")
+    # @test abs(minimum(fld.values) - 0.0) < 1.0e-5
+    # @test abs(maximum(fld.values) - 0.0) < 1.0e-5
+    # fld= fieldfromintegpoints(femm, geom, u, :princCauchy, 2)
+    # # println("Minimum/maximum = $(minimum(fld.values))/$(maximum(fld.values))")
+    # @test abs(minimum(fld.values) - 0.0) < 1.0e-5
+    # @test abs(maximum(fld.values) - 0.0) < 1.0e-5
+    # fld= fieldfromintegpoints(femm, geom, u, :princCauchy, 3)
+    # # println("Minimum/maximum = $(minimum(fld.values))/$(maximum(fld.values))")
+    # @test abs(minimum(fld.values) - -0.050) < 1.0e-5
+    # @test abs(maximum(fld.values) - -0.04999999999999919) < 1.0e-5
 
     # File =  "mocylpull14.vtk"
     # vtkexportmesh(File, fens, fes; scalars=[("sigmaz", fld.values)],
