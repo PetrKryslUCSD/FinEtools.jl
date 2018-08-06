@@ -55,10 +55,10 @@ function test()
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
     println("========== With printing ==========")
     @code_llvm FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
-    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
     println("========== Original ==========")
     @code_llvm FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
-
+    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
+    
     # K =stiffness(femm, geom, u)
     # F = nzebcloadsstiffness(femm, geom, u)
     # U=  K\(F)
