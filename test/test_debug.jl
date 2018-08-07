@@ -54,9 +54,9 @@ function test()
     
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
     println("========== With printing ==========")
-    @code_llvm FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
+    @show @code_lowered FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
     println("========== Original ==========")
-    @code_llvm FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
+    @show @code_lowered FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
     
     # K =stiffness(femm, geom, u)
@@ -81,6 +81,7 @@ function test()
     # vtkexportmesh(File, fens, fes; scalars=[("sigmaz", fld.values)],
     #               vectors=[("u", u.values)])
     # @async run(`"paraview.exe" $File`)
+    true
 end
 end
 using .mocylpull14nnn
