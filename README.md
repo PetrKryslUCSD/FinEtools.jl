@@ -6,10 +6,10 @@
 
 ## News
 
-- 06/19/2018: The testing is at the moment intentionally crippled in order to assist with debugging of a Julia 0.7-alpha issue.
-It is always possible to run the tests manually, for instance `include("test/test_miscellaneous.jl")`.
+- 08/09/2018: The toolkit is at this point compatible with Julia 1.0.0 in that
+the tests are almost 100% passing. A handful of tests however are failing on Appveyor/Travis because of some LLVM issues, and these are at the moment left out of the test suite.
+The notebook examples still need updating for Julia 1.0.
 
-- 06/08/2018: FinEtools is now a registered package. The release 0.3.0 works with Julia 0.7.0-alpha. The notebook examples still need updating for 0.7.
 
 [Past news](oldnews.md)
 
