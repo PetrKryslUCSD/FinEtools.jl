@@ -4,9 +4,7 @@ using Test
 using InteractiveUtils
 function test()
     E1=1.0;
-    E2=1.0;
     nu23=0.19;
-    p= 0.15;
     rin=1.;
     rex =1.2;
     Length = 1*rex
