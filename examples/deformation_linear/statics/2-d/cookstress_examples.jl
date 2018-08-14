@@ -2,9 +2,7 @@ module cookstress_examples
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
 using FinEtools.MeshExportModule
-if VERSION >= v"0.7-"
-    import LinearAlgebra: cholesky
-end
+import LinearAlgebra: cholesky
 
 function cookstress()
     println("Cook membrane problem,  plane stress."        )
