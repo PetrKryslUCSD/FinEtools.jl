@@ -1,8 +1,6 @@
 using Gaston
 # using PyCall
-if VERSION >= v"0.7-"
-    using DelimitedFiles
-end
+using DelimitedFiles
 
 function loadcsv(inputcsv)
     contents = readdlm(inputcsv, ',', Float64, '\n'; header = true)
