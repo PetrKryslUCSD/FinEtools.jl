@@ -281,7 +281,7 @@ end
 of the stabilization material. It needs to produce  thermal strains  just as
 the real material.
 
--- Search for JFinEALE: some examples have not been converted  yet.
+-- Search for JFinEALE: some examples have not been converted  yet. Done.
 
 -- For the QR factorization use qrfact!(A, pivot=Val(false))
 
@@ -432,3 +432,32 @@ I like that a! is telling me inside the function that I’m changing something p
 – Consider MMatrix as a buffer (https://discourse.julialang.org/t/inbounds-is-the-compiler-now-so-smart-that-this-is-no-longer-necessary/12357/17?u=petrkryslucsd)
 
 - uview fast? https://discourse.julialang.org/t/views-performance-in-julia-1-0-dev/12871/2
+
+- Would it make sense to use named tuples instead of data dictionary?
+
+- VS Code JSON settings (user)
+{
+    "terminal.integrated.shell.windows": "C:\\Program Files\\Git\\bin\\bash.exe",
+    "terminal.integrated.fontSize": 11,
+    "terminal.integrated.fontFamily": "Fira Code",
+    "julia.runlinter": true,
+    "window.zoomLevel": 1,
+    // When opening a file, `editor.tabSize` and `editor.insertSpaces` will be detected based on the file contents.
+    "editor.detectIndentation": true,
+    // Controls if the editor should automatically adjust the indentation when users type, paste or move lines. Indentation rules of the language must be available. 
+    "editor.autoIndent": true,
+    "editor.wordWrap": "on",
+    "editor.wrappingIndent": "indent",
+    "workbench.colorTheme": "United Ubuntu",
+    "workbench.iconTheme": "vs-minimal",
+    "workbench.startupEditor": "newUntitledFile",
+    // Controls the font size in pixels.
+    "editor.fontSize": 11,
+    // Controls the font family.
+    // "editor.fontFamily": "Fira Code",
+    "editor.fontFamily": "Fira Code",
+    "editor.fontLigatures": true,
+    "julia.enableTelemetry": true,
+    "editor.renderWhitespace": "boundary",
+    "window.menuBarVisibility": "visible",
+}
