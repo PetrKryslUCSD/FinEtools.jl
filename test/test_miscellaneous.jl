@@ -1780,7 +1780,7 @@ function test()
         fens,fes  = T4block(L,W,t, nl,nw,nt, orientation)
         geom  =  NodalField(fens.xyz)
 
-        femm  =  FEMMBase(IntegData(fes, TetRule(5)))
+        femm  =  FEMMBase(IntegData(fes, NodalSimplexRule(3)))
         V = integratefunction(femm, geom, (x) ->  1.0)
         @test abs(V - W*L*t)/V < 1.0e-5
     end
@@ -1789,3 +1789,44 @@ end
 end
 using .mmMeasurement_1a
 mmMeasurement_1a.test()
+
+module mmMeasurement_2a
+using FinEtools
+using Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  3.32;
+    nl, nt, nw = 5, 3, 4;
+
+    # println("New segmentation fault?")
+    for orientation in [:a :b :ca :cb]
+        fens,fes  = T4block(L,W,t, nl,nw,nt, orientation)
+        geom  =  NodalField(fens.xyz)
+
+        femm  =  FEMMBase(IntegData(fes, NodalSimplexRule(3)))
+        V = integratefunction(femm, geom, (x) ->  1.0)
+        @test abs(V - W*L*t)/V < 1.0e-5
+    end
+
+end
+end
+using .mmMeasurement_2a
+mmMeasurement_2a.test()
+
+module mmAdjugate
+using FinEtools
+using Test
+using LinearAlgebra
+import FinEtools.MatrixUtilityModule: adjugate3!
+function test()
+    A = rand(3, 3)
+    B = rand(3, 3)
+    adjugate3!(B, A)
+    @test norm(det(A)*inv(A)-B) < 1.0e-6 * norm(A)
+end
+end
+using .mmAdjugate
+mmAdjugate.test()
+
+

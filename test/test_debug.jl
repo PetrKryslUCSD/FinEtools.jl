@@ -1,47 +1,27 @@
-module mocylpull14nnn
+module mmMeasurement_3a
 using FinEtools
 using Test
-using InteractiveUtils
 function test()
-    E1=1.0;
-    nu23=0.19;
-    rin=1.;
-    rex =1.2;
-    Length = 1*rex
+    W = 1.1;
+    L = 12.;
+    t =  3.32;
+    nl, nt, nw = 5, 3, 4;
+    Ea =  210000*phun("MEGA*Pa")
+    nua =  0.3;
 
-    MR = DeforModelRed2DAxisymm
-    fens,fes = Q4block(rex-rin,Length,5,20);
-    material = MatDeforElastIso(MR, 00.0, E1, nu23, 0.0)
-    
-    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
-    println("========== With printing ==========")
-    @show @code_lowered FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
-    println("========== Original ==========")
-    @show @code_lowered FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
-    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
-    
-    true
+    # println("New segmentation fault?")
+    for orientation in [:a :b :ca :cb]
+        fens,fes  = T4block(L,W,t, nl,nw,nt, orientation)
+        geom  =  NodalField(fens.xyz)
+        MR  =  DeforModelRed3D
+        material = MatDeforElastIso(MR, 0.0, Ea, nua, 0.0)
+
+        femm  =  FEMMDeforLinearNICET4(MR, IntegData(fes, NodalSimplexRule(3)), material)
+        V = integratefunction(femm, geom, (x) ->  1.0)
+        @test abs(V - W*L*t)/V < 1.0e-5
+    end
+
 end
 end
-using .mocylpull14nnn
-mocylpull14nnn.test()
-
-
-# module mocylpull14a
-# using FinEtools
-# using Test
-# function test()
-#     MR = DeforModelRed2DAxisymm
-#     material = MatDeforElastIso(MR, 0.0, 1.0, 0.0, 0.0)
-#     @test MR === material.mr
-#     fens,fes = Q4block(0.2,1.2,5,20);
-#     println("Success? This succeeds both locally and in CI")
-#     # @code_llvm FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
-#     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
-#     println("Failure? This succeeds locally, but fails in CI")
-#     # @code_llvm FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
-#     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
-# end
-# end
-# using .mocylpull14a
-# mocylpull14a.test()
+using .mmMeasurement_3a
+mmMeasurement_3a.test()

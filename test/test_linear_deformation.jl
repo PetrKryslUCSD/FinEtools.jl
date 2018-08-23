@@ -7103,3 +7103,60 @@ end
 end
 using .mxRMSerror3a1
 mxRMSerror3a1.test()
+
+module munit_cube_modes_nice_t4
+using FinEtools
+using Test
+using Arpack
+function test()
+    println("""
+    Vibration modes of unit cube  of almost incompressible material.
+    %
+    Reference: Puso MA, Solberg J (2006) A stabilized nodally integrated
+    tetrahedral. International Journal for Numerical Methods in
+    Engineering 67: 841-867.
+    """)
+    t0 = time()
+    
+    E = 1*phun("PA");
+    nu = 0.499;
+    rho = 1*phun("KG/M^3");
+    a = 1*phun("M"); b = a; h =  a;
+    n1 = 10;# How many element edges per side?
+    na =  n1; nb =  n1; nh  = n1;
+    neigvs = 20                   # how many eigenvalues
+    OmegaShift = (0.01*2*pi)^2;
+    stabfact = 0.015
+    Eigenvalues = [0.0, 5.93656e-8, 7.54751e-8, 9.80131e-8, 1.14899e-7, 1.27725e-7, 0.264544, 0.266128, 0.350568, 0.352546, 0.355279, 0.357389, 0.357701, 0.359704, 0.402389, 0.402968, 0.404977, 0.45061, 0.450974, 0.452039]
+    
+    MR = DeforModelRed3D
+    fens,fes  = T4block(a,b,h, na,nb,nh)
+    
+    geom = NodalField(fens.xyz)
+    u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+    
+    numberdofs!(u)
+    
+    material = MatDeforElastIso(MR, rho, E, nu, 0.0)
+    
+    femm = FEMMDeforLinearNICET4(MR, IntegData(fes, NodalSimplexRule(3)), material, stabfact)
+    associategeometry!(femm,  geom)
+    K  = stiffness(femm, geom, u)
+    M = mass(femm, geom, u)
+    d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
+    d = d - OmegaShift;
+    fs = real(sqrt.(complex(d)))/(2*pi)
+    println("Eigenvalues: $fs [Hz]")
+    @test norm(fs .- Eigenvalues) < 1.0e-6*maximum(Eigenvalues)
+    
+    # mode = 17
+    # scattersysvec!(u, v[:,mode])
+    # File =  "unit_cube_modes.vtk"
+    # vtkexportmesh(File, fens, fes; vectors=[("mode$mode", u.values)])
+    
+    true
+    
+end
+end
+using .munit_cube_modes_nice_t4
+munit_cube_modes_nice_t4.test()

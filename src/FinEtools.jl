@@ -6,6 +6,8 @@ for continuum mechanics.
 """
 module FinEtools
 
+__precompile__(false)
+
 include("allmodules.jl")
 
 ###########################################################################
@@ -116,9 +118,9 @@ using FinEtools.AssemblyModule: SysmatAssemblerBase, SysmatAssemblerSparse, Sysm
 # Exported: types and methods for  sparse matrix assembly  and vector assembly
 export SysmatAssemblerBase, SysmatAssemblerSparse, SysmatAssemblerSparseSymm, SysmatAssemblerSparseHRZLumpingSymm, startassembly!, assemble!, makematrix!, SysvecAssemblerBase, SysvecAssembler, startassembly!, assemble!, makevector!
 
-using FinEtools.IntegRuleModule: IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule
+using FinEtools.IntegRuleModule: IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule, NodalSimplexRule
 # Exported: type for various integration rules
-export IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule
+export IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule, NodalSimplexRule
 
 using FinEtools.IntegDataModule: IntegData, otherdimensionunity, Jacobianpoint, Jacobiancurve, Jacobiansurface, Jacobianvolume, Jacobianmdim, integrationdata
 # Exported: type to handle  integration data for various manifold dimensions
@@ -237,5 +239,9 @@ export FEMMDeforLinearMSH8, FEMMDeforLinearMST10, stiffness, nzebcloadsstiffness
 using FinEtools.FEMMDeforSurfaceDampingModule: FEMMDeforSurfaceDamping, dampingABC
 #Exported: type for surface damping (absorbing boundary conditions)
 export FEMMDeforSurfaceDamping, dampingABC
+
+using FinEtools.FEMMDeforLinearNICEModule: FEMMDeforLinearNICEH8, FEMMDeforLinearNICET4, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
+# Exported: type for NICE (Nodally-integrated continuum elements) solid elements, discretization methods
+export FEMMDeforLinearNICEH8, FEMMDeforLinearNICET4, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
 
 end

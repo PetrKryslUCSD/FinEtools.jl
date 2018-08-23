@@ -102,6 +102,7 @@
 
 using Test
 # @time @testset "Debug" begin include("test_debug.jl") end
+@time @testset "Testing the tests" begin include("test_test.jl") end
 @time @testset "Miscellaneous" begin include("test_miscellaneous.jl") end
 @time @testset "Acoustics" begin include("test_acoustics.jl") end
 @time @testset "Heat diffusion" begin include("test_heat.jl") end
