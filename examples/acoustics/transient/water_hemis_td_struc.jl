@@ -1,7 +1,5 @@
 using FinEtools
-if VERSION >= v"0.7-"
-    using SparseArrays
-end
+using SparseArrays
 
 println("Rigid movable hemisphere in  water. Time-dependent simulation.
 ")

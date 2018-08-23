@@ -457,7 +457,7 @@ function hughes_cantilever_stresses_nodal_T10()
         0.0, E, nu, CTE)
         
         # Material orientation matrix
-        csmat = [i==j? 1.0: 0.0 for i=1:3, j=1:3]
+        csmat = [i==j ? 1.0 : 0.0 for i=1:3, j=1:3]
         
         function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             copyto!(csmatout, csmat)
