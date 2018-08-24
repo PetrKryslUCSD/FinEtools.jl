@@ -7108,14 +7108,15 @@ module munit_cube_modes_nice_t4
 using FinEtools
 using Test
 using Arpack
+using LinearAlgebra
 function test()
-    println("""
-    Vibration modes of unit cube  of almost incompressible material.
-    %
-    Reference: Puso MA, Solberg J (2006) A stabilized nodally integrated
-    tetrahedral. International Journal for Numerical Methods in
-    Engineering 67: 841-867.
-    """)
+    # println("""
+    # Vibration modes of unit cube  of almost incompressible material.
+    # %
+    # Reference: Puso MA, Solberg J (2006) A stabilized nodally integrated
+    # tetrahedral. International Journal for Numerical Methods in
+    # Engineering 67: 841-867.
+    # """)
     t0 = time()
     
     E = 1*phun("PA");
@@ -7144,9 +7145,9 @@ function test()
     K  = stiffness(femm, geom, u)
     M = mass(femm, geom, u)
     d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
-    d = d - OmegaShift;
+    d = d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
-    println("Eigenvalues: $fs [Hz]")
+    # println("Eigenvalues: $fs [Hz]")
     @test norm(vec(fs) .- vec(Eigenvalues)) < 1.0e-4*maximum(vec(Eigenvalues))
     
     # mode = 17
