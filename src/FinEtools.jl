@@ -244,4 +244,7 @@ using FinEtools.FEMMDeforLinearNICEModule: FEMMDeforLinearNICEH8, FEMMDeforLinea
 # Exported: type for NICE (Nodally-integrated continuum elements) solid elements, discretization methods
 export FEMMDeforLinearNICEH8, FEMMDeforLinearNICET4, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
 
+using FinEtools.FEMMDeforLinearESNICEModule: FEMMDeforLinearESNICEH8, FEMMDeforLinearESNICET4, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
+# Exported: type for ESICE (Energy-sampling stabilized nodally-integrated continuum elements) solid elements, discretization methods
+export FEMMDeforLinearESNICEH8, FEMMDeforLinearESNICET4, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
 end

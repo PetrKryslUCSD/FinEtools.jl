@@ -3,6 +3,50 @@ using FinEtools
 using FinEtools.MeshExportModule
 using Arpack
 
+# Mesh alum_cyl.inp
+# Abaqus with the Standard isoparametric C3D4 tetrahedron:
+C3D4 = [1 0
+2 0
+3 6.63586E-005
+4 0.000171053
+5 0.000211299
+6 0.000244378
+7 2564.63
+8 2568.09
+9 2597.26
+10 4094.38
+11 4714.36
+12 4717.19
+13 5181.98
+14 6865.13
+15 6868.17
+16 6962.86
+17 6965.67
+18 7024.97
+19 7029.44
+20 7108.54]
+# Abaqus with the standard quadratic tetrahedron:
+C3D10 = [1 0
+2 0
+3 0
+4 0.000139365
+5 0.000221551
+6 0.000291805
+7 2546.81
+8 2546.81
+9 2560.69
+10 4100
+11 4693.55
+12 4693.56
+13 5121.57
+14 6841.21
+15 6841.24
+16 6914.22
+17 6914.23
+18 6950.64
+19 6950.66
+20 7000.64]
+
 function alum_cyl_mode_nice_t4()
     
     E = 70000*phun("MPa");
@@ -27,6 +71,41 @@ function alum_cyl_mode_nice_t4()
     material = MatDeforElastIso(MR, rho, E, nu, 0.0)
     
     femm = FEMMDeforLinearNICET4(MR, IntegData(fes, NodalSimplexRule(3)), material, stabfact)
+    associategeometry!(femm,  geom)
+    K  = stiffness(femm, geom, u)
+    M = mass(femm, geom, u)
+    d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
+    d = d .- OmegaShift;
+    fs = real(sqrt.(complex(d)))/(2*pi)
+    println("Eigenvalues: $fs [Hz]")
+    
+    true
+    
+end # alum_cyl_modes
+
+function alum_cyl_mode_esnice_t4()
+    
+    E = 70000*phun("MPa");
+    nu = 0.33;
+    rho = 2700*phun("KG/M^3");
+    radius = 0.5*phun("ft");
+    neigvs = 20                   # how many eigenvalues
+    OmegaShift = (10.0*2*pi)^2;
+    
+    MR = DeforModelRed3D
+    output = import_ABAQUS("alum_cyl.inp")
+    fens, fes = output["fens"], output["fesets"][1]
+    fens.xyz .*= phun("mm") # The input is provided in SI(mm) units
+    fens, fes = T10toT4(fens, fes)
+     
+    geom = NodalField(fens.xyz)
+    u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+    
+    numberdofs!(u)
+    
+    material = MatDeforElastIso(MR, rho, E, nu, 0.0)
+    
+    femm = FEMMDeforLinearESNICET4(MR, IntegData(fes, NodalSimplexRule(3)), material)
     associategeometry!(femm,  geom)
     K  = stiffness(femm, geom, u)
     M = mass(femm, geom, u)
@@ -218,6 +297,9 @@ function allrun()
     println("#####################################################") 
     println("# alum_cyl_mode_nice_t4 ")
     alum_cyl_mode_nice_t4()
+    println("#####################################################") 
+    println("# alum_cyl_mode_esnice_t4 ")
+    alum_cyl_mode_esnice_t4()
     return true
 end # function allrun
 
