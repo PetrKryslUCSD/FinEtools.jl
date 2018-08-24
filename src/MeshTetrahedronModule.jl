@@ -9,7 +9,8 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 import FinEtools.FESetModule: count, FESetT4, FESetT10, setlabel!, connasarray
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
-import FinEtools.MeshSelectionModule: selectelem
+import FinEtools.MeshSelectionModule: findunconnnodes, selectelem
+import FinEtools.MeshModificationModule: compactnodes, renumberconn!
 import Statistics: mean
 
 """
@@ -183,6 +184,23 @@ function  T4toT10(fens::FENodeSet,  fes::FESetT4)
     labels = deepcopy(fes.label)
     fes = FESetT10(nconn);
     fes = setlabel!(fes, labels)
+    return fens, fes;
+end
+
+"""
+    T10toT4(fens::FENodeSet,  fes::FESetT4)
+
+Convert a mesh of tetrahedra of type T10 (quadratic 10-node) to tetrahedra T4.
+"""
+function  T10toT4(fens::FENodeSet,  fes::FESetT10)
+    nconn = connasarray(fes)
+    labels = deepcopy(fes.label)
+    fes = FESetT4(nconn[:, 1:4]); # Simply take the first four columns for the vertex nodes
+    fes = setlabel!(fes, labels)
+    # Some nodes are now unconnected, we have to remove them and renumber the elements
+    connected = findunconnnodes(fens, fes);
+    fens, new_numbering = compactnodes(fens, connected);
+    fes = renumberconn!(fes, new_numbering);
     return fens, fes;
 end
 
