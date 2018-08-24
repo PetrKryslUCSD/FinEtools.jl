@@ -263,7 +263,9 @@ simple-drag-drop-text
 -- Pkg.clone("https://github.com/JuliaDiffEq/DiffEqTutorials.jl")
 using IJulia
 notebook(dir=Pkg.dir("DiffEqTutorials"))
-using IJulia; notebook(detached=true, dir="C:\\Users\\PetrKrysl\\.julia\\v0.6\\FinEtools")
+using IJulia; 
+ENV["IJULIA_DEBUG"] = true
+notebook(detached=true)
 
 
 -- When  Atom would not start: run this
