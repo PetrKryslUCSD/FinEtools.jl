@@ -7147,7 +7147,7 @@ function test()
     d = d - OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
     println("Eigenvalues: $fs [Hz]")
-    @test norm(fs .- Eigenvalues) < 1.0e-6*maximum(Eigenvalues)
+    @test norm(vec(fs) .- vec(Eigenvalues)) < 1.0e-4*maximum(vec(Eigenvalues))
     
     # mode = 17
     # scattersysvec!(u, v[:,mode])
