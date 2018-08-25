@@ -55,7 +55,7 @@ function alum_cyl_mode_nice_t4()
     radius = 0.5*phun("ft");
     neigvs = 20                   # how many eigenvalues
     OmegaShift = (10.0*2*pi)^2;
-    stabfact = 0.005
+    stabfact = 0.0062
     
     MR = DeforModelRed3D
     output = import_ABAQUS("alum_cyl.inp")
