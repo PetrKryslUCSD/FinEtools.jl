@@ -62,7 +62,7 @@ function make_stabilization_material(material::M) where {M}
             error("No clues on how to construct the stabilization material")
         end
     end
-    phi = 0.6
+    phi = 0.75
     return  MatDeforElastIso(material.mr, 0.0, phi * E, nu, 0.0)
 end
 
