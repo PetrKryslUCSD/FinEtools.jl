@@ -4,7 +4,8 @@
 
 ## Tutorials
 
-The tutorials are in the Jupyter notebook form. 
+The tutorials are in the form of Julia files with markdown. These are converted to markdown files (or to Jupyter notebooks)
+using the [Literate](https://github.com/fredrikekre/Literate.jl) workflow.
 
 ## Examples
 
