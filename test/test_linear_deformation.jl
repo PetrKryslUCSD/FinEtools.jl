@@ -7162,7 +7162,6 @@ end
 using .munit_cube_modes_nice_t4
 munit_cube_modes_nice_t4.test()
 
-
 module malum_cyl_mode_nice_t4
 using FinEtools
 using Test
@@ -7209,3 +7208,50 @@ end
 end
 using .malum_cyl_mode_nice_t4
 malum_cyl_mode_nice_t4.test()
+
+module malum_cyl_mode_esnice_t4
+using FinEtools
+using Test
+using Arpack
+using LinearAlgebra
+function test()
+    # Aluminum cylinder free vibration, mesh imported from Abaqus 
+    # Mesh converted from quadratic tetrahedra to linear tetrahedra
+    # NICE tetrahedral elements used
+    E = 70000*phun("MPa");
+    nu = 0.33;
+    rho = 2700*phun("KG/M^3");
+    radius = 0.5*phun("ft");
+    neigvs = 20                   # how many eigenvalues
+    OmegaShift = (10.0*2*pi)^2;
+    stabfact = 0.005
+    Eigenvalues =  [0.0, 0.0, 8.81991e-5, 0.000120269, 0.000152067, 0.000179789, 2544.75, 2546.99, 2571.92, 4091.47, 4676.76, 4678.67, 5123.11, 6801.93, 6803.98, 6915.16, 6917.92, 6921.47, 6924.86, 7011.4]  
+    
+    MR = DeforModelRed3D
+    output = import_ABAQUS("alum_cyl.inp")
+    fens, fes = output["fens"], output["fesets"][1]
+    fens.xyz .*= phun("mm") # The input is provided in SI(mm) units
+    fens, fes = T10toT4(fens, fes)
+     
+    geom = NodalField(fens.xyz)
+    u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+    
+    numberdofs!(u)
+    
+    material = MatDeforElastIso(MR, rho, E, nu, 0.0)
+    
+    femm = FEMMDeforLinearESNICET4(MR, IntegData(fes, NodalSimplexRule(3)), material, stabfact)
+    associategeometry!(femm,  geom)
+    K  = stiffness(femm, geom, u)
+    M = mass(femm, geom, u)
+    d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
+    d = d .- OmegaShift;
+    fs = real(sqrt.(complex(d)))/(2*pi)
+    # println("Eigenvalues: $fs [Hz]")
+    @test norm(vec(fs) .- vec(Eigenvalues)) < 1.0e-3*maximum(vec(Eigenvalues))
+    
+    true
+end
+end
+using .malum_cyl_mode_esnice_t4
+malum_cyl_mode_esnice_t4.test()
