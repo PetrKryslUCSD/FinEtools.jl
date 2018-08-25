@@ -96,7 +96,7 @@ println("Convergence rate estimate  = $(beta )")
                 xlabel = "Element size",
                 ylabel = "Temperature Error",
                 title = "",
-                legend_pos  = "south east",
+                "legend pos={south east}",
                 xmin = "1.0e-2", 
                 xmax = "1.0",
                 ymin = 1.0e-3, ymax = 0.1
@@ -111,3 +111,4 @@ println("Convergence rate estimate  = $(beta )")
             }, Table([:x => params[1:2], :y => abs.(diff(resultsTempA))])), LegendEntry("approximate error"),
             );
 display(p)
+PGFPlotsX.print_tex(p)
