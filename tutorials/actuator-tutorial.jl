@@ -142,7 +142,7 @@ ixo = sortperm(y_o)
                 xlabel = "Distance  [m]",
                 ylabel = "Temperature [degree Kelvin]",
                 title = "",
-                legend  = "pos south east"
+                legend_pos  = "south east"
             },
             Plot({
                 color = "red",
