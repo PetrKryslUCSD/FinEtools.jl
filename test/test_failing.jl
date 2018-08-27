@@ -14,9 +14,9 @@ function test()
     material = MatDeforElastIso(MR, 00.0, E1, nu23, 0.0)
     
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
-    println("========== With printing ==========")
+    println("isaisaisa= With printing isaisaisa=")
     @show @code_lowered FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material, true)
-    println("========== Original ==========")
+    println("isaisaisa= Original isaisaisa=")
     @show @code_lowered FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(2, 2), true), material)
     

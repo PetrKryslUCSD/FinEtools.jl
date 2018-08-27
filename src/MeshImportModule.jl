@@ -303,7 +303,7 @@ function import_ABAQUS(filename; allocationchunk=chunk)
     for ixxxx = 1:length(elemset)
         elemset[ixxxx].elem = elemset[ixxxx].elem[1:elemset[ixxxx].nelem, :]
         fes = feset_construct(elemset[ixxxx])
-        if (fes === nothing)
+        if (fes == nothing)
             push!(warnings, "Don't know how to handle " * elemset[ixxxx].ElementLine)
         else
             fes = renumberconn!(fes, newnumbering)

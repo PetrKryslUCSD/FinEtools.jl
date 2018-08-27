@@ -28,9 +28,7 @@ mutable struct FEMMDeforLinear{MR<:DeforModelRed,  S<:FESet, F<:Function, M<:Mat
 end
 
 function FEMMDeforLinear(mr::Type{MR}, integdata::IntegData{S, F}, material::M) where {MR<:DeforModelRed, S<:FESet, F<:Function, M<:MatDefor}
-    # @show mr 
-    # @show material.mr
-    @assert mr === material.mr "Model reduction is mismatched"
+    @assert mr == material.mr "Model reduction is mismatched"
     @assert (integdata.axisymmetric) || (mr != DeforModelRed2DAxisymm) "Axially symmetric requires axisymmetric to be true"
     return FEMMDeforLinear(mr, integdata, CSys(manifdim(integdata.fes)), material)
 end
@@ -39,7 +37,7 @@ end
 function FEMMDeforLinear(mr::Type{MR}, integdata::IntegData{S, F}, material::M, print) where {MR<:DeforModelRed, S<:FESet, F<:Function, M<:MatDefor}
     @show mr 
     @show material.mr
-    @assert mr === material.mr "Model reduction is mismatched"
+    @assert mr == material.mr "Model reduction is mismatched"
     @assert (integdata.axisymmetric) || (mr != DeforModelRed2DAxisymm) "Axially symmetric requires axisymmetric to be true"
     return FEMMDeforLinear(mr, integdata, CSys(manifdim(integdata.fes)), material)
 end

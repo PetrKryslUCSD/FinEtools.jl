@@ -53,15 +53,15 @@ mutable struct FEMMDeforLinearNICEH8{MR<:DeforModelRed, S<:FESetH8, F<:Function,
 end
 
 function FEMMDeforLinearNICEH8(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
-    @assert mr === material.mr "Model reduction is mismatched"
-    @assert (mr === DeforModelRed3D) "3D model required"
+    @assert mr == material.mr "Model reduction is mismatched"
+    @assert (mr == DeforModelRed3D) "3D model required"
     stabfact = 0.05
     return FEMMDeforLinearNICEH8(mr, integdata, mcsys, material, stabfact, _NodalBasisFunctionGradients[])
 end
 
 function FEMMDeforLinearNICEH8(mr::Type{MR}, integdata::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
-    @assert mr === material.mr "Model reduction is mismatched"
-    @assert (mr === DeforModelRed3D) "3D model required"
+    @assert mr == material.mr "Model reduction is mismatched"
+    @assert (mr == DeforModelRed3D) "3D model required"
     stabfact = 0.05
     return FEMMDeforLinearNICEH8(mr, integdata, CSys(manifdim(integdata.fes)), material, stabfact, _NodalBasisFunctionGradients[])
 end
@@ -76,22 +76,22 @@ mutable struct FEMMDeforLinearNICET4{MR<:DeforModelRed, S<:FESetT4, F<:Function,
 end
 
 function FEMMDeforLinearNICET4(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
-    @assert mr === material.mr "Model reduction is mismatched"
-    @assert (mr === DeforModelRed3D) "3D model required"
+    @assert mr == material.mr "Model reduction is mismatched"
+    @assert (mr == DeforModelRed3D) "3D model required"
     stabfact = 0.015
     return FEMMDeforLinearNICET4(mr, integdata, mcsys, material, stabfact, _NodalBasisFunctionGradients[])
 end
 
 function FEMMDeforLinearNICET4(mr::Type{MR}, integdata::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
-    @assert mr === material.mr "Model reduction is mismatched"
-    @assert (mr === DeforModelRed3D) "3D model required"
+    @assert mr == material.mr "Model reduction is mismatched"
+    @assert (mr == DeforModelRed3D) "3D model required"
     stabfact = 0.015
     return FEMMDeforLinearNICET4(mr, integdata, CSys(manifdim(integdata.fes)), material, stabfact, _NodalBasisFunctionGradients[])
 end
 
 function FEMMDeforLinearNICET4(mr::Type{MR}, integdata::IntegData{S, F}, material::M, stabfact::FFlt) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
-    @assert mr === material.mr "Model reduction is mismatched"
-    @assert (mr === DeforModelRed3D) "3D model required"
+    @assert mr == material.mr "Model reduction is mismatched"
+    @assert (mr == DeforModelRed3D) "3D model required"
     return FEMMDeforLinearNICET4(mr, integdata, CSys(manifdim(integdata.fes)), material, stabfact, _NodalBasisFunctionGradients[])
 end
 

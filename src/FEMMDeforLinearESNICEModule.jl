@@ -76,15 +76,15 @@ mutable struct FEMMDeforLinearESNICEH8{MR<:DeforModelRed, S<:FESetH8, F<:Functio
 end
 
 function FEMMDeforLinearESNICEH8(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
-    @assert mr === material.mr "Model reduction is mismatched"
-    @assert (mr === DeforModelRed3D) "3D model required"
+    @assert mr == material.mr "Model reduction is mismatched"
+    @assert (mr == DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
     return FEMMDeforLinearESNICEH8(mr, integdata, mcsys, material, stabilization_material, _NodalBasisFunctionGradients[])
 end
 
 function FEMMDeforLinearESNICEH8(mr::Type{MR}, integdata::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
-    @assert mr === material.mr "Model reduction is mismatched"
-    @assert (mr === DeforModelRed3D) "3D model required"
+    @assert mr == material.mr "Model reduction is mismatched"
+    @assert (mr == DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
     return FEMMDeforLinearESNICEH8(mr, integdata, CSys(manifdim(integdata.fes)), material, stabfact, _NodalBasisFunctionGradients[])
 end
@@ -99,22 +99,22 @@ mutable struct FEMMDeforLinearESNICET4{MR<:DeforModelRed, S<:FESetT4, F<:Functio
 end
 
 function FEMMDeforLinearESNICET4(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
-    @assert mr === material.mr "Model reduction is mismatched"
-    @assert (mr === DeforModelRed3D) "3D model required"
+    @assert mr == material.mr "Model reduction is mismatched"
+    @assert (mr == DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
     return FEMMDeforLinearESNICET4(mr, integdata, mcsys, material, stabilization_material, _NodalBasisFunctionGradients[])
 end
 
 function FEMMDeforLinearESNICET4(mr::Type{MR}, integdata::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
-    @assert mr === material.mr "Model reduction is mismatched"
-    @assert (mr === DeforModelRed3D) "3D model required"
+    @assert mr == material.mr "Model reduction is mismatched"
+    @assert (mr == DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
     return FEMMDeforLinearESNICET4(mr, integdata, CSys(manifdim(integdata.fes)), material, stabilization_material, _NodalBasisFunctionGradients[])
 end
 
 function FEMMDeforLinearESNICET4(mr::Type{MR}, integdata::IntegData{S, F}, material::M, stabfact::FFlt) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
-    @assert mr === material.mr "Model reduction is mismatched"
-    @assert (mr === DeforModelRed3D) "3D model required"
+    @assert mr == material.mr "Model reduction is mismatched"
+    @assert (mr == DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
     return FEMMDeforLinearESNICET4(mr, integdata, CSys(manifdim(integdata.fes)), material, stabilization_material, _NodalBasisFunctionGradients[])
 end

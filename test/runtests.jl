@@ -109,5 +109,5 @@ using Test
 @time @testset "Linear deformation" begin include("test_linear_deformation.jl") end
 @time @testset "Meshing" begin include("test_meshing.jl") end
 @time @testset "Voxel box" begin include("test_voxel_box.jl") end
-# @time @testset "Failing tests" begin include("test_failing.jl") end
+@time @testset "Failing tests" begin include("test_failing.jl") end
 true
