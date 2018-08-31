@@ -1,6 +1,7 @@
 module actuator_examples
 using FinEtools
-using PyCall
+using FinEtools.MeshExportModule
+using PGFPlotsX
 
 function actuator2()
     # MEMS actuator.   Thermal analysis.
@@ -32,40 +33,41 @@ function actuator2()
     p1 = 1*2;
     p2 = 1*2;
     p3 = 1*2;
-    kappa = 157*eye(3, 3)*phun("W/m/K"); # W/m/K, conductivity matrix
+    kappa = 157*[1 0 0; 0 1 0; 0 0 1]*phun("W/m/K"); # W/m/K, conductivity matrix
     DV = 5*phun("V"); # voltage drop in volt
     l  = 2*(y1+y2)/2+2*(x1+x2)/2; # length of the conductor
     resistivity  =  1.1e-5*phun("Ohm*m"); # Ohm m
     Q = DV^2/resistivity/l^2; # rate of Joule heating, W/m^3
     T_substrate = 293; # substrate temperature in degrees Kelvin
+    tol = 1e6*eps(h)
     
     fens,fes =  H8hexahedron([x1 y0 z0; x2 y1 z1],m2,n1,p1);
     fens1,fes1  =  H8hexahedron([x1 y1 z0;x2 y2 z1],m2,n2,p1);
-    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, tol);
     fes =  cat(fes1,fes2);
     fens1,fes1  =  H8hexahedron([x0 y1 z0;x1 y2 z1],m1,n2,p1);
-    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, tol);
     fes =  cat(fes1,fes2);
     fens1,fes1  =  H8hexahedron([x0 y1 z1;x1 y2 z2], m1,n2,p2);
-    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, tol);
     fes =  cat(fes1,fes2);
     fens1,fes1  =  H8hexahedron([x0 y1 z2;x1 y2 z3],m1,n2,p3);
-    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, tol);
     fes =  cat(fes1,fes2);
     fens1,fes1  =  H8hexahedron([x0 y2 z2;x1 y3 z3],m1,n3,p3);
-    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, tol);
     fes =  cat(fes1,fes2);
     fens1,fes1  =  H8hexahedron([x0 y3 z2;x1 y4 z3], m1,n4,p3);
-    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, tol);
     fes =  cat(fes1,fes2);
     fens1,fes1  =  H8hexahedron([x1 y3 z2;x3 y4 z3],m4,n4,p3);
-    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, tol);
     fes =  cat(fes1,fes2);
     fens1,fes1  =  H8hexahedron([x3 y3 z2;x4 y4 z3],m3,n4,p3);
-    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, tol);
     fes =  cat(fes1,fes2);
     fens1,fes1  =  H8hexahedron([x3 y0 z2;x4 y3 z3], m3,n5,p3);
-    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, eps(h));
+    fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, tol);
     fes =  cat(fes1,fes2);
     
     fens,fes  =  H8toH20(fens,fes);
@@ -83,39 +85,35 @@ function actuator2()
     applyebc!(Temp)
     numberdofs!(Temp)
     
-    K = conductivity(hotfemm, geom, Temp) +
-    conductivity(coldfemm, geom, Temp)
+    K = conductivity(hotfemm, geom, Temp) + conductivity(coldfemm, geom, Temp)
     fi = ForceIntensity(FFlt[Q]);
-    F = distribloads(hotfemm, geom, Temp, fi, 3) +
-    nzebcloadsconductivity(hotfemm, geom, Temp) +
-    nzebcloadsconductivity(coldfemm, geom, Temp)
+    F = distribloads(hotfemm, geom, Temp, fi, 3) + nzebcloadsconductivity(hotfemm, geom, Temp) + nzebcloadsconductivity(coldfemm, geom, Temp)
     
     U = K\F
     scattersysvec!(Temp,U[:])
     
-    
-    @pyimport matplotlib.pyplot as plt
-    plt.style[:use]("seaborn-whitegrid")
-    fig = plt.figure() 
-    ax = plt.axes()
     nList = selectnode(fens, box=[x1,x1,y0,y1,z1,z1], inflate=t/1000)
     y_i = geom.values[nList, 2]
     T_i = Temp.values[nList, 1]
-    ix = sortperm(y_i)
-    ax[:plot](y_i[ix], T_i[ix], color=:red, label= "hot leg")
-    println("maximum(T_i) = $(maximum(T_i))")
-    
+    ixi = sortperm(y_i)
     nList = selectnode(fens, box=[x3,x3,y0,y3,z2,z2], inflate=t/1000)
     y_o = geom.values[nList, 2]
     T_o = Temp.values[nList, 1]
-    ix = sortperm(y_o)
-    ax[:plot](y_o[ix], T_o[ix], color=:blue, label= "cold leg")
-    plt.legend()
-    ax[:set_xlabel]("Distance")
-    ax[:set_ylabel]("Temperature")
-    plt.show()
-    # plt.xlim(0.0, 1.0)
-    # plt.axis("equal")
+    ixo = sortperm(y_o)
+    @pgf a = Axis({
+        xlabel = "Distance",
+        ylabel = "Temperature",
+        title = "Transient pressure",
+        legend_pos  = "south east"
+    },
+    Plot(Table([:x => y_o[ixo], :y => T_o[ixo]])), LegendEntry("cold leg"),
+    Plot(Table([:x => y_i[ixi], :y => T_i[ixi]])), LegendEntry("hot leg"))
+    display(a)
+
+    File =  "a.vtk"
+    MeshExportModule.vtkexportmesh(File, fens, fes; scalars =[("Temperature", Temp.values)])
+    @async run(`"paraview.exe" $File`)
+    true
 end # actuator2
 
 function allrun()

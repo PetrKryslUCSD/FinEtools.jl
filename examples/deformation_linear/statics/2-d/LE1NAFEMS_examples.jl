@@ -2,7 +2,7 @@ module LE1NAFEMS_examples
 using FinEtools
 using FinEtools.MeshExportModule
 using LinearAlgebra: cholesky, norm
-using Gaston
+using PGFPlotsX
 
 function LE1NAFEMS()
     println("LE1NAFEMS, plane stress.")
@@ -161,12 +161,14 @@ function LE1NAFEMS_Q4_convergence()
             # @async run(`"paraview.exe" $File`)
         end
     end
-    
-    
-    set(axis="loglog", plotstyle="linespoints", linewidth=2, pointsize = 2, color = "black", xlabel = "Number of elements", ylabel = "Norm. approx. error", grid="on", title = "")
-    f = figure()
-    plot(vec(Float64.(nelems)), vec(sigyderrs[:extrapmean]); legend="Extrapolated stress")
-    figure(f)
+
+    @pgf a = LogLogAxis({
+        xlabel = "Number of elements",
+        ylabel = "Norm. approx. error",
+        title = "Convergence"
+    },
+    Plot(Table([:x => vec(Float64.(nelems)), :y => vec(sigyderrs[:extrapmean])])), LegendEntry("Extrapolated stress"))
+    display(a)
     true
 end # LE1NAFEMS_Q4_convergence
 

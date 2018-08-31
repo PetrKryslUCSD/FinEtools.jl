@@ -1,7 +1,7 @@
 module sphere_dipole_examples
 using FinEtools
 using LinearAlgebra
-using Gaston
+
 
 function sphere_dipole_transient()
     println("The interior sphere accelerates in the alternately in the positive
@@ -108,7 +108,7 @@ function sphere_dipole_transient()
     
     # Solve
     P0 = deepcopy(P)
-    P0.values[:] = 0.0; # initially all pressure is zero
+    P0.values[:] .= 0.0; # initially all pressure is zero
     vP0 = gathersysvec(P0);
     vP1 = zeros(eltype(vP0), size(vP0));
     vQ0 = zeros(eltype(vP0), size(vP0));

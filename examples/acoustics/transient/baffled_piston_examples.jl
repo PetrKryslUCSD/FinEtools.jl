@@ -1,7 +1,7 @@
 module baffled_piston_examples
 using FinEtools
 using LinearAlgebra
-using Gaston
+using PGFPlotsX
 
 function baffled_piston_H8_transient()
     rho = 1.21*phun("kg/m^3");# mass density
@@ -88,8 +88,8 @@ vPd0 = deepcopy(vP0)
 vPd1 = deepcopy(vP0)
 
 t = 0.0
-P0.fixed_values[piston_fenids,1] = P_piston*sin(omega*t)
-Pdd0.fixed_values[piston_fenids,1] = P_piston*(-omega^2)*sin(omega*t)
+P0.fixed_values[piston_fenids,1] .= P_piston*sin(omega*t)
+Pdd0.fixed_values[piston_fenids,1] .= P_piston*(-omega^2)*sin(omega*t)
 vP0 = gathersysvec!(P0, vP0)
 
 nh = selectnode(fens, nearestto = [R+Ro/2, 0.0, 0.0] )
@@ -99,8 +99,8 @@ step =0;
 while t <=tfinal
     step = step  +1;
     t=t+dt;
-    P1.fixed_values[piston_fenids,1] = P_piston*sin(omega*t)
-    Pdd1.fixed_values[piston_fenids,1] = P_piston*(-omega^2)*sin(omega*t)
+    P1.fixed_values[piston_fenids,1] .= P_piston*sin(omega*t)
+    Pdd1.fixed_values[piston_fenids,1] .= P_piston*(-omega^2)*sin(omega*t)
     TMPF.fixed_values = P0.fixed_values + P1.fixed_values
     F = nzebcloadsacousticmass(femm, geom, TMPF);
     TMPF.fixed_values = Pdd0.fixed_values + Pdd1.fixed_values
@@ -124,12 +124,13 @@ while t <=tfinal
     println("step = $( step )")
 end
 
-
-
-set(axis="normal", plotstyle="linespoints", linewidth=4, pointsize = 2, color = "black", xlabel = "Time", ylabel = "Pnh", grid="on", title = "")
-f = figure()
-plot(vec(ts), vec(Pnh), legend = "", marker = "edmd")
-figure(f)
+@pgf a = Axis({
+    xlabel = "Time",
+    ylabel = "Pnh",
+    title = "Transient pressure"
+},
+Plot(Table([:x => vec(ts), :y => vec(Pnh)])))
+display(a)
 
 # using Plots
 # plotly()

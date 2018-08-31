@@ -1,5 +1,6 @@
 module orthoballoon_examples
 using FinEtools
+using LinearAlgebra
 
 function orthoballoon()
     # Orthotropic balloon inflation, axially symmetric model
@@ -62,7 +63,7 @@ function orthoballoon()
     
     el1femm =  FEMMBase(IntegData(subset(bdryfes,icl), GaussRule(1, 3), true))
     function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-        copy!(forceout, XYZ/norm(XYZ)*p)
+        copyto!(forceout, XYZ/norm(XYZ)*p)
         return forceout
     end
     fi = ForceIntensity(FFlt, 2, pressureloading!); # pressure normal to the internal cylindrical surface
@@ -141,7 +142,7 @@ function orthoballoon_penalty()
     
     el1femm =  FEMMBase(IntegData(subset(bdryfes,icl), GaussRule(1, 3), true))
     function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-        copy!(forceout, XYZ/norm(XYZ)*p)
+        copyto!(forceout, XYZ/norm(XYZ)*p)
         return forceout
     end
     fi = ForceIntensity(FFlt, 2, pressureloading!); # pressure normal to the internal cylindrical surface
@@ -161,8 +162,8 @@ function orthoballoon_penalty()
     springcoefficient =1.0e9/ (abs(p)/E1)
     xsfemm = FEMMDeforWinkler(IntegData(subset(bdryfes, lx), GaussRule(1, 3), true))
     ysfemm = FEMMDeforWinkler(IntegData(subset(bdryfes, ly), GaussRule(1, 3), true))
-    H = surfacenormalspringstiffness(xsfemm,  geom, u, springcoefficient, SurfaceNormal(FFlt, 3)) +
-    surfacenormalspringstiffness(ysfemm,  geom, u, springcoefficient, SurfaceNormal(FFlt, 3))
+    H = surfacenormalspringstiffness(xsfemm,  geom, u, springcoefficient, SurfaceNormal(3)) +
+    surfacenormalspringstiffness(ysfemm,  geom, u, springcoefficient, SurfaceNormal(3))
     K =stiffness(femm, geom, u)
     U=  (K + H)\(F2)
     scattersysvec!(u,U[:])

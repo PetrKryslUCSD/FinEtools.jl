@@ -1,6 +1,8 @@
 module thick_pipe_examples
 using FinEtools
-using PyCall
+using PGFPlotsX
+using Statistics
+using LinearAlgebra
 
 struct MyIData
     c::FInt
@@ -63,14 +65,14 @@ function thick_pipe_axi()
     
     ##
     # Analytical solutions.   Radial stress:
-    radial_stress(r)  = press*a.^2/(b^2-a^2).*(1-b^2./r.^2);
+    radial_stress(r)  = press*a^2/(b^2-a^2)*(1-b^2.0/r^2);
     ##
     # Circumferential (hoop) stress:
-    hoop_stress(r) = press*a.^2/(b^2-a^2).*(1+b^2./r.^2);
+    hoop_stress(r) = press*a^2/(b^2-a^2)*(1+b^2.0/r^2);
     
     ##
     # Radial displacement:
-    radial_displacement(r) = press*a^2*(1+nu)*(b^2+r.^2*(1-2*nu))/(E*(b^2-a^2).*r);;
+    radial_displacement(r) = press*a^2*(1+nu)*(b^2+r^2*(1-2*nu))/(E*(b^2-a^2)*r);;
     
     ##
     # Therefore the radial displacement of the loaded surface will be:
@@ -166,25 +168,20 @@ function thick_pipe_axi()
     
     idat = MyIData(1, FFltVec[], FFltVec[])
     idat = inspectintegpoints(femm, geom, u, collect(1:count(fes)), inspector, idat, :Cauchy)
-    
-    
-    @pyimport matplotlib.pyplot as plt
-    plt.style[:use]("seaborn-whitegrid")
-    fig = plt.figure() 
-    ax = plt.axes()
+     
     # Plot the analytical solution.
-    r = linspace(a,b,100);
-    ax[:plot](r, radial_stress(r), linestyle="solid", marker=:o, label="Analytical")
-    # Plot the computed  integration-point data
-    ax[:plot](idat.r, idat.s, linestyle="none", marker=:o, label="FEA")
-    # plt.xlim(0.0, 1.0)
-    # plt.axis("equal")
-    plt.legend()
-    ax[:set_xlabel]("Radial distance")
-    ax[:set_ylabel]("Radial stress")
-    ax[:grid](linestyle="--", linewidth=0.5, color=".25", zorder=-10)
-    plt.show()
-    
+    r = linearspace(a,b,100);
+    @pgf a = Axis({
+        xlabel = "Radial distance",
+        ylabel = "Radial stress",
+        grid="major",
+        legend_pos  = "south east"
+    },
+    Plot({mark="dot"}, Table([:x => vec(r), :y => vec(radial_stress.(r))])), LegendEntry("Analytical"),
+    Plot({"only marks", "red", mark="triangle"}, Table([:x => vec(idat.r), :y => vec(idat.s)])), LegendEntry("FEA"))
+    display(a)
+    # print_tex(a)
+
     # ##
     # # *Regular quadratic triangle*
     # ##
@@ -411,7 +408,7 @@ function thick_pipe_ps()
     
     el1femm =  FEMMBase(IntegData(subset(bdryfes,bcl), GaussRule(1, 3)))
     function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-        copy!(forceout, XYZ/norm(XYZ)*press)
+        copyto!(forceout, XYZ/norm(XYZ)*press)
         return forceout
     end
     fi = ForceIntensity(FFlt, 2, pressureloading!); # pressure normal to the internal cylindrical surface
@@ -483,22 +480,17 @@ function thick_pipe_ps()
     inspector, idat, :Cauchy)
     # show(idat)
     
-    @pyimport matplotlib.pyplot as plt
-    plt.style[:use]("seaborn-whitegrid")
-    fig = plt.figure() 
-    ax = plt.axes()
     # Plot the analytical solution.
-    r = linspace(a,b,100);
-    ax[:plot](r, radial_stress(r), linestyle="solid", marker=:o, label="Analytical")
-    # Plot the computed  integration-point data
-    ax[:plot](idat.r, idat.s, linestyle="none", marker=:o, label="FEA")
-    # plt.xlim(0.0, 1.0)
-    # plt.axis("equal")
-    plt.legend()
-    ax[:set_xlabel]("Radial distance")
-    ax[:set_ylabel]("Radial stress")
-    ax[:grid](linestyle="--", linewidth=0.5, color=".25", zorder=-10)
-    plt.show()
+    r = linearspace(a,b,100);
+    @pgf a = Axis({
+        xlabel = "Radial distance",
+        ylabel = "Radial stress",
+        grid="major",
+        legend_pos  = "south east"
+    },
+    Plot({mark="dot"}, Table([:x => vec(r), :y => vec(radial_stress.(r))])), LegendEntry("Analytical"),
+    Plot({"only marks", "red", mark="triangle"}, Table([:x => vec(idat.r), :y => vec(idat.s)])), LegendEntry("FEA"))
+    display(a)
     
 end # thick_pipe_ps
 
@@ -646,7 +638,7 @@ function thick_pipe_ps_T6()
     
     el1femm =  FEMMBase(IntegData(subset(bdryfes,bcl), GaussRule(1, 3)))
     function pressureloading!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-        copy!(forceout, XYZ/norm(XYZ)*press)
+        copyto!(forceout, XYZ/norm(XYZ)*press)
         return forceout
     end
     fi = ForceIntensity(FFlt, 2, pressureloading!); # pressure normal to the internal cylindrical surface
@@ -718,22 +710,17 @@ function thick_pipe_ps_T6()
     inspector, idat, :Cauchy)
     # show(idat)
     
-    @pyimport matplotlib.pyplot as plt
-    plt.style[:use]("seaborn-whitegrid")
-    fig = plt.figure() 
-    ax = plt.axes()
     # Plot the analytical solution.
-    r = linspace(a,b,100);
-    ax[:plot](r, radial_stress(r), linestyle="solid", marker=:o, label="Analytical")
-    # Plot the computed  integration-point data
-    ax[:plot](idat.r, idat.s, linestyle="none", marker=:o, label="FEA")
-    # plt.xlim(0.0, 1.0)
-    # plt.axis("equal")
-    plt.legend()
-    ax[:set_xlabel]("Radial distance")
-    ax[:set_ylabel]("Radial stress")
-    ax[:grid](linestyle="--", linewidth=0.5, color=".25", zorder=-10)
-    plt.show()
+    r = linearspace(a,b,100);
+    @pgf a = Axis({
+        xlabel = "Radial distance",
+        ylabel = "Radial stress",
+        grid="major",
+        legend_pos  = "south east"
+    },
+    Plot({mark="dot"}, Table([:x => vec(r), :y => vec(radial_stress.(r))])), LegendEntry("Analytical"),
+    Plot({"only marks", "red", mark="triangle"}, Table([:x => vec(idat.r), :y => vec(idat.s)])), LegendEntry("FEA"))
+    display(a)
     
     #pub_thick_pipe_ps()
     

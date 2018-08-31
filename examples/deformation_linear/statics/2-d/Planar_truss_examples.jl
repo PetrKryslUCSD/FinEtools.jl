@@ -2,6 +2,7 @@ module Planar_truss_examples
 using FinEtools
 using FinEtools.FENodeSetModule
 using FinEtools.MeshExportModule
+using LinearAlgebra
 
 function Planar_truss()
     # Planar truss  structure loaded with concentrated forces  at some nodes.

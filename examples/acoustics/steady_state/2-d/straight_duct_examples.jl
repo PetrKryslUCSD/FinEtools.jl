@@ -1,6 +1,7 @@
 module straight_duct_examples
 using FinEtools
-using Gaston
+using PGFPlotsX
+using LaTeXStrings
 
 function straight_duct_Q8_example()
     t0  =  time()
@@ -64,21 +65,15 @@ function straight_duct_Q8_example()
     vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.Q8;  scalars = [("Pressure", scalars)])
     @async run(`"paraview.exe" $File`)
     
-    # @pyimport matplotlib.pyplot as plt
-    # plt.style[:use]("seaborn-whitegrid")
-    # fig = plt.figure() 
-    # ax = plt.axes()
-    # ix = sortperm(geom.values[nLx,1])
-    # ax[:plot](geom.values[nLx,1][ix], real(P.values)[nLx][ix], marker=:o, color = :blue, label = "real")
-    # ax[:plot](geom.values[nLx,1][ix], imag(P.values)[nLx][ix], marker=:d,  color = :red, label  =  "imag")
-    # plt.legend()
-    # plt.show()
-    f = figure()
-    set(axis="normal", plotstyle="linespoints", linewidth=2, pointsize = 2, color = "black", xlabel = "x", ylabel = "Pressure", grid="on", title = "")
     ix = sortperm(geom.values[nLx,1])
-    plot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], legend = "real", marker = "ecircle")
-    plot!(geom.values[nLx,1][ix], imag(P.values)[nLx][ix], legend = "imag", color = "red", marker = "edmd")
-    figure(f)
+    @pgf a = Axis({
+              xlabel = "x",
+              ylabel = L"$\mathrm{Re}P$, $\mathrm{Im}P$",
+              title = "Steady-state pressure"
+          },
+          Plot(Table([:x => geom.values[nLx,1][ix], :y => real(P.values)[nLx][ix]])), LegendEntry("real"),
+          Plot(Table([:x => geom.values[nLx,1][ix], :y => imag(P.values)[nLx][ix]])), LegendEntry("imag"))
+    display(a)
 
     true
     
@@ -146,24 +141,16 @@ function straight_duct_T3_example()
     vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.T3; scalars = [("Pressure", scalars)])
     @async run(`"paraview.exe" $File`)
      
-    # @pyimport matplotlib.pyplot as plt
-    # plt.style[:use]("seaborn-whitegrid")
-    # fig = plt.figure() 
-    # ax = plt.axes()
-    # ix = sortperm(geom.values[nLx,1])
-    # ax[:plot](geom.values[nLx,1][ix], real(P.values)[nLx][ix], marker=:o, color = :blue, label = "real")
-    # ax[:plot](geom.values[nLx,1][ix], imag(P.values)[nLx][ix], marker=:d,  color = :red, label  =  "imag")
-    # plt.legend()
-    # plt.show()
-    # fig = figure() 
-    # figure(fig)
-    set(axis="normal", plotstyle="linespoints", linewidth=2, pointsize = 2, color = "black", xlabel = "x", ylabel = "Pressure", grid="on", title = "")
-    f = figure()
     ix = sortperm(geom.values[nLx,1])
-    plot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], legend = "real", marker = "ecircle")
-    plot!(geom.values[nLx,1][ix], imag(P.values)[nLx][ix], legend = "imag", color = "red", marker = "edmd")
-    figure(f)
-    
+    @pgf a = Axis({
+              xlabel = "x",
+              ylabel = L"$\mathrm{Re}P$, $\mathrm{Im}P$",
+              title = "Steady-state pressure"
+          },
+          Plot(Table([:x => geom.values[nLx,1][ix], :y => real(P.values)[nLx][ix]])), LegendEntry("real"),
+          Plot(Table([:x => geom.values[nLx,1][ix], :y => imag(P.values)[nLx][ix]])), LegendEntry("imag"))
+    display(a)
+
     true
     
 end # straight_duct_T3_example

@@ -1,6 +1,6 @@
 module Fahy_examples
 using FinEtools
-using Gaston
+using PGFPlotsX
 import Arpack: eigs
 
 function fahy_H20_example()
@@ -192,22 +192,14 @@ function fahy_L2_example()
     
     println("Total time elapsed  =  ",time() - t0,"s")
     
-    
-    # @pyimport matplotlib.pyplot as plt
-    # plt.style[:use]("seaborn-whitegrid")
-    # fig = plt.figure() 
-    # ax = plt.axes()
-    # en = 2
-    # ix = sortperm(geom.values[:])
-    # ax[:plot](geom.values[:][ix], v[:,en][ix], color = "blue")
-    # ax[:set_xlabel]("x")
-    # ax[:set_ylabel]("P")
-    # plt.show()
-    
-    set(axis="normal", plotstyle="linespoints", linewidth=2, pointsize = 2, color = "black", xlabel = "x", ylabel = "P", grid="on", title = "")
     ix = sortperm(geom.values[:])
-    plot(geom.values[:][ix], v[:,2][ix], legend = "Pressure mode", marker = "edmd")
-    
+    @pgf a = Axis({
+              xlabel = "x",
+              ylabel = "P",
+              title = "Pressure mode 2"
+          },
+          Plot(Table([:x => geom.values[:][ix], :y => v[:,2][ix]])))
+    display(a)
     true
     
 end # fahy_L2_example

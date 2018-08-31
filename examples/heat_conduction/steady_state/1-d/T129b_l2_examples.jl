@@ -2,7 +2,7 @@ module T129b_l2_examples
 using FinEtools
 using FinEtools.AlgoHeatDiffModule
 using LinearAlgebra: cholesky
-using Gaston
+using PGFPlotsX
 
 function T129b_l2_uq()
     L = 6.0;
@@ -43,12 +43,14 @@ function T129b_l2_uq()
     
     println("maximum(U)-0.1102 = $(maximum(U)-0.1102)")
     
-    
-    set(axis="normal", plotstyle="linespoints", linewidth=2, pointsize = 2, color = "black", xlabel = "Location", ylabel = "Temperature", grid="on", title = "")
-    f = figure()
-    plot(vec(geom.values), vec(Temp.values))
-    figure(f)
-    
+    @pgf a = Axis({
+        xlabel = "Location",
+        ylabel = "T",
+        title = "Temperature plot"
+    },
+    Plot(Table([:x => vec(geom.values), :y => vec(Temp.values)])))
+    display(a)
+
     # function errfh(loc,val)
     #     x = loc[1]
     #     exact = (kappa[1,1]/Q/L^2)*Q/(2*kappa[1,1])*x*(L-x)
@@ -106,10 +108,13 @@ function T129b_l2_uq_algo()
     E = integratefieldfunction(femm, geom, Temp, errfh, 0.0, m=3)
     println("Error=$E")
     
-    set(axis="normal", plotstyle="linespoints", linewidth=2, pointsize = 2, color = "black", xlabel = "Location", ylabel = "Temperature", grid="on", title = "")
-    f = figure()
-    plot(vec(geom.values), vec(Temp.values))
-    figure(f)
+    @pgf a = Axis({
+        xlabel = "Location",
+        ylabel = "T",
+        title = "Temperature plot"
+    },
+    Plot(Table([:x => vec(geom.values), :y => vec(Temp.values)])))
+    display(a)
     
 end # T129b_l2_uq_algo
 

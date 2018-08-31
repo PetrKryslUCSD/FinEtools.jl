@@ -37,7 +37,7 @@ function cylinder_bend()
     # coordinate is the thickness in the axial direction.
     
     fens,fes = Q4block(rex-rin,Length,5,20);
-    fens.xyz[:, 1] += rin
+    fens.xyz[:, 1] .+= rin
     bdryfes = meshboundary(fes);
     
     # now we create the geometry and displacement fields
@@ -119,7 +119,7 @@ function cylinder_pull()
     # coordinate is the thickness in the axial direction.
     
     fens,fes = Q4block(rex-rin,Length,5,20);
-    fens.xyz[:, 1] += rin
+    fens.xyz[:, 1] .+= rin
     bdryfes = meshboundary(fes);
     
     # now we create the geometry and displacement fields
@@ -195,7 +195,7 @@ function cylinder_pull_algo()
     # coordinate is the thickness in the axial direction.
     
     fens,fes = Q4block(rex-rin,Length,5,20);
-    fens.xyz[:, 1] += rin
+    fens.xyz[:, 1] .+= rin
     bdryfes = meshboundary(fes);
     
     # the symmetry plane
