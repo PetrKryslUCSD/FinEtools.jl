@@ -1,7 +1,9 @@
 module TEST13H_examples
 using FinEtools
 using FinEtools.AlgoDeforLinearModule: ssit
-using Gaston
+using LinearAlgebra
+using Arpack
+using PGFPlotsX
 
 function TEST13H_hva()
     # Harmonic forced vibration problem is solved for a homogeneous square plate,
@@ -110,24 +112,40 @@ function TEST13H_hva()
     midpointdof = u.dofnums[midpoint, 3]
     
     umidAmpl = abs.(U1[midpointdof, :])/phun("MM")
-    set(axis="semilogx", plotstyle="linespoints", linewidth=4, pointsize = 2, color = "blue", xlabel = "Frequency [Hz]", ylabel = "Midpoint  displacement amplitude [mm]", grid="on", title = "Thin plate midpoint Amplitude FRF")
-    f = figure()
-    plot(vec(frequencies), vec(umidAmpl), legend = "", marker = "edmd")
-    figure(f)
-
+    @pgf _a = SemiLogXAxis({
+        xlabel = "Frequency [Hz]",
+        ylabel = "Midpoint  displacement amplitude [mm]",
+        grid="major",
+        legend_pos  = "south east",
+        title = "Thin plate midpoint Amplitude FRF"
+    },
+    Plot({"red", mark="triangle"}, Table([:x => vec(frequencies), :y => vec(umidAmpl)])), LegendEntry("FEA"))
+    display(_a)
+    
     umidReal = real.(U1[midpointdof, :])/phun("MM")
     umidImag = imag.(U1[midpointdof, :])/phun("MM")
-    set(axis="semilogx", plotstyle="linespoints", linewidth=4, pointsize = 2, xlabel = "Frequency [Hz]", ylabel = "Displacement FRF [mm]", grid="on", title = "Thin plate midpoint Real/Imag FRF")
-    f = figure()
-    plot(vec(frequencies), vec(umidReal), color = "red", legend = "real", marker = "ecircle")
-    plot!(vec(frequencies), vec(umidImag), color = "blue", legend = "imag", marker = "x")
-    figure(f)
+    @pgf _a = SemiLogXAxis({
+        xlabel = "Frequency [Hz]",
+        ylabel = "Displacement amplitude [mm]",
+        grid="major",
+        legend_pos  = "south east",
+        title = "Thin plate midpoint Real/Imag FRF"
+    },
+    Plot({"red", mark="triangle"}, Table([:x => vec(frequencies), :y => vec(umidReal)])), LegendEntry("real"),
+    Plot({"blue", mark="circle"}, Table([:x => vec(frequencies), :y => vec(umidImag)])), LegendEntry("imag"))
+    display(_a)
     
-    umidPhase = atan2.(umidImag,umidReal)/pi*180 
-    set(axis="semilogx", plotstyle="linespoints", linewidth=4, pointsize = 2, xlabel = "Frequency [Hz]", ylabel = "Phase shift [deg]", grid="on", title = "Thin plate midpoint FRF Phase")
-    f = figure()
-    plot(vec(frequencies), vec(umidPhase), color = "blue", legend = "", marker = "x")
-    figure(f)
+    umidPhase = atan.(umidImag,umidReal)/pi*180 
+    @pgf _a = SemiLogXAxis({
+        xlabel = "Frequency [Hz]",
+        ylabel = "Phase shift [deg]",
+        grid="major",
+        legend_pos  = "south east",
+        title = "Thin plate midpoint Real/Imag FRF"
+    },
+    Plot({"red", mark="triangle"}, Table([:x => vec(frequencies), :y => vec(umidPhase)])), LegendEntry("imag"))
+    display(_a)
+ 
     true
 end # TEST13H_hva
 
