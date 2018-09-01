@@ -30,8 +30,8 @@ end
 
 """
     surfacenormalspringstiffness(self::FEMMDeforWinkler, assembler::A,
-                  geom::NodalField{FFlt}, u::NodalField{T},
-                  springconstant::FFlt) where {A<:SysmatAssemblerBase, T<:Number}
+        geom::NodalField{FFlt}, u::NodalField{T},
+        springconstant::FFlt, surfacenormal::SurfaceNormal) where {A<:SysmatAssemblerBase, T<:Number}
 
 Compute the stiffness matrix of surface normal spring.
 Rationale: consider continuously distributed springs between the surface of the
