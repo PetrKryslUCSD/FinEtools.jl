@@ -1,6 +1,8 @@
 module trunc_cyl_shell_examples
 using FinEtools
 using FinEtools.AlgoDeforLinearModule
+using LinearAlgebra
+using Arpack
 
 function trunc_cyl_shell()
     println("""
@@ -57,7 +59,7 @@ function trunc_cyl_shell()
     
     if true
         d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
-        d = d - OmegaShift;
+        d = d .- OmegaShift;
         fs = real(sqrt.(complex(d)))/(2*pi)
         println("Eigenvalues: $fs [Hz]")
         mode = 7
@@ -72,12 +74,11 @@ function trunc_cyl_shell()
         v0 = rand(size(K,1), 2*neigvs)
         tol = 1.0e-2
         maxiter = 20
-        lamb, v, nconv, niter, nmult, lamberr =
-        solver(K+OmegaShift*M, M; nev=neigvs, v0=v0, tol=tol, maxiter=maxiter)
+        lamb, v, nconv, niter, nmult, lamberr = solver(K + OmegaShift.*M, M; nev=neigvs, v0=v0, tol=tol, maxiter=maxiter)
         if nconv < neigvs
             println("NOT converged")
         end
-        lamb = lamb - OmegaShift;
+        lamb = lamb .- OmegaShift;
         fs = real(sqrt.(complex(lamb)))/(2*pi)
         println("Eigenvalues: $fs [Hz]")
         println("Eigenvalue errors: $lamberr [ND]")

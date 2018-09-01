@@ -2,6 +2,8 @@ module NAFEMS_examples
 using FinEtools
 using FinEtools
 using FinEtools.AlgoDeforLinearModule: ssit
+using LinearAlgebra
+using Arpack
 
 function NAFEMS_FV32_algo()
     println("""
@@ -138,7 +140,7 @@ function NAFEMS_TEST13H_vib()
     if true
         t0 = time()
         d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
-        d = d - OmegaShift;
+        d = d .- OmegaShift;
         fs = real(sqrt.(complex(d)))/(2*pi)
         println("Reference Eigenvalues: $fs [Hz]")
         println("eigs solution ($(time() - t0) sec)")

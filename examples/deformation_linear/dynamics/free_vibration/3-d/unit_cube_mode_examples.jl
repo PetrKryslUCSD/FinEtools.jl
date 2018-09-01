@@ -1,6 +1,8 @@
 module unit_cube_mode_examples
 using FinEtools
 using FinEtools.MeshExportModule
+using LinearAlgebra
+using Arpack
 
 function unit_cube_modes()
     println("""
@@ -37,7 +39,7 @@ function unit_cube_modes()
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,3)), material)
     @time M = mass(femm, geom, u)
     d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
-    d = d - OmegaShift;
+    d = d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
     println("Eigenvalues: $fs [Hz]")
     
@@ -138,7 +140,7 @@ function unit_cube_modes_export()
     femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3,3)), material)
     M =mass(femm, geom, u)
     d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
-    d = d - OmegaShift;
+    d = d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
     println("Eigenvalues: $fs [Hz]")
     
