@@ -5,6 +5,9 @@ using FinEtools.AlgoDeforLinearModule: linearstatics, exportstresselementwise, e
 using Statistics: mean
 using LinearAlgebra: Symmetric, cholesky
 
+# Example from TJR Hughes, The Finite Element Method: Linear Static and Dynamic Finite Element Analysis, 1987.
+# Two-dimensional plane-elasticity Solution of beam deflection. Shear force P at one end, and corresponding reactions (tractions) at the other end. The Analytical solution is plane-strain.
+# Find out: where does the exact solution come from?
 
 # Isotropic material
 E=1.0;
@@ -78,19 +81,21 @@ function hughes_cantilever_stresses_H8_by_hand()
     Cantilever example.  Hughes 1987. Element: $(elementtag)
     """)
     nu=0.3; # COMPRESSIBLE
-    E1=E/(1-nu^2); nu1=nu/(1-nu); I=h*(2*c)^3/12;
-    exactux(x,y) = (P/(6*E1*I)/2*(-y).*(3*(L^2-(L-x).^2)+(2+nu1)*(y.^2-c^2)));
-    exactuy(x,y) = (P/(6*E1*I)/2*(((L-x).^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x).*y.^2));
+    E1=E/(1-nu^2);  # Plane strain
+    nu1=nu/(1-nu); I=h*(2*c)^3/12;
+    exactux(x,y) = (P/(6*E1*I)*(-y)*(3*(L^2-(L-x)^2)+(2+nu1)*(y^2-c^2)));
+    exactuy(x,y) = (P/(6*E1*I)*(((L-x)^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x)*y^2));
 
-    n = 16 #
+    n = 2 #
         
     nL = 3*n # number of elements lengthwise
     nc = 2*n # number of elements through the depth
-    nh = n # number of elements through the thickness
+    nh = 1 # number of elements through the thickness
     xs = collect(linearspace(0.0, L, nL+1))
     ys = collect(linearspace(0.0, h, nh+1))
     zs = collect(linearspace(-c, +c, nc+1))
     fens,fes = H8blockx(xs, ys, zs)
+    # fens,fes = H8toH20(fens,fes)
     bfes = meshboundary(fes)
     # end cross-section surface  for the shear loading
     sshearL = selectelem(fens, bfes; facing=true, direction = [+1.0 0.0 0.0])
@@ -107,9 +112,7 @@ function hughes_cantilever_stresses_H8_by_hand()
         copyto!(csmatout, csmat)
     end
         
-    gr = GaussRule(3, 2)
-    
-    femm = FEMMDeforLinear(MR, IntegData(fes, gr), material)
+    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3, 2)), material)
     
     geom = NodalField(fens.xyz)
     u = NodalField(zeros(size(fens.xyz,1), 3)) # displacement field
@@ -127,25 +130,111 @@ function hughes_cantilever_stresses_H8_by_hand()
     applyebc!(u)
     numberdofs!(u)
 
-    
     fi = ForceIntensity(FFlt, 3, getfrc0!);
-    el1femm = FEMMBase(IntegData(subset(bfes, sshear0), GaussRule(2, 3)))
+    el1femm = FEMMBase(IntegData(subset(bfes, sshear0), GaussRule(2, 2)))
     F1 = distribloads(el1femm, geom, u, fi, 2);
-    @show sum([i == 0 ? 0.0 : F1[i] for i in u.dofnums[:,3]])
-    @show sum([i == 0 ? 0.0 : F1[i] for i in u.dofnums[:,1]])
     fi = ForceIntensity(FFlt, 3, getfrcL!);
-    el2femm = FEMMBase(IntegData(subset(bfes, sshearL), GaussRule(2, 3)))
+    el2femm = FEMMBase(IntegData(subset(bfes, sshearL), GaussRule(2, 2)))
     F2 = distribloads(el2femm, geom, u, fi, 2);
-    @show sum(F2)
 
     associategeometry!(femm, geom)
     K = stiffness(femm, geom, u)
-    K=cholesky(K)
+
+    K = cholesky(K)
     U = K\(F1 + F2)
     scattersysvec!(u,U[:])
     
     Tipl = selectnode(fens, box=[L L 0.0 0.0 0. 0.], inflate=tolerance)
-    @show geom.values[Tipl, :]
+    utip = mean(u.values[Tipl, 3])
+    println("Deflection: $(utip), compared to $(exactuy(L,0.0))")
+
+    File =  "hughes_cantilever_stresses_H8_by_hand.vtk"
+    vtkexportmesh(File, fens, fes;  vectors=[("u", u.values)])
+    @async run(`"paraview.exe" $File`)
+    # modeldata["postprocessing"] = FDataDict("file"=>"hughes_cantilever_stresses_$(elementtag)", "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy, "component"=>[5])
+    # modeldata = exportstresselementwise(modeldata)
+    
+    # modeldata["postprocessing"] = FDataDict("file"=>"hughes_cantilever_stresses_$(elementtag)",
+    # "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy,
+    # "component"=>collect(1:6))
+    # modeldata = exportstresselementwise(modeldata)
+    # stressfields = ElementalField[modeldata["postprocessing"]["exported"][1]["field"]]
+    
+    true
+    
+end # hughes_cantilever_stresses_H8_by_hand
+
+function hughes_cantilever_stresses_H20_by_hand()
+    elementtag = "H20"
+    println("""
+    Cantilever example.  Hughes 1987. Element: $(elementtag)
+    """)
+    nu=0.3; # COMPRESSIBLE
+    E1=E/(1-nu^2);  # Plane strain
+    nu1=nu/(1-nu); I=h*(2*c)^3/12;
+    exactux(x,y) = (P/(6*E1*I)*(-y)*(3*(L^2-(L-x)^2)+(2+nu1)*(y^2-c^2)));
+    exactuy(x,y) = (P/(6*E1*I)*(((L-x)^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x)*y^2));
+
+    n = 8 #
+        
+    nL = 3*n # number of elements lengthwise
+    nc = 2*n # number of elements through the depth
+    nh = 1 # number of elements through the thickness
+    xs = collect(linearspace(0.0, L, nL+1))
+    ys = collect(linearspace(0.0, h, nh+1))
+    zs = collect(linearspace(-c, +c, nc+1))
+    fens,fes = H8blockx(xs, ys, zs)
+    fens,fes = H8toH20(fens,fes)
+    bfes = meshboundary(fes)
+    # end cross-section surface  for the shear loading
+    sshearL = selectelem(fens, bfes; facing=true, direction = [+1.0 0.0 0.0])
+    # 0 cross-section surface  for the reactions
+    sshear0 = selectelem(fens, bfes; facing=true, direction = [-1.0 0.0 0.0])
+    
+    MR = DeforModelRed3D
+    material = MatDeforElastIso(MR, 0.0, E, nu, CTE)
+    
+    # Material orientation matrix
+    csmat = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
+    
+    function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+        copyto!(csmatout, csmat)
+    end
+        
+    femm = FEMMDeforLinear(MR, IntegData(fes, GaussRule(3, 2)), material)
+    
+    geom = NodalField(fens.xyz)
+    u = NodalField(zeros(size(fens.xyz,1), 3)) # displacement field
+    
+    lx0 = selectnode(fens, box=[0.0 0.0 0.0 0.0 0.0 0.0], inflate=tolerance)
+    setebc!(u,lx0,true,1,0.0)
+    setebc!(u,lx0,true,2,0.0)
+    setebc!(u,lx0,true,3,0.0)
+    lx1 = selectnode(fens, box=[0.0 0.0 0.0 0.0 c c], inflate=tolerance)
+    lx2 = selectnode(fens, box=[0.0 0.0 0.0 0.0 -c -c], inflate=tolerance)
+    setebc!(u,vcat(lx1, lx2),true,1,0.0)
+    ly1 = selectnode(fens, box=[-Inf Inf 0.0 0.0 -Inf Inf], inflate=tolerance)
+    ly2 = selectnode(fens, box=[-Inf Inf h h -Inf Inf], inflate=tolerance)
+    setebc!(u,vcat(ly1, ly2),true,2,0.0)
+    applyebc!(u)
+    numberdofs!(u)
+    u
+
+    fi = ForceIntensity(FFlt, 3, getfrc0!);
+    el1femm = FEMMBase(IntegData(subset(bfes, sshear0), GaussRule(2, 2)))
+    F1 = distribloads(el1femm, geom, u, fi, 2);
+    fi = ForceIntensity(FFlt, 3, getfrcL!);
+    el2femm = FEMMBase(IntegData(subset(bfes, sshearL), GaussRule(2, 2)))
+    F2 = distribloads(el2femm, geom, u, fi, 2);
+
+    associategeometry!(femm, geom)
+    K = stiffness(femm, geom, u)
+
+    K = cholesky(K)
+    U = K\(F1 + F2)
+    scattersysvec!(u,U[:])
+    
+    Tipl = selectnode(fens, box=[L L 0.0 0.0 0. 0.], inflate=tolerance)
     utip = mean(u.values[Tipl, 3])
     println("Deflection: $(utip), compared to $(exactuy(L,0.0))")
 
@@ -171,9 +260,10 @@ function hughes_cantilever_stresses_T10_by_hand()
     Cantilever example.  Hughes 1987. Element: $(elementtag)
     """)
     nu=0.3; # COMPRESSIBLE
-    E1=E/(1-nu^2); nu1=nu/(1-nu); I=h*(2*c)^3/12;
-    exactux(x,y) = (P/(6*E1*I)/2*(-y).*(3*(L^2-(L-x).^2)+(2+nu1)*(y.^2-c^2)));
-    exactuy(x,y) = (P/(6*E1*I)/2*(((L-x).^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x).*y.^2));
+    E1=E/(1-nu^2);  # Plane strain
+    nu1=nu/(1-nu); I=h*(2*c)^3/12;
+    exactux(x,y) = (P/(6*E1*I)*(-y)*(3*(L^2-(L-x)^2)+(2+nu1)*(y^2-c^2)));
+    exactuy(x,y) = (P/(6*E1*I)*(((L-x)^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x)*y^2));
 
     n = 2 #
         
@@ -224,12 +314,9 @@ function hughes_cantilever_stresses_T10_by_hand()
     fi = ForceIntensity(FFlt, 3, getfrc0!);
     el1femm = FEMMBase(IntegData(subset(bfes, sshear0), SimplexRule(2, 3)))
     F1 = distribloads(el1femm, geom, u, fi, 2);
-    @show sum([i == 0 ? 0.0 : F1[i] for i in u.dofnums[:,3]])
-    @show sum([i == 0 ? 0.0 : F1[i] for i in u.dofnums[:,1]])
     fi = ForceIntensity(FFlt, 3, getfrcL!);
     el2femm = FEMMBase(IntegData(subset(bfes, sshearL), SimplexRule(2, 3)))
     F2 = distribloads(el2femm, geom, u, fi, 2);
-    @show sum(F2)
 
     associategeometry!(femm, geom)
     K = stiffness(femm, geom, u)
@@ -238,7 +325,6 @@ function hughes_cantilever_stresses_T10_by_hand()
     scattersysvec!(u,U[:])
     
     Tipl = selectnode(fens, box=[L L 0.0 0.0 0. 0.], inflate=tolerance)
-    @show Tipl
     utip = mean(u.values[Tipl, 3])
     println("Deflection: $(utip), compared to $(exactuy(L,0.0))")
 
@@ -264,9 +350,10 @@ function hughes_cantilever_stresses_MST10_by_hand()
     Cantilever example.  Hughes 1987. Element: $(elementtag)
     """)
     nu=0.3; # COMPRESSIBLE
-    E1=E/(1-nu^2); nu1=nu/(1-nu); I=h*(2*c)^3/12;
-    exactux(x,y) = (P/(6*E1*I)/2*(-y).*(3*(L^2-(L-x).^2)+(2+nu1)*(y.^2-c^2)));
-    exactuy(x,y) = (P/(6*E1*I)/2*(((L-x).^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x).*y.^2));
+    E1=E/(1-nu^2);  # Plane strain
+    nu1=nu/(1-nu); I=h*(2*c)^3/12;
+    exactux(x,y) = (P/(6*E1*I)*(-y)*(3*(L^2-(L-x)^2)+(2+nu1)*(y^2-c^2)));
+    exactuy(x,y) = (P/(6*E1*I)*(((L-x)^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x)*y^2));
 
     n = 2 #
         
@@ -317,11 +404,9 @@ function hughes_cantilever_stresses_MST10_by_hand()
     fi = ForceIntensity(FFlt, 3, getfrc0!);
     el1femm = FEMMBase(IntegData(subset(bfes, sshear0), SimplexRule(2, 3)))
     F1 = distribloads(el1femm, geom, u, fi, 2);
-    @show sum(F1)
     fi = ForceIntensity(FFlt, 3, getfrcL!);
     el2femm = FEMMBase(IntegData(subset(bfes, sshearL), SimplexRule(2, 3)))
     F2 = distribloads(el2femm, geom, u, fi, 2);
-    @show sum(F2)
 
     associategeometry!(femm, geom)
     K =stiffness(femm, geom, u)
@@ -352,9 +437,10 @@ function hughes_cantilever_stresses_MST10()
     Cantilever example.  Hughes 1987. Element: $(elementtag)
     """)
     nu=0.3; # COMPRESSIBLE
-    E1=E/(1-nu^2); nu1=nu/(1-nu); I=h*(2*c)^3/12;
-    exactux(x,y) = (P/(6*E1*I)/2*(-y).*(3*(L^2-(L-x).^2)+(2+nu1)*(y.^2-c^2)));
-    exactuy(x,y) = (P/(6*E1*I)/2*(((L-x).^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x).*y.^2));
+    E1=E/(1-nu^2);  # Plane strain
+    nu1=nu/(1-nu); I=h*(2*c)^3/12;
+    exactux(x,y) = (P/(6*E1*I)*(-y)*(3*(L^2-(L-x)^2)+(2+nu1)*(y^2-c^2)));
+    exactuy(x,y) = (P/(6*E1*I)*(((L-x)^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x)*y^2));
 
     modeldatasequence = FDataDict[]
     for n = [1 2 4 8] #
@@ -446,9 +532,10 @@ function hughes_cantilever_stresses_MST10_incompressible()
     Cantilever example.  Hughes 1987. Element: $(elementtag)
     """)
     nu=0.499999999; # INCOMPRESSIBLE
-    E1=E/(1-nu^2); nu1=nu/(1-nu); I=h*(2*c)^3/12;
-    exactux(x,y) = (P/(6*E1*I)/2*(-y).*(3*(L^2-(L-x).^2)+(2+nu1)*(y.^2-c^2)));
-    exactuy(x,y) = (P/(6*E1*I)/2*(((L-x).^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x).*y.^2));
+    E1=E/(1-nu^2);  # Plane strain
+    nu1=nu/(1-nu); I=h*(2*c)^3/12;
+    exactux(x,y) = (P/(6*E1*I)*(-y)*(3*(L^2-(L-x)^2)+(2+nu1)*(y^2-c^2)));
+    exactuy(x,y) = (P/(6*E1*I)*(((L-x)^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x)*y^2));
 
     modeldatasequence = FDataDict[]
     for n = [1 2 4 8] #
@@ -513,7 +600,7 @@ function hughes_cantilever_stresses_MST10_incompressible()
         
         Tipl = selectnode(fens, box=[L L 0.0 0.0 0. 0.], inflate=tolerance)
         utip = mean(u.values[Tipl, 3])
-        println("Deflection: $(utip)")
+        println("Deflection: $(utip), compared to $(exactuy(L,0.0))")
         
         modeldata["postprocessing"] = FDataDict("file"=>"hughes_cantilever_stresses_$(elementtag)",
         "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy,
@@ -545,9 +632,10 @@ function hughes_cantilever_stresses_nodal_MST10()
     Cantilever example.  Hughes 1987. Element: $(elementtag)
     """)
     nu=0.3; # COMPRESSIBLE
-    E1=E/(1-nu^2); nu1=nu/(1-nu); I=h*(2*c)^3/12;
-    exactux(x,y) = (P/(6*E1*I)/2*(-y).*(3*(L^2-(L-x).^2)+(2+nu1)*(y.^2-c^2)));
-    exactuy(x,y) = (P/(6*E1*I)/2*(((L-x).^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x).*y.^2));
+    E1=E/(1-nu^2);  # Plane strain
+    nu1=nu/(1-nu); I=h*(2*c)^3/12;
+    exactux(x,y) = (P/(6*E1*I)*(-y)*(3*(L^2-(L-x)^2)+(2+nu1)*(y^2-c^2)));
+    exactuy(x,y) = (P/(6*E1*I)*(((L-x)^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x)*y^2));
 
     modeldatasequence = FDataDict[]
     for n = [1 2 4 8] #
@@ -613,7 +701,7 @@ function hughes_cantilever_stresses_nodal_MST10()
         
         Tipl = selectnode(fens, box=[L L 0.0 0.0 0. 0.], inflate=tolerance)
         utip = mean(u.values[Tipl, 3])
-        println("Deflection: $(utip)")
+        println("Deflection: $(utip), compared to $(exactuy(L,0.0))")
         
         modeldata["postprocessing"] = FDataDict("file"=>"hughes_cantilever_stresses_nodal_$(elementtag)",
         "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy,
@@ -640,9 +728,10 @@ function hughes_cantilever_stresses_nodal_T10()
     Cantilever example.  Hughes 1987. Element: $(elementtag)
     """)
     nu=0.3; # COMPRESSIBLE
-    E1=E/(1-nu^2); nu1=nu/(1-nu); I=h*(2*c)^3/12;
-    exactux(x,y) = (P/(6*E1*I)/2*(-y).*(3*(L^2-(L-x).^2)+(2+nu1)*(y.^2-c^2)));
-    exactuy(x,y) = (P/(6*E1*I)/2*(((L-x).^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x).*y.^2));
+    E1=E/(1-nu^2);  # Plane strain
+    nu1=nu/(1-nu); I=h*(2*c)^3/12;
+    exactux(x,y) = (P/(6*E1*I)*(-y)*(3*(L^2-(L-x)^2)+(2+nu1)*(y^2-c^2)));
+    exactuy(x,y) = (P/(6*E1*I)*(((L-x)^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x)*y^2));
 
     modeldatasequence = FDataDict[]
     for n = [1 2 4 8] #
@@ -708,7 +797,7 @@ function hughes_cantilever_stresses_nodal_T10()
         
         Tipl = selectnode(fens, box=[L L 0.0 0.0 0. 0.], inflate=tolerance)
         utip = mean(u.values[Tipl, 3])
-        println("Deflection: $(utip)")
+        println("Deflection: $(utip), compared to $(exactuy(L,0.0))")
         
         modeldata["postprocessing"] = FDataDict("file"=>"hughes_cantilever_stresses_nodal_$(elementtag)",
         "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy,
@@ -735,9 +824,10 @@ function hughes_cantilever_stresses_T10()
     Cantilever example.  Hughes 1987. Element: $(elementtag)
     """)
     nu=0.3; # COMPRESSIBLE
-    E1=E/(1-nu^2); nu1=nu/(1-nu); I=h*(2*c)^3/12;
-    exactux(x,y) = (P/(6*E1*I)/2*(-y).*(3*(L^2-(L-x).^2)+(2+nu1)*(y.^2-c^2)));
-    exactuy(x,y) = (P/(6*E1*I)/2*(((L-x).^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x).*y.^2));
+    E1=E/(1-nu^2);  # Plane strain
+    nu1=nu/(1-nu); I=h*(2*c)^3/12;
+    exactux(x,y) = (P/(6*E1*I)*(-y)*(3*(L^2-(L-x)^2)+(2+nu1)*(y^2-c^2)));
+    exactuy(x,y) = (P/(6*E1*I)*(((L-x)^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x)*y^2));
 
     modeldatasequence = FDataDict[]
     for n = [1 2 4 8] #
@@ -802,7 +892,7 @@ function hughes_cantilever_stresses_T10()
         
         Tipl = selectnode(fens, box=[L L 0.0 0.0 0. 0.], inflate=tolerance)
         utip = mean(u.values[Tipl, 3])
-        println("Deflection: $(utip)")
+        println("Deflection: $(utip), compared to $(exactuy(L,0.0))")
         
         modeldata["postprocessing"] = FDataDict("file"=>"hughes_cantilever_stresses_$(elementtag)",
         "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy,
@@ -834,9 +924,10 @@ function hughes_cantilever_stresses_T10_incompressible()
     Cantilever example.  Hughes 1987. Element: $(elementtag)
     """)
         nu=0.499999999; # INCOMPRESSIBLE
-    E1=E/(1-nu^2); nu1=nu/(1-nu); I=h*(2*c)^3/12;
-    exactux(x,y) = (P/(6*E1*I)/2*(-y).*(3*(L^2-(L-x).^2)+(2+nu1)*(y.^2-c^2)));
-    exactuy(x,y) = (P/(6*E1*I)/2*(((L-x).^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x).*y.^2));
+        E1=E/(1-nu^2);  # Plane strain
+        nu1=nu/(1-nu); I=h*(2*c)^3/12;
+        exactux(x,y) = (P/(6*E1*I)*(-y)*(3*(L^2-(L-x)^2)+(2+nu1)*(y^2-c^2)));
+        exactuy(x,y) = (P/(6*E1*I)*(((L-x)^3-L^3)-((4+5*nu1)*c^2+3*L^2)*(L-x-L)+3*nu1*(L-x)*y^2));
 
     modeldatasequence = FDataDict[]
     for n = [1 2 4 8] #
@@ -901,7 +992,7 @@ function hughes_cantilever_stresses_T10_incompressible()
         
         Tipl = selectnode(fens, box=[L L 0.0 0.0 0. 0.], inflate=tolerance)
         utip = mean(u.values[Tipl, 3])
-        println("Deflection: $(utip)")
+        println("Deflection: $(utip), compared to $(exactuy(L,0.0))")
         
         modeldata["postprocessing"] = FDataDict("file"=>"hughes_cantilever_stresses_$(elementtag)",
         "outputcsys"=>CSys(3, 3, updatecs!), "quantity"=>:Cauchy,
@@ -927,6 +1018,15 @@ function hughes_cantilever_stresses_T10_incompressible()
 end # hughes_cantilever_stresses_T10_incompressible
 
 function allrun()
+    println("#####################################################") 
+    println("# hughes_cantilever_stresses_H8_by_hand ")
+    hughes_cantilever_stresses_H8_by_hand()
+    println("#####################################################") 
+    println("# hughes_cantilever_stresses_H20_by_hand ")
+    hughes_cantilever_stresses_H20_by_hand()
+    println("#####################################################") 
+    println("# hughes_cantilever_stresses_T10_by_hand ")
+    hughes_cantilever_stresses_T10_by_hand()
     println("#####################################################") 
     println("# hughes_cantilever_stresses_MST10 ")
     hughes_cantilever_stresses_MST10()
