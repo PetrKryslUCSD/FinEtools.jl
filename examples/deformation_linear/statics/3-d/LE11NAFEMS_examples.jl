@@ -1,5 +1,6 @@
 module LE11NAFEMS_examples
 using FinEtools
+using Statistics
 
 function LE11NAFEMS_H20()
     ## Solid cylinder/taper/sphere—-temperature loading; quadratic brick mesh
@@ -196,7 +197,7 @@ function LE11NAFEMS_H20()
     # the hexahedral elements ...
     K = stiffness(femm, geom, u)
     # ...  and the elastic stiffness    of the springs on the contact surfaces of the cross-sections.
-    H = surfacenormalspringstiffness(xsfemm,  geom, u, springcoefficient)
+    H = surfacenormalspringstiffness(xsfemm,  geom, u, springcoefficient, SurfaceNormal(3))
     
     ##
     # The mechanical loads are computed from the thermal strains.
