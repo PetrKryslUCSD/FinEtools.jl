@@ -1,7 +1,7 @@
 name = "FinEtools"
 uuid = "a40ae870-6b89-11e8-0f19-dd128e7b925e"
 authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
-version = "0.4.2"
+version = "0.5.1"
 
 [compat]
 julia = "^0.7.0"
