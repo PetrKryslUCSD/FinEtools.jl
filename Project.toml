@@ -4,7 +4,7 @@ authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
 version = "0.4.2"
 
 [compat]
-julia = "0.7"
+julia = "^0.7.0"
 
 [deps]
 Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
