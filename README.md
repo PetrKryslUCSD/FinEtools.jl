@@ -6,12 +6,13 @@
 
 ## News
 
+- 09/02/2018: Updated all examples for Julia 1.0.
+
 - 08/24/2018: Updated all tutorials for Julia 1.0, using the [Literate](https://github.com/fredrikekre/Literate.jl) workflow.
 
 - 08/23/2018: Added support for NICE (nodally-integrated continuum elements) tetrahedral four-node finite elements.
 
-- 08/09/2018: The toolkit is at this point compatible with Julia 1.0.0 in that
-the tests are almost 100% passing. A handful of tests however are failing on Appveyor/Travis because of some LLVM issues, and these are at the moment left out of the test suite.
+
 
 
 [Past news](oldnews.md)
