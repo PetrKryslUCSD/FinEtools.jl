@@ -13,7 +13,7 @@ git:
   depth: 99999999
 
 ## uncomment the following lines to override the default test script
- script:
+script:
   - julia -e 'import Pkg; Pkg.clone("https://github.com/PetrKryslUCSD/FinEtools.jl.git");'
 after_success:
   # push coverage results to Coveralls
