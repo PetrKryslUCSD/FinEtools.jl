@@ -9,11 +9,13 @@ function sphsld_acous_coupl_examples_H8()
     E = 205000 * phun("MPa")
     nu = 0.3
     rho = 7850 * phun("kg/m^3");# mass density
+    dummybulk, dummyrho = (1.0, 1.0)
     neigvs=6+18;
     OmegaShift=(2*pi*100.0)^2;
     nperradius = 2
     tolerance = R/10000; # geometrical tolerance
     
+    # Construct the mesh
     r(c) = c[[1, 4, 3, 2, 5, 8, 7, 6]]
     origin = [0.0, 0.0, 0.0]
     fens,fes = H8spheren(R, nperradius); # Mesh
@@ -27,10 +29,14 @@ function sphsld_acous_coupl_examples_H8()
     fens,newfes1,fes2 =  mergemeshes(fens1, fes1, fens, fes, tolerance)
     fes = cat(newfes1,fes2)
 
-    File  =   "Sphere.vtk"
-    vtkexportmesh(File, fes.conn, fens.xyz, MeshExportModule.H8)
-    @async run(`"paraview.exe" $File`)
-    @show fens.xyz
+    # Extract the mesh of the boundary
+    bfes  =  meshboundary(fes)
+
+    # Debugging graphics
+    # File  =   "Sphere.vtk"
+    # vtkexportmesh(File, fes.conn, fens.xyz, MeshExportModule.H8)
+    # @async run(`"paraview.exe" $File`)
+    
     geom = NodalField(fens.xyz)
     u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
     
@@ -43,11 +49,15 @@ function sphsld_acous_coupl_examples_H8()
     associategeometry!(femm,  geom)
     K  = stiffness(femm, geom, u)
     M = mass(femm, geom, u)
-    @show maximum(maximum(M))
+    
     d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
     d = d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
     println("Eigenvalues: $fs [Hz]")
+
+    femm = FEMMAcoustSurf(IntegData(bfes, TrapezoidalRule(2)), MatAcoustFluid(dummybulk, dummyrho))
+    G = acousticcouplingpanels(femm, geom, u);
+    @show G
 
     true
     

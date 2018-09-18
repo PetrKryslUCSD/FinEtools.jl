@@ -250,7 +250,7 @@ function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalF
     return makematrix!(assembler);
 end
 
-function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalField, u::NodalField{T}) where {A<:SysmatAssemblerBase, T}
+function acousticcouplingpanels(self::FEMMAcoustSurf, geom::NodalField, u::NodalField{T}) where {T}
     assembler = SysmatAssemblerSparse(); # The matrix is not symmetric
     return acousticcouplingpanels(self, assembler, geom, u)
 end
