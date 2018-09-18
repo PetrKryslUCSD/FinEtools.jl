@@ -198,4 +198,62 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, geom::NodalField, P::Nod
     return pressure2resultanttorque(self, assembler, geom, P, Torque, CG)
 end
 
+"""
+    acousticcouplingpanels(self::FEMMAcoustSurf, geom::NodalField, u::NodalField{T}) where {T}
+
+Compute the acoustic pressure-structure coupling matrix.
+
+The acoustic pressure-nodal force matrix transforms 
+the pressure distributed along the surface to forces acting on the nodes
+of the finite element model. Its transpose transforms displacements (or velocities, or
+accelerations) into the normal component of the displacement (or
+velocity, or acceleration) along the surface.
+
+Arguments
+`geom`=geometry field
+`u` = displacement field 
+
+Notes:
+-- `n`=outer normal (pointing into the acoustic medium).
+-- The pressures along the surface are assumed constant (uniform) along 
+each finite element –- panel. The panel pressures are assumed to
+be given the same numbers as the serial numbers of the finite elements in the block.
+"""
+function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalField, u::NodalField{T}) where {A<:SysmatAssemblerBase, T}
+    fes = self.integdata.fes
+    # Constants
+    nne =  nodesperelem(fes); # number of nodes per element
+    sdim = ndofs(geom);            # number of space dimensions
+    mdim = manifdim(fes);     # manifold dimension of the element
+    # Precompute basis f. values + basis f. gradients wrt parametric coor
+    npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdata);
+    transposedNs = [reshape(N, 1, nne) for N in Ns]
+    coldofnums = zeros(FInt, 1, 1); # degree of freedom array -- used as a buffer
+    rowdofnums = zeros(FInt, 1, sdim*nne); # degree of freedom array -- used as a buffer
+    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
+    n = fill(zero(FFlt), sdim) # normal vector -- used as a buffer
+    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
+    Ge = fill(zero(FFlt), sdim*nne, 1); # Element matrix -- used as a buffer
+    startassembly!(assembler, size(Ge, 1), size(Ge, 2), count(fes), u.nfreedofs, count(fes));
+    for i = 1:count(fes) # Loop over elements
+        fill!(Ge, 0.0); # Initialize element matrix
+        for j = 1:npts # Loop over quadrature points
+            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
+            Jac = Jacobiansurface(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            n = self.getnormal!(n, loc, J);
+            Ge = Ge + (Jac*w[j])*reshape(reshape(n, sdim, 1)*transposedNs[j], size(Ge, 1), size(Ge, 2))
+        end # Loop over quadrature points
+        coldofnums[1] = i
+        gatherdofnums!(u, rowdofnums, fes.conn[i]);# retrieve degrees of freedom
+        assemble!(assembler, Ge, rowdofnums, coldofnums);# assemble unsymmetric matrix
+    end # Loop over elements
+    return makematrix!(assembler);
 end
+
+function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalField, u::NodalField{T}) where {A<:SysmatAssemblerBase, T}
+    assembler = SysmatAssemblerSparse(); # The matrix is not symmetric
+    return acousticcouplingpanels(self, assembler, geom, u)
+end
+
+end
+

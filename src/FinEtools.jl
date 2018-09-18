@@ -193,9 +193,9 @@ acousticstiffness, nzebcloadsacousticstiffness
 export FEMMAcoust, acousticmass, nzebcloadsacousticmass,
     acousticstiffness, nzebcloadsacousticstiffness
 
-using FinEtools.FEMMAcoustSurfModule: FEMMAcoustSurf, acousticABC, pressure2resultantforce, pressure2resultanttorque
+using FinEtools.FEMMAcoustSurfModule: FEMMAcoustSurf, acousticABC, pressure2resultantforce, pressure2resultanttorque, acousticcouplingpanels
 # Exported: type for acoustic absorbing boundary condition  and  transformation matrices from pressure  to resultants
-export FEMMAcoustSurf, acousticABC, pressure2resultantforce, pressure2resultanttorque
+export FEMMAcoustSurf, acousticABC, pressure2resultantforce, pressure2resultanttorque, acousticcouplingpanels
 
 ###########################################################################
 # Linear deformation functionality
