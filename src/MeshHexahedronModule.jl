@@ -461,9 +461,7 @@ function H8spheren(radius::FFlt, nperradius::FInt)
             nxyz[j, :] = nxyz[j, :]*(nperradius-layer[j]+1)/nperradius*radius/norm(nxyz[j, :]);
         end
     end
-    s =  collect(linearspace(0.,  1.,  length(layer)));
-    # println("s=$s")
-    # println("layer = $layer")
+    s =  collect(linearspace(0.,  1., nperradius));
     for j = 1:size(xyz, 1)
         ell = layer[j]
         # show(ell)
