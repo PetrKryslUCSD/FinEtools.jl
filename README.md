@@ -6,6 +6,8 @@
 
 ## News
 
+- 09/20/2018: Separated out examples and tutorials from the FinEtools library itself.
+
 - 09/02/2018: Updated all examples for Julia 1.0.
 
 - 08/24/2018: Updated all tutorials for Julia 1.0, using the [Literate](https://github.com/fredrikekre/Literate.jl) workflow.
@@ -23,7 +25,7 @@ This package is  registered, and hence one can do just
 ```julia
 ] add FinEtools
 ```
-Only version 0.7 (including the nightly) builds of Julia  are supported. 
+Only version 0.7, 1.0, and the nightly builds of Julia are supported. 
 
 ## Testing
 
@@ -33,8 +35,14 @@ Only version 0.7 (including the nightly) builds of Julia  are supported.
 
 ## Usage and Documentation
 
-The package comes with examples  of its use. Tutorials in notebook form
-are available and more will  be added in the near future.
+[Tutorials](https://github.com/PetrKryslUCSD/FinEtoolsTutorials.git) in the form of marked-down Julia source files using the
+[Literate](https://github.com/fredrikekre/Literate.jl) workflow are available and more will  be added in the near future.
+
+The package comes with examples  of its use (
+[heat conduction](https://github.com/PetrKryslUCSD/FinEtoolsHeatConductionExamples.git), 
+[linear deformation](https://github.com/PetrKryslUCSD/FinEtoolsLinearDeformationExamples.git), 
+[acoustics](https://github.com/PetrKryslUCSD/FinEtoolsAcousticsExamples.git), 
+[mesh generation](https://github.com/PetrKryslUCSD/FinEtoolsMeshGenerationExamples.git)). 
 
 The documentation  is published as [Github pages](https://petrkryslucsd.github.io/FinEtools.jl). 
 A use-case package explaining how to integrate FinEtools with  the user's own code is [available here](https://github.com/PetrKryslUCSD/FinEtoolsUseCase).
