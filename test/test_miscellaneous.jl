@@ -2006,3 +2006,85 @@ end
 end
 using .mmMeasurement_3a
 mmMeasurement_3a.test()
+
+module mxmeasurementm3b1
+using FinEtools
+using FinEtools.MeshExportModule
+using Test
+function test()
+    W = 4.1;
+    L = 12.;
+    t =  5.32;
+    a = 0.4
+    nl, nt, nw = 6, 8, 9;
+
+    fens,fes  = H8block(L,W,t, nl,nw,nt)
+    # # println("Mesh: $(count(fes))")
+    for ixxxx = 1:count(fens)
+        x,y,z = fens.xyz[ixxxx, :]
+        fens.xyz[ixxxx, :] = [x+a*sin(y) y+x/10*a*sin(z) z+y*a*sin(x)]
+    end
+    geom  =  NodalField(fens.xyz)
+    # File = "mesh.vtk"
+    # MeshExportModule.vtkexportmesh(File, fens, fes)
+    # @async run(`"paraview.exe" $File`)
+
+    femm  =  FEMMBase(IntegData(fes, TrapezoidalRule(3)))
+    V8 = integratefunction(femm, geom, (x) ->  1.0)
+
+    subregion1list = selectelem(fens, fes, box = [0.0 L/2 -Inf Inf -Inf Inf], inflate = t/1000)
+    subregion2list = setdiff(1:count(fes), subregion1list)
+    # # println("Sub mesh 1: $(length(subregion1list))")
+    # # println("Sub mesh 2: $(length(subregion2list))")
+
+    fes1 = subset(fes, subregion1list)
+    connected1 = findunconnnodes(fens, fes1);
+    fens1, new_numbering1 = compactnodes(fens, connected1);
+    fes1 = renumberconn!(fes1, new_numbering1);
+    present = findall(x -> x > 0, new_numbering1)
+    geom1  =  NodalField(fens.xyz[present, :])
+
+    fes2 = subset(fes, subregion2list)
+    connected2 = findunconnnodes(fens, fes2);
+    fens2, new_numbering2 = compactnodes(fens, connected2);
+    fes2 = renumberconn!(fes2, new_numbering2);
+    present = findall(x -> x > 0, new_numbering2)
+    geom2  =  NodalField(fens.xyz[present, :])
+
+    femm1  =  FEMMBase(IntegData(fes1, GaussRule(3, 4)))
+    V8p = integratefunction(femm1, geom1, (x) ->  1.0)
+    femm2  =  FEMMBase(IntegData(fes2, GaussRule(3, 4)))
+    V8p += integratefunction(femm2, geom2, (x) ->  1.0)
+    # # println("V20p = $(V20p)")
+    # # println("V20 = $(V20)")
+
+    @test abs(V8 - V8p)/V8 < 1.0e-4
+
+end
+end
+using .mxmeasurementm3b1
+mxmeasurementm3b1.test()
+
+module mxmeasurementm3c1
+using FinEtools
+using FinEtools.MeshExportModule
+using Test
+function test()
+    L = 12.1331;
+    nl = 9;
+
+    fens,fes  = L2block(L, nl)
+    geom  =  NodalField(fens.xyz)
+    # File = "mesh.vtk"
+    # MeshExportModule.vtkexportmesh(File, fens, fes)
+    # @async run(`"paraview.exe" $File`)
+
+    femm  =  FEMMBase(IntegData(fes, TrapezoidalRule(1)))
+    La = integratefunction(femm, geom, (x) ->  1.0)
+
+    @test abs(L - La)/L < 1.0e-9
+
+end
+end
+using .mxmeasurementm3c1
+mxmeasurementm3c1.test()

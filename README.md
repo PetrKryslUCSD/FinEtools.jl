@@ -38,8 +38,8 @@ Only version 0.7, 1.0, and the nightly builds of Julia are supported.
 [Tutorials](https://github.com/PetrKryslUCSD/FinEtoolsTutorials.git) in the form of marked-down Julia source files using the
 [Literate](https://github.com/fredrikekre/Literate.jl) workflow are available and more will  be added in the near future.
 
-The package comes with examples  of its use (
-[heat conduction](https://github.com/PetrKryslUCSD/FinEtoolsHeatConductionExamples.git), 
+The package comes with examples  of its use 
+([heat conduction](https://github.com/PetrKryslUCSD/FinEtoolsHeatConductionExamples.git), 
 [linear deformation](https://github.com/PetrKryslUCSD/FinEtoolsLinearDeformationExamples.git), 
 [acoustics](https://github.com/PetrKryslUCSD/FinEtoolsAcousticsExamples.git), 
 [mesh generation](https://github.com/PetrKryslUCSD/FinEtoolsMeshGenerationExamples.git)). 
