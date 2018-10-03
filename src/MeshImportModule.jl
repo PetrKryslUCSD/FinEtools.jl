@@ -49,7 +49,7 @@ Import tetrahedral (4- and 10-node) NASTRAN mesh (.nas file).
     1. only the GRID and CTETRA  sections are read.
     2. Only 4-node and 10-node tetrahedra  are handled.
     3. The file should be free-form (data separated by commas). 
-    Some fixed-format files can also be processed.
+    Some fixed-format files can also be processed (large-field, but not small-field).
 
 # Return
 Data dictionary, with `fens`, `fesets`.
@@ -71,11 +71,16 @@ function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = fal
         temp  = lines[current_line]
         current_line = current_line + 1
         if (length(temp) >= 4) && (uppercase(temp[1:4]) == "GRID")
+            fixedformat = expectfixedformat
+            largefield = false
+            if (length(temp) >= 5) && (uppercase(temp[1:5]) == "GRID*")
+                largefield = true; fixedformat = true
+            end
+            @assert (!fixedformat) || (fixedformat && largefield) "Can handle either free format or large-field fixed format"
             nnode = nnode + 1
             if size(node, 1) < nnode
                 node = vcat(node, zeros(allocationchunk, 4))
             end
-            fixedformat = (length(temp) == 72) || expectfixedformat # Is this fixed-format record? This is a guess based on the length of the line.
             if fixedformat
                 # $------1-------2-------3-------4-------5-------6-------7-------8-------9-------0
                 # GRID*                  5               0-1.66618812195+1-3.85740337853+0
@@ -102,6 +107,12 @@ function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = fal
             if size(elem, 1) < nelem
                 elem = vcat(elem, zeros(FInt, allocationchunk, maxnodel + 3))
             end
+            continuation = ""
+            fixedformat = (length(temp) == 72) || expectfixedformat # Is this fixed-format record? This is a guess based on the length of the line.
+            if fixedformat
+                continuation = temp[min(length(temp), 72):length(temp)]
+                temp = temp[1:min(length(temp), 72)]
+            end
             A = split(replace(temp, "," => " "))
             elem[nelem, 1] = parse(FInt, A[2])
             elem[nelem, 2] = parse(FInt, A[3])
@@ -112,6 +123,9 @@ function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = fal
                 if length(A) < 13 # the line is continued: read the next line
                     temp  = lines[current_line]
                     current_line = current_line + 1
+                    if fixedformat
+                        temp = temp[length(continuation)+1:min(length(temp), 72)]
+                    end
                     temp = strip(temp)
                     Acont = split(replace(temp, "," => " "))
                     A = vcat(A, Acont)
