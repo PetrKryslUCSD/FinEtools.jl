@@ -180,11 +180,13 @@ end
 Import tetrahedral (4- and 10-node) or hexahedral (8- and 20-node) Abaqus mesh
 (.inp file).
 
-    Limitations:
-    1. Only the `*NODE` and `*ELEMENT`  sections are read
-    2. Only 4-node and 10-node tetrahedra and 8-node or 20-node  hexahedra
-      are handled.
+Limitations:
+1. Only the `*NODE` and `*ELEMENT`  sections are read
+2. Only 4-node and 10-node tetrahedra and 8-node or 20-node  hexahedra
+    are handled.
 
+## Return
+Data dictionary, with keys `fens` (finite element nodes), `fesets` (array of finite element sets).
 """
 function import_ABAQUS(filename; allocationchunk=chunk)
     lines = readlines(filename)
