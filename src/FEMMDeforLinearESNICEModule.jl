@@ -246,26 +246,6 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
     return computenodalbfungrads(self, geom)
 end
 
-function Phi3(dim,np,lx,c)
-    lx[:,1]=lx[:,1].-c[1];
-    lx[:,2]=lx[:,2].-c[2];
-    lx[:,3]=lx[:,3].-c[3];
-    Phi = fill(0.0, dim*np, 12)
-    Phi[1:dim:end-1, 1] .= 1;
-    Phi[1:dim:end-1, 2]=lx[:,1]';
-    Phi[1:dim:end-1, 3]=lx[:,2]';
-    Phi[1:dim:end-1, 4]=lx[:,3]';
-    Phi[2:dim:end, 5] .= 1;
-    Phi[2:dim:end, 6]=lx[:,1]';
-    Phi[2:dim:end, 7]=lx[:,2]';
-    Phi[2:dim:end, 8]=lx[:,3]';
-    Phi[3:dim:end, 9] .= 1;
-    Phi[3:dim:end, 10]=lx[:,1]';
-    Phi[3:dim:end, 11]=lx[:,2]';
-    Phi[3:dim:end, 12]=lx[:,3]';
-    return Phi
-end
-
 """
     stiffness(self::FEMMDeforLinearAbstractNICE, assembler::A,
       geom::NodalField{FFlt},
