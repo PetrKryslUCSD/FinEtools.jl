@@ -48,12 +48,13 @@ Import tetrahedral (4- and 10-node) NASTRAN mesh (.nas file).
     Limitations:
     1. only the GRID and CTETRA  sections are read.
     2. Only 4-node and 10-node tetrahedra  are handled.
-    3. The file needs to be free-form (data separated by commas).
+    3. The file should be free-form (data separated by commas). 
+    Some fixed-format files can also be processed.
 
 # Return
 Data dictionary, with `fens`, `fesets`.
 """
-function import_NASTRAN(filename; allocationchunk=chunk)
+function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = false)
     lines = readlines(filename)
 
     nnode = 0
@@ -74,7 +75,7 @@ function import_NASTRAN(filename; allocationchunk=chunk)
             if size(node, 1) < nnode
                 node = vcat(node, zeros(allocationchunk, 4))
             end
-            fixedformat = (length(temp) == 72) # Is this fixed-format record? This is a guess based on the length of the line.
+            fixedformat = (length(temp) == 72) || expectfixedformat # Is this fixed-format record? This is a guess based on the length of the line.
             if fixedformat
                 # $------1-------2-------3-------4-------5-------6-------7-------8-------9-------0
                 # GRID*                  5               0-1.66618812195+1-3.85740337853+0
