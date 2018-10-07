@@ -37,7 +37,7 @@ Algorithm for static linear deformation (stress) analysis.
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
-* "femm" = finite element mmodel machine (mandatory);
+* "femm" = finite element model machine (mandatory);
 
 For essential boundary conditions (optional) each dictionary
 would hold
@@ -51,7 +51,7 @@ would hold
 
 For traction boundary conditions (optional) each dictionary
 would hold
-  + "femm" = finite element mmodel machine (mandatory);
+  + "femm" = finite element model machine (mandatory);
   + "traction_vector" = traction vector,  either  a constant or  a function
         Positive  when outgoing.
 

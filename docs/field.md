@@ -42,4 +42,7 @@ In this case  the  abstract field  is subtyped to a concrete field where the ent
 
 ## Numbering of the degrees of freedom
 
-NEEDS TO BE WRITTEN
+The simplest method is at the moment implemented: number all free degrees of freedom, row-by-row and column-by-column,
+starting from 1 up to `f.nfreedofs`, for the field `f`.
+
+The prescribed degrees of freedom are not numbered, and the prescribed degrees of freedom are marked with 0.

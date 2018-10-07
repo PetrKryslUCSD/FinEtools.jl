@@ -71,4 +71,11 @@ There are algorithms for
 
 ## Model data
 
-Needs to be written
+Model data is a dictionary, with string keys, and arbitrary values.
+The documentation string for each method of an algorithm lists the required input.
+For instance, for the method `linearstatics` of the `AlgoDeforLinearModule`, the
+`modeldata` dictionary needs to provide key-value pairs for the finite element node set, and
+the regions, the boundary conditions, and so on.
+
+The `modeldata` may be also supplemented with additional key-value pairs inside an algorithm 
+and returned for further processing by other algorithms.
