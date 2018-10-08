@@ -2088,3 +2088,27 @@ end
 end
 using .mxmeasurementm3c1
 mxmeasurementm3c1.test()
+
+module mmmBisectm1
+using FinEtools
+using FinEtools.AlgoBaseModule: bisect
+using Test
+function test()
+    fun = x -> 1.0 - x^2
+    xl = 0.0
+    xu = 1.0
+    tolx = eps(1.0)
+    tolf = eps(1.0)
+    @test_throws AssertionError bracket = bisect(fun, xl, xu, tolx, tolf)
+
+    fun = x -> (x - 0.5)^3
+    xl = -0.5
+    xu = 1.5
+    tolx = eps(1.0)
+    tolf = eps(1.0)
+    bracket = bisect(fun, xl, xu, tolx, tolf)
+    @test bracket == (0.5, 0.5)
+end
+end
+using .mmmBisectm1
+mmmBisectm1.test()
