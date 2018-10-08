@@ -92,14 +92,6 @@ function bisect(fun, xl, xu, tolx, tolf)
     fl = fun(xl);
     fu = fun(xu);
     @assert fl*fu < 0.0 "Need to get a bracket"
-    if fl == 0.0
-        xu = xl; 
-        return xl, xu;
-    end
-    if fu == 0.0
-        xl = xu;
-        return xl, xu;
-    end
     while true
         xr = (xu + xl) / 2.0; # bisect interval
         fr = fun(xr); # value at the midpoint
