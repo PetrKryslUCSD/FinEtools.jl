@@ -178,7 +178,7 @@ function steadystate(modeldata::FDataDict)
             dcheck!(fluxbc, flux_bcs_recognized_keys)
             normal_flux = fluxbc["normal_flux"];
             if (typeof(normal_flux) <: Function)
-                fi = ForceIntensity(FFlt, normal_flux);
+                fi = ForceIntensity(FFlt, 1, normal_flux);
             else
                 if typeof(normal_flux) <: AbstractArray
                 else
