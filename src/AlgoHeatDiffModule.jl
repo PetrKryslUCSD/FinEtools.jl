@@ -85,22 +85,22 @@ function steadystate(modeldata::FDataDict)
     essential_bcs = get(modeldata, "essential_bcs", nothing);
     if (essential_bcs != nothing)
         for j = 1:length(essential_bcs)
-        ebc = essential_bcs[j]
-        dcheck!(ebc, essential_bcs_recognized_keys)
-        fenids = get(()->error("Must get node list!"), ebc, "node_list");
-        temperature = get(ebc, "temperature", nothing);
-        T_fixed = zeros(FFlt,length(fenids)); # default is  zero temperature
-        if (temperature != nothing) # if it is nonzero,
-            if (typeof(temperature) <: Function) # it could be a function
-            for k = 1:length(fenids)
-                T_fixed[k] = temperature(geom.values[fenids[k],:])[1];
+            ebc = essential_bcs[j]
+            dcheck!(ebc, essential_bcs_recognized_keys)
+            fenids = get(()->error("Must get node list!"), ebc, "node_list");
+            temperature = get(ebc, "temperature", nothing);
+            T_fixed = zeros(FFlt,length(fenids)); # default is  zero temperature
+            if (temperature != nothing) # if it is nonzero,
+                if (typeof(temperature) <: Function) # it could be a function
+                    for k = 1:length(fenids)
+                        T_fixed[k] = temperature(geom.values[fenids[k],:])[1];
+                    end
+                else # or it could be a constant
+                    fill!(T_fixed, temperature);
+                end
             end
-            else # or it could be a constant
-            fill!(T_fixed, temperature);
-            end
-        end
-        setebc!(temp, fenids[:], true, 1, T_fixed);
-        applyebc!(temp);
+            setebc!(temp, fenids[:], true, 1, T_fixed);
+            applyebc!(temp);
         end
     end
 
@@ -121,9 +121,9 @@ function steadystate(modeldata::FDataDict)
         K = K + conductivity(femm, geom, temp);
         Q = get(region, "Q", [0.0]);
         if (typeof(Q) <: Function)
-        fi = ForceIntensity(FFlt,Q);
+            fi = ForceIntensity(FFlt, 1, Q);
         else
-        fi = ForceIntensity(Q);
+            fi = ForceIntensity(Q);
         end
         F = F + distribloads(femm, geom, temp, fi, 3);
         # Loads due to the essential boundary conditions on the temperature field
@@ -138,35 +138,35 @@ function steadystate(modeldata::FDataDict)
     if (convection_bcs != nothing)
         amb = deepcopy(temp); # create the ambient temperature field
         for i = 1:length(convection_bcs)
-        convbc = convection_bcs[i]
-        dcheck!(convbc, convection_bcs_recognized_keys)
-        femm = get(()->error("Must get femm!"), convbc, "femm");
-        # Apply the prescribed ambient temperature
-        fenids = connectednodes(femm.integdata.fes);
-        fixed = ones(length(fenids));
-        T_fixed = zeros(FFlt, length(fenids)); # default is zero
-        ambient_temperature = get(convbc, "ambient_temperature", nothing);
-        if ambient_temperature != nothing  # if given as nonzero
-            if (typeof(ambient_temperature) <: Function) # given by function
-            for k = 1:length(fenids)
-                T_fixed[k] = ambient_temperature(geom.values[fenids[k],:])[1];
+            convbc = convection_bcs[i]
+            dcheck!(convbc, convection_bcs_recognized_keys)
+            femm = get(()->error("Must get femm!"), convbc, "femm");
+            # Apply the prescribed ambient temperature
+            fenids = connectednodes(femm.integdata.fes);
+            fixed = ones(length(fenids));
+            T_fixed = zeros(FFlt, length(fenids)); # default is zero
+            ambient_temperature = get(convbc, "ambient_temperature", nothing);
+            if ambient_temperature != nothing  # if given as nonzero
+                if (typeof(ambient_temperature) <: Function) # given by function
+                    for k = 1:length(fenids)
+                        T_fixed[k] = ambient_temperature(geom.values[fenids[k],:])[1];
+                    end
+                else # it could be a constant
+                    fill!(T_fixed, ambient_temperature);
+                end
             end
-            else # it could be a constant
-            fill!(T_fixed, ambient_temperature);
+            setebc!(amb, fenids[:], true, 1, T_fixed);
+            applyebc!(amb);
+            femm = convbc["femm"];
+            K = K + surfacetransfer(femm, geom, temp);
+            F = F + surfacetransferloads(femm, geom, temp, amb);
+            # Note that EBC will contribute through the surface heat transfer matrix
+            essential_bcs = get(modeldata, "essential_bcs", nothing);
+            # If any essential boundary condition defined, the convection BC could
+            # contribute a load term
+            if (essential_bcs != nothing)
+                F = F + nzebcsurfacetransferloads(femm, geom, temp);
             end
-        end
-        setebc!(amb, fenids[:], true, 1, T_fixed);
-        applyebc!(amb);
-        femm = convbc["femm"];
-        K = K + surfacetransfer(femm, geom, temp);
-        F = F + surfacetransferloads(femm, geom, temp, amb);
-        # Note that EBC will contribute through the surface heat transfer matrix
-        essential_bcs = get(modeldata, "essential_bcs", nothing);
-        # If any essential boundary condition defined, the convection BC could
-        # contribute a load term
-        if (essential_bcs != nothing)
-            F = F + nzebcsurfacetransferloads(femm, geom, temp);
-        end
         end
     end
 
@@ -174,22 +174,22 @@ function steadystate(modeldata::FDataDict)
     flux_bcs = get(modeldata, "flux_bcs", nothing);
     if (flux_bcs != nothing)
         for j = 1:length(flux_bcs)
-        fluxbc = flux_bcs[j]
-        dcheck!(fluxbc, flux_bcs_recognized_keys)
-        normal_flux = fluxbc["normal_flux"];
-        if (typeof(normal_flux) <: Function)
-            fi = ForceIntensity(FFlt, normal_flux);
-        else
-            if typeof(normal_flux) <: AbstractArray
+            fluxbc = flux_bcs[j]
+            dcheck!(fluxbc, flux_bcs_recognized_keys)
+            normal_flux = fluxbc["normal_flux"];
+            if (typeof(normal_flux) <: Function)
+                fi = ForceIntensity(FFlt, normal_flux);
             else
-            normal_flux = FFlt[normal_flux]
+                if typeof(normal_flux) <: AbstractArray
+                else
+                    normal_flux = FFlt[normal_flux]
+                end
+                fi = ForceIntensity(normal_flux);
             end
-            fi = ForceIntensity(normal_flux);
-        end
-        femm = fluxbc["femm"]
-        # Note the sign  which reflects the formula (negative sign
-        # in front of the integral)
-        F = F - distribloads(femm, geom, temp, fi, 2);
+            femm = fluxbc["femm"]
+            # Note the sign  which reflects the formula (negative sign
+            # in front of the integral)
+            F = F - distribloads(femm, geom, temp, fi, 2);
         end
     end
 
