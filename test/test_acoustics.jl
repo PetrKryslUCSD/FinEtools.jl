@@ -1429,3 +1429,173 @@ end
 end
 using .mmacousticcouplingpanelsm1
 mmacousticcouplingpanelsm1.test()
+
+module mmbbaffledmAlgo
+using FinEtools
+using Test
+import LinearAlgebra: norm
+function test()
+rho = 1.21*phun("kg/m^3");# mass density
+c  = 343.0*phun("m/s");# sound speed
+bulk =  c^2*rho;
+omega =  7500*phun("rev/s");      # frequency of the piston
+a_piston =  -1.0*phun("mm/s")     # amplitude of the piston acceleration
+R = 50.0*phun("mm");# radius of the piston
+Ro = 150.0*phun("mm"); # radius of the enclosure
+nref = 3;#number of refinements of the sphere around the piston
+nlayers = 25;                     # number of layers of elements surrounding the piston
+tolerance = R/(2^nref)/100
+
+# println("""
+#
+# Baffled piston in a half-sphere domain with ABC.
+#
+# Hexahedral mesh. Algorithm version.
+# """)
+
+t0  =  time()
+
+# Hexahedral mesh
+fens,fes  =  H8sphere(R,nref);
+bfes  =  meshboundary(fes)
+# File  =   "baffledabc_boundary.vtk"
+# vtkexportmesh(File, bfes.conn, fens.xyz, FinEtools.MeshExportModule.Q4)
+#  @async run(`"paraview.exe" $File`)
+
+l = selectelem(fens,bfes,facing = true,direction = [1.0 1.0  1.0], dotmin= 0.001)
+ex(xyz, layer) = (R+layer/nlayers*(Ro-R))*xyz/norm(xyz)
+fens1,fes1  =  H8extrudeQ4(fens, subset(bfes,l), nlayers, ex);
+fens,newfes1,fes2 =  mergemeshes(fens1, fes1, fens, fes, tolerance)
+fes = cat(newfes1,fes2)
+
+# Piston surface mesh
+bfes  =  meshboundary(fes)
+l1 = selectelem(fens, bfes, facing = true, direction = [-1.0 0.0 0.0])
+l2 = selectelem(fens, bfes, distance = R, from = [0.0 0.0 0.0], inflate = tolerance)
+piston_fes = subset(bfes,intersect(l1,l2));
+
+# Outer spherical boundary
+louter = selectelem(fens, bfes, facing = true, direction = [1.0 1.0  1.0], dotmin= 0.001)
+outer_fes = subset(bfes,louter);
+
+# println("Pre-processing time elapsed  =  ",time() - t0,"s")
+
+t1  =  time()
+
+material = MatAcoustFluid(bulk, rho)
+# Region of the fluid
+region1 =  FDataDict("femm"=>FEMMAcoust(IntegData(fes, GaussRule(3, 2)), material))
+
+# Surface for the ABC
+abc1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegData(outer_fes, GaussRule(2, 2)),
+          material))
+
+# Surface of the piston
+flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegData(piston_fes, GaussRule(2, 2)),
+          material),  "normal_flux"=> (forceout, XYZ, tangents, fe_label) -> forceout[1] = -rho*a_piston+0.0im);
+
+# Make model data
+modeldata =  FDataDict("fens"=>  fens,
+                 "omega"=>omega,
+                 "regions"=>[region1],
+                 "flux_bcs"=>[flux1], "ABCs"=>[abc1])
+
+# Call the solver
+modeldata = FinEtools.AlgoAcoustModule.steadystate(modeldata)
+
+# println("Computing time elapsed  =  ",time() - t1,"s")
+# println("Total time elapsed  =  ",time() - t0,"s")
+
+geom = modeldata["geom"]
+P = modeldata["P"]
+
+@test abs(P.values[1]-(4.355914465396856e-6 - 1.2061599990585114e-6im)) < 1.e-10
+# File  =   "baffledabc.vtk"
+# vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
+# scalars = [("absP", abs.(P.values))])
+# @async run(`"paraview.exe" $File`)
+
+# using Winston
+# pl  =  FramedPlot(title = "Matrix",xlabel = "x",ylabel = "Re P, Im P")
+# setattr(pl.frame, draw_grid = true)
+# add(pl, Curve([1:length(C[:])],vec(C[:]), color = "blue"))
+
+# # pl = plot(geom.values[nLx,1][ix],scalars[nLx][ix])
+# # xlabel("x")
+# # ylabel("Pressure")
+# display(pl)
+
+true
+end
+end
+using .mmbbaffledmAlgo
+mmbbaffledmAlgo.test()
+
+
+module mmAnnularmAlgo
+using FinEtools
+using FinEtools.AlgoAcoustModule
+using Test
+function test()
+
+
+    # println("""
+    # Annular region, pressure BC + rigid wall.
+    # This version uses the FinEtools algorithm module.
+    # Version: 08/21/2017
+    # """)
+
+    t0 = time()
+
+    rho = 1001*phun("kg/m^3");# mass density
+    c  = 1500.0*phun("m/s");# sound speed
+    bulk =  c^2*rho;
+    omega =  2000*phun("rev/s");      # frequency of the piston
+    rin =  1.0*phun("m");#internal radius
+
+    rex =  2.0*phun("m"); #external radius
+    nr = 20; nc = 120;
+    Angle = 2*pi;
+    thickness =  1.0*phun("m/s");
+    tolerance = min(rin/nr,  rin/nc/2/pi)/10000;
+
+    fens, fes = Q4annulus(rin, rex, nr, nc, Angle)
+    fens, fes = mergenodes(fens,  fes,  tolerance);
+    edge_fes = meshboundary(fes);
+
+    # The pressure boundary condition
+    l1 = selectelem(fens, edge_fes, box=[-1.1*rex -0.9*rex -0.5*rex 0.5*rex]);
+    ebc1 = FDataDict("node_list"=>connectednodes(subset(edge_fes, l1)),
+     "pressure"=>1.0 + 0.0im) # entering the domain
+
+    material = MatAcoustFluid(bulk, rho)
+    femm = FEMMAcoust(IntegData(fes,  GaussRule(2, 2)),  material)
+    region1 = FDataDict("femm"=>femm)
+
+    # Make model data
+    modeldata = FDataDict("fens"=>fens,
+    "omega"=>omega,
+    "regions"=>[region1], "essential_bcs"=>[ebc1]);
+
+    # Call the solver
+    modeldata = FinEtools.AlgoAcoustModule.steadystate(modeldata)
+    geom=modeldata["geom"]
+    P=modeldata["P"]
+    # println("Minimum/maximum pressure, real= $(minimum(real(P.values)))/$(maximum(real(P.values))))")
+    # println("Minimum/maximum pressure, imag= $(minimum(imag(P.values)))/$(maximum(imag(P.values))))")
+    @test abs(minimum(real(P.values)) - -97.34672558165316) < 1.0e-5
+    @test abs(maximum(real(P.values)) - 75.50540650112683) < 1.0e-5
+    @test abs(minimum(imag(P.values)) - 0.0) < 1.0e-5
+    @test abs(maximum(imag(P.values)) - 0.0) < 1.0e-5
+    # println("Total time elapsed = ",time() - t0,"s")
+
+    # # Postprocessing
+    # File = "acou_annulusmod.vtk"
+    # vtkexportmesh(File, fes.conn, geom.values,
+    # FinEtools.MeshExportModule.Q4; scalars=[("Pre", real(P.values)), ("Pim", imag(P.values))])
+    # @async run(`"paraview.exe" $File`)
+
+end
+end
+using .mmAnnularmAlgo
+mmAnnularmAlgo.test()
