@@ -7565,3 +7565,57 @@ end
 using .moblocknzebc13
 moblocknzebc13.test()
 
+module mmoblocknzebc13a
+using FinEtools
+using LinearAlgebra: norm
+using Test
+function test()
+    E = 1*phun("PA");
+    nu = 0.499;
+    rho = 1*phun("KG/M^3");
+    a = 1*phun("M"); b = a; h =  a;
+    n1 = 10;# How many element edges per side?
+    na =  n1; nb =  n1; nh  = n1;
+    mag = 0.001
+  
+    MR = DeforModelRed3D
+    fens,fes  = T10block(a,b,h, na,nb,nh)
+
+    bdryfes = meshboundary(fes);
+
+    # now we create the geometry and displacement fields
+    geom = NodalField(fens.xyz)
+    u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+
+    # the constrained face
+    l1 =selectnode(fens; plane = [1.0 0.0 0.0 0.0], thickness = a/1000)
+    # This face rotates about the Y and Z axes
+    setebc!(u,l1,true, 1, [mag*fens.xyz[i, 3]-mag*fens.xyz[i, 2] for i in l1])
+    setebc!(u,l1,true, 2, 0.0)
+    setebc!(u,l1,true, 3, 0.0)
+
+    applyebc!(u)
+    numberdofs!(u)
+    
+    # Property and material
+    material=MatDeforElastIso(MR, E, nu)
+
+    femm = FEMMDeforLinearMST10(MR, IntegData(fes, TetRule(4)), material)
+    associategeometry!(femm, geom)
+    K =stiffness(femm, geom, u)
+    F = nzebcloadsstiffness(femm, geom, u)
+    U=  K\(F)
+    scattersysvec!(u,U[:])
+    @test abs(maximum(U[:])-0.001) < 1.0e-6
+
+    fld= fieldfromintegpoints(femm, geom, u, :princCauchy, 1)
+    @test norm(fld.values) < 1.0e-9 # Rigid body rotation: no stresses
+
+    File =  "mmoblocknzebc13a.vtk"
+    vtkexportmesh(File, fens, fes; scalars=[("sigmaz", fld.values)],
+                  vectors=[("u", u.values)])
+    @async run(`"paraview.exe" $File`)
+end
+end
+using .mmoblocknzebc13a
+mmoblocknzebc13a.test()
