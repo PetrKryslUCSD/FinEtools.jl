@@ -12,7 +12,7 @@ function test()
   # show(fes.conn)
 
   bfes = meshboundary(fes)
-  @test bfes.conn == Tuple{Int64,Int64}[(1, 2), (5, 1), (2, 3), (3, 4), (4, 8), (9, 5), (8, 12), (10, 9), (11, 10), (12, 11)] 
+  @test bfes.conn == Tuple{Int64,Int64}[(1, 2), (5, 1), (2, 3), (3, 4), (4, 8), (9, 5), (8, 12), (10, 9), (11, 10), (12, 11)]
 end
 end
 using .miscellaneous2mm
@@ -73,8 +73,8 @@ function test()
   File = "Slot-coarser.vtk"
   MeshExportModule.vtkexportmesh(File, output["fens"], output["fesets"][1])
   rm(File)
-  @test output["fesets"][1].conn[count(output["fesets"][1]), :] == NTuple{10,Int64}[(143, 140, 144, 138, 361, 363, 176, 519, 781, 520)] 
-  
+  @test output["fesets"][1].conn[count(output["fesets"][1]), :] == NTuple{10,Int64}[(143, 140, 144, 138, 361, 363, 176, 519, 781, 520)]
+
   # @async run(`"paraview.exe" $File`)
 end
 end
@@ -1351,7 +1351,7 @@ function test()
     A = 50.0*phun("m") # length  of loaded rectangle
     B = 200.0*phun("m") # length  of loaded rectangle
     C = 100.0*phun("m") # span of the plate
-   
+
     Meshing = T4blockx
     # Select how find the mesh should be
     Refinement = 2
@@ -2563,7 +2563,7 @@ function tetmeshedges(t::Array{Int, 2})
         m = n+1;
         while m <= size(e,1)
             if (ue[m,1] != c)
-                break; 
+                break;
             end
             m = m+1;
         end
@@ -2860,7 +2860,7 @@ using FinEtools.MeshExportModule
 using FinEtools.TetRemeshingModule
 using Test
 function test()
-L= 0.3; 
+L= 0.3;
 W = 0.3;
 a = 0.15;
 nL=46; nW=46; na=36;
@@ -2905,14 +2905,14 @@ module mmmbbracketmtet1
 using FinEtools
 using Test
 function test()
-    
+
     V = VoxelBoxVolume(Int, 6*[5,6,7], [4.0, 4.0, 5.0])
-    
+
     b1 = solidbox((0.0, 0.0, 0.0), (1.0, 4.0, 5.0))
     b2 = solidbox((0.0, 0.0, 0.0), (4.0, 1.0, 5.0))
     h1 = solidcylinder((2.0, 2.5, 2.5), (1.0, 0.0, 0.0), 00.75)
     fillsolid!(V, differenceop(unionop(b1, b2), h1), 1)
-    
+
     fens, fes = T4voximg(V.data, vec([voxeldims(V)...]), [1])
     fens = meshsmoothing(fens, fes; method = :laplace, npass = 5)
     # println("count(fes) = $(count(fes))")
@@ -2929,12 +2929,12 @@ using FinEtools.VoxelTetMeshingModule
 using Test
 function test()
     V = VoxelBoxVolume(Int, 8*[5,6,7], [4.0, 4.0, 5.0])
-    
+
     b1 = solidbox((0.0, 0.0, 0.0), (1.0, 4.0, 5.0))
     b2 = solidbox((0.0, 0.0, 0.0), (4.0, 1.0, 5.0))
     h1 = solidcylinder((2.0, 2.5, 2.5), (1.0, 0.0, 0.0), 0.75)
     fillsolid!(V, differenceop(unionop(b1, b2), h1), 1)
-    
+
     im = ImageMesher(V, zero(eltype(V.data)), eltype(V.data)[1])
     mesh!(im)
     # println("Mesh size: initial = $(size(im.t,1))")
@@ -2951,7 +2951,7 @@ function test()
     fens = FENodeSet(im.v)
     fes = FESetT4(im.t)
     setlabel!(fes, im.tmid)
-    
+
     # File = "voxel_bracket_mesh_tet.vtk"
     # vtkexportmesh(File, fens, fes)
     # @async run(`"paraview.exe" $File`)
@@ -2970,26 +2970,26 @@ using FinEtools.MeshExportModule
 using Test
 function test()
     V = VoxelBoxVolume(Int, 8*[5,6,7], [4.0, 4.0, 5.0])
-    
+
     b1 = solidbox((0.0, 0.0, 0.0), (1.0, 4.0, 5.0))
     b2 = solidbox((0.0, 0.0, 0.0), (4.0, 1.0, 5.0))
     h1 = solidcylinder((2.0, 2.5, 2.5), (1.0, 0.0, 0.0), 0.75)
     fillsolid!(V, differenceop(unionop(b1, b2), h1), 1)
-    
+
     function checkvolumes(im)
         for i = 1:size(im.t, 1)
             if FinEtools.MeshTetrahedronModule.tetv1times6(im.v, im.t[i,1], im.t[i,2], im.t[i,3], im.t[i,4]) < 0.0
                 println("Negative volume = $([im.t[i,1], im.t[i,2], im.t[i,3], im.t[i,4]])")
-            end 
+            end
         end
     end
-    
+
     im = ImageMesher(V, zero(eltype(V.data)), eltype(V.data)[1])
     mesh!(im)
     checkvolumes(im)
     # println("Mesh size: initial = $(size(im.t,1))")
     @test size(im.t,1) == 196275
-    
+
     im.elementsizeweightfunctions = [ElementSizeWeightFunction(20.0, vec([0.0, 2.5, 2.5]), 1.0), ElementSizeWeightFunction(1.0, vec([0.0, 2.5, 2.5]), 3.5)]
     for i = 1:12
         #println("Phase $i");
@@ -3004,13 +3004,13 @@ function test()
         #     serialize(file, im)
         # end
     end
-    
+
     fens = FENodeSet(im.v)
     fes = FESetT4(im.t)
     setlabel!(fes, im.tmid)
     #println("count(fes) = $(count(fes))")
     @test abs(count(fes) - 14086) / 14086 <= 0.004
-    
+
     # bfes = meshboundary(fes)
     # list = selectelem(fens, fes; overlappingbox = boundingbox([0.2018 2.1537 3.9064]), inflate = 0.01, allin = false)
     # File = "voxel_bracket_mesh_tet.vtk"
@@ -3020,7 +3020,7 @@ function test()
     vtkexportmesh(File, fens, fes)
     #@async run(`"paraview.exe" $File`)
     try rm(File); catch end
-    
+
     ne = NASTRANExporter("voxel_bracket_mesh_tet.nas")
     BEGIN_BULK(ne)
     for i = 1:count(fens)
@@ -3034,9 +3034,9 @@ function test()
     ENDDATA(ne)
     close(ne)
     try rm(ne.filename); catch end
-    
+
     stle = STLExporter("voxel_bracket_mesh_tet.stl")
-    solid(stle) 
+    solid(stle)
     bfes = meshboundary(fes)
     for i = 1:count(bfes)
         facet(stle, fens.xyz[bfes.conn[i][1], :], fens.xyz[bfes.conn[i][2], :], fens.xyz[bfes.conn[i][3], :])
@@ -3071,7 +3071,7 @@ function test()
         # if !(fen2fe1.map[i] == fen2fe2.map[i])
         #     display(fen2fe1.map[i])
         #     display(fen2fe2.map[i])
-        # end 
+        # end
     end
     @test identical
 end
@@ -3107,11 +3107,11 @@ using .miscellan3m
      @test count(fes) == 240*8
      bfes = meshboundary(fes)
      @test count(bfes) == 4*2*2*(4*5 + 5*2 + 4*2)
- 
+
      geom  =  NodalField(fens.xyz)
      femm  =  FEMMBase(IntegData(fes, SimplexRule(3, 4)))
      V = integratefunction(femm, geom, (x) ->  1.0)
-     
+
      File = "Refine-T4-a.vtk"
      MeshExportModule.vtkexportmesh(File, fens, bfes)
      rm(File)
@@ -3120,8 +3120,8 @@ using .miscellan3m
  end
  using .mt4refine1
  mt4refine1.test()
- 
- 
+
+
  module mt4refine2
  using FinEtools
  using FinEtools.MeshExportModule
@@ -3151,11 +3151,11 @@ using .miscellan3m
      @test count(fes) == 240*8
      bfes = meshboundary(fes)
      @test count(bfes) == 4*2*2*(4*5 + 5*2 + 4*2)
- 
+
      geom  =  NodalField(fens.xyz)
      femm  =  FEMMBase(IntegData(fes, SimplexRule(3, 4)))
      V = integratefunction(femm, geom, (x) ->  1.0)
-     
+
      File = "Refine-T10-a.vtk"
      MeshExportModule.vtkexportmesh(File, fens, bfes)
      rm(File)
@@ -3165,7 +3165,7 @@ using .miscellan3m
  using .mt4refine2
  mt4refine2.test()
 
- 
+
 module mimportexportm1
 using FinEtools
 using FinEtools.MeshImportModule
@@ -3184,4 +3184,146 @@ function test()
 end
 end
 using .mimportexportm1
- mimportexportm1.test()
+mimportexportm1.test()
+
+
+
+
+module momap2para61
+using FinEtools
+using FinEtools.MeshSelectionModule: vselect
+using FinEtools.MeshExportModule
+using Test
+import LinearAlgebra: norm
+function test()
+    A = 50.0*phun("m") # length  of loaded rectangle
+    B = 200.0*phun("m") # length  of loaded rectangle
+    C = 100.0*phun("m") # span of the plate
+
+    # Select how find the mesh should be
+    Refinement = 2
+    nA, nB, nC = Refinement * 1, Refinement * 2, Refinement * 4;
+    xs = reshape(collect(linearspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linearspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
+    fensc,fesc = T10blockx(xs, ys, zs, :b)
+    fc = NodalField(zeros(count(fensc), 1))
+    for i = 1:count(fensc)
+        x, y, z = fensc.xyz[i, :]
+        fc.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+    end
+    File = "momap2para61-coarse.vtk"
+    MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+
+    Refinement = Refinement + 1
+    nA, nB, nC = Refinement * 1, Refinement * 2, Refinement * 4;
+    xs = reshape(collect(linearspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linearspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
+    fensf,fesf = T10blockx(xs, ys, zs, :b)
+    ff = NodalField(zeros(count(fensf), 1))
+    tolerance = min(A/nA, B/nB, C/nC)/1000.0
+
+    referenceff = NodalField(zeros(count(fensf), 1))
+    for i = 1:count(fensf)
+        x, y, z = fensf.xyz[i, :]
+        referenceff.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+    end
+    File = "momap2para61-reference.vtk"
+    MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+
+    ff = transferfield!(ff, fensf, fesf, fc, fensc, fesc, tolerance)
+    File = "momap2para61-fine.vtk"
+    MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("ff", ff.values), ("ffcopy", ff.values)])
+    # @async run(`"paraview.exe" $File`)
+    # try rm(File) catch end
+
+    diffff = NodalField(referenceff.values - ff.values)
+    femm  = FEMMBase(IntegData(fesf, SimplexRule(3, 4)))
+    geom = NodalField(fensf.xyz)
+    error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
+    ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
+    # println("error/ref = $(error/ref)")
+    @test abs(error/ref - 0.02541369940759616) < 1.0e-4
+end
+end
+using .momap2para61
+momap2para61.test()
+
+module momap2para6378
+using FinEtools
+using FinEtools.MeshSelectionModule: vselect
+using FinEtools.MeshExportModule
+using Test
+import LinearAlgebra: norm
+function test()
+    A = 50.0*phun("m") # length  of loaded rectangle
+    B = 200.0*phun("m") # length  of loaded rectangle
+    C = 100.0*phun("m") # span of the plate
+
+    # Select how find the mesh should be
+    Refinement = 2
+    nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
+    xs = reshape(collect(linearspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linearspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
+    fensc,fesc = T10blockx(xs, ys, zs, :b)
+
+    centroidpc = centroidparametric(fesc)
+    N = bfun(fesc, centroidpc)
+    NT = transpose(N)
+
+    fc = ElementalField(zeros(count(fesc), 1))
+    for i = 1:count(fesc)
+        c = [k for k in fesc.conn[i]]
+        centroid = NT * fensc.xyz[c, :]
+        x, y, z = centroid
+        fc.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+    end
+    File = "momap2para3-coarse.vtk"
+    MeshExportModule.vtkexportmesh(File, fensc, fesc; scalars = [("fc", fc.values)])
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+
+    Refinement = Refinement + 1
+    nA, nB, nC = Refinement * 1, Refinement * 6, Refinement * 4;
+    xs = reshape(collect(linearspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linearspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
+    fensf,fesf = T10blockx(xs, ys, zs, :b)
+    tolerance = min(A/nA, B/nB, C/nC)/1000.0
+
+    ff = ElementalField(zeros(count(fesf), 1))
+    referenceff = ElementalField(zeros(count(fesf), 1))
+    for i = 1:count(fesf)
+        c = [k for k in fesf.conn[i]]
+        centroid = NT * fensf.xyz[c, :]
+        x, y, z = centroid
+        referenceff.values[i, :] .= sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+    end
+    File = "momap2para3-reference.vtk"
+    MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("referenceff", referenceff.values)])
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+
+    ff = transferfield!(ff, fensf, fesf, fc, fensc, fesc, tolerance)
+    File = "momap2para3-fine.vtk"
+    MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("ff", ff.values), ("ffcopy", ff.values)])
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+
+    diffff = ElementalField(referenceff.values - ff.values)
+    femm  = FEMMBase(IntegData(fesf, SimplexRule(3, 4)))
+    geom = NodalField(fensf.xyz)
+    error = integratefieldfunction(femm, geom, diffff, (x, v) -> norm(v), 0.0)
+    ref = integratefieldfunction(femm, geom, referenceff, (x, v) -> norm(v), 0.0)
+    # println("error/ref = $(error/ref)")
+    @test abs(error/ref - 0.19808425992688541) < 1.0e-4
+end
+end
+using .momap2para6378
+momap2para6378.test()
