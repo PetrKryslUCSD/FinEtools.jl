@@ -85,7 +85,7 @@ function vtkexportmesh(theFile::String, Connectivity, Points, Cell_type;
             c[i, :] = [Connectivity[i]...]
         end
         Connectivity = c
-    end 
+    end
     @assert numnodes == size(Connectivity,2)
 
     fid=open(theFile,"w");
@@ -204,20 +204,10 @@ function vtkexportmesh(theFile::String, Connectivity, Points, Cell_type;
                     print(fid,"CELL_DATA ",size(data, 1),"\n");
                     did_cell_data = true
                 end
-                if size(data, 2) > 1 # there are multiple scalar fields here
-                    for i = 1:size(data, 2)
-                        print(fid,"SCALARS ", name * "$(i)"," double\n");
-                        print(fid,"LOOKUP_TABLE default\n");
-                        for j= 1:size(data,  1)
-                            print(fid,data[j, i],"\n");
-                        end
-                    end
-                else  # there's just one scalar field here
-                    print(fid,"SCALARS ", name," double\n");
-                    print(fid,"LOOKUP_TABLE default\n");
-                    for j= 1:size(data,  1)
-                        print(fid,data[j],"\n");
-                    end
+                print(fid,"SCALARS ", name," double\n");
+                print(fid,"LOOKUP_TABLE default\n");
+                for j= 1:size(data,  1)
+                    print(fid,data[j],"\n");
                 end
                 print(fid,"\n");
             end
@@ -879,7 +869,7 @@ end
 """
     GRID(self::NASTRANExporter, n::Int, xyz::Vector{FFlt})
 
-Write a grid-point statement.  
+Write a grid-point statement.
 """
 function GRID(self::NASTRANExporter, n::Int, xyz::Vector{FFlt})
     @printf self.ios "GRID,%d,,%g,%g,%g\n" n xyz[1] xyz[2] xyz[3]
@@ -888,7 +878,7 @@ end
 """
     PSOLID(self::NASTRANExporter, pid::Int, mid::Int)
 
-Write solid-property statement.  
+Write solid-property statement.
 """
 function PSOLID(self::NASTRANExporter, pid::Int, mid::Int)
     @printf self.ios "PSOLID,%d,%d\n" pid mid
@@ -957,7 +947,7 @@ mutable struct STLExporter
 end
 
 function solid(self::STLExporter, name::AbstractString = "thesolid")
-    @printf self.ios "solid %s\n" name 
+    @printf self.ios "solid %s\n" name
 end
 
 function facet(self::STLExporter, v1::Vector{FFlt}, v2::Vector{FFlt}, v3::Vector{FFlt})
@@ -975,7 +965,7 @@ function facet(self::STLExporter, v1::Vector{FFlt}, v2::Vector{FFlt}, v3::Vector
 end
 
 function endsolid(self::STLExporter, name::AbstractString = "thesolid")
-    @printf self.ios "endsolid %s\n" name 
+    @printf self.ios "endsolid %s\n" name
 end
 
 """
@@ -997,7 +987,7 @@ import Base.BitSet
 mutable struct _HypFace
     n::Int # serial number of the hyperface
     hf::Array{Int} # numbers of vertices defining the hyperface
-    a::Int # anchor node number 
+    a::Int # anchor node number
     o::BitSet # numbers of the other nodes on the hyperface
 end
 
@@ -1027,12 +1017,12 @@ function inserthypface!(container, hypf)
         h = sort([i for i in hypf])
         anchor = h[1]; other = BitSet(h[2:end]);
         ca = get(container.d, anchor, _HypFace[]);
-        container.n = container.n + 1 
-        push!(ca, _HypFace(container.n, hypf, anchor, other)); 
+        container.n = container.n + 1
+        push!(ca, _HypFace(container.n, hypf, anchor, other));
         container.d[anchor] = ca
     end
     return container
-end 
+end
 
 function hypfacedicttoarray(container)
     a = fill(0, container.n, container.nv)
@@ -1091,6 +1081,6 @@ function h2libexporttri(theFile::String, Connectivity, Points)
 
     fid=close(fid);
     return true
-end 
+end
 
 end

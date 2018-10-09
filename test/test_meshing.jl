@@ -3311,6 +3311,7 @@ function test()
     try rm(File) catch end
 
     ff = transferfield!(ff, fensf, fesf, fc, fensc, fesc, tolerance)
+    println("Should be seeing multiple scalar fields")
     File = "momap2para3-fine.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("ff", ff.values), ("ffcopy", ff.values)])
     # @async run(`"paraview.exe" $File`)
