@@ -6931,13 +6931,13 @@ using FinEtools.MeshUtilModule
 using FinEtools.AlgoBaseModule
 using Test
 function test()
-    
-    
+
+
     elementtag = "MSH8"
     # println("""
     # Pagano_3layer_cylindrical_bending: $(elementtag)
     # """)
-    
+
     # This example provides three-dimensional finite element model for  the
     # transverse shear stress calculations. The problem consists of a one-, two- or
     # three-layer plate subjected to a sinusoidal distributed load, as
@@ -6946,40 +6946,40 @@ function test()
     # analytical solutions by Pagano (1969). The first solution is derived from
     # classical laminated plate theory (CPT), while the second is an exact
     # solution from linear elasticity theory.
-    
+
     filebase = "Pagano_3layer_cylindrical_bending_$(elementtag)_convergence"
-    
+
     modeldatasequence = FDataDict[]
     for Refinement = [1, 2, 4]
-        
+
         # Orthotropic material for the 3 layers
-        E1 = 25e6*phun("PSI"); E2 = 1e6*phun("PSI"); E3 = E2; 
+        E1 = 25e6*phun("PSI"); E2 = 1e6*phun("PSI"); E3 = E2;
         G12 = 0.5e6*phun("PSI");  G13 = G12; G23 = 0.2e6*phun("PSI")
         nu12 =  0.25; nu13 =  0.25; nu23 =  0.25;
         Span_to_thickness = 4.0;
         T = 2.5*phun("in"); # total thickness of the plate
-        L = Span_to_thickness*T; 
+        L = Span_to_thickness*T;
         h = 1*phun("in");  # depth of the plate
         q0 = 1*phun("PSI")
         CTE1 =  CTE2 =  CTE3 = 0.0
-        
+
         # Here we define the layout and the thicknesses of the layers.
         angles = vec([0.0 90.0 0.0]);
         nLayers = length(angles)
         ts = T/nLayers * ones(nLayers); # layer thicknesses
-        
+
         tolerance = 0.0001*T
-        
+
         # Select how find the mesh should be
         nL, nh = Refinement * 2 * 4, Refinement*1;
         nts= Refinement * 2 * ones(Int, nLayers);# number of elements per layer
-        
+
         xs = collect(linearspace(0.0, L, nL+1))
         ys = collect(linearspace(0.0, h, nh+1))
-        
+
         fens,fes = H8layeredplatex(xs, ys, ts, nts)
         # println("count(fens) = $(count(fens))")
-        
+
         # This is the material  model
         MR = DeforModelRed3D
         skinmaterial = MatDeforElastOrtho(MR,
@@ -6987,15 +6987,15 @@ function test()
         nu12, nu13, nu23,
         G12, G13, G23,
         CTE1, CTE2, CTE3)
-        
+
         # The material coordinate system function is defined as:
         function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
             rotmat3!(csmatout, angles[fe_label]/180.0*pi* [0.0; 0.0; 1.0]);
         end
-        
+
         # The vvolume integrals are evaluated using this rule
         gr = GaussRule(3, 2)
-        
+
         # We will create 3 regions, one for each of the layers
         regions = FDataDict[]
         for layer = 1:nLayers
@@ -7003,12 +7003,12 @@ function test()
             push!(regions, FDataDict("femm"=>FEMMDeforLinearMSH8(MR,
             IntegData(subset(fes, rls), gr), CSys(3, 3, updatecs!), skinmaterial)))
         end
-        
+
         # File =  "Meyer_Piening_sandwich-r1.vtk"
         # vtkexportmesh(File, skinregion["femm"].integdata.fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
         # # @async run(`"paraview.exe" $File`)
-        
-        
+
+
         # The essential boundary conditions are applied to enforce the plane strain constraint.
         ly0 = selectnode(fens, box=[-Inf Inf 0.0 0.0 -Inf Inf], inflate=tolerance)
         lyh = selectnode(fens, box=[-Inf Inf h h -Inf Inf], inflate=tolerance)
@@ -7018,7 +7018,7 @@ function test()
         lzL = selectnode(fens, box=[L L -Inf Inf -Inf Inf], inflate=tolerance)
         ez = FDataDict("displacement"=>  0.0, "component"=> 3, "node_list"=>vcat(lz0, lzL))
         ex = FDataDict("displacement"=>  0.0, "component"=> 1, "node_list"=>[1])
-        
+
         # The traction boundary condition is applied at the top of the plate.
         bfes = meshboundary(fes)
         function pfun(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) where {T}
@@ -7032,41 +7032,41 @@ function test()
         tl = selectelem(fens, bfes, box = [-Inf Inf -Inf Inf T T], inflate=tolerance)
         Trac = FDataDict("traction_vector"=>pfun,
         "femm"=>FEMMBase(IntegData(subset(bfes, tl), GaussRule(2, 2))))
-        
+
         modeldata = FDataDict("fens"=>fens,
         "regions"=>regions,
         "essential_bcs"=>[ex, ey, ez],
         "traction_bcs"=> [Trac]
         )
         modeldata = AlgoDeforLinearModule.linearstatics(modeldata)
-        
+
         modeldata["postprocessing"] = FDataDict("file"=>filebase * "-u")
         modeldata = AlgoDeforLinearModule.exportdeformation(modeldata)
         for e in modeldata["postprocessing"]["exported"]
             try rm(e["file"]) catch end
         end
-        
+
         u = modeldata["u"]
         geom = modeldata["geom"]
-        
+
         # The results of the displacement and stresses will be reported at
         # nodes located at the appropriate points.
         ntopcenter = selectnode(fens, box=[L/2 L/2 0.0 h T T], inflate=tolerance)
         ncenterline = selectnode(fens, box=[L/2 L/2 0.0 0.0 0.0 T], inflate=tolerance)
         nx0line = selectnode(fens, box=[0.0 0.0 0.0 0.0 0.0 T], inflate=tolerance)
-        
+
         zclo = sortperm(vec(geom.values[ncenterline, 3]))
         ncenterline = ncenterline[zclo]
         centerz = geom.values[ncenterline, 3]
-        
+
         # println("Top Center deflection: $(mean(u.values[ntopcenter, 3], 1)/phun("in")) [in]")
-        
+
         # # extrap = :extrapmean
         extrap = :extraptrend
         nodevalmeth = :averaging
         # extrap = :default
         # nodevalmeth = :invdistance
-        
+
         # Compute  all stresses
         modeldata["postprocessing"] = FDataDict("file"=>filebase * "-s",
         "quantity"=>:Cauchy, "component"=>collect(1:6), "outputcsys"=>CSys(3),
@@ -7075,15 +7075,15 @@ function test()
         for e in modeldata["postprocessing"]["exported"]
             try rm(e["file"]) catch end
         end
-        
+
         modeldata["elementsize"] = 1.0/Refinement
         modeldata["geometricaltolerance"] = tolerance
         modeldata["targetfields"] = [e["field"] for e in modeldata["postprocessing"]["exported"]]
         push!(modeldatasequence, modeldata)
     end # for refinement
-    
+
     elementsizes, errornorms, p = AlgoBaseModule.evalconvergencestudy(modeldatasequence)
-    
+
     # println("")
     # println("Normalized Approximate Error = $(errornorms)")
     @test abs(p[1] - 1.3347513854727369)/1.3347513854727369 < 1.0e-3
@@ -7094,11 +7094,11 @@ function test()
     # elementsizes3=vec(elementsizes[1:end-1].^3),
     # errornorms=vec(errornorms)
     # )
-    
+
     # @async run(`"paraview.exe" $csvFile`)
-    
+
     # println("Done")
-    
+
 end
 end
 using .mxRMSerror3a1
@@ -7118,7 +7118,7 @@ function test()
     # Engineering 67: 841-867.
     # """)
     t0 = time()
-    
+
     E = 1*phun("PA");
     nu = 0.499;
     rho = 1*phun("KG/M^3");
@@ -7129,17 +7129,17 @@ function test()
     OmegaShift = (0.01*2*pi)^2;
     stabfact = 0.015
     Eigenvalues = [0.0, 5.93656e-8, 7.54751e-8, 9.80131e-8, 1.14899e-7, 1.27725e-7, 0.264544, 0.266128, 0.350568, 0.352546, 0.355279, 0.357389, 0.357701, 0.359704, 0.402389, 0.402968, 0.404977, 0.45061, 0.450974, 0.452039]
-    
+
     MR = DeforModelRed3D
     fens,fes  = T4block(a,b,h, na,nb,nh)
-    
+
     geom = NodalField(fens.xyz)
     u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
-    
+
     numberdofs!(u)
-    
+
     material = MatDeforElastIso(MR, rho, E, nu, 0.0)
-    
+
     femm = FEMMDeforLinearNICET4(MR, IntegData(fes, NodalSimplexRule(3)), material, stabfact)
     associategeometry!(femm,  geom)
     K  = stiffness(femm, geom, u)
@@ -7149,14 +7149,14 @@ function test()
     fs = real(sqrt.(complex(d)))/(2*pi)
     # println("Eigenvalues: $fs [Hz]")
     @test norm(vec(fs) .- vec(Eigenvalues)) < 1.0e-4*maximum(vec(Eigenvalues))
-    
+
     # mode = 17
     # scattersysvec!(u, v[:,mode])
     # File =  "unit_cube_modes.vtk"
     # vtkexportmesh(File, fens, fes; vectors=[("mode$mode", u.values)])
-    
+
     true
-    
+
 end
 end
 using .munit_cube_modes_nice_t4
@@ -7168,7 +7168,7 @@ using Test
 using Arpack
 using LinearAlgebra
 function test()
-    # Aluminum cylinder free vibration, mesh imported from Abaqus 
+    # Aluminum cylinder free vibration, mesh imported from Abaqus
     # Mesh converted from quadratic tetrahedra to linear tetrahedra
     # NICE tetrahedral elements used
     E = 70000*phun("MPa");
@@ -7178,21 +7178,21 @@ function test()
     neigvs = 20                   # how many eigenvalues
     OmegaShift = (10.0*2*pi)^2;
     stabfact = 0.005
-    Eigenvalues = [4.54746e-5, 6.82231e-5, 8.7071e-5, 9.99708e-5, 0.000112778, 0.000116397, 2533.6, 2535.12, 2574.64, 4086.61, 4652.66, 4654.16, 5122.94, 6755.62, 6756.45, 6872.26, 6875.3, 6883.49, 6888.53, 6983.99] 
-    
+    Eigenvalues = [4.54746e-5, 6.82231e-5, 8.7071e-5, 9.99708e-5, 0.000112778, 0.000116397, 2533.6, 2535.12, 2574.64, 4086.61, 4652.66, 4654.16, 5122.94, 6755.62, 6756.45, 6872.26, 6875.3, 6883.49, 6888.53, 6983.99]
+
     MR = DeforModelRed3D
     output = import_ABAQUS("alum_cyl.inp")
     fens, fes = output["fens"], output["fesets"][1]
     fens.xyz .*= phun("mm") # The input is provided in SI(mm) units
     fens, fes = T10toT4(fens, fes)
-     
+
     geom = NodalField(fens.xyz)
     u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
-    
+
     numberdofs!(u)
-    
+
     material = MatDeforElastIso(MR, rho, E, nu, 0.0)
-    
+
     femm = FEMMDeforLinearNICET4(MR, IntegData(fes, NodalSimplexRule(3)), material, stabfact)
     associategeometry!(femm,  geom)
     K  = stiffness(femm, geom, u)
@@ -7202,7 +7202,7 @@ function test()
     fs = real(sqrt.(complex(d)))/(2*pi)
     # println("Eigenvalues: $fs [Hz]")
     @test norm(vec(fs) .- vec(Eigenvalues)) < 1.0e-3*maximum(vec(Eigenvalues))
-    
+
     true
 end
 end
@@ -7215,7 +7215,7 @@ using Test
 using Arpack
 using LinearAlgebra
 function test()
-    # Aluminum cylinder free vibration, mesh imported from Abaqus 
+    # Aluminum cylinder free vibration, mesh imported from Abaqus
     # Mesh converted from quadratic tetrahedra to linear tetrahedra
     # NICE tetrahedral elements used
     E = 70000*phun("MPa");
@@ -7225,21 +7225,21 @@ function test()
     neigvs = 20                   # how many eigenvalues
     OmegaShift = (10.0*2*pi)^2;
     stabfact = 0.005
-    Eigenvalues =  [0.0, 0.0, 8.81991e-5, 0.000120269, 0.000152067, 0.000179789, 2544.75, 2546.99, 2571.92, 4091.47, 4676.76, 4678.67, 5123.11, 6801.93, 6803.98, 6915.16, 6917.92, 6921.47, 6924.86, 7011.4]  
-    
+    Eigenvalues =  [0.0, 0.0, 8.81991e-5, 0.000120269, 0.000152067, 0.000179789, 2544.75, 2546.99, 2571.92, 4091.47, 4676.76, 4678.67, 5123.11, 6801.93, 6803.98, 6915.16, 6917.92, 6921.47, 6924.86, 7011.4]
+
     MR = DeforModelRed3D
     output = import_ABAQUS("alum_cyl.inp")
     fens, fes = output["fens"], output["fesets"][1]
     fens.xyz .*= phun("mm") # The input is provided in SI(mm) units
     fens, fes = T10toT4(fens, fes)
-     
+
     geom = NodalField(fens.xyz)
     u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
-    
+
     numberdofs!(u)
-    
+
     material = MatDeforElastIso(MR, rho, E, nu, 0.0)
-    
+
     femm = FEMMDeforLinearESNICET4(MR, IntegData(fes, NodalSimplexRule(3)), material, stabfact)
     associategeometry!(femm,  geom)
     K  = stiffness(femm, geom, u)
@@ -7249,7 +7249,7 @@ function test()
     fs = real(sqrt.(complex(d)))/(2*pi)
     # println("Eigenvalues: $fs [Hz]")
     @test norm(vec(fs) .- vec(Eigenvalues)) < 1.0e-3*maximum(vec(Eigenvalues))
-    
+
     true
 end
 end
@@ -7522,7 +7522,7 @@ function test()
     n1 = 10;# How many element edges per side?
     na =  n1; nb =  n1; nh  = n1;
     mag = 0.001
-  
+
     MR = DeforModelRed3D
     fens,fes  = H8block(a,b,h, na,nb,nh)
 
@@ -7541,7 +7541,7 @@ function test()
 
     applyebc!(u)
     numberdofs!(u)
-    
+
     # Property and material
     material=MatDeforElastIso(MR, E, nu)
 
@@ -7577,7 +7577,7 @@ function test()
     n1 = 10;# How many element edges per side?
     na =  n1; nb =  n1; nh  = n1;
     mag = 0.001
-  
+
     MR = DeforModelRed3D
     fens,fes  = T10block(a,b,h, na,nb,nh)
 
@@ -7596,7 +7596,7 @@ function test()
 
     applyebc!(u)
     numberdofs!(u)
-    
+
     # Property and material
     material=MatDeforElastIso(MR, E, nu)
 
@@ -7614,7 +7614,8 @@ function test()
     File =  "mmoblocknzebc13a.vtk"
     vtkexportmesh(File, fens, fes; scalars=[("sigmaz", fld.values)],
                   vectors=[("u", u.values)])
-    @async run(`"paraview.exe" $File`)
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
 end
 end
 using .mmoblocknzebc13a
