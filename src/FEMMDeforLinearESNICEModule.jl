@@ -24,7 +24,7 @@ import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, g
 import FinEtools.NodalFieldModule: NodalField, nnodes
 import FinEtools.CSysModule: CSys, updatecsmat!
 import FinEtools.FENodeToFEMapModule: FENodeToFEMap
-import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat! 
+import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat!
 import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, loc!, jac!, locjac!, adjugate3!
 import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass, thermalstrainloads, inspectintegpoints
@@ -62,31 +62,7 @@ function make_stabilization_material(material::M) where {M}
             error("No clues on how to construct the stabilization material")
         end
     end
-    phi = 0.75
-    return  MatDeforElastIso(material.mr, 0.0, phi * E, nu, 0.0)
-end
-
-mutable struct FEMMDeforLinearESNICEH8{MR<:DeforModelRed, S<:FESetH8, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstractNICE
-    mr::Type{MR}
-    integdata::IntegData{S, F} # geometry data
-    mcsys::CSys # updater of the material orientation matrix
-    material::M # material object
-    stabilization_material::MatDeforElastIso
-    nodalbasisfunctiongrad::Vector{_NodalBasisFunctionGradients}
-end
-
-function FEMMDeforLinearESNICEH8(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
-    @assert mr == material.mr "Model reduction is mismatched"
-    @assert (mr == DeforModelRed3D) "3D model required"
-    stabilization_material = make_stabilization_material(material)
-    return FEMMDeforLinearESNICEH8(mr, integdata, mcsys, material, stabilization_material, _NodalBasisFunctionGradients[])
-end
-
-function FEMMDeforLinearESNICEH8(mr::Type{MR}, integdata::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
-    @assert mr == material.mr "Model reduction is mismatched"
-    @assert (mr == DeforModelRed3D) "3D model required"
-    stabilization_material = make_stabilization_material(material)
-    return FEMMDeforLinearESNICEH8(mr, integdata, CSys(manifdim(integdata.fes)), material, stabfact, _NodalBasisFunctionGradients[])
+    return  MatDeforElastIso(material.mr, 0.0, E, nu, 0.0)
 end
 
 mutable struct FEMMDeforLinearESNICET4{MR<:DeforModelRed, S<:FESetT4, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstractNICE
@@ -96,30 +72,40 @@ mutable struct FEMMDeforLinearESNICET4{MR<:DeforModelRed, S<:FESetT4, F<:Functio
     material::M # material object
     stabilization_material::MatDeforElastIso
     nodalbasisfunctiongrad::Vector{_NodalBasisFunctionGradients}
+    ephis::Vector{FFlt}
+    nphis::Vector{FFlt}
 end
 
 function FEMMDeforLinearESNICET4(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
-    return FEMMDeforLinearESNICET4(mr, integdata, mcsys, material, stabilization_material, _NodalBasisFunctionGradients[])
+    return FEMMDeforLinearESNICET4(mr, integdata, mcsys, material, stabilization_material, _NodalBasisFunctionGradients[], fill(zero(FFlt), 1), fill(zero(FFlt), 1))
 end
 
 function FEMMDeforLinearESNICET4(mr::Type{MR}, integdata::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
-    return FEMMDeforLinearESNICET4(mr, integdata, CSys(manifdim(integdata.fes)), material, stabilization_material, _NodalBasisFunctionGradients[])
+    return FEMMDeforLinearESNICET4(mr, integdata, CSys(manifdim(integdata.fes)), material, stabilization_material, _NodalBasisFunctionGradients[], fill(zero(FFlt), 1), fill(zero(FFlt), 1))
 end
 
 function FEMMDeforLinearESNICET4(mr::Type{MR}, integdata::IntegData{S, F}, material::M, stabfact::FFlt) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
-    return FEMMDeforLinearESNICET4(mr, integdata, CSys(manifdim(integdata.fes)), material, stabilization_material, _NodalBasisFunctionGradients[])
+    return FEMMDeforLinearESNICET4(mr, integdata, CSys(manifdim(integdata.fes)), material, stabilization_material, _NodalBasisFunctionGradients[], fill(zero(FFlt), 1), fill(zero(FFlt), 1))
 end
 
-function buffers1(self::FEMMDeforLinearAbstractNICE, geom::NodalField, npts::FInt)
+function centroid!(self::F, loc, X::FFltMat, conn::C) where {F<:FEMMDeforLinearESNICET4, C}
+    weights = [0.250
+                0.250
+                0.250
+                0.250]
+    return loc!(loc, X, conn, reshape(weights, 4, 1)) 
+end
+
+function buffers1(self::FEMMDeforLinearAbstractNICE, geom::NodalField)
     fes = self.integdata.fes
     nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
@@ -189,7 +175,7 @@ function computenodalbfungrads(self, geom)
 
     fes = self.integdata.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
-    loc, J, adjJ, csmatTJ, gradN, xl, lconn = buffers1(self, geom, npts)
+    loc, J, adjJ, csmatTJ, gradN, xl, lconn = buffers1(self, geom)
 
     # Get the inverse map from finite element nodes to geometric cells
     fen2fe = FENodeToFEMap(fes.conn, nnodes(geom));
@@ -216,9 +202,9 @@ function computenodalbfungrads(self, geom)
                 @assert 1 <= pci <= nodesperelem(fes)
                 # centered coordinates of nodes in the material coordinate system
                 for cn = 1:length(kconn)
-                    xl[cn, :] = (reshape(geom.values[kconn[cn], :], 1, ndofs(geom)) - c) * self.mcsys.csmat 
+                    xl[cn, :] = (reshape(geom.values[kconn[cn], :], 1, ndofs(geom)) - c) * self.mcsys.csmat
                 end
-                jac!(J, xl, lconn, gradNparams[pci]) 
+                jac!(J, xl, lconn, gradNparams[pci])
                 At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
                 Jac = Jacobianvolume(self.integdata, J, c, fes.conn[i], Ns[pci]);
                 Vpatch += Jac * w[pci];
@@ -242,7 +228,37 @@ Associate geometry field with the FEMM.
 
 Compute the  correction factors to account for  the shape of the  elements.
 """
-function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDeforLinearAbstractNICE}
+function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDeforLinearESNICET4}
+    fes = self.integdata.fes
+    loc, J, adjJ, csmatTJ, gradN, xl, lconn = buffers1(self, geom)
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    self.ephis = fill(zero(FFlt), count(fes))
+    evols = fill(zero(FFlt), count(fes))
+    self.nphis = fill(zero(FFlt), nnodes(geom))
+    nvols = fill(zero(FFlt), nnodes(geom))
+    for i = 1:count(fes) # Loop over elements
+        loc = centroid!(self,  loc, geom.values, fes.conn[i])
+        updatecsmat!(self.mcsys, loc, J, fes.label[i]);
+        for j = 1:npts # Loop over quadrature points
+            jac!(J, geom.values, fes.conn[i], gradNparams[j])
+            evols[i] = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
+            gradN!(fes, gradN, gradNparams[j], csmatTJ);
+            h2 = diag(transpose(csmatTJ)*csmatTJ)
+            cap_phi = (minimum(h2) / maximum(h2)) / 13.4615
+            phi = cap_phi / (1 + cap_phi)
+            self.ephis[i] = max(self.ephis[i], phi)
+        end # Loop over quadrature points
+        # Increment: the stabilization factor at the node is the weighted mean of the stabilization factors of the elements at that node
+        for k = 1:nodesperelem(fes)
+            nvols[fes.conn[i][k]] += evols[i]
+            self.nphis[fes.conn[i][k]] += self.ephis[i] * evols[i]
+        end
+    end # Loop over elements
+    # Now scale the values at the nodes with the nodal volumes
+    for k = 1:nodesperelem(fes)
+        self.nphis[k] /= nvols[k]
+    end
     return computenodalbfungrads(self, geom)
 end
 
@@ -273,7 +289,7 @@ function stiffness(self::FEMMDeforLinearAbstractNICE, assembler::A, geom::NodalF
         elmat = fill(0.0, nd, nd) # Can we SPEED it UP?
         DB = fill(0.0, size(D, 1), nd)
         add_btdb_ut_only!(elmat, Bnodal, Vpatch, D, DB)
-        add_btdb_ut_only!(elmat, Bnodal, -Vpatch, Dstab, DB)
+        add_btdb_ut_only!(elmat, Bnodal, -self.nphis[nix]*Vpatch, Dstab, DB)
         complete_lt!(elmat)
         dofnums = fill(0, nd)
         gatherdofnums!(u, dofnums, patchconn); # retrieve degrees of freedom
@@ -284,13 +300,13 @@ function stiffness(self::FEMMDeforLinearAbstractNICE, assembler::A, geom::NodalF
     for i = 1:count(fes) # Loop over elements
         fill!(elmat,  0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
-            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
+            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
             updatecsmat!(self.mcsys, loc, J, fes.label[i]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
             gradN!(fes, gradN, gradNparams[j], csmatTJ);
             Blmat!(self.mr, B, Ns[j], gradN, loc, self.mcsys.csmat);
-            add_btdb_ut_only!(elmat, B, Jac*w[j], Dstab, DB)
+            add_btdb_ut_only!(elmat, B, self.ephis[i]*Jac*w[j], Dstab, DB)
         end # Loop over quadrature points
         complete_lt!(elmat)
         gatherdofnums!(u, dofnums, fes.conn[i]); # retrieve degrees of freedom
