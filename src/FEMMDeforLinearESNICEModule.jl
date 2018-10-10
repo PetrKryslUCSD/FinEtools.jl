@@ -90,19 +90,12 @@ function FEMMDeforLinearESNICET4(mr::Type{MR}, integdata::IntegData{S, F}, mater
     return FEMMDeforLinearESNICET4(mr, integdata, CSys(manifdim(integdata.fes)), material, stabilization_material, _NodalBasisFunctionGradients[], fill(zero(FFlt), 1), fill(zero(FFlt), 1))
 end
 
-function FEMMDeforLinearESNICET4(mr::Type{MR}, integdata::IntegData{S, F}, material::M, stabfact::FFlt) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
-    @assert mr == material.mr "Model reduction is mismatched"
-    @assert (mr == DeforModelRed3D) "3D model required"
-    stabilization_material = make_stabilization_material(material)
-    return FEMMDeforLinearESNICET4(mr, integdata, CSys(manifdim(integdata.fes)), material, stabilization_material, _NodalBasisFunctionGradients[], fill(zero(FFlt), 1), fill(zero(FFlt), 1))
-end
-
 function centroid!(self::F, loc, X::FFltMat, conn::C) where {F<:FEMMDeforLinearESNICET4, C}
     weights = [0.250
                 0.250
                 0.250
                 0.250]
-    return loc!(loc, X, conn, reshape(weights, 4, 1)) 
+    return loc!(loc, X, conn, reshape(weights, 4, 1))
 end
 
 function buffers1(self::FEMMDeforLinearAbstractNICE, geom::NodalField)

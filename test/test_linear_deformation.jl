@@ -7225,8 +7225,7 @@ function test()
     neigvs = 20                   # how many eigenvalues
     OmegaShift = (10.0*2*pi)^2;
     stabfact = 0.005
-    Eigenvalues =  [0.0, 0.0, 8.81991e-5, 0.000120269, 0.000152067, 0.000179789, 2544.75, 2546.99, 2571.92, 4091.47, 4676.76, 4678.67, 5123.11, 6801.93, 6803.98, 6915.16, 6917.92, 6921.47, 6924.86, 7011.4]
-
+    Eigenvalues =   [0.0, 0.0, 0.0, 6.71512e-5, 7.91215e-5, 9.91829e-5, 2533.26, 2534.5, 2545.93, 4162.95, 4644.87, 4646.78, 5040.89, 6699.24, 6701.54, 6717.42, 6719.67, 6798.97, 6800.84, 6888.68]
     MR = DeforModelRed3D
     output = import_ABAQUS("alum_cyl.inp")
     fens, fes = output["fens"], output["fesets"][1]
@@ -7240,7 +7239,7 @@ function test()
 
     material = MatDeforElastIso(MR, rho, E, nu, 0.0)
 
-    femm = FEMMDeforLinearESNICET4(MR, IntegData(fes, NodalSimplexRule(3)), material, stabfact)
+    femm = FEMMDeforLinearESNICET4(MR, IntegData(fes, NodalSimplexRule(3)), material)
     associategeometry!(femm,  geom)
     K  = stiffness(femm, geom, u)
     M = mass(femm, geom, u)
