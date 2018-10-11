@@ -400,17 +400,31 @@ end
 """
     integrationdata(self::IntegData)
 
+Calculate the data needed for  numerical quadrature for the integration rule
+    stored by the integration data.
+"""
+function  integrationdata(self::IntegData)
+    return integrationdata(self, self.integration_rule)
+end
+
+
+"""
+    integrationdata(self::IntegData, integration_rule::T) where {T<:IntegRule}
+
 Calculate the data needed for  numerical quadrature.
 
+Input:
+`integration_rule` = integration rule
+Output:
 `npts`, `Ns`, `gradNparams`, `w`, `pc` = number of quadrature points, arrays of
 basis function values at the quadrature points,  arrays of gradients of basis
 functions  with respect  to the parametric coordinates, array of weights and
 array of locations of the quadrature points.
 """
-function  integrationdata(self::IntegData)
-    pc::FFltMat = self.integration_rule.param_coords;
-    w::FFltMat  =  self.integration_rule.weights ;
-    npts::FInt = self.integration_rule.npts;
+function  integrationdata(self::IntegData, integration_rule::T) where {T<:IntegRule}
+    pc::FFltMat = integration_rule.param_coords;
+    w::FFltMat  =  integration_rule.weights ;
+    npts::FInt = integration_rule.npts;
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     Ns = FFltMat[];
     gradNparams = FFltMat[];
@@ -420,6 +434,5 @@ function  integrationdata(self::IntegData)
     end
     return npts, reshape(Ns, 1,npts), reshape(gradNparams, 1,npts), w, pc
 end
-
 
 end
