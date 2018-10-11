@@ -33,8 +33,9 @@ import FinEtools.MatDeforModule: rotstressvec
 import LinearAlgebra: mul!, Transpose, UpperTriangular, eigvals
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
-import LinearAlgebra: norm, qr, diag, dot, cond, I
+import LinearAlgebra: norm, qr, diag, dot, cond, I, cross
 import Statistics: mean
+import StatsBase: geomean
 
 abstract type FEMMDeforLinearAbstractNICE <: FEMMDeforLinearAbstract end
 
@@ -214,6 +215,23 @@ function computenodalbfungrads(self, geom)
     return self
 end
 
+function aspectratio(X)
+    edge1 = vec(X[2, :] - X[1, :])
+    edge2 = vec(X[3, :] - X[1, :])
+    edge3 = vec(X[4, :] - X[1, :])
+    edge4 = vec(X[3, :] - X[2, :])
+    edge5 = vec(X[4, :] - X[3, :])
+    edge6 = vec(X[4, :] - X[2, :])
+    V = dot(edge3, cross(edge1, edge2))
+    A1 = norm(cross(edge1, edge2)) # This is twice the area of the triangle
+    A2 = norm(cross(edge2, edge3))
+    A3 = norm(cross(edge3, edge1))
+    A4 = norm(cross(edge4, edge6))
+    h1, h2, h3, h4 = V/A1, V/A2, V/A3, V/A4
+    L1, L2, L3, L4, L5, L6 = norm(edge1), norm(edge2), norm(edge3), norm(edge4), norm(edge5), norm(edge6)
+    return h1/geomean([L1, L2, L4]), h2/geomean([L3, L2, L5]), h3/geomean([L1, L3, L6]), h4/geomean([L6, L5, L4]), V/6
+end
+
 """
     associategeometry!(self::FEMMAbstractBase,  geom::NodalField{FFlt})
 
@@ -222,26 +240,21 @@ Associate geometry field with the FEMM.
 Compute the  correction factors to account for  the shape of the  elements.
 """
 function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDeforLinearESNICET4}
+    # The coefficient set below was obtained by fitting the ratio of energies true/approximate
+    # for the finite element model of six tetrahedra arranged into a rectangular block
+    # and subject to pure bending
+(a, b) = (3.049591256886961, 0.6652525578990929)
     fes = self.integdata.fes
-    loc, J, adjJ, csmatTJ, gradN, xl, lconn = buffers1(self, geom)
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
     self.ephis = fill(zero(FFlt), count(fes))
     evols = fill(zero(FFlt), count(fes))
     self.nphis = fill(zero(FFlt), nnodes(geom))
     nvols = fill(zero(FFlt), nnodes(geom))
     for i = 1:count(fes) # Loop over elements
-        loc = centroid!(self,  loc, geom.values, fes.conn[i])
-        updatecsmat!(self.mcsys, loc, J, fes.label[i]);
-        for j = 1:npts # Loop over quadrature points
-            jac!(J, geom.values, fes.conn[i], gradNparams[j])
-            evols[i] = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
-            At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
-            gradN!(fes, gradN, gradNparams[j], csmatTJ);
-            h = sqrt.(diag(transpose(csmatTJ)*csmatTJ))
-            phi = 1.0 / (1.0 / 0.82 * (maximum(h) / minimum(h))^1.8 + 1.0)
-            self.ephis[i] = max(self.ephis[i], phi)
-        end # Loop over quadrature points
-        # Increment: the stabilization factor at the node is the weighted mean of the stabilization factors of the elements at that node
+        ar1, ar2, ar3, ar4, V = aspectratio(geom.values[collect(fes.conn[i]), :])
+        evols[i] = V;
+        phis = @. (1.0 / (b * [ar1, ar2, ar3, ar4] ^a) + 1.0) ^(-1)
+        self.ephis[i] = mean(phis)
+        # Accumulate: the stabilization factor at the node is the weighted mean of the stabilization factors of the elements at that node
         for k = 1:nodesperelem(fes)
             nvols[fes.conn[i][k]] += evols[i]
             self.nphis[fes.conn[i][k]] += self.ephis[i] * evols[i]
