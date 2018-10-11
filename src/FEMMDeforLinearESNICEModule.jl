@@ -237,9 +237,8 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
             evols[i] = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
             gradN!(fes, gradN, gradNparams[j], csmatTJ);
-            h2 = diag(transpose(csmatTJ)*csmatTJ)
-            cap_phi = (minimum(h2) / maximum(h2)) / 13.4615
-            phi = cap_phi / (1 + cap_phi)
+            h = sqrt.(diag(transpose(csmatTJ)*csmatTJ))
+            phi = 1.0 / (1.0 / 0.82 * (maximum(h) / minimum(h))^1.8 + 1.0)
             self.ephis[i] = max(self.ephis[i], phi)
         end # Loop over quadrature points
         # Increment: the stabilization factor at the node is the weighted mean of the stabilization factors of the elements at that node
@@ -249,7 +248,7 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
         end
     end # Loop over elements
     # Now scale the values at the nodes with the nodal volumes
-    for k = 1:nodesperelem(fes)
+    for k = 1:length(nvols)
         self.nphis[k] /= nvols[k]
     end
     return computenodalbfungrads(self, geom)
