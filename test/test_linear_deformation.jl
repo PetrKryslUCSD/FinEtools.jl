@@ -7225,7 +7225,7 @@ function test()
     neigvs = 20                   # how many eigenvalues
     OmegaShift = (10.0*2*pi)^2;
     stabfact = 0.005
-    Eigenvalues =   [0.0, 0.0, 0.0, 6.71512e-5, 7.91215e-5, 9.91829e-5, 2533.26, 2534.5, 2545.93, 4162.95, 4644.87, 4646.78, 5040.89, 6699.24, 6701.54, 6717.42, 6719.67, 6798.97, 6800.84, 6888.68]
+    Eigenvalues =   [0.0, 0.0, 0.0, 5.44691e-5, 0.000146327, 0.000170487, 2540.76, 2542.68, 2566.35, 4090.47, 4669.02, 4670.96, 5110.86, 6789.98, 6792.03, 6902.85, 6906.55, 6907.76, 6909.58, 6996.06]
     MR = DeforModelRed3D
     output = import_ABAQUS("alum_cyl.inp")
     fens, fes = output["fens"], output["fesets"][1]
@@ -7246,7 +7246,7 @@ function test()
     d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
     d = d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
-    # println("Eigenvalues: $fs [Hz]")
+    println("Eigenvalues: $fs [Hz]")
     @test norm(vec(fs) .- vec(Eigenvalues)) < 1.0e-3*maximum(vec(Eigenvalues))
 
     true
@@ -7619,3 +7619,68 @@ end
 end
 using .mmoblocknzebc13a
 mmoblocknzebc13a.test()
+
+module trunc_cyl_shell_esnice_t4
+using FinEtools
+using Test
+using Arpack
+using LinearAlgebra
+function test()
+    # println("""
+    # Vibration modes of truncated cylindrical shell. NASTRAN input file.
+    # """)
+
+    # t0 = time()
+
+    E = 205000*phun("MPa");# Young's modulus
+    nu = 0.3;# Poisson ratio
+    rho = 7850*phun("KG*M^-3");# mass density
+    OmegaShift = (2*pi*100) ^ 2; # to resolve rigid body modes
+    h = 0.05*phun("M");
+    l = 10*h;
+    Rmed = h/0.2;
+    psi   = 0;    # Cylinder
+    nh = 5; nl  = 12; nc = 40;
+    tolerance = h/nh/100;
+    neigvs = 20;
+
+    MR = DeforModelRed3D
+    output = import_NASTRAN("trunc_cyl_shell_0.nas")
+    fens, fes = output["fens"], output["fesets"][1]
+
+    geom = NodalField(fens.xyz)
+    u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+
+    numberdofs!(u)
+
+    material = MatDeforElastIso(MR, rho, E, nu, 0.0)
+
+    femm = FEMMDeforLinearESNICET4(MR, IntegData(fes, NodalSimplexRule(3)), material)
+    femm = associategeometry!(femm, geom)
+    K = stiffness(femm, geom, u)
+    M = mass(femm, geom, u)
+
+
+    # eigs returns the nev requested eigenvalues in d, the corresponding Ritz vectors
+    # v (only if ritzvec=true), the number of converged eigenvalues nconv, the number
+    # of iterations niter and the number of matrix vector multiplications nmult, as
+    # well as the final residual vector resid.
+
+    if true
+        d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
+        d = d .- OmegaShift;
+        fs = real(sqrt.(complex(d)))/(2*pi)
+        println("Eigenvalues: $fs [Hz]")
+        @test norm(fs .- [0.0, 0.0, 0.0, 0.0, 5.74306e-5, 0.00011089, 757.069, 850.553, 1073.56, 1104.31, 2119.11, 2119.14, 2487.3, 2487.35, 2580.78, 2580.81, 3146.62, 3153.24, 3186.57, 3189.96]) < 0.001 * norm(fs)
+        # mode = 7
+        # scattersysvec!(u, v[:,mode])
+        # File =  "trunc_cyl_shell_nas.vtk"
+        # vtkexportmesh(File, fens, fes; vectors=[("mode$mode", u.values)])
+        # @async run(`"paraview.exe" $File`)
+    end
+
+    true
+end
+end
+using .trunc_cyl_shell_esnice_t4
+trunc_cyl_shell_esnice_t4.test()

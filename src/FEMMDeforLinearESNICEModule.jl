@@ -229,7 +229,7 @@ function aspectratio(X)
     A4 = norm(cross(edge4, edge6))
     h1, h2, h3, h4 = V/A1, V/A2, V/A3, V/A4
     L1, L2, L3, L4, L5, L6 = norm(edge1), norm(edge2), norm(edge3), norm(edge4), norm(edge5), norm(edge6)
-    return h1/geomean([L1, L2, L4]), h2/geomean([L3, L2, L5]), h3/geomean([L1, L3, L6]), h4/geomean([L6, L5, L4]), V/6
+    return h1/mean([L1, L2, L4]), h2/mean([L3, L2, L5]), h3/mean([L1, L3, L6]), h4/mean([L6, L5, L4]), V/6
 end
 
 """
@@ -243,7 +243,7 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
     # The coefficient set below was obtained by fitting the ratio of energies true/approximate
     # for the finite element model of six tetrahedra arranged into a rectangular block
     # and subject to pure bending
-(a, b) = (3.049591256886961, 0.6652525578990929)
+    (a, b) = (2.062645902040479, 5.0)
     fes = self.integdata.fes
     self.ephis = fill(zero(FFlt), count(fes))
     evols = fill(zero(FFlt), count(fes))
@@ -252,8 +252,9 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
     for i = 1:count(fes) # Loop over elements
         ar1, ar2, ar3, ar4, V = aspectratio(geom.values[collect(fes.conn[i]), :])
         evols[i] = V;
-        phis = @. (1.0 / (b * [ar1, ar2, ar3, ar4] ^a) + 1.0) ^(-1)
-        self.ephis[i] = mean(phis)
+        # phis = @. (1.0 / (b * mean([ar1, ar2, ar3, ar4]) ^a) + 1.0) ^(-1)
+        ar = sort([ar1, ar2, ar3, ar4])
+        self.ephis[i] = (1.0 / (b * mean(ar[2:3]) ^a) + 1.0) ^(-1)
         # Accumulate: the stabilization factor at the node is the weighted mean of the stabilization factors of the elements at that node
         for k = 1:nodesperelem(fes)
             nvols[fes.conn[i][k]] += evols[i]
@@ -264,6 +265,7 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
     for k = 1:length(nvols)
         self.nphis[k] /= nvols[k]
     end
+    # Now calculate the nodal basis function gradients
     return computenodalbfungrads(self, geom)
 end
 
