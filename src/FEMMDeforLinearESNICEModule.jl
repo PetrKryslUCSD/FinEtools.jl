@@ -229,7 +229,8 @@ function aspectratio(X)
     A4 = norm(cross(edge4, edge6))
     h1, h2, h3, h4 = V/A1, V/A2, V/A3, V/A4
     L1, L2, L3, L4, L5, L6 = norm(edge1), norm(edge2), norm(edge3), norm(edge4), norm(edge5), norm(edge6)
-    return h1/mean([L1, L2, L4]), h2/mean([L3, L2, L5]), h3/mean([L1, L3, L6]), h4/mean([L6, L5, L4]), V/6
+    f = maximum
+    return h1/f([L1, L2, L4]), h2/f([L3, L2, L5]), h3/f([L1, L3, L6]), h4/f([L6, L5, L4]), V/6
 end
 
 """
@@ -254,7 +255,7 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
         evols[i] = V;
         # phis = @. (1.0 / (b * mean([ar1, ar2, ar3, ar4]) ^a) + 1.0) ^(-1)
         ar = sort([ar1, ar2, ar3, ar4])
-        self.ephis[i] = (1.0 / (b * mean(ar[2:3]) ^a) + 1.0) ^(-1)
+        self.ephis[i] = (1.0 / (b * minimum(ar) ^a) + 1.0) ^(-1)
         # Accumulate: the stabilization factor at the node is the weighted mean of the stabilization factors of the elements at that node
         for k = 1:nodesperelem(fes)
             nvols[fes.conn[i][k]] += evols[i]
