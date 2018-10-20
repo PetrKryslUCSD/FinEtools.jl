@@ -173,17 +173,17 @@ Gauss rule.
 function GaussRule(dim=1, order=1)
     @assert 1 <= dim <= 3 "Gauss rule of dimension $(dim) not available"
     if     (order==1)
-        param_coords = [ 0.0 ];
-        weights  = [ 2.0 ];
+        param_coords = vec([ 0.0 ]);
+        weights  = vec([ 2.0 ]);
     elseif (order==2)
-        param_coords = [ -0.577350269189626 0.577350269189626 ];
-        weights  = [ 1.0 1.0 ];
+        param_coords = vec([ -0.577350269189626 0.577350269189626 ]);
+        weights  = vec([ 1.0 1.0 ]);
     elseif (order==3)
-        param_coords = [ -0.774596669241483  0.0  0.774596669241483 ];
-        weights  = [ 0.5555555555555556 0.8888888888888889 0.5555555555555556 ];
+        param_coords = vec([ -0.774596669241483  0.0  0.774596669241483 ]);
+        weights  = vec([ 0.5555555555555556 0.8888888888888889 0.5555555555555556 ]);
     elseif (order==4)
-        param_coords = [ -0.86113631159405  -0.33998104358486   0.33998104358486   0.86113631159405];
-        weights  = [ 0.34785484513745   0.65214515486255   0.65214515486255   0.34785484513745];
+        param_coords = vec([ -0.86113631159405  -0.33998104358486   0.33998104358486   0.86113631159405]);
+        weights  = vec([ 0.34785484513745   0.65214515486255   0.65214515486255   0.34785484513745]);
     elseif (order==5)
         param_coords = [ -0.906179845938664        -0.538469310105683         0.000000000000000         0.538469310105683         0.906179845938664];
         weights  = [0.236926885056189        0.478628670499367        0.568888888888889        0.478628670499367        0.236926885056189];
@@ -312,7 +312,7 @@ function GaussRule(dim=1, order=1)
             end
         end
     end
-    return GaussRule(order, dim, FInt(npts), reshape(param_coords, size(param_coords, 1), 2), reshape(weights, length(weights), 1))
+    return GaussRule(order, dim, FInt(npts), reshape(param_coords, size(param_coords, 1), dim), reshape(weights, length(weights), 1))
 end
 
 
