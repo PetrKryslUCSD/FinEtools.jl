@@ -7246,7 +7246,7 @@ function test()
     d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
     d = d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
-    println("Eigenvalues: $fs [Hz]")
+    # println("Eigenvalues: $fs [Hz]")
     @test norm(vec(fs) .- vec(Eigenvalues)) < 1.0e-3*maximum(vec(Eigenvalues))
 
     true
@@ -7670,7 +7670,7 @@ function test()
         d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
         d = d .- OmegaShift;
         fs = real(sqrt.(complex(d)))/(2*pi)
-        println("Eigenvalues: $fs [Hz]")
+        # println("Eigenvalues: $fs [Hz]")
         @test norm(fs .- [0.0, 0.0, 0.0, 1.90449e-5, 3.94026e-5, 6.08583e-5, 365.153, 394.617, 502.694, 522.539, 992.136, 992.141, 1177.02, 1177.03, 1683.1, 1722.35, 1880.93,
 1900.46, 2026.9, 2026.92]) < 0.001 * norm(fs)
         # mode = 7
