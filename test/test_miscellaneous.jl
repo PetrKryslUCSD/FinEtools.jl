@@ -1285,10 +1285,10 @@ using Test
 function test()
     gr = GaussRule(1,1)
     @test gr.param_coords[1] == 0.0
-    @test_throws ErrorException gr = GaussRule(1,5)
+    @test_throws ErrorException gr = GaussRule(1,15)
     @test_throws AssertionError gr = GaussRule(4,1)
 
-    @test_throws ErrorException tr = TriRule(4)
+    @test_throws ErrorException tr = TriRule(8)
 
     @test_throws ErrorException tr = TetRule(3)
 end
