@@ -2422,3 +2422,105 @@ end
 end
 using .mfluxannulus_Q4_example_algo
 mfluxannulus_Q4_example_algo.test()
+
+module mmmmPoiss_trirules
+using FinEtools
+using Test
+import LinearAlgebra: cholesky
+function test()
+    A = 1.0 # dimension of the domain (length of the side of the square)
+    thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:2, j=1:2]; # conductivity matrix
+    Q = -6.0; # internal heat generation rate
+    function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    forceout[1] = Q; #heat source
+    end
+    tempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
+    N = 100;# number of subdivisions along the sides of the square domain
+
+    fens,fes =T3block(A, A, N, N)
+
+    geom = NodalField(fens.xyz)
+    Temp = NodalField(zeros(size(fens.xyz,1),1))
+
+    l1 = selectnode(fens; box=[0. 0. 0. A], inflate = 1.0/N/100.0)
+    l2 = selectnode(fens; box=[A A 0. A], inflate = 1.0/N/100.0)
+    l3 = selectnode(fens; box=[0. A 0. 0.], inflate = 1.0/N/100.0)
+    l4 = selectnode(fens; box=[0. A A A], inflate = 1.0/N/100.0)
+    List = vcat(l1, l2, l3, l4)
+    setebc!(Temp, List, true, 1, tempf(geom.values[List,:])[:])
+    applyebc!(Temp)
+    numberdofs!(Temp)
+
+    material = MatHeatDiff(thermal_conductivity)
+
+    for NPTS = [1, 3, 4, 6, 7, 9, 12, 13]
+        femm = FEMMHeatDiff(IntegData(fes, TriRule(NPTS), 100.), material)
+        K = conductivity(femm, geom, Temp)
+        F2 = nzebcloadsconductivity(femm, geom, Temp);
+        fi = ForceIntensity(FFlt[Q]);
+        F1 = distribloads(femm, geom, Temp, fi, 3);
+        K = cholesky(K)
+        U = K\(F1+F2)
+        scattersysvec!(Temp,U[:])
+        Error= 0.0
+        for k=1:size(fens.xyz,1)
+          Error = Error.+abs.(Temp.values[k,1].-tempf(reshape(fens.xyz[k,:], (1,2))))
+        end
+        @test Error[1]<1.e-5
+    end
+    true
+end
+end
+using .mmmmPoiss_trirules
+mmmmPoiss_trirules.test()
+
+module mmmmPoiss_gaussrules
+using FinEtools
+using Test
+import LinearAlgebra: cholesky
+function test()
+    A = 1.0 # dimension of the domain (length of the side of the square)
+    thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:2, j=1:2]; # conductivity matrix
+    Q = -6.0; # internal heat generation rate
+    function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    forceout[1] = Q; #heat source
+    end
+    tempf(x) = (1.0 .+ x[:,1].^2 .+ 2*x[:,2].^2);#the exact distribution of temperature
+    N = 100;# number of subdivisions along the sides of the square domain
+
+    fens,fes = Q4block(A, A, N, N)
+
+    geom = NodalField(fens.xyz)
+    Temp = NodalField(zeros(size(fens.xyz,1),1))
+
+    l1 = selectnode(fens; box=[0. 0. 0. A], inflate = 1.0/N/100.0)
+    l2 = selectnode(fens; box=[A A 0. A], inflate = 1.0/N/100.0)
+    l3 = selectnode(fens; box=[0. A 0. 0.], inflate = 1.0/N/100.0)
+    l4 = selectnode(fens; box=[0. A A A], inflate = 1.0/N/100.0)
+    List = vcat(l1, l2, l3, l4)
+    setebc!(Temp, List, true, 1, tempf(geom.values[List,:])[:])
+    applyebc!(Temp)
+    numberdofs!(Temp)
+
+    material = MatHeatDiff(thermal_conductivity)
+
+    for NPTS = 2:10
+        femm = FEMMHeatDiff(IntegData(fes, GaussRule(2, NPTS), 100.), material)
+        K = conductivity(femm, geom, Temp)
+        F2 = nzebcloadsconductivity(femm, geom, Temp);
+        fi = ForceIntensity(FFlt[Q]);
+        F1 = distribloads(femm, geom, Temp, fi, 3);
+        K = cholesky(K)
+        U = K\(F1+F2)
+        scattersysvec!(Temp,U[:])
+        Error= 0.0
+        for k=1:size(fens.xyz,1)
+            Error = Error.+abs.(Temp.values[k,1].-tempf(reshape(fens.xyz[k,:], (1,2))))
+        end
+        @test Error[1]<1.e-5
+    end
+    true
+end
+end
+using .mmmmPoiss_gaussrules
+mmmmPoiss_gaussrules.test()
