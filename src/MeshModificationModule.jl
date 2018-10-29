@@ -543,11 +543,11 @@ function vsmoothing(v::FFltMat, t::FIntMat; kwargs...)
     for apair in pairs(kwargs)
         sy, val = apair
         if sy==:method
-            method=val
+            method = val
         elseif sy==:fixedv
-            fixedv=val
+            fixedv .= val
         elseif sy==:npass
-            npass=val
+            npass = val
         end
     end
 
@@ -585,7 +585,7 @@ function meshsmoothing(fens::FENodeSet, fes::T; options...) where {T<:FESet}
     return fens
 end
 
-function  smoothertaubin(vinp::FFltMat, vneigh::Array{FIntVec,1}, fixedv::BitArray{1}, npass::FInt, lambda::FFlt,mu::FFlt)
+function  smoothertaubin(vinp::FFltMat, vneigh::Array{FIntVec,1}, fixedv::T, npass::FInt, lambda::FFlt, mu::FFlt) where {T}
     v=deepcopy(vinp);
     nv=deepcopy(vinp);
     for I= 1:npass
@@ -614,7 +614,7 @@ function  smoothertaubin(vinp::FFltMat, vneigh::Array{FIntVec,1}, fixedv::BitArr
     return nv
 end
 
-function   smootherlaplace(vinp::FFltMat, vneigh::Array{FIntVec,1}, fixedv::BitArray{1}, npass::FInt, lambda::FFlt,mu::FFlt)
+function   smootherlaplace(vinp::FFltMat, vneigh::Array{FIntVec,1}, fixedv::T, npass::FInt, lambda::FFlt,mu::FFlt) where {T}
     v=deepcopy(vinp);
     nv=deepcopy(vinp);
     damping_factor=lambda;
