@@ -6,6 +6,8 @@
 
 ## News
 
+- 10/02/2018: The code-coverage computation seems to be broken. The coverage in the FinEtools package hasn't actually changed and it is still at 98%.
+
 - 09/20/2018: Separated out examples and tutorials from the FinEtools library itself.
 
 - 09/02/2018: Updated all examples for Julia 1.0.
