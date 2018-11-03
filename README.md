@@ -12,8 +12,6 @@
 
 - 09/02/2018: Updated all examples for Julia 1.0.
 
-
-
 [Past news](oldnews.md)
 
 ## Get FinEtools
