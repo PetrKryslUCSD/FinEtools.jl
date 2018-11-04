@@ -28,8 +28,8 @@ function test()
     @test count(fes) == 240*8
     bfes = meshboundary(fes)
     @test count(bfes) == 4*2*2*(4*5 + 5*2 + 4*2)
-
     geom  =  NodalField(fens.xyz)
+        
     femm  =  FEMMBase(IntegData(fes, SimplexRule(3, 4)))
     V = integratefunction(femm, geom, (x) ->  1.0)
     
