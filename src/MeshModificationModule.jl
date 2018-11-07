@@ -34,7 +34,7 @@ meshboundary(fes::T) where {T<:FESet}
 Extract the boundary finite elements from a mesh.
 
 Extract the finite elements of manifold dimension (n-1) from the
-supplied list of finite elements of manifold dimension (n).
+supplied finite element set of manifold dimension (n).
 """
 function meshboundary(fes::T) where {T<:FESet}
     # Form all hyperfaces, non-duplicates are boundary cells
@@ -174,7 +174,7 @@ The indexes of the node set `fens1` will have changed.
 
 ### Example:
 After the call to this function we have
-k=new_indexes_of_fens1_nodes[j] is the node in the node set fens which
+`k=new_indexes_of_fens1_nodes[j]` is the node in the node set fens which
 used to be node `j` in node set `fens1`.
 The finite element set connectivity that used to refer to `fens1`
 needs to be updated to refer to the same nodes in  the set `fens` as
@@ -315,21 +315,21 @@ end
 Merge together two meshes.
 
 Merge two meshes together by gluing together nodes within tolerance. The
-two meshes, fens1, fes1, and fens2, fes2, are glued together by merging
-the nodes that fall within a box of size "tolerance". If tolerance is set
+two meshes, `fens1`, `fes1`, and `fens2`, `fes2`, are glued together by merging
+the nodes that fall within a box of size ""`tolerance`. If `tolerance` is set
 to zero, no merging of nodes is performed; the two meshes are simply
 concatenated together.
 
-The merged node set, fens, and the two arrays of finite elements with
+The merged node set, `fens`, and the two finite element sets with
 renumbered  connectivities are returned.
 
-Important notes: On entry into this function the connectivity of fes1
-point into fens1 and the connectivity of fes2 point into fens2. After
-this function returns the connectivity of both fes1 and fes2 point into
-fens. The order of the nodes of the node set fens1 in the resulting set
-fens will have changed, whereas the order of the nodes of the node set
-fens2 is are guaranteed to be the same. Therefore, the connectivity of
-fes2 will in fact remain the same.
+Important notes: On entry into this function the connectivity of `fes1`
+point into `fens1` and the connectivity of `fes2` point into `fens2`. After
+this function returns the connectivity of both `fes1` and `fes2` point into
+`fens`. The order of the nodes of the node set `fens1` in the resulting set
+`fens` will have changed, whereas the order of the nodes of the node set
+`fens2` is are guaranteed to be the same. Therefore, the connectivity of
+`fes2` will in fact remain the same.
 """
 function mergemeshes(fens1::FENodeSet, fes1::T1,
     fens2::FENodeSet, fes2::T2, tolerance::FFlt) where {T1<:FESet,T2<:FESet}
@@ -349,13 +349,12 @@ end
 
 Merge several meshes together.
 
-The meshes are glued together by
-merging the nodes that fall within a box of size "`tolerance`". If `tolerance`
-is set to zero, no merging of nodes is performed; the nodes from the meshes are
-simply concatenated together.
+The meshes are glued together by merging the nodes that fall within 
+a box of size `tolerance`. If `tolerance` is set to zero, no merging of 
+nodes is performed; the nodes from the meshes are simply concatenated together.
 
 ## Output
-The merged node set, fens, and the array of finite element sets with
+The merged node set, `fens`, and the array of finite element sets with
 renumbered  connectivities are returned.
 """
 function mergenmeshes(meshes::Array{Tuple{FENodeSet, FESet}}, tolerance::FFlt)
