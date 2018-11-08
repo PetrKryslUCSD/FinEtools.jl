@@ -7147,7 +7147,7 @@ function test()
     d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
     d = d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
-    # println("Eigenvalues: $fs [Hz]")
+    # # println("Eigenvalues: $fs [Hz]")
     @test norm(vec(fs) .- vec(Eigenvalues)) < 1.0e-4*maximum(vec(Eigenvalues))
 
     # mode = 17
@@ -7200,7 +7200,7 @@ function test()
     d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
     d = d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
-    # println("Eigenvalues: $fs [Hz]")
+    # # println("Eigenvalues: $fs [Hz]")
     @test norm(vec(fs) .- vec(Eigenvalues)) < 1.0e-3*maximum(vec(Eigenvalues))
 
     true
@@ -7225,7 +7225,7 @@ function test()
     neigvs = 20                   # how many eigenvalues
     OmegaShift = (10.0*2*pi)^2;
     stabfact = 0.005
-    Eigenvalues =   [0.0, 0.0, 0.0, 5.19653e-5, 5.961e-5, 8.9218e-5, 2485.11, 2486.54, 2497.47, 4082.45, 4557.44, 4559.02, 4946.74, 6582.12, 6584.21, 6593.96, 6595.96, 6680.23, 6682.07, 6760.18]
+    Eigenvalues =   [0.0, 0.0, 0.0, 1.8846e-5, 7.35917e-5, 0.000119445, 2498.15, 2498.88, 2513.31, 4082.65, 4585.99, 4586.42, 4987.01, 6648.02, 6648.48, 6679.04, 6682.16, 6777.89, 6780.59, 6799.36]
     MR = DeforModelRed3D
     output = import_ABAQUS("alum_cyl.inp")
     fens, fes = output["fens"], output["fesets"][1]
@@ -7671,8 +7671,7 @@ function test()
         d = d .- OmegaShift;
         fs = real(sqrt.(complex(d)))/(2*pi)
         # println("Eigenvalues: $fs [Hz]")
-        @test norm(fs .- [0.0, 0.0, 0.0, 1.90449e-5, 3.94026e-5, 6.08583e-5, 365.153, 394.617, 502.694, 522.539, 992.136, 992.141, 1177.02, 1177.03, 1683.1, 1722.35, 1880.93,
-1900.46, 2026.9, 2026.92]) < 0.001 * norm(fs)
+        @test norm(fs .- [0.0, 0.0, 0.0, 1.29647e-5, 4.07636e-5, 8.90969e-5, 517.081, 557.081, 718.095, 749.177, 1423.0, 1423.01, 1690.21, 1690.23, 2451.16, 2474.49, 2475.38, 2478.54, 2479.72, 2500.88]) < 0.001 * norm(fs)
         # mode = 7
         # scattersysvec!(u, v[:,mode])
         # File =  "trunc_cyl_shell_nas.vtk"
