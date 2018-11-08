@@ -9,6 +9,9 @@ The formulation was subsequently developed in Krysl, P. and Zhu, B.
 Locking-free continuum displacement finite elements with nodal
 integration, International Journal for Numerical Methods in Engineering,
 76,7,1020-1043,2008.
+
+The stabilization scheme comes from papers on energy-sampling stabilization
+for mean-strain elements (Krysl).
 """
 module FEMMDeforLinearESNICEModule
 
@@ -45,7 +48,7 @@ mutable struct _NodalBasisFunctionGradients
     Vpatch::FFlt
 end
 
-function make_stabilization_material(material::M) where {M}
+function _make_stabilization_material(material::M) where {M}
     ns = fieldnames(typeof(material))
     E = 0.0; nu = 0.0
     if :E in ns
@@ -80,14 +83,14 @@ end
 function FEMMDeforLinearESNICET4(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
-    stabilization_material = make_stabilization_material(material)
+    stabilization_material = _make_stabilization_material(material)
     return FEMMDeforLinearESNICET4(mr, integdata, mcsys, material, stabilization_material, _NodalBasisFunctionGradients[], fill(zero(FFlt), 1), fill(zero(FFlt), 1))
 end
 
 function FEMMDeforLinearESNICET4(mr::Type{MR}, integdata::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
-    stabilization_material = make_stabilization_material(material)
+    stabilization_material = _make_stabilization_material(material)
     return FEMMDeforLinearESNICET4(mr, integdata, CSys(manifdim(integdata.fes)), material, stabilization_material, _NodalBasisFunctionGradients[], fill(zero(FFlt), 1), fill(zero(FFlt), 1))
 end
 
@@ -163,7 +166,7 @@ end
 function computenodalbfungrads(self, geom)
     # # Compute the nodal basis function gradients.
     # # Return the cell array of structures with attributes
-    # %		 bfun_gradients{nix}.Nspd= basis function gradient matrix
+    # %      bfun_gradients{nix}.Nspd= basis function gradient matrix
     # #        bfun_gradients{nix}.Vpatch= nodal patch volume
     # #        bfun_gradients{nix}.patchconn= nodal patch connectivity
 
@@ -254,7 +257,6 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
     for i = 1:count(fes) # Loop over elements
         ar1, ar2, ar3, ar4, V = aspectratio(geom.values[collect(fes.conn[i]), :])
         evols[i] = V;
-        # phis = @. (1.0 / (b * mean([ar1, ar2, ar3, ar4]) ^a) + 1.0) ^(-1)
         ar = sort([ar1, ar2, ar3, ar4])
         self.ephis[i] = (1.0 / (b * minimum(ar) ^a) + 1.0) ^(-1)
         # Accumulate: the stabilization factor at the node is the weighted mean of the stabilization factors of the elements at that node

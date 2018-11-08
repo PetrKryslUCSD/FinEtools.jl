@@ -81,7 +81,8 @@ end
 """
     connasarray(self::FESet{NODESPERELEM}) where {NODESPERELEM}
 
-Return the connectivity  as an integer array. 
+Return the connectivity as an integer array (matrix), where the number of rows
+matches the number of connectivities in the set.
 """
 function connasarray(self::FESet{NODESPERELEM}) where {NODESPERELEM}
     conn = fill(zero(FInt), length(self.conn), NODESPERELEM)
@@ -179,19 +180,19 @@ function cat(self::T,  other::T) where {T<:FESet}
 end
 
 """
-    updateconn!(self::T, NewIDs::FIntVec) where {T<:FESet}
+    updateconn!(self::T, newids::FIntVec) where {T<:FESet}
 
 Update the connectivity after the IDs of nodes changed.
 
-NewIDs= new node IDs. Note that indexes in the conn array point
-_into_ the  NewIDs array. After the connectivity was updated
+`newids`= new node IDs. Note that indexes in the conn array point
+_into_ the  `newids` array. After the connectivity was updated
 this is no longer true!
 """
-function updateconn!(self::T, NewIDs::FIntVec) where {T<:FESet}
+function updateconn!(self::T, newids::FIntVec) where {T<:FESet}
     conn = connasarray(self)
     for i=1:size(conn, 1)
         for j=1:size(conn, 2)
-            conn[i, j]=NewIDs[conn[i, j]];
+            conn[i, j]=newids[conn[i, j]];
         end
     end
     return fromarray!(self, conn)
@@ -214,13 +215,14 @@ end
 
 Map a spatial location to parametric coordinates.
 
-`x`=array of spatial coordinates of the nodes, size(x) = nbfuns x dim,
-`c`= spatial location
-`tolerance` = tolerance in parametric coordinates; default is 0.001.
-Returns
-`success` = Boolean flag, true if successful, false otherwise.
-`pc` = Returns a row array of parametric coordinates if the solution was
-successful, otherwise NaN are returned.
+- `x`=array of spatial coordinates of the nodes, size(x) = nbfuns x dim,
+- `c`= spatial location
+- `tolerance` = tolerance in parametric coordinates; default is 0.001.
+
+# Return
+- `success` = Boolean flag, true if successful, false otherwise.
+- `pc` = Returns a row array of parametric coordinates if the solution was
+  successful, otherwise NaN are returned.
 """
 function map2parametric(self::T, x::FFltMat, pt::FFltVec; tolerance = 0.001, maxiter =5) where {T<:FESet}
     sdim = size(x, 2); # number of space dimensions
@@ -259,7 +261,7 @@ end
 
 Evaluate the curve Jacobian.
 
-`J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
+- `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
 function Jacobian(self::T, J::FFltMat)::FFlt where {T<:FESet0Manifold}
     return 1.0::FFlt;
@@ -270,7 +272,7 @@ end
 
 Evaluate the curve Jacobian.
 
-`J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
+- `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
 function Jacobian(self::T, J::FFltMat)::FFlt where {T<:FESet1Manifold}
     sdim,  ntan = size(J);
@@ -285,9 +287,9 @@ end
 Compute the gradient of the basis functions with the respect to
 the "reduced" spatial coordinates.
 
-gradN= output,  matrix of gradients,  one per row
-gradNparams= matrix of gradients with respect to parametric coordinates, one per row
-redJ= reduced Jacobian matrix `redJ=transpose(Rm)*J`
+- `gradN`= output,  matrix of gradients,  one per row
+- `gradNparams`= matrix of gradients with respect to parametric coordinates, one per row
+- `redJ`= reduced Jacobian matrix `redJ=transpose(Rm)*J`
 """
 function gradN!(self::FESet1Manifold, gradN::FFltMat, gradNparams::FFltMat, redJ::FFltMat)
     for r=1:size(gradN, 1)
@@ -300,7 +302,7 @@ end
 
 Evaluate the curve Jacobian.
 
-`J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
+- `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
 function Jacobian(self::T, J::FFltMat)::FFlt where {T<:FESet2Manifold}
     sdim,  ntan = size(J);
@@ -320,9 +322,10 @@ end
 Compute the gradient of the basis functions with the respect to
 the "reduced" spatial coordinates.
 
-gradN= output,  matrix of gradients,  one per row
-gradNparams= matrix of gradients with respect to parametric coordinates, one per row
-redJ= reduced Jacobian matrix `redJ=transpose(Rm)*J`
+- `gradN`= output,  matrix of gradients,  one per row
+- `gradNparams`= matrix of gradients with respect to parametric coordinates,
+  one per row
+- `redJ`= reduced Jacobian matrix `redJ=transpose(Rm)*J`
 """
 function gradN!(self::FESet2Manifold, gradN::FFltMat, gradNparams::FFltMat, redJ::FFltMat)
     # This is the unrolled version that avoids allocation of a 3 x 3 matrix
@@ -362,9 +365,10 @@ end
 Compute the gradient of the basis functions with the respect to
 the "reduced" spatial coordinates.
 
-gradN= output,  matrix of gradients,  one per row
-gradNparams= matrix of gradients with respect to parametric coordinates, one per row
-redJ= reduced Jacobian matrix `redJ=transpose(Rm)*J`
+- `gradN`= output,  matrix of gradients,  one per row
+- `gradNparams`= matrix of gradients with respect to parametric coordinates,
+  one per row
+- `redJ`= reduced Jacobian matrix `redJ=transpose(Rm)*J`
 """
 function gradN!(self::FESet3Manifold, gradN::FFltMat, gradNparams::FFltMat, redJ::FFltMat)
     invdet = 1.0 / ( +redJ[1, 1]*(redJ[2, 2]*redJ[3, 3]-redJ[3, 2]*redJ[2, 3])
