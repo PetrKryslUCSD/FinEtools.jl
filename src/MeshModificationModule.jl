@@ -25,7 +25,7 @@ function interior2boundary(interiorconn::Array{Int, 2}, extractb::Array{Int, 2})
     for i = 2:size(extractb, 1)
         hypf = vcat(hypf, interiorconn[:, extractb[i, :]])
     end
-    return myunique2(hypf);
+    return _myunique2(hypf);
 end
 
 """
@@ -39,12 +39,12 @@ supplied finite element set of manifold dimension (n).
 function meshboundary(fes::T) where {T<:FESet}
     # Form all hyperfaces, non-duplicates are boundary cells
     hypf = boundaryconn(fes);    # get the connectivity of the boundary elements
-    bdryconn = myunique2(hypf);
+    bdryconn = _myunique2(hypf);
     make = boundaryfe(fes);     # get the function that can make a boundary element
     return make(bdryconn);
 end
 
-function mysortrows(A::FIntMat)
+function _mysortrows(A::FIntMat)
     # Sort the rows of A by sorting each column from back to front.
 
     m,n = size(A);
@@ -74,7 +74,7 @@ function mysortrows(A::FIntMat)
     return A[indx,:]
 end
 
-function mysortdim2!(A::FIntMat)
+function _mysortdim2!(A::FIntMat)
     # Sort each row  of A in ascending order.
 
     m,n = size(A);
@@ -91,20 +91,20 @@ function mysortdim2!(A::FIntMat)
     return A
 end
 
-function  myunique2(A::FIntVec)
-    return myunique2(reshape(A, length(A), 1))
+function  _myunique2(A::FIntVec)
+    return _myunique2(reshape(A, length(A), 1))
 end
 
-function  myunique2(A::FIntMat) # speeded up; now the bottleneck is mysortrows
+function  _myunique2(A::FIntMat) # speeded up; now the bottleneck is _mysortrows
     #println("size(A)=$(size(A))")
     maxA=maximum(A[:])::FInt
     sA=deepcopy(A)
     #@time
-    sA=mysortdim2!(sA)::FIntMat;#this is fast
+    sA=_mysortdim2!(sA)::FIntMat;#this is fast
     #@time sA=sort(A,2,alg=QuickSort)::FIntMat;#this is slow
     sA= [sA broadcast(+, 1:size(A,1), maxA)]::FIntMat
     #@time
-    sA =mysortrows(sA); # this now takes the majority of time, but much less than the function below
+    sA =_mysortrows(sA); # this now takes the majority of time, but much less than the function below
     #@time sA  = sortrows(sA,alg=QuickSort);;#this is slow
     rix=sA[:,end];
     broadcast!(-, rix, rix, maxA)
@@ -143,7 +143,7 @@ function  myunique2(A::FIntMat) # speeded up; now the bottleneck is mysortrows
 end
 
 # ### This code is correct, but very slow.
-# function  myunique1(A::FIntMat)
+# function  _myunique1(A::FIntMat)
 #     maxA=maximum(A[:])
 #     sA=sort(A,2);# most time spent here
 #     sA= [sA (1:size(A,1))+maxA]
@@ -283,13 +283,15 @@ Compact the finite element node set by deleting unconnected nodes.
 Let us say there are nodes not connected to any finite element that you
 would like to remove from the mesh: here is how that would be
 accomplished.
-
+```
 connected = findunconnnodes(fens, fes);
-fens, new_numbering =compactnodes(fens, connected);
+fens, new_numbering = compactnodes(fens, connected);
 fes = renumberconn!(fes, new_numbering);
-
+```
 Finally, check that the mesh is valid:
+```
 validate_mesh(fens, fes);
+```
 """
 function compactnodes(fens::FENodeSet, connected::BitArray{1})
     @assert length(connected) == count(fens)
@@ -316,7 +318,7 @@ Merge together two meshes.
 
 Merge two meshes together by gluing together nodes within tolerance. The
 two meshes, `fens1`, `fes1`, and `fens2`, `fes2`, are glued together by merging
-the nodes that fall within a box of size ""`tolerance`. If `tolerance` is set
+the nodes that fall within a box of size `tolerance`. If `tolerance` is set
 to zero, no merging of nodes is performed; the two meshes are simply
 concatenated together.
 
@@ -354,7 +356,7 @@ a box of size `tolerance`. If `tolerance` is set to zero, no merging of
 nodes is performed; the nodes from the meshes are simply concatenated together.
 
 ## Output
-The merged node set, `fens`, and the array of finite element sets with
+The merged node set, `fens`, and an array of finite element sets with
 renumbered  connectivities are returned.
 """
 function mergenmeshes(meshes::Array{Tuple{FENodeSet, FESet}}, tolerance::FFlt)
@@ -442,7 +444,7 @@ end
 Merge together  nodes of a single node set.
 
 Similar to `mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)`, but only
-the candidate nodes are considered for merging.
+the candidate nodes are considered for merging. This can potentially speed up the operation by orders of magnitude.
 """
 function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt, candidates::FIntVec)
     maxnn = count(fens) + 1
@@ -501,19 +503,21 @@ end
 Renumber the nodes in the connectivity of the finite elements based on a new
 numbering for the nodes.
 
-fes =finite element set
-new_numbering = new serial numbers for the nodes.  The connectivity
-          should be changed as conn[j] --> new_numbering(conn[j])
+`fes` =finite element set
+`new_numbering` = new serial numbers for the nodes.  The connectivity
+          should be changed as `conn[j]` --> `new_numbering[conn[j]]`
 
 Let us say there are nodes not connected to any finite element that you would
 like to remove from the mesh: here is how that would be accomplished.
-%
+```
 connected = findunconnnodes(fens, fes);
-fens, new_numbering =compactfens(fens, connected);
+fens, new_numbering = compactfens(fens, connected);
 fes = renumberconn!(fes, new_numbering);
-%
+```
 Finally, check that the mesh is valid:
+```julia
 validate_mesh(fens, fes);
+```
 """
 function renumberconn!(fes::FESet, new_numbering::FIntVec)
     conn = connasarray(fes)
@@ -530,10 +534,10 @@ end
 Internal routine for mesh smoothing.
 
 Keyword options:
-method = :taubin (default) or :laplace
-fixedv = Boolean array, one entry per vertex: is the vertex iimmovable (true)
+`method` = :taubin (default) or :laplace
+`fixedv` = Boolean array, one entry per vertex: is the vertex immovable (true)
     or movable  (false)
-npass = number of passes (default 2)
+`npass` = number of passes (default 2)
 """
 function vsmoothing(v::FFltMat, t::FIntMat; kwargs...)
     fixedv = falses(size(v,1))
@@ -569,10 +573,10 @@ end
 General smoothing of meshes.
 
 ## Keyword options:
-method = :taubin (default) or :laplace
-fixedv = Boolean array, one entry per vertex: is the vertex immovable (true)
+`method` = :taubin (default) or :laplace
+`fixedv` = Boolean array, one entry per vertex: is the vertex immovable (true)
     or movable  (false)
-npass = number of passes (default 2)
+`npass` = number of passes (default 2)
 
 ## Return
 The modified  node set.
@@ -637,7 +641,7 @@ end
 
 Find the node neighbors in the mesh. 
 
-Returns an array of integer vectors, element I holds an array of numbers of nodes
+Return an array of integer vectors, element I holds an array of numbers of nodes
 which are connected to node I (including node I).  
 """
 function vertexneighbors(conn::FIntMat, nvertices::FInt)
@@ -662,12 +666,11 @@ end
 
 Mirror a 2-D mesh in a plane given by its normal and one point.
 
-Warning: The code to relies on the numbering of the cells: to reverse
-the orientation of the mirrored cells, the connectivity is listed in
-reverse order.   If the mirrored cells do not follow this rule (for instance
-hexahedra for quadrilaterals), their areas/volumes will
-come out negative. In such a case the renumbering function
-of the connectivity needs to be supplied.
+Warning: The code to relies on the numbering of the cells: to reverse the
+orientation of the mirrored cells, the connectivity is listed in reverse
+order.   If the mirrored cells do not follow this rule (for instance hexahedra
+for quadrilaterals), their areas/volumes will come out negative. In such a
+case the renumbering function of the connectivity needs to be supplied.
 
 For instance: H8 elements require  the renumbering function to be supplied as
 fens1,gcells1 = mirror_mesh(fens, gcells,...
@@ -705,7 +708,7 @@ function mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
     return fens1, fromarray!(fes1, conn)
 end
  
-function nodepartitioning3(fens::FENodeSet, nincluded::Vector{Bool}, npartitions::Int = 2)
+function _nodepartitioning3(fens::FENodeSet, nincluded::Vector{Bool}, npartitions::Int = 2)
     function inertialcutpartitioning!(partitioning, parts, X)
         nspdim = 3
         StaticMoments = fill(zero(FFlt), nspdim, length(parts));
@@ -777,7 +780,7 @@ function nodepartitioning3(fens::FENodeSet, nincluded::Vector{Bool}, npartitions
     return partitioning
 end
 
-function nodepartitioning2(fens::FENodeSet, nincluded::Vector{Bool}, npartitions::Int = 2)
+function _nodepartitioning2(fens::FENodeSet, nincluded::Vector{Bool}, npartitions::Int = 2)
     function inertialcutpartitioning!(partitions, parts, X)
         nspdim = 2
         StaticMoments = fill(zero(FFlt), nspdim, length(parts));
@@ -849,9 +852,10 @@ end
 
 Compute the inertial-cut partitioning of the nodes.
 
-`nincluded` = Boolean array: is the node to be included in the partitioning or not?
+`nincluded` = Boolean array: is the node to be included in the partitioning or
+    not?
 `npartitions` = number of partitions, but note that the actual number of
-partitions is going to be a power of two.
+    partitions is going to be a power of two.
 
 The partitioning can be visualized for instance as:
 ```julia
@@ -870,9 +874,9 @@ vtkexportmesh(File, fens, fes)
 function nodepartitioning(fens::FENodeSet, nincluded::Vector{Bool}, npartitions::Int = 2)
     @assert npartitions >= 2
     if size(fens.xyz, 2) == 3
-        return nodepartitioning3(fens, nincluded, npartitions)
+        return _nodepartitioning3(fens, nincluded, npartitions)
     elseif size(fens.xyz, 2) == 2
-        return nodepartitioning2(fens, nincluded, npartitions)
+        return _nodepartitioning2(fens, nincluded, npartitions)
     else 
         @warn "Not implemented for 1D"
     end
@@ -906,9 +910,9 @@ function nodepartitioning(fens::FENodeSet, npartitions::Int = 2)
     @assert npartitions >= 2
     nincluded = fill(true, count(fens)) # The default is all nodes are included in the partitioning.
     if size(fens.xyz, 2) == 3
-        return nodepartitioning3(fens, nincluded, npartitions)
+        return _nodepartitioning3(fens, nincluded, npartitions)
     elseif size(fens.xyz, 2) == 2
-        return nodepartitioning2(fens, nincluded, npartitions)
+        return _nodepartitioning2(fens, nincluded, npartitions)
     else 
         @warn "Not implemented for 1D"
     end
