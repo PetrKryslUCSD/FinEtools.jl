@@ -58,7 +58,7 @@ end
     assemble!(self::SysmatAssemblerSparse{T}, mat::FMat{T},
       dofnums_row::FIntMat, dofnums_col::FIntMat) where {T<:Number}
 
-Assembly of a rectangular matrix.
+Assemble a rectangular matrix.
 """
 function assemble!(self::SysmatAssemblerSparse{T}, mat::FMat{T}, dofnums_row::FIntVec, dofnums_col::FIntVec) where {T<:Number}
     # Assembly of a rectangular matrix.
@@ -162,7 +162,7 @@ end
     assemble!(self::SysmatAssemblerSparseSymm{T}, mat::FMat{T},
       dofnums::FIntMat, ignore::FIntMat) where {T<:Number}
 
-Assembly of a square symmetric matrix.
+Assemble a square symmetric matrix.
 """
 function assemble!(self::SysmatAssemblerSparseSymm{T}, mat::FMat{T},  dofnums::FIntVec, ignore::FIntVec) where {T<:Number}
     # Assembly of a square symmetric matrix.
@@ -188,7 +188,7 @@ end
 assemble!(self::SysmatAssemblerSparseSymm{T}, mat::FMat{T},
   dofnums::FIntMat, ignore::FIntMat) where {T<:Number}
 
-Assembly of a square symmetric matrix.
+Assemble a square symmetric matrix.
 """
 function assemble!(self::SysmatAssemblerSparseSymm{T}, mat::FMat{T}, dofnums::FIntMat, ignore::FIntMat) where {T<:Number}
     return assemble!(self, mat, vec(dofnums), vec(ignore))
@@ -230,11 +230,12 @@ end
 
 abstract type SysvecAssemblerBase end;
 
+"""
+    SysvecAssembler
+
+Assembler for the system vector.
+"""
 mutable struct SysvecAssembler{T<:Number} <: SysvecAssemblerBase
-    # % The class sysvec_assembler is for assembling of a system
-    # % column vector from elementwise vectors.
-    # 	% Fixed degrees of freedom numbers are given this value:
-    #      % it indicates that this is not a valid free  degree of freedom number.
     F_buffer::Vector{T};
     ndofs::FInt
 end
@@ -251,7 +252,7 @@ Start assembly.
 
 The method makes the buffer for the vector assembly. It must be called before
 the first call to the method assemble.
-ndofs_row= Total number of degrees of freedom.
+`ndofs_row`= Total number of degrees of freedom.
 """
 function startassembly!(self::SysvecAssembler{T},  ndofs_row::FInt) where {T<:Number}
     self.ndofs = ndofs_row
@@ -262,7 +263,7 @@ end
     assemble!(self::SysvecAssembler{T}, vec::MV,
       dofnums::D) where {T<:Number, MV<:AbstractArray{T}, D<:AbstractArray{FInt}}
 
-Assembly of elementwise vector.
+Assemble an elementwise vector.
 
 The method assembles a column element vector using the vector of degree of
 freedom numbers for the rows.
@@ -319,7 +320,7 @@ end
       elem_mat_dim::FInt, ignore1::FInt, elem_mat_nmatrices::FInt,
       ndofs::FInt, ignore2::FInt) where {T<:Number}
 
-Start the assembly of a SYMMETRIC square global matrix.
+Start the assembly of a SYMMETRIC LUMPED square global matrix.
 """
 function startassembly!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, elem_mat_dim::FInt, ignore1::FInt, elem_mat_nmatrices::FInt, ndofs::FInt,ignore2::FInt) where {T<:Number}
     # Start the assembly of a global matrix.
@@ -343,7 +344,7 @@ end
     assemble!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, mat::FMat{T},
       dofnums::FIntMat, ignore::FIntMat) where {T<:Number}
 
-Assembly of a HRZ-lumped square symmetric matrix.
+Assemble a HRZ-lumped square symmetric matrix.
 """
 function assemble!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, mat::FMat{T},  dofnums::FIntVec, ignore::FIntVec) where {T<:Number}
     # Assembly of a HRZ-lumped square symmetric matrix.
@@ -374,7 +375,7 @@ end
     assemble!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, mat::FMat{T},
         dofnums::FIntMat, ignore::FIntMat) where {T<:Number}
 
-Assembly of a HRZ-lumped square symmetric matrix.
+Assemble an HRZ-lumped square symmetric matrix.
 """
 function assemble!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, mat::FMat{T}, dofnums::FIntMat, ignore::FIntMat) where {T<:Number}
     return assemble!(self, mat, vec(dofnums), vec(ignore))
