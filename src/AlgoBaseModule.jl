@@ -43,15 +43,17 @@ end
 Richardson extrapolation.
 
 `solns` =  array of solution values
-`params` = array of values of parameters for which the solns have been obtained
+`params` = array of values of parameters for which the `solns` have been obtained
 
 This function is applicable only to fixed ratio between the mesh sizes,
   `params[1]/params[2) = params[2)/params[3)`.
+  
 Output:
-solnestim= estimate of the asymptotic solution from the data points in the solns array
-beta= convergence rate
-c = constant in the estimate "error=c*h^beta"
-residual = residual after equations from which the above quantities were
+`solnestim`= estimate of the asymptotic solution from the data points in the
+    `solns` array
+`beta`= convergence rate
+`c` = constant in the estimate "error=c*h^beta"
+`residual` = residual after equations from which the above quantities were
      solved (this is a measure of how accurately was the system solved).
 """
 function richextrapol(solns::FFltVec, params::FFltVec)
@@ -150,8 +152,10 @@ For both the "coarse"- and "fine"-mesh `modeldata` the data dictionaries need to
 - "targetfields" = array of fields, one for each region
 - "geom" = geometry field
 - "elementsize" = representative element size,
-- "geometricaltolerance" = geometrical tolerance (used in field transfer; refer to the documentation of `transferfield!`)
-- "parametrictolerance" = parametric tolerance (used in field transfer; refer to the documentation of `transferfield!`)
+- "geometricaltolerance" = geometrical tolerance (used in field transfer;
+  refer to the documentation of `transferfield!`)
+- "parametrictolerance" = parametric tolerance (used in field transfer; refer
+  to the documentation of `transferfield!`)
 """
 function fielddiffnorm(modeldatacoarse, modeldatafine)
     # Load coarse-mesh data
