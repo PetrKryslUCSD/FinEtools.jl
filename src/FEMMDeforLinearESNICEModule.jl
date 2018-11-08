@@ -244,7 +244,8 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
     # The coefficient set below was obtained by fitting the ratio of energies true/approximate
     # for the finite element model of six tetrahedra arranged into a rectangular block
     # and subject to pure bending
-    (a, b) = (1.9726538699841933, 0.23880554398506101)
+    # (a, b) = (1.9726538699841933, 0.23880554398506101)
+    (a, b) = (2.101588423297799,  1.311321055432958) # Fitting for a small aspect-ratio range (1.0 to 10)
     fes = self.integdata.fes
     self.ephis = fill(zero(FFlt), count(fes))
     evols = fill(zero(FFlt), count(fes))
