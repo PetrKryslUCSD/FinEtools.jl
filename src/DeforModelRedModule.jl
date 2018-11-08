@@ -22,8 +22,8 @@ end
 """
     nstressstrain(::Type{DeforModelRed})::FInt
 
-How many stress components involved in the balance equation (and how many
-strain components) are there for each model reduction type?
+Return the number of stress components involved in the balance equation (and
+how many strain components) are there for each model reduction type?
 """
 nstressstrain(::Type{DeforModelRed1D})::FInt = 1;
 nstressstrain(::Type{DeforModelRed2DStrain})::FInt = 3;
@@ -92,25 +92,24 @@ Compute the linear, displacement independent, strain-displacement matrix for a
 one-manifold element.   *The input displacements are in the global Cartesian
 coordinate system, the output strains are in the material coordinate system.*
 
-`N` =matrix of basis function values
-`gradN` =matrix of basis function gradients with respect to the
-  Cartesian coordinates in the directions of the material orientation
-`c` =array of spatial coordinates of the evaluation point
-  in the global Cartesian coordinates.
-`Rm` =orthogonal matrix with the unit basis vectors of the local
-  material orientation coordinate system as columns.
-  `size(Rm)= [ndim,mdim]`, where `ndim` = number of spatial dimensions
-  of the embedding space (here `ndim >= 3`), aand `mdim` = number of manifold
-  dimensions (here `mdim == 1`).
+- `N` =matrix of basis function values
+- `gradN` =matrix of basis function gradients with respect to the Cartesian
+  coordinates in the directions of the material orientation
+- `c` =array of spatial coordinates of the evaluation point in the global
+  Cartesian coordinates.
+- `Rm` =orthogonal matrix with the unit basis vectors of the local material
+  orientation coordinate system as columns. `size(Rm)= (ndim,mdim)`, where
+  `ndim` = number of spatial dimensions of the embedding space (here `ndim <= 
+  3`), and `mdim` = number of manifold dimensions (here `mdim == 1`).
 
-Output:
-`B` = strain-displacement matrix, where  `size(B) = [nstressstrain,nnodes*dim]`;
-  here nstressstrain= number of strains, dim = Number of spatial
-  dimensions of the embedding space, and nnodes = number of
-  finite element nodes on the element. The strain components are ordered as
-  shown  in `stresscomponentmap`. The matrix is passed in as a buffer,
-  set to zero,  and filled in  with the nonzero components.  It is also returned
-for convenience.
+# Output
+- `B` = strain-displacement matrix, where  `size(B) =
+  (nstressstrain,nnodes*dim)`; here `nstressstrain`= number of strains, `dim`
+  = Number of spatial dimensions of the embedding space, and `nnodes` = number
+  of finite element nodes on the element. The strain components are ordered as
+  shown  in `stresscomponentmap`. The matrix is passed in as a buffer, set to
+  zero,  and filled in  with the nonzero components.  It is also returned for
+  convenience.
 """
 function Blmat!(MR::Type{DeforModelRed1D}, B::FFltMat,
   N::FFltMat, gradN::FFltMat, c::FFltMat, Rm::FFltMat)
@@ -135,29 +134,28 @@ Compute the strain-displacement matrix for a two-manifold element for
 plane-strain models.
 
 Compute the linear, displacement independent, strain-displacement matrix for a
-two-manifold element in plane-strain setting.   *The input displacements
-are in the global Cartesian coordinate system, the output strains are in the
+two-manifold element in plane-strain setting.   *The input displacements are
+in the global Cartesian coordinate system, the output strains are in the
 material coordinate system.*
 
-`N` =matrix of basis function values
-`gradN` =matrix of basis function gradients with respect to the
-  Cartesian coordinates in the directions of the material orientation
-`c` =array of spatial coordinates of the evaluation point
-  in the global Cartesian coordinates.
-`Rm` =orthogonal matrix with the unit basis vectors of the local
-  material orientation coordinate system as columns.
-  `size(Rm)= [ndim,mdim]`, where `ndim` = number of spatial dimensions
-  of the embedding space (here `ndim == 2`), aand `mdim` = number of manifold
-  dimensions (here `mdim == 2`).
+- `N` =matrix of basis function values
+- `gradN` =matrix of basis function gradients with respect to the Cartesian
+  coordinates in the directions of the material orientation
+- `c` =array of spatial coordinates of the evaluation point in the global
+  Cartesian coordinates.
+- `Rm` =orthogonal matrix with the unit basis vectors of the local material
+  orientation coordinate system as columns. `size(Rm)= (ndim,mdim)`, where
+  `ndim` = number of spatial dimensions of the embedding space (here `ndim <= 
+  3`), and `mdim` = number of manifold dimensions (here `mdim == 2`).
 
-Output:
-`B` = strain-displacement matrix, where  `size(B) = [nstressstrain,nnodes*dim]`;
-  here nstressstrain= number of strains, dim = Number of spatial
-  dimensions of the embedding space, and nnodes = number of
-  finite element nodes on the element. The strain components are ordered as
-  shown  in `stresscomponentmap`. The matrix is passed in as a buffer,
-  set to zero,  and filled in  with the nonzero components.  It is also returned
-for convenience.
+# Output
+- `B` = strain-displacement matrix, where  `size(B) =
+  (nstressstrain,nnodes*dim)`; here `nstressstrain`= number of strains, `dim`
+  = Number of spatial dimensions of the embedding space, and `nnodes` = number
+  of finite element nodes on the element. The strain components are ordered as
+  shown  in `stresscomponentmap`. The matrix is passed in as a buffer, set to
+  zero,  and filled in  with the nonzero components.  It is also returned for
+  convenience.
 """
 function Blmat!(MR::Type{DeforModelRed2DStrain}, B::FFltMat,
   N::FFltMat, gradN::FFltMat, c::FFltMat, Rm::FFltMat)
@@ -188,25 +186,24 @@ two-manifold element in plane-stress setting.   *The input displacements
 are in the global Cartesian coordinate system, the output strains are in the
 material coordinate system.*
 
-`N` =matrix of basis function values
-`gradN` =matrix of basis function gradients with respect to the
-  Cartesian coordinates in the directions of the material orientation
-`c` =array of spatial coordinates of the evaluation point
-  in the global Cartesian coordinates.
-`Rm` =orthogonal matrix with the unit basis vectors of the local
-  material orientation coordinate system as columns.
-  `size(Rm)= [ndim,mdim]`, where `ndim` = number of spatial dimensions
-  of the embedding space (here `ndim >= 3`), aand `mdim` = number of manifold
-  dimensions (here `mdim=2`).
+- `N` =matrix of basis function values
+- `gradN` =matrix of basis function gradients with respect to the Cartesian
+  coordinates in the directions of the material orientation
+- `c` =array of spatial coordinates of the evaluation point in the global
+  Cartesian coordinates.
+- `Rm` =orthogonal matrix with the unit basis vectors of the local material
+  orientation coordinate system as columns. `size(Rm)= (ndim,mdim)`, where
+  `ndim` = number of spatial dimensions of the embedding space (here `ndim <= 
+  3`), and `mdim` = number of manifold dimensions (here `mdim == 2`).
 
-Output:
-`B` = strain-displacement matrix, where  `size(B) = [nstressstrain,nnodes*dim]`;
-  here nstressstrain= number of strains, dim = Number of spatial
-  dimensions of the embedding space, and nnodes = number of
-  finite element nodes on the element. The strain components are ordered as
-  shown  in `stresscomponentmap`. The matrix is passed in as a buffer,
-  set to zero,  and filled in  with the nonzero components.  It is also returned
-for convenience.
+# Output
+- `B` = strain-displacement matrix, where  `size(B) =
+  (nstressstrain,nnodes*dim)`; here `nstressstrain`= number of strains, `dim`
+  = Number of spatial dimensions of the embedding space, and `nnodes` = number
+  of finite element nodes on the element. The strain components are ordered as
+  shown  in `stresscomponentmap`. The matrix is passed in as a buffer, set to
+  zero,  and filled in  with the nonzero components.  It is also returned for
+  convenience.
 """
 function Blmat!(MR::Type{DeforModelRed2DStress}, B::FFltMat,
   N::FFltMat, gradN::FFltMat, c::FFltMat, Rm::FFltMat)
@@ -237,25 +234,24 @@ two-manifold element in axially-symmetric setting.   *The input displacements
 are in the global Cartesian coordinate system, the output strains are in the
 material coordinate system.*
 
-`N` =matrix of basis function values
-`gradN` =matrix of basis function gradients with respect to the
-  Cartesian coordinates in the directions of the material orientation
-`c` =array of spatial coordinates of the evaluation point
-  in the global Cartesian coordinates; `c[1]` is the distance from the axis of
-  symmetry.
-`Rm` =orthogonal matrix with the unit basis vectors of the local
-  material orientation coordinate system as columns.
-  `size(Rm)= [ndim,ndim]`, where `ndim` = number of spatial dimensions
-  of the embedding space (here `ndim=3`).
+- `N` =matrix of basis function values
+- `gradN` =matrix of basis function gradients with respect to the Cartesian
+  coordinates in the directions of the material orientation
+- `c` =array of spatial coordinates of the evaluation point in the global
+  Cartesian coordinates.
+- `Rm` =orthogonal matrix with the unit basis vectors of the local material
+  orientation coordinate system as columns. `size(Rm)= (ndim,mdim)`, where
+  `ndim` = number of spatial dimensions of the embedding space (here `ndim <= 
+  3`), and `mdim` = number of manifold dimensions (here `mdim == 2`).
 
-Output:
-`B` = strain-displacement matrix, where  `size(B) = [nstressstrain,nnodes*dim]`;
-  here nstressstrain= number of strains, dim = Number of spatial
-  dimensions of the embedding space, and nnodes = number of
-  finite element nodes on the element. The strain components are ordered as
-  shown  in `stresscomponentmap`. The matrix is passed in as a buffer,
-  set to zero,  and filled in  with the nonzero components.  It is also returned
-for convenience.
+# Output
+- `B` = strain-displacement matrix, where  `size(B) =
+  (nstressstrain,nnodes*dim)`; here `nstressstrain`= number of strains, `dim`
+  = Number of spatial dimensions of the embedding space, and `nnodes` = number
+  of finite element nodes on the element. The strain components are ordered as
+  shown  in `stresscomponentmap`. The matrix is passed in as a buffer, set to
+  zero,  and filled in  with the nonzero components.  It is also returned for
+  convenience.
 """
 function Blmat!(MR::Type{DeforModelRed2DAxisymm}, B::FFltMat,
   N::FFltMat, gradN::FFltMat, c::FFltMat, Rm::FFltMat)
@@ -291,24 +287,24 @@ for a three-manifold element.   *The input displacements are in the global
 Cartesian coordinate system, the output strains are in the material coordinate
 system.*
 
-`N` =matrix of basis function values
-`gradN` =matrix of basis function gradients with respect to the
-  Cartesian coordinates in the directions of the material orientation
-`c` =array of spatial coordinates of the evaluation point
-  in the global Cartesian coordinates
-`Rm` =orthogonal matrix with the unit basis vectors of the local
-  material orientation coordinate system as columns.
-  `size(Rm)= [ndim,ndim]`, where `ndim` = number of spatial dimensions
-  of the embedding space (here `ndim=3`).
+- `N` =matrix of basis function values
+- `gradN` =matrix of basis function gradients with respect to the Cartesian
+  coordinates in the directions of the material orientation
+- `c` =array of spatial coordinates of the evaluation point in the global
+  Cartesian coordinates.
+- `Rm` =orthogonal matrix with the unit basis vectors of the local material
+  orientation coordinate system as columns. `size(Rm)= (ndim,mdim)`, where
+  `ndim` = number of spatial dimensions of the embedding space (here `ndim ==  
+  3`), and `mdim` = number of manifold dimensions (here `mdim == 3`).
 
-Output:
-`B` = strain-displacement matrix, where  `size(B) = [nstressstrain,nnodes*dim]`;
-  here nstressstrain= number of strains, dim = Number of spatial
-  dimensions of the embedding space, and nnodes = number of
-  finite element nodes on the element. The strain components are ordered as
-  shown  in `stresscomponentmap`. The matrix is passed in as a buffer,
-  set to zero,  and filled in  with the nonzero components.  It is also returned
-for convenience.
+# Output
+- `B` = strain-displacement matrix, where  `size(B) =
+  (nstressstrain,nnodes*dim)`; here `nstressstrain`= number of strains, `dim`
+  = Number of spatial dimensions of the embedding space, and `nnodes` = number
+  of finite element nodes on the element. The strain components are ordered as
+  shown  in `stresscomponentmap`. The matrix is passed in as a buffer, set to
+  zero,  and filled in  with the nonzero components.  It is also returned for
+  convenience.
 """
 function Blmat!(MR::Type{DeforModelRed3D}, B::FFltMat,
   N::FFltMat, gradN::FFltMat, c::FFltMat, Rm::FFltMat)
