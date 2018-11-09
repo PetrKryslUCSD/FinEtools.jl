@@ -122,9 +122,9 @@ using FinEtools.IntegRuleModule: IntegRule, TriRule, GaussRule, TetRule, PointRu
 # Exported: type for various integration rules
 export IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule, NodalSimplexRule
 
-using FinEtools.IntegDataModule: IntegData, otherdimensionunity, Jacobianpoint, Jacobiancurve, Jacobiansurface, Jacobianvolume, Jacobianmdim, integrationdata
+using FinEtools.IntegDomainModule: IntegDomain, otherdimensionunity, Jacobianpoint, Jacobiancurve, Jacobiansurface, Jacobianvolume, Jacobianmdim, integrationdata
 # Exported: type to handle  integration data for various manifold dimensions
-export IntegData, otherdimensionunity, Jacobianpoint, Jacobiancurve, Jacobiansurface, Jacobianvolume, Jacobianmdim, integrationdata
+export IntegDomain, otherdimensionunity, Jacobianpoint, Jacobiancurve, Jacobiansurface, Jacobianvolume, Jacobianmdim, integrationdata
 
 using FinEtools.FEMMBaseModule: FEMMAbstractBase, FEMMBase, associategeometry!, integratefieldfunction, integratefunction, transferfield!, distribloads, connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints, innerproduct
 # Exported: type base discretization methods

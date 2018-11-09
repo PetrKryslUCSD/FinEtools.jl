@@ -42,10 +42,10 @@ Evaluating integrals of this form is so common that there is a module `FEMMBaseM
 
 ```julia
 fi = ForceIntensity(FFlt[Q]);
-F1 = distribloads(FEMMBase(IntegData(fes, TriRule(1))), geom, Temp, fi, 3);
+F1 = distribloads(FEMMBase(IntegDomain(fes, TriRule(1))), geom, Temp, fi, 3);
 ```
 
-`IntegData(fes, TriRule(1))` constructs integration data  for the  finite elements `fes` using a triangular  integration rule with a single point. `FEMMBase` is the base  FEM  machine,  and all it needs at this point is the integration data. The method  `distribloads` is defined for the  base FEM machine, the geometry field `geom`, the numbering of the degrees of freedom is taken from the field `Temp`, the internal heat generation rate is defined as the force intensity `fi`, and the integrals  are volume integrals  (3).
+`IntegDomain(fes, TriRule(1))` constructs integration domain for the  finite elements `fes` using a triangular  integration rule with a single point. `FEMMBase` is the base  FEM  machine,  and all it needs at this point is the integration domain. The method  `distribloads` is defined for the  base FEM machine, the geometry field `geom`, the numbering of the degrees of freedom is taken from the field `Temp`, the internal heat generation rate is defined as the force intensity `fi`, and the integrals  are volume integrals  (3).
 
 ## Example: conductivity term
 
@@ -77,10 +77,10 @@ The FEM machine  for heat conduction  can be created as
 
 ```julia
 material = MatHeatDiff(thermal_conductivity)
-femm = FEMMHeatDiff(IntegData(fes, TriRule(1)), material)
+femm = FEMMHeatDiff(IntegDomain(fes, TriRule(1)), material)
 ```
 
-where we first create a `material` to  deliver the thermal conductivity matrix <img src="http://latex.codecogs.com/svg.latex? \kappa" border="0"/>, and then  we create  the FEM  machine  from the integration data  for a mesh  consisting of three node triangles, using one-point integration rule, and the material. This  FEM machine  can then be passed to a method
+where we first create a `material` to  deliver the thermal conductivity matrix <img src="http://latex.codecogs.com/svg.latex? \kappa" border="0"/>, and then  we create  the FEM  machine  from the integration domain  for a mesh  consisting of three node triangles, using one-point integration rule, and the material. This  FEM machine  can then be passed to a method
 
 ```julia
 K = conductivity(femm, geom, Temp)

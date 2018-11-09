@@ -15,7 +15,7 @@ module FEMMDeforLinearNICEModule
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, FESetH8, FESetT4, manifdim, nodesperelem, gradN!
-import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianvolume
+import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
 import FinEtools.FEMMDeforLinearBaseModule: FEMMDeforLinearAbstract
 import FinEtools.DeforModelRedModule: DeforModelRed, DeforModelRed3D
 import FinEtools.MatDeforModule: MatDefor
@@ -45,58 +45,58 @@ end
 
 mutable struct FEMMDeforLinearNICEH8{MR<:DeforModelRed, S<:FESetH8, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstractNICE
     mr::Type{MR}
-    integdata::IntegData{S, F} # geometry data
+    integdomain::IntegDomain{S, F} # geometry data
     mcsys::CSys # updater of the material orientation matrix
     material::M # material object
     stabfact::FFlt
     nodalbasisfunctiongrad::Vector{_NodalBasisFunctionGradients}
 end
 
-function FEMMDeforLinearNICEH8(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
+function FEMMDeforLinearNICEH8(mr::Type{MR}, integdomain::IntegDomain{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
     stabfact = 0.05
-    return FEMMDeforLinearNICEH8(mr, integdata, mcsys, material, stabfact, _NodalBasisFunctionGradients[])
+    return FEMMDeforLinearNICEH8(mr, integdomain, mcsys, material, stabfact, _NodalBasisFunctionGradients[])
 end
 
-function FEMMDeforLinearNICEH8(mr::Type{MR}, integdata::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
+function FEMMDeforLinearNICEH8(mr::Type{MR}, integdomain::IntegDomain{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
     stabfact = 0.05
-    return FEMMDeforLinearNICEH8(mr, integdata, CSys(manifdim(integdata.fes)), material, stabfact, _NodalBasisFunctionGradients[])
+    return FEMMDeforLinearNICEH8(mr, integdomain, CSys(manifdim(integdomain.fes)), material, stabfact, _NodalBasisFunctionGradients[])
 end
 
 mutable struct FEMMDeforLinearNICET4{MR<:DeforModelRed, S<:FESetT4, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstractNICE
     mr::Type{MR}
-    integdata::IntegData{S, F} # geometry data
+    integdomain::IntegDomain{S, F} # geometry data
     mcsys::CSys # updater of the material orientation matrix
     material::M # material object
     stabfact::FFlt
     nodalbasisfunctiongrad::Vector{_NodalBasisFunctionGradients}
 end
 
-function FEMMDeforLinearNICET4(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
+function FEMMDeforLinearNICET4(mr::Type{MR}, integdomain::IntegDomain{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
     stabfact = 0.015
-    return FEMMDeforLinearNICET4(mr, integdata, mcsys, material, stabfact, _NodalBasisFunctionGradients[])
+    return FEMMDeforLinearNICET4(mr, integdomain, mcsys, material, stabfact, _NodalBasisFunctionGradients[])
 end
 
-function FEMMDeforLinearNICET4(mr::Type{MR}, integdata::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
+function FEMMDeforLinearNICET4(mr::Type{MR}, integdomain::IntegDomain{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
     stabfact = 0.015
-    return FEMMDeforLinearNICET4(mr, integdata, CSys(manifdim(integdata.fes)), material, stabfact, _NodalBasisFunctionGradients[])
+    return FEMMDeforLinearNICET4(mr, integdomain, CSys(manifdim(integdomain.fes)), material, stabfact, _NodalBasisFunctionGradients[])
 end
 
-function FEMMDeforLinearNICET4(mr::Type{MR}, integdata::IntegData{S, F}, material::M, stabfact::FFlt) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
+function FEMMDeforLinearNICET4(mr::Type{MR}, integdomain::IntegDomain{S, F}, material::M, stabfact::FFlt) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
-    return FEMMDeforLinearNICET4(mr, integdata, CSys(manifdim(integdata.fes)), material, stabfact, _NodalBasisFunctionGradients[])
+    return FEMMDeforLinearNICET4(mr, integdomain, CSys(manifdim(integdomain.fes)), material, stabfact, _NodalBasisFunctionGradients[])
 end
 
 function buffers1(self::FEMMDeforLinearAbstractNICE, geom::NodalField, npts::FInt)
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
     mdim = manifdim(fes); # manifold dimension of the element
@@ -112,7 +112,7 @@ function buffers1(self::FEMMDeforLinearAbstractNICE, geom::NodalField, npts::FIn
 end
 
 function buffers2(self::FEMMDeforLinearAbstractNICE, geom::NodalField, u::NodalField, npts::FInt)
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     ndn = ndofs(u); # number of degrees of freedom per node
     nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
@@ -139,8 +139,8 @@ function computenodalbfungrads(self, geom)
     # #        bfun_gradients{nix}.Vpatch= nodal patch volume
     # #        bfun_gradients{nix}.patchconn= nodal patch connectivity
 
-    fes = self.integdata.fes
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    fes = self.integdomain.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     loc, J, adjJ, csmatTJ, gradN, xl, lconn = buffers1(self, geom, npts)
 
     # Get the inverse map from finite element nodes to geometric cells
@@ -172,7 +172,7 @@ function computenodalbfungrads(self, geom)
                 end
                 jac!(J, xl, lconn, gradNparams[pci]) 
                 At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
-                Jac = Jacobianvolume(self.integdata, J, c, fes.conn[i], Ns[pci]);
+                Jac = Jacobianvolume(self.integdomain, J, c, fes.conn[i], Ns[pci]);
                 Vpatch += Jac * w[pci];
                 sgradN = gradNparams[pci] * adjugate3!(adjJ, J);
                 gradNavg[lnmap[kconn],:] += (w[pci] .* sgradN);
@@ -226,8 +226,8 @@ end
 Compute and assemble  stiffness matrix.
 """
 function stiffness(self::FEMMDeforLinearAbstractNICE, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
-    fes = self.integdata.fes
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    fes = self.integdomain.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     dofnums, loc, J, csmatTJ, Jac, D = buffers2(self, geom, u, npts)
     self.material.tangentmoduli!(self.material, D, 0.0, 0.0, loc, 0)
     Dmod = sort(eigvals(D))

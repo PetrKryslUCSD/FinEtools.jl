@@ -75,7 +75,7 @@ The surface Jacobian in this case  is  equal to the curve Jacobian times `2*pi*r
 
 ## Integration Data 
 
-The  module `IntegDataModule` supports  the processing of  the geometry necessary for the evaluation of the various integrals.
+The  module `IntegDomainModule` supports  the processing of  the geometry necessary for the evaluation of the various integrals.
 The module data structure  groups together  a finite element set with an appropriate integration rule, information about the model (axially symmetric or not), and a callback to evaluate  the "other" dimension.
 
 ## Other dimension
@@ -86,7 +86,7 @@ A finite element set is equipped with  a way of  calculating  the "other" dimens
 
 Thus, the way in which the "other"  dimension gets used by the Geometry Data methods depends on the model. As an example, consider  the  method
 ```julia
-function Jacobianvolume(self::IntegData{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet2Manifold, CC<:AbstractArray{FInt}}
+function Jacobianvolume(self::IntegDomain{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet2Manifold, CC<:AbstractArray{FInt}}
     Jac = Jacobiansurface(self, J, loc, conn, N)::FFlt
     if self.axisymmetric
         return Jac*2*pi*loc[1];
@@ -113,4 +113,4 @@ which simply returns 1.0 as the default value.
 
 ## Evaluation of integration data
 
-Importantly, the  Integration Data method `integrationdata` evaluates quantities  needed for numerical integration: locations and weights of quadrature points, and the values of basis functions and of the basis function gradients with respect to the parametric coordinates at the quadrature points.
+Importantly, the  Integration Domain (`IntegDomain`) method `integrationdata` evaluates quantities  needed for numerical integration: locations and weights of quadrature points, and the values of basis functions and of the basis function gradients with respect to the parametric coordinates at the quadrature points.

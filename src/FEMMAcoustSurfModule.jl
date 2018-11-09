@@ -12,7 +12,7 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, gradN!, nodesperelem, manifdim
 import FinEtools.MatAcoustFluidModule: MatAcoustFluid
-import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobiansurface
+import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobiansurface
 import FinEtools.FieldModule: ndofs, gatherdofnums!
 import FinEtools.NodalFieldModule: NodalField 
 import FinEtools.GeneralFieldModule: GeneralField 
@@ -27,13 +27,13 @@ import LinearAlgebra: norm, cross
 Class for linear acoustics finite element modeling machine.
 """
 mutable struct FEMMAcoustSurf{S<:FESet, F<:Function, M, NF<:Function} <: FEMMAbstractBase
-    integdata::IntegData{S, F} # geometry data
+    integdomain::IntegDomain{S, F} # geometry data
     material::M # material object
     getnormal!::NF # get the  normal to the surface
 end
 
 
-function FEMMAcoustSurf(integdata::IntegData{S, F},  material::M) where {S<:FESet, F<:Function, M}
+function FEMMAcoustSurf(integdomain::IntegDomain{S, F},  material::M) where {S<:FESet, F<:Function, M}
     function getnormal!(n::FFltVec, loc::FFltMat, J::FFltMat)
         sdim, mdim = size(J);
         if     mdim == 1 # 1-D fe
@@ -47,7 +47,7 @@ function FEMMAcoustSurf(integdata::IntegData{S, F},  material::M) where {S<:FESe
         copyto!(n, N)
         return n;
     end
-    return FEMMAcoustSurf(integdata, material, getnormal!)
+    return FEMMAcoustSurf(integdomain, material, getnormal!)
 end
 
 """
@@ -58,7 +58,7 @@ end
 Compute the acoustic ABC (Absorbing Boundary Condition) matrix.
 """
 function acousticABC(self::FEMMAcoustSurf, assembler::A, geom::NodalField, Pdot::NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
     ndn = ndofs(Pdot); # number of degrees of freedom per node
@@ -67,7 +67,7 @@ function acousticABC(self::FEMMAcoustSurf, assembler::A, geom::NodalField, Pdot:
     mdim = manifdim(fes);     # manifold dimension of the element
     Dedim = ndn*nne;          # dimension of the element matrix
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdata);
+    npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
     # Material
     bulk_modulus  =   self.material.bulk_modulus;
     mass_density  =   self.material.mass_density;
@@ -82,7 +82,7 @@ function acousticABC(self::FEMMAcoustSurf, assembler::A, geom::NodalField, Pdot:
         fill!(De, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
-            Jac = Jacobiansurface(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             ffactor = (Jac/c*w[j])
             add_nnt_ut_only!(De, Ns[j], ffactor)
         end # Loop over quadrature points
@@ -109,7 +109,7 @@ Compute the rectangular coupling matrix that transcribes given pressure
 on the surface into the resultant force acting on the surface.
 """
 function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Force::GeneralField) where {T<:Number, A<:SysmatAssemblerBase}
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
     ndn = ndofs(P); # number of degrees of freedom per node
@@ -118,7 +118,7 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::Nodal
     mdim = manifdim(fes);     # manifold dimension of the element
     edim = ndn*nne;          # dimension of the element matrix
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdata);
+    npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
     transposedNs = [reshape(N, 1, nne) for N in Ns]
     Ge = fill(zero(FFlt), 3, nne); # element coupling matrix -- used as a buffer
     coldofnums = zeros(FInt, 1, edim); # degree of freedom array -- used as a buffer
@@ -132,7 +132,7 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::Nodal
         fill!(Ge, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
-            Jac = Jacobiansurface(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             n = self.getnormal!(n, loc, J);
             ffactor = (Jac*w[j])
             Ge = Ge + (ffactor*n)*transposedNs[j]
@@ -159,7 +159,7 @@ on the surface into the resultant torque acting on the surface with respect
 to the CG.
 """
 function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Torque::GeneralField, CG::FFltVec) where {T<:Number,  A<:SysmatAssemblerBase}
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
     ndn = ndofs(P); # number of degrees of freedom per node
@@ -168,7 +168,7 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::Noda
     mdim = manifdim(fes);     # manifold dimension of the element
     edim = ndn*nne;          # dimension of the element matrix
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdata);
+    npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
     transposedNs = [reshape(N, 1, nne) for N in Ns]
     Ge = fill(zero(FFlt), 3, nne); # element coupling matrix -- used as a buffer
     coldofnums = zeros(FInt, 1, edim); # degree of freedom array -- used as a buffer
@@ -182,7 +182,7 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::Noda
         fill!(Ge, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
-            Jac = Jacobiansurface(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             n = self.getnormal!(n, loc, J);
             ffactor = (Jac*w[j])
             Ge = Ge + (ffactor*cross(vec(vec(loc)-CG), n))*transposedNs[j]
@@ -220,13 +220,13 @@ each finite element –- panel. The panel pressures are assumed to
 be given the same numbers as the serial numbers of the finite elements in the block.
 """
 function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalField, u::NodalField{T}) where {A<:SysmatAssemblerBase, T}
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     # Constants
     nne =  nodesperelem(fes); # number of nodes per element
     sdim = ndofs(geom);            # number of space dimensions
     mdim = manifdim(fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdata);
+    npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
     transposedNs = [reshape(N, 1, nne) for N in Ns]
     coldofnums = zeros(FInt, 1, 1); # degree of freedom array -- used as a buffer
     rowdofnums = zeros(FInt, 1, sdim*nne); # degree of freedom array -- used as a buffer
@@ -239,7 +239,7 @@ function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalF
         fill!(Ge, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
-            Jac = Jacobiansurface(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             n = self.getnormal!(n, loc, J);
             Ge = Ge + (Jac*w[j])*reshape(reshape(n, sdim, 1)*transposedNs[j], size(Ge, 1), size(Ge, 2))
         end # Loop over quadrature points

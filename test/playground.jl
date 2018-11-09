@@ -30,7 +30,7 @@ function test()
     @test count(bfes) == 4*2*2*(4*5 + 5*2 + 4*2)
     geom  =  NodalField(fens.xyz)
         
-    femm  =  FEMMBase(IntegData(fes, SimplexRule(3, 4)))
+    femm  =  FEMMBase(IntegDomain(fes, SimplexRule(3, 4)))
     V = integratefunction(femm, geom, (x) ->  1.0)
     
     File = "Refine-T4-a.vtk"
@@ -74,7 +74,7 @@ function test()
     @test count(bfes) == 4*2*2*(4*5 + 5*2 + 4*2)
 
     geom  =  NodalField(fens.xyz)
-    femm  =  FEMMBase(IntegData(fes, SimplexRule(3, 4)))
+    femm  =  FEMMBase(IntegDomain(fes, SimplexRule(3, 4)))
     V = integratefunction(femm, geom, (x) ->  1.0)
     
     File = "Refine-T10-a.vtk"

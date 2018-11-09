@@ -20,20 +20,20 @@ After the mesh  has been generated, the `modeldata` can be set up: Here we begin
 
 ```julia
 material = MatAcoustFluid(bulk, rho)
-region1 =  FDataDict("femm"=>FEMMAcoust(IntegData(fes, GaussRule(3, 2)), material))
+region1 =  FDataDict("femm"=>FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), material))
 ```
 
 We set up a definition of the absorbing boundary condition:
 
 ```julia
-abc1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegData(outer_fes, GaussRule(2, 2)),
+abc1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(outer_fes, GaussRule(2, 2)),
           material))
 ```
 
 The  surface of the piston is associated with a known-flux  boundary condition:
 
 ```julia
-flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegData(piston_fes, GaussRule(2, 2)),
+flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(piston_fes, GaussRule(2, 2)),
           material),  "normal_flux"=> -rho*a_piston+0.0im);
 ```
 

@@ -9,7 +9,7 @@ module FEMMHeatDiffSurfModule
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, nodesperelem, manifdim
-import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobiansurface
+import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobiansurface
 import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!
 import FinEtools.NodalFieldModule: NodalField 
 import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
@@ -19,7 +19,7 @@ import LinearAlgebra: norm, dot, cross
 
 # Type for heat diffusion finite element modeling machine for boundary integrals.
 mutable struct FEMMHeatDiffSurf{S<:FESet, F<:Function} <: FEMMAbstractBase
-    integdata::IntegData{S, F} # geometry data
+    integdomain::IntegDomain{S, F} # geometry data
     surfacetransfercoeff::FFlt # material object
 end
 
@@ -30,7 +30,7 @@ end
 Compute the surface heat transfer matrix.
 """
 function surfacetransfer(self::FEMMHeatDiffSurf,  assembler::A, geom::NodalField{FFlt}, temp::NodalField{FFlt}) where {A<:SysmatAssemblerBase}
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
     ndn = ndofs(temp); # number of degrees of freedom per node
@@ -39,7 +39,7 @@ function surfacetransfer(self::FEMMHeatDiffSurf,  assembler::A, geom::NodalField
     mdim = manifdim(fes); # manifold dimension of the element
     Hedim = ndn*nne;             # dimension of the element matrix
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     # Prepare assembler and temporaries
     He = fill(zero(FFlt), Hedim, Hedim);                # element matrix -- used as a buffer
     dofnums = zeros(FInt, Hedim); # degree of freedom array -- used as a buffer
@@ -50,7 +50,7 @@ function surfacetransfer(self::FEMMHeatDiffSurf,  assembler::A, geom::NodalField
         fill!(He,  0.0); # Initialize element matrix
         for j=1:npts # Loop over quadrature points
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
-            Jac = Jacobiansurface(self.integdata, J, loc, fes.conn[i],  Ns[j]);
+            Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i],  Ns[j]);
             add_nnt_ut_only!(He, Ns[j], self.surfacetransfercoeff*Jac*w[j])
         end # Loop over quadrature points
         complete_lt!(He)
@@ -75,7 +75,7 @@ end
 Compute the load vector corresponding to surface heat transfer.
 """
 function surfacetransferloads(self::FEMMHeatDiffSurf,  assembler::A,  geom::NodalField{FFlt}, temp::NodalField{FFlt},  ambtemp::NodalField{FFlt}) where {A<:SysvecAssemblerBase}
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
     ndn = ndofs(temp); # number of degrees of freedom per node
@@ -84,7 +84,7 @@ function surfacetransferloads(self::FEMMHeatDiffSurf,  assembler::A,  geom::Noda
     mdim = manifdim(fes); # manifold dimension of the element
     Hedim = ndn*nne;             # dimension of the element matrix
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     # Prepare assembler and temporaries
     Fe = fill(zero(FFlt), Hedim, 1); # element matrix -- used as a buffer
     dofnums = zeros(FInt, Hedim); # degree of freedom array -- used as a buffer
@@ -98,7 +98,7 @@ function surfacetransferloads(self::FEMMHeatDiffSurf,  assembler::A,  geom::Noda
             fill!(Fe,  0.0); # Initialize element matrix
             for j=1:npts # Loop over quadrature points
                 locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
-                Jac = Jacobiansurface(self.integdata, J, loc, fes.conn[i],  Ns[j]);
+                Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i],  Ns[j]);
                 Ta = dot(vec(pT), vec(Ns[j]))
                 factor = Ta*self.surfacetransfercoeff*Jac*w[j]
                 Fe .+= factor*Ns[j]
@@ -127,7 +127,7 @@ end
 Compute load vector for nonzero EBC for fixed temperature.
 """
 function nzebcsurfacetransferloads(self::FEMMHeatDiffSurf, assembler::A,  geom::NodalField{FFlt}, temp::NodalField{FFlt}) where {A<:SysvecAssemblerBase}
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
     ndn = ndofs(temp); # number of degrees of freedom per node
@@ -136,7 +136,7 @@ function nzebcsurfacetransferloads(self::FEMMHeatDiffSurf, assembler::A,  geom::
     mdim = manifdim(fes); # manifold dimension of the element
     Hedim = ndn*nne;             # dimension of the element matrix
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     # Prepare assembler and temporaries
     He = fill(zero(FFlt), Hedim, Hedim);                # element matrix -- used as a buffer
     dofnums = zeros(FInt, Hedim); # degree of freedom array -- used as a buffer
@@ -151,7 +151,7 @@ function nzebcsurfacetransferloads(self::FEMMHeatDiffSurf, assembler::A,  geom::
             fill!(He,  0.0);
             for j=1:npts # Loop over quadrature points
                 locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
-                Jac = Jacobiansurface(self.integdata, J, loc, fes.conn[i],  Ns[j]);
+                Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i],  Ns[j]);
                 add_nnt_ut_only!(He, Ns[j], self.surfacetransfercoeff*Jac*w[j])
             end # Loop over quadrature points
             complete_lt!(He)

@@ -24,8 +24,8 @@ The FinEtools package consists of many modules which fall into several  categori
 - Fields: 
  `FieldModule`,    `GeneralFieldModule`, `ElementalFieldModule`,    `NodalFieldModule` (modules for representing quantities on the mesh).
 
-- Support for  integration: 
- `IntegRuleModule`,   `IntegDataModule`.
+- Support for  integration over solids, surfaces, curves, and points: 
+ `IntegRuleModule`,   `IntegDomainModule`.
 
 - General algorithms: `AlgoBaseModule` (algorithms), `FEMMBaseModule` (FEM machine for general tasks).
 

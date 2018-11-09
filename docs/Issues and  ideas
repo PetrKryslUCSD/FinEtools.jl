@@ -465,3 +465,5 @@ I like that a! is telling me inside the function that I’m changing something p
     "editor.renderWhitespace": "boundary",
     "window.menuBarVisibility": "visible",
 }
+
+- Change the name IntegData to IntegDomain. A much better name for the concept of an object which enables integration over some geometrical domain. Status: Implemented 11/08/2018.

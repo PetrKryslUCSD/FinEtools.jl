@@ -9,7 +9,7 @@ module FEMMDeforLinearMSModule
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, FESetH8, FESetT10, manifdim, nodesperelem, gradN!
-import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianvolume
+import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
 import FinEtools.FEMMDeforLinearBaseModule: FEMMDeforLinearAbstract
 import FinEtools.DeforModelRedModule: DeforModelRed, DeforModelRed3D
 import FinEtools.MatDeforModule: MatDefor
@@ -33,48 +33,48 @@ abstract type FEMMDeforLinearAbstractMS <: FEMMDeforLinearAbstract end
 
 mutable struct FEMMDeforLinearMSH8{MR<:DeforModelRed, S<:FESetH8, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstractMS
     mr::Type{MR}
-    integdata::IntegData{S, F} # geometry data
+    integdomain::IntegDomain{S, F} # geometry data
     mcsys::CSys # updater of the material orientation matrix
     material::M # material object
     stabilization_material::MatDeforElastIso
     phis::Vector{FFlt}
 end
 
-function FEMMDeforLinearMSH8(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
+function FEMMDeforLinearMSH8(mr::Type{MR}, integdomain::IntegDomain{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
-    return FEMMDeforLinearMSH8(mr, integdata, mcsys, material, stabilization_material, fill(zero(FFlt), 1))
+    return FEMMDeforLinearMSH8(mr, integdomain, mcsys, material, stabilization_material, fill(zero(FFlt), 1))
 end
 
-function FEMMDeforLinearMSH8(mr::Type{MR}, integdata::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
+function FEMMDeforLinearMSH8(mr::Type{MR}, integdomain::IntegDomain{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
-    return FEMMDeforLinearMSH8(mr, integdata, CSys(manifdim(integdata.fes)), material, stabilization_material, fill(zero(FFlt), 1))
+    return FEMMDeforLinearMSH8(mr, integdomain, CSys(manifdim(integdomain.fes)), material, stabilization_material, fill(zero(FFlt), 1))
 end
 
 mutable struct FEMMDeforLinearMST10{MR<:DeforModelRed, S<:FESetT10, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstractMS
     mr::Type{MR}
-    integdata::IntegData{S, F} # geometry data
+    integdomain::IntegDomain{S, F} # geometry data
     mcsys::CSys # updater of the material orientation matrix
     material::M # material object
     stabilization_material::MatDeforElastIso
     phis::Vector{FFlt}
 end
 
-function FEMMDeforLinearMST10(mr::Type{MR}, integdata::IntegData{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetT10, F<:Function, M<:MatDefor}
+function FEMMDeforLinearMST10(mr::Type{MR}, integdomain::IntegDomain{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetT10, F<:Function, M<:MatDefor}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
-    return FEMMDeforLinearMST10(mr, integdata, mcsys, material, stabilization_material, fill(zero(FFlt), 1))
+    return FEMMDeforLinearMST10(mr, integdomain, mcsys, material, stabilization_material, fill(zero(FFlt), 1))
 end
 
-function FEMMDeforLinearMST10(mr::Type{MR}, integdata::IntegData{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetT10, F<:Function, M<:MatDefor}
+function FEMMDeforLinearMST10(mr::Type{MR}, integdomain::IntegDomain{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetT10, F<:Function, M<:MatDefor}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
     stabilization_material = make_stabilization_material(material)
-    return FEMMDeforLinearMST10(mr, integdata, CSys(manifdim(integdata.fes)), material, stabilization_material, fill(zero(FFlt), 1))
+    return FEMMDeforLinearMST10(mr, integdomain, CSys(manifdim(integdomain.fes)), material, stabilization_material, fill(zero(FFlt), 1))
 end
 
 function make_stabilization_material(material::M) where {M}
@@ -99,7 +99,7 @@ function make_stabilization_material(material::M) where {M}
 end
 
 function buffers1(self::FEMMDeforLinearAbstractMS, geom::NodalField, npts::FInt)
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
     mdim = manifdim(fes); # manifold dimension of the element
@@ -112,7 +112,7 @@ function buffers1(self::FEMMDeforLinearAbstractMS, geom::NodalField, npts::FInt)
 end
 
 function buffers2(self::FEMMDeforLinearAbstractMS, geom::NodalField, u::NodalField, npts::FInt)
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     ndn = ndofs(u); # number of degrees of freedom per node
     nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
@@ -175,8 +175,8 @@ Associate geometry field with the FEMM.
 Compute the  correction factors to account for  the shape of the  elements.
 """
 function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDeforLinearMSH8}
-    fes = self.integdata.fes
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    fes = self.integdomain.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     loc, J, csmatTJ, gradN = buffers1(self, geom, npts)
     self.phis = fill(zero(FFlt), count(fes))
     for i = 1:count(fes) # Loop over elements
@@ -206,8 +206,8 @@ Compute the  correction factors to account for  the shape of the  elements.
 """
 function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDeforLinearMST10}
     gamma = 2.6; C = 1e4;
-    fes = self.integdata.fes
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    fes = self.integdomain.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     loc, J, csmatTJ, gradN = buffers1(self, geom, npts)
     self.phis = fill(zero(FFlt), count(fes))
     for i = 1:count(fes) # Loop over elements
@@ -237,8 +237,8 @@ Compute and assemble  stiffness matrix.
 function stiffness(self::FEMMDeforLinearAbstractMS, assembler::A,
     geom::NodalField{FFlt},
     u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
-    fes = self.integdata.fes
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    fes = self.integdomain.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
     realmat = self.material
     stabmat = self.stabilization_material
@@ -255,7 +255,7 @@ function stiffness(self::FEMMDeforLinearAbstractMS, assembler::A,
         fill!(MeangradN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
             jac!(J, geom.values, fes.conn[i], gradNparams[j]) 
-            Jac[j] = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            Jac[j] = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
             gradN!(fes, AllgradN[j], gradNparams[j], csmatTJ);
             dvol = Jac[j]*w[j]
@@ -287,8 +287,8 @@ nzebcloadsstiffness(self::FEMMDeforLinearAbstract,  assembler::A,
 Compute load vector for nonzero EBC for fixed displacement.
 """
 function nzebcloadsstiffness(self::FEMMDeforLinearAbstractMS,  assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:SysvecAssemblerBase, T<:Number}
-    fes = self.integdata.fes
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    fes = self.integdomain.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
     realmat = self.material
     stabmat = self.stabilization_material
@@ -306,7 +306,7 @@ function nzebcloadsstiffness(self::FEMMDeforLinearAbstractMS,  assembler::A, geo
             fill!(MeangradN, 0.0) # mean basis function gradients
             for j = 1:npts # Loop over quadrature points
                 jac!(J, geom.values, fes.conn[i], gradNparams[j]) 
-                Jac[j] = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
+                Jac[j] = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
                 At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
                 gradN!(fes, AllgradN[j], gradNparams[j], csmatTJ);
                 dvol = Jac[j]*w[j]
@@ -337,8 +337,8 @@ function nzebcloadsstiffness(self::FEMMDeforLinearAbstractMS, geom::NodalField{F
 end
 
 function _iip_meanonly(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
-    fes = self.integdata.fes
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    fes = self.integdomain.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
     MeanN = deepcopy(Ns[1])
     realmat = self.material
@@ -380,7 +380,7 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}, 
         fill!(MeanN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
             jac!(J, geom.values, fes.conn[i], gradNparams[j]) 
-            Jac[j] = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            Jac[j] = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
             gradN!(fes, AllgradN[j], gradNparams[j], csmatTJ);
             dvol = Jac[j]*w[j]
@@ -409,8 +409,8 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}, 
 end
 
 function _iip_extrapmean(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
-    fes = self.integdata.fes
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    fes = self.integdomain.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
     MeanN = deepcopy(Ns[1])
     realmat = self.material
@@ -452,7 +452,7 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}
         fill!(MeanN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
             jac!(J, geom.values, fes.conn[i], gradNparams[j]) 
-            Jac[j] = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            Jac[j] = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
             gradN!(fes, AllgradN[j], gradNparams[j], csmatTJ);
             dvol = Jac[j]*w[j]
@@ -484,8 +484,8 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}
 end
 
 function _iip_extraptrend(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
-    fes = self.integdata.fes
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    fes = self.integdomain.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
     MeanN = deepcopy(Ns[1])
     realmat = self.material
@@ -534,7 +534,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt
         fill!(MeanN, 0.0) # mean basis function gradients
         for j = 1:npts # Loop over quadrature points
             jac!(J, geom.values, fes.conn[i], gradNparams[j]) 
-            Jac[j] = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            Jac[j] = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
             gradN!(fes, AllgradN[j], gradNparams[j], csmatTJ);
             dvol = Jac[j]*w[j]

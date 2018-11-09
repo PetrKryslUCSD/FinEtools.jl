@@ -12,7 +12,7 @@ import LinearAlgebra: norm
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, manifdim, nodesperelem, subset, map2parametric, inparametric, centroidparametric, bfun
-import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianmdim, Jacobianvolume
+import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianmdim, Jacobianvolume
 import FinEtools.CSysModule: CSys
 import FinEtools.FieldModule: ndofs, nents, gatherdofnums!, gathervalues_asmat! 
 import FinEtools.NodalFieldModule: NodalField, nnodes
@@ -38,17 +38,17 @@ abstract type FEMMAbstractBase; end
 Class for base finite element modeling machine.
 """
 mutable struct FEMMBase{S<:FESet, F<:Function} <: FEMMAbstractBase
-    integdata::IntegData{S, F} # geometry data
+    integdomain::IntegDomain{S, F} # geometry data
     mcsys::CSys # updater of the material orientation matrix
 end
 
 """
-    FEMMBase(integdata::IntegData{S, F}) where {S<:FESet, F<:Function}
+    FEMMBase(integdomain::IntegDomain{S, F}) where {S<:FESet, F<:Function}
 
 Construct with the default orientation matrix (identity).  
 """
-function FEMMBase(integdata::IntegData{S, F}) where {S<:FESet, F<:Function}
-    return FEMMBase(integdata, CSys(manifdim(integdata.fes)))
+function FEMMBase(integdomain::IntegDomain{S, F}) where {S<:FESet, F<:Function}
+    return FEMMBase(integdomain, CSys(manifdim(integdomain.fes)))
 end
 
 """
@@ -93,7 +93,7 @@ Returns value of type `R`, which is initialized by `initial`.
 """
 function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R;
     m::FInt=-1) where {T<:Number, FL<:NodalField{T}, R, F<:Function}
-    fes = self.integdata.fes  # finite elements
+    fes = self.integdomain.fes  # finite elements
     # Constants
     nfes = count(fes); # number of finite elements in the set
     ndn = ndofs(afield); # number of degrees of freedom per node
@@ -101,7 +101,7 @@ function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, 
     sdim = ndofs(geom);            # number of space dimensions
     mdim = manifdim(fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc = integrationdata(self.integdata);
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain);
     a = fill(zero(T), nne,ndn); # array of field DOFS-- used as a buffer
     loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
     val = fill(zero(T), 1, ndn); # field value at the point -- used as a buffer
@@ -117,7 +117,7 @@ function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, 
         for j = 1:npts #Loop over all integration points
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
             my_At_mul_B!(val, Ns[j], a);# Field value at the quadrature point
-            Jac = Jacobianmdim(self.integdata, J, loc, fes.conn[i],  Ns[j], m);
+            Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i],  Ns[j], m);
             result = result + fh(loc,val)*Jac*w[j];
         end
     end
@@ -138,7 +138,7 @@ Returns value of type `R`, which is initialized by `initial`.
 """ 
 function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R; 
     m::FInt=-1) where {T<:Number, FL<:ElementalField{T}, R, F<:Function}
-    fes = self.integdata.fes  # finite elements
+    fes = self.integdomain.fes  # finite elements
     # Constants
     nfes = count(fes); # number of finite elements in the set
     ndn = ndofs(afield); # number of degrees of freedom per node
@@ -146,7 +146,7 @@ function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, 
     sdim = ndofs(geom);            # number of space dimensions
     mdim = manifdim(fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc = integrationdata(self.integdata);
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain);
     a = fill(zero(FFlt), nne,ndn); # array of field DOFS-- used as a buffer
     loc = fill(zero(FFlt), 1,sdim); # quadrature point location -- used as a buffer
     J = fill(zero(FFlt), sdim,mdim); # Jacobian matrix -- used as a buffer
@@ -160,7 +160,7 @@ function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, 
         gathervalues_asmat!(afield, a, [i]);# retrieve element dofs
         for j = 1:npts #Loop over all integration points
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
-            Jac = Jacobianmdim(self.integdata, J, loc, fes.conn[i],  Ns[j], m);
+            Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i],  Ns[j], m);
             result = result + fh(loc, a)*Jac*w[j];
         end
     end
@@ -202,7 +202,7 @@ Inertia=I*rhos;
 ```
 """
 function integratefunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, fh::F, m::FInt = -1) where {F<:Function}
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     if m < 0
         m = manifdim(fes);  # native  manifold dimension
     end
@@ -212,14 +212,14 @@ function integratefunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, fh::F
     sdim = ndofs(geom);            # number of space dimensions
     mdim = manifdim(fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc = integrationdata(self.integdata);
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain);
     loc = fill(zero(FFlt), 1,sdim); # quadrature point location -- used as a buffer
     J = fill(zero(FFlt), sdim,mdim); # Jacobian matrix -- used as a buffer
     result = 0.0;# Initialize the result
     for i = 1:count(fes)  # Now loop over all fes in the set
         for j=1:npts #Loop over all integration points
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
-            Jac = Jacobianmdim(self.integdata, J, loc, fes.conn[i],  Ns[j], m);
+            Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i],  Ns[j], m);
             result = result + fh(vec(loc))*Jac*w[j];
         end
     end
@@ -408,7 +408,7 @@ Compute the distributed-load vector.
 """
 function distribloads(self::FEMM, assembler::A,
     geom::NodalField{FFlt}, P::NodalField{T}, fi::ForceIntensity, m::FInt) where {FEMM<:FEMMAbstractBase, T<:Number, A<:SysvecAssemblerBase}
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
     ndn = ndofs(P); # number of degrees of freedom per node
@@ -417,7 +417,7 @@ function distribloads(self::FEMM, assembler::A,
     mdim = manifdim(fes);     # manifold dimension of the element
     Cedim = ndn*nne;       # dimension of the element matrix/vector
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc = integrationdata(self.integdata);
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain);
     # Prepare some buffers:
     dofnums = fill(zero(FInt), Cedim); # degree of freedom array -- used as a buffer
     loc = fill(zero(FFlt), (1,sdim)); # quadrature point location -- used as a buffer
@@ -428,7 +428,7 @@ function distribloads(self::FEMM, assembler::A,
         fill!(Fe, 0.0);
         for j = 1:npts
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
-            Jac = Jacobianmdim(self.integdata, J, loc, fes.conn[i],  Ns[j], m);
+            Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i],  Ns[j], m);
             force = updateforce!(fi, loc, J, fes.label[i]); # retrieve the applied load
             Factor::FFlt = (Jac * w[j]);
             NkxF::FFlt = 0.0
@@ -462,7 +462,7 @@ The matrix has a nonzero in all the rows and columns which correspond to nodes
 connected by some finite element.
 """
 function connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:FEMMAbstractBase}
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     nfes = length(fes.conn)
     nconns = nodesperelem(fes)
     N = nfes*nconns*nconns
@@ -483,7 +483,7 @@ end
 
 struct InverseDistanceInspectorData
     component::Vector{FInt}
-    d::Vector{FFlt} # nodesperelem(integdata.fes)
+    d::Vector{FFlt} # nodesperelem(integdomain.fes)
     sum_inv_dist::Vector{FFlt} # nnodes(geom)
     sum_quant_inv_dist::Array{FFlt, 2} # nnodes(geom) x length(component)
 end
@@ -567,7 +567,7 @@ function fieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
     dT::NodalField{FFlt},  quantity::Symbol,  component::FIntVec;
     context...) where {FEMM<:FEMMAbstractBase, T<:Number}
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     # Constants
     nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
@@ -686,7 +686,7 @@ function elemfieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
     dT::NodalField{FFlt},  quantity::Symbol,  component::FIntVec;
     context...) where {FEMM<:FEMMAbstractBase, T<:Number}
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     # Constants
     nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
@@ -750,7 +750,7 @@ end
 
 function  buffers(self::FEMM, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:FEMMAbstractBase, T}
     # Constants
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     nfes = count(fes); # number of finite elements in the set
     ndn = ndofs(afield); # number of degrees of freedom per node
     nne = nodesperelem(fes); # number of nodes for element
@@ -773,9 +773,9 @@ end
 Compute the inner-product (Gram) matrix.
 """
 function innerproduct(self::FEMM, assembler::A, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:FEMMAbstractBase, A<:SysmatAssemblerBase, T}
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     dofnums, loc, J, gradN, elmat = buffers(self, geom, afield)
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     NexpTNexp = FFltMat[];# basis f. matrix -- buffer
     ndn = ndofs(afield)
     Indn = [i==j ? one(FFlt) : zero(FFlt) for i=1:ndn, j=1:ndn] # "identity"
@@ -791,7 +791,7 @@ function innerproduct(self::FEMM, assembler::A, geom::NodalField{FFlt}, afield::
         fill!(elmat, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
-            Jac = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             thefactor::FFlt =(Jac*w[j]);
             elmat .+= NexpTNexp[j]*thefactor
         end # Loop over quadrature points

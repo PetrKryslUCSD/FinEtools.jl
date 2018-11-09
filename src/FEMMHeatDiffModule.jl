@@ -10,7 +10,7 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: FESet, nodesperelem, manifdim, gradN!
 import FinEtools.MatHeatDiffModule: MatHeatDiff
-import FinEtools.IntegDataModule: IntegData, integrationdata, Jacobianvolume
+import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
 import FinEtools.CSysModule: CSys, updatecsmat!
 import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!
 import FinEtools.NodalFieldModule: NodalField 
@@ -26,23 +26,23 @@ import LinearAlgebra: norm, dot
 
 # Type for heat diffusion finite element modeling machine.
 mutable struct FEMMHeatDiff{S<:FESet, F<:Function, M<:MatHeatDiff} <: FEMMAbstractBase
-    integdata::IntegData{S, F} # geometry data
+    integdomain::IntegDomain{S, F} # geometry data
     mcsys::CSys # updater of the material orientation matrix
     material::M # material object
 end
 
 """
-    FEMMHeatDiff(integdata::IntegData{S, F}, material::M) where {S<:FESet, F<:Function, M<:MatHeatDiff}
+    FEMMHeatDiff(integdomain::IntegDomain{S, F}, material::M) where {S<:FESet, F<:Function, M<:MatHeatDiff}
 
 Construct with the default orientation matrix (identity).  
 """
-function FEMMHeatDiff(integdata::IntegData{S, F}, material::M) where {S<:FESet, F<:Function, M<:MatHeatDiff}
-    return FEMMHeatDiff(integdata, CSys(manifdim(integdata.fes)), material)
+function FEMMHeatDiff(integdomain::IntegDomain{S, F}, material::M) where {S<:FESet, F<:Function, M<:MatHeatDiff}
+    return FEMMHeatDiff(integdomain, CSys(manifdim(integdomain.fes)), material)
 end
 
 function  buffers(self::FEMMHeatDiff, geom::NodalField{FFlt}, temp::NodalField{FFlt})
     # Constants
-    fes = self.integdata.fes
+    fes = self.integdomain.fes
     nfes = count(fes); # number of finite elements in the set
     ndn = ndofs(temp); # number of degrees of freedom per node
     nne = nodesperelem(fes); # number of nodes for element
@@ -69,8 +69,8 @@ end
 Compute the conductivity matrix.
 """
 function conductivity(self::FEMMHeatDiff,  assembler::A, geom::NodalField{FFlt},  temp::NodalField{FFlt}) where {A<:SysmatAssemblerBase}
-    fes = self.integdata.fes
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    fes = self.integdomain.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     # Thermal conductivity matrix is in local  material coordinates.
     kappa_bar =  self.material.thermal_conductivity;
     # Prepare assembler and buffers
@@ -80,7 +80,7 @@ function conductivity(self::FEMMHeatDiff,  assembler::A, geom::NodalField{FFlt},
         fill!(elmat,  0.0); # Initialize element matrix
         for j=1:npts # Loop over quadrature points
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j])
-            Jac = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             updatecsmat!(self.mcsys, loc, J, fes.label[i]);
             At_mul_B!(RmTJ,  self.mcsys.csmat,  J); # local Jacobian matrix
             gradN!(fes, gradN, gradNparams[j], RmTJ);
@@ -107,8 +107,8 @@ end
 Compute load vector for nonzero EBC of prescribed temperature.
 """
 function nzebcloadsconductivity(self::FEMMHeatDiff, assembler::A,  geom::NodalField{FFlt},  temp::NodalField{FFlt}) where {A<:SysvecAssemblerBase}
-    fes = self.integdata.fes
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    fes = self.integdomain.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     # Thermal conductivity matrix is in local  material coordinates.
     kappa_bar = self.material.thermal_conductivity;
     # Prepare assembler and buffers
@@ -121,7 +121,7 @@ function nzebcloadsconductivity(self::FEMMHeatDiff, assembler::A,  geom::NodalFi
             fill!(elmat,  0.0);
             for j=1:npts # Loop over quadrature points
                 locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
-                Jac = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
+                Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
                 updatecsmat!(self.mcsys, loc, J, fes.label[i]);
                 At_mul_B!(RmTJ,  self.mcsys.csmat,  J); # local Jacobian matrix
                 gradN!(fes, gradN, gradNparams[j], RmTJ);
@@ -143,8 +143,8 @@ function nzebcloadsconductivity(self::FEMMHeatDiff,  geom::NodalField{FFlt},   t
 end
 
 function energy(self::FEMMHeatDiff, geom::NodalField{FFlt},  temp::NodalField{FFlt}) where {A<:SysvecAssemblerBase}
-    fes = self.integdata.fes
-    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdata);
+    fes = self.integdomain.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     # Thermal conductivity matrix is in local  material coordinates.
     kappa_bar = self.material.thermal_conductivity;
     # Prepare assembler and buffers
@@ -157,7 +157,7 @@ function energy(self::FEMMHeatDiff, geom::NodalField{FFlt},  temp::NodalField{FF
         gathervalues_asvec!(temp, elvec, fes.conn[i]);# retrieve element coordinates
         for j=1:npts # Loop over quadrature points
             locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
-            Jac = Jacobianvolume(self.integdata, J, loc, fes.conn[i], Ns[j]);
+            Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             updatecsmat!(self.mcsys, loc, J, fes.label[i]);
             At_mul_B!(RmTJ,  self.mcsys.csmat,  J); # local Jacobian matrix
             gradN!(fes, gradN, gradNparams[j], RmTJ);
