@@ -21,9 +21,9 @@ import FinEtools.IntegRuleModule: IntegRule
 Integration domain.
 
 - `T` = type of finite element set.  The type of the FE set will be dependent
-upon the operations required. For instance, for interior (volume) integrals
-such as body load or the stiffness hexahedral H8 may be used, whereas for
-boundary  (surface) integrals quadrilateral Q4 would be needed.
+  upon the operations required. For instance, for interior (volume) integrals
+  such as body load or the stiffness hexahedral H8 may be used, whereas for
+  boundary  (surface) integrals quadrilateral Q4 would be needed.
 - `F` = type of function to return the "other" dimension.
 
 An integration domain consists of the finite elements that approximate the
