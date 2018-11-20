@@ -213,7 +213,7 @@ whereas
 yields
 1.3e+11 (in Pascal)
 """
-function phun(str::String; system_of_units = :SI, base_time_units = :SEC)
+function phun(str::String; system_of_units = :SI, base_time_units = :SEC)::FFlt
 
     @assert system_of_units in [:SI :SIM :US :IMPERIAL :CGS :SIMM]
     @assert base_time_units in [:SEC :MIN :HR :DY :YR :WK]
@@ -241,8 +241,8 @@ function phun(str::String; system_of_units = :SI, base_time_units = :SEC)
     end
 
     ostr  =  replacesymbols(d, str);
-    val  =  Core.eval(Main, Meta.parse(ostr));
-    return val
+    val  =  FFlt(Core.eval(Main, Meta.parse(ostr)))
+    return val::FFlt
 end
 
 
