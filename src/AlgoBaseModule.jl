@@ -38,7 +38,7 @@ function dcheck!(d::FDataDict, recognized_keys::Array{String})
 end
 
 """
-    richextrapol(solns::AbstractArray{Real}, params::AbstractArray{Real})
+    richextrapol(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn}}
 
 Richardson extrapolation.
 
@@ -52,11 +52,11 @@ Output:
 `solnestim`= estimate of the asymptotic solution from the data points in the
     `solns` array
 `beta`= convergence rate
-`c` = constant in the estimate "error=c*h^beta"
+`c` = constant in the estimate `error=c*h^beta`
 `residual` = residual after equations from which the above quantities were
      solved (this is a measure of how accurately was the system solved).
 """
-function richextrapol(solns::FFltVec, params::FFltVec)
+function richextrapol(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn}}
     @assert abs(params[1]/params[2] - params[2]/params[3]) < 1e-6 "Parameter pair ratio not fixed"
     nsolns = solns./solns[1];
     solnestim = ((-(nsolns[1]*nsolns[3]-nsolns[2]^2)/(2*nsolns[2]-nsolns[1]-nsolns[3])))*solns[1];
