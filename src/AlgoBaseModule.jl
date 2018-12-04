@@ -42,21 +42,59 @@ end
 
 Richardson extrapolation.
 
-`solns` =  array of solution values
-`params` = array of values of parameters for which the `solns` have been obtained
+- `solns` =  array of solution values
+- `params` = array of values of parameters for which the `solns` have been obtained
 
 This function is applicable only to fixed ratio between the mesh sizes,
   `params[1]/params[2) = params[2)/params[3)`.
   
 Output:
-`solnestim`= estimate of the asymptotic solution from the data points in the
-    `solns` array
-`beta`= convergence rate
-`c` = constant in the estimate `error=c*h^beta`
-`residual` = residual after equations from which the above quantities were
-     solved (this is a measure of how accurately was the system solved).
+- `solnestim`= estimate of the asymptotic solution from the data points in the
+  `solns` array
+- `beta`= convergence rate
+- `c` = constant in the estimate `error=c*h^beta`
+- `residual` = residual after equations from which the above quantities were
+  solved (this is a measure of how accurately was the system solved).
 """
 function richextrapol(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn}}
+    solnn = maximum(abs.(solns));
+    nsolns = solns./solnn # Normalize data for robust calculation
+    napproxerrors = diff(nsolns) # Normalized approximate errors
+    fun = y ->  napproxerrors[1] / (params[1]^y - params[2]^y) - napproxerrors[2] / (params[2]^y - params[3]^y)
+    tolx, tolf = 1.0e-12, 1.0e-12
+    beta = bisect(fun, 0.01, 10.0, tolx, tolf)
+    beta = (beta[1] + beta[2]) / 2.0
+    c = napproxerrors[1] / (params[1]^beta - params[2]^beta)
+    nestimtrueerror = c * params[3]^beta
+    solnestim = (nsolns[3] + nestimtrueerror) * solnn
+    c = c * solnn # adjust for not-normalized data
+    # just to check things, calculate the residual
+    residual = fill(zero(solns[1]),3)
+    for I =1:3
+        residual[I] = (solnestim-solns[I])-c*params[I]^beta; # this should be close to zero
+    end
+    return solnestim, beta, c, residual
+end
+
+"""
+    richextrapoluniform(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn}}
+
+Richardson extrapolation.
+
+- `solns` =  array of solution values
+- `params` = array of values of parameters for which the `solns` have been
+  obtained. This function is applicable only to fixed (uniform) ratio between
+  the mesh sizes, `params[1]/params[2) = params[2)/params[3)`.
+  
+Output:
+- `solnestim`= estimate of the asymptotic solution from the data points in the
+  `solns` array
+- `beta`= convergence rate
+- `c` = constant in the estimate `error=c*h^beta`
+- `residual` = residual after equations from which the above quantities were
+  solved (this is a measure of how accurately was the system solved).
+"""
+function richextrapoluniform(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn}}
     @assert abs(params[1]/params[2] - params[2]/params[3]) < 1e-6 "Parameter pair ratio not fixed"
     nsolns = solns./solns[1];
     solnestim = ((-(nsolns[1]*nsolns[3]-nsolns[2]^2)/(2*nsolns[2]-nsolns[1]-nsolns[3])))*solns[1];
@@ -67,7 +105,7 @@ function richextrapol(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn
     end
     # just to check things, calculate the residual
     c = (solnestim-solns[1])/params[1]^beta;
-    residual = zeros(FFlt,3)
+    residual = fill(zero(solns[1]),3)
     for I =1:3
         residual[I] = (solnestim-solns[I])-c*params[I]^beta; # this should be close to zero
     end

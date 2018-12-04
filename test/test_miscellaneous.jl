@@ -2128,3 +2128,75 @@ end
 end
 using .mmmmtest_trirules
 mmmmtest_trirules.test()
+
+module mtestRichardson1
+using FinEtools
+using Test
+import LinearAlgebra: norm
+using FinEtools.AlgoBaseModule: richextrapol, richextrapoluniform
+function test()
+    # Tests of Richardson extrapolation for sequence with uniform refinement factor
+    testsets = [ (alpha = 0.5, beta = 2.0, c = 0.3, truesol = 1.0),
+           (alpha = 0.85, beta = 1.2, c = -0.3, truesol = 10.0),
+           (alpha = 0.85, beta = 1.2, c = -0.3, truesol = -10.0),
+           (alpha = 0.25, beta = 1.2, c = -1.3, truesol = -10.0),
+           (alpha = 0.66, beta = 1.02, c = -1.3, truesol = -10.0e4),
+           (alpha = 0.96, beta = 0.3, c = -1.3, truesol = -1.0e4),
+           ]
+    for t in testsets
+        parameters = [1.0, t.alpha, t.alpha^2] 
+        model = p -> (t.truesol) - (t.c)*p^(t.beta)
+        solns = [model(p) for p in parameters]
+        solnestim, betaestim, cestim, residual = richextrapol(solns, parameters)
+        @test abs(t.truesol - solnestim) < 1.0e-6 * abs(t.truesol)
+        @test abs(t.beta - betaestim) < 1.0e-5 * t.beta
+        @test abs(t.c - cestim) < 1.0e-5 * abs(t.c)
+    end
+    for t in testsets
+        parameters = [1.0, t.alpha, t.alpha^2] 
+        model = p -> (t.truesol) - (t.c)*p^(t.beta)
+        solns = [model(p) for p in parameters]
+        solnestim, betaestim, cestim, residual = richextrapoluniform(solns, parameters)
+        @test abs(t.truesol - solnestim) < 1.0e-6 * abs(t.truesol)
+        @test abs(t.beta - betaestim) < 1.0e-4 * t.beta
+        @test abs(t.c - cestim) < 1.0e-4 * abs(t.c)
+    end
+    true
+end
+end
+using .mtestRichardson1
+mtestRichardson1.test()
+
+module mtestRichardson2
+using FinEtools
+using Test
+import LinearAlgebra: norm
+using FinEtools.AlgoBaseModule: richextrapol
+function test()
+    # Tests of Richardson extrapolation for sequence with Non-uniform refinement 
+    testsets = [ (parameters = [0.5, 0.3, 0.1], beta = 2.0, c = 0.3, truesol = 1.0),
+           (parameters = [0.5, 0.4, 0.1], beta = 1.2, c = -0.3, truesol = 10.0),
+           (parameters = [0.54, 0.14, 0.1], beta = 1.2, c = -0.3, truesol = 10.0),
+           (parameters = [0.95, 0.41, 0.1], beta = 1.2, c = -0.3, truesol = 10.0),
+           (parameters = [0.5, 0.43, 0.1], beta = 1.2, c = -0.3, truesol = 10.0),
+           (parameters = [0.5, 0.3, 0.2], beta = 1.2, c = -0.3, truesol = -10.0),
+           (parameters = [0.5, 0.3, 0.01], beta = 1.2, c = -1.3, truesol = -10.0),
+           (parameters = [0.5, 0.49, 0.01], beta = 1.2, c = -1.3, truesol = -10.0),
+           (parameters = [0.5, 0.03, 0.01], beta = 1.2, c = -1.3, truesol = -10.0),
+           (parameters = [0.5, 0.13, 0.1], beta = 1.02, c = -1.3, truesol = -10.0e4),
+           (parameters = [0.35, 0.3, 0.1], beta = 0.3, c = -1.3, truesol = -1.0e4),
+           ]
+    for t in testsets
+      parameters = t.parameters
+      model = p -> (t.truesol) - (t.c)*p^(t.beta)
+      solns = [model(p) for p in parameters]
+      solnestim, betaestim, cestim, residual = richextrapol(solns, parameters)
+      @test abs(t.truesol - solnestim) < 1.0e-6 * abs(t.truesol)
+      @test abs(t.beta - betaestim) < 1.0e-5 * t.beta
+      @test abs(t.c - cestim) < 1.0e-5 * abs(t.c)
+    end   
+    true
+end
+end
+using .mtestRichardson2
+mtestRichardson2.test()
