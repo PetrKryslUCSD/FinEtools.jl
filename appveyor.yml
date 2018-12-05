@@ -29,11 +29,11 @@ install:
 
 build_script:
   - echo "%JL_BUILD_SCRIPT%"
-  - C:\julia\bin\julia --inline=no --project --code-coverage=user -e "%JL_BUILD_SCRIPT%"
+  - C:\julia\bin\julia -e "%JL_BUILD_SCRIPT%"
 
 test_script:
   - echo "%JL_TEST_SCRIPT%"
-  - C:\julia\bin\julia --inline=no --project --code-coverage=user -e "%JL_TEST_SCRIPT%"
+  - C:\julia\bin\julia -e "%JL_TEST_SCRIPT%"
 
 # Uncomment to support code coverage upload. Should only be enabled for packages
 # which would have coverage gaps without running on Windows
