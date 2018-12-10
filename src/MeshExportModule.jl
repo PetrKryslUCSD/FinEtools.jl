@@ -218,6 +218,92 @@ function vtkexportmesh(theFile::String, Connectivity, Points, Cell_type;
     return true
 end
 
+"""
+    vtkexportvectors(theFile::String, Points, vectors)
+
+Export vector data to a VTK 1.0 file.
+
+- `Points` = array of collection of coordinates (tuples or vectors), 
+- `vectors` = array of tuples, `(name, data)`, where `name` is a string, and
+  `data` is array of collection of coordinates (tuples or vectors).
+
+# Example
+```
+Points = [(1.0, 3.0), (0.0, -1.0)]
+vectors = [("v", [(-1.0, -2.0), (1.0, 1.0)])]
+vtkexportvectors("theFile.VTK", Points, vectors)
+```
+will produce file with
+```
+# vtk DataFile Version 1.0
+FinEtools Export
+ASCII
+
+DATASET UNSTRUCTURED_GRID
+POINTS 2 double
+1.0 3.0 0.0
+0.0 -1.0 0.0
+
+
+POINT_DATA 2
+VECTORS v double
+-1.0 -2.0 0.0
+1.0 1.0 0.0
+```
+"""
+function vtkexportvectors(theFile::String, Points, vectors)
+    fid=open(theFile,"w");
+    if (fid == -1)
+        error(["Could not open " * theFile])
+        return nothing
+    end
+    print(fid,"# vtk DataFile Version 1.0\n");
+    print(fid,"FinEtools Export\n");
+    print(fid,"ASCII\n");
+    print(fid,"\n");
+    print(fid,"DATASET UNSTRUCTURED_GRID\n");
+    print(fid,"POINTS ", length(Points), " double\n");
+    pt = fill(0.0, 3)
+    for i = 1:length(Points)
+        for k = 1:length(Points[i])
+            pt[k] = Points[i][k]
+        end
+        for j= 1:length(pt)-1
+            print(fid, pt[j]," ");
+        end
+        print(fid,pt[end],"\n");
+    end
+    print(fid,"\n");
+    print(fid,"\n");
+
+    did_point_data = false
+
+    if vectors != nothing
+        for  vx = 1:length(vectors)
+            name, data = vectors[vx]
+            if (!did_point_data)
+                print(fid,"POINT_DATA ",length(data),"\n");
+                did_point_data = true
+            end
+            print(fid,"VECTORS ", name," double\n");
+            #print(fid,"LOOKUP_TABLE default\n");
+            for i= 1:length(data)
+                for k = 1:length(data[i])
+                    pt[k] = data[i][k]
+                end
+                for j= 1:length(pt)-1
+                   print(fid, pt[j]," ");
+                end
+                print(fid,pt[end],"\n");
+            end
+            print(fid,"\n");
+        end
+    end
+    print(fid,"\n");
+
+    fid=close(fid);
+    return true
+end
 
 ################################################################################
 # Abaqus export
