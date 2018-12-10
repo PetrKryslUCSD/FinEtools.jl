@@ -29,9 +29,9 @@ struct  MatDeforElastIso{MR<:DeforModelRed, MTAN<:Function, MUPD<:Function, MTHS
     nu::FFlt # Poisson ratio
     CTE::FFlt # Coefficient of Thermal Expansion
     D::Array{FFlt, 2} # cached matrix of 3D tangent moduli
-    tangentmoduli!::MTAN
-    update!::MUPD
-    thermalstrain!::MTHS
+    tangentmoduli!::MTAN # Function to return the tangent moduli matrix
+    update!::MUPD # Function to update the material state
+    thermalstrain!::MTHS # Function to calculate the thermal strains
 end
 
 function threedD(E::FFlt, nu::FFlt)
