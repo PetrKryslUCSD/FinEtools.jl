@@ -1,4 +1,4 @@
-Bottommodule mmmmPoiss_06122017
+module mmmmPoiss_06122017
 using FinEtools
 using Test
 import LinearAlgebra: cholesky
