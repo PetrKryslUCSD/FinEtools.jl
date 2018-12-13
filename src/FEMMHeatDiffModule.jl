@@ -154,7 +154,7 @@ function energy(self::FEMMHeatDiff, geom::NodalField{FFlt},  temp::NodalField{FF
     # Prepare assembler and buffers
     dofnums, loc, J, RmTJ, gradN, kappa_bar, kappa_bargradNT, elmat, elvec, elvecfix = buffers1(self, geom, temp)
     # Thermal conductivity matrix is in local  material coordinates.
-    negkappa_bar = copy((-1.0) * self.material.tangentmoduli!(self.material, kappa_bar))
+    kappa_bar = self.material.tangentmoduli!(self.material, kappa_bar)
     gradT = fill(0.0, 1, size(gradN, 2))
     fluxT = deepcopy(gradT)
     energy = 0.0
@@ -168,7 +168,7 @@ function energy(self::FEMMHeatDiff, geom::NodalField{FFlt},  temp::NodalField{FF
             At_mul_B!(RmTJ,  self.mcsys.csmat,  J); # local Jacobian matrix
             gradN!(fes, gradN, gradNparams[j], RmTJ);
             At_mul_B!(gradT, elvec, gradN) 
-            A_mul_B!(fluxT, gradT, negkappa_bar) 
+            A_mul_B!(fluxT, gradT, kappa_bar) 
             energy += dot(vec(gradT), vec(fluxT)) * (Jac*w[j])
         end # Loop over quadrature points
     end

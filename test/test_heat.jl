@@ -2091,7 +2091,7 @@ function test()
 #   MeshExportModule.vtkexportmesh(File, fes.conn, [geom.values Temp.values], MeshExportModule.T3; scalars=[("Temperature", Temp.values)])
   energ1 = transpose(U) * K * U
   # println("energ1 = $(energ1)")
-  # println("energy(femm, geom, Temp) = $(energy(femm, geom, Temp))")
+  # @show e  = energy(femm, geom, Temp)
   @test abs(energ1 - energy(femm, geom, Temp)) / energ1 < 1.0e-6
   true
 end
@@ -2960,7 +2960,7 @@ function test()
   scattersysvec!(Temp,U[:])
 
   qenergy = energy(femm, geom, Temp)
-  @test abs(qenergy - A * A * 100.0 * dot(gradtemp, -thermal_conductivity * vec(gradtemp))) < 1.0e-9
+  @test abs(qenergy - A * A * 100.0 * dot(gradtemp, thermal_conductivity * vec(gradtemp))) < 1.0e-9
 
   # File =  "mmblock_Energy_2-vectors.vtk"
   # vtkexportvectors(File, qplocs, [("heatflux", qpfluxes)])
