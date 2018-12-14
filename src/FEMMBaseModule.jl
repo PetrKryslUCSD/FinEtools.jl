@@ -176,15 +176,13 @@ Integrate a function over the discrete manifold.
 Integrate some scalar function over the geometric cells. The function takes a
 single argument, the position vector.
 
-When the scalar
-function returns just +1 (such as `(x) ->  1.0`), the result
-measures the volume (number of points, length, area, 3-D volume,
-according to the manifold dimension). When the function returns the mass
-density, the method measures the mass, when the function returns the
-x-coordinate equal measure the static moment with respect to the y- axis,
-and so on.
+When the scalar function returns just +1 (such as `(x) ->  1.0`), the result
+measures the volume (number of points, length, area, 3-D volume, according to
+the manifold dimension). When the function returns the mass density, the
+method measures the mass, when the function returns the x-coordinate equal
+measure the static moment with respect to the y- axis, and so on.
 
-### Example:
+# Example:
 Compute the volume of the mesh and then its center of gravity:
 ```
 V = integratefunction(femm, geom, (x) ->  1.0)
@@ -196,9 +194,9 @@ CG = vec([Sx Sy Sz]/V)
 Compute the moments of inertia:
 ```
 % Now compute the moments of inertia
-Ixx = =measure(femm,geom,@(x)(norm(x-CG)^2*eye(3)-(x-CG)'*(x-CG)))
-mass=V*rhos;
-Inertia=I*rhos;
+Ixx = measure(femm,geom,@(x)(norm(x-CG)^2*eye(3)-(x-CG)'*(x-CG)))
+mass = V*rhos;
+Inertia = I*rhos;
 ```
 """
 function integratefunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, fh::F, m::FInt = -1) where {F<:Function}
@@ -232,13 +230,15 @@ end
         )  where {T<:Number, F<:NodalField{T}}
 
 Transfer a nodal field from a coarse mesh to a finer one.
-    - `ff` = the fine-mesh field (modified and also returned)
-    - `fensf` = finite element node set for the fine-mesh
-    - `fc` = the coarse-mesh field
-    - `fensc` = finite element node set for the fine-mesh,
-    - `fesc` = finite element set for the coarse mesh
-    - `geometricaltolerance` = tolerance in physical space for searches of the adjacent nodes
-    - `parametrictolerance` = tolerance in parametric space for for check whether node is inside an element
+- `ff` = the fine-mesh field (modified and also returned)
+- `fensf` = finite element node set for the fine-mesh
+- `fc` = the coarse-mesh field
+- `fensc` = finite element node set for the fine-mesh,
+- `fesc` = finite element set for the coarse mesh
+- `geometricaltolerance` = tolerance in physical space for searches of the
+  adjacent nodes
+- `parametrictolerance` = tolerance in parametric space for for check whether
+  node is inside an element
 """
 function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENodeSet, fesc::FESet, geometricaltolerance::FFlt; parametrictolerance::FFlt = 0.01)  where {T<:Number, F<:NodalField{T}}
     fill!(ff.values, Inf) # the "infinity" value indicates a missed node
@@ -348,17 +348,18 @@ end
 # end
 
 """
-    transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
-        fc::F, fensc::FENodeSet, fesc::FESet, geometricaltolerance::FFlt; parametrictolerance::FFlt = 0.01
-        )  where {T<:Number, F<:ElementalField{T}}
+    transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F,
+        fensc::FENodeSet, fesc::FESet, geometricaltolerance::FFlt;
+        parametrictolerance::FFlt = 0.01 )  where {T<:Number,
+        F<:ElementalField{T}}
 
-Transfer a elemental field from a coarse mesh to a finer one.
-`ff` = the fine-mesh field (modified and also returned)
-`fensf` = finite element node set for the fine-mesh
-`fc` = the coarse-mesh field
-`fensc` = finite element node set for the fine-mesh,
-`fesc` = finite element set for the coarse mesh
-`tolerance` = tolerance in physical space for searches of the adjacent nodes
+Transfer an elemental field from a coarse mesh to a finer one.
+- `ff` = the fine-mesh field (modified and also returned)
+- `fensf` = finite element node set for the fine-mesh
+- `fc` = the coarse-mesh field
+- `fensc` = finite element node set for the fine-mesh,
+- `fesc` = finite element set for the coarse mesh
+- `tolerance` = tolerance in physical space for searches of the adjacent nodes
 """
 function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENodeSet, fesc::FESet, geometricaltolerance::FFlt; parametrictolerance::FFlt = 0.01)  where {T<:Number, F<:ElementalField{T}}
     @assert count(fesf) == nents(ff)
