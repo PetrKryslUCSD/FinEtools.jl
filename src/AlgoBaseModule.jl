@@ -71,9 +71,9 @@ function richextrapol(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn
    	fun = y ->  napperrs[1] * (nhs[2]^y - nhs[3]^y) - napperrs[2] * (nhs[1]^y - nhs[2]^y)
    	# x = collect(lower:lower:upper)
    	# y = fun.(x)
-   	# tolx, tolf = 1.0e-6 * lower, 1.0e-12 * maximum(abs.(y))
    	# p = plot(x=x, y = y, Geom.line);
    	# draw(PDF("File.pdf", 16cm, 9cm), p)
+   	tolx, tolf = 1.0e-6 * lower, 1.0e-12  # Note: the function value is normalized to 1.0
    	beta = bisect(fun, lower, upper, tolx, tolf)
    	beta = (beta[1] + beta[2]) / 2.0
    	c = napproxerrors[1] / (params[1]^beta - params[2]^beta)
