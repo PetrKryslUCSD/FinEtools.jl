@@ -57,23 +57,35 @@ Output:
   solved (this is a measure of how accurately was the system solved).
 """
 function richextrapol(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn}}
-    solnn = maximum(abs.(solns));
-    nsolns = solns./solnn # Normalize data for robust calculation
-    napproxerrors = diff(nsolns) # Normalized approximate errors
-    fun = y ->  napproxerrors[1] / (params[1]^y - params[2]^y) - napproxerrors[2] / (params[2]^y - params[3]^y)
-    tolx, tolf = 1.0e-12, 1.0e-12
-    beta = bisect(fun, 0.01, 10.0, tolx, tolf)
-    beta = (beta[1] + beta[2]) / 2.0
-    c = napproxerrors[1] / (params[1]^beta - params[2]^beta)
-    nestimtrueerror = c * params[3]^beta
-    solnestim = (nsolns[3] + nestimtrueerror) * solnn
-    c = c * solnn # adjust for not-normalized data
-    # just to check things, calculate the residual
-    residual = fill(zero(solns[1]),3)
-    for I =1:3
-        residual[I] = (solnestim-solns[I])-c*params[I]^beta; # this should be close to zero
-    end
-    return solnestim, beta, c, residual
+   	lower, upper = 0.0001, 10.0
+   	solnn = maximum(abs.(solns));
+   	nsolns = solns./solnn # Normalize data for robust calculation
+   	nhs = [h / maximum(params) for h in params]  # Normalize the parameter values
+       napproxerrors = diff(nsolns) # Normalized approximate errors
+   	napperrs = [e / maximum(abs.(napproxerrors)) for e in napproxerrors] 
+   	maxfun = 0.0
+   	for y = lower:lower:upper
+   		maxfun = max(maxfun, napperrs[1] * (nhs[2]^y - nhs[3]^y) - napperrs[2] * (nhs[1]^y - nhs[2]^y))
+   	end
+   	napperrs = [e / maxfun for e in napperrs]  # Normalize the function values
+   	fun = y ->  napperrs[1] * (nhs[2]^y - nhs[3]^y) - napperrs[2] * (nhs[1]^y - nhs[2]^y)
+   	# x = collect(lower:lower:upper)
+   	# y = fun.(x)
+   	# tolx, tolf = 1.0e-6 * lower, 1.0e-12 * maximum(abs.(y))
+   	# p = plot(x=x, y = y, Geom.line);
+   	# draw(PDF("File.pdf", 16cm, 9cm), p)
+   	beta = bisect(fun, lower, upper, tolx, tolf)
+   	beta = (beta[1] + beta[2]) / 2.0
+   	c = napproxerrors[1] / (params[1]^beta - params[2]^beta)
+   	nestimtrueerror = c * params[3]^beta
+   	solnestim = (nsolns[3] + nestimtrueerror) * solnn
+   	c = c * solnn # adjust for not-normalized data
+   	# just to check things, calculate the residual
+   	residual = fill(zero(solns[1]),3)
+   	for I =1:3
+   		residual[I] = (solnestim-solns[I])-c*params[I]^beta; # this should be close to zero
+   	end
+   	return solnestim, beta, c, residual
 end
 
 """
