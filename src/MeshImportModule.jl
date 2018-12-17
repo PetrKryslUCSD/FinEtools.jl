@@ -7,7 +7,7 @@ module MeshImportModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: FESet, FESetT4, FESetT10, FESetH8, FESetH20, setlabel!
+import FinEtools.FESetModule: FESet, FESetT3, FESetT4, FESetT10, FESetH8, FESetH20, setlabel!
 import FinEtools.MeshModificationModule: renumberconn!
 import Unicode: uppercase, isdigit
 import LinearAlgebra: norm
@@ -182,7 +182,7 @@ Import tetrahedral (4- and 10-node) or hexahedral (8- and 20-node) Abaqus mesh
 
 Limitations:
 1. Only the `*NODE` and `*ELEMENT`  sections are read
-2. Only 4-node and 10-node tetrahedra and 8-node or 20-node  hexahedra
+2. Only 4-node and 10-node tetrahedra, 8-node or 20-node  hexahedra, 3-node triangles
     are handled.
 
 ## Return
@@ -293,7 +293,7 @@ function import_ABAQUS(filename; allocationchunk=chunk)
     fens = FENodeSet(xyz)
 
     # Element sets
-    fesarray = FESet[]
+    fesets = FESet[]
 
     function feset_construct(elemset1)
         temp = uppercase(strip(elemset1.ElementLine))
@@ -310,6 +310,8 @@ function import_ABAQUS(filename; allocationchunk=chunk)
                     return FESetT4(elemset1.elem[:, 2:5])
                 elseif (length(TYPE) >= 5) && (TYPE[1:5] == "C3D10")
                     return FESetT10(elemset1.elem[:, 2:11])
+                elseif (length(TYPE) >= 5) && (TYPE[1:5] == "DC2D3")
+                    return FESetT3(elemset1.elem[:, 2:4])
                 else
                     return nothing
                 end
@@ -324,11 +326,11 @@ function import_ABAQUS(filename; allocationchunk=chunk)
             push!(warnings, "Don't know how to handle " * elemset[ixxxx].ElementLine)
         else
             fes = renumberconn!(fes, newnumbering)
-            push!(fesarray, fes)
+            push!(fesets, fes)
         end
     end
 
-    output = FDataDict("fens"=>fens, "fesets"=>fesarray, "warnings"=>warnings)
+    output = FDataDict("fens"=>fens, "fesets"=>fesets, "warnings"=>warnings)
     return output
 end
 
