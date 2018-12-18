@@ -178,7 +178,7 @@ end
 
 Refine a mesh of 3-node tetrahedra by quadrisection.
 """
-function T3refine(fens::FENodeSet,fes::FESetT3)
+function T3refine(fens::FENodeSet, fes::FESetT3)
     fens,fes = T3toT6(fens,fes);
     nconn=zeros(FInt,4*size(fes.conn,1),3);
     conns = connasarray(fes)
@@ -192,6 +192,51 @@ function T3refine(fens::FENodeSet,fes::FESetT3)
     end
     nfes = FESetT3(nconn);
     return fens,nfes            # I think I should not be overwriting the input!
+end
+
+"""
+    T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol=:a)
+
+Mesh of an annulus segment.
+
+Mesh of an annulus segment, centered at the origin, with internal radius `rin`,
+and  external radius `rex`, and  development angle `Angl` (in radians). Divided
+into elements: nr, nc in the radial and circumferential direction respectively.
+"""
+function T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol=:a)
+    trin=min(rin,rex);
+    trex=max(rin,rex);
+    fens,fes = T3block(trex-trin,Angl,nr,nc,orientation);
+    xy=fens.xyz;
+    for i=1:count(fens)
+        r=trin+xy[i,1]; a=xy[i,2];
+        xy[i,:]=[r*cos(a) r*sin(a)];
+    end
+    fens.xyz=xy;
+    return fens,fes
+end
+
+"""
+    T6annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol=:a)
+
+Mesh of an annulus segment.
+
+Mesh of an annulus segment, centered at the origin, with internal radius `rin`,
+and  external radius `rex`, and  development angle `Angl` (in radians). Divided
+into elements: nr, nc in the radial and circumferential direction respectively.
+"""
+function T6annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol=:a)
+    trin=min(rin,rex);
+    trex=max(rin,rex);
+    fens,fes = T3block(trex-trin,Angl,nr,nc,orientation);
+    fens, fes = T3toT6(fens, fes)
+    xy=fens.xyz;
+    for i=1:count(fens)
+        r=trin+xy[i,1]; a=xy[i,2];
+        xy[i,:]=[r*cos(a) r*sin(a)];
+    end
+    fens.xyz=xy;
+    return fens,fes
 end
 
 end

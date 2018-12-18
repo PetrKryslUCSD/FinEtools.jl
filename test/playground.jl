@@ -1,58 +1,76 @@
-module mmblock_Energy_2
+module mannulus_T6_example_algo
 using FinEtools
-using FinEtools.MeshExportModule: vtkexportmesh, T3, vtkexportvectors
 using Test
-import LinearAlgebra: cholesky, norm, dot
 function test()
-  A = 1.0 # dimension of the domain (length of the side of the square)
-  thermal_conductivity = [i==j ? one(FFlt) : zero(FFlt) for i=1:2, j=1:2]; # conductivity matrix
-  Q = 0.0; # internal heat generation rate
-  function getsource!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    forceout[1] = Q; #heat source
-  end
-  gradtemp = [2.0, -0.5]
-  tempf(x) = (1.0 .+ gradtemp[1] .* x[:,1] .+ gradtemp[2] .* x[:,2]);#the exact distribution of temperature
-  N = 10;# number of subdivisions along the sides of the square domain
-  Rm=[-0.9917568452513019 -0.12813414805267656
-  -0.12813414805267656 0.9917568452513019]
-  Rm=[-0.8020689950104449 -0.5972313850116512
-  -0.5972313850116512 0.8020689950104447]
+  # println("""
+  # Annular region, ingoing and outgoing flux. Temperature at one node prescribed.
+  # Minimum/maximum temperature ~(+/-)0.500.
+  # Mesh of serendipity quadrilaterals.
+  # This version uses the FinEtools algorithm module.
+  # Version: 05/29/2017
+  # """)
 
-  fens,fes = T3block(A, A, N, N)
+  t0 = time()
 
-  geom = NodalField(fens.xyz)
-  Temp = NodalField(zeros(size(fens.xyz,1),1))
+  kappa = 0.2*[1.0 0; 0 1.0]; # conductivity matrix
+  magn = 0.06;# heat flux along the boundary
+  rin =  1.0;#internal radius
 
-  l1 = selectnode(fens; box=[0. 0. 0. A], inflate = 1.0/N/100.0)
-  l2 = selectnode(fens; box=[A A 0. A], inflate = 1.0/N/100.0)
-  l3 = selectnode(fens; box=[0. A 0. 0.], inflate = 1.0/N/100.0)
-  l4 = selectnode(fens; box=[0. A A A], inflate = 1.0/N/100.0)
-  List = vcat(l1, l2, l3, l4)
-  setebc!(Temp, List, true, 1, tempf(geom.values[List,:])[:])
-  applyebc!(Temp)
-  numberdofs!(Temp)
+  rex =  2.0; #external radius
+  nr = 3; nc = 40;
+  Angle = 2*pi;
+  thickness =  1.0;
+  tolerance = min(rin/nr,  rin/nc/2/pi)/10000;
 
+  fens, fes = T6annulus(rin, rex, nr, nc, Angle)
+  fens, fes = mergenodes(fens,  fes,  tolerance);
+  edge_fes = meshboundary(fes);
 
-  material = MatHeatDiff(thermal_conductivity)
-  femm = FEMMHeatDiff(IntegDomain(fes, TriRule(1), 100.0), CSys(Rm), material)
+  # At a single point apply an essential boundary condition (pin down the temperature)
+  l1  = selectnode(fens; box=[0.0 0.0 -rex -rex],  inflate = tolerance)
+  essential1 = FDataDict("node_list"=>l1, "temperature"=>0.0)
 
-  K = conductivity(femm, geom, Temp)
-  F2 = nzebcloadsconductivity(femm, geom, Temp);
-  fi = ForceIntensity(FFlt[Q]);
-  F1 = distribloads(femm, geom, Temp, fi, 3);
-  U = K\(F1+F2)
-  scattersysvec!(Temp,U[:])
+  # The flux boundary condition is applied at two pieces of surface
+  # Side 1
+  l1 = selectelem(fens, edge_fes, box=[-1.1*rex -0.9*rex -0.5*rex 0.5*rex]);
+  el1femm = FEMMBase(IntegDomain(subset(edge_fes, l1),  GaussRule(1, 3)))
+  fi = ForceIntensity(FFlt[-magn]);#entering the domain
+  flux1 = FDataDict("femm"=>el1femm, "normal_flux"=>-magn) # entering the domain
+  # Side 2
+  l2=selectelem(fens,edge_fes,box=[0.9*rex 1.1*rex -0.5*rex 0.5*rex]);
+  el2femm = FEMMBase(IntegDomain(subset(edge_fes, l2),  GaussRule(1, 3)))
+  flux2 = FDataDict("femm"=>el2femm, "normal_flux"=>+magn) # leaving the domain
 
-  qenergy = energy(femm, geom, Temp)
-  @test abs(qenergy - A * A * 100.0 * dot(gradtemp, -thermal_conductivity * vec(gradtemp))) < 1.0e-9
+  material = MatHeatDiff(kappa)
+  femm = FEMMHeatDiff(IntegDomain(fes,  TriRule(4)),  material)
+  region1 = FDataDict("femm"=>femm)
 
-  # File =  "mmblock_Energy_2-vectors.vtk"
-  # vtkexportvectors(File, qplocs, [("heatflux", qpfluxes)])
-  # File =  "mmblock_Energy_2.vtk"
-  # vtkexportmesh(File, fes.conn, [geom.values 0.0 .* Temp.values], T3; scalars=[("Temperature", Temp.values)])
+  # Make model data
+  modeldata = FDataDict("fens"=>fens,
+  "regions"=>[region1], "essential_bcs"=>[essential1],
+  "flux_bcs"=>[flux1, flux2]);
 
-  true
+  # Call the solver
+  modeldata = FinEtools.AlgoHeatDiffModule.steadystate(modeldata)
+  geom=modeldata["geom"]
+  Temp=modeldata["temp"]
+  # println("Minimum/maximum temperature= $(minimum(Temp.values))/$(maximum(Temp.values)))")
+
+  # println("Total time elapsed = ",time() - t0,"s")
+
+  # # Postprocessing
+  # vtkexportmesh("annulusmod.vtk", fes.conn, [geom.values Temp.values],
+  # FinEtools.MeshExportModule.Q8; scalars=[("Temperature", Temp.values)])
+
+  @test abs(minimum(Temp.values)-(-0.5015861998449058))<1.0e-4
+  @test abs(maximum(Temp.values)-(+0.5015861998449058))<1.0e-4
+
+  #println("Total time elapsed = ",time() - t0,"s")
+
+  # Postprocessing
+  # MeshExportModule.vtkexportmesh ("annulusmod.vtk", fes.conn, [geom.values Temp.values], MeshExportModule.Q4; scalars=Temp.values, scalars_name ="Temperature")
 end
+
 end
-using .mmblock_Energy_2
-mmblock_Energy_2.test()
+using .mannulus_T6_example_algo
+mannulus_T6_example_algo.test()

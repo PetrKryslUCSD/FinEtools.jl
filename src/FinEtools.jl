@@ -141,9 +141,9 @@ using FinEtools.MeshLineModule: L2block, L2blockx, L3blockx
 # Exported: mesh generation functions for line elements
 export L2block, L2blockx, L3blockx
 
-using FinEtools.MeshTriangleModule: T3blockx, T3block,  T3toT6,  T6block,  Q4toT3,  T3refine, T6blockx
+using FinEtools.MeshTriangleModule: T3blockx, T3block,  T3toT6,  T6block,  Q4toT3,  T3refine, T6blockx, T3annulus, T6annulus
 # Exported: mesh generation functions for triangular elements
-export  T3blockx, T3block,  T3toT6,  T6block,  Q4toT3,  T3refine, T6blockx
+export  T3blockx, T3block,  T3toT6,  T6block,  Q4toT3,  T3refine, T6blockx, T3annulus, T6annulus
 
 using FinEtools.MeshHexahedronModule: H8block,  H8blockx,  H8sphere,  H8refine, H8hexahedron, H8extrudeQ4, H8spheren, H8voximg,  H8layeredplatex, H8elliphole, H8toH27,  H27block, H20block,  H8toH20, H20blockx, H27blockx
 # Exported: mesh generation functions for hexahedral elements
