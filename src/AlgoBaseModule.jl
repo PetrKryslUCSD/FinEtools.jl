@@ -57,18 +57,18 @@ Output:
   solved (this is a measure of how accurately was the system solved).
 """
 function richextrapol(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn}}
-   	lower, upper = 0.0001, 10.0
+   	lower, upper = 0.001, 10.0
    	solnn = maximum(abs.(solns));
    	nsolns = solns./solnn # Normalize data for robust calculation
-   	nhs = [h / maximum(params) for h in params]  # Normalize the parameter values
-       napproxerrors = diff(nsolns) # Normalized approximate errors
-   	napperrs = [e / maximum(abs.(napproxerrors)) for e in napproxerrors] 
+   	nhs1, nhs2, nhs3 = params ./ maximum(params) # Normalize the parameter values
+    napproxerror1, napproxerror2 = diff(nsolns) # Normalized approximate errors
+   	napperr1, napperr2 = (napproxerror1, napproxerror2) ./ max(abs(napproxerror1), abs(napproxerror2)) 
    	maxfun = 0.0
-   	for y = lower:lower:upper
-   		maxfun = max(maxfun, napperrs[1] * (nhs[2]^y - nhs[3]^y) - napperrs[2] * (nhs[1]^y - nhs[2]^y))
+   	for y =  range(lower, upper, length=100)                
+   		maxfun = max(maxfun, napperr1 * (nhs2^y - nhs3^y) - napperr2 * (nhs1^y - nhs2^y))
    	end
-   	napperrs = [e / maxfun for e in napperrs]  # Normalize the function values
-   	fun = y ->  napperrs[1] * (nhs[2]^y - nhs[3]^y) - napperrs[2] * (nhs[1]^y - nhs[2]^y)
+   	napperrs1, napperr2 = (napperr1, napperr2) ./ maxfun  # Normalize the function values
+   	fun = y ->  napperrs1 * (nhs2^y - nhs3^y) - napperr2 * (nhs1^y - nhs2^y)
    	# x = collect(lower:lower:upper)
    	# y = fun.(x)
    	# p = plot(x=x, y = y, Geom.line);
@@ -76,7 +76,7 @@ function richextrapol(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn
    	tolx, tolf = 1.0e-6 * lower, 1.0e-12  # Note: the function value is normalized to 1.0
    	beta = bisect(fun, lower, upper, tolx, tolf)
    	beta = (beta[1] + beta[2]) / 2.0
-   	c = napproxerrors[1] / (params[1]^beta - params[2]^beta)
+   	c = napproxerror1 / (params[1]^beta - params[2]^beta)
    	nestimtrueerror = c * params[3]^beta
    	solnestim = (nsolns[3] + nestimtrueerror) * solnn
    	c = c * solnn # adjust for not-normalized data
