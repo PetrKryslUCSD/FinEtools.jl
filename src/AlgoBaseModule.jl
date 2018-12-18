@@ -64,7 +64,7 @@ function richextrapol(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn
     napproxerror1, napproxerror2 = diff(nsolns) # Normalized approximate errors
    	napperr1, napperr2 = (napproxerror1, napproxerror2) ./ max(abs(napproxerror1), abs(napproxerror2)) 
    	maxfun = 0.0
-   	for y =  range(lower, upper, length=100)                
+   	for y =  range(lower, stop=upper, length=100)                
    		maxfun = max(maxfun, napperr1 * (nhs2^y - nhs3^y) - napperr2 * (nhs1^y - nhs2^y))
    	end
    	napperrs1, napperr2 = (napperr1, napperr2) ./ maxfun  # Normalize the function values
