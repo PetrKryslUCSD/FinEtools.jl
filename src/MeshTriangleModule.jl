@@ -176,7 +176,7 @@ end
 """
     T3refine(fens::FENodeSet,fes::FESetT3)
 
-Refine a mesh of 3-node tetrahedra by quadrisection.
+Refine a mesh of 3-node triangles by quadrisection.
 """
 function T3refine(fens::FENodeSet, fes::FESetT3)
     fens,fes = T3toT6(fens,fes);
