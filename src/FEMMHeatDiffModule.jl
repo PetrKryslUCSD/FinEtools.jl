@@ -176,12 +176,13 @@ function energy(self::FEMMHeatDiff, geom::NodalField{FFlt},  temp::NodalField{FF
 end
 
 """
-    inspectintegpoints(self::FEMMHeatDiff, geom::NodalField{FFlt}, temp::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:heatflux; context...) where {F<:Function}
+    inspectintegpoints(self::FEMMHeatDiff, geom::NodalField{FFlt}, u::NodalField{T}, temp::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:heatflux; context...) where {F<:Function}
 
 Inspect integration point quantities.
 
 # Inputs
 - `geom` - reference geometry field
+- `u` - displacement field (ignored)
 - `temp` - temperature field
 - `felist` - indexes of the finite elements that are to be inspected: The fes
   to be included are: `fes[felist]`.
@@ -197,7 +198,7 @@ Inspect integration point quantities.
 # Return
 The updated inspector data is returned.
 """
-function inspectintegpoints(self::FEMMHeatDiff, geom::NodalField{FFlt}, temp::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:heatflux; context...) where {F<:Function}
+function inspectintegpoints(self::FEMMHeatDiff, geom::NodalField{FFlt}, u::NodalField{T}, temp::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:heatflux; context...) where {T<:Number, F<:Function}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     dofnums, loc, J, RmTJ, gradN, kappa_bar, kappa_bargradNT, elmat, elvec, elvecfix = buffers1(self, geom, temp)

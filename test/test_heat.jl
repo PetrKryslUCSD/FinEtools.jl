@@ -2611,7 +2611,7 @@ function test()
     push!(qpfluxes, copy(out))
     return (qplocs, qpfluxes)
   end
-  idat = inspectintegpoints(femm, geom, Temp, collect(1:count(fes)), inspector, (qplocs, qpfluxes), :heatflux)
+  idat = inspectintegpoints(femm, geom, NodalField([1.0]), Temp, collect(1:count(fes)), inspector, (qplocs, qpfluxes), :heatflux)
 
 # Test export of vectors of heat flux
   File =  "Poiss_heatflux_1-vectors.vtk"
@@ -2677,7 +2677,7 @@ function test()
     push!(qpfluxes, copy(out))
     return (qplocs, qpfluxes, trueflux, fluxerror)
   end
-  idat = inspectintegpoints(femm, geom, Temp, collect(1:count(fes)), inspector, (qplocs, qpfluxes, trueflux, fluxerror), :heatflux)
+  idat = inspectintegpoints(femm, geom, NodalField([1.0]), Temp, collect(1:count(fes)), inspector, (qplocs, qpfluxes, trueflux, fluxerror), :heatflux)
 
   qplocs, qpfluxes, trueflux, fluxerror = idat
   @test fluxerror / length(qpfluxes) < 1.0e-9
@@ -2751,7 +2751,7 @@ function test()
     push!(qpfluxes, copy(out))
     return (qplocs, qpfluxes, trueflux, fluxerror)
   end
-  idat = inspectintegpoints(femm, geom, Temp, collect(1:count(fes)), inspector, (qplocs, qpfluxes, trueflux, fluxerror), :heatflux; :outputcsys=>CSys(2))
+  idat = inspectintegpoints(femm, geom, NodalField([1.0]), Temp, collect(1:count(fes)), inspector, (qplocs, qpfluxes, trueflux, fluxerror), :heatflux; :outputcsys=>CSys(2))
 
   qplocs, qpfluxes, trueflux, fluxerror = idat
   @test fluxerror / length(qpfluxes) < 1.0e-9
@@ -2823,7 +2823,7 @@ function test()
     push!(qpfluxes, copy(out))
     return (qplocs, qpfluxes, trueflux, fluxerror)
   end
-  idat = inspectintegpoints(femm, geom, Temp, collect(1:count(fes)), inspector, (qplocs, qpfluxes, trueflux, fluxerror), :heatflux; :outputcsys=>CSys(Rm))
+  idat = inspectintegpoints(femm, geom, NodalField([1.0]), Temp, collect(1:count(fes)), inspector, (qplocs, qpfluxes, trueflux, fluxerror), :heatflux; :outputcsys=>CSys(Rm))
 
   qplocs, qpfluxes, trueflux, fluxerror = idat
   @test fluxerror / length(qpfluxes) < 1.0e-9
@@ -2898,7 +2898,7 @@ function test()
     push!(qpfluxes, copy(out))
     return (qplocs, qpfluxes, trueflux, fluxerror)
   end
-  idat = inspectintegpoints(femm, geom, Temp, collect(1:count(fes)), inspector, (qplocs, qpfluxes, trueflux, fluxerror), :heatflux; :outputcsys=>CSys(outRm))
+  idat = inspectintegpoints(femm, geom, NodalField([1.0]), Temp, collect(1:count(fes)), inspector, (qplocs, qpfluxes, trueflux, fluxerror), :heatflux; :outputcsys=>CSys(outRm))
 
   qplocs, qpfluxes, trueflux, fluxerror = idat
   @test fluxerror / length(qpfluxes) < 1.0e-9
