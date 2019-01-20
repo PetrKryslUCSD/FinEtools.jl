@@ -6,7 +6,7 @@ for continuum mechanics.
 """
 module FinEtools
 
-__precompile__(false)
+__precompile__(true)
 
 include("allmodules.jl")
 
