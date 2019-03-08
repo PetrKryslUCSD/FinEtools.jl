@@ -8,7 +8,7 @@ module MeshHexahedronModule
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FESetModule: FESet, FESetQ4, FESetH8, FESetH20, FESetH27, subset, bfun, connasarray, setlabel!, updateconn!
 import FinEtools.FENodeSetModule: FENodeSet, count, xyz3
-import FinEtools.MeshQuadrilateralModule: Q4elliphole
+import FinEtools.MeshQuadrilateralModule: Q4elliphole, Q4circlen
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
 import FinEtools.MeshModificationModule: meshboundary, mergemeshes
 import FinEtools.MeshSelectionModule: selectelem, connectednodes
@@ -371,8 +371,7 @@ end
 
 Extrude a mesh of quadrilaterals into a mesh of hexahedra (H8).
 """
-function H8extrudeQ4(fens::FENodeSet,  fes::FESetQ4, nLayers::FInt,
-    extrusionh::F) where {F<:Function}
+function H8extrudeQ4(fens::FENodeSet,  fes::FESetQ4, nLayers::FInt, extrusionh::F) where {F<:Function}
     id = vec([i for i in 1:count(fens)])
     cn=connectednodes(fes);
     id[cn[:]]=vec([i for i in 1:length(cn)]);
@@ -697,6 +696,31 @@ function H8elliphole(xradius::FFlt, yradius::FFlt, L::FFlt, H::FFlt, T::FFlt,
     fens.xyz = xyz3(fens)
     ex(xyz, layer) = xyz + reshape(layer/nT*T*[0.0 0.0 1.0], size(xyz, 1), size(xyz, 2))
     fens,fes  =  H8extrudeQ4(fens, fes, nT, ex);
+    return fens,fes
+end
+
+"""
+    H8cylindern(Radius::FFlt, Length::FFlt, nperradius, nL)
+
+H8 mesh of a solid  cylinder with given number of edges per radius (`nperradius`)
+and per length (`nL`).
+"""
+function H8cylindern(Radius::FFlt, Length::FFlt, nperradius, nL)
+    tol = min((Length/nL), (Radius/2/nperradius))/100;
+    fens,fes = Q4circlen(Radius, nperradius);
+    fens2 = deepcopy(fens)
+    for i = 1:count(fens2)
+    	fens2.xyz[i, 1], fens2.xyz[i, 2] = -fens2.xyz[i, 2], fens2.xyz[i, 1]
+    end
+    fens,fes,fes2 = mergemeshes(fens, fes, fens2, fes, tol);
+    fes = cat(fes,fes2);
+    fens2 = deepcopy(fens)
+    for i = 1:count(fens2)
+    	fens2.xyz[i, 1], fens2.xyz[i, 2] = -fens2.xyz[i, 1], -fens2.xyz[i, 2] 
+    end
+    fens,fes,fes2 = mergemeshes(fens, fes, fens2, fes, tol);
+    fes = cat(fes,fes2);
+    fens,fes = H8extrudeQ4(fens,fes,nL,(x,k) -> [x[1],x[2],k*Length/nL]);
     return fens,fes
 end
 
