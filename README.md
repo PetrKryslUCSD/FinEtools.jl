@@ -18,7 +18,7 @@ This package is  registered, and hence one can do just
 ```julia
 ] add FinEtools
 ```
-Only version 0.7, 1.0, and the nightly builds of Julia are supported. 
+Only version 1.x and the nightly builds of Julia are supported. 
 
 ## Testing
 
