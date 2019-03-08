@@ -10,6 +10,7 @@ import FinEtools.FESetModule: FESet, FESetQ4, FESetQ8, bfun, cat, connasarray
 import FinEtools.FENodeSetModule: FENodeSet, count
 import FinEtools.MeshModificationModule: mergemeshes
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace, linearspace
+import LinearAlgebra: norm
 import Statistics: mean
 
 """
@@ -343,6 +344,78 @@ function Q8annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
         xy[i,:]=[r*cos(a) r*sin(a)];
     end
     fens.xyz=xy;
+    return fens,fes
+end
+
+function _ontosphere!(xyz, radius)
+    for j = 1:size(xyz, 1)
+        xyz[j,:] = xyz[j,:]*radius/norm(xyz[j,:]);
+    end
+end
+
+# % Surface mesh of 1/8 of a sphere with a given number of elements per circumference. 
+# %
+# % function [fens,fes]=Q4_sphere_n(radius,nperradius,thickness)
+# %
+# % Create a mesh of 1/8 of the sphere of "radius". The  mesh will consist of
+# % 3*(nperradius/2)^2 quadrilateral elements, which corresponds to 4*nperradius
+# % element edges per circumference. The parameter nperradius should be an even 
+# % number; if that isn't so is adjusted to by adding one. 
+# % 
+# % The quadrilaterals have thickness "thickness".
+# %
+# % Examples: 
+# % [fens,fes]=Q4_sphere_n(77.1,5,1.0);
+# % drawmesh({fens,fes},'nodes','fes','facecolor','y', 'linewidth',2); hold on
+# %
+# % See also: Q4_sphere
+
+"""
+    bar(x[, y])
+
+Compute
+"""
+function Q4spheren(radius::FFlt, nperradius)
+    if (mod(nperradius,2) != 0)
+        nperradius = nperradius+1;
+    end
+    nL = Int(nperradius/2); nW = Int(nperradius/2); 
+    tolerance = radius / nperradius / 100;
+    a = sqrt(2.0)/2;
+    b = 1/sqrt(3.0);
+    c = 0.6*a;
+    d = 0.6*b;
+    xyz = [1 0 0; 0 1 0; 0 0 1; a a 0; 0 a a; a 0 a; b b b];
+    conn = [1 4 7 6; 4 2 5 7; 3 6 7 5];
+    fens,fes = Q4quadrilateral(xyz[conn[1,:],:], nL, nW)
+    fens1,fes1 = Q4quadrilateral(xyz[conn[2,:],:], nL, nW)
+    fens,fes1,fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance);
+    fes = cat(fes1, fes2);
+    fens1,fes1 = Q4quadrilateral(xyz[conn[3,:],:], nL, nW)
+    fens,fes1,fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance);
+    fes = cat(fes1, fes2);
+    _ontosphere!(fens.xyz, radius);
+    return  fens,fes 
+end
+
+
+"""
+    Q4circlen(radius::FFlt, nperradius::FFlt)
+
+Mesh of a quarter circle with a given number of elements per radius.
+
+The parameter `nperradius` should be an even 
+number; if that isn't so is adjusted to by adding one. 
+"""
+function Q4circlen(radius::FFlt, nperradius)
+    fens,fes = Q4spheren(radius, nperradius);
+    # % apply transformation to project the locations of the nodes into the
+    # % plane x-y
+    for j=1:count(fens)
+    	r = norm(fens.xyz[j,3])
+        fens.xyz[j,1:2] = fens.xyz[j,1:2]*((radius-r)+r/2)/radius;
+        fens.xyz[j, 3] = 0.0
+    end
     return fens,fes
 end
 
