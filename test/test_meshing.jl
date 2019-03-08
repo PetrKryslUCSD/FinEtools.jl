@@ -3327,3 +3327,91 @@ end
 end
 using .momap2para6378
 momap2para6378.test()
+
+module mesh_Q4spheren
+using FinEtools
+using FinEtools.MeshExportModule
+using Test
+function test()
+  rex =  2.0; #external radius
+  nr = 13; 
+  
+  fens, fes = Q4spheren(rex, nr)
+  
+  # # Postprocessing
+  # vtkexportmesh("sphere.vtk", fes.conn, fens.xyz,  FinEtools.MeshExportModule.Q4)
+
+# @show count(fens), count(fes)
+  @test count(fens) == 169
+  @test count(fes) == 147
+end
+
+end
+using .mesh_Q4spheren
+mesh_Q4spheren.test()
+
+module mesh_Q4circlen
+using FinEtools
+using FinEtools.MeshExportModule
+using Test
+function test()
+  rex =  2.0; #external radius
+  nr = 14; 
+  
+  fens, fes = Q4circlen(rex, nr)
+  
+  # # Postprocessing
+  # vtkexportmesh("circle.vtk", fes.conn, fens.xyz,  FinEtools.MeshExportModule.Q4)
+
+# @show count(fens), count(fes)
+  @test count(fens) == 169
+  @test count(fes) == 147
+end
+
+end
+using .mesh_Q4circlen
+mesh_Q4circlen.test()
+
+module mesh_H8cylindern
+using FinEtools
+using FinEtools.MeshExportModule
+using Test
+function test()
+  Radius::FFlt, Length::FFlt, nperradius, nL = 1.0, 2.0, 7, 9
+  
+  fens, fes = H8cylindern(Radius, Length, nperradius, nL)
+  
+  # # Postprocessing
+  # vtkexportmesh("cylinder.vtk", fes.conn, fens.xyz,  FinEtools.MeshExportModule.H8)
+
+# @show count(fens), count(fes)all
+  @test (count(fens), count(fes)) == (2090, 1728)
+end
+
+end
+using .mesh_H8cylindern
+mesh_H8cylindern.test()
+
+module mesh_H8cylindern_1
+using FinEtools
+using FinEtools.MeshExportModule
+using Test
+function test()
+  Radius::FFlt, Length::FFlt, nperradius, nL = 1.0, 2.0, 17, 3
+  
+  fens, fes = H8cylindern(Radius, Length, nperradius, nL)
+  
+  # # Postprocessing
+  # vtkexportmesh("cylinder.vtk", fes.conn, fens.xyz,  FinEtools.MeshExportModule.H8)
+
+  geom  =  NodalField(fens.xyz)
+
+  femm  =  FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
+  V = integratefunction(femm, geom, (x) ->  1.0)
+
+  @test abs(V - pi * Radius^2 * Length) / (pi * Radius^2 * Length) < 1.30e-3
+end
+
+end
+using .mesh_H8cylindern_1
+mesh_H8cylindern_1.test()
