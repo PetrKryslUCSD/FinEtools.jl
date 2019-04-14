@@ -1114,7 +1114,7 @@ end
 
 Reverse Cuthill-McKee node-renumbering algorithm.
 """
-function revcm(adjgr::Vector{Vector{Int64}}, degrees::Vector{Int64})
+function revcm(adjgr::Vector{Vector{Int}}, degrees::Vector{Int})
 	@assert length(adjgr) == length(degrees)
 	# Initialization
 	n = length(adjgr)
