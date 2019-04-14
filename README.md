@@ -6,6 +6,7 @@
 
 ## News
 
+- 04/13/2019: Added Reverse Cuthill-McKee renumbering.
 - 03/07/2019: Meshing functions for circles, spherical surfaces, and cylinders added.
 
 

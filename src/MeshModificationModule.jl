@@ -14,6 +14,7 @@ using Base.Sort
 using Base.Order
 import LinearAlgebra: norm, svd, dot, eigen
 import Random: randperm
+using SparseArrays
 
 """
     interior2boundary(interiorconn::Array{Int, 2}, extractb::Array{Int, 2})
@@ -961,5 +962,178 @@ function nodepartitioning(fens::FENodeSet, fesarr, npartitions::Vector{Int})
     end
     return partitioning
 end 
+
+"""
+    adjgraph(conn, nfens)
+
+Compute the adjacency graph from the array of connectivities of the elements
+in the mesh.
+
+# Examples
+
+```
+conn = [9 1 8 4;
+       1 3 2 8;
+       8 2 7 5;
+       2 6 7 7];
+nfens = 9;
+adjgraph(conn, nfens)   
+
+```
+should produce
+```
+9-element Array{Array{Int64,1},1}:
+ [9, 8, 4, 3, 2]      
+ [1, 3, 8, 7, 5, 6]   
+ [1, 2, 8] 
+ [9, 1, 8] 
+ [8, 2, 7] 
+ [2, 7]    
+ [8, 2, 5, 6]
+ [9, 1, 4, 3, 2, 7, 5]
+ [1, 8, 4]    
+ ```
+"""
+function adjgraph(conn, nfens)
+    neighbors = fill(Int[], nfens)
+    for i = 1:length(neighbors)
+    	neighbors[i] = Int[]
+    end
+    for k = 1:size(conn, 1)
+    	for node1 = conn[k, :]
+    		for node2 = conn[k, :]
+    			if node1 != node2
+    				push!(neighbors[node1], node2)
+    			end
+    		end
+        end
+    end
+    for i = 1:length(neighbors)
+    	neighbors[i] = unique(neighbors[i])
+    end
+    return neighbors
+end
+
+"""
+    _coldeg(A::SparseMatrixCSC, j::Int)
+
+This function has been modified from source of
+(https://github.com/rleegates/CuthillMcKee.jl/blob/master/src/CuthillMcKee.jl)
+
+`A` is assumed to be symmetric.
+"""
+function _coldeg(A::SparseMatrixCSC, j::Int)
+	cptr = A.colptr
+	return cptr[j+1]-cptr[j]
+end
+
+"""
+    adjgraph(A)
+
+Compute the adjacency graph from a sparse matrix. This function has been
+modified from source of
+(https://github.com/rleegates/CuthillMcKee.jl/blob/master/src/CuthillMcKee.jl)
+
+`A` is assumed to be symmetric.
+"""
+function adjgraph(A::SparseMatrixCSC)
+	cptr = A.colptr
+	rval = A.rowval
+	ncols = length(cptr)-1
+	neighbors = Vector{Vector{Int}}(undef, ncols)
+	for i = 1:length(neighbors)
+		neighbors[i] = Int[]
+	end
+	sbyf = let A = A
+		j->_coldeg(A, j)
+	end
+	for j = 1:ncols
+		strt = cptr[j]
+		jdeg = _coldeg(A, j)
+		jadj = Vector{Int}(undef, jdeg)
+		for i = 1:jdeg
+			jadj[i] = rval[strt+i-1]
+		end
+		sort!(jadj, by=sbyf)
+		neighbors[j] = jadj
+	end
+	return neighbors
+end
+
+"""
+    nodedegrees(adjgr::Vector{Vector{Int}})
+
+Compute the degrees of the nodes in the adjacency graph.
+
+conn = [9 1 8 4;
+       1 3 2 8;
+       8 2 7 5;
+       2 6 7 7];
+nfens = 9;
+adjgr = adjgraph(conn, nfens)  
+nodedegrees(adjgr)
+
+julia> degrees = node_degrees(adjgr)        
+9-element Array{Int64,1}:
+ 5
+ 6
+ 3
+ 3
+ 3
+ 2
+ 4
+ 7
+ 3  
+"""
+function nodedegrees(adjgr::Vector{Vector{Int}})
+    degrees = fill(0, length(adjgr))
+    for k = 1:length(adjgr)
+        degrees[k] = length(adjgr[k])
+    end
+    return degrees
+end
+
+"""
+    revcm(adjgr::Vector{Vector{Int}}, degrees::Vector{Int})
+
+Reverse Cuthill-McKee node-renumbering algorithm.
+"""
+function revcm(adjgr::Vector{Vector{Int}}, degrees::Vector{Int})
+	@assert length(adjgr) == length(degrees)
+	# Initialization
+	n = length(adjgr)
+	alln = collect(1:n)
+	inR = fill(false, n)
+	R = Int[]
+	while true
+		notinR = broadcast(!, inR)
+		if !any(notinR)
+			break
+		end
+		candidatedegrees = degrees[notinR]
+		candidatenodes = alln[notinR]
+		P = candidatenodes[argmin(candidatedegrees)]
+		push!(R, P); inR[P] = true
+		Q = adjgr[P]
+		while length(Q) >= 1
+			for C = Q
+				if !inR[C]
+					push!(R, C); inR[C] = true
+				end
+			end
+			newQ = Int[]
+			for C = Q
+				for i = adjgr[C]
+					if !inR[i]
+						push!(newQ, i)
+					end
+				end
+			end
+			Q = newQ
+		end
+    end
+    return reverse(R)
+end
+
 
 end

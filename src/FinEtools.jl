@@ -96,9 +96,9 @@ using FinEtools.MeshExportModule: h2libexporttri
 # Exported: H2Lib export
 export h2libexporttri
 
-using FinEtools.MeshModificationModule: meshboundary,  fusenodes,  compactnodes,  mergemeshes, mergenmeshes, mergenodes,  renumberconn!,  meshsmoothing, mirrormesh, nodepartitioning, interior2boundary
+using FinEtools.MeshModificationModule: meshboundary,  fusenodes,  compactnodes,  mergemeshes, mergenmeshes, mergenodes,  renumberconn!,  meshsmoothing, mirrormesh, nodepartitioning, interior2boundary, adjgraph, nodedegrees, revcm
 # Exported: extraction of boundary, fusing of nodes  and merging of meshes, mesh smoothing,  node partitioning
-export  meshboundary,  fusenodes,  compactnodes,  mergemeshes, mergenmeshes, mergenodes,  renumberconn!,  meshsmoothing, mirrormesh, nodepartitioning, interior2boundary
+export  meshboundary,  fusenodes,  compactnodes,  mergemeshes, mergenmeshes, mergenodes,  renumberconn!,  meshsmoothing, mirrormesh, nodepartitioning, interior2boundary, adjgraph, nodedegrees, revcm
 
 using FinEtools.MeshImportModule: import_NASTRAN, import_ABAQUS
 # Exported: mesh import functions
