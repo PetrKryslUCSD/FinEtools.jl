@@ -3421,7 +3421,7 @@ using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshModificationModule: adjgraph, nodedegrees, revcm
 using Test
-using SparseArrays, UnicodePlots
+using SparseArrays
 
 function test()
 	conn = [9 1 8 4;
@@ -3454,7 +3454,7 @@ using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshModificationModule: adjgraph, nodedegrees, revcm
 using Test
-using SparseArrays, UnicodePlots
+using SparseArrays
 
 function test()
 	nfens = 29;
@@ -3522,7 +3522,7 @@ using FinEtools
 using FinEtools.MeshExportModule
 using FinEtools.MeshModificationModule: adjgraph, nodedegrees, revcm
 using Test
-using SparseArrays, UnicodePlots
+using SparseArrays
 
 function test()
 	nfens = 19;
