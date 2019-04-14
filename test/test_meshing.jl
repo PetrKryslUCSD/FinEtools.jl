@@ -3583,3 +3583,34 @@ end
 end
 using .mesh_rcm_3
 mesh_rcm_3.test()
+
+module mesh_rcm_4
+using FinEtools
+using FinEtools.MeshExportModule
+using FinEtools.MeshModificationModule: adjgraph, nodedegrees, revcm
+using Test
+using SparseArrays
+using LinearAlgebra: norm
+
+function test()
+	nfens = 15000;
+	
+	A = sprand(nfens, nfens, 1/nfens)
+	A = A+A'
+	ag = adjgraph(A)
+	nd = nodedegrees(ag)
+	numbering = revcm(ag, nd)
+	# display(spy(A))
+	# display(spy(A[numbering, numbering]))
+	b = rand(nfens)
+	inumbering = deepcopy(numbering)
+	inumbering[numbering] = 1:nfens
+	x = A * b
+	xp = A[numbering, numbering] * b[numbering]
+	xp[numbering]
+	@test norm(x - xp[inumbering]) < 1.0e-5*nfens
+end
+
+end
+using .mesh_rcm_4
+mesh_rcm_4.test()

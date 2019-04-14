@@ -1093,46 +1093,66 @@ function nodedegrees(adjgr::Vector{Vector{Int}})
     return degrees
 end
 
+function _findP(inR, degrees)
+	# println("In _findP")
+	P = 0
+	mindegree = length(inR)
+	@inbounds for i = 1:length(inR)
+		if !inR[i]
+			return i
+			# if degrees[i] < mindegree
+			# 	P = i
+			# 	mindegree = degrees[i]
+			# end
+		end
+	end
+	return P
+end
+
 """
     revcm(adjgr::Vector{Vector{Int}}, degrees::Vector{Int})
 
 Reverse Cuthill-McKee node-renumbering algorithm.
 """
-function revcm(adjgr::Vector{Vector{Int}}, degrees::Vector{Int})
+function revcm(adjgr::Vector{Vector{Int64}}, degrees::Vector{Int64})
 	@assert length(adjgr) == length(degrees)
 	# Initialization
 	n = length(adjgr)
-	alln = collect(1:n)
-	inR = fill(false, n)
-	R = Int[]
+	ndegperm = sortperm(degrees) # sorted nodal degrees
+	inR = fill(false, n) # Is a node in the result list?
+	R = Int64[]
+	sizehint!(R, n)
+	Q = Int64[] # Node queue 
+	sizehint!(Q, n)
 	while true
-		notinR = broadcast(!, inR)
-		if !any(notinR)
-			break
+		P = 0 # Find the next node to start from
+		while !isempty(ndegperm)
+			i = popfirst!(ndegperm)
+			if !inR[i]
+				P = i
+				break
+			end
 		end
-		candidatedegrees = degrees[notinR]
-		candidatenodes = alln[notinR]
-		P = candidatenodes[argmin(candidatedegrees)]
+		if P == 0
+			break # That was the last node
+		end
+		# Now we have a node to start from: put it into the result list
 		push!(R, P); inR[P] = true
-		Q = adjgr[P]
+		empty!(Q) # empty the queue
+		append!(Q, adjgr[P]) # put the adjacent nodes into the queue
 		while length(Q) >= 1
-			for C = Q
-				if !inR[C]
-					push!(R, C); inR[C] = true
+			C = popfirst!(Q) # child to put into the result list
+			if !inR[C]
+				push!(R, C); inR[C] = true
+			end
+			for i in adjgr[C] # at all adjacent nodes into the queue
+				if !inR[i]
+					push!(Q, i)
 				end
 			end
-			newQ = Int[]
-			for C = Q
-				for i = adjgr[C]
-					if !inR[i]
-						push!(newQ, i)
-					end
-				end
-			end
-			Q = newQ
 		end
     end
-    return reverse(R)
+    return reverse(R) # reverse the result list
 end
 
 
