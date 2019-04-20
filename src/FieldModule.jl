@@ -507,5 +507,31 @@ function scattersysvec!(self::Field, vec::FVec{T}) where {T<:Number}
     return  self
 end
 
+"""
+    prescribeddofs(uebc, u)
+
+Find which degrees of freedom are prescribed.
+`uebc` = field which defines the constraints (is the dof fixed and to which value),
+`u` = field which does not have the constraints applied, and serves as the source of equation numbers,
+`uebc` and `u` may be one and the same field.
+
+"""
+function prescribeddofs(uebc::Field, u::Field)
+	dofnums = FInt[]
+	prescribedvalues = eltype(uebc.values)[]
+	nents, dim = size(uebc.values)
+	@assert size(uebc.values) == size(u.values)
+	for i = 1:nents
+		for j = 1:dim
+			if uebc.is_fixed[i,j]
+			    push!(prescribedvalues, uebc.fixed_values[i,j]);
+			    dn = u.dofnums[i,j];
+			    @assert  (dn > 0) && (dn <= u.nfreedofs)
+			    push!(dofnums, dn)
+			end
+		end
+	end
+	return dofnums, prescribedvalues 
+end
 
 end

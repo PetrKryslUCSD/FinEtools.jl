@@ -1,203 +1,210 @@
-# module mesh_rcm_1
-# using FinEtools
-# using FinEtools.MeshExportModule
-# using FinEtools.MeshModificationModule: adjgraph, nodedegrees, revcm
-# using Test
-# using SparseArrays, UnicodePlots
+module mmmmmAnnularQ8penalty
+using FinEtools
+using FinEtools.AlgoBaseModule: penaltyebc!
+using Test
+import LinearAlgebra: norm, cholesky
+function test()
 
-# function test()
-# 	conn = [9 1 8 4;
-# 	1 3 2 8;
-# 	8 2 7 5;
-# 	2 6 7 7];
-# 	nfens = 9;
-# 	ag = adjgraph(conn, nfens)   
-# 	nd = nodedegrees(ag)
-# 	@test ag == Array{Int64,1}[[9, 8, 4, 3, 2], [1, 3, 8, 
-# 	7, 5, 6], [1, 2, 8], [9, 1, 8], [8, 2, 7], [2, 7], [8, 2, 5, 6], [9, 1, 4, 3, 2, 7, 5], [1, 8, 4]]
-# 	@test nd == [5, 6, 3, 3, 3, 2, 4, 7, 3] 
-# 	numbering = revcm(ag, nd)
-# 	@test numbering == [4, 9, 5, 8, 3, 1, 7, 2, 6]    
+	# println("""
+	# Annular region,  ingoing and outgoing flux. Minimum/maximum temperature ~(+/-)0.501.
+	# Mesh of quadratic serendipity quadrilaterals.
+	# Version: 05/29/2017
+	# """)
 
+	t0 = time()
+
+	kappa = 0.2*[1.0 0; 0 1.0]; # conductivity matrix
+	magn = 0.06;# heat flux along the boundary
+	rin =  1.0;#internal radius
+
+	rex =  2.0; #external radius
+	nr = 5; nc = 40;
+	Angle = 2*pi;
+	thickness =  1.0;
+	tolerance = min(rin/nr,  rin/nc/2/pi)/10000;
+
+
+	fens, fes  =  Q8annulus(rin, rex, nr, nc, Angle)
+	fens, fes  =  mergenodes(fens,  fes,  tolerance);
+	edge_fes  =  meshboundary(fes);
+
+	geom = NodalField(fens.xyz)
+	EBCTemp = NodalField(zeros(size(fens.xyz, 1), 1))
+
+
+	l1  = selectnode(fens; box=[0.0 0.0 -rex -rex],  inflate = tolerance)
+	setebc!(EBCTemp, l1, 1; val=zero(FFlt))
+	applyebc!(EBCTemp)
+
+	numberdofs!(EBCTemp)
+	EBCTemp.nfreedofs
+
+	Temp = NodalField(zeros(size(fens.xyz, 1), 1))
+	numberdofs!(Temp)
+	Temp.nfreedofs
+
+
+	material = MatHeatDiff(kappa)
+	femm = FEMMHeatDiff(IntegDomain(fes,  GaussRule(2, 3)),  material)
+
+	K = conductivity(femm,  geom,  Temp)
+
+	l1 = selectelem(fens, edge_fes, box=[-1.1*rex -0.9*rex -0.5*rex 0.5*rex]);
+	el1femm = FEMMBase(IntegDomain(subset(edge_fes, l1),  GaussRule(1, 2)))
+	fi = ForceIntensity(FFlt[-magn]);#entering the domain
+	F1 = (-1.0)* distribloads(el1femm,  geom,  Temp,  fi,  2);
+
+	l1 = selectelem(fens, edge_fes, box=[0.9*rex 1.1*rex -0.5*rex 0.5*rex]);
+	el1femm =  FEMMBase(IntegDomain(subset(edge_fes, l1),  GaussRule(1, 2)))
+	fi = ForceIntensity(FFlt[+magn]);#leaving the domain
+	F2 = (-1.0)* distribloads(el1femm,  geom,  Temp,  fi,  2);
+
+	# F3 = nzebcloadsconductivity(femm,  geom,  Temp);
+
+	F = (F1+F2)
+
+	dofnums, prescribedvalues  = prescribeddofs(EBCTemp, Temp)
+	penaltyebc!(K, F, dofnums, prescribedvalues, 1.0e4)
+
+	U = K\F
+	scattersysvec!(Temp, U[:])
+
+	# println("Total time elapsed = ", time() - t0, "s")
+
+	File =  "annulusq8penalty.vtk"
+	vtkexportmesh(File,  connasarray(fes),  [geom.values Temp.values],
+		FinEtools.MeshExportModule.Q8; scalars=[("Temperature", Temp.values)])
+	# try rm(File); catch end
+	# println("Minimum/maximum temperature= $(minimum(Temp.values))/$(maximum(Temp.values)))")
+	@test norm([minimum(Temp.values), maximum(Temp.values)]-[-0.5010001850658392, 0.5010001850658563]) < 1.0e-5
+	true
+
+end
+end
+using .mmmmmAnnularQ8penalty
+mmmmmAnnularQ8penalty.test()
+
+
+module mmmmmactuatormmh8m
+using FinEtools
+using FinEtools.AlgoBaseModule: penaltyebc!
+# using UnicodePlots
+using Test
+function test()
+	# MEMS actuator.   Thermal analysis.
+	x0 =  0.0*phun("micro*m");
+	x1 = x0+5.0*phun("micro*m");
+	x2 = x1+10.0*phun("micro*m");
+	x3 = x2+10.0*phun("micro*m");
+	x4 = x3+10.0*phun("micro*m");
+	y0 = 0.0*phun("micro*m");
+	y4 = 250.0*phun("micro*m");
+	y3 = y4-10.0*phun("micro*m");
+	y2 = y3-10.0*phun("micro*m");
+	y1 = y2-10.0*phun("micro*m");
+	t = 2.0*phun("micro*m");
+	h = 0.1*phun("micro*m");
+	z0 = 0.0*phun("micro*m");
+	z3 = 2*t+h;
+	z2 = z3-t;
+	z1 = z2-h;
+	m1 = 2*2;
+	m2 = 2*2;
+	m3 = 2*2;
+	m4 = 3*2;
+	n1 = 20*2;
+	n2 = 4*2;
+	n3 = 2*2;
+	n4 = 2*2;
+	n5 = 7*2;
+	p1 = 1*2;
+	p2 = 1*2;
+	p3 = 1*2;
+	kappa = 157*[i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]*phun("W/m/K"); # W/m/K, conductivity matrix
+	DV = 5*phun("V"); # voltage drop in volt
+	l  = 2*(y1+y2)/2+2*(x1+x2)/2; # length of the conductor
+	resistivity  =  1.1e-5*phun("Ohm*m"); # Ohm m
+	Q = DV^2/resistivity/l^2; # rate of Joule heating, W/m^3
+	T_substrate = 293; # substrate temperature in degrees Kelvin
+
+	fens,fes =  H8hexahedron([x1 y0 z0; x2 y1 z1],m2,n1,p1);
+	fens1,fes1  =  H8hexahedron([x1 y1 z0;x2 y2 z1],m2,n2,p1);
+	fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
+	fes =  cat(fes1,fes2);
+	fens1,fes1  =  H8hexahedron([x0 y1 z0;x1 y2 z1],m1,n2,p1);
+	fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
+	fes =  cat(fes1,fes2);
+	fens1,fes1  =  H8hexahedron([x0 y1 z1;x1 y2 z2], m1,n2,p2);
+	fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
+	fes =  cat(fes1,fes2);
+	fens1,fes1  =  H8hexahedron([x0 y1 z2;x1 y2 z3],m1,n2,p3);
+	fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
+	fes =  cat(fes1,fes2);
+	fens1,fes1  =  H8hexahedron([x0 y2 z2;x1 y3 z3],m1,n3,p3);
+	fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
+	fes =  cat(fes1,fes2);
+	fens1,fes1  =  H8hexahedron([x0 y3 z2;x1 y4 z3], m1,n4,p3);
+	fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
+	fes =  cat(fes1,fes2);
+	fens1,fes1  =  H8hexahedron([x1 y3 z2;x3 y4 z3],m4,n4,p3);
+	fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
+	fes =  cat(fes1,fes2);
+	fens1,fes1  =  H8hexahedron([x3 y3 z2;x4 y4 z3],m3,n4,p3);
+	fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
+	fes =  cat(fes1,fes2);
+	fens1,fes1  =  H8hexahedron([x3 y0 z2;x4 y3 z3], m3,n5,p3);
+	fens,fes1,fes2  =  mergemeshes(fens1, fes1, fens, fes, 1.0e6*eps(h));
+	fes =  cat(fes1,fes2);
+
+	hotmater = MatHeatDiff(kappa)
+	coldmater = MatHeatDiff(kappa)
+	cl =  selectelem(fens, fes, box=[x0,x2,y0,y2,z0,z1],inflate = t/100);
+
+	hotfemm  =  FEMMHeatDiff(IntegDomain(subset(fes,cl), GaussRule(3, 2), 0.), hotmater)
+	coldfemm  = FEMMHeatDiff(IntegDomain(subset(fes,setdiff(collect(1:count(fes)), cl)),
+		GaussRule(3, 2), 0.), coldmater)
+	geom = NodalField(fens.xyz)
+	EBCTemp = NodalField(zeros(size(fens.xyz,1),1))
+	fenids = selectnode(fens, box=[x0,x4,y0,y0,z0,z3],
+		inflate=t/1000) ; # fixed temperature on substrate
+	setebc!(EBCTemp, fenids, true, 1, T_substrate)
+	applyebc!(EBCTemp)
+	numberdofs!(EBCTemp)
+
+	Temp = NodalField(zeros(size(fens.xyz,1),1))
+	numberdofs!(Temp)
 	
-# 	A = sprand(nfens, nfens, 1/nfens)
-# 	A = A+A'
-# 	# display(spy(A))
-# 	# display(spy(A[numbering, numbering]))
-# end
+	K = conductivity(hotfemm, geom, Temp) +	conductivity(coldfemm, geom, Temp)
+	fi = ForceIntensity(FFlt[Q]);
+	F = distribloads(hotfemm, geom, Temp, fi, 3);
+	# nzebcloadsconductivity(hotfemm, geom, Temp) +
+	# nzebcloadsconductivity(coldfemm, geom, Temp)
 
-# end
-# using .mesh_rcm_1
-# mesh_rcm_1.test()
+	dofnums, prescribedvalues  = prescribeddofs(EBCTemp, Temp)
+	penaltyebc!(K, F, dofnums, prescribedvalues, 1.0e3)
 
+	U = K\F
+	scattersysvec!(Temp,U[:])
 
-# module mesh_rcm_2
-# using FinEtools
-# using FinEtools.MeshExportModule
-# using FinEtools.MeshModificationModule: adjgraph, nodedegrees, revcm
-# using Test
-# using SparseArrays, UnicodePlots
+	# using Plots
+	# plotly()
+	nList = selectnode(fens, box=[x1,x1,y0,y1,z1,z1], inflate=t/100)
+	y_i = geom.values[nList, 2]
+	T_i = Temp.values[nList, 1]
+	ix = sortperm(y_i)
+	# plt = lineplot(y_i[ix], T_i[ix], color=:red, name= "hot leg")
 
-# function test()
-# 	nfens = 29;
-	
-# 	# A = sprand(nfens, nfens, 1/nfens)
-# 	# A = A+A'
-# 	A = spzeros(nfens, nfens)
-# 	A[5 ,  1]  =  0.559559                                                
-# 	A[24,  1]  =  0.079212                                                
-# 	A[19,  2]  =  0.459102                                                
-# 	A[8 ,  3]  =  0.844709                                                
-# 	A[16,  3]  =  0.206808                                                
-# 	A[24,  4]  =  0.82036                                                 
-# 	A[1 ,  5]  =  0.559559                                                
-# 	A[7 ,  5]  =  0.595562                                                
-# 	A[28,  6]  =  0.151036                                                
-# 	A[5 ,  7]  =  0.595562                                                
-# 	A[3 ,  8]  =  0.844709                                                
-# 	A[24,  8]  =  0.47093                                                 
-# 	A[21,  9]  =  0.673707                                                
-# 	A[22,  9]  =  0.492159                                                
-# 	A[24,  9]  =  0.10736                                                 
-# 	A[19, 10]  =  0.99992                                                 
-# 	A[18, 11]  =  0.573561                                                
-# 	A[22, 11]  =  0.803174                                                
-# 	A[17, 12]  =  0.127183                                                
-# 	A[28, 12]  =  0.644722                                                
-# 	A[29, 14]  =  0.839357                                                
-# 	A[3 , 16]  =  0.206808                                                
-# 	A[20, 16]  =  0.0470789                                               
-# 	A[12, 17]  =  0.127183                                                
-# 	A[11, 18]  =  0.573561                                                
-# 	A[2 , 19]  =  0.459102                                                
-# 	A[10, 19]  =  0.99992                                                 
-# 	A[16, 20]  =  0.0470789                                               
-# 	A[26, 20]  =  0.661536                                                
-# 	A[9 , 21]  =  0.673707                                                
-# 	A[9 , 22]  =  0.492159                                                
-# 	A[11, 22]  =  0.803174                                                
-# 	A[24, 23]  =  0.373656                                                
-# 	A[1 , 24]  =  0.079212                                                
-# 	A[4 , 24]  =  0.82036                                                 
-# 	A[8 , 24]  =  0.47093                                                 
-# 	A[9 , 24]  =  0.10736                                                 
-# 	A[23, 24]  =  0.373656                                                
-# 	A[20, 26]  =  0.661536                                                
-# 	A[6 , 28]  =  0.151036                                                
-# 	A[12, 28]  =  0.644722                                                
-# 	A[14, 29]  =  0.839357                                                
+	nList = selectnode(fens, box=[x3,x3,y0,y3,z2,z2], inflate=t/100)
+	y_o = geom.values[nList, 2]
+	T_o = Temp.values[nList, 1]
+	ix = sortperm(y_o)
+	# plot!(y_o[ix], T_o[ix], color=:blue, label= "cold leg")
+	# display(lineplot!(plt, y_o[ix], T_o[ix], color=:green, name= "cold leg"))
 
-# 	ag = adjgraph(A)
-# 	nd = nodedegrees(ag)
-# 	numbering = revcm(ag, nd)
-# 	display(spy(A))
-# 	display(spy(A[numbering, numbering]))
-# end
-
-# end
-# using .mesh_rcm_2
-# mesh_rcm_2.test()
-
-
-# module mesh_rcm_3
-# using FinEtools
-# using FinEtools.MeshExportModule
-# using FinEtools.MeshModificationModule: adjgraph, nodedegrees, revcm
-# using Test
-# using SparseArrays, UnicodePlots
-
-# function test()
-# 	nfens = 19;
-	
-# 	# A1 = sprand(nfens, nfens, 1/nfens)
-# 	# @show A1 = A1+A1'
-# 	A1 = spzeros(nfens, nfens)
-# 	A1[7 ,  1]  =  0.783374                                                
-# 	A1[18,  1]  =  0.6411                                                  
-# 	A1[8 ,  2]  =  0.66032                                                 
-# 	A1[13,  2]  =  0.552169                                                
-# 	A1[5 ,  3]  =  0.522678                                                
-# 	A1[11,  4]  =  0.244274                                                
-# 	A1[3 ,  5]  =  0.522678                                                
-# 	A1[19,  5]  =  0.870687                                                
-# 	A1[15,  6]  =  0.254443                                                
-# 	A1[17,  6]  =  0.138423                                                
-# 	A1[1 ,  7]  =  0.783374                                                
-# 	A1[8 ,  7]  =  0.274651                                                
-# 	A1[11,  7]  =  0.255421                                                
-# 	A1[15,  7]  =  0.961861                                                
-# 	A1[2 ,  8]  =  0.66032                                                 
-# 	A1[7 ,  8]  =  0.274651                                                
-# 	A1[11,  8]  =  0.0421145                                               
-# 	A1[4 , 11]  =  0.244274                                                
-# 	A1[7 , 11]  =  0.255421                                                
-# 	A1[8 , 11]  =  0.0421145                                               
-# 	A1[12, 11]  =  0.610131                                                
-# 	A1[16, 11]  =  0.678996                                                
-# 	A1[11, 12]  =  0.610131                                                
-# 	A1[19, 12]  =  0.510702                                                
-# 	A1[2 , 13]  =  0.552169                                                
-# 	A1[18, 13]  =  0.0696182                                               
-# 	A1[14, 14]  =  0.213021                                                
-# 	A1[15, 14]  =  0.516788                                                
-# 	A1[6 , 15]  =  0.254443                                                
-# 	A1[7 , 15]  =  0.961861                                                
-# 	A1[14, 15]  =  0.516788                                                
-# 	A1[17, 15]  =  0.34131                                                 
-# 	A1[11, 16]  =  0.678996                                                
-# 	A1[6 , 17]  =  0.138423                                                
-# 	A1[15, 17]  =  0.34131                                                 
-# 	A1[1 , 18]  =  0.6411                                                  
-# 	A1[13, 18]  =  0.0696182                                               
-# 	A1[5 , 19]  =  0.870687                                                
-# 	A1[12, 19]  =  0.510702
-	
-# 	A = vcat(hcat(A1, 0*A1, 0*A1), hcat(0*A1, 0*A1, 0*A1), hcat(0*A1, 0*A1, A1))
-# 	ag = adjgraph(A)
-# 	nd = nodedegrees(ag)
-# 	numbering = revcm(ag, nd)
-# 	display(spy(A))
-# 	display(spy(A[numbering, numbering]))
-# 	@test numbering == [55, 52, 44, 56, 51, 53, 39, 40, 45, 46, 54, 42, 49, 50, 57, 43, 41, 17, 14, 6, 18, 13, 15, 1, 2, 7, 8, 16, 4, 11, 12, 19, 5, 3, 48, 47, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 
-# 26, 25, 24, 23, 22, 21, 20, 10, 9]
-# end
-
-# end
-# using .mesh_rcm_3
-# mesh_rcm_3.test()
-
-
-# module mesh_rcm_5
-# using FinEtools
-# using FinEtools.MeshModificationModule: adjgraph, nodedegrees, revcm
-# using Test
-# using SparseArrays, UnicodePlots
-# using LinearAlgebra
-# using LinearAlgebra: norm
-
-# function test()
-# 	nfens = 511117;
-	
-# 	A = sprand(nfens, nfens, 1/nfens)
-# 	A = A+A' + 1I
-# 	@time ag = adjgraph(A)
-# 	@time nd = nodedegrees(ag)
-# 	@time numbering = revcm(ag, nd)
-	
-# 	# display(spy(A))
-# 	# display(spy(A[numbering, numbering]))
-# 	# b = rand(nfens)
-# 	# inumbering = deepcopy(numbering)
-# 	# inumbering[numbering] = 1:nfens
-# 	# x = A * b
-# 	# xp = A[numbering, numbering] * b[numbering]
-# 	# xp[numbering]
-# 	# @test norm(x - xp[inumbering]) < 1.0e-5*nfens
-# end
-
-# end
-# using .mesh_rcm_5
-# mesh_rcm_5.test()
-
-
-
+	# show(T_i)
+	# println("maximum(T_i) = $(maximum(T_i))")
+	@test abs(maximum(T_i)-1380.5883006341187) < 1.0e-3
+end
+end
+using .mmmmmactuatormmh8m
+mmmmmactuatormmh8m.test()

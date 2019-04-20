@@ -53,9 +53,9 @@ using FinEtools.FENodeToFEMapModule: FENodeToFEMap
 # Exported: type for maps from nodes to finite elements
 export FENodeToFEMap
 
-using FinEtools.FieldModule: Field, ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!, gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!, gatherfixedvalues_asmat!,numberdofs!, setebc!, applyebc!, scattersysvec!, copyto!, wipe!
+using FinEtools.FieldModule: Field, ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!, gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!, gatherfixedvalues_asmat!,numberdofs!, setebc!, applyebc!, scattersysvec!, copyto!, wipe!, prescribeddofs
 # Exported: abstract field type, methods for the abstract field type (retrieval of data  from a field, setting of data in the field)
-export Field, ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!, gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!, gatherfixedvalues_asmat!, numberdofs!, setebc!, applyebc!, scattersysvec!, copyto!, wipe!
+export Field, ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!, gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!, gatherfixedvalues_asmat!, numberdofs!, setebc!, applyebc!, scattersysvec!, copyto!, wipe!, prescribeddofs
 
 using FinEtools.GeneralFieldModule: GeneralField
 # Exported: type of general field

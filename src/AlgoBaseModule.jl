@@ -356,4 +356,30 @@ with unit default weights.
 """
 qvariance(ps, xs; ws = nothing) = qcovariance(ps, xs, xs; ws = ws)
 
+"""
+    penaltyebc(K, F, uebc, u, penfact)
+
+Apply penalty essential boundary conditions.
+
+`K` = stiffness matrix
+`F` = global load vector 
+`dofnums`, `prescribedvalues` = arrays computed by `prescribeddofs()`
+`penfact` = penalty multiplier, in relative terms: how many times the maximum
+	absolute value of the diagonal elements should the penalty term be?
+"""
+function penaltyebc!(K, F, dofnums, prescribedvalues, penfact)
+    maxdiagK = 0.0
+    for j = 1:length(dofnums)
+    	gj = dofnums[j];
+    	maxdiagK = max(abs(K[gj,gj]), maxdiagK)
+    end
+    penalty = penfact * maxdiagK;
+    for j = 1:length(dofnums)
+        gj = dofnums[j];
+        K[gj,gj]  =  K[gj,gj] + penalty;
+        F[gj]  =  F[gj] + penalty*prescribedvalues[j];
+    end
+    return K, F
+end
+
 end
