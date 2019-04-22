@@ -10,7 +10,7 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/JuliaPDE/FinEtools.jl.git",
+    repo = "https://github.com/PetrKryslUCSD/FinEtools.jl.git",
     target = "build",
     julia  = "nightly",
     deps = nothing,
