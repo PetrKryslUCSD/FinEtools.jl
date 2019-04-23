@@ -20,5 +20,4 @@ after_success:
   - julia --inline=no --project --code-coverage=user -e 'import Pkg; cd(Pkg.dir("FinEtools")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
   # push coverage results to Codecov
   - julia --inline=no --project --code-coverage=user -e 'import Pkg; cd(Pkg.dir("FinEtools")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
-  - julia -e 'Pkg.add("Documenter"); Pkg.add("Literate")'
-  - julia -e 'import Pkg; cd(Pkg.dir("FinEtools")); include(joinpath("docs", "make.jl"))'
+  - julia -e 'import Pkg; Pkg.add("Documenter"); Pkg.add("Literate"); cd(Pkg.dir("FinEtools")); include(joinpath("docs", "make.jl"))'
