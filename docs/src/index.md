@@ -1,18 +1,36 @@
 # FinEtools (Finite Element tools) Documentation
 
-- [Module structure](modules.html)
-- [Arithmetic types](types.html)
-- [Physical units](units.html)
-- [Mesh entities](mesh.html)
-- [Mesh generation](meshgen.html)
-- [Selection of mesh entities](selection.html)
-- [Field](field.html)
-- [Element](element.html)
-- [Integration](integration.html)
-- [FEM machine](machine.html)
-- [Material](material.html)
-- [Algorithms](algorithms.html)
-- [Querying quadrature-point data](query.html)
-- [Postprocessing](post.html)
-- [Import/export](importexport.html)
-- [Tutorials and examples](tutorials.html)
+
+## Conceptual guide
+
+```@contents
+Pages = [
+    "guide/modules.md",
+    "guide/types.md",
+    "guide/units.md",
+    "guide/mesh.md",
+    "guide/meshgen.md",
+    "guide/selection.md",
+    "guide/field.md",
+    "guide/element.md",
+    "guide/integration.md",
+    "guide/machine.md",
+    "guide/material.md",
+    "guide/algorithms.md",
+    "guide/query.md",
+    "guide/post.md",
+    "guide/importexport.md",
+    "guide/tutorials.md",
+]
+Depth = 1
+```
+
+## Manual
+
+```@contents
+Pages = [
+    "man/types.md",
+    "man/functions.md",
+]
+Depth = 1
+```
