@@ -1,0 +1,3 @@
+# Design philosophy
+
+Here goes:
