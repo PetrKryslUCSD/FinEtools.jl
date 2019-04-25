@@ -1,23 +1,34 @@
 ## Documentation: http://docs.travis-ci.com/user/languages/julia/
+      
 language: julia
+
 os:
   - linux
   - osx
+
 julia:
-  - 0.7
   - 1.0
   - nightly
+
 notifications:
   email: false
-git:
-  depth: 99999999
 
-## uncomment the following lines to override the default test script
-script:
-  - julia -e 'import Pkg; Pkg.clone("https://github.com/PetrKryslUCSD/FinEtools.jl.git"); Pkg.test("FinEtools"; coverage=true);'
 after_success:
-  # push coverage results to Coveralls
-  - julia --inline=no --project --code-coverage=user -e 'import Pkg; cd(Pkg.dir("FinEtools")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
-  # push coverage results to Codecov
-  - julia --inline=no --project --code-coverage=user -e 'import Pkg; cd(Pkg.dir("FinEtools")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
-  - julia -e 'import Pkg; Pkg.add("Documenter"); Pkg.add("Literate"); cd(Pkg.dir("FinEtools")); include(joinpath("docs", "make.jl"))'
+  - julia --project=coverage/ -e 'using Pkg; Pkg.instantiate()'
+  - julia --project=coverage/ coverage/coverage.jl
+
+jobs:
+  include:
+    - stage: "Documentation"
+      julia: 1.0
+      os: linux
+      script:
+        - julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+        - julia --project=docs/ docs/make.jl
+      name: "HTML"
+      after_success: skip
+    - script:
+        - julia --project=docs/pdf/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+        - julia --project=docs/pdf/ docs/pdf/make.jl
+      name: "PDF"
+      after_success: skip
