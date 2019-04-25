@@ -3214,7 +3214,7 @@ using .mmmmmAnnularQ8penalty
 mmmmmAnnularQ8penalty.test()
 
 
-module mmmmmactuatormmh8m
+module mmmmmactuatormmh8m1
 using FinEtools
 using FinEtools.AlgoBaseModule: penaltyebc!
 # using UnicodePlots
@@ -3335,5 +3335,5 @@ function test()
 	@test abs(maximum(T_i)-1380.5883006341187) < 1.0e-3
 end
 end
-using .mmmmmactuatormmh8m
-mmmmmactuatormmh8m.test()
+using .mmmmmactuatormmh8m1
+mmmmmactuatormmh8m1.test()
