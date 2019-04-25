@@ -16,9 +16,5 @@ makedocs(
 	)
 
 deploydocs(
-	repo = "github.com/PetrKryslUCSD/FinEtools.jl.git",
-	target = "build",
-	julia  = "nightly",
-	deps = nothing,
-	make = nothing
-	)
+    repo = "github.com/PetrKryslUCSD/FinEtools.jl.git",
+)
