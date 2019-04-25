@@ -195,7 +195,7 @@ Order = [:function]
 ## FEM machine: Heat diffusion
 
 ```@autodocs
-Modules = [FinEtools, FinEtools.MatHeatDiffModule, FinEtools.MatHeatDiffSurfModule]
+Modules = [FinEtools, FinEtools.FEMMHeatDiffModule, FinEtools.FEMMHeatDiffSurfModule]
 Private = true
 Order = [:function]
 ```
@@ -220,6 +220,38 @@ Order = [:function]
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.MatHeatDiffModule, FinEtools.MatAcoustFluidModule,  FinEtools.MatDeforModule, FinEtools.MatDeforElastIsoModule, FinEtools.MatDeforElastOrthoModule,]
+Private = true
+Order = [:function]
+```
+
+## Algorithms: Base
+
+```@autodocs
+Modules = [FinEtools, FinEtools.AlgoBaseModule]
+Private = true
+Order = [:function]
+```
+
+## Algorithms: Heat conduction
+
+```@autodocs
+Modules = [FinEtools, FinEtools.AlgoHeatDiffModule]
+Private = true
+Order = [:function]
+```
+
+## Algorithms: Acoustics
+
+```@autodocs
+Modules = [FinEtools, FinEtools.AlgoAcoustModule]
+Private = true
+Order = [:function]
+```
+
+## Algorithms: Linear deformation
+
+```@autodocs
+Modules = [FinEtools, FinEtools.AlgoDeforLinearModule]
 Private = true
 Order = [:function]
 ```
