@@ -6,18 +6,17 @@
 [![][docs-latest-img]][docs-latest-url]
 
 [docs-latest-img]: https://img.shields.io/badge/docs-latest-blue.svg
-[docs-latest-url]: http://JuliaPDE.github.io/FinEtools.jl/latest/
+[docs-latest-url]: http://petrkryslucsd.github.io/FinEtools.jl/latest/
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
-[docs-stable-url]: http://JuliaPDE.github.io/FinEtools.jl/stable/
+[docs-stable-url]: http://petrkryslucsd.github.io/FinEtools.jl/stable/
 
 # FinEtools: Finite Element tools in Julia
 
 ## News
 
+- 04/25/2019: Added support for Documenter-generated guide and user manual.
 - 04/13/2019: Added Reverse Cuthill-McKee renumbering.
-- 03/07/2019: Meshing functions for circles, spherical surfaces, and cylinders added.
-
 
 
 [Past news](oldnews.md)
