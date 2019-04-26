@@ -1,19 +1,23 @@
 """
-IntegRuleModule
+	IntegRuleModule
+
 Module for numerical integration rules.
 """
 module IntegRuleModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
+"""
+    IntegRule
+
+Abstract type for integration rule.
+"""
 abstract type IntegRule end
 
 """
-TriRule
+	TriRule <: IntegRule
 
-Triangular quadrature rule.
-
-Used for integration on the standard triangle.
+Triangular quadrature rule for integration on the standard triangle.
 """
 struct TriRule <: IntegRule
     npts::FInt
@@ -26,8 +30,9 @@ end
 
 Type for triangular quadrature rule.  Used for integration of the standard
 triangle, which is between 0 and 1 in both parametric coordinates.
-`npts` = number of points (1-- one-point rule, 3 -- three-point rule,
- 6 -- six point rule, 10 -- Strang 10 point, order 13, degree of precision 7, rule).
+`npts` = number of points (1-- one-point rule, 3 -- three-point rule, 6 -- six
+ point rule, 9 --nine point rule, 10 -- Strang 10 point, order 13, degree of
+ precision 7, rule), 12 and 13--twelve- and thirteen-point rule.
 """
 function TriRule(npts=1)
     if npts == 1 # integrates exactly linear polynomials
@@ -68,7 +73,7 @@ function TriRule(npts=1)
                     0.066197076394253
                     0.066197076394253
                     0.112500000000000];
-   elseif npts == 9 # integrates exactly ? polynomials
+   	elseif npts == 9 # integrates exactly ? polynomials
         param_coords = [   0.437525248383384   0.437525248383384
             0.124949503233232   0.437525248383384
             0.437525248383384   0.124949503233232
@@ -87,7 +92,7 @@ function TriRule(npts=1)
             0.063691414286223
             0.063691414286223
             0.063691414286223] ./ 2;
-     elseif npts == 12 # integrates exactly ? polynomials
+ 	elseif npts == 12 # integrates exactly ? polynomials
         param_coords = [   0.063089014491502   0.063089014491502
             0.873821971016996   0.063089014491502
             0.063089014491502   0.873821971016996
@@ -151,11 +156,9 @@ end
 
 
 """
-    GaussRule
+    GaussRule <: IntegRule
 
-The Gauss rule.
-
-The rule is applicable for a tensor product of  intervals -1 <=x<= +1.
+The Gauss rul, applicable for a tensor product of  intervals -1 <=x<= +1.
 """
 struct GaussRule <: IntegRule
     dim::FInt
@@ -317,11 +320,9 @@ end
 
 
 """
-    TetRule
+    TetRule <: IntegRule
 
-Tetrahedral quadrature rule.
-
-Used for integration on the standard tetrahedron.
+Tetrahedral quadrature rule, used for integration on the standard tetrahedron.
 """
 struct TetRule <: IntegRule
     npts::FInt
@@ -368,11 +369,9 @@ end
 
 
 """
-    PointRule
+    PointRule <: IntegRule
 
-Class of point quadrature rule.
-
-Used for integration on the standard "point" shape.
+Point quadrature rule, used for integration on the standard "point" shape.
 """
 struct PointRule <: IntegRule
     npts::FInt
@@ -390,7 +389,7 @@ function PointRule()
 end
 
 """
-    SimplexRule
+    SimplexRule <: IntegRule
 
 Simplex quadrature rule.
 
@@ -402,6 +401,11 @@ struct SimplexRule <: IntegRule
     weights::Array{Float64, 2}
 end
 
+"""
+    SimplexRule(dim=1, npts=1)
+
+Return simplex rule, appropriate for the manifold dimension `dim`.
+"""
 function SimplexRule(dim=1, npts=1)
     @assert 0 <= dim <= 3 "Simplex rule of dimension $(dim) not available"
 
@@ -422,7 +426,7 @@ end
 
 
 """
-    TrapezoidalRule
+    TrapezoidalRule <: IntegRule
 
 The trapezoidal rule.
 
@@ -486,7 +490,7 @@ function TrapezoidalRule(dim=1)
 end
 
 """
-    NodalSimplexRule
+    NodalSimplexRule <: IntegRule
 
 The nodal-quadrature simplex rule.
 
