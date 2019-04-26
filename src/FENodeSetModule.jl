@@ -9,22 +9,19 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 import Base.count
 
 """
-    Finite element node set type.
-
-xyz =
-    Array of node locations.
-    Array of coordinates, the number of rows corresponds to the number of
-    nodes in the set and the columns corresponds to the space dimensions.
-    The location of node j is given by x[j,:].
-
+Finite element node set type.
 """
 mutable struct FENodeSet
-  xyz::Array{FFlt, 2}
+	"""
+	Array of node locations. Indexed with the node number.
+	The location of node j is given by `xyz[j,:]`.
+	"""
+	xyz::Array{FFlt, 2}
 
-  function FENodeSet(xyz::FFltMat)
-    self = new(deepcopy(xyz)); # Need to make a COPY of the input array!
-    return self
-  end
+	function FENodeSet(xyz::FFltMat)
+		self = new(deepcopy(xyz)); # Need to make a COPY of the input array!
+		return self
+	end
 end
 
 
