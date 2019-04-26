@@ -24,7 +24,12 @@ See also: [`add_Field_fields()`](@ref) .
 """
 abstract type Field end
 
+"""
+    add_Field_fields()
 
+Generate the attributes (i. e. fields) of a `Field`. The methods defined for
+the abstract type depend on these attributes to be present.
+"""
 macro add_Field_fields()
     return esc(:(
     values::Array{T, 2};
