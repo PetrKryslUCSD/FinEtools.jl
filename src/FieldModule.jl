@@ -9,15 +9,18 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 import Base.copyto!
 
 """
-    Abstract field.
+	Field
+
+Abstract field.
 
 Expected  attributes:
-  + values::FMat{T} # Array of degree of freedom parameters,  indexed by node
-  + dofnums::FIntMat # Array of degree of freedom numbers, indexed by node
-  + is_fixed::Matrix{Bool} # Array of Boolean flags, indexed by node
-  + fixed_values::FMat{T} # Array of fixed values, indexed by node
-  + nfreedofs::FInt # Total number of free degrees of freedom
-See the macro `add_Field_fields()`.
+  + `values::FMat{T}`: Array of degree of freedom parameters,  indexed by entity number
+  + `dofnums::FIntMat`: Array of degree of freedom numbers, indexed by entity number
+  + `is_fixed::Matrix{Bool}`: Array of Boolean flags, indexed by entity number
+  + `fixed_values::FMat{T}`: Array of fixed values, indexed by entity number
+  + `nfreedofs::FInt`: Total number of free degrees of freedom
+
+See also: [`add_Field_fields()`](@ref) .
 """
 abstract type Field end
 
@@ -36,7 +39,7 @@ end
 """
     ndofs{F<:Field}(self::T)
 
-Dimension of the degree of freedom parameters (i. e.  how many degrees of
+Dimension of the degree of freedom parameters (i. e. how many degrees of
 freedom per entity).
 """
 ndofs(self::Field)  = size(self.values, 2)
