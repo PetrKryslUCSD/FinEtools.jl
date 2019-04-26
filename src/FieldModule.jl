@@ -20,7 +20,7 @@ Expected  attributes:
   + `fixed_values::FMat{T}`: Array of fixed values, indexed by entity number
   + `nfreedofs::FInt`: Total number of free degrees of freedom
 
-See also: [`add_Field_fields()`](@ref) .
+See also: [`@add_Field_fields()`](@ref) .
 """
 abstract type Field end
 

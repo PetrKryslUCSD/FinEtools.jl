@@ -11,9 +11,9 @@ import FinEtools.FieldModule.@add_Field_fields
 
 
 """
-    ElementalField{T<:Number}
+    ElementalField{T<:Number} <: Field
 
-Elemental field.
+Elemental field, meaning the entities are finite elements.
 
 The values in the field are indexed by the element number.  This means  that
 there needs to be one field per finite element set.
@@ -25,7 +25,9 @@ end
 """
    ElementalField(data::FMat{T}=[]) where {T<:Number}
 
-Constructor of elemental field.
+Constructor of elemental field. The values of the field are given by the array
+on input, `data`. This array needs to have as many rows as there are elements,
+and as many columns as there are degrees of freedom per element.
 """
 function ElementalField(data::FMat{T}=[]) where {T<:Number}
   values = deepcopy(data)
@@ -37,6 +39,13 @@ function ElementalField(data::FMat{T}=[]) where {T<:Number}
   return ElementalField(values, dofnums, is_fixed, fixed_values, nfreedofs)
 end
 
+"""
+    ElementalField(data::FVec{T}) where {T<:Number}
+
+Constructor of elemental field. The values of the field are given by the vector
+on input, `data`. This vector needs to have as many entries as there are elements;
+there is just one degree of freedom per element.
+"""
 function ElementalField(data::FVec{T}) where {T<:Number}
     return ElementalField(reshape(data, length(data), 1))
 end 

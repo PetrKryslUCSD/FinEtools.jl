@@ -12,7 +12,7 @@ import FinEtools.FieldModule.@add_Field_fields
 """
     GeneralField{T<:Number} <: Field
 
-General field.
+General field, meaning the entities can be anything.
 """
 mutable struct GeneralField{T<:Number} <: Field
     @add_Field_fields()
