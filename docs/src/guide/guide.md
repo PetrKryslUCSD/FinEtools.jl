@@ -764,10 +764,16 @@ The following formats of finite element input files can be handled:
 
 ### Tutorials
 
+The `FinEtools` tutorials are written up in their own separate repository,
+[`FinEtoolsTutorials`](https://github.com/PetrKryslUCSD/FinEtoolsTutorials).
+
 The tutorials are in the form of Julia files with markdown. These are converted to markdown files (or to Jupyter notebooks)
 using the [Literate](https://github.com/fredrikekre/Literate.jl) workflow.
 
 ### Examples
+
+The `FinEtools` examples are separated in their own separate repositories,
+[`FinEtoolsHeatConductionExamples`](https://github.com/PetrKryslUCSD/FinEtoolsHeatConductionExamples), [`FinEtoolsAcousticsExamples`](https://github.com/PetrKryslUCSD/FinEtoolsAcousticsExamples), [`FinEtoolsLinearDeformationExamples`](https://github.com/PetrKryslUCSD/FinEtoolsLinearDeformationExamples), [`FinEtoolsMeshGenerationExamples`](https://github.com/PetrKryslUCSD/FinEtoolsMeshGenerationExamples).
 
 The examples are in the form of  Julia files with multiple functions, where each function defines one example. Take for instance the example file `Fahy_examples.jl`. This incantation will run all the examples from the example file:
 
@@ -782,6 +788,10 @@ include("Fahy_examples.jl"); Fahy_examples.fahy_H8_example()
 ```
 
 The example file `Fahy_examples.jl` consists of a module (whose name matches the name of the file), and  the module defines multiple functions,  one for each example, and one to run *all* examples, `allrun`.
+
+### Tests
+
+Check out the numerous tests in the `test` folder. There are hundreds of tests which exercise the various functions of the library. These examples may help you understand how to extract the desired outcome.
 
 ## Make up your own public interface
 
