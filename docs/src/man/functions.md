@@ -72,18 +72,18 @@ Private = true
 Order = [:function]
 ```
 
-## Mesh modification
+## Integration rule
 
 ```@autodocs
-Modules = [FinEtools, FinEtools.MeshModificationModule]
+Modules = [FinEtools, FinEtools.IntegRuleModule]
 Private = true
 Order = [:function]
 ```
 
-## Integration
+## Integration domain
 
 ```@autodocs
-Modules = [FinEtools, FinEtools.IntegRuleModule, FinEtools.IntegDomainModule]
+Modules = [FinEtools, FinEtools.IntegDomainModule]
 Private = true
 Order = [:function]
 ```
@@ -140,6 +140,14 @@ Order = [:function]
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.MeshHexahedronModule]
+Private = true
+Order = [:function]
+```
+
+## Mesh modification
+
+```@autodocs
+Modules = [FinEtools, FinEtools.MeshModificationModule]
 Private = true
 Order = [:function]
 ```
