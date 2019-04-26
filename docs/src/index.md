@@ -5,22 +5,7 @@
 
 ```@contents
 Pages = [
-    "guide/modules.md",
-    "guide/types.md",
-    "guide/units.md",
-    "guide/mesh.md",
-    "guide/meshgen.md",
-    "guide/selection.md",
-    "guide/field.md",
-    "guide/element.md",
-    "guide/integration.md",
-    "guide/machine.md",
-    "guide/material.md",
-    "guide/algorithms.md",
-    "guide/query.md",
-    "guide/post.md",
-    "guide/importexport.md",
-    "guide/tutorials.md",
+    "guide/guide.md",
 ]
 Depth = 1
 ```
