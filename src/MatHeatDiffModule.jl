@@ -12,7 +12,7 @@ At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
 
 """
-    MatHeatDiff{MTAN<:Function, MUPD<:Function} 
+    MatHeatDiff{MTAN<:Function, MUPD<:Function} <: AbstractMat
 
 Type of material model for heat diffusion.
 """
