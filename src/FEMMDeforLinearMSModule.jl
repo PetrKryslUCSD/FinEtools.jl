@@ -410,7 +410,7 @@ function _iip_meanonly(self::AbstractFEMMDeforLinearMS, geom::NodalField{FFlt}, 
         qpdT = dot(vec(dTe), vec(MeanN));# Quadrature point temperature increment
         # Quadrature point quantities
         A_mul_B!(qpstrain, Bbar, ue); # strain in material coordinates
-        realmat.thermalstrain!(realmat, qpthstrain, qpdT)
+        thermalstrain!(realmat, qpthstrain, qpdT)
         # Material updates the state and returns the output
         out = update!(realmat, qpstress, out, vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
@@ -482,7 +482,7 @@ function _iip_extrapmean(self::AbstractFEMMDeforLinearMS, geom::NodalField{FFlt}
         qpdT = dot(vec(dTe), vec(MeanN));# Quadrature point temperature increment
         # Quadrature point quantities
         A_mul_B!(qpstrain, Bbar, ue); # strain in material coordinates
-        realmat.thermalstrain!(realmat, qpthstrain, qpdT)
+        thermalstrain!(realmat, qpthstrain, qpdT)
         # Material updates the state and returns the output
         out = update!(realmat, qpstress, out,
             vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
@@ -564,7 +564,7 @@ function _iip_extraptrend(self::AbstractFEMMDeforLinearMS, geom::NodalField{FFlt
         qpdT = dot(vec(dTe), vec(MeanN));# Quadrature point temperature increment
         # Quadrature point quantities
         A_mul_B!(qpstrain, Bbar, ue); # strain in material coordinates
-        realmat.thermalstrain!(realmat, qpthstrain, qpdT)
+        thermalstrain!(realmat, qpthstrain, qpdT)
         # REAL Material updates the state and returns the output
         rout = update!(realmat, qpstress, rout, vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
@@ -586,7 +586,7 @@ function _iip_extraptrend(self::AbstractFEMMDeforLinearMS, geom::NodalField{FFlt
             qpdT = dot(vec(dTe), vec(Ns[j]));# Quadrature point temperature increment
             #  Quadrature point quantities
             A_mul_B!(qpstrain, B, ue); # strain in material coordinates
-            stabmat.thermalstrain!(stabmat, qpthstrain, qpdT)
+            thermalstrain!(stabmat, qpthstrain, qpdT)
             # Material updates the state and returns the output
             sout = update!(stabmat, qpstress, sout, vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
             if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
