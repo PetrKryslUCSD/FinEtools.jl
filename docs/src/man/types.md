@@ -40,10 +40,18 @@ Private = true
 Order = [:type]
 ```
 
-## Integration
+## Integration rule
 
 ```@autodocs
-Modules = [FinEtools, FinEtools.IntegRuleModule, FinEtools.IntegDomainModule]
+Modules = [FinEtools, FinEtools.IntegRuleModule]
+Private = true
+Order = [:type]
+```
+
+## Integration domain
+
+```@autodocs
+Modules = [FinEtools, FinEtools.IntegDomainModule]
 Private = true
 Order = [:type]
 ```
