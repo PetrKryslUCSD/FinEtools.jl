@@ -12,7 +12,7 @@ import FinEtools.FESetModule: AbstractFESet, FESetH8, FESetT10, manifdim, nodesp
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
 import FinEtools.FEMMDeforLinearBaseModule: AbstractFEMMDeforLinear
 import FinEtools.DeforModelRedModule: AbstractDeforModelRed, DeforModelRed3D
-import FinEtools.MatDeforLinearElasticModule: AbstractMatDeforLinearElastic
+import FinEtools.MatDeforLinearElasticModule: AbstractMatDeforLinearElastic, tangentmoduli!, update!, thermalstrain!
 import FinEtools.MatDeforElastIsoModule: MatDeforElastIso
 import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!, gathervalues_asmat!
 import FinEtools.NodalFieldModule: NodalField
@@ -23,7 +23,6 @@ using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, 
 import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass, thermalstrainloads, inspectintegpoints
 import FinEtools.FEMMBaseModule: associategeometry!
 import FinEtools.MatDeforModule: rotstressvec
-import FinEtools.MatDeforLinearElasticModule: tangentmoduli!, update!
 import LinearAlgebra: mul!, Transpose, UpperTriangular
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
