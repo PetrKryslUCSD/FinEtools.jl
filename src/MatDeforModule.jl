@@ -7,13 +7,14 @@ module MatDeforModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.DeforModelRedModule: DeforModelRed3D, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed1D
+import FinEtools.MatModule: AbstractMat
 
 """
-    MatDefor
+    AbstractMatDefor
 
 Abstract type that represents deformable materials.
 """
-abstract type MatDefor end
+abstract type AbstractMatDefor <: AbstractMat end
 
 """
     strain2x2tto3v!(v::FFltVec, t::FFltMat)

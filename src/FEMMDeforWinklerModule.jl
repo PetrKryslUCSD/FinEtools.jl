@@ -9,29 +9,29 @@ module FEMMDeforWinklerModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: FESet, nodesperelem, manifdim
+import FinEtools.FESetModule: AbstractFESet, nodesperelem, manifdim
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobiansurface
 import FinEtools.FieldModule: ndofs, gatherdofnums!
 import FinEtools.NodalFieldModule: NodalField 
-import FinEtools.FEMMBaseModule: FEMMAbstractBase
-import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!
+import FinEtools.FEMMBaseModule: AbstractFEMM
+import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!
 import FinEtools.MatrixUtilityModule: add_nnt_ut_only!, complete_lt!, locjac!
 import FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 import LinearAlgebra: norm, cross
 
 """
-    FEMMDeforWinkler{S<:FESet, F<:Function}
+    FEMMDeforWinkler{S<:AbstractFESet, F<:Function} <: AbstractFEMM
 
 Type for normal spring support  (Winkler).
 """
-mutable struct FEMMDeforWinkler{S<:FESet, F<:Function} <: FEMMAbstractBase
+mutable struct FEMMDeforWinkler{S<:AbstractFESet, F<:Function} <: AbstractFEMM
     integdomain::IntegDomain{S, F} # geometry data
 end
 
 """
     surfacenormalspringstiffness(self::FEMMDeforWinkler, assembler::A,
         geom::NodalField{FFlt}, u::NodalField{T},
-        springconstant::FFlt, surfacenormal::SurfaceNormal) where {A<:SysmatAssemblerBase, T<:Number}
+        springconstant::FFlt, surfacenormal::SurfaceNormal) where {A<:AbstractSysmatAssembler, T<:Number}
 
 Compute the stiffness matrix of surface normal spring.
 Rationale: consider continuously distributed springs between the surface of the
@@ -41,7 +41,7 @@ normal displacement to the surface.gas
 """
 function surfacenormalspringstiffness(self::FEMMDeforWinkler, assembler::A,
     geom::NodalField{FFlt}, u::NodalField{T},
-    springconstant::FFlt, surfacenormal::SurfaceNormal) where {A<:SysmatAssemblerBase, T<:Number}
+    springconstant::FFlt, surfacenormal::SurfaceNormal) where {A<:AbstractSysmatAssembler, T<:Number}
     integdomain = self.integdomain
     # Constants
     nfes = count(integdomain.fes); # number of finite elements in the set

@@ -6,7 +6,7 @@ Module  for generation of meshes composed of triangles.
 module MeshTriangleModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FESetModule: FESet, FESetT3, FESetT6, FESetQ4, connasarray
+import FinEtools.FESetModule: AbstractFESet, FESetT3, FESetT6, FESetQ4, connasarray
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
 import Statistics: mean

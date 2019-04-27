@@ -6,15 +6,15 @@ Module for general fields.
 module GeneralFieldModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FieldModule.Field
+import FinEtools.FieldModule.AbstractField
 import FinEtools.FieldModule.@add_Field_fields
 
 """
-    GeneralField{T<:Number} <: Field
+    GeneralField{T<:Number} <: AbstractField
 
 General field, meaning the entities can be anything.
 """
-mutable struct GeneralField{T<:Number} <: Field
+mutable struct GeneralField{T<:Number} <: AbstractField
     @add_Field_fields()
 end
 
@@ -22,7 +22,9 @@ end
 """
     GeneralField(data::FMat{T}=[]) where {T<:Number}
 
-Constructor of general field.
+Constructor of general field.  The values of the field are given by the array
+on input, `data`. This array needs to have as many rows as there are entities,
+and as many columns as there are degrees of freedom per entities.
 """
 function GeneralField(data::FMat{T}=[]) where {T<:Number}
     values = deepcopy(data)
@@ -34,6 +36,12 @@ function GeneralField(data::FMat{T}=[]) where {T<:Number}
     return GeneralField(values, dofnums, is_fixed, fixed_values, nfreedofs)
 end
 
+"""
+    GeneralField(data::FVec{T}) where {T<:Number}
+
+Constructor of general field.  The values of the field are given by the vector
+on input, `data`. This vector needs to have as many rows as there are entities.
+"""
 function GeneralField(data::FVec{T}) where {T<:Number}
     return GeneralField(reshape(data, length(data), 1))
 end 

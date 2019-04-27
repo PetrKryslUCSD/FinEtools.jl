@@ -8,30 +8,41 @@ module FEMMDeforLinearMSModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: FESet, FESetH8, FESetT10, manifdim, nodesperelem, gradN!
+import FinEtools.FESetModule: AbstractFESet, FESetH8, FESetT10, manifdim, nodesperelem, gradN!
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
-import FinEtools.FEMMDeforLinearBaseModule: FEMMDeforLinearAbstract
-import FinEtools.DeforModelRedModule: DeforModelRed, DeforModelRed3D
-import FinEtools.MatDeforModule: MatDefor
+import FinEtools.FEMMDeforLinearBaseModule: AbstractFEMMDeforLinear
+import FinEtools.DeforModelRedModule: AbstractDeforModelRed, DeforModelRed3D
+import FinEtools.MatDeforLinearElasticModule: AbstractMatDeforLinearElastic
 import FinEtools.MatDeforElastIsoModule: MatDeforElastIso
 import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!, gathervalues_asmat!
 import FinEtools.NodalFieldModule: NodalField
 import FinEtools.CSysModule: CSys, updatecsmat!
 import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat! 
-import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
+import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, loc!, jac!, locjac!
 import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass, thermalstrainloads, inspectintegpoints
 import FinEtools.FEMMBaseModule: associategeometry!
 import FinEtools.MatDeforModule: rotstressvec
+import FinEtools.MatDeforLinearElasticModule: tangentmoduli!, update!
 import LinearAlgebra: mul!, Transpose, UpperTriangular
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
 import LinearAlgebra: norm, qr, diag, dot, cond
 import Statistics: mean
 
-abstract type FEMMDeforLinearAbstractMS <: FEMMDeforLinearAbstract end
+"""
+    AbstractFEMMDeforLinearMS <: AbstractFEMMDeforLinear
 
-mutable struct FEMMDeforLinearMSH8{MR<:DeforModelRed, S<:FESetH8, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstractMS
+Abstract type for mean-strain linear deformation FEMM.
+"""
+abstract type AbstractFEMMDeforLinearMS <: AbstractFEMMDeforLinear end
+
+"""
+    FEMMDeforLinearMSH8{MR<:AbstractDeforModelRed, S<:FESetH8, F<:Function, M<:AbstractMatDeforLinearElastic} <: AbstractFEMMDeforLinearMS
+
+Type for mean-strain linear deformation FEMM based on eight-node hexahedral elements.
+"""
+mutable struct FEMMDeforLinearMSH8{MR<:AbstractDeforModelRed, S<:FESetH8, F<:Function, M<:AbstractMatDeforLinearElastic} <: AbstractFEMMDeforLinearMS
     mr::Type{MR}
     integdomain::IntegDomain{S, F} # geometry data
     mcsys::CSys # updater of the material orientation matrix
@@ -40,21 +51,26 @@ mutable struct FEMMDeforLinearMSH8{MR<:DeforModelRed, S<:FESetH8, F<:Function, M
     phis::Vector{FFlt}
 end
 
-function FEMMDeforLinearMSH8(mr::Type{MR}, integdomain::IntegDomain{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
+function FEMMDeforLinearMSH8(mr::Type{MR}, integdomain::IntegDomain{S, F}, mcsys::CSys, material::M) where {MR<:AbstractDeforModelRed,  S<:FESetH8, F<:Function, M<:AbstractMatDeforLinearElastic}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
-    stabilization_material = make_stabilization_material(material)
+    stabilization_material = _make_stabilization_material(material)
     return FEMMDeforLinearMSH8(mr, integdomain, mcsys, material, stabilization_material, fill(zero(FFlt), 1))
 end
 
-function FEMMDeforLinearMSH8(mr::Type{MR}, integdomain::IntegDomain{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetH8, F<:Function, M<:MatDefor}
+function FEMMDeforLinearMSH8(mr::Type{MR}, integdomain::IntegDomain{S, F}, material::M) where {MR<:AbstractDeforModelRed,  S<:FESetH8, F<:Function, M<:AbstractMatDeforLinearElastic}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
-    stabilization_material = make_stabilization_material(material)
+    stabilization_material = _make_stabilization_material(material)
     return FEMMDeforLinearMSH8(mr, integdomain, CSys(manifdim(integdomain.fes)), material, stabilization_material, fill(zero(FFlt), 1))
 end
 
-mutable struct FEMMDeforLinearMST10{MR<:DeforModelRed, S<:FESetT10, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstractMS
+"""
+    FEMMDeforLinearMST10{MR<:AbstractDeforModelRed, S<:FESetT10, F<:Function, M<:AbstractMatDeforLinearElastic} <: AbstractFEMMDeforLinearMS
+
+Type for mean-strain linear deformation FEMM based on 10-node tetrahedral elements.
+"""
+mutable struct FEMMDeforLinearMST10{MR<:AbstractDeforModelRed, S<:FESetT10, F<:Function, M<:AbstractMatDeforLinearElastic} <: AbstractFEMMDeforLinearMS
     mr::Type{MR}
     integdomain::IntegDomain{S, F} # geometry data
     mcsys::CSys # updater of the material orientation matrix
@@ -63,21 +79,21 @@ mutable struct FEMMDeforLinearMST10{MR<:DeforModelRed, S<:FESetT10, F<:Function,
     phis::Vector{FFlt}
 end
 
-function FEMMDeforLinearMST10(mr::Type{MR}, integdomain::IntegDomain{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetT10, F<:Function, M<:MatDefor}
+function FEMMDeforLinearMST10(mr::Type{MR}, integdomain::IntegDomain{S, F}, mcsys::CSys, material::M) where {MR<:AbstractDeforModelRed,  S<:FESetT10, F<:Function, M<:AbstractMatDeforLinearElastic}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
-    stabilization_material = make_stabilization_material(material)
+    stabilization_material = _make_stabilization_material(material)
     return FEMMDeforLinearMST10(mr, integdomain, mcsys, material, stabilization_material, fill(zero(FFlt), 1))
 end
 
-function FEMMDeforLinearMST10(mr::Type{MR}, integdomain::IntegDomain{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetT10, F<:Function, M<:MatDefor}
+function FEMMDeforLinearMST10(mr::Type{MR}, integdomain::IntegDomain{S, F}, material::M) where {MR<:AbstractDeforModelRed,  S<:FESetT10, F<:Function, M<:AbstractMatDeforLinearElastic}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
-    stabilization_material = make_stabilization_material(material)
+    stabilization_material = _make_stabilization_material(material)
     return FEMMDeforLinearMST10(mr, integdomain, CSys(manifdim(integdomain.fes)), material, stabilization_material, fill(zero(FFlt), 1))
 end
 
-function make_stabilization_material(material::M) where {M}
+function _make_stabilization_material(material::M) where {M}
     ns = fieldnames(typeof(material))
     E = 0.0; nu = 0.0
     if :E in ns
@@ -98,7 +114,7 @@ function make_stabilization_material(material::M) where {M}
     return  MatDeforElastIso(material.mr, 0.0, E, nu, 0.0)
 end
 
-function buffers1(self::FEMMDeforLinearAbstractMS, geom::NodalField, npts::FInt)
+function _buffers1(self::AbstractFEMMDeforLinearMS, geom::NodalField, npts::FInt)
     fes = self.integdomain.fes
     nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
@@ -111,7 +127,7 @@ function buffers1(self::FEMMDeforLinearAbstractMS, geom::NodalField, npts::FInt)
     return loc, J, csmatTJ, gradN
 end
 
-function buffers2(self::FEMMDeforLinearAbstractMS, geom::NodalField, u::NodalField, npts::FInt)
+function _buffers2(self::AbstractFEMMDeforLinearMS, geom::NodalField, u::NodalField, npts::FInt)
     fes = self.integdomain.fes
     ndn = ndofs(u); # number of degrees of freedom per node
     nne = nodesperelem(fes); # number of nodes for element
@@ -177,7 +193,7 @@ Compute the  correction factors to account for  the shape of the  elements.
 function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDeforLinearMSH8}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
-    loc, J, csmatTJ, gradN = buffers1(self, geom, npts)
+    loc, J, csmatTJ, gradN = _buffers1(self, geom, npts)
     self.phis = fill(zero(FFlt), count(fes))
     for i = 1:count(fes) # Loop over elements
         # NOTE: the coordinate system should be evaluated at a single point within the
@@ -208,7 +224,7 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
     gamma = 2.6; C = 1e4;
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
-    loc, J, csmatTJ, gradN = buffers1(self, geom, npts)
+    loc, J, csmatTJ, gradN = _buffers1(self, geom, npts)
     self.phis = fill(zero(FFlt), count(fes))
     for i = 1:count(fes) # Loop over elements
         # NOTE: the coordinate system should be evaluated at a single point within the
@@ -228,22 +244,22 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
 end
 
 """
-stiffness(self::FEMMDeforLinearAbstractMS, assembler::A,
+stiffness(self::AbstractFEMMDeforLinearMS, assembler::A,
       geom::NodalField{FFlt},
-      u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
+      u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
 
 Compute and assemble  stiffness matrix.
 """
-function stiffness(self::FEMMDeforLinearAbstractMS, assembler::A,
+function stiffness(self::AbstractFEMMDeforLinearMS, assembler::A,
     geom::NodalField{FFlt},
-    u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
+    u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
-    dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
+    dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = _buffers2(self, geom, u, npts)
     realmat = self.material
     stabmat = self.stabilization_material
-    realmat.tangentmoduli!(realmat, D, 0.0, 0.0, loc, 0)
-    stabmat.tangentmoduli!(stabmat, Dstab, 0.0, 0.0, loc, 0)
+    tangentmoduli!(realmat, D, 0.0, 0.0, loc, 0)
+    tangentmoduli!(stabmat, Dstab, 0.0, 0.0, loc, 0)
     startassembly!(assembler, size(elmat, 1), size(elmat, 2), count(fes),
     u.nfreedofs, u.nfreedofs);
     for i = 1:count(fes) # Loop over elements
@@ -280,20 +296,20 @@ end
 
 
 """
-nzebcloadsstiffness(self::FEMMDeforLinearAbstract,  assembler::A,
+nzebcloadsstiffness(self::AbstractFEMMDeforLinear,  assembler::A,
   geom::NodalField{FFlt},
-  u::NodalField{T}) where {A<:SysvecAssemblerBase, T<:Number}
+  u::NodalField{T}) where {A<:AbstractSysvecAssembler, T<:Number}
 
 Compute load vector for nonzero EBC for fixed displacement.
 """
-function nzebcloadsstiffness(self::FEMMDeforLinearAbstractMS,  assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:SysvecAssemblerBase, T<:Number}
+function nzebcloadsstiffness(self::AbstractFEMMDeforLinearMS,  assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysvecAssembler, T<:Number}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
-    dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
+    dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = _buffers2(self, geom, u, npts)
     realmat = self.material
     stabmat = self.stabilization_material
-    realmat.tangentmoduli!(realmat, D, 0.0, 0.0, loc, 0)
-    stabmat.tangentmoduli!(stabmat, Dstab, 0.0, 0.0, loc, 0)
+    tangentmoduli!(realmat, D, 0.0, 0.0, loc, 0)
+    tangentmoduli!(stabmat, Dstab, 0.0, 0.0, loc, 0)
     startassembly!(assembler,  u.nfreedofs);
     for i = 1:count(fes) # Loop over elements
         gatherfixedvalues_asvec!(u, elvecfix, fes.conn[i]);# retrieve element displacement vector
@@ -331,15 +347,15 @@ function nzebcloadsstiffness(self::FEMMDeforLinearAbstractMS,  assembler::A, geo
     return makevector!(assembler);
 end
 
-function nzebcloadsstiffness(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}, u::NodalField{T}) where {T<:Number}
+function nzebcloadsstiffness(self::AbstractFEMMDeforLinearMS, geom::NodalField{FFlt}, u::NodalField{T}) where {T<:Number}
     assembler = SysvecAssembler()
     return  nzebcloadsstiffness(self, assembler, geom, u);
 end
 
-function _iip_meanonly(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
+function _iip_meanonly(self::AbstractFEMMDeforLinearMS, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
-    dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
+    dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = _buffers2(self, geom, u, npts)
     MeanN = deepcopy(Ns[1])
     realmat = self.material
     stabmat = self.stabilization_material
@@ -396,7 +412,7 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}, 
         A_mul_B!(qpstrain, Bbar, ue); # strain in material coordinates
         realmat.thermalstrain!(realmat, qpthstrain, qpdT)
         # Material updates the state and returns the output
-        out = realmat.update!(realmat, qpstress, out, vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
+        out = update!(realmat, qpstress, out, vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(out1) >= length(out)) || (out1 = zeros(length(out)))
             rotstressvec(self.mr, out1, out, transpose(self.mcsys.csmat))# To global coord sys
@@ -408,10 +424,10 @@ function _iip_meanonly(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}, 
     return idat; # return the updated inspector data
 end
 
-function _iip_extrapmean(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
+function _iip_extrapmean(self::AbstractFEMMDeforLinearMS, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
-    dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
+    dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = _buffers2(self, geom, u, npts)
     MeanN = deepcopy(Ns[1])
     realmat = self.material
     stabmat = self.stabilization_material
@@ -468,7 +484,7 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}
         A_mul_B!(qpstrain, Bbar, ue); # strain in material coordinates
         realmat.thermalstrain!(realmat, qpthstrain, qpdT)
         # Material updates the state and returns the output
-        out = realmat.update!(realmat, qpstress, out,
+        out = update!(realmat, qpstress, out,
             vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(out1) >= length(out)) || (out1 = zeros(length(out)))
@@ -483,10 +499,10 @@ function _iip_extrapmean(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt}
     return idat; # return the updated inspector data
 end
 
-function _iip_extraptrend(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
+function _iip_extraptrend(self::AbstractFEMMDeforLinearMS, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
-    dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = buffers2(self, geom, u, npts)
+    dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = _buffers2(self, geom, u, npts)
     MeanN = deepcopy(Ns[1])
     realmat = self.material
     stabmat = self.stabilization_material
@@ -550,16 +566,14 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt
         A_mul_B!(qpstrain, Bbar, ue); # strain in material coordinates
         realmat.thermalstrain!(realmat, qpthstrain, qpdT)
         # REAL Material updates the state and returns the output
-        rout = realmat.update!(realmat, qpstress, rout,
-            vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
+        rout = update!(realmat, qpstress, rout, vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(rout1) >= length(rout)) || (rout1 = zeros(length(rout)))
             rotstressvec(self.mr, rout1, rout, transpose(self.mcsys.csmat))# To global coord sys
             rotstressvec(self.mr, rout, rout1, outputcsys.csmat)# To output coord sys
         end
         # STABILIZATION Material updates the state and returns the output
-        sbout = stabmat.update!(stabmat, qpstress, sbout,
-            vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
+        sbout = update!(stabmat, qpstress, sbout, vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
         if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
             (length(sbout1) >= length(sbout)) || (sbout1 = zeros(length(sbout)))
             rotstressvec(self.mr, sbout1, sbout, transpose(self.mcsys.csmat))# To global coord sys
@@ -574,8 +588,7 @@ function _iip_extraptrend(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt
             A_mul_B!(qpstrain, B, ue); # strain in material coordinates
             stabmat.thermalstrain!(stabmat, qpthstrain, qpdT)
             # Material updates the state and returns the output
-            sout = stabmat.update!(stabmat, qpstress, sout,
-                vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
+            sout = update!(stabmat, qpstress, sout, vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
             if (quantity == :Cauchy)   # Transform stress tensor,  if that is "quantity"
                 (length(sout1) >= length(sout)) || (sout1 = zeros(length(sout)))
                 rotstressvec(self.mr, sout1, sout, transpose(self.mcsys.csmat))# To global coord sys
@@ -624,7 +637,7 @@ Inspect integration point quantities.
 ### Return
 The updated inspector data is returned.
 """
-function inspectintegpoints(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
+function inspectintegpoints(self::AbstractFEMMDeforLinearMS, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
     reportat = :meanonly
     for apair in pairs(context)
         sy, val = apair
@@ -645,7 +658,7 @@ function inspectintegpoints(self::FEMMDeforLinearAbstractMS, geom::NodalField{FF
     return idat
 end
 
-function inspectintegpoints(self::FEMMDeforLinearAbstractMS, geom::NodalField{FFlt},  u::NodalField{T}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
+function inspectintegpoints(self::AbstractFEMMDeforLinearMS, geom::NodalField{FFlt},  u::NodalField{T}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
     dT = NodalField(fill(zero(FFlt), nnodes(geom), 1)) # zero difference in temperature
     return inspectintegpoints(self, geom, u, dT, felist, inspector, idat, quantity; context...);
 end

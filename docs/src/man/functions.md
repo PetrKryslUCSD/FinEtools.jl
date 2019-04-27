@@ -227,7 +227,31 @@ Order = [:function]
 ## Material models
 
 ```@autodocs
-Modules = [FinEtools, FinEtools.MatHeatDiffModule, FinEtools.MatAcoustFluidModule,  FinEtools.MatDeforModule, FinEtools.MatDeforElastIsoModule, FinEtools.MatDeforElastOrthoModule,]
+Modules = [FinEtools, FinEtools.MatModule]
+Private = true
+Order = [:function]
+```
+
+## Material models for acoustics
+
+```@autodocs
+Modules = [FinEtools, FinEtools.MatModule, FinEtools.MatAcoustFluidModule]
+Private = true
+Order = [:function]
+```
+
+## Material models for heat diffusion
+
+```@autodocs
+Modules = [FinEtools, FinEtools.MatModule, FinEtools.MatHeatDiffModule]
+Private = true
+Order = [:function]
+```
+
+## Material models for elasticity
+
+```@autodocs
+Modules = [FinEtools, FinEtools.MatDeforModule, FinEtools.MatDeforLinearElasticModule, FinEtools.MatDeforElastIsoModule, FinEtools.MatDeforElastOrthoModule,]
 Private = true
 Order = [:function]
 ```

@@ -1,5 +1,5 @@
 """
-    FEMMDeforLinearAbstractBaseModule
+    AbstractFEMMDeforLinearBaseModule
 
 Base module for operations on interiors of domains to construct system matrices and
 system vectors for linear deformation models.
@@ -12,21 +12,28 @@ import FinEtools.FESetModule: gradN!, nodesperelem, manifdim
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
 import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!, gathervalues_asmat!
 import FinEtools.NodalFieldModule: NodalField, nnodes 
-import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
-import FinEtools.FEMMBaseModule: FEMMAbstractBase, inspectintegpoints
+import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
+import FinEtools.FEMMBaseModule: AbstractFEMM, inspectintegpoints
 import FinEtools.CSysModule: CSys, updatecsmat!
 import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat! 
 import FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, locjac!, add_nnt_ut_only!
 import FinEtools.MatDeforModule: rotstressvec
+import FinEtools.MatModule: massdensity
+import FinEtools.MatDeforLinearElasticModule: tangentmoduli!, update!
 import FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 import LinearAlgebra: Transpose, mul!
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
 import LinearAlgebra: norm, dot
 
-abstract type FEMMDeforLinearAbstract <: FEMMAbstractBase end
+"""
+    AbstractFEMMDeforLinear <: AbstractFEMMBase
 
-function buffers(self::FEMMDeforLinearAbstract, geom::NodalField, u::NodalField)
+Abstract type of FEMM for linear deformation.
+"""
+abstract type AbstractFEMMDeforLinear <: AbstractFEMM end
+
+function buffers(self::AbstractFEMMDeforLinear, geom::NodalField, u::NodalField)
     fes = self.integdomain.fes
     ndn = ndofs(u); # number of degrees of freedom per node
     nne = nodesperelem(fes); # number of nodes for element
@@ -50,19 +57,19 @@ function buffers(self::FEMMDeforLinearAbstract, geom::NodalField, u::NodalField)
 end
 
 """
-    mass(self::FEMMDeforLinearAbstract,  assembler::A,
+    mass(self::AbstractFEMMDeforLinear,  assembler::A,
       geom::NodalField{FFlt},
-      u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
+      u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
 
 Compute the consistent mass matrix
 
 This is a general routine for the abstract linear-deformation  FEMM.
 """
-function mass(self::FEMMDeforLinearAbstract,  assembler::A,  geom::NodalField{FFlt}, u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
+function mass(self::AbstractFEMMDeforLinear,  assembler::A,  geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat = buffers(self, geom, u)  # Prepare buffers
-    rho::FFlt = self.material.mass_density; # mass density
+    rho::FFlt = massdensity(self.material); # mass density
     NexpTNexp = FFltMat[];# basis f. matrix -- buffer
     ndn = ndofs(u)
     Indn = [i==j ? one(FFlt) : zero(FFlt) for i=1:ndn, j=1:ndn] # "identity"
@@ -88,23 +95,23 @@ function mass(self::FEMMDeforLinearAbstract,  assembler::A,  geom::NodalField{FF
     return makematrix!(assembler);
 end
 
-function mass(self::FEMMDeforLinearAbstract,  geom::NodalField{FFlt},  u::NodalField{T}) where {T<:Number}
+function mass(self::AbstractFEMMDeforLinear,  geom::NodalField{FFlt},  u::NodalField{T}) where {T<:Number}
     assembler = SysmatAssemblerSparseSymm();
     return mass(self, assembler, geom, u);
 end
 
 """
-    stiffness(self::FEMMDeforLinearAbstract, assembler::A,
+    stiffness(self::AbstractFEMMDeforLinear, assembler::A,
           geom::NodalField{FFlt},
-          u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
+          u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
 
 Compute and assemble  stiffness matrix.
 """
-function stiffness(self::FEMMDeforLinearAbstract, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
+function stiffness(self::AbstractFEMMDeforLinear, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix = buffers(self, geom, u)
-    self.material.tangentmoduli!(self.material, D, 0.0, 0.0, loc, 0)
+    tangentmoduli!(self.material, D, 0.0, 0.0, loc, 0)
     startassembly!(assembler, size(elmat, 1), size(elmat, 2), count(fes),
     u.nfreedofs, u.nfreedofs);
     for i = 1:count(fes) # Loop over elements
@@ -125,23 +132,23 @@ function stiffness(self::FEMMDeforLinearAbstract, assembler::A, geom::NodalField
     return makematrix!(assembler);
 end
 
-function stiffness(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt},  u::NodalField{T}) where {T<:Number}
+function stiffness(self::AbstractFEMMDeforLinear, geom::NodalField{FFlt},  u::NodalField{T}) where {T<:Number}
     assembler = SysmatAssemblerSparseSymm();
     return stiffness(self, assembler, geom, u);
 end
 
 """
-    nzebcloadsstiffness(self::FEMMDeforLinearAbstract,  assembler::A,
+    nzebcloadsstiffness(self::AbstractFEMMDeforLinear,  assembler::A,
       geom::NodalField{FFlt},
-      u::NodalField{T}) where {A<:SysvecAssemblerBase, T<:Number}
+      u::NodalField{T}) where {A<:AbstractSysvecAssembler, T<:Number}
 
 Compute load vector for nonzero EBC for fixed displacement.
 """
-function nzebcloadsstiffness(self::FEMMDeforLinearAbstract,  assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:SysvecAssemblerBase, T<:Number}
+function nzebcloadsstiffness(self::AbstractFEMMDeforLinear,  assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysvecAssembler, T<:Number}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix = buffers(self, geom, u) 
-    self.material.tangentmoduli!(self.material, D, 0.0, 0.0, loc, 0)
+    tangentmoduli!(self.material, D, 0.0, 0.0, loc, 0)
     startassembly!(assembler,  u.nfreedofs);
     for i = 1:count(fes) # Loop over elements
         gatherfixedvalues_asvec!(u, elvecfix, fes.conn[i]);# retrieve element displacement vector
@@ -165,19 +172,19 @@ function nzebcloadsstiffness(self::FEMMDeforLinearAbstract,  assembler::A, geom:
     return makevector!(assembler);
 end
 
-function nzebcloadsstiffness(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt}, u::NodalField{T}) where {T<:Number}
+function nzebcloadsstiffness(self::AbstractFEMMDeforLinear, geom::NodalField{FFlt}, u::NodalField{T}) where {T<:Number}
     assembler = SysvecAssembler()
     return  nzebcloadsstiffness(self, assembler, geom, u);
 end
 
 """
-    thermalstrainloads(self::FEMMDeforLinearAbstract, assembler::A,
+    thermalstrainloads(self::AbstractFEMMDeforLinear, assembler::A,
         geom::NodalField{FFlt}, u::NodalField{T},
-        dT::NodalField{FFlt}) where {A<:SysvecAssemblerBase, T<:Number}
+        dT::NodalField{FFlt}) where {A<:AbstractSysvecAssembler, T<:Number}
 
 Compute the thermal-strain load vector.
 """
-function  thermalstrainloads(self::FEMMDeforLinearAbstract, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}, dT::NodalField{FFlt}) where {A<:SysvecAssemblerBase, T<:Number}
+function  thermalstrainloads(self::AbstractFEMMDeforLinear, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}, dT::NodalField{FFlt}) where {A<:AbstractSysvecAssembler, T<:Number}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix = buffers(self, geom, u)
@@ -200,7 +207,7 @@ function  thermalstrainloads(self::FEMMDeforLinearAbstract, assembler::A, geom::
                 gradN!(fes, gradN, gradNparams[j], csmatTJ);#Do: gradN = gradNparams[j]/csmatTJ;
                 Blmat!(self.mr, B, Ns[j], gradN, loc, self.mcsys.csmat);# strains in mater cs, displ in global cs
                 self.material.thermalstrain!(self.material, thstrain, dot(vec(Ns[j]), DeltaT))
-                thstress = self.material.update!(self.material, thstress, thstress, strain, thstrain, t, dt, loc, fes.label[i], :nothing)
+                thstress = update!(self.material, thstress, thstress, strain, thstrain, t, dt, loc, fes.label[i], :nothing)
                 add_btv!(elvec, B, thstress, (-1)*(Jac*w[j]))
             end
             gatherdofnums!(u, dofnums, fes.conn[i]); # retrieve degrees of freedom
@@ -210,13 +217,13 @@ function  thermalstrainloads(self::FEMMDeforLinearAbstract, assembler::A, geom::
     return makevector!(assembler);
 end
 
-function thermalstrainloads(self::FEMMDeforLinearAbstract, geom::NodalField{FFlt}, u::NodalField{T}, dT::NodalField{FFlt}) where {T<:Number}
+function thermalstrainloads(self::AbstractFEMMDeforLinear, geom::NodalField{FFlt}, u::NodalField{T}, dT::NodalField{FFlt}) where {T<:Number}
     assembler = SysvecAssembler()
     return  thermalstrainloads(self, assembler, geom, u, dT);
 end
 
 """
-    inspectintegpoints(self::FEMMDeforLinearAbstract,
+    inspectintegpoints(self::AbstractFEMMDeforLinear,
       geom::NodalField{FFlt},  u::NodalField{T},
       dT::NodalField{FFlt},
       felist::FIntVec,
@@ -242,7 +249,7 @@ Inspect integration point quantities.
 ### Return
 The updated inspector data is returned.
 """
-function inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {FEMM<:FEMMDeforLinearAbstract, T<:Number, F<:Function}
+function inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {FEMM<:AbstractFEMMDeforLinear, T<:Number, F<:Function}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     dofnums, loc, J, csmatTJ, gradN, D, B, DB, elmat, elvec, elvecfix = buffers(self, geom, u)
@@ -286,7 +293,7 @@ function inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T
             qpdT = dot(vec(dTe), vec(Ns[j]));# Quadrature point temperature increment
             self.material.thermalstrain!(self.material, qpthstrain, qpdT)
             # Material updates the state and returns the output
-            out = self.material.update!(self.material, qpstress, out, vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
+            out = update!(self.material, qpstress, out, vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
             if (quantity == :Cauchy)   # Transform stress tensor,  if that is "out"
                 (length(out1) >= length(out)) || (out1 = zeros(length(out)))
                 rotstressvec(self.mr, out1, out, transpose(self.mcsys.csmat))# To global coord sys
@@ -299,7 +306,7 @@ function inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T
     return idat; # return the updated inspector data
 end
 
-function inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {FEMM<:FEMMDeforLinearAbstract, T<:Number, F<:Function}
+function inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {FEMM<:AbstractFEMMDeforLinear, T<:Number, F<:Function}
     dT = NodalField(fill(zero(FFlt), nnodes(geom), 1)) # zero difference in temperature
     return inspectintegpoints(self, geom, u, dT, felist, inspector, idat, quantity; context...);
 end

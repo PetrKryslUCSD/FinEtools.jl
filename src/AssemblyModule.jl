@@ -10,13 +10,13 @@ import SparseArrays: sparse
 import LinearAlgebra: diag
 
 """
-    SysmatAssemblerBase
+    AbstractSysmatAssembler
 
 Abstract type of system-matrix assembler.
 """
-abstract type SysmatAssemblerBase end;
+abstract type AbstractSysmatAssembler end;
 
-mutable struct SysmatAssemblerSparse{T<:Number} <: SysmatAssemblerBase
+mutable struct SysmatAssemblerSparse{T<:Number} <: AbstractSysmatAssembler
     # Type for assembling of a sparse global matrix from elementwise matrices.
     buffer_length::FInt;
     matbuffer::Vector{T};
@@ -139,12 +139,12 @@ function makematrix!(self::SysmatAssemblerSparse)
 end
 
 """
-    SysmatAssemblerSparseSymm{T<:Number} <: SysmatAssemblerBase
+    SysmatAssemblerSparseSymm{T<:Number} <: AbstractSysmatAssembler
 
 Assembler for a **symmetric square** matrix  assembled from **symmetric square**
 matrices.
 """
-mutable struct SysmatAssemblerSparseSymm{T<:Number} <: SysmatAssemblerBase
+mutable struct SysmatAssemblerSparseSymm{T<:Number} <: AbstractSysmatAssembler
     # Type for assembling of a sparse global matrix from elementwise matrices.
     buffer_length:: FInt;
     matbuffer::Vector{T};
@@ -287,18 +287,18 @@ end
 
 
 """
-    SysvecAssemblerBase
+    AbstractSysvecAssembler
 
 Abstract type of system vector assembler.
 """
-abstract type SysvecAssemblerBase end;
+abstract type AbstractSysvecAssembler end;
 
 """
     SysvecAssembler
 
 Assembler for the system vector.
 """
-mutable struct SysvecAssembler{T<:Number} <: SysvecAssemblerBase
+mutable struct SysvecAssembler{T<:Number} <: AbstractSysvecAssembler
     F_buffer::Vector{T};
     ndofs::FInt
 end
@@ -357,7 +357,7 @@ end
 
 
 """
-    SysmatAssemblerSparseHRZLumpingSymm{T<:Number} <: SysmatAssemblerBase
+    SysmatAssemblerSparseHRZLumpingSymm{T<:Number} <: AbstractSysmatAssembler
 
 Assembler for a **symmetric lumped square** matrix  assembled from  **symmetric square**
 matrices. 
@@ -368,7 +368,7 @@ volume 4, number 3, 245--249, 1976.
 }
 
 """
-mutable struct SysmatAssemblerSparseHRZLumpingSymm{T<:Number} <: SysmatAssemblerBase
+mutable struct SysmatAssemblerSparseHRZLumpingSymm{T<:Number} <: AbstractSysmatAssembler
     # Type for assembling of a sparse global matrix from elementwise matrices.
     buffer_length:: FInt;
     matbuffer::Vector{T};

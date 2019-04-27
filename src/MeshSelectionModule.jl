@@ -6,7 +6,7 @@ Module for  selection of mesh entities.
 module MeshSelectionModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FESetModule: FESet, bfundpar, nodesperelem, manifdim, connasarray
+import FinEtools.FESetModule: AbstractFESet, bfundpar, nodesperelem, manifdim, connasarray
 import FinEtools.FENodeSetModule: FENodeSet, spacedim
 import FinEtools.BoxModule: inflatebox!, initbox!, updatebox!, boxesoverlap
 import FinEtools.FENodeToFEMapModule: FENodeToFEMap
@@ -14,7 +14,7 @@ import LinearAlgebra: norm, dot, cross
 import Statistics: mean
 
 """
-    connectednodes(fes::FESet)
+    connectednodes(fes::AbstractFESet)
 
 Extract the node numbers of the nodes  connected by given finite elements.
 
@@ -22,16 +22,16 @@ Extract the list of unique node numbers for the nodes that are connected by the
 finite element set `fes`. Note that it is assumed that all the FEs are of the same
 type (the same number of connected nodes by each cell).
 """
-function connectednodes(fes::FESet)
+function connectednodes(fes::AbstractFESet)
     return unique(connasarray(fes)[:]);
 end
  
 """
-    connectedelems(fes::FESet, node_list::FIntVec)
+    connectedelems(fes::AbstractFESet, node_list::FIntVec)
 
 Extract the list of numbers for the fes  that are connected to given nodes.
 """
-function connectedelems(fes::FESet, node_list::FIntVec, nmax::FInt)
+function connectedelems(fes::AbstractFESet, node_list::FIntVec, nmax::FInt)
     f2fm = FENodeToFEMap(fes.conn, nmax)
     cg = zeros(FInt, count(fes)); # No elements are part of the group to begin with
     for j = node_list # for all nodes in the list
@@ -56,7 +56,7 @@ function selectnode(fens::FENodeSet; kwargs...)
 end
 
 """
-    selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
+    selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
 
 Select finite elements.
 
@@ -127,7 +127,7 @@ Should we consider the element only if all its nodes are in?
 ## Output
 `felist` = list of finite elements from the set that satisfy the criteria
 """
-function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:FESet}
+function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
 
     # smoothpatch
     #
@@ -597,7 +597,7 @@ function vselect(v::FFltMat; kwargs...)
 end
 
 """
-    findunconnnodes(fens::FENodeSet, fes::FESet)
+    findunconnnodes(fens::FENodeSet, fes::AbstractFESet)
 
 Find nodes that are not connected to any finite element.
 
@@ -608,7 +608,7 @@ Let us say there are nodes not connected to any finite element that you
 would like to remove from the mesh: here is how that would be
 accomplished.
 """
-function findunconnnodes(fens::FENodeSet, fes::FESet)
+function findunconnnodes(fens::FENodeSet, fes::AbstractFESet)
     connected = trues(count(fens));
     fen2fem = FENodeToFEMap(connasarray(fes), count(fens))
     for i=1:length(fen2fem.map),
@@ -622,7 +622,7 @@ end
 
 # NOTE: This operation is probably best done with the  node-to-element  map.
 # """
-#     connectedelems(fes::FESet, node_list::FIntVec)
+#     connectedelems(fes::AbstractFESet, node_list::FIntVec)
 #
 # Extract the numbers of the finite elements connected to given nodes.
 #
@@ -630,7 +630,7 @@ end
 #
 # Warning: this tends to be an expensive operation.
 # """
-# function connectedelems(fes::FESet, node_list::FIntVec)
+# function connectedelems(fes::AbstractFESet, node_list::FIntVec)
 #   cg=zeros(FInt,size(fes.conn,1));
 #   for j=1:size(fes.conn,1)
 #     cg[j]= length( intersect(fes.conn[j,:], node_list) );

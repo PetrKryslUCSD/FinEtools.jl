@@ -7,7 +7,7 @@ module MeshImportModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: FESet, FESetT3, FESetT4, FESetT10, FESetH8, FESetH20, setlabel!
+import FinEtools.FESetModule: AbstractFESet, FESetT3, FESetT4, FESetT10, FESetH8, FESetH20, setlabel!
 import FinEtools.MeshModificationModule: renumberconn!
 import Unicode: uppercase, isdigit
 import LinearAlgebra: norm
@@ -293,7 +293,7 @@ function import_ABAQUS(filename; allocationchunk=chunk)
     fens = FENodeSet(xyz)
 
     # Element sets
-    fesets = FESet[]
+    fesets = AbstractFESet[]
 
     function feset_construct(elemset1)
         temp = uppercase(strip(elemset1.ElementLine))

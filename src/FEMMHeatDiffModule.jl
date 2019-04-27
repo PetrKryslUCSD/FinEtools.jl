@@ -8,39 +8,43 @@ module FEMMHeatDiffModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: FESet, nodesperelem, manifdim, gradN!
-import FinEtools.MatHeatDiffModule: MatHeatDiff
+import FinEtools.FESetModule: AbstractFESet, nodesperelem, manifdim, gradN!
+import FinEtools.MatHeatDiffModule: MatHeatDiff, tangentmoduli!, update!
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
 import FinEtools.CSysModule: CSys, updatecsmat!
 import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!, gathervalues_asmat!
 import FinEtools.NodalFieldModule: NodalField 
 import FinEtools.ElementalFieldModule: ElementalField 
-import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
+import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 import FinEtools.ForceIntensityModule: ForceIntensity
-import FinEtools.FEMMBaseModule: FEMMAbstractBase, inspectintegpoints
+import FinEtools.FEMMBaseModule: AbstractFEMM, inspectintegpoints
 import FinEtools.MatrixUtilityModule: add_gkgt_ut_only!, complete_lt!, locjac!
 import LinearAlgebra: mul!, Transpose
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
 import LinearAlgebra: norm, dot
 
-# Type for heat diffusion finite element modeling machine.
-mutable struct FEMMHeatDiff{S<:FESet, F<:Function, M<:MatHeatDiff} <: FEMMAbstractBase
+"""
+    FEMMHeatDiff{S<:AbstractFESet, F<:Function, M<:MatHeatDiff} <: AbstractFEMM
+
+    Type for heat diffusion finite element modeling machine.
+"""
+mutable struct FEMMHeatDiff{S<:AbstractFESet, F<:Function, M<:MatHeatDiff} <: AbstractFEMM
     integdomain::IntegDomain{S, F} # geometry data
     mcsys::CSys # updater of the material orientation matrix
     material::M # material object
 end
 
 """
-    FEMMHeatDiff(integdomain::IntegDomain{S, F}, material::M) where {S<:FESet, F<:Function, M<:MatHeatDiff}
+    FEMMHeatDiff(integdomain::IntegDomain{S, F}, material::M) where {S<:AbstractFESet, F<:Function, M<:MatHeatDiff}
 
 Construct with the default orientation matrix (identity).  
 """
-function FEMMHeatDiff(integdomain::IntegDomain{S, F}, material::M) where {S<:FESet, F<:Function, M<:MatHeatDiff}
+function FEMMHeatDiff(integdomain::IntegDomain{S, F}, material::M) where {S<:AbstractFESet, F<:Function, M<:MatHeatDiff}
     return FEMMHeatDiff(integdomain, CSys(manifdim(integdomain.fes)), material)
 end
 
-function  buffers1(self::FEMMHeatDiff, geom::NodalField{FFlt}, temp::NodalField{FFlt})
+function  _buffers1(self::FEMMHeatDiff, geom::NodalField{FFlt}, temp::NodalField{FFlt})
     # Constants
     fes = self.integdomain.fes
     nfes = count(fes); # number of finite elements in the set
@@ -65,17 +69,17 @@ end
 """
     conductivity(self::FEMMHeatDiff,
       assembler::A, geom::NodalField{FFlt},
-      temp::NodalField{FFlt}) where {A<:SysmatAssemblerBase}
+      temp::NodalField{FFlt}) where {A<:AbstractSysmatAssembler}
 
 Compute the conductivity matrix.
 """
-function conductivity(self::FEMMHeatDiff,  assembler::A, geom::NodalField{FFlt},  temp::NodalField{FFlt}) where {A<:SysmatAssemblerBase}
+function conductivity(self::FEMMHeatDiff,  assembler::A, geom::NodalField{FFlt},  temp::NodalField{FFlt}) where {A<:AbstractSysmatAssembler}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     # Prepare assembler and buffers
-    dofnums, loc, J, RmTJ, gradN, kappa_bar, kappa_bargradNT, elmat = buffers1(self, geom, temp)
+    dofnums, loc, J, RmTJ, gradN, kappa_bar, kappa_bargradNT, elmat = _buffers1(self, geom, temp)
     # Thermal conductivity matrix is in local  material coordinates.
-    kappa_bar = self.material.tangentmoduli!(self.material, kappa_bar)
+    kappa_bar = tangentmoduli!(self.material, kappa_bar)
     startassembly!(assembler, size(elmat,1), size(elmat,2), count(fes), temp.nfreedofs, temp.nfreedofs);
     for i = 1:count(fes) # Loop over elements
         fill!(elmat,  0.0); # Initialize element matrix
@@ -103,17 +107,17 @@ end
 """
     nzebcloadsconductivity(self::FEMMHeatDiff,
       assembler::A,  geom::NodalField{FFlt},
-      temp::NodalField{FFlt}) where {A<:SysvecAssemblerBase}
+      temp::NodalField{FFlt}) where {A<:AbstractSysvecAssembler}
 
 Compute load vector for nonzero EBC of prescribed temperature.
 """
-function nzebcloadsconductivity(self::FEMMHeatDiff, assembler::A,  geom::NodalField{FFlt},  temp::NodalField{FFlt}) where {A<:SysvecAssemblerBase}
+function nzebcloadsconductivity(self::FEMMHeatDiff, assembler::A,  geom::NodalField{FFlt},  temp::NodalField{FFlt}) where {A<:AbstractSysvecAssembler}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     # Prepare assembler and buffers
-    dofnums, loc, J, RmTJ, gradN, kappa_bar, kappa_bargradNT, elmat, elvec, elvecfix = buffers1(self, geom, temp)
+    dofnums, loc, J, RmTJ, gradN, kappa_bar, kappa_bargradNT, elmat, elvec, elvecfix = _buffers1(self, geom, temp)
     # Thermal conductivity matrix is in local  material coordinates.
-    kappa_bar = self.material.tangentmoduli!(self.material, kappa_bar)
+    kappa_bar = tangentmoduli!(self.material, kappa_bar)
     startassembly!(assembler,  temp.nfreedofs);
     # Now loop over all finite elements in the set
     for i = 1:count(fes) # Loop over elements
@@ -152,9 +156,9 @@ function energy(self::FEMMHeatDiff, geom::NodalField{FFlt},  temp::NodalField{FF
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     # Prepare assembler and buffers
-    dofnums, loc, J, RmTJ, gradN, kappa_bar, kappa_bargradNT, elmat, elvec, elvecfix = buffers1(self, geom, temp)
+    dofnums, loc, J, RmTJ, gradN, kappa_bar, kappa_bargradNT, elmat, elvec, elvecfix = _buffers1(self, geom, temp)
     # Thermal conductivity matrix is in local  material coordinates.
-    kappa_bar = self.material.tangentmoduli!(self.material, kappa_bar)
+    kappa_bar = tangentmoduli!(self.material, kappa_bar)
     gradT = fill(0.0, 1, size(gradN, 2))
     fluxT = deepcopy(gradT)
     energy = 0.0
@@ -201,9 +205,9 @@ The updated inspector data is returned.
 function inspectintegpoints(self::FEMMHeatDiff, geom::NodalField{FFlt}, u::NodalField{T}, temp::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:heatflux; context...) where {T<:Number, F<:Function}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
-    dofnums, loc, J, RmTJ, gradN, kappa_bar, kappa_bargradNT, elmat, elvec, elvecfix = buffers1(self, geom, temp)
+    dofnums, loc, J, RmTJ, gradN, kappa_bar, kappa_bargradNT, elmat, elvec, elvecfix = _buffers1(self, geom, temp)
     # Thermal conductivity matrix is in local  material coordinates.
-    kappa_bar =  self.material.thermal_conductivity;
+    kappa_bar = tangentmoduli!(self.material, kappa_bar)
     # Sort out  the output requirements
     outputcsys = self.mcsys; # default: report the vector quantities in the material coord system
     for apair in pairs(context)
@@ -235,7 +239,7 @@ function inspectintegpoints(self::FEMMHeatDiff, geom::NodalField{FFlt}, u::Nodal
             gradN!(fes, gradN, gradNparams[j], RmTJ);
             # Quadrature point quantities
             A_mul_B!(qpgradT, reshape(Te, 1, :), gradN); # temperature gradient in material coordinates
-            out = self.material.update!(self.material, qpflux, out, vec(qpgradT), 0.0, 0.0, loc, fes.label[i], quantity)
+            out = update!(self.material, qpflux, out, vec(qpgradT), 0.0, 0.0, loc, fes.label[i], quantity)
             if (quantity == :heatflux)   # Transform heat flux vector,  if that is "out"
                 A_mul_B!(out1, transpose(self.mcsys.csmat), out);# To global coord sys
                 A_mul_B!(out, outputcsys.csmat, out1);# To output coord sys

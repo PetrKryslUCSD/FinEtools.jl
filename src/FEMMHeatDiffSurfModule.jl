@@ -8,28 +8,32 @@ module FEMMHeatDiffSurfModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: FESet, nodesperelem, manifdim
+import FinEtools.FESetModule: AbstractFESet, nodesperelem, manifdim
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobiansurface
 import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!
 import FinEtools.NodalFieldModule: NodalField 
-import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
-import FinEtools.FEMMBaseModule: FEMMAbstractBase
+import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
+import FinEtools.FEMMBaseModule: AbstractFEMM
 import FinEtools.MatrixUtilityModule: add_gkgt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
 import LinearAlgebra: norm, dot, cross
 
-# Type for heat diffusion finite element modeling machine for boundary integrals.
-mutable struct FEMMHeatDiffSurf{S<:FESet, F<:Function} <: FEMMAbstractBase
+"""
+    FEMMHeatDiffSurf{S<:AbstractFESet, F<:Function} <: AbstractFEMM
+
+    Type for heat diffusion finite element modeling machine for boundary integrals.
+"""
+mutable struct FEMMHeatDiffSurf{S<:AbstractFESet, F<:Function} <: AbstractFEMM
     integdomain::IntegDomain{S, F} # geometry data
     surfacetransfercoeff::FFlt # material object
 end
 
 """
     surfacetransfer(self::FEMMHeatDiffSurf,  assembler::A,
-      geom::NodalField{FFlt}, temp::NodalField{FFlt}) where {A<:SysmatAssemblerBase}
+      geom::NodalField{FFlt}, temp::NodalField{FFlt}) where {A<:AbstractSysmatAssembler}
 
 Compute the surface heat transfer matrix.
 """
-function surfacetransfer(self::FEMMHeatDiffSurf,  assembler::A, geom::NodalField{FFlt}, temp::NodalField{FFlt}) where {A<:SysmatAssemblerBase}
+function surfacetransfer(self::FEMMHeatDiffSurf,  assembler::A, geom::NodalField{FFlt}, temp::NodalField{FFlt}) where {A<:AbstractSysmatAssembler}
     fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
@@ -62,7 +66,7 @@ end
 
 function surfacetransfer(self::FEMMHeatDiffSurf{S},
                                    geom::NodalField{FFlt},
-                                   temp::NodalField{FFlt}) where {S<:FESet}
+                                   temp::NodalField{FFlt}) where {S<:AbstractFESet}
     assembler = SysmatAssemblerSparseSymm()
     return  surfacetransfer(self, assembler, geom, temp);
 end
@@ -70,11 +74,11 @@ end
 """
     surfacetransferloads(self::FEMMHeatDiffSurf,  assembler::A,
       geom::NodalField{FFlt}, temp::NodalField{FFlt},
-      ambtemp::NodalField{FFlt}) where {A<:SysvecAssemblerBase}
+      ambtemp::NodalField{FFlt}) where {A<:AbstractSysvecAssembler}
 
 Compute the load vector corresponding to surface heat transfer.
 """
-function surfacetransferloads(self::FEMMHeatDiffSurf,  assembler::A,  geom::NodalField{FFlt}, temp::NodalField{FFlt},  ambtemp::NodalField{FFlt}) where {A<:SysvecAssemblerBase}
+function surfacetransferloads(self::FEMMHeatDiffSurf,  assembler::A,  geom::NodalField{FFlt}, temp::NodalField{FFlt},  ambtemp::NodalField{FFlt}) where {A<:AbstractSysvecAssembler}
     fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
@@ -122,11 +126,11 @@ end
 
 """
     nzebcsurfacetransferloads(self::FEMMHeatDiffSurf, assembler::A,
-      geom::NodalField{FFlt}, temp::NodalField{FFlt}) where {A<:SysvecAssemblerBase}
+      geom::NodalField{FFlt}, temp::NodalField{FFlt}) where {A<:AbstractSysvecAssembler}
 
 Compute load vector for nonzero EBC for fixed temperature.
 """
-function nzebcsurfacetransferloads(self::FEMMHeatDiffSurf, assembler::A,  geom::NodalField{FFlt}, temp::NodalField{FFlt}) where {A<:SysvecAssemblerBase}
+function nzebcsurfacetransferloads(self::FEMMHeatDiffSurf, assembler::A,  geom::NodalField{FFlt}, temp::NodalField{FFlt}) where {A<:AbstractSysvecAssembler}
     fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set

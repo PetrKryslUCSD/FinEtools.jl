@@ -11,7 +11,7 @@ import Arpack: eigs
 import SparseArrays: spzeros
 import LinearAlgebra: mul!
 my_A_mul_B!(C, A, B) = mul!(C, A, B)
-import FinEtools.FieldModule: Field, ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!
+import FinEtools.FieldModule: AbstractField, ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!
 import FinEtools.NodalFieldModule: NodalField, nnodes
 import FinEtools.FEMMBaseModule: associategeometry!, distribloads, fieldfromintegpoints, elemfieldfromintegpoints
 import FinEtools.FEMMDeforLinearBaseModule: stiffness, mass, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
@@ -793,7 +793,7 @@ function exportmode(modeldata::FDataDict)
         @assert 0 < mode <= length(omega) "Invalid mode number $mode"
         scattersysvec!(modeldata["u"], W[:,mode])
     else
-        us = Tuple{String, Field}[]
+        us = Tuple{String, AbstractField}[]
         u = modeldata["u"]
         for ixxxx in mode
             @assert 0 < ixxxx <= length(omega) "Invalid mode number $ixxxx"

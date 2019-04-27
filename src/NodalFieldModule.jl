@@ -6,15 +6,15 @@ Module for nodal fields.
 module NodalFieldModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FieldModule: Field, nents
+import FinEtools.FieldModule: AbstractField, nents
 import FinEtools.FieldModule.@add_Field_fields
 
 """
-    NodalField{T<:Number} <: Field
+    NodalField{T<:Number} <: AbstractField
 
 Nodal field, meaning the entities are the finite element nodes.
 """
-mutable struct NodalField{T<:Number} <: Field
+mutable struct NodalField{T<:Number} <: AbstractField
     @add_Field_fields()
 end
 

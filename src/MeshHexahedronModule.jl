@@ -6,7 +6,7 @@ Module for generation of  hexahedral meshes.
 module MeshHexahedronModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FESetModule: FESet, FESetQ4, FESetH8, FESetH20, FESetH27, subset, bfun, connasarray, setlabel!, updateconn!
+import FinEtools.FESetModule: AbstractFESet, FESetQ4, FESetH8, FESetH20, FESetH27, subset, bfun, connasarray, setlabel!, updateconn!
 import FinEtools.FENodeSetModule: FENodeSet, count, xyz3
 import FinEtools.MeshQuadrilateralModule: Q4elliphole, Q4circlen
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace

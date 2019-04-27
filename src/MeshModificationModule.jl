@@ -6,7 +6,7 @@ Module for mesh modification operations.
 module MeshModificationModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FESetModule: FESet, count, boundaryconn, boundaryfe, updateconn!, connasarray, fromarray!
+import FinEtools.FESetModule: AbstractFESet, count, boundaryconn, boundaryfe, updateconn!, connasarray, fromarray!
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.BoxModule: boundingbox, inflatebox!, intersectboxes, inbox
 import FinEtools.MeshSelectionModule: connectednodes
@@ -30,14 +30,14 @@ function interior2boundary(interiorconn::Array{Int, 2}, extractb::Array{Int, 2})
 end
 
 """
-meshboundary(fes::T) where {T<:FESet}
+meshboundary(fes::T) where {T<:AbstractFESet}
 
 Extract the boundary finite elements from a mesh.
 
 Extract the finite elements of manifold dimension (n-1) from the
 supplied finite element set of manifold dimension (n).
 """
-function meshboundary(fes::T) where {T<:FESet}
+function meshboundary(fes::T) where {T<:AbstractFESet}
     # Form all hyperfaces, non-duplicates are boundary cells
     hypf = boundaryconn(fes);    # get the connectivity of the boundary elements
     bdryconn = _myunique2(hypf);
@@ -313,7 +313,7 @@ end
 
 """
     mergemeshes(fens1::FENodeSet, fes1::T1,
-      fens2::FENodeSet, fes2::T2, tolerance::FFlt) where {T1<:FESet,T2<:FESet}
+      fens2::FENodeSet, fes2::T2, tolerance::FFlt) where {T1<:AbstractFESet,T2<:AbstractFESet}
 
 Merge together two meshes.
 
@@ -335,7 +335,7 @@ this function returns the connectivity of both `fes1` and `fes2` point into
 `fes2` will in fact remain the same.
 """
 function mergemeshes(fens1::FENodeSet, fes1::T1,
-    fens2::FENodeSet, fes2::T2, tolerance::FFlt) where {T1<:FESet,T2<:FESet}
+    fens2::FENodeSet, fes2::T2, tolerance::FFlt) where {T1<:AbstractFESet,T2<:AbstractFESet}
     # Fuse the nodes
     # @code_warntype fusenodes(fens1, fens2, tolerance);
     fens, new_indexes_of_fens1_nodes = fusenodes(fens1, fens2, tolerance);
@@ -360,8 +360,8 @@ nodes is performed; the nodes from the meshes are simply concatenated together.
 The merged node set, `fens`, and an array of finite element sets with
 renumbered  connectivities are returned.
 """
-function mergenmeshes(meshes::Array{Tuple{FENodeSet, FESet}}, tolerance::FFlt)
-    outputfes = Array{FESet,1}()
+function mergenmeshes(meshes::Array{Tuple{FENodeSet, AbstractFESet}}, tolerance::FFlt)
+    outputfes = Array{AbstractFESet,1}()
     if (length(meshes)) == 1 # A single mesh, package output and return
         fens, fes = meshes[1];
         push!(outputfes, fes)
@@ -380,7 +380,7 @@ function mergenmeshes(meshes::Array{Tuple{FENodeSet, FESet}}, tolerance::FFlt)
 end
 
 """
-    mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)
+    mergenodes(fens::FENodeSet, fes::AbstractFESet, tolerance::FFlt)
 
 Merge together  nodes of a single node set.
 
@@ -392,7 +392,7 @@ are returned.
 
 Warning: This tends to be an expensive operation!
 """
-function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)
+function mergenodes(fens::FENodeSet, fes::AbstractFESet, tolerance::FFlt)
     maxnn = count(fens) + 1
     xyz1 = fens.xyz;
     dim  = size(xyz1,2);
@@ -440,14 +440,14 @@ function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)
 end
 
 """
-    mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt, candidates::FIntVec)
+    mergenodes(fens::FENodeSet, fes::AbstractFESet, tolerance::FFlt, candidates::FIntVec)
 
 Merge together  nodes of a single node set.
 
-Similar to `mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt)`, but only
+Similar to `mergenodes(fens::FENodeSet, fes::AbstractFESet, tolerance::FFlt)`, but only
 the candidate nodes are considered for merging. This can potentially speed up the operation by orders of magnitude.
 """
-function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt, candidates::FIntVec)
+function mergenodes(fens::FENodeSet, fes::AbstractFESet, tolerance::FFlt, candidates::FIntVec)
     maxnn = count(fens) + 1
     xyz1 = fens.xyz;
     dim  = size(xyz1,2);
@@ -499,7 +499,7 @@ function mergenodes(fens::FENodeSet, fes::FESet, tolerance::FFlt, candidates::FI
 end
 
 """
-    renumberconn!(fes::FESet, new_numbering::FIntVec)
+    renumberconn!(fes::AbstractFESet, new_numbering::FIntVec)
 
 Renumber the nodes in the connectivity of the finite elements based on a new
 numbering for the nodes.
@@ -520,7 +520,7 @@ Finally, check that the mesh is valid:
 validate_mesh(fens, fes);
 ```
 """
-function renumberconn!(fes::FESet, new_numbering::FIntVec)
+function renumberconn!(fes::AbstractFESet, new_numbering::FIntVec)
     conn = connasarray(fes)
     for i=1:size(conn,1)
         c = conn[i,:];
@@ -569,7 +569,7 @@ function vsmoothing(v::FFltMat, t::FIntMat; kwargs...)
 end
 
 """
-    meshsmoothing(fens::FENodeSet, fes::T; options...) where {T<:FESet}
+    meshsmoothing(fens::FENodeSet, fes::T; options...) where {T<:AbstractFESet}
 
 General smoothing of meshes.
 
@@ -582,7 +582,7 @@ General smoothing of meshes.
 ## Return
 The modified  node set.
 """
-function meshsmoothing(fens::FENodeSet, fes::T; options...) where {T<:FESet}
+function meshsmoothing(fens::FENodeSet, fes::T; options...) where {T<:AbstractFESet}
     v = deepcopy(fens.xyz)
     v = vsmoothing(v, connasarray(fes); options...)
     copyto!(fens.xyz, v)
@@ -663,7 +663,7 @@ end
 
 """
     mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
-      Point::FFltVec; kwargs...) where {T<:FESet}
+      Point::FFltVec; kwargs...) where {T<:AbstractFESet}
 
 Mirror a 2-D mesh in a plane given by its normal and one point.
 
@@ -678,7 +678,7 @@ fens1,gcells1 = mirror_mesh(fens, gcells,...
           [-1,0,0], [0,0,0], @(c)c([1, 4, 3, 2, 5, 8, 7, 6]));
 """
 function mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
-    Point::FFltVec; kwargs...) where {T<:FESet}
+    Point::FFltVec; kwargs...) where {T<:AbstractFESet}
     # Treat optional arguments.
     # Simply switch the order of nodes.  Works for simplexes...
     renumb(conn) = conn[end:-1:1];

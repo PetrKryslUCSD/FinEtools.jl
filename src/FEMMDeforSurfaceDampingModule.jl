@@ -9,35 +9,35 @@ module FEMMDeforSurfaceDampingModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: FESet, nodesperelem, manifdim
+import FinEtools.FESetModule: AbstractFESet, nodesperelem, manifdim
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobiansurface
 import FinEtools.FieldModule: ndofs, gatherdofnums!
 import FinEtools.NodalFieldModule: NodalField 
-import FinEtools.FEMMBaseModule: FEMMAbstractBase
-import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!
+import FinEtools.FEMMBaseModule: AbstractFEMM
+import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!
 import FinEtools.MatrixUtilityModule: add_nnt_ut_only!, complete_lt!, locjac!
 import FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 import LinearAlgebra: norm, cross
 
 """
-    FEMMDeforSurfaceDamping{S<:FESet, F<:Function}
+    FEMMDeforSurfaceDamping{S<:AbstractFESet, F<:Function} <: AbstractFEMM
 
 Type for surface damping model.
 """
-mutable struct FEMMDeforSurfaceDamping{S<:FESet, F<:Function} <: FEMMAbstractBase
+mutable struct FEMMDeforSurfaceDamping{S<:AbstractFESet, F<:Function} <: AbstractFEMM
     integdomain::IntegDomain{S, F} # geometry data
 end
 
 """
     dampingABC(self::FEMMDeforSurfaceDamping, assembler::A,
                   geom::NodalField{FFlt}, u::NodalField{T1},
-                  impedance::T2, surfacenormal::SurfaceNormal) where {A<:SysmatAssemblerBase, T1<:Number, T2<:Number}
+                  impedance::T2, surfacenormal::SurfaceNormal) where {A<:AbstractSysmatAssembler, T1<:Number, T2<:Number}
 
 Compute the damping matrix associated with absorbing boundary conditions (ABC) representation of the effect of infinite extent of inviscid fluid next to the surface.
 """
 function dampingABC(self::FEMMDeforSurfaceDamping, assembler::A,
     geom::NodalField{FFlt}, u::NodalField{T1},
-    impedance::T2, surfacenormal::SurfaceNormal) where {A<:SysmatAssemblerBase, T1<:Number, T2<:Number}
+    impedance::T2, surfacenormal::SurfaceNormal) where {A<:AbstractSysmatAssembler, T1<:Number, T2<:Number}
     fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements

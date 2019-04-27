@@ -6,19 +6,19 @@ Module for elemental fields.
 module ElementalFieldModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FieldModule: Field, nents
+import FinEtools.FieldModule: AbstractField, nents
 import FinEtools.FieldModule.@add_Field_fields
 
 
 """
-    ElementalField{T<:Number} <: Field
+    ElementalField{T<:Number} <: AbstractField
 
 Elemental field, meaning the entities are finite elements.
 
 The values in the field are indexed by the element number.  This means  that
 there needs to be one field per finite element set.
 """
-mutable struct ElementalField{T<:Number} <: Field
+mutable struct ElementalField{T<:Number} <: AbstractField
   @add_Field_fields()
 end
 

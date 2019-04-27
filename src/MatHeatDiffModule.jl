@@ -6,21 +6,33 @@ Module for linear heat diffusion material models.
 module MatHeatDiffModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import FinEtools.MatModule: AbstractMat
 import LinearAlgebra: mul!, Transpose
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
 
-# Type for heat diffusion models of materials.
-struct MatHeatDiff{MTAN<:Function, MUPD<:Function} 
-  thermal_conductivity::Array{FFlt, 2};# Thermal conductivity
-  specific_heat::FFlt;# Specific heat per unit volume
-  tangentmoduli!::MTAN
-  update!::MUPD
+"""
+    MatHeatDiff{MTAN<:Function, MUPD<:Function} 
+
+Type of material model for heat diffusion.
+"""
+struct MatHeatDiff{MTAN<:Function, MUPD<:Function} <: AbstractMat
+	thermal_conductivity::Array{FFlt, 2};# Thermal conductivity
+	specific_heat::FFlt;# Specific heat per unit volume
+	mass_density::FFlt # mass density
+	tangentmoduli!::MTAN
+	update!::MUPD
 end
 
+"""
+    MatHeatDiff(thermal_conductivity)
 
+Construct material model for heat diffusion.
+
+Supply the matrix of thermal conductivity constants.
+"""
 function MatHeatDiff(thermal_conductivity)
-    return MatHeatDiff(thermal_conductivity, 0.0, tangentmoduli!, update!)
+    return MatHeatDiff(thermal_conductivity, 0.0, 0.0, tangentmoduli!, update!)
 end
 
 """
@@ -28,8 +40,8 @@ end
 
 Calculate the thermal conductivity matrix.
 
-- `kappabar` = matrix of thermal conductivity (tangent moduli), supplied as a
-  buffer and overwritten.
+- `kappabar` = matrix of thermal conductivity (tangent moduli) in material
+  coordinate system, supplied as a buffer and overwritten.
 """
 function tangentmoduli!(self::MatHeatDiff, kappabar::FFltMat, t::FFlt = 0.0, dt::FFlt = 0.0, loc::FFltMat = reshape(FFlt[],0,0), label::FInt = 0)
     copyto!(kappabar, self.thermal_conductivity);

@@ -17,22 +17,24 @@ module FEMMDeforLinearESNICEModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: FESet, FESetH8, FESetT4, manifdim, nodesperelem, gradN!
+import FinEtools.FESetModule: AbstractFESet, FESetH8, FESetT4, manifdim, nodesperelem, gradN!
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
-import FinEtools.FEMMDeforLinearBaseModule: FEMMDeforLinearAbstract
-import FinEtools.DeforModelRedModule: DeforModelRed, DeforModelRed3D
-import FinEtools.MatDeforModule: MatDefor
+import FinEtools.FEMMDeforLinearBaseModule: AbstractFEMMDeforLinear
+import FinEtools.DeforModelRedModule: AbstractDeforModelRed, DeforModelRed3D
+import FinEtools.MatDeforLinearElasticModule: AbstractMatDeforLinearElastic
 import FinEtools.MatDeforElastIsoModule: MatDeforElastIso
 import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!, gathervalues_asmat!
 import FinEtools.NodalFieldModule: NodalField, nnodes
 import FinEtools.CSysModule: CSys, updatecsmat!
 import FinEtools.FENodeToFEMapModule: FENodeToFEMap
 import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat!
-import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
+import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, loc!, jac!, locjac!, adjugate3!
 import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass, thermalstrainloads, inspectintegpoints
 import FinEtools.FEMMBaseModule: associategeometry!
 import FinEtools.MatDeforModule: rotstressvec
+import FinEtools.MatModule: massdensity
+import FinEtools.MatDeforLinearElasticModule: tangentmoduli!, update!
 import LinearAlgebra: mul!, Transpose, UpperTriangular, eigvals
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
@@ -40,7 +42,12 @@ import LinearAlgebra: norm, qr, diag, dot, cond, I, cross
 import Statistics: mean
 import StatsBase: geomean
 
-abstract type FEMMDeforLinearAbstractNICE <: FEMMDeforLinearAbstract end
+"""
+    AbstractFEMMDeforLinearESNICE <: AbstractFEMMDeforLinear
+
+Abstract FEMM type for Nodally Integrated Continuum Elements (NICE) with energy-sampling stabilization.
+"""
+abstract type AbstractFEMMDeforLinearESNICE <: AbstractFEMMDeforLinear end
 
 mutable struct _NodalBasisFunctionGradients
     gradN::FFltMat
@@ -69,7 +76,12 @@ function _make_stabilization_material(material::M) where {M}
     return  MatDeforElastIso(material.mr, 0.0, E, nu, 0.0)
 end
 
-mutable struct FEMMDeforLinearESNICET4{MR<:DeforModelRed, S<:FESetT4, F<:Function, M<:MatDefor} <: FEMMDeforLinearAbstractNICE
+"""
+    FEMMDeforLinearESNICET4{MR<:AbstractDeforModelRed, S<:FESetT4, F<:Function, M<:AbstractMatDeforLinearElastic} <: AbstractFEMMDeforLinearESNICE
+
+FEMM type for Nodally Integrated Continuum Elements (NICE) based on the 4-node tetrahedron.
+"""
+mutable struct FEMMDeforLinearESNICET4{MR<:AbstractDeforModelRed, S<:FESetT4, F<:Function, M<:AbstractMatDeforLinearElastic} <: AbstractFEMMDeforLinearESNICE
     mr::Type{MR}
     integdomain::IntegDomain{S, F} # geometry data
     mcsys::CSys # updater of the material orientation matrix
@@ -80,14 +92,14 @@ mutable struct FEMMDeforLinearESNICET4{MR<:DeforModelRed, S<:FESetT4, F<:Functio
     nphis::Vector{FFlt}
 end
 
-function FEMMDeforLinearESNICET4(mr::Type{MR}, integdomain::IntegDomain{S, F}, mcsys::CSys, material::M) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
+function FEMMDeforLinearESNICET4(mr::Type{MR}, integdomain::IntegDomain{S, F}, mcsys::CSys, material::M) where {MR<:AbstractDeforModelRed,  S<:FESetT4, F<:Function, M<:AbstractMatDeforLinearElastic}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
     stabilization_material = _make_stabilization_material(material)
     return FEMMDeforLinearESNICET4(mr, integdomain, mcsys, material, stabilization_material, _NodalBasisFunctionGradients[], fill(zero(FFlt), 1), fill(zero(FFlt), 1))
 end
 
-function FEMMDeforLinearESNICET4(mr::Type{MR}, integdomain::IntegDomain{S, F}, material::M) where {MR<:DeforModelRed,  S<:FESetT4, F<:Function, M<:MatDefor}
+function FEMMDeforLinearESNICET4(mr::Type{MR}, integdomain::IntegDomain{S, F}, material::M) where {MR<:AbstractDeforModelRed,  S<:FESetT4, F<:Function, M<:AbstractMatDeforLinearElastic}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
     stabilization_material = _make_stabilization_material(material)
@@ -102,7 +114,7 @@ function centroid!(self::F, loc, X::FFltMat, conn::C) where {F<:FEMMDeforLinearE
     return loc!(loc, X, conn, reshape(weights, 4, 1))
 end
 
-function buffers1(self::FEMMDeforLinearAbstractNICE, geom::NodalField)
+function _buffers1(self::AbstractFEMMDeforLinearESNICE, geom::NodalField)
     fes = self.integdomain.fes
     nne = nodesperelem(fes); # number of nodes for element
     sdim = ndofs(geom);            # number of space dimensions
@@ -118,7 +130,7 @@ function buffers1(self::FEMMDeforLinearAbstractNICE, geom::NodalField)
     return loc, J, adjJ, csmatTJ, gradN, xl, lconn
 end
 
-function buffers2(self::FEMMDeforLinearAbstractNICE, geom::NodalField, u::NodalField, npts::FInt)
+function _buffers2(self::AbstractFEMMDeforLinearESNICE, geom::NodalField, u::NodalField, npts::FInt)
     fes = self.integdomain.fes
     ndn = ndofs(u); # number of degrees of freedom per node
     nne = nodesperelem(fes); # number of nodes for element
@@ -138,7 +150,7 @@ function buffers2(self::FEMMDeforLinearAbstractNICE, geom::NodalField, u::NodalF
     return dofnums, loc, J, csmatTJ, Jac, D, Dstab, elmat, B
 end
 
-function buffers3(self::FEMMDeforLinearAbstractNICE, geom::NodalField, u::NodalField)
+function _buffers3(self::AbstractFEMMDeforLinearESNICE, geom::NodalField, u::NodalField)
     fes = self.integdomain.fes
     ndn = ndofs(u); # number of degrees of freedom per node
     nne = nodesperelem(fes); # number of nodes for element
@@ -172,7 +184,7 @@ function computenodalbfungrads(self, geom)
 
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
-    loc, J, adjJ, csmatTJ, gradN, xl, lconn = buffers1(self, geom)
+    loc, J, adjJ, csmatTJ, gradN, xl, lconn = _buffers1(self, geom)
 
     # Get the inverse map from finite element nodes to geometric cells
     fen2fe = FENodeToFEMap(fes.conn, nnodes(geom));
@@ -274,18 +286,18 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
 end
 
 """
-    stiffness(self::FEMMDeforLinearAbstractNICE, assembler::A,
+    stiffness(self::AbstractFEMMDeforLinearESNICE, assembler::A,
       geom::NodalField{FFlt},
-      u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
+      u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
 
 Compute and assemble  stiffness matrix.
 """
-function stiffness(self::FEMMDeforLinearAbstractNICE, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:SysmatAssemblerBase, T<:Number}
+function stiffness(self::AbstractFEMMDeforLinearESNICE, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
-    dofnums, loc, J, csmatTJ, Jac, D, Dstab = buffers2(self, geom, u, npts)
-    self.material.tangentmoduli!(self.material, D, 0.0, 0.0, loc, 0)
-    self.stabilization_material.tangentmoduli!(self.stabilization_material, Dstab, 0.0, 0.0, loc, 0)
+    dofnums, loc, J, csmatTJ, Jac, D, Dstab = _buffers2(self, geom, u, npts)
+    tangentmoduli!(self.material, D, 0.0, 0.0, loc, 0)
+    tangentmoduli!(self.stabilization_material, Dstab, 0.0, 0.0, loc, 0)
     elmatsizeguess = 4*nodesperelem(fes)*ndofs(u)
     startassembly!(assembler, elmatsizeguess, elmatsizeguess, nnodes(u) + count(fes), u.nfreedofs, u.nfreedofs);
     for nix = 1:length(self.nodalbasisfunctiongrad)
@@ -306,7 +318,7 @@ function stiffness(self::FEMMDeforLinearAbstractNICE, assembler::A, geom::NodalF
         gatherdofnums!(u, dofnums, patchconn); # retrieve degrees of freedom
         assemble!(assembler, elmat, dofnums, dofnums); # assemble symmetric matrix
     end # Loop over elements
-    dofnums, B, DB, elmat, elvec, elvecfix, gradN = buffers3(self, geom, u)
+    dofnums, B, DB, elmat, elvec, elvecfix, gradN = _buffers3(self, geom, u)
     # OPTIMIZATION: switch to a single-point quadrature rule here
     for i = 1:count(fes) # Loop over elements
         fill!(elmat,  0.0); # Initialize element matrix
@@ -326,24 +338,24 @@ function stiffness(self::FEMMDeforLinearAbstractNICE, assembler::A, geom::NodalF
     return makematrix!(assembler);
 end
 
-function stiffness(self::FEMMDeforLinearAbstractNICE, geom::NodalField{FFlt},  u::NodalField{T}) where {T<:Number}
+function stiffness(self::AbstractFEMMDeforLinearESNICE, geom::NodalField{FFlt},  u::NodalField{T}) where {T<:Number}
     assembler = SysmatAssemblerSparseSymm();
     return stiffness(self, assembler, geom, u);
 end
 
 
 """
-nzebcloadsstiffness(self::FEMMDeforLinearAbstract,  assembler::A,
+nzebcloadsstiffness(self::AbstractFEMMDeforLinear,  assembler::A,
   geom::NodalField{FFlt},
-  u::NodalField{T}) where {A<:SysvecAssemblerBase, T<:Number}
+  u::NodalField{T}) where {A<:AbstractSysvecAssembler, T<:Number}
 
 Compute load vector for nonzero EBC for fixed displacement.
 """
-function nzebcloadsstiffness(self::FEMMDeforLinearAbstractNICE,  assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:SysvecAssemblerBase, T<:Number}
+function nzebcloadsstiffness(self::AbstractFEMMDeforLinearESNICE,  assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysvecAssembler, T<:Number}
     error("Not implemented yet")
 end
 
-function nzebcloadsstiffness(self::FEMMDeforLinearAbstractNICE, geom::NodalField{FFlt}, u::NodalField{T}) where {T<:Number}
+function nzebcloadsstiffness(self::AbstractFEMMDeforLinearESNICE, geom::NodalField{FFlt}, u::NodalField{T}) where {T<:Number}
     assembler = SysvecAssembler()
     return  nzebcloadsstiffness(self, assembler, geom, u);
 end

@@ -7,20 +7,50 @@ module DeforModelRedModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
-abstract type DeforModelRed end;
-struct DeforModelRed1D <: DeforModelRed
+"""
+    AbstractDeforModelRed
+
+Abstract type of model reduction for deformation analysis.
+"""
+abstract type AbstractDeforModelRed end;
+"""
+    DeforModelRed1D <: AbstractDeforModelRed
+
+Model reduction for 1-D models.
+"""
+struct DeforModelRed1D <: AbstractDeforModelRed
 end
-struct DeforModelRed2DStrain <: DeforModelRed
+"""
+    DeforModelRed2DStrain <: AbstractDeforModelRed
+
+Model reduction for 2-D plane strain models.
+"""
+struct DeforModelRed2DStrain <: AbstractDeforModelRed
 end
-struct DeforModelRed2DStress <: DeforModelRed
+"""
+    DeforModelRed2DStress <: AbstractDeforModelRed
+
+Model reduction for 2-D plane stress models.
+"""
+struct DeforModelRed2DStress <: AbstractDeforModelRed
 end
-struct DeforModelRed2DAxisymm <: DeforModelRed
+"""
+    DeforModelRed2DAxisymm <: AbstractDeforModelRed
+
+Model reduction for 2-D axially symmetric models.
+"""
+struct DeforModelRed2DAxisymm <: AbstractDeforModelRed
 end
-struct DeforModelRed3D <: DeforModelRed
+"""
+    DeforModelRed3D <: AbstractDeforModelRed
+
+Model reduction for 3-D models.
+"""
+struct DeforModelRed3D <: AbstractDeforModelRed
 end
 
 """
-    nstressstrain(::Type{DeforModelRed})::FInt
+    nstressstrain(::Type{AbstractDeforModelRed})::FInt
 
 Return the number of stress components involved in the balance equation (and
 how many strain components) are there for each model reduction type?

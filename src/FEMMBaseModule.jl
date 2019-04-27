@@ -11,48 +11,47 @@ import SparseArrays: sparse
 import LinearAlgebra: norm
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: FESet, manifdim, nodesperelem, subset, map2parametric, inparametric, centroidparametric, bfun
+import FinEtools.FESetModule: AbstractFESet, manifdim, nodesperelem, subset, map2parametric, inparametric, centroidparametric, bfun
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianmdim, Jacobianvolume
 import FinEtools.CSysModule: CSys
 import FinEtools.FieldModule: ndofs, nents, gatherdofnums!, gathervalues_asmat! 
 import FinEtools.NodalFieldModule: NodalField, nnodes
 import FinEtools.ElementalFieldModule: ElementalField, nelems
-import FinEtools.AssemblyModule: SysvecAssemblerBase, startassembly!, assemble!, makematrix!, SysvecAssembler, makevector!
 import FinEtools.ForceIntensityModule: ForceIntensity, updateforce!
 import FinEtools.MatrixUtilityModule: locjac!
 import FinEtools.BoxModule: initbox!, boundingbox, inflatebox!
 import FinEtools.MeshModificationModule: nodepartitioning, compactnodes, renumberconn!
 import FinEtools.MeshSelectionModule: selectelem, vselect, findunconnnodes, connectednodes
-import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
+import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 
 """
-    FEMMAbstractBase
+    AbstractFEMM
 
-Abstract base type for all finite element models.
+Abstract type for all finite element model machines.
 """
-abstract type FEMMAbstractBase; end
+abstract type AbstractFEMM; end
 
 """
-    FEMMBase
+    FEMMBase{S<:AbstractFESet, F<:Function} <: AbstractFEMM
 
 Class for base finite element modeling machine.
 """
-mutable struct FEMMBase{S<:FESet, F<:Function} <: FEMMAbstractBase
+mutable struct FEMMBase{S<:AbstractFESet, F<:Function} <: AbstractFEMM
     integdomain::IntegDomain{S, F} # geometry data
     mcsys::CSys # updater of the material orientation matrix
 end
 
 """
-    FEMMBase(integdomain::IntegDomain{S, F}) where {S<:FESet, F<:Function}
+    FEMMBase(integdomain::IntegDomain{S, F}) where {S<:AbstractFESet, F<:Function}
 
 Construct with the default orientation matrix (identity).  
 """
-function FEMMBase(integdomain::IntegDomain{S, F}) where {S<:FESet, F<:Function}
+function FEMMBase(integdomain::IntegDomain{S, F}) where {S<:AbstractFESet, F<:Function}
     return FEMMBase(integdomain, CSys(manifdim(integdomain.fes)))
 end
 
 """
-    associategeometry!(self::FEMMAbstractBase,  geom::NodalField{FFlt})
+    associategeometry!(self::AbstractFEMM,  geom::NodalField{FFlt})
 
 Associate geometry field with the FEMM.
 
@@ -66,21 +65,21 @@ routine is not consistent with the one for which `associategeometry!()`
 was called before, `associategeometry!()` needs to be called with 
 the new geometry field.
 """
-function associategeometry!(self::FEMMAbstractBase,  geom::NodalField{FFlt})
+function associategeometry!(self::AbstractFEMM,  geom::NodalField{FFlt})
     return self # default is no-op
 end
 
 """
-    inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {FEMM<:FEMMAbstractBase, T<:Number, F<:Function}
+    inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {FEMM<:AbstractFEMM, T<:Number, F<:Function}
 
 Inspect integration points.  
 """
-function inspectintegpoints(self::FEMM, geom::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {FEMM<:FEMMAbstractBase, T<:Number, F<:Function}
+function inspectintegpoints(self::FEMM, geom::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {FEMM<:AbstractFEMM, T<:Number, F<:Function}
     return idat # default is no-op
 end
 
 """
-    integratefieldfunction(self::FEMMAbstractBase,
+    integratefieldfunction(self::AbstractFEMM,
         geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R;
         m::FInt=-1) where {T<:Number, FL<:NodalField{T}, R, F<:Function}
 
@@ -91,7 +90,7 @@ Integrate a nodal-field function over the discrete manifold.
 
 Returns value of type `R`, which is initialized by `initial`.    
 """
-function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R;
+function integratefieldfunction(self::AbstractFEMM, geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R;
     m::FInt=-1) where {T<:Number, FL<:NodalField{T}, R, F<:Function}
     fes = self.integdomain.fes  # finite elements
     # Constants
@@ -125,7 +124,7 @@ function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, 
 end
 
 """
-    integratefieldfunction(self::FEMMAbstractBase,
+    integratefieldfunction(self::AbstractFEMM,
         geom::NodalField{FFlt},  afield::FL, fh::F, initial::R;
         m::FInt=-1) where {T<:Number, FL<:ElementalField{T}, R, F<:Function}
 
@@ -136,7 +135,7 @@ Integrate a elemental-field function over the discrete manifold.
 
 Returns value of type `R`, which is initialized by `initial`. 
 """ 
-function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R; 
+function integratefieldfunction(self::AbstractFEMM, geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R; 
     m::FInt=-1) where {T<:Number, FL<:ElementalField{T}, R, F<:Function}
     fes = self.integdomain.fes  # finite elements
     # Constants
@@ -168,7 +167,7 @@ function integratefieldfunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, 
 end
 
 """
-    integratefunction(self::FEMMAbstractBase,
+    integratefunction(self::AbstractFEMM,
         geom::NodalField{FFlt}, fh::F, m::FInt = -1) where {F<:Function}
 
 Integrate a function over the discrete manifold.
@@ -199,7 +198,7 @@ mass = V*rhos;
 Inertia = I*rhos;
 ```
 """
-function integratefunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, fh::F, m::FInt = -1) where {F<:Function}
+function integratefunction(self::AbstractFEMM, geom::NodalField{FFlt}, fh::F, m::FInt = -1) where {F<:Function}
     fes = self.integdomain.fes
     if m < 0
         m = manifdim(fes);  # native  manifold dimension
@@ -225,8 +224,8 @@ function integratefunction(self::FEMMAbstractBase, geom::NodalField{FFlt}, fh::F
 end
 
 """
-    transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
-        fc::F, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
+    transferfield!(ff::F, fensf::FENodeSet, fesf::AbstractFESet,
+        fc::F, fensc::FENodeSet, fesc::AbstractFESet, tolerance::FFlt
         )  where {T<:Number, F<:NodalField{T}}
 
 Transfer a nodal field from a coarse mesh to a finer one.
@@ -240,7 +239,7 @@ Transfer a nodal field from a coarse mesh to a finer one.
 - `parametrictolerance` = tolerance in parametric space for for check whether
   node is inside an element
 """
-function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENodeSet, fesc::FESet, geometricaltolerance::FFlt; parametrictolerance::FFlt = 0.01)  where {T<:Number, F<:NodalField{T}}
+function transferfield!(ff::F, fensf::FENodeSet, fesf::AbstractFESet, fc::F, fensc::FENodeSet, fesc::AbstractFESet, geometricaltolerance::FFlt; parametrictolerance::FFlt = 0.01)  where {T<:Number, F<:NodalField{T}}
     fill!(ff.values, Inf) # the "infinity" value indicates a missed node
     @assert count(fensf) == nents(ff)
     parametrictol = 0.01
@@ -310,8 +309,8 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENo
 end
 
 # Old, non-performing version. It can get very expensive for large meshes.
-# function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet,
-#     fc::F, fensc::FENodeSet, fesc::FESet, tolerance::FFlt
+# function transferfield!(ff::F, fensf::FENodeSet, fesf::AbstractFESet,
+#     fc::F, fensc::FENodeSet, fesc::AbstractFESet, tolerance::FFlt
 #     )  where {T<:Number, F<:NodalField{T}}
 #     @assert count(fensf) == nents(ff)
 #     nodebox = initbox!([], vec(fensc.xyz[1, :]))
@@ -348,8 +347,8 @@ end
 # end
 
 """
-    transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F,
-        fensc::FENodeSet, fesc::FESet, geometricaltolerance::FFlt;
+    transferfield!(ff::F, fensf::FENodeSet, fesf::AbstractFESet, fc::F,
+        fensc::FENodeSet, fesc::AbstractFESet, geometricaltolerance::FFlt;
         parametrictolerance::FFlt = 0.01 )  where {T<:Number,
         F<:ElementalField{T}}
 
@@ -361,7 +360,7 @@ Transfer an elemental field from a coarse mesh to a finer one.
 - `fesc` = finite element set for the coarse mesh
 - `tolerance` = tolerance in physical space for searches of the adjacent nodes
 """
-function transferfield!(ff::F, fensf::FENodeSet, fesf::FESet, fc::F, fensc::FENodeSet, fesc::FESet, geometricaltolerance::FFlt; parametrictolerance::FFlt = 0.01)  where {T<:Number, F<:ElementalField{T}}
+function transferfield!(ff::F, fensf::FENodeSet, fesf::AbstractFESet, fc::F, fensc::FENodeSet, fesc::AbstractFESet, geometricaltolerance::FFlt; parametrictolerance::FFlt = 0.01)  where {T<:Number, F<:ElementalField{T}}
     @assert count(fesf) == nents(ff)
     nodebox = initbox!([], vec(fensc.xyz[1, :]))
     centroidpc = centroidparametric(fesf)
@@ -400,7 +399,7 @@ end
 """
     distribloads(self::FEMM, assembler::A, geom::NodalField{FFlt}, P::NodalField{T},
       fi::ForceIntensity,
-      m::FInt) where {FEMM<:FEMMAbstractBase, T<:Number, A<:SysvecAssemblerBase}
+      m::FInt) where {FEMM<:AbstractFEMM, T<:Number, A<:AbstractSysvecAssembler}
 
 Compute the distributed-load vector.
 
@@ -408,7 +407,7 @@ Compute the distributed-load vector.
 `m`= manifold dimension, 1= curve, 2= surface, 3= volume
 """
 function distribloads(self::FEMM, assembler::A,
-    geom::NodalField{FFlt}, P::NodalField{T}, fi::ForceIntensity, m::FInt) where {FEMM<:FEMMAbstractBase, T<:Number, A<:SysvecAssemblerBase}
+    geom::NodalField{FFlt}, P::NodalField{T}, fi::ForceIntensity, m::FInt) where {FEMM<:AbstractFEMM, T<:Number, A<:AbstractSysvecAssembler}
     fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
@@ -449,20 +448,20 @@ function distribloads(self::FEMM, assembler::A,
     return F
 end
 
-function distribloads(self::FEMM, geom::NodalField{FFlt}, P::NodalField{T}, fi::ForceIntensity, m::FInt) where {FEMM<:FEMMAbstractBase, T<:Number}
+function distribloads(self::FEMM, geom::NodalField{FFlt}, P::NodalField{T}, fi::ForceIntensity, m::FInt) where {FEMM<:AbstractFEMM, T<:Number}
     assembler = SysvecAssembler(0.0*P.values[1])#T(0.0))
     return distribloads(self, assembler, geom, P, fi, m)
 end
 
 """
-    connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:FEMMAbstractBase}
+    connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:AbstractFEMM}
 
 Compute the connection matrix.
 
 The matrix has a nonzero in all the rows and columns which correspond to nodes
 connected by some finite element.
 """
-function connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:FEMMAbstractBase}
+function connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:AbstractFEMM}
     fes = self.integdomain.fes
     nfes = length(fes.conn)
     nconns = nodesperelem(fes)
@@ -545,7 +544,7 @@ end
     fieldfromintegpoints(self::FEMM,
       geom::NodalField{FFlt},  u::NodalField{T},
       dT::NodalField{FFlt},  quantity::Symbol,  component::FInt;
-      context...) where {FEMM<:FEMMAbstractBase, T<:Number}
+      context...) where {FEMM<:AbstractFEMM, T<:Number}
 
 Construct nodal field from integration points.
 
@@ -567,7 +566,7 @@ Output argument
 function fieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
     dT::NodalField{FFlt},  quantity::Symbol,  component::FIntVec;
-    context...) where {FEMM<:FEMMAbstractBase, T<:Number}
+    context...) where {FEMM<:AbstractFEMM, T<:Number}
     fes = self.integdomain.fes
     # Constants
     nne = nodesperelem(fes); # number of nodes for element
@@ -637,7 +636,7 @@ end
 function fieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
     dT::NodalField{FFlt},  quantity::Symbol,  component::FInt;
-    context...) where {FEMM<:FEMMAbstractBase, T<:Number}
+    context...) where {FEMM<:AbstractFEMM, T<:Number}
     return fieldfromintegpoints(self, geom, u, dT, quantity, [component];
         context...)
 end
@@ -645,7 +644,7 @@ end
 function fieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
     quantity::Symbol,  component::FIntVec;
-    context...) where {FEMM<:FEMMAbstractBase, T<:Number}
+    context...) where {FEMM<:AbstractFEMM, T<:Number}
     dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
     return fieldfromintegpoints(self, geom, u, dT, quantity, component; context...)
 end
@@ -653,7 +652,7 @@ end
 function fieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
     quantity::Symbol,  component::FInt;
-    context...) where {FEMM<:FEMMAbstractBase, T<:Number}
+    context...) where {FEMM<:AbstractFEMM, T<:Number}
     dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
     return fieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
 end
@@ -668,7 +667,7 @@ end
     elemfieldfromintegpoints(self::FEMM,
       geom::NodalField{FFlt},  u::NodalField{T},
       dT::NodalField{FFlt},  quantity::Symbol,  component::FInt;
-      context...) where {FEMM<:FEMMAbstractBase, T<:Number}
+      context...) where {FEMM<:AbstractFEMM, T<:Number}
 
 Construct nodal field from integration points.
 
@@ -686,7 +685,7 @@ Output argument
 function elemfieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
     dT::NodalField{FFlt},  quantity::Symbol,  component::FIntVec;
-    context...) where {FEMM<:FEMMAbstractBase, T<:Number}
+    context...) where {FEMM<:AbstractFEMM, T<:Number}
     fes = self.integdomain.fes
     # Constants
     nne = nodesperelem(fes); # number of nodes for element
@@ -727,14 +726,14 @@ end
 function elemfieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
     dT::NodalField{FFlt},  quantity::Symbol,  component::FInt;
-    context...) where {FEMM<:FEMMAbstractBase, T<:Number}
+    context...) where {FEMM<:AbstractFEMM, T<:Number}
     return elemfieldfromintegpoints(self,
         geom, u, dT,  quantity,  [component]; context...)
 end
 
 function elemfieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
-    quantity::Symbol,  component::FInt; context...) where {FEMM<:FEMMAbstractBase,
+    quantity::Symbol,  component::FInt; context...) where {FEMM<:AbstractFEMM,
     T<:Number}
     dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
     return elemfieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
@@ -742,14 +741,14 @@ end
 
 function elemfieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
-    quantity::Symbol,  component::FIntVec; context...) where {FEMM<:FEMMAbstractBase,
+    quantity::Symbol,  component::FIntVec; context...) where {FEMM<:AbstractFEMM,
     T<:Number}
     dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
     return elemfieldfromintegpoints(self, geom, u, dT, quantity, component; context...)
 end
 
 
-function  buffers(self::FEMM, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:FEMMAbstractBase, T}
+function  buffers(self::FEMM, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:AbstractFEMM, T}
     # Constants
     fes = self.integdomain.fes
     nfes = count(fes); # number of finite elements in the set
@@ -769,11 +768,11 @@ end
 """
     innerproduct(self::FEMMHeatDiff,
       assembler::A, geom::NodalField{FFlt},
-      temp::NodalField{FFlt}) where {A<:SysmatAssemblerBase}
+      temp::NodalField{FFlt}) where {A<:AbstractSysmatAssembler}
 
 Compute the inner-product (Gram) matrix.
 """
-function innerproduct(self::FEMM, assembler::A, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:FEMMAbstractBase, A<:SysmatAssemblerBase, T}
+function innerproduct(self::FEMM, assembler::A, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, T}
     fes = self.integdomain.fes
     dofnums, loc, J, gradN, elmat = buffers(self, geom, afield)
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
@@ -802,7 +801,7 @@ function innerproduct(self::FEMM, assembler::A, geom::NodalField{FFlt}, afield::
     return makematrix!(assembler);
 end
 
-function innerproduct(self::FEMM, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:FEMMAbstractBase, T}
+function innerproduct(self::FEMM, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:AbstractFEMM, T}
     assembler = SysmatAssemblerSparseSymm();
     return innerproduct(self, assembler, geom, afield);
 end

@@ -6,27 +6,20 @@ Module for  orthotropic elastic material.
 module MatDeforElastOrthoModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.DeforModelRedModule: DeforModelRed, DeforModelRed3D, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed1D, nstressstrain, nthermstrain
-import FinEtools.MatDeforModule: MatDefor, stress6vto3x3t!, stress3vto2x2t!, stress4vto3x3t!, stress4vto3x3t!
+import FinEtools.DeforModelRedModule: AbstractDeforModelRed, DeforModelRed3D, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed1D, nstressstrain, nthermstrain
+import FinEtools.MatDeforModule: AbstractMatDefor, stress6vto3x3t!, stress3vto2x2t!, stress4vto3x3t!, stress4vto3x3t!
+import FinEtools.MatDeforLinearElasticModule: AbstractMatDeforLinearElastic
 import LinearAlgebra: mul!
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
 import LinearAlgebra: eigen, eigvals, rank, dot
 
 """
-    MatDeforElastOrtho
+    MatDeforElastOrtho{MR<:AbstractDeforModelRed,  MTAN<:Function, MUPD<:Function, MTHS<:Function} <: AbstractMatDeforLinearElastic
 
 Linear orthotropic elasticity  material.
-
-
-```tangentmoduli!(self::MatDeforElastOrtho,
-  ms::MatDeforElastOrthoMS, D::FFltMat,
-  t::FFlt, dt::FFlt, loc::FFltMat, label::FInt)
-```
-
-
 """
-struct  MatDeforElastOrtho{MR<:DeforModelRed,  MTAN<:Function, MUPD<:Function, MTHS<:Function} <: MatDefor
+struct  MatDeforElastOrtho{MR<:AbstractDeforModelRed,  MTAN<:Function, MUPD<:Function, MTHS<:Function} <: AbstractMatDeforLinearElastic
     mr::Type{MR}
     mass_density::FFlt # mass density
     E1::FFlt # Young's modulus for material direction 1
@@ -47,7 +40,7 @@ struct  MatDeforElastOrtho{MR<:DeforModelRed,  MTAN<:Function, MUPD<:Function, M
     thermalstrain!::MTHS
 end
 
-function threedD(E1::FFlt, E2::FFlt, E3::FFlt,
+function _threedD(E1::FFlt, E2::FFlt, E3::FFlt,
     nu12::FFlt, nu13::FFlt, nu23::FFlt,
     G12::FFlt, G13::FFlt, G23::FFlt)
     C = [  1.0/E1      -nu12/E1    -nu13/E1  0.0   0.0   0.0;
@@ -77,7 +70,7 @@ function MatDeforElastOrtho(mr::Type{DeforModelRed3D},
     G12::FFlt, G13::FFlt, G23::FFlt, CTE1::FFlt, CTE2::FFlt, CTE3::FFlt)
     return MatDeforElastOrtho(mr, mass_density, E1, E2, E3,    nu12, nu13, nu23,
         G12, G13, G23, CTE1, CTE2, CTE3,
-        threedD(E1, E2, E3,    nu12, nu13, nu23,    G12, G13, G23),
+        _threedD(E1, E2, E3,    nu12, nu13, nu23,    G12, G13, G23),
     tangentmoduli3d!, update3d!, thermalstrain3d!)
 end
 
@@ -87,7 +80,7 @@ function MatDeforElastOrtho(mr::Type{DeforModelRed2DStress},
     G12::FFlt, G13::FFlt, G23::FFlt, CTE1::FFlt, CTE2::FFlt, CTE3::FFlt)
     return MatDeforElastOrtho(mr, mass_density, E1, E2, E3,    nu12, nu13, nu23,
         G12, G13, G23, CTE1, CTE2, CTE3,
-        threedD(E1, E2, E3,    nu12, nu13, nu23,    G12, G13, G23),
+        _threedD(E1, E2, E3,    nu12, nu13, nu23,    G12, G13, G23),
         tangentmoduli2dstrs!, update2dstrs!, thermalstrain2dstrs!)
 end
 
@@ -97,7 +90,7 @@ function MatDeforElastOrtho(mr::Type{DeforModelRed2DStrain},
     G12::FFlt, G13::FFlt, G23::FFlt, CTE1::FFlt, CTE2::FFlt, CTE3::FFlt)
     return MatDeforElastOrtho(mr, mass_density, E1, E2, E3,    nu12, nu13, nu23,
         G12, G13, G23, CTE1, CTE2, CTE3,
-        threedD(E1, E2, E3,    nu12, nu13, nu23,    G12, G13, G23),
+        _threedD(E1, E2, E3,    nu12, nu13, nu23,    G12, G13, G23),
         tangentmoduli2dstrn!, update2dstrn!, thermalstrain2dstrn!)
 end
 
@@ -107,7 +100,7 @@ function MatDeforElastOrtho(mr::Type{DeforModelRed2DAxisymm},
     G12::FFlt, G13::FFlt, G23::FFlt, CTE1::FFlt, CTE2::FFlt, CTE3::FFlt)
     return MatDeforElastOrtho(mr, mass_density, E1, E2, E3,    nu12, nu13, nu23,
         G12, G13, G23, CTE1, CTE2, CTE3,
-        threedD(E1, E2, E3,    nu12, nu13, nu23,    G12, G13, G23),
+        _threedD(E1, E2, E3,    nu12, nu13, nu23,    G12, G13, G23),
         tangentmoduli2daxi!, update2daxi!, thermalstrain2daxi!)
 end
 

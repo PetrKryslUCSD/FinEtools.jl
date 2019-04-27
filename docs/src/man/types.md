@@ -131,7 +131,8 @@ Order = [:type]
 ## Material models
 
 ```@autodocs
-Modules = [FinEtools, FinEtools.MatHeatDiffModule, FinEtools.MatAcoustFluidModule,  FinEtools.MatDeforModule, FinEtools.MatDeforElastIsoModule, FinEtools.MatDeforElastOrthoModule,]
+Modules = [FinEtools, FinEtools.MatModule, FinEtools.MatHeatDiffModule, FinEtools.MatAcoustFluidModule,  FinEtools.MatDeforModule, 
+FinEtools.MatDeforLinearElasticModule, FinEtools.MatDeforElastIsoModule, FinEtools.MatDeforElastOrthoModule,]
 Private = true
 Order = [:type]
 ```

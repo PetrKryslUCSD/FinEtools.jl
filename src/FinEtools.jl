@@ -35,9 +35,9 @@ using FinEtools.CSysModule: CSys, updatecsmat!
 # Exported: type  for coordinate systems, methods to invoke the update callback
 export CSys, updatecsmat!
 
-using FinEtools.FESetModule: FESet,  FESet0Manifold,  FESet1Manifold,  FESet2Manifold,  FESet3Manifold, manifdim, nodesperelem, count, fromarray!, connasarray, setlabel!, subset, cat, updateconn!, bfun, bfundpar, map2parametric, inparametric, centroidparametric,  FESetP1, FESetL2, FESetL3, FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6, FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
+using FinEtools.FESetModule: AbstractFESet,  AbstractFESet0Manifold,  AbstractFESet1Manifold,  AbstractFESet2Manifold,  AbstractFESet3Manifold, manifdim, nodesperelem, count, fromarray!, connasarray, setlabel!, subset, cat, updateconn!, bfun, bfundpar, map2parametric, inparametric, centroidparametric,  FESetP1, FESetL2, FESetL3, FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6, FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
 # Exported: types of finite element sets, abstract and concrete
-export FESet,  FESet0Manifold,  FESet1Manifold,  FESet2Manifold,  FESet3Manifold, FESetP1, FESetL2, FESetL3, FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6, FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
+export AbstractFESet,  AbstractFESet0Manifold,  AbstractFESet1Manifold,  AbstractFESet2Manifold,  AbstractFESet3Manifold, FESetP1, FESetL2, FESetL3, FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6, FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
 # Exported: methods for accessing dimensions and counts
 export manifdim, nodesperelem, count
 # Exported: methods for  manipulating connectivity  and labels
@@ -53,9 +53,9 @@ using FinEtools.FENodeToFEMapModule: FENodeToFEMap
 # Exported: type for maps from nodes to finite elements
 export FENodeToFEMap
 
-using FinEtools.FieldModule: Field, ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!, gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!, gatherfixedvalues_asmat!,numberdofs!, setebc!, applyebc!, scattersysvec!, copyto!, wipe!, prescribeddofs
+using FinEtools.FieldModule: AbstractField, ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!, gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!, gatherfixedvalues_asmat!,numberdofs!, setebc!, applyebc!, scattersysvec!, copyto!, wipe!, prescribeddofs
 # Exported: abstract field type, methods for the abstract field type (retrieval of data  from a field, setting of data in the field)
-export Field, ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!, gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!, gatherfixedvalues_asmat!, numberdofs!, setebc!, applyebc!, scattersysvec!, copyto!, wipe!, prescribeddofs
+export AbstractField, ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!, gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!, gatherfixedvalues_asmat!, numberdofs!, setebc!, applyebc!, scattersysvec!, copyto!, wipe!, prescribeddofs
 
 using FinEtools.GeneralFieldModule: GeneralField
 # Exported: type of general field
@@ -116,21 +116,21 @@ using FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 # Exported: surface-normal evaluator type and methods to invoke the update callback
 export SurfaceNormal, updatenormal!
 
-using FinEtools.AssemblyModule: SysmatAssemblerBase, SysmatAssemblerSparse, SysmatAssemblerSparseSymm, SysmatAssemblerSparseHRZLumpingSymm, startassembly!, assemble!, makematrix!, SysvecAssemblerBase, SysvecAssembler, startassembly!, assemble!, makevector!
+using FinEtools.AssemblyModule: AbstractSysmatAssembler, SysmatAssemblerSparse, SysmatAssemblerSparseSymm, SysmatAssemblerSparseHRZLumpingSymm, startassembly!, assemble!, makematrix!, AbstractSysvecAssembler, SysvecAssembler, startassembly!, assemble!, makevector!
 # Exported: types and methods for  sparse matrix assembly  and vector assembly
-export SysmatAssemblerBase, SysmatAssemblerSparse, SysmatAssemblerSparseSymm, SysmatAssemblerSparseHRZLumpingSymm, startassembly!, assemble!, makematrix!, SysvecAssemblerBase, SysvecAssembler, startassembly!, assemble!, makevector!
+export AbstractSysmatAssembler, SysmatAssemblerSparse, SysmatAssemblerSparseSymm, SysmatAssemblerSparseHRZLumpingSymm, startassembly!, assemble!, makematrix!, AbstractSysvecAssembler, SysvecAssembler, startassembly!, assemble!, makevector!
 
-using FinEtools.IntegRuleModule: IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule, NodalSimplexRule
+using FinEtools.IntegRuleModule: AbstractIntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule, NodalSimplexRule
 # Exported: type for various integration rules
-export IntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule, NodalSimplexRule
+export AbstractIntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule, NodalSimplexRule
 
 using FinEtools.IntegDomainModule: IntegDomain, otherdimensionunity, Jacobianpoint, Jacobiancurve, Jacobiansurface, Jacobianvolume, Jacobianmdim, integrationdata
 # Exported: type to handle  integration data for various manifold dimensions
 export IntegDomain, otherdimensionunity, Jacobianpoint, Jacobiancurve, Jacobiansurface, Jacobianvolume, Jacobianmdim, integrationdata
 
-using FinEtools.FEMMBaseModule: FEMMAbstractBase, FEMMBase, associategeometry!, integratefieldfunction, integratefunction, transferfield!, distribloads, connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints, innerproduct
+using FinEtools.FEMMBaseModule: AbstractFEMM, FEMMBase, associategeometry!, integratefieldfunction, integratefunction, transferfield!, distribloads, connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints, innerproduct
 # Exported: type base discretization methods
-export FEMMAbstractBase, FEMMBase, associategeometry!, integratefieldfunction, integratefunction, transferfield!, distribloads, connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints, innerproduct
+export AbstractFEMM, FEMMBase, associategeometry!, integratefieldfunction, integratefunction, transferfield!, distribloads, connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints, innerproduct
 
 ###########################################################################
 # Mesh-generation functionality for various shapes
@@ -168,6 +168,13 @@ using FinEtools.VoxelTetMeshingModule: ElementSizeWeightFunction, ImageMesher, m
 export ImageMesher, ElementSizeWeightFunction, mesh!, volumes
 
 ###########################################################################
+# Abstract material
+###########################################################################
+using FinEtools.MatModule: AbstractMat
+# Exported: abstract type of material
+export AbstractMat
+
+###########################################################################
 # Heat diffusion functionality
 ###########################################################################
 using FinEtools.MatHeatDiffModule: MatHeatDiff
@@ -202,17 +209,21 @@ export FEMMAcoustSurf, acousticABC, pressure2resultantforce, pressure2resultantt
 ###########################################################################
 # Linear deformation functionality
 ###########################################################################
-using FinEtools.DeforModelRedModule: DeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,    DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D, nstressstrain, nthermstrain, stresscomponentmap, Blmat!
+using FinEtools.DeforModelRedModule: AbstractDeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,    DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D, nstressstrain, nthermstrain, stresscomponentmap, Blmat!
 # Exported: types  for model reduction in stress analysis
-export DeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,    DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D
+export AbstractDeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,    DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D
 # Exported: num stresses/strains,  number of thermal strains, and map of  the numbering of stress components
 export nstressstrain, nthermstrain, stresscomponentmap
 # Exported: strain-displacement matrix  for all model-reduction types
 export Blmat!
 
-using FinEtools.MatDeforModule: MatDefor, strain2x2tto3v!, strain3vto2x2t!, strain3x3tto6v!, strain6vto3x3t!, strain9vto3x3t!, strain3x3tto9v!, strain9vto6v!, strain6vto9v!, stress2x2to3v!,  stress3vto2x2t!, stress3vto3x3t!, stress4vto3x3t!, stress6vto3x3t!, stress3x3tto6v!, stress9vto6v!,  stress6vto9v!, rotstressvec
+using FinEtools.MatDeforModule: AbstractMatDefor, strain2x2tto3v!, strain3vto2x2t!, strain3x3tto6v!, strain6vto3x3t!, strain9vto3x3t!, strain3x3tto9v!, strain9vto6v!, strain6vto9v!, stress2x2to3v!,  stress3vto2x2t!, stress3vto3x3t!, stress4vto3x3t!, stress6vto3x3t!, stress3x3tto6v!, stress9vto6v!,  stress6vto9v!, rotstressvec
 # Exported: abstract type for  models of deformation,  conversion methods  for strain and stress, transformations  of strain and stress
-export MatDefor, strain2x2tto3v!, strain3vto2x2t!, strain3x3tto6v!, strain6vto3x3t!, strain9vto3x3t!, strain3x3tto9v!, strain9vto6v!, strain6vto9v!, stress2x2to3v!,  stress3vto2x2t!, stress3vto3x3t!, stress4vto3x3t!, stress6vto3x3t!, stress3x3tto6v!, stress9vto6v!,  stress6vto9v!, rotstressvec
+export AbstractMatDefor, strain2x2tto3v!, strain3vto2x2t!, strain3x3tto6v!, strain6vto3x3t!, strain9vto3x3t!, strain3x3tto9v!, strain9vto6v!, strain6vto9v!, stress2x2to3v!,  stress3vto2x2t!, stress3vto3x3t!, stress4vto3x3t!, stress6vto3x3t!, stress3x3tto6v!, stress9vto6v!,  stress6vto9v!, rotstressvec
+
+using FinEtools.MatDeforLinearElasticModule: AbstractMatDeforLinearElastic
+# Exported: type of  isotropic elastic material
+export AbstractMatDeforLinearElastic
 
 using FinEtools.MatDeforElastIsoModule: MatDeforElastIso
 # Exported: type of  isotropic elastic material
@@ -222,9 +233,9 @@ using FinEtools.MatDeforElastOrthoModule: MatDeforElastOrtho
 # Exported: type of orthotropic elastic material
 export MatDeforElastOrtho
 
-using FinEtools.FEMMDeforLinearBaseModule: FEMMDeforLinearAbstract, stiffness, nzebcloadsstiffness, thermalstrainloads, mass, inspectintegpoints
+using FinEtools.FEMMDeforLinearBaseModule: AbstractFEMMDeforLinear, stiffness, nzebcloadsstiffness, thermalstrainloads, mass, inspectintegpoints
 # Exported: abstract type for linear information, discretization methods for the abstract type
-export FEMMDeforLinearAbstract, stiffness, nzebcloadsstiffness, thermalstrainloads, mass, inspectintegpoints
+export AbstractFEMMDeforLinear, stiffness, nzebcloadsstiffness, thermalstrainloads, mass, inspectintegpoints
 
 using FinEtools.FEMMDeforLinearModule: FEMMDeforLinear
 # Exported: type for linear deformation

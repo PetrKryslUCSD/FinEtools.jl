@@ -1,8 +1,9 @@
 module MatDeforElastIsoModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.DeforModelRedModule: DeforModelRed, DeforModelRed3D, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed1D, nstressstrain, nthermstrain
-import FinEtools.MatDeforModule: MatDefor, stress6vto3x3t!, stress3vto2x2t!, stress4vto3x3t!, stress4vto3x3t!
+import FinEtools.DeforModelRedModule: AbstractDeforModelRed, DeforModelRed3D, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed1D, nstressstrain, nthermstrain
+import FinEtools.MatDeforModule: AbstractMatDefor, stress6vto3x3t!, stress3vto2x2t!, stress4vto3x3t!, stress4vto3x3t!
+import FinEtools.MatDeforLinearElasticModule: AbstractMatDeforLinearElastic
 import LinearAlgebra: Transpose, Diagonal, mul!
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
@@ -12,17 +13,12 @@ const mI = Matrix(Diagonal([1.0, 1.0, 1.0, 0.5, 0.5, 0.5]))
 const m1 = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0];
 
 """
-    MatDeforElastIso
+    MatDeforElastIso{MR<:AbstractDeforModelRed, MTAN<:Function, MUPD<:Function, MTHS<:Function} <: AbstractMatDeforLinearElastic
 
 Linear isotropic elasticity  material.
 
-```
-tangentmoduli!::MTAN
-update!::MUPD
-thermalstrain!::MTHS
-```
 """
-struct  MatDeforElastIso{MR<:DeforModelRed, MTAN<:Function, MUPD<:Function, MTHS<:Function} <: MatDefor
+struct  MatDeforElastIso{MR<:AbstractDeforModelRed, MTAN<:Function, MUPD<:Function, MTHS<:Function} <: AbstractMatDeforLinearElastic
     mr::Type{MR} # model reduction type
     mass_density::FFlt # mass density
     E::FFlt # Young's modulus
@@ -34,7 +30,7 @@ struct  MatDeforElastIso{MR<:DeforModelRed, MTAN<:Function, MUPD<:Function, MTHS
     thermalstrain!::MTHS # Function to calculate the thermal strains
 end
 
-function threedD(E::FFlt, nu::FFlt)
+function _threedD(E::FFlt, nu::FFlt)
     lambda = E * nu / (1 + nu) / (1 - 2*(nu));
     mu = E / 2. / (1+nu);
     D = lambda * m1 * m1' + 2. * mu * mI;
@@ -43,31 +39,31 @@ end
 
 function MatDeforElastIso(mr::Type{DeforModelRed3D},
     mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
-    return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
+    return MatDeforElastIso(mr, mass_density, E, nu, CTE, _threedD(E, nu),
     tangentmoduli3d!, update3d!, thermalstrain3d!)
 end
 
 function MatDeforElastIso(mr::Type{DeforModelRed2DStress},
     mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
-    return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
+    return MatDeforElastIso(mr, mass_density, E, nu, CTE, _threedD(E, nu),
     tangentmoduli2dstrs!, update2dstrs!, thermalstrain2dstrs!)
 end
 
 function MatDeforElastIso(mr::Type{DeforModelRed2DStrain},
     mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
-    return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
+    return MatDeforElastIso(mr, mass_density, E, nu, CTE, _threedD(E, nu),
     tangentmoduli2dstrn!, update2dstrn!, thermalstrain2dstrn!)
 end
 
 function MatDeforElastIso(mr::Type{DeforModelRed2DAxisymm},
     mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
-    return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
+    return MatDeforElastIso(mr, mass_density, E, nu, CTE, _threedD(E, nu),
     tangentmoduli2daxi!, update2daxi!, thermalstrain2daxi!)
 end
 
 function MatDeforElastIso(mr::Type{DeforModelRed1D},
     mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
-    return MatDeforElastIso(mr, mass_density, E, nu, CTE, threedD(E, nu),
+    return MatDeforElastIso(mr, mass_density, E, nu, CTE, _threedD(E, nu),
     tangentmoduli1d!, update1d!, thermalstrain1d!)
 end
 

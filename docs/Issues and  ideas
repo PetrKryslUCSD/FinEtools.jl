@@ -467,3 +467,34 @@ I like that a! is telling me inside the function that I’m changing something p
 }
 
 - Change the name IntegData to IntegDomain. A much better name for the concept of an object which enables integration over some geometrical domain. Status: Implemented 11/08/2018.
+
+-- Rename abstract types for consistency: Change
+abstract type AbstractSysmatAssembler end;
+abstract type AbstractSysvecAssembler end;
+abstract type IntegRule end
+abstract type DeforModelRed end;
+abstract type FEMMAbstractBase; end
+abstract type AbstractFEMMDeforLinear <: FEMMAbstractBase end
+abstract type AbstractFEMMDeforLinearMS <: AbstractFEMMDeforLinear end
+abstract type AbstractFEMMDeforLinearNICE <: AbstractFEMMDeforLinear end
+abstract type Field end
+abstract type FESet3Manifold{NODESPERELEM} <: FESet{NODESPERELEM} end
+abstract type MatDefor end
+
+into
+abstract type AbstractSysmatAssembler end;
+abstract type AbstractSysvecAssembler end;
+abstract type AbstractIntegRule end
+abstract type AbstractDeforModelRed end;
+
+abstract type AbstractFEMMBase; end
+abstract type AbstractFEMMDeforLinear <: AbstractFEMMBase end
+abstract type AbstractFEMMDeforLinearMS <: AbstractFEMMDeforLinear end
+abstract type AbstractFEMMDeforLinearNICE <: AbstractFEMMDeforLinear end
+abstract type AbstractFESet3Manifold{NODESPERELEM} <: AbstractFESet{NODESPERELEM} end
+
+abstract type AbstractField end
+
+abstract type AbstractMatDefor end
+
+Status: Implemented 04/27/2019.

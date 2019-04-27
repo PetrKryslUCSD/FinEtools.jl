@@ -96,7 +96,7 @@ function test()
   nL = 5
   nW = 5
   tolerance = W/nW/1.0e5
-  Meshes = Array{Tuple{FENodeSet, FESet},1}()
+  Meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
   push!(Meshes, Q4quadrilateral([0.0 0.0; W W], nW, nW))
   push!(Meshes, Q4quadrilateral([-L 0.0; 0.0 W], nL, nW))
   push!(Meshes, Q4quadrilateral([0.0 -L; W 0.0], nW, nL))

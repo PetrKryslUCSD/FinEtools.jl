@@ -8,18 +8,18 @@ module IntegRuleModule
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 """
-    IntegRule
+    AbstractIntegRule
 
 Abstract type for integration rule.
 """
-abstract type IntegRule end
+abstract type AbstractIntegRule end
 
 """
-	TriRule <: IntegRule
+	TriRule <: AbstractIntegRule
 
 Triangular quadrature rule for integration on the standard triangle.
 """
-struct TriRule <: IntegRule
+struct TriRule <: AbstractIntegRule
     npts::FInt
     param_coords::Array{Float64, 2}
     weights::Array{Float64, 2}
@@ -156,11 +156,11 @@ end
 
 
 """
-    GaussRule <: IntegRule
+    GaussRule <: AbstractIntegRule
 
 The Gauss rul, applicable for a tensor product of  intervals -1 <=x<= +1.
 """
-struct GaussRule <: IntegRule
+struct GaussRule <: AbstractIntegRule
     dim::FInt
     order::FInt
     npts::FInt
@@ -320,11 +320,11 @@ end
 
 
 """
-    TetRule <: IntegRule
+    TetRule <: AbstractIntegRule
 
 Tetrahedral quadrature rule, used for integration on the standard tetrahedron.
 """
-struct TetRule <: IntegRule
+struct TetRule <: AbstractIntegRule
     npts::FInt
     param_coords::Array{Float64, 2}
     weights::Array{Float64, 2}
@@ -369,11 +369,11 @@ end
 
 
 """
-    PointRule <: IntegRule
+    PointRule <: AbstractIntegRule
 
 Point quadrature rule, used for integration on the standard "point" shape.
 """
-struct PointRule <: IntegRule
+struct PointRule <: AbstractIntegRule
     npts::FInt
     param_coords::Array{Float64, 2}
     weights::Array{Float64, 2}
@@ -389,13 +389,13 @@ function PointRule()
 end
 
 """
-    SimplexRule <: IntegRule
+    SimplexRule <: AbstractIntegRule
 
 Simplex quadrature rule.
 
 Used for integration on the standard triangle or the standard tetrahedron.
 """
-struct SimplexRule <: IntegRule
+struct SimplexRule <: AbstractIntegRule
     npts::FInt
     param_coords::Array{Float64, 2}
     weights::Array{Float64, 2}
@@ -426,13 +426,13 @@ end
 
 
 """
-    TrapezoidalRule <: IntegRule
+    TrapezoidalRule <: AbstractIntegRule
 
 The trapezoidal rule.
 
 The rule is applicable for a tensor product of  intervals -1 <=x<= +1.
 """
-struct TrapezoidalRule <: IntegRule
+struct TrapezoidalRule <: AbstractIntegRule
     dim::FInt
     npts::FInt
     param_coords::Array{Float64, 2}
@@ -490,7 +490,7 @@ function TrapezoidalRule(dim=1)
 end
 
 """
-    NodalSimplexRule <: IntegRule
+    NodalSimplexRule <: AbstractIntegRule
 
 The nodal-quadrature simplex rule.
 
@@ -499,7 +499,7 @@ The rule is applicable for line segments, triangles, tetrahedra.
 The quadrature points must be given at the nodes in the order 
 in which the nodes are used in the definition of the element.
 """
-struct NodalSimplexRule <: IntegRule
+struct NodalSimplexRule <: AbstractIntegRule
     dim::FInt
     npts::FInt
     param_coords::Array{Float64, 2}

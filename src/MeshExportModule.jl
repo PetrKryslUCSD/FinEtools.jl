@@ -6,7 +6,7 @@ Module for export of meshes and data defined on meshes.
 module MeshExportModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FESetModule: FESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
+import FinEtools.FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
 import FinEtools.FENodeSetModule: FENodeSet
 import Base.close
 
@@ -38,7 +38,7 @@ numnodesmap = Dict{Int, Int}(P1=>1, L2=>2, T3=>3,
     T10=>10, H20=>20)
 
 """
-    vtkexportmesh(theFile::String, fens::FENodeSet, fes::T; opts...) where {T<:FESet}
+    vtkexportmesh(theFile::String, fens::FENodeSet, fes::T; opts...) where {T<:AbstractFESet}
 
 Export mesh to a VTK 1.0 file as an unstructured grid.
 
@@ -51,7 +51,7 @@ On the other hand, if it is an 2d array, each column is exported  as a separate 
 
 """
 function vtkexportmesh(theFile::String, fens::FENodeSet, fes::T;
-    opts...) where {T<:FESet}
+    opts...) where {T<:AbstractFESet}
     Cell_type = get(()->error("Unknown VTK type!"), VTKtypemap, typeof(fes));
     return vtkexportmesh(theFile, connasarray(fes), fens.xyz, Cell_type; opts...)
 end

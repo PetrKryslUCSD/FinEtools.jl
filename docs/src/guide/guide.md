@@ -296,7 +296,7 @@ The finite element set is a collection of  finite elements defined by the connec
 
 The finite element sets are instances of concrete types. Each particular shape and order of element has its own type. There are types for  linear  and quadratic quadrilaterals, for instance, `FESetQ4` and `FESetQ8`. Each element set provides access to the number of nodes  connected by the element (`nodesperelem`),  the connectivity as the two dimensional array    `conn`,  and the  integer label vector `label`. 
 
-The concrete finite element set types are subtypes of the abstract type for elements of different manifold dimension (3, 2, 1, and 0), for instance for the quadrilaterals that would be `FESet2Manifold`. These types are in turn  subtypes of the abstract finite element set type `FESet`.
+The concrete finite element set types are subtypes of the abstract type for elements of different manifold dimension (3, 2, 1, and 0), for instance for the quadrilaterals that would be `AbstractFESet2Manifold`. These types are in turn  subtypes of the abstract finite element set type `AbstractFESet`.
 
 The concrete finite element set type provides specialized methods to compute the values of the basis functions, `bfun`, and methods to compute  the gradients of the basis functions with respect to the parametric coordinates, `bfundpar`.
 
@@ -416,7 +416,7 @@ A finite element set is equipped with  a way of  calculating  the "other" dimens
 
 Thus, the way in which the "other"  dimension gets used by the Geometry Data methods depends on the model. As an example, consider  the  method
 ```julia
-function Jacobianvolume(self::IntegDomain{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:FESet2Manifold, CC<:AbstractArray{FInt}}
+function Jacobianvolume(self::IntegDomain{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:AbstractFESet2Manifold, CC<:AbstractArray{FInt}}
     Jac = Jacobiansurface(self, J, loc, conn, N)::FFlt
     if self.axisymmetric
         return Jac*2*pi*loc[1];

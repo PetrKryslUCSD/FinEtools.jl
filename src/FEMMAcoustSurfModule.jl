@@ -10,30 +10,31 @@ import Base.Complex
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: FESet, gradN!, nodesperelem, manifdim
+import FinEtools.FESetModule: AbstractFESet, gradN!, nodesperelem, manifdim
 import FinEtools.MatAcoustFluidModule: MatAcoustFluid
+import FinEtools.MatModule: massdensity
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobiansurface
 import FinEtools.FieldModule: ndofs, gatherdofnums!
 import FinEtools.NodalFieldModule: NodalField 
 import FinEtools.GeneralFieldModule: GeneralField 
-import FinEtools.AssemblyModule: SysvecAssemblerBase, SysmatAssemblerBase, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysmatAssemblerSparse
-import FinEtools.FEMMBaseModule: FEMMAbstractBase
+import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysmatAssemblerSparse
+import FinEtools.FEMMBaseModule: AbstractFEMM
 import FinEtools.MatrixUtilityModule: add_mggt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
 import LinearAlgebra: norm, cross
 
 """
-    FEMMAcoustSurf{S<:FESet, F<:Function, M} <: FEMMAbstractBase
+    FEMMAcoustSurf{S<:AbstractFESet, F<:Function, M, NF<:Function} <: AbstractFEMM
 
 Class for linear acoustics finite element modeling machine.
 """
-mutable struct FEMMAcoustSurf{S<:FESet, F<:Function, M, NF<:Function} <: FEMMAbstractBase
+mutable struct FEMMAcoustSurf{S<:AbstractFESet, F<:Function, M, NF<:Function} <: AbstractFEMM
     integdomain::IntegDomain{S, F} # geometry data
     material::M # material object
     getnormal!::NF # get the  normal to the surface
 end
 
 
-function FEMMAcoustSurf(integdomain::IntegDomain{S, F},  material::M) where {S<:FESet, F<:Function, M}
+function FEMMAcoustSurf(integdomain::IntegDomain{S, F},  material::M) where {S<:AbstractFESet, F<:Function, M}
     function getnormal!(n::FFltVec, loc::FFltMat, J::FFltMat)
         sdim, mdim = size(J);
         if     mdim == 1 # 1-D fe
@@ -53,11 +54,11 @@ end
 """
     acousticABC(self::FEMMAcoustSurf, assembler::A,
       geom::NodalField,
-      Pdot::NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
+      Pdot::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
 
 Compute the acoustic ABC (Absorbing Boundary Condition) matrix.
 """
-function acousticABC(self::FEMMAcoustSurf, assembler::A, geom::NodalField, Pdot::NodalField{T}) where {T<:Number, A<:SysmatAssemblerBase}
+function acousticABC(self::FEMMAcoustSurf, assembler::A, geom::NodalField, Pdot::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
     fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
@@ -70,7 +71,7 @@ function acousticABC(self::FEMMAcoustSurf, assembler::A, geom::NodalField, Pdot:
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
     # Material
     bulk_modulus  =   self.material.bulk_modulus;
-    mass_density  =   self.material.mass_density;
+    mass_density  =   massdensity(self.material);
     c  =  sqrt(bulk_modulus/mass_density); # sound speed
     # Prepare assembler and temporaries
     De = fill(zero(FFlt), Dedim, Dedim);                # element matrix -- used as a buffer
@@ -103,12 +104,12 @@ end
     pressure2resultantforce(self::FEMMAcoustSurf, assembler::A,
       geom::NodalField,
       P::NodalField{T},
-       Force::Field) where {T<:Number, A<:SysmatAssemblerBase}
+       Force::Field) where {T<:Number, A<:AbstractSysmatAssembler}
 
 Compute the rectangular coupling matrix that transcribes given pressure
 on the surface into the resultant force acting on the surface.
 """
-function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Force::GeneralField) where {T<:Number, A<:SysmatAssemblerBase}
+function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Force::GeneralField) where {T<:Number, A<:AbstractSysmatAssembler}
     fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
@@ -152,13 +153,13 @@ end
     pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A,
       geom::NodalField,
       P::NodalField{T},
-      Torque::GeneralField, CG::FFltVec) where {T<:Number, A<:SysmatAssemblerBase}
+      Torque::GeneralField, CG::FFltVec) where {T<:Number, A<:AbstractSysmatAssembler}
 
 Compute the rectangular coupling matrix that transcribes given pressure
 on the surface into the resultant torque acting on the surface with respect
 to the CG.
 """
-function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Torque::GeneralField, CG::FFltVec) where {T<:Number,  A<:SysmatAssemblerBase}
+function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Torque::GeneralField, CG::FFltVec) where {T<:Number,  A<:AbstractSysmatAssembler}
     fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
@@ -219,7 +220,7 @@ Notes:
 each finite element –- panel. The panel pressures are assumed to
 be given the same numbers as the serial numbers of the finite elements in the block.
 """
-function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalField, u::NodalField{T}) where {A<:SysmatAssemblerBase, T}
+function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalField, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T}
     fes = self.integdomain.fes
     # Constants
     nne =  nodesperelem(fes); # number of nodes per element
