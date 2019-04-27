@@ -11,7 +11,7 @@ import Base.Complex
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: AbstractFESet, gradN!, nodesperelem, manifdim
-import FinEtools.MatAcoustFluidModule: MatAcoustFluid
+import FinEtools.MatAcoustFluidModule: MatAcoustFluid, bulkmodulus
 import FinEtools.MatModule: massdensity
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobiansurface
 import FinEtools.FieldModule: ndofs, gatherdofnums!
@@ -70,7 +70,7 @@ function acousticABC(self::FEMMAcoustSurf, assembler::A, geom::NodalField, Pdot:
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
     # Material
-    bulk_modulus  =   self.material.bulk_modulus;
+    bulk_modulus  =   bulkmodulus(self.material);
     mass_density  =   massdensity(self.material);
     c  =  sqrt(bulk_modulus/mass_density); # sound speed
     # Prepare assembler and temporaries

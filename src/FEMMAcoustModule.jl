@@ -11,7 +11,7 @@ import Base.Complex
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import FinEtools.FENodeSetModule: FENodeSet
 import FinEtools.FESetModule: AbstractFESet, gradN!, nodesperelem, manifdim
-import FinEtools.MatAcoustFluidModule: MatAcoustFluid
+import FinEtools.MatAcoustFluidModule: MatAcoustFluid, bulkmodulus
 import FinEtools.MatModule: massdensity
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
 import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!
@@ -150,8 +150,8 @@ function acousticstiffness(self::FEMMAcoust, assembler::A, geom::NodalField, Pdd
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
     # Material
-    bulk_modulus  =   self.material.bulk_modulus;
-    mass_density  =   massdensity(self.material);
+    bulk_modulus  =  bulkmodulus(self.material);
+    mass_density  =  massdensity(self.material);
     c  =  sqrt(bulk_modulus/mass_density); # sound speed
     oc2 = 1.0/c^2;
     startassembly!(assembler, size(elmat,1), size(elmat,2), count(fes),
@@ -191,7 +191,7 @@ function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A, geom::Nodal
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
     # Material
-    bulk_modulus  =   self.material.bulk_modulus;
+    bulk_modulus  =   bulkmodulus(self.material);
     mass_density  =   massdensity(self.material);
     c  =  sqrt(bulk_modulus/mass_density); # sound speed
     oc2 = 1.0/c^2;
