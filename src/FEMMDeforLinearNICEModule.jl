@@ -18,7 +18,7 @@ import FinEtools.FESetModule: AbstractFESet, FESetH8, FESetT4, manifdim, nodespe
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
 import FinEtools.FEMMDeforLinearBaseModule: AbstractFEMMDeforLinear
 import FinEtools.DeforModelRedModule: AbstractDeforModelRed, DeforModelRed3D
-import FinEtools.MatDeforLinearElasticModule: AbstractMatDeforLinearElastic, tangentmoduli!, update!
+import FinEtools.MatDeforLinearElasticModule: AbstractMatDeforLinearElastic, tangentmoduli!, update!, thermalstrain!
 import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!, gathervalues_asmat!
 import FinEtools.NodalFieldModule: NodalField, nnodes
 import FinEtools.CSysModule: CSys, updatecsmat!

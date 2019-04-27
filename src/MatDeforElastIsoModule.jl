@@ -9,8 +9,6 @@ At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
 import LinearAlgebra: eigen, eigvals, norm, cholesky, cross, dot
 
-const mI = Matrix(Diagonal([1.0, 1.0, 1.0, 0.5, 0.5, 0.5]))
-const m1 = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0];
 
 """
 MatDeforElastIso{MR<:AbstractDeforModelRed, MTAN<:Function, MUPD<:Function, MTHS<:Function} <: AbstractMatDeforLinearElastic
@@ -31,6 +29,8 @@ struct  MatDeforElastIso{MR<:AbstractDeforModelRed, MTAN<:Function, MUPD<:Functi
 end
 
 function _threedD(E::FFlt, nu::FFlt)
+	const mI = Matrix(Diagonal([1.0, 1.0, 1.0, 0.5, 0.5, 0.5]))
+	const m1 = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0];
 	lambda = E * nu / (1 + nu) / (1 - 2*(nu));
 	mu = E / 2. / (1+nu);
 	D = lambda * m1 * m1' + 2. * mu * mI;
