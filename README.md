@@ -10,10 +10,8 @@
 # FinEtools: Finite Element tools in Julia
 
 ## News
-
-- 04/25/2019: Added support for Documenter-generated guide and user manual.
-- 04/13/2019: Added Reverse Cuthill-McKee renumbering.
-
+ 
+- 04/27/2019: The naming and various definitions of abstract types has been unified and streamlined. Because of the ensuing (slight) incompatibilities, the toolkit has therefore been given the version of  v2.0.0.
 
 [Past news](oldnews.md)
 

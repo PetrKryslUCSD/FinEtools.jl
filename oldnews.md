@@ -1,5 +1,9 @@
 # Past news
 
+- 04/25/2019: Added support for Documenter-generated guide and user manual.
+
+- 04/13/2019: Added Reverse Cuthill-McKee renumbering.
+
 - 03/07/2019: Meshing functions for circles, spherical surfaces, and cylinders added.
 - 
 - 11/09/2018: The name IntegData was changed to IntegDomain to better reflect the meaning of this type. Since this is an incompatible change, v1.0.0 tag was released.
