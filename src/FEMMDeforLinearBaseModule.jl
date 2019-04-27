@@ -19,7 +19,7 @@ import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat!
 import FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, locjac!, add_nnt_ut_only!
 import FinEtools.MatDeforModule: rotstressvec
 import FinEtools.MatModule: massdensity
-import FinEtools.MatDeforLinearElasticModule: tangentmoduli!, update!
+import FinEtools.MatDeforLinearElasticModule: tangentmoduli!, update!, thermalstrain!
 import FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 import LinearAlgebra: Transpose, mul!
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
@@ -206,7 +206,7 @@ function  thermalstrainloads(self::AbstractFEMMDeforLinear, assembler::A, geom::
                 At_mul_B!(csmatTJ,  self.mcsys.csmat,  J); # local Jacobian matrix
                 gradN!(fes, gradN, gradNparams[j], csmatTJ);#Do: gradN = gradNparams[j]/csmatTJ;
                 Blmat!(self.mr, B, Ns[j], gradN, loc, self.mcsys.csmat);# strains in mater cs, displ in global cs
-                self.material.thermalstrain!(self.material, thstrain, dot(vec(Ns[j]), DeltaT))
+                thermalstrain!(self.material, thstrain, dot(vec(Ns[j]), DeltaT))
                 thstress = update!(self.material, thstress, thstress, strain, thstrain, t, dt, loc, fes.label[i], :nothing)
                 add_btv!(elvec, B, thstress, (-1)*(Jac*w[j]))
             end
@@ -291,7 +291,7 @@ function inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T
             # Quadrature point quantities
             A_mul_B!(qpstrain, B, ue); # strain in material coordinates
             qpdT = dot(vec(dTe), vec(Ns[j]));# Quadrature point temperature increment
-            self.material.thermalstrain!(self.material, qpthstrain, qpdT)
+            thermalstrain!(self.material, qpthstrain, qpdT)
             # Material updates the state and returns the output
             out = update!(self.material, qpstress, out, vec(qpstrain), qpthstrain, t, dt, loc, fes.label[i], quantity)
             if (quantity == :Cauchy)   # Transform stress tensor,  if that is "out"
