@@ -40,7 +40,7 @@ The package comes with examples  of its use
 [acoustics](https://github.com/PetrKryslUCSD/FinEtoolsAcousticsExamples.git), 
 [mesh generation](https://github.com/PetrKryslUCSD/FinEtoolsMeshGenerationExamples.git)). 
 
-The documentation  is published as [Github pages](https://petrkryslucsd.github.io/FinEtools.jl). 
+The documentation  is published as [Github pages](https://petrkryslucsd.github.io/FinEtools.jl/latest/). 
 A use-case package explaining how to integrate FinEtools with  the user's own code is [available here](https://github.com/PetrKryslUCSD/FinEtoolsUseCase).
 
 ![Alt Visualization of sample result](http://hogwarts.ucsd.edu/~pkrysl/site.images/ScreenHunter_31%20Feb.%2009%2020.54.jpg "FinEtools.jl")

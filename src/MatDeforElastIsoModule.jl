@@ -29,8 +29,8 @@ struct  MatDeforElastIso{MR<:AbstractDeforModelRed, MTAN<:Function, MUPD<:Functi
 end
 
 function _threedD(E::FFlt, nu::FFlt)
-	const mI = Matrix(Diagonal([1.0, 1.0, 1.0, 0.5, 0.5, 0.5]))
-	const m1 = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0];
+	mI = Matrix(Diagonal([1.0, 1.0, 1.0, 0.5, 0.5, 0.5]))
+	m1 = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0];
 	lambda = E * nu / (1 + nu) / (1 - 2*(nu));
 	mu = E / 2. / (1+nu);
 	D = lambda * m1 * m1' + 2. * mu * mI;
