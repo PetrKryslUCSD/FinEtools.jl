@@ -12,12 +12,46 @@ At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 import LinearAlgebra: norm, cross
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
+"""
+    FESet{NODESPERELEM}
+
+Abstract type of a finite element set. Parameterized with the number of of the nodes per element.
+"""
 abstract type FESet{NODESPERELEM} end
+"""
+    FESet0Manifold{NODESPERELEM} <: FESet{NODESPERELEM}
+
+Abstract type of a finite element set for 0-dimensional manifolds (points).
+Parameterized with the number of of the nodes per element.
+"""
 abstract type FESet0Manifold{NODESPERELEM} <: FESet{NODESPERELEM} end
+"""
+    FESet1Manifold{NODESPERELEM} <: FESet{NODESPERELEM}
+
+Abstract type of a finite element set for 1-dimensional manifolds (curves).
+Parameterized with the number of of the nodes per element.
+"""
 abstract type FESet1Manifold{NODESPERELEM} <: FESet{NODESPERELEM} end
+"""
+    FESet2Manifold{NODESPERELEM} <: FESet{NODESPERELEM}
+
+Abstract type of a finite element set for 2-dimensional manifolds (surfaces).
+Parameterized with the number of of the nodes per element.
+"""
 abstract type FESet2Manifold{NODESPERELEM} <: FESet{NODESPERELEM} end
+"""
+    FESet3Manifold{NODESPERELEM} <: FESet{NODESPERELEM}
+
+Abstract type of a finite element set for 3-dimensional manifolds (solids).
+Parameterized with the number of of the nodes per element.
+"""
 abstract type FESet3Manifold{NODESPERELEM} <: FESet{NODESPERELEM} end
 
+"""
+    add_FESet_fields(NODESPERELEM)
+
+Generate standard fields for the finite element set.
+"""
 macro add_FESet_fields(NODESPERELEM)
     return esc(:(
     conn::Array{NTuple{$NODESPERELEM, FInt}, 1};
@@ -26,6 +60,11 @@ macro add_FESet_fields(NODESPERELEM)
 end
 # show(macroexpand(:(@add_FESet_fields 6)))
 
+"""
+    define_FESet(NAME, MANIFOLD, NODESPERELEM)
+
+Define the concrete type for a finite element set.
+"""
 macro define_FESet(NAME, MANIFOLD, NODESPERELEM)
     return esc(:(
         mutable struct $NAME <: $MANIFOLD{$NODESPERELEM}
@@ -50,6 +89,7 @@ nodesperelem(fes::FESet{NODESPERELEM}) where {NODESPERELEM} = NODESPERELEM
 
 """
     manifdim(me)
+
 Get the manifold dimension.
 """
 manifdim(me::FESet0Manifold{NODESPERELEM}) where {NODESPERELEM} = 0
@@ -116,6 +156,7 @@ end
     bfun(self::T,  param_coords::FFltVec)::FFltMat where {T<:FESet}
 
 Compute the values of the basis functions at a given parametric coordinate.
+One basis function per row.
 """
 function bfun(self::T,  param_coords::FFltVec)::FFltMat where {T<:FESet}
     return privbfun(self, param_coords)
@@ -124,7 +165,9 @@ end
 """
     bfundpar(self::T,  param_coords::FFltVec)::FFltMat where {T<:FESet}
 
-Compute the values of the basis function gradients at a given parametric coordinate.
+Compute the values of the basis function gradients with respect to the
+parametric coordinates at a given parametric coordinate. One basis function
+gradients per row.
 """
 function bfundpar(self::T,  param_coords::FFltVec)::FFltMat where {T<:FESet}
     return privbfundpar(self, param_coords)
@@ -184,9 +227,9 @@ end
 
 Update the connectivity after the IDs of nodes changed.
 
-`newids`= new node IDs. Note that indexes in the conn array point
+`newids`= new node IDs. Note that indexes in the conn array "point"
 _into_ the  `newids` array. After the connectivity was updated
-this is no longer true!
+this will no longer be true!
 """
 function updateconn!(self::T, newids::FIntVec) where {T<:FESet}
     conn = connasarray(self)
@@ -203,7 +246,7 @@ end
 
 Are given parametric coordinates inside the element parametric domain?
 
-Returns a Boolean: is the point inside, true or false?
+Return a Boolean: is the point inside, true or false?
 """
 function inparametric(self::T, param_coords::FFltVec; tolerance = 0.0) where {T<:FESet}
     return privinparametric(self, param_coords, tolerance)
@@ -431,7 +474,7 @@ end
 """
     FESetL2
 
-Type for sets of curve-like of finite elements with two nodes.
+Type for sets of curve-like finite elements with two nodes.
 """
 @define_FESet FESetL2 FESet1Manifold 2
 
@@ -502,7 +545,7 @@ end
 """
     FESetT3
 
-Type for sets of surface-like of triangular finite elements with three nodes.
+Type for sets of surface-like triangular finite elements with three nodes.
 """
 @define_FESet FESetT3 FESet2Manifold 3
 
@@ -542,7 +585,7 @@ end
 """
     FESetQ4
 
-Type for sets of surface-like of quadrilateral finite elements with four nodes.
+Type for sets of surface-like quadrilateral finite elements with four nodes.
 """
 @define_FESet FESetQ4 FESet2Manifold 4
 
@@ -589,7 +632,7 @@ end
 """
     FESetQ9
 
-Type for sets of surface-like of quadrilateral finite elements with nine nodes.
+Type for sets of surface-like quadrilateral finite elements with nine nodes.
 """
 @define_FESet FESetQ9 FESet2Manifold 9
 
@@ -643,7 +686,7 @@ end
 """
     FESetQ8
 
-Type for sets of surface-like of quadrilateral finite elements with eight nodes.
+Type for sets of surface-like quadrilateral finite elements with eight nodes.
 """
 @define_FESet FESetQ8 FESet2Manifold 8
 
@@ -712,7 +755,7 @@ end
 """
     FESetT6
 
-Type for sets of surface-like of triangular finite elements with six nodes.
+Type for sets of surface-like triangular finite elements with six nodes.
 """
 @define_FESet FESetT6 FESet2Manifold 6
 
@@ -770,7 +813,7 @@ end
 """
     FESetH8
 
-Type for sets of volume-like of hexahedral finite elements with eight nodes.
+Type for sets of volume-like hexahedral finite elements with eight nodes.
 """
 @define_FESet FESetH8 FESet3Manifold 8
 
@@ -837,7 +880,7 @@ end
 """
     FESetH20
 
-Type for sets of volume-like of hexahedral finite elements with 20 nodes.
+Type for sets of volume-like hexahedral finite elements with 20 nodes.
 """
 @define_FESet FESetH20 FESet3Manifold 20
 
@@ -982,7 +1025,7 @@ end
 """
     FESetH27
 
-Type for sets of volume-like of hexahedral finite elements with 27 nodes.
+Type for sets of volume-like hexahedral finite elements with 27 nodes.
 """
 @define_FESet FESetH27 FESet3Manifold 27
 
@@ -1104,7 +1147,7 @@ end
 """
     FESetT4
 
-Type for sets of volume-like of tetrahedral finite elements with four nodes.
+Type for sets of volume-like tetrahedral finite elements with four nodes.
 """
 @define_FESet FESetT4 FESet3Manifold 4
 
@@ -1151,7 +1194,7 @@ end
 """
     FESetT10
 
-Type for sets of volume-like of tetrahedral finite elements with 10 nodes.
+Type for sets of volume-like tetrahedral finite elements with 10 nodes.
 """
 @define_FESet FESetT10 FESet3Manifold 10
 
@@ -1212,25 +1255,3 @@ end
 ################################################################################
 
 end
-
-
-# """
-#     Jacobianmatrix!(self::T,  J::FFltMat,  x::FFltMat,
-#        gradNparams::FFltMat) where {T<:FESet}
-#
-# Evaluate the Jacobian matrix.
-# """
-# function Jacobianmatrix!(self::T,  J::FFltMat,  x::FFltMat,
-#     gradNparams::FFltMat) where {T<:FESet}
-#     @assert (size(J, 2) == size(x, 2)) && (size(J, 1) == size(gradNparams, 2))
-#     @inbounds for nx = 1:size(x, 2)
-#         @inbounds for mx = 1:size(gradNparams, 2)
-#             accumulator::FFlt = 0.0;
-#             @inbounds for kx = 1:size(x, 1)
-#                 accumulator = accumulator + x[kx, mx]*gradNparams[kx, nx]; # = x' * gradNparams
-#             end
-#             J[mx, nx] = accumulator
-#         end
-#     end
-#     return self
-# end
