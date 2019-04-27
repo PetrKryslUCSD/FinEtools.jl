@@ -498,3 +498,6 @@ abstract type AbstractField end
 abstract type AbstractMatDefor end
 
 Status: Implemented 04/27/2019.
+
+-- Do we still need functions stored in the structs for materials?
+
