@@ -641,9 +641,9 @@ end
 
 ### Materials for linear deformation analysis
 
-The module `MatDeforModule` provides functions to convert between vector and matrix (tensor) representations of stress and strain. Further, functions to rotate stress and strain between different coordinate systems (based upon the model-reduction type `DeforModelRed`) are provided.
+The module `MatDeforModule` provides functions to convert between vector and matrix (tensor) representations of stress and strain. Further, functions to rotate stress and strain between different coordinate systems (based upon the model-reduction type, 3-D, 2-D, or 1-D) are provided.
 
-Currently  there are material types for isotropic and orthotropic linear elastic materials. The user may add  additional material types by deriving from `MatDefor` and equipping them with three methods: (1) compute the tangent moduli, (2) update the material state, (3) compute the thermal strain.
+Currently  there are material types for isotropic and orthotropic linear elastic materials. The user may add  additional material types by deriving from `AbstractMatDefor` and equipping them with three methods: (1) compute the tangent moduli, (2) update the material state, (3) compute the thermal strain.
 
 For full generality, material types  should implement these methods for fully three-dimensional, plane strain and plane stress, 2D axially symmetric, and one-dimensional deformation models.
 
