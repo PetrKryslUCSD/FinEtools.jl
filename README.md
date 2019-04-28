@@ -9,11 +9,11 @@
 
 # FinEtools: Finite Element tools in Julia
 
-![Alt Visualization of acoustic pressure](http://hogwarts.ucsd.edu/~pkrysl/site.images/baffled-piston.png "FinEtools.jl")
+![Alt Visualization of acoustic pressure](http://hogwarts.ucsd.edu/~pkrysl/site.images/baffled-piston-a.png "FinEtools.jl")
 
 ## News
  
-- 04/27/2019: The naming and various definitions of abstract types has been unified and streamlined. Because of the ensuing (slight) incompatibilities, the toolkit has therefore been given the version of  v2.0.0.
+- 04/27/2019: The naming and various definitions of abstract types has been unified and streamlined. Because of the ensuing (slight) incompatibilities, the toolkit has been released in the version v2.0.0.
 
 [Past news](oldnews.md)
 
