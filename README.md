@@ -9,6 +9,8 @@
 
 # FinEtools: Finite Element tools in Julia
 
+![Alt Visualization of acoustic pressure](http://hogwarts.ucsd.edu/~pkrysl/site.images/baffled-piston.jpg "FinEtools.jl")
+
 ## News
  
 - 04/27/2019: The naming and various definitions of abstract types has been unified and streamlined. Because of the ensuing (slight) incompatibilities, the toolkit has therefore been given the version of  v2.0.0.
@@ -43,4 +45,5 @@ The package comes with examples  of its use
 The documentation  is published as [Github pages](https://petrkryslucsd.github.io/FinEtools.jl/latest/). 
 A use-case package explaining how to integrate FinEtools with  the user's own code is [available here](https://github.com/PetrKryslUCSD/FinEtoolsUseCase).
 
-![Alt Visualization of sample result](http://hogwarts.ucsd.edu/~pkrysl/site.images/ScreenHunter_31%20Feb.%2009%2020.54.jpg "FinEtools.jl")
+![Alt Visualization of mechanical stress](http://hogwarts.ucsd.edu/~pkrysl/site.images/ScreenHunter_31%20Feb.%2009%2020.54.jpg "FinEtools.jl")
+
