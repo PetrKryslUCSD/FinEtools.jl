@@ -9,7 +9,7 @@
 
 # FinEtools: Finite Element tools in Julia
 
-![Alt Visualization of acoustic pressure](http://hogwarts.ucsd.edu/~pkrysl/site.images/baffled-piston.jpg "FinEtools.jl")
+![Alt Visualization of acoustic pressure](http://hogwarts.ucsd.edu/~pkrysl/site.images/baffled-piston.png "FinEtools.jl")
 
 ## News
  
