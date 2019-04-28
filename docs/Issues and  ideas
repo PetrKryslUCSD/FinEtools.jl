@@ -102,10 +102,6 @@ would not work if the assembler expected the full matrix.
 -- Test the speed  with the material orientation  matrix Different from identity.
 
 --
-C:\Users\PetrKrysl\AppData\Local\Julia-0.6.0\bin\julia.exe
-C:\Users\PetrKrysl\AppData\Local\Julia-0.7.0-DEV\bin\julia.exe
-
---
 Other workarounds include "types as tags" (search; NumericFuns.jl is one example
 among many), FastAnonymous.jl, and in julia 0.4 the new call() overloading.
 
@@ -181,8 +177,8 @@ but it needs to be made more general for heterogeneous structures.
 -- Conversion between  matrices and vectors:  must decide which is which
 and stick to it.
 const a = reshape(collect(1:1000),1000,1);
-@time vec(a);
-@time dropdims(a,2);
+@time vec(a);  # This is MUCH faster
+@time dropdims(a, dims = 2);
 
 -- Acoustic ABC: surface FEMM?
 Implemented 05/30/2017
@@ -282,7 +278,7 @@ end
 
 -- Mean-strain extrapolation technology: need to consider the thermal properties
 of the stabilization material. It needs to produce  thermal strains  just as
-the real material.
+the real material. Status: OPEN.
 
 -- Search for JFinEALE: some examples have not been converted  yet. Done.
 
