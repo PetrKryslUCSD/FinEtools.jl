@@ -11,7 +11,7 @@ import LinearAlgebra: eigen, eigvals, norm, cholesky, cross, dot
 
 
 """
-MatDeforElastIso{MR<:AbstractDeforModelRed, MTAN<:Function, MUPD<:Function, MTHS<:Function} <: AbstractMatDeforLinearElastic
+	MatDeforElastIso{MR<:AbstractDeforModelRed, MTAN<:Function, MUPD<:Function, MTHS<:Function} <: AbstractMatDeforLinearElastic
 
 Linear isotropic elasticity  material.
 
