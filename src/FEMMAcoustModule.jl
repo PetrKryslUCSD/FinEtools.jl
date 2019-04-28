@@ -58,12 +58,14 @@ end
 
 Compute the acoustic mass matrix.
 
-Return K as a matrix.
-Arguments
-self   =  acoustics model
-assembler  =  matrix assembler
-geom = geometry field
-P = acoustic (perturbation) pressure field
+
+# Arguments
+`self`   =  acoustics model
+`assembler`  =  matrix assembler
+`geom` = geometry field
+`P` = acoustic (perturbation) pressure field
+
+Return a matrix.
 """
 function acousticmass(self::FEMMAcoust, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
     fes = self.integdomain.fes
@@ -102,7 +104,7 @@ end
       geom::NodalField, P::NodalField{T}) where {T<:Number,
       A<:AbstractSysvecAssembler}
 
-Compute load vector for nonzero EBC for fixed pressure..
+Compute load vector for nonzero EBC for fixed pressure.
 """
 function nzebcloadsacousticmass(self::FEMMAcoust, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysvecAssembler}
     fes = self.integdomain.fes

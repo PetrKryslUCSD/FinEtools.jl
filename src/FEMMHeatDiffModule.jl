@@ -27,7 +27,7 @@ import LinearAlgebra: norm, dot
 """
     FEMMHeatDiff{S<:AbstractFESet, F<:Function, M<:MatHeatDiff} <: AbstractFEMM
 
-    Type for heat diffusion finite element modeling machine.
+Type for heat diffusion finite element modeling machine.
 """
 mutable struct FEMMHeatDiff{S<:AbstractFESet, F<:Function, M<:MatHeatDiff} <: AbstractFEMM
     integdomain::IntegDomain{S, F} # geometry data

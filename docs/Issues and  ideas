@@ -500,4 +500,5 @@ abstract type AbstractMatDefor end
 Status: Implemented 04/27/2019.
 
 -- Do we still need functions stored in the structs for materials?
+Status: 04/27/2019. It appears we do: the issue is how to make the module functions called the correct functions defined for concrete types without having to define the methods for the types inside the module.
 
