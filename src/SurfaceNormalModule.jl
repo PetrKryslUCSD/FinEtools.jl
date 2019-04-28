@@ -29,7 +29,10 @@ getnormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
 The buffer `normalout` is filled with the value  of the normal vector.
 """
 struct SurfaceNormal{F<:Function}
-    cache::VectorCache{FFlt, F}   # cache of the current value of the normal 
+	"""
+	    Cache of the current value of the normal 
+	"""
+    cache::VectorCache{FFlt, F}
 end
 
 """

@@ -24,8 +24,14 @@ fillcache!(cacheout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
 The cache `cacheout` is filled with the value  of the vector.
 """
 struct VectorCache{T<:Number, F<:Function}
-    fillcache!::F # Function to update and retrieve the vector
-    cache::Vector{T}    # Cache where the current value of the vector can be retrieved
+	"""
+	Function to update and retrieve the vector
+	"""
+    fillcache!::F 
+    """
+    Cache where the current value of the vector can be retrieved
+    """
+    cache::Vector{T} 
 end
 
 """

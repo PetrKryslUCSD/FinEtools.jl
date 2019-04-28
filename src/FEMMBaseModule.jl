@@ -192,7 +192,6 @@ CG = vec([Sx Sy Sz]/V)
 ```
 Compute the moments of inertia:
 ```
-% Now compute the moments of inertia
 Ixx = measure(femm,geom,@(x)(norm(x-CG)^2*eye(3)-(x-CG)'*(x-CG)))
 mass = V*rhos;
 Inertia = I*rhos;
@@ -307,44 +306,6 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::AbstractFESet, fc::F, fen
 
     return ff
 end
-
-# Old, non-performing version. It can get very expensive for large meshes.
-# function transferfield!(ff::F, fensf::FENodeSet, fesf::AbstractFESet,
-#     fc::F, fensc::FENodeSet, fesc::AbstractFESet, tolerance::FFlt
-#     )  where {T<:Number, F<:NodalField{T}}
-#     @assert count(fensf) == nents(ff)
-#     nodebox = initbox!([], vec(fensc.xyz[1, :]))
-#     for i = 1:count(fensf)
-#         nl = vselect(fensc.xyz; nearestto = fensf.xyz[i, :])
-#         # For each node in the fine field try to find one in  the coarse field
-#         if !isempty(nl) && norm(fensf.xyz[i, :] - fensc.xyz[nl[1], :]) < tolerance
-#             # These nodes correspond in the  refined  and coarse mesh
-#             ff.values[i, :] = fc.values[nl[1], :]
-#         else
-#             # Obviously, some nodes in the fine mesh are not located "at" the
-#             # location of a coarse-mesh node. Then we have to search which
-#             # element they fall into.
-#             nodebox = initbox!(nodebox, vec(fensf.xyz[i, :]))
-#             nodebox = inflatebox!(nodebox, tolerance)
-#             el = selectelem(fensc, fesc; overlappingbox = nodebox)
-#             foundone = false
-#             for e = el
-#                 c = view(fesc.conn, e, :)
-#                 pc, success = map2parametric(fesc, fensc.xyz[c, :],
-#                 vec(fensf.xyz[i, :]); Tolerance = 0.000001, maxiter =7)
-#                 @assert success # this shouldn't be tripped; normally we succeed
-#                 if  inparametric(fesc, pc; tolerance = 0.01) # coarse mesh element encloses the node
-#                     N = bfun(fesc,  pc)
-#                     ff.values[i, :] = transpose(N) * fc.values[c, :]
-#                     foundone = true
-#                     break
-#                 end
-#             end
-#             @assert foundone
-#         end
-#     end
-#     return ff
-# end
 
 """
     transferfield!(ff::F, fensf::FENodeSet, fesf::AbstractFESet, fc::F,
