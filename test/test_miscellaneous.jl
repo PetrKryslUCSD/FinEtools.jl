@@ -2262,7 +2262,6 @@ using FinEtools
 using FinEtools.FEMMDeforLinearBaseModule: infsup_gh
 using Test
 import LinearAlgebra: norm, cholesky
-using Debugger
 function test()
 	Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, orientation::Symbol = ( 1.0, 1.0, 1.0, 1, 1, 1, :a)
 	Ea, nua, alphaa = ( 1.0, 0.3, 0.0)
@@ -2309,7 +2308,6 @@ using FinEtools
 using FinEtools.FEMMDeforLinearBaseModule: infsup_sh
 using Test
 import LinearAlgebra: norm, cholesky
-using Debugger
 function test()
 	Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, orientation::Symbol = ( 1.0, 1.0, 1.0, 1, 1, 1, :a)
 	Ea, nua, alphaa = ( 1.0, 0.3, 0.0)
@@ -2356,7 +2354,6 @@ using FinEtools
 using FinEtools.FEMMDeforLinearBaseModule: infsup_gh
 using Test
 import LinearAlgebra: norm, cholesky
-using Debugger
 function test()
 	Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, orientation::Symbol = ( 1.0, 1.0, 1.0, 1, 1, 1, :a)
 	Ea, nua, alphaa = ( 1.0, 0.3, 0.0)
@@ -2404,7 +2401,6 @@ using FinEtools
 using FinEtools.FEMMDeforLinearBaseModule: infsup_sh
 using Test
 import LinearAlgebra: norm, cholesky
-using Debugger
 function test()
 	Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, orientation::Symbol = ( 1.0, 1.0, 1.0, 1, 1, 1, :a)
 	Ea, nua, alphaa = ( 1.0, 0.3, 0.0)
