@@ -343,7 +343,6 @@ function infsup_gh(self::AbstractFEMMDeforLinear, assembler::A, geom::NodalField
 	        At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
 	        gradN!(fes, gradN, gradNparams[j], csmatTJ);
 	        divmat!(self.mr, divm, Ns[j], gradN, loc, self.mcsys.csmat);
-	        @show divm
 	        elmat += transpose(divm) * (divm * Jac*w[j])
 	    end # Loop over quadrature points
 	    gatherdofnums!(u, dofnums, fes.conn[i]); # retrieve degrees of freedom
