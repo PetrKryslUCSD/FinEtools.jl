@@ -209,13 +209,13 @@ export FEMMAcoustSurf, acousticABC, pressure2resultantforce, pressure2resultantt
 ###########################################################################
 # Linear deformation functionality
 ###########################################################################
-using FinEtools.DeforModelRedModule: AbstractDeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,    DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D, nstressstrain, nthermstrain, stresscomponentmap, Blmat!
+using FinEtools.DeforModelRedModule: AbstractDeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,    DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D, nstressstrain, nthermstrain, stresscomponentmap, Blmat!, divmat!
 # Exported: types  for model reduction in stress analysis
 export AbstractDeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,    DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D
 # Exported: num stresses/strains,  number of thermal strains, and map of  the numbering of stress components
 export nstressstrain, nthermstrain, stresscomponentmap
-# Exported: strain-displacement matrix  for all model-reduction types
-export Blmat!
+# Exported: strain-displacement matrix and divergence matrix for all model-reduction types
+export Blmat!, divmat!
 
 using FinEtools.MatDeforModule: AbstractMatDefor, strain2x2tto3v!, strain3vto2x2t!, strain3x3tto6v!, strain6vto3x3t!, strain9vto3x3t!, strain3x3tto9v!, strain9vto6v!, strain6vto9v!, stress2x2to3v!,  stress3vto2x2t!, stress3vto3x3t!, stress4vto3x3t!, stress6vto3x3t!, stress3x3tto6v!, stress9vto6v!,  stress6vto9v!, rotstressvec
 # Exported: abstract type for  models of deformation,  conversion methods  for strain and stress, transformations  of strain and stress

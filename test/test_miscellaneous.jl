@@ -2256,3 +2256,193 @@ end
 end
 using .mmassembly2
 mmassembly2.test()
+
+module mmdivmat1
+using FinEtools
+using FinEtools.FEMMDeforLinearBaseModule: infsup_gh
+using Test
+import LinearAlgebra: norm, cholesky
+using Debugger
+function test()
+	Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, orientation::Symbol = ( 1.0, 1.0, 1.0, 1, 1, 1, :a)
+	Ea, nua, alphaa = ( 1.0, 0.3, 0.0)
+	fens = FENodeSet(Float64[0     0     0
+     0     3     3
+     0     0     3
+     3     0     3]);
+	fes = FESetT4(reshape([1 2 3 4], 1, 4));
+
+
+	MR  =  DeforModelRed3D
+
+	# Property and material
+	material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
+
+	femm  =  FEMMDeforLinear(MR, IntegDomain(fes, TetRule(1)), material)
+
+	geom = NodalField(fens.xyz)
+	u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+	numberdofs!(u)
+
+	Gh = infsup_gh(femm, geom, u);
+
+	Gh1 = [0.0  0    0.0  0   -0.0  0    0.0    0.0   -0.0   -0.0  0  0
+			0  0  0  0  0  0  0  0  0  0  0  0
+			0.0  0    0.5  0   -0.5  0    0.5    0.5   -0.5   -0.5  0  0
+			0  0  0  0  0  0  0  0  0  0  0  0
+			-0.0  0   -0.5  0    0.5  0   -0.5   -0.5    0.5    0.5  0  0
+			0  0  0  0  0  0  0  0  0  0  0  0
+			0.0  0    0.5  0   -0.5  0    0.5    0.5   -0.5   -0.5  0  0
+			0.0  0    0.5  0   -0.5  0    0.5    0.5   -0.5   -0.5  0  0
+			-0.0  0   -0.5  0    0.5  0   -0.5   -0.5    0.5    0.5  0  0
+			-0.0  0   -0.5  0    0.5  0   -0.5   -0.5    0.5    0.5  0  0
+			0  0  0  0  0  0  0  0  0  0  0  0
+			0  0  0  0  0  0  0  0  0  0  0  0]
+	@test norm(Gh - Gh1)  <= 1.0e-9
+end
+end
+using .mmdivmat1
+mmdivmat1.test()
+
+module mmvgradmat1
+using FinEtools
+using FinEtools.FEMMDeforLinearBaseModule: infsup_sh
+using Test
+import LinearAlgebra: norm, cholesky
+using Debugger
+function test()
+	Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, orientation::Symbol = ( 1.0, 1.0, 1.0, 1, 1, 1, :a)
+	Ea, nua, alphaa = ( 1.0, 0.3, 0.0)
+	fens = FENodeSet(Float64[0     0     0
+     0     3     3
+     0     0     3
+     3     0     3]);
+	fes = FESetT4(reshape([1 2 3 4], 1, 4));
+
+
+	MR  =  DeforModelRed3D
+
+	# Property and material
+	material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
+
+	femm  =  FEMMDeforLinear(MR, IntegDomain(fes, TetRule(1)), material)
+
+	geom = NodalField(fens.xyz)
+	u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+	numberdofs!(u)
+
+	Sh = infsup_sh(femm, geom, u);
+
+	Sh1 = [0.5   0   0   0   0   0   -0.5   0   0   -0.0000   0   0
+		   0    0.5   0   0   0   0   0   -0.5   0   0   -0.0000   0
+		   0   0    0.5   0   0   0   0   0   -0.5   0   0   -0.0000
+		   0   0   0    0.5   0   0   -0.5   0   0   0   0   0
+		   0   0   0   0    0.5   0   0   -0.5   0   0   0   0
+		   0   0   0   0   0    0.5   0   0   -0.5   0   0   0
+		   -0.5   0   0   -0.5   0   0    1.5000   0   0   -0.5   0   0
+		   0   -0.5   0   0   -0.5   0   0    1.5000   0   0   -0.5   0
+		   0   0   -0.5   0   0   -0.5   0   0    1.5000   0   0   -0.5
+		   -0.0000   0   0   0   0   0   -0.5   0   0    0.5   0   0
+		   0   -0.0000   0   0   0   0   0   -0.5   0   0    0.5   0
+		   0   0   -0.0000   0   0   0   0   0   -0.5   0   0    0.5]
+	@test norm(Sh - Sh1)  <= 1.0e-9
+end
+end
+using .mmvgradmat1
+mmvgradmat1.test()
+
+module mmdivmat2
+using FinEtools
+using FinEtools.FEMMDeforLinearBaseModule: infsup_gh
+using Test
+import LinearAlgebra: norm, cholesky
+using Debugger
+function test()
+	Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, orientation::Symbol = ( 1.0, 1.0, 1.0, 1, 1, 1, :a)
+	Ea, nua, alphaa = ( 1.0, 0.3, 0.0)
+	fens = FENodeSet(Float64[           0            0            0
+							  -1.6200e-01   3.0000e+00   2.9791e+00
+							            0            0   3.0000e+00
+							   3.0000e+00   1.6200e-01   3.0000e+00]);
+	fes = FESetT4(reshape([1 2 3 4], 1, 4));
+
+
+	MR  =  DeforModelRed3D
+
+	# Property and material
+	material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
+
+	femm  =  FEMMDeforLinear(MR, IntegDomain(fes, TetRule(4)), material)
+
+	geom = NodalField(fens.xyz)
+	u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+	numberdofs!(u)
+
+	Gh = infsup_gh(femm, geom, u);
+
+	Gh1 = [  7.0319e-08  -1.3022e-06  -1.8778e-04  -1.0111e-05   1.8724e-04            0  -1.7720e-04  -1.9604e-04   1.8778e-04   1.8724e-04   1.0111e-05            0
+  -1.3022e-06   2.4115e-05   3.4774e-03   1.8724e-04  -3.4673e-03            0   3.2814e-03   3.6305e-03  -3.4774e-03  -3.4673e-03  -1.8724e-04            0
+  -1.8778e-04   3.4774e-03   5.0146e-01   2.7000e-02  -5.0000e-01            0   4.7319e-01   5.2352e-01  -5.0146e-01  -5.0000e-01  -2.7000e-02            0
+  -1.0111e-05   1.8724e-04   2.7000e-02   1.4538e-03  -2.6921e-02            0   2.5478e-02   2.8188e-02  -2.7000e-02  -2.6921e-02  -1.4538e-03            0
+   1.8724e-04  -3.4673e-03  -5.0000e-01  -2.6921e-02   4.9855e-01            0  -4.7181e-01  -5.2200e-01   5.0000e-01   4.9855e-01   2.6921e-02            0
+            0            0            0            0            0            0            0            0            0            0            0            0
+  -1.7720e-04   3.2814e-03   4.7319e-01   2.5478e-02  -4.7181e-01            0   4.4651e-01   4.9401e-01  -4.7319e-01  -4.7181e-01  -2.5478e-02            0
+  -1.9604e-04   3.6305e-03   5.2352e-01   2.8188e-02  -5.2200e-01            0   4.9401e-01   5.4656e-01  -5.2352e-01  -5.2200e-01  -2.8188e-02            0
+   1.8778e-04  -3.4774e-03  -5.0146e-01  -2.7000e-02   5.0000e-01            0  -4.7319e-01  -5.2352e-01   5.0146e-01   5.0000e-01   2.7000e-02            0
+   1.8724e-04  -3.4673e-03  -5.0000e-01  -2.6921e-02   4.9855e-01            0  -4.7181e-01  -5.2200e-01   5.0000e-01   4.9855e-01   2.6921e-02            0
+   1.0111e-05  -1.8724e-04  -2.7000e-02  -1.4538e-03   2.6921e-02            0  -2.5478e-02  -2.8188e-02   2.7000e-02   2.6921e-02   1.4538e-03            0
+            0            0            0            0            0            0            0            0            0            0            0            0]
+    @show Matrix(Gh)        
+	@test norm(Gh - Gh1) / norm(Gh1)  <= 2.0e-5
+end
+end
+using .mmdivmat2
+mmdivmat2.test()
+
+module mmvgradmat2
+using FinEtools
+using FinEtools.FEMMDeforLinearBaseModule: infsup_sh
+using Test
+import LinearAlgebra: norm, cholesky
+using Debugger
+function test()
+	Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, orientation::Symbol = ( 1.0, 1.0, 1.0, 1, 1, 1, :a)
+	Ea, nua, alphaa = ( 1.0, 0.3, 0.0)
+	fens = FENodeSet(Float64[        0         0         0
+								   -0.1620    3.0000    2.9791
+								         0         0    3.0000
+								    3.0000    0.1620    3.0000]);
+	fes = FESetT4(reshape([1 2 3 4], 1, 4));
+
+
+	MR  =  DeforModelRed3D
+
+	# Property and material
+	material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
+
+	femm  =  FEMMDeforLinear(MR, IntegDomain(fes, TetRule(1)), material)
+
+	geom = NodalField(fens.xyz)
+	u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+	numberdofs!(u)
+
+	Sh = infsup_sh(femm, geom, u);
+
+	Sh1 = [5.0148e-01            0            0  -3.4774e-03            0            0  -4.9800e-01            0            0  -2.6321e-17            0            0
+            0   5.0148e-01            0            0  -3.4774e-03            0            0  -4.9800e-01            0            0  -2.6321e-17            0
+            0            0   5.0148e-01            0            0  -3.4774e-03            0            0  -4.9800e-01            0            0  -2.6321e-17
+  -3.4774e-03            0            0   5.0000e-01            0            0  -4.9652e-01            0            0  -4.7374e-18            0            0
+            0  -3.4774e-03            0            0   5.0000e-01            0            0  -4.9652e-01            0            0  -4.7374e-18            0
+            0            0  -3.4774e-03            0            0   5.0000e-01            0            0  -4.9652e-01            0            0  -4.7374e-18
+  -4.9800e-01            0            0  -4.9652e-01            0            0   1.4945e+00            0            0  -5.0000e-01            0            0
+            0  -4.9800e-01            0            0  -4.9652e-01            0            0   1.4945e+00            0            0  -5.0000e-01            0
+            0            0  -4.9800e-01            0            0  -4.9652e-01            0            0   1.4945e+00            0            0  -5.0000e-01
+  -2.6321e-17            0            0  -4.7374e-18            0            0  -5.0000e-01            0            0   5.0000e-01            0            0
+            0  -2.6321e-17            0            0  -4.7374e-18            0            0  -5.0000e-01            0            0   5.0000e-01            0
+            0            0  -2.6321e-17            0            0  -4.7374e-18            0            0  -5.0000e-01            0            0   5.0000e-01]
+	@test norm(Sh - Sh1) / norm(Sh1)  <= 1.0e-4
+end
+end
+using .mmvgradmat2
+mmvgradmat2.test()
+
