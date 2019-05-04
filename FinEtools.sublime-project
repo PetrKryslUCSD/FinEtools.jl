@@ -7,5 +7,6 @@
 	], 
 	"settings": {
          "theme": "Asphalt.sublime-theme",
+         "color_scheme": "Mariana.sublime-color-scheme"
     }
 }

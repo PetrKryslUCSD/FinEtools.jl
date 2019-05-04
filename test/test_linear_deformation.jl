@@ -7858,7 +7858,7 @@ using FinEtools
 using FinEtools.FEMMDeforLinearBaseModule: infsup_gh, infsup_sh
 using Test
 import LinearAlgebra: norm, cholesky, I, eigen
-using UnicodePlots
+# using UnicodePlots
 function test()
 	lambdatol = sqrt(1e8*eps(1.0));
 	E=1000.0;
