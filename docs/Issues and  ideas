@@ -500,3 +500,46 @@ Status: 04/27/2019. It appears we do: the issue is how to make the module functi
 
 -- Implement a true growing vector for allocating entries in the Assembly module.
 This will eliminate the need to know in advance the size, while avoiding the overhead penalty with push!().
+
+-- Color schemes for ST 3: Make STproject.sublime-project project file with
+
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+        "theme":  "Creamy.sublime-theme",
+    },
+}
+
+Or
+
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+        "theme":  "Asphalt.sublime-theme",
+    },
+}
+
+Or
+
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+        "color_scheme": "Mariana.sublime-color-scheme",
+    },
+}
+
