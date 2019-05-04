@@ -38,11 +38,11 @@ function FEMMAcoustSurf(integdomain::IntegDomain{S, F},  material::M) where {S<:
     function getnormal!(n::FFltVec, loc::FFltMat, J::FFltMat)
         sdim, mdim = size(J);
         if     mdim == 1 # 1-D fe
-        N = [J[2,1],-J[1,1]];
+        	N = [J[2,1],-J[1,1]];
         elseif     mdim == 2 # 2-D fe
-        N = cross(J[:,1],J[:,2])
+        	N = cross(J[:,1],J[:,2])
         else
-        error("Got an incorrect size of tangents");
+        	error("Got an incorrect size of tangents");
         end
         N=N/norm(N)
         copyto!(n, N)
