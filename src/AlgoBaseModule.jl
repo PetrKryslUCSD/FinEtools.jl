@@ -200,14 +200,14 @@ Compute norm of the difference of the target fields.
 
 # Arguments
 For both the "coarse"- and "fine"-mesh `modeldata` the data dictionaries need to contain the mandatory keys:
-- "fens" = finite element node set
-- "regions" = array of regions
-- "targetfields" = array of fields, one for each region
-- "geom" = geometry field
-- "elementsize" = representative element size,
-- "geometricaltolerance" = geometrical tolerance (used in field transfer;
+- `"fens"` = finite element node set
+- `"regions"` = array of regions
+- `"targetfields"` = array of fields, one for each region
+- `"geom"` = geometry field
+- `"elementsize"` = representative element size,
+- `"geometricaltolerance"` = geometrical tolerance (used in field transfer;
   refer to the documentation of `transferfield!`)
-- "parametrictolerance" = parametric tolerance (used in field transfer; refer
+- `"parametrictolerance"` = parametric tolerance (used in field transfer; refer
   to the documentation of `transferfield!`)
 """
 function fielddiffnorm(modeldatacoarse, modeldatafine)

@@ -27,39 +27,42 @@ import LinearAlgebra: eigen, qr, dot, cholesky
 
 Algorithm for static linear deformation (stress) analysis.
 
+# Argument
 `modeldata` = dictionary with values for keys
 
-* "fens"  = finite element node set
-* "regions"  = array of region dictionaries
-* "essential_bcs" = array of essential boundary condition dictionaries
-* "traction_bcs" = array of traction boundary condition dictionaries
-* "temperature_change" = dictionary of data for temperature change
+* `"fens"`  = finite element node set
+* `"regions"`  = array of region dictionaries
+* `"essential_bcs"` = array of essential boundary condition dictionaries
+* `"traction_bcs"` = array of traction boundary condition dictionaries
+* `"temperature_change"` = dictionary of data for temperature change
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
-* "femm" = finite element model machine (mandatory);
+* `"femm"` = finite element model machine (mandatory);
 
 For essential boundary conditions (optional) each dictionary
 would hold
-  + "displacement" = fixed (prescribed) displacement (scalar),  or
+  + `"displacement"` = fixed (prescribed) displacement (scalar),  or
             a function with signature
                 function w = f(x)
             If not given, zero displacement assumed.
-  + "component" = which component is prescribed  (1, 2, 3)?
-  + "node_list" = list of nodes on the boundary to which the condition applies
+  + `"component"` = which component is prescribed  (1, 2, 3)?
+  + `"node_list"` = list of nodes on the boundary to which the condition applies
             (mandatory)
 
 For traction boundary conditions (optional) each dictionary
 would hold
-  + "femm" = finite element model machine (mandatory);
-  + "traction_vector" = traction vector,  either  a constant or  a function
+  + `"femm"` = finite element model machine (mandatory);
+  + `"traction_vector"` = traction vector,  either  a constant or  a function
         Positive  when outgoing.
 
-Output:
-modeldata= the dictionary on input is augmented with
-* "geom" = the nodal field that is the geometry
-* "u" = the nodal field that is the computed displacement
-* "dT" = the nodal field that is the temperature increment
+# Output
+`modeldata` = the dictionary on input is augmented with the keys
+* `"geom"` = the nodal field that is the geometry
+* `"u"` = the nodal field that is the computed displacement
+* `"temp"` = the nodal field that is the temperature change
+* `"work"` = work of the applied loads
+* `"timing"` = dictionary with timing results
 """
 function linearstatics(modeldata::FDataDict)
 
@@ -90,9 +93,7 @@ function linearstatics(modeldata::FDataDict)
     #          where m_i is the multiplier.
 
     # Lists of recognized keys for the data dictionaries:
-    modeldata_recognized_keys = ["fens", "regions",
-    "essential_bcs",  "traction_bcs", "temperature_change",
-    "factorize"]
+    modeldata_recognized_keys = ["fens", "regions", "essential_bcs",  "traction_bcs", "temperature_change", "factorize"]
     essential_bcs_recognized_keys = ["displacement", "node_list", "component"]
     traction_bcs_recognized_keys = ["femm", "traction_vector"]
     regions_recognized_keys = ["femm", "body_load"]
@@ -272,27 +273,29 @@ end
 
 Algorithm for exporting of the deformation for visualization in Paraview.
 
+# Argument
 `modeldata` = dictionary with values for keys
 
-* "fens"  = finite element node set
-* "regions"  = array of region dictionaries
-* "geom" = geometry field
-* "u" = displacement field, or
-* "us" = array of  tuples (name, displacement field)
-* "postprocessing" = dictionary  with values for keys
-  + "boundary_only" = should only the boundary of the  regions be rendered?
+* `"fens"`  = finite element node set
+* `"regions"`  = array of region dictionaries
+* `"geom"` = geometry field
+* `"u"` = displacement field, or
+* `"us"` = array of  tuples (name, displacement field)
+* `"postprocessing"` = dictionary  with values for keys
+  + `"boundary_only"` = should only the boundary of the  regions be rendered?
                       Default is render the interior.
-  + "file" = name of the  postprocessing file
+  + `"file"` = name of the  postprocessing file
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
-* "femm" = finite element mmodel machine (mandatory);
+* `"femm"` = finite element mmodel machine (mandatory);
 
-Output: modeldata updated with
-* modeldata["postprocessing"]["exported"] = array of data dictionaries, one for
+# Output
+`modeldata` updated with
+* `modeldata["postprocessing"]["exported"]` = array of data dictionaries, one for
         each exported file. The data is stored with the keys:
-    - "file" - names of exported file
-    - "field" - nodal or elemental field
+    - `"file"` - names of exported file
+    - `"field"` - nodal or elemental field
 """
 function exportdeformation(modeldata::FDataDict)
     modeldata_recognized_keys = ["fens", "regions", "geom", "u", "postprocessing"]
@@ -348,32 +351,34 @@ end
 
 Algorithm for exporting of the stress for visualization in Paraview.
 
+# Argument
 `modeldata` = dictionary with values for keys
 
-* "fens"  = finite element node set
-* "regions"  = array of region dictionaries
-* "geom" = geometry field
-* "u" = displacement field
-* "postprocessing" = dictionary  with values for keys
-  + "boundary_only" = should only the boundary of the  regions be rendered?
+* `"fens"`  = finite element node set
+* `"regions"`  = array of region dictionaries
+* `"geom"` = geometry field
+* `"u"` = displacement field
+* `"postprocessing"` = dictionary  with values for keys
+  + `"boundary_only"` = should only the boundary of the  regions be rendered?
                       Default is render the interior.
-  + "file" = name of the  postprocessing file
-  + "quantity" = quantity to be exported (default :Cauchy)
-  + "component" = which component of the quantity?
-  + "outputcsys" = output coordinate system
-  + "inspectormeth" = inspector method to pass to `inspectintegpoints()`
-  + "extrap" = method for extrapolating from the quadrature points to the nodes
+  + `"file"` = name of the  postprocessing file
+  + `"quantity"` = quantity to be exported (default `:Cauchy`)
+  + `"component"` = which component of the quantity?
+  + `"outputcsys"` = output coordinate system
+  + `"inspectormeth"` = inspector method to pass to `inspectintegpoints()`
+  + `"extrap"` = method for extrapolating from the quadrature points to the nodes
     within one element
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
-* "femm" = finite element mmodel machine (mandatory);
+* `"femm"` = finite element mmodel machine (mandatory);
 
-Output: modeldata updated with
-* modeldata["postprocessing"]["exported"] = array of data dictionaries, one for
+# Output
+`modeldata` updated with
+* `modeldata["postprocessing"]["exported"]` = array of data dictionaries, one for
         each exported file. The data is stored with the keys:
-    - "file" - name of exported file
-    - "field" - nodal field
+    - `"file"` - name of exported file
+    - `"field"` - nodal field
 """
 function exportstress(modeldata::FDataDict)
     modeldata_recognized_keys = ["fens", "regions", "geom", "u",
@@ -469,29 +474,31 @@ end
 
 Algorithm for exporting of the elementwise stress for visualization in Paraview.
 
+# Argument
 `modeldata` = dictionary with values for keys
 
-* "fens"  = finite element node set
-* "regions"  = array of region dictionaries
-* "geom" = geometry field
-* "u" = displacement field
-* "postprocessing" = dictionary  with values for keys
-  + "boundary_only" = should only the boundary of the  regions be rendered?
+* `"fens"`  = finite element node set
+* `"regions"`  = array of region dictionaries
+* `"geom"` = geometry field
+* `"u"` = displacement field
+* `"postprocessing"` = dictionary  with values for keys
+  + `"boundary_only"` = should only the boundary of the  regions be rendered?
                       Default is render the interior.
-  + "file" = name of the  postprocessing file
-  + "quantity" = quantity to be exported (default :Cauchy)
-  + "component" = which component of the quantity?
-  + "outputcsys" = output coordinate system
+  + `"file"` = name of the  postprocessing file
+  + `"quantity"` = quantity to be exported (default `:Cauchy`)
+  + `"component"` = which component of the quantity?
+  + `"outputcsys"` = output coordinate system
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
-* "femm" = finite element mmodel machine (mandatory);
+* `"femm"` = finite element mmodel machine (mandatory);
 
-Output: modeldata updated with
-* modeldata["postprocessing"]["exported"] = array of data dictionaries, one for
+# Output
+`modeldata` updated with
+* `modeldata["postprocessing"]["exported"]` = array of data dictionaries, one for
         each exported file. The data is stored with the keys:
-    - "file" - name of exported file
-    - "field" - elemental field
+    - `"file"` - name of exported file
+    - `"field"` - elemental field
 """
 function exportstresselementwise(modeldata::FDataDict)
     modeldata_recognized_keys = ["fens", "regions", "geom", "u",
@@ -575,39 +582,39 @@ end
 
 Modal (free-vibration) analysis solver.
 
-
+# Argument
 `modeldata` = dictionary with values for keys
 
-* "fens"  = finite element node set
-* "regions"  = array of region dictionaries
-* "essential_bcs" = array of essential boundary condition dictionaries
+* `"fens"`  = finite element node set
+* `"regions"`  = array of region dictionaries
+* `"essential_bcs"` = array of essential boundary condition dictionaries
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
-* "femm" = finite element mmodel machine (mandatory);
+* `"femm"` = finite element mmodel machine (mandatory);
 
 For essential boundary conditions (optional) each dictionary
 would hold
-  + "displacement" = fixed (prescribed) displacement (scalar): only zero
+  + `"displacement"` = fixed (prescribed) displacement (scalar): only zero
         displacement is  allowed for modal analysis.
-  + "component" = which component is prescribed  (1, 2, 3)?
-  + "node_list" = list of nodes on the boundary to which the condition applies
+  + `"component"` = which component is prescribed  (1, 2, 3)?
+  + `"node_list"` = list of nodes on the boundary to which the condition applies
             (mandatory)
 
 Control parameters:
-* "neigvs" = number of eigenvalues/eigenvectors to compute
-* "omega_shift"= angular frequency shift for mass shifting
-* "use_lumped_mass" = true or false?  (Default is false: consistent mass)
+* `"neigvs"` = number of eigenvalues/eigenvectors to compute
+* `"omega_shift"`= angular frequency shift for mass shifting
+* `"use_lumped_mass"` = true or false?  (Default is false: consistent mass)
 
 
-Output:
-modeldata= the dictionary on input is augmented with
-* "geom" = the nodal field that is the geometry
-* "u" = the nodal field that is the computed displacement
-* "neigvs" = Number of computed eigenvectors
-* "W" = Computed eigenvectors, neigvs columns
-* "omega" =  Computed angular frequencies, array of length neigvs
-* "raw_eigenvalues" = Raw computed eigenvalues
+# Output
+`modeldata`= the dictionary on input is augmented with
+* `"geom"` = the nodal field that is the geometry
+* `"u"` = the nodal field that is the computed displacement
+* `"neigvs"` = Number of computed eigenvectors
+* `"W"` = Computed eigenvectors, neigvs columns
+* `"omega"` =  Computed angular frequencies, array of length neigvs
+* `"raw_eigenvalues"` = Raw computed eigenvalues
 """
 function modal(modeldata::FDataDict)
 
@@ -747,28 +754,30 @@ end
 
 Algorithm for exporting of the mmode shape for visualization in Paraview.
 
+# Argument
 `modeldata` = dictionary with values for keys
 
-* "fens"  = finite element node set
-* "regions"  = array of region dictionaries
-* "geom" = geometry field
-* "u" = displacement field
-* "W" = Computed free-vibration eigenvectors, neigvs columns
-* "omega" =  Computed free-vibration angular frequencies, array of length neigvs
-* "postprocessing" = dictionary  with values for keys
-  + "boundary_only" = should only the boundary of the  regions be rendered?
+* `"fens"`  = finite element node set
+* `"regions"`  = array of region dictionaries
+* `"geom"` = geometry field
+* `"u"` = displacement field
+* `"W"` = Computed free-vibration eigenvectors, `neigvs` columns
+* `"omega"` =  Computed free-vibration angular frequencies, array of length `neigvs`
+* `"postprocessing"` = dictionary  with values for keys
+  + `"boundary_only"` = should only the boundary of the  regions be rendered?
                       Default is render the interior.
-  + "file" = name of the  postprocessing file
-  + "mode" = which mode should be visualized?
-  + "component" = which component of the quantity?
-  + "outputcsys" = output coordinate system
+  + `"file"` = name of the  postprocessing file
+  + `"mode"` = which mode should be visualized?
+  + `"component"` = which component of the quantity?
+  + `"outputcsys"` = output coordinate system
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains values for keys:
-* "femm" = finite element mmodel machine (mandatory);
+* `"femm"` = finite element mmodel machine (mandatory);
 
-Output: modeldata updated with
-* modeldata["postprocessing"]["exported"] = see `exportdeformation()`
+# Output
+`modeldata` updated with
+* `modeldata["postprocessing"]["exported"]` = see `exportdeformation()`
 """
 function exportmode(modeldata::FDataDict)
     modeldata_recognized_keys = ["fens", "regions", "geom", "u",
@@ -821,7 +830,7 @@ eigenvalue problem
 * `K` =  square symmetric stiffness matrix (if necessary mass-shifted),
 * `M` =  square symmetric mass matrix,
 
-# Keyword arguments
+Keyword arguments
 * `v0` =  initial guess of the eigenvectors (for instance random),
 * `nev` = the number of eigenvalues sought
 * `tol` = relative tolerance on the eigenvalue, expressed in terms of norms of the
@@ -831,7 +840,7 @@ eigenvalue problem
     is false)
 * `verbose` = verbose? (default is false)
 
-#  Return
+# Output
 * `labm` = computed eigenvalues,
 * `v` = computed eigenvectors,
 * `nconv` = number of converged eigenvalues
