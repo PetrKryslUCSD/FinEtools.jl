@@ -4,5 +4,6 @@
 *.vtk
 *.jls
 *.jld
+*.sublime-workspace
 docs/build/
 
