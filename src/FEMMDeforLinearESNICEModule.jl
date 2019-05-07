@@ -21,7 +21,7 @@ import FinEtools.FESetModule: AbstractFESet, FESetH8, FESetT4, manifdim, nodespe
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
 import FinEtools.FEMMDeforLinearBaseModule: AbstractFEMMDeforLinear
 import FinEtools.DeforModelRedModule: AbstractDeforModelRed, DeforModelRed3D
-import FinEtools.MatDeforLinearElasticModule: AbstractMatDeforLinearElastic
+import FinEtools.MatDeforLinearElasticModule: AbstractMatDeforLinearElastic, tangentmoduli!, update!, thermalstrain!
 import FinEtools.MatDeforElastIsoModule: MatDeforElastIso
 import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!, gathervalues_asmat!
 import FinEtools.NodalFieldModule: NodalField, nnodes
@@ -34,7 +34,6 @@ import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass
 import FinEtools.FEMMBaseModule: associategeometry!
 import FinEtools.MatDeforModule: rotstressvec
 import FinEtools.MatModule: massdensity
-import FinEtools.MatDeforLinearElasticModule: tangentmoduli!, update!
 import LinearAlgebra: mul!, Transpose, UpperTriangular, eigvals
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
@@ -358,6 +357,90 @@ end
 function nzebcloadsstiffness(self::AbstractFEMMDeforLinearESNICE, geom::NodalField{FFlt}, u::NodalField{T}) where {T<:Number}
     assembler = SysvecAssembler()
     return  nzebcloadsstiffness(self, assembler, geom, u);
+end
+
+"""
+   inspectintegpoints(self::AbstractFEMMDeforLinearESNICE, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
+
+Inspect integration point quantities.
+
+# Arguments
+- `geom` - reference geometry field
+- `u` - displacement field
+- `dT` - temperature difference field
+- `felist` - indexes of the finite elements that are to be inspected:
+    The fes to be included are: `fes[felist]`.
+- `context`    - structure: see the update!() method of the material.
+- `inspector` - functionwith the signature
+       idat = inspector(idat, j, conn, x, out, loc);
+  where
+   `idat` - a structure or an array that the inspector may
+          use to maintain some state,  for instance minimum or maximum of
+          stress, `j` is the element number, `conn` is the element connectivity,
+          `out` is the output of the update!() method,  `loc` is the location
+          of the integration point in the *reference* configuration.
+          
+# Return
+The updated inspector data is returned.
+"""
+function inspectintegpoints(self::AbstractFEMMDeforLinearESNICE, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
+    fes = self.integdomain.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
+    dofnums, loc, J, csmatTJ, Jac, D, Dstab = _buffers2(self, geom, u, npts)
+    # Sort out  the output requirements
+    outputcsys = self.mcsys; # default: report the stresses in the material coord system
+    for apair in pairs(context)
+    	sy, val = apair
+    	if sy == :outputcsys
+    		outputcsys = val
+    	end
+    end
+    t= 0.0
+    dt = 0.0
+    qpdT = 0.0; # node temperature increment
+    qpstrain = fill(zero(FFlt), nstressstrain(self.mr), 1); # total strain -- buffer
+    qpthstrain = fill(zero(FFlt), nthermstrain(self.mr)); # thermal strain -- buffer
+    qpstress = fill(zero(FFlt), nstressstrain(self.mr)); # stress -- buffer
+    out1 = fill(zero(FFlt), nstressstrain(self.mr)); # stress -- buffer
+    out =  fill(zero(FFlt), nstressstrain(self.mr));# output -- buffer
+    xe = fill(0.0, nodesperelem(fes), ndofs(geom))
+    # Loop over  all the elements and all the quadrature points within them
+    for ilist = 1:length(felist) # Loop over elements
+    	i = felist[ilist];
+    	gathervalues_asmat!(geom, xe, fes.conn[i]);# retrieve element coords
+    	for nix = fes.conn[i] # For all nodes connected by this element
+    		gradN = self.nodalbasisfunctiongrad[nix].gradN
+    		patchconn = self.nodalbasisfunctiongrad[nix].patchconn
+    		Vpatch = self.nodalbasisfunctiongrad[nix].Vpatch
+    		ue = fill(zero(T), length(patchconn) * ndofs(u))
+    		gathervalues_asvec!(u, ue, patchconn);# retrieve element displacements
+    		loc = reshape(geom.values[nix, :], 1, ndofs(geom))
+    		updatecsmat!(self.mcsys, loc, J, nix);
+    		nd = length(patchconn) * ndofs(u)
+    		Bnodal = fill(0.0, size(D, 1), nd)
+    		Blmat!(self.mr, Bnodal, Ns[1], gradN, loc, self.mcsys.csmat);
+    		updatecsmat!(outputcsys, loc, J, nix); # Update output coordinate system
+    		# Quadrature point quantities
+    		A_mul_B!(qpstrain, Bnodal, ue); # strain in material coordinates
+    		qpdT = dT.values[nix] # Quadrature point temperature increment
+    		thermalstrain!(self.material, qpthstrain, qpdT)
+    		# Material updates the state and returns the output
+    		out = update!(self.material, qpstress, out, vec(qpstrain), qpthstrain, t, dt, loc, nix, quantity)
+    		if (quantity == :Cauchy)   # Transform stress tensor,  if that is "out"
+    		    (length(out1) >= length(out)) || (out1 = zeros(length(out)))
+    		    rotstressvec(self.mr, out1, out, transpose(self.mcsys.csmat))# To global coord sys
+    		    rotstressvec(self.mr, out, out1, outputcsys.csmat)# To output coord sys
+    		end
+    		# Call the inspector
+    		idat = inspector(idat, i, fes.conn[i], xe, out, loc);
+    	end # Loop over nodes
+    end # Loop over elements
+    return idat
+end
+
+function inspectintegpoints(self::AbstractFEMMDeforLinearESNICE, geom::NodalField{FFlt},  u::NodalField{T}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
+    dT = NodalField(fill(zero(FFlt), nnodes(geom), 1)) # zero difference in temperature
+    return inspectintegpoints(self, geom, u, dT, felist, inspector, idat, quantity; context...);
 end
 
 end
