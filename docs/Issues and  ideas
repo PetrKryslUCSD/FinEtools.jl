@@ -511,35 +511,16 @@ This will eliminate the need to know in advance the size, while avoiding the ove
 		}
 	],
 	"settings": {
-        "theme":  "Creamy.sublime-theme",
+        // "color_scheme": "Monokai.sublime-color-scheme",
+                 // "color_scheme": "Packages/Color Scheme - Dusk/Dusk.tmTheme",
+                 "color_scheme": "Packages/Color Scheme - JustBeforeDawn/JustBeforeDawn.tmTheme",
+                 "color_scheme": "Packages/Coffee Color Scheme/Coffee.tmTheme",
+                 "color_scheme": "Packages/Theme - Asphalt/Asphalt.tmTheme",
     },
 }
 
-Or
 
-{
-	"folders":
-	[
-		{
-			"path": "."
-		}
-	],
-	"settings": {
-        "theme":  "Asphalt.sublime-theme",
-    },
-}
+-- updatecsmat!(), update!(): last argument should be the number of the entity, not just the number of an element.
+In order to accommodate nodally integrated finite elements.
 
-Or
-
-{
-	"folders":
-	[
-		{
-			"path": "."
-		}
-	],
-	"settings": {
-        "color_scheme": "Mariana.sublime-color-scheme",
-    },
-}
-
+-- inspectintegpoints(): For nodally integrated elements this could be optimized to sweep through the nodes just once, when possible.
