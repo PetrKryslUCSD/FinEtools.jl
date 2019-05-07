@@ -496,8 +496,9 @@ The nodal-quadrature simplex rule.
 
 The rule is applicable for line segments, triangles, tetrahedra.
 
-The quadrature points must be given at the nodes in the order 
-in which the nodes are used in the definition of the element.
+!!! note
+The quadrature points for a nodal quadrature rule must be listed in the order 
+in which the nodes are used in the definition of the element!
 """
 struct NodalSimplexRule <: AbstractIntegRule
     dim::FInt
@@ -525,7 +526,47 @@ function NodalSimplexRule(dim=1)
         weights = FFlt[1, 1, 1, 1] /6.0 / 4;
     end
     npts = length(weights)
-    return NodalSimplexRule(dim,npts,reshape(param_coords, npts, dim), reshape(weights, npts, 1))
+    return NodalSimplexRule(dim, npts, reshape(param_coords, npts, dim), reshape(weights, npts, 1))
+end
+
+"""
+    NodalTensorProductRule <: AbstractIntegRule
+
+The tensor-product nodal-quadrature rule.
+
+The rule is applicable for line segments, quadrilaterals, hexahedra.
+
+!!! note
+The quadrature points for a nodal quadrature rule must be listed in the order 
+in which the nodes are used in the definition of the element!
+"""
+struct NodalTensorProductRule <: AbstractIntegRule
+    dim::FInt
+    npts::FInt
+    param_coords::Array{Float64, 2}
+    weights::Array{Float64, 2}
+end
+
+"""
+    NodalTensorProductRule(dim=1)
+
+Nodal-quadrature tensor-product rule.
+"""
+function NodalTensorProductRule(dim=1)
+    @assert 1 <= dim <= 3 "Nodal-quadrature tensor-product rule of dimension $(dim) not available"
+    order = 1 # order of the rule
+    if (dim==1)
+        param_coords = FFlt[-1.0 -1.0];
+            	weights = fill(1.0, 2);
+    elseif (dim==2)
+    	param_coords = FFlt[-1.0 -1.0; 1.0 -1.0; 1.0  1.0;-1.0  1.0];
+    	weights = fill(1.0, 4);
+    else # (dim==3)
+        param_coords = FFlt[-1.0 -1.0 -1.0; 1.0 -1.0 -1.0; 1.0  1.0 -1.0;-1.0  1.0 -1.0;-1.0 -1.0  1.0; 1.0 -1.0  1.0; 1.0  1.0  1.0;-1.0  1.0  1.0];
+        weights = fill(1.0, 8);
+    end
+    npts = length(weights)
+    return NodalTensorProductRule(dim, npts, reshape(param_coords, npts, dim), reshape(weights, npts, 1))
 end
 
 end
