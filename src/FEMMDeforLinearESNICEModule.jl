@@ -34,7 +34,7 @@ import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass
 import FinEtools.FEMMBaseModule: associategeometry!
 import FinEtools.MatDeforModule: rotstressvec
 import FinEtools.MatModule: massdensity
-import LinearAlgebra: mul!, Transpose, UpperTriangular, eigvals
+import LinearAlgebra: mul!, Transpose, UpperTriangular, eigvals, det
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
 import LinearAlgebra: norm, qr, diag, dot, cond, I, cross
@@ -91,6 +91,22 @@ mutable struct FEMMDeforLinearESNICET4{MR<:AbstractDeforModelRed, S<:FESetT4, F<
     nphis::Vector{FFlt}
 end
 
+"""
+    FEMMDeforLinearESNICEH8{MR<:AbstractDeforModelRed, S<:FESetH8, F<:Function, M<:AbstractMatDeforLinearElastic} <: AbstractFEMMDeforLinearESNICE
+
+FEMM type for Nodally Integrated Continuum Elements (NICE) based on the 8-node hexahedron.
+"""
+mutable struct FEMMDeforLinearESNICEH8{MR<:AbstractDeforModelRed, S<:FESetH8, F<:Function, M<:AbstractMatDeforLinearElastic} <: AbstractFEMMDeforLinearESNICE
+    mr::Type{MR}
+    integdomain::IntegDomain{S, F} # geometry data
+    mcsys::CSys # updater of the material orientation matrix
+    material::M # material object
+    stabilization_material::MatDeforElastIso
+    nodalbasisfunctiongrad::Vector{_NodalBasisFunctionGradients}
+    ephis::Vector{FFlt}
+    nphis::Vector{FFlt}
+end
+
 function FEMMDeforLinearESNICET4(mr::Type{MR}, integdomain::IntegDomain{S, F}, mcsys::CSys, material::M) where {MR<:AbstractDeforModelRed,  S<:FESetT4, F<:Function, M<:AbstractMatDeforLinearElastic}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
@@ -106,11 +122,27 @@ function FEMMDeforLinearESNICET4(mr::Type{MR}, integdomain::IntegDomain{S, F}, m
 end
 
 function centroid!(self::F, loc, X::FFltMat, conn::C) where {F<:FEMMDeforLinearESNICET4, C}
-    weights = [0.250
-                0.250
-                0.250
-                0.250]
+    weights = fill(1.0  / 4, 4)
     return loc!(loc, X, conn, reshape(weights, 4, 1))
+end
+
+function FEMMDeforLinearESNICEH8(mr::Type{MR}, integdomain::IntegDomain{S, F}, mcsys::CSys, material::M) where {MR<:AbstractDeforModelRed,  S<:FESetH8, F<:Function, M<:AbstractMatDeforLinearElastic}
+    @assert mr == material.mr "Model reduction is mismatched"
+    @assert (mr == DeforModelRed3D) "3D model required"
+    stabilization_material = _make_stabilization_material(material)
+    return FEMMDeforLinearESNICEH8(mr, integdomain, mcsys, material, stabilization_material, _NodalBasisFunctionGradients[], fill(zero(FFlt), 1), fill(zero(FFlt), 1))
+end
+
+function FEMMDeforLinearESNICEH8(mr::Type{MR}, integdomain::IntegDomain{S, F}, material::M) where {MR<:AbstractDeforModelRed,  S<:FESetH8, F<:Function, M<:AbstractMatDeforLinearElastic}
+    @assert mr == material.mr "Model reduction is mismatched"
+    @assert (mr == DeforModelRed3D) "3D model required"
+    stabilization_material = _make_stabilization_material(material)
+    return FEMMDeforLinearESNICEH8(mr, integdomain, CSys(manifdim(integdomain.fes)), material, stabilization_material, _NodalBasisFunctionGradients[], fill(zero(FFlt), 1), fill(zero(FFlt), 1))
+end
+
+function centroid!(self::F, loc, X::FFltMat, conn::C) where {F<:FEMMDeforLinearESNICEH8, C}
+    weights = fill(1.0  / 8, 8)
+    return loc!(loc, X, conn, reshape(weights, 8, 1))
 end
 
 function _buffers1(self::AbstractFEMMDeforLinearESNICE, geom::NodalField)
@@ -248,7 +280,7 @@ function aspectratio(X)
 end
 
 """
-    associategeometry!(self::FEMMAbstractBase,  geom::NodalField{FFlt})
+    associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDeforLinearESNICET4}
 
 Associate geometry field with the FEMM.
 
@@ -284,6 +316,47 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
     return computenodalbfungrads(self, geom)
 end
 
+"""
+    associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDeforLinearESNICEH8}
+
+Associate geometry field with the FEMM.
+
+Compute the  correction factors to account for  the shape of the  elements.
+"""
+function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDeforLinearESNICEH8}
+    fes = self.integdomain.fes
+    self.ephis = fill(zero(FFlt), count(fes))
+    evols = fill(zero(FFlt), count(fes))
+    self.nphis = fill(zero(FFlt), nnodes(geom))
+    nvols = fill(zero(FFlt), nnodes(geom))
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain);
+
+    for i = 1:count(fes) # Loop over elements
+        X = geom.values[collect(fes.conn[i]), :]
+        V = 0.0;
+        for j = 1:npts
+            J = X' * gradNparams[j]
+            Jac = det(J)
+            @assert Jac > 0 "Nonpositive Jacobian"
+            V = V + Jac * w[j]
+            hs = sum(J .* J, dims=1)
+            phi = 2*(1.0 + self.stabilization_material.nu)*minimum(hs)/maximum(hs)
+            self.ephis[i] = max(self.ephis[i], phi/(1+phi))
+        end
+        evols[i] = V;
+        # Accumulate: the stabilization factor at the node is the weighted mean of the stabilization factors of the elements at that node
+        for k = 1:nodesperelem(fes)
+            nvols[fes.conn[i][k]] += evols[i]
+            self.nphis[fes.conn[i][k]] += self.ephis[i] * evols[i]
+        end
+    end # Loop over elements
+    # Now scale the values at the nodes with the nodal volumes
+    for k = 1:length(nvols)
+        self.nphis[k] /= nvols[k]
+    end
+    # Now calculate the nodal basis function gradients
+    return computenodalbfungrads(self, geom)
+end
 """
     stiffness(self::AbstractFEMMDeforLinearESNICE, assembler::A,
       geom::NodalField{FFlt},

@@ -120,9 +120,9 @@ using FinEtools.AssemblyModule: AbstractSysmatAssembler, SysmatAssemblerSparse, 
 # Exported: types and methods for  sparse matrix assembly  and vector assembly
 export AbstractSysmatAssembler, SysmatAssemblerSparse, SysmatAssemblerSparseSymm, SysmatAssemblerSparseHRZLumpingSymm, startassembly!, assemble!, makematrix!, AbstractSysvecAssembler, SysvecAssembler, startassembly!, assemble!, makevector!
 
-using FinEtools.IntegRuleModule: AbstractIntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule, NodalSimplexRule
+using FinEtools.IntegRuleModule: AbstractIntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule, NodalSimplexRule, NodalTensorProductRule
 # Exported: type for various integration rules
-export AbstractIntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule, NodalSimplexRule
+export AbstractIntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule, NodalSimplexRule, NodalTensorProductRule
 
 using FinEtools.IntegDomainModule: IntegDomain, otherdimensionunity, Jacobianpoint, Jacobiancurve, Jacobiansurface, Jacobianvolume, Jacobianmdim, integrationdata
 # Exported: type to handle  integration data for various manifold dimensions
@@ -257,7 +257,7 @@ using FinEtools.FEMMDeforLinearNICEModule: FEMMDeforLinearNICEH8, FEMMDeforLinea
 # Exported: type for NICE (Nodally-integrated continuum elements) solid elements, discretization methods
 export FEMMDeforLinearNICEH8, FEMMDeforLinearNICET4, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
 
-using FinEtools.FEMMDeforLinearESNICEModule: FEMMDeforLinearESNICET4, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
+using FinEtools.FEMMDeforLinearESNICEModule: FEMMDeforLinearESNICET4, FEMMDeforLinearESNICEH8, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
 # Exported: type for ESICE (Energy-sampling stabilized nodally-integrated continuum elements) solid elements, discretization methods
-export FEMMDeforLinearESNICET4, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
+export FEMMDeforLinearESNICET4, FEMMDeforLinearESNICEH8, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
 end
