@@ -42,13 +42,13 @@ end
 
 Richardson extrapolation.
 
-- `solns` =  array of solution values
-- `params` = array of values of parameters for which the `solns` have been obtained
+# Arguments
+- `solns` =  array of three solution values
+- `params` = array of values of three parameters for which the `solns` have been obtained
 
-This function is applicable only to fixed ratio between the mesh sizes,
-  `params[1]/params[2) = params[2)/params[3)`.
+This function is applicable to any the mesh sizes (monotonically increasing, or decreasing).
   
-Output:
+# Output
 - `solnestim`= estimate of the asymptotic solution from the data points in the
   `solns` array
 - `beta`= convergence rate
@@ -93,12 +93,13 @@ end
 
 Richardson extrapolation.
 
+# Argument
 - `solns` =  array of solution values
 - `params` = array of values of parameters for which the `solns` have been
   obtained. This function is applicable only to fixed (uniform) ratio between
   the mesh sizes, `params[1]/params[2) = params[2)/params[3)`.
   
-Output:
+# Output 
 - `solnestim`= estimate of the asymptotic solution from the data points in the
   `solns` array
 - `beta`= convergence rate
@@ -130,11 +131,11 @@ end
 Implementation of the bisection method.
 
 Tolerance both on `x` and on `f(x)` is used.
-`fun` = function,
-`xl`= lower value of the bracket,
-`xu`= upper Value of the bracket,
-`tolx`= tolerance on the location of the root,
-`tolf`= tolerance on the function value
+- `fun` = function,
+- `xl`= lower value of the bracket,
+- `xu`= upper Value of the bracket,
+- `tolx`= tolerance on the location of the root,
+- `tolf`= tolerance on the function value
 """
 function bisect(fun, xl, xu, tolx, tolf)
     iter = 0;
@@ -167,6 +168,7 @@ end
 
 Compute norm of the target field.  
 
+# Argument
 `modeldata` = data dictionary, mandatory keys:
     - "fens" = finite element node set
     - "regions" = array of regions
@@ -196,6 +198,7 @@ end
 
 Compute norm of the difference of the target fields.  
 
+# Arguments
 For both the "coarse"- and "fine"-mesh `modeldata` the data dictionaries need to contain the mandatory keys:
 - "fens" = finite element node set
 - "regions" = array of regions
@@ -248,7 +251,7 @@ function fielddiffnorm(modeldatacoarse, modeldatafine)
 end
 
 """
-    evalconvergencestudy(modeldatasequence, File)
+    evalconvergencestudy(modeldatasequence)
 
 Evaluate a convergence study from a model-data sequence.  
 
@@ -323,7 +326,7 @@ end
 """
     qcovariance(ps, xs, ys; ws = nothing)
 
-Compute the covariance for two functions given by the arrays `xs` and `ys` 
+Compute the covariance for two 'functions' given by the arrays `xs` and `ys` 
 at the values of the parameter `ps`. `ws` is the optional weights vector;  
 if it is not supplied, uniformly distributed default weights are assumed.  
 
@@ -357,14 +360,15 @@ with unit default weights.
 qvariance(ps, xs; ws = nothing) = qcovariance(ps, xs, xs; ws = ws)
 
 """
-    penaltyebc(K, F, uebc, u, penfact)
+    penaltyebc!(K, F, dofnums, prescribedvalues, penfact)
 
 Apply penalty essential boundary conditions.
 
-`K` = stiffness matrix
-`F` = global load vector 
-`dofnums`, `prescribedvalues` = arrays computed by `prescribeddofs()`
-`penfact` = penalty multiplier, in relative terms: how many times the maximum
+# Arguments
+- `K` = stiffness matrix
+- `F` = global load vector 
+- `dofnums`, `prescribedvalues` = arrays computed by `prescribeddofs()`
+- `penfact` = penalty multiplier, in relative terms: how many times the maximum
 	absolute value of the diagonal elements should the penalty term be?
 """
 function penaltyebc!(K, F, dofnums, prescribedvalues, penfact)

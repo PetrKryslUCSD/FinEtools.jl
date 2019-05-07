@@ -231,13 +231,13 @@ end
 
 Inspect integration point quantities.
 
-`geom` - reference geometry field
-`u` - displacement field
-`dT` - temperature difference field
-`felist` - indexes of the finite elements that are to be inspected:
+- `geom` - reference geometry field
+- `u` - displacement field
+- `dT` - temperature difference field
+- `felist` - indexes of the finite elements that are to be inspected:
      The fes to be included are: `fes[felist]`.
-`context`    - structure: see the update!() method of the material.
-`inspector` - functionwith the signature
+- `context`    - structure: see the update!() method of the material.
+- `inspector` - functionwith the signature
         idat = inspector(idat, j, conn, x, out, loc);
    where
     `idat` - a structure or an array that the inspector may

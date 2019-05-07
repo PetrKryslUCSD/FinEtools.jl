@@ -619,13 +619,14 @@ end
 
 Inspect integration point quantities.
 
-`geom` - reference geometry field
-`u` - displacement field
-`dT` - temperature difference field
-`felist` - indexes of the finite elements that are to be inspected:
+# Arguments
+- `geom` - reference geometry field
+- `u` - displacement field
+- `dT` - temperature difference field
+- `felist` - indexes of the finite elements that are to be inspected:
     The fes to be included are: `fes[felist]`.
-`context`    - structure: see the update!() method of the material.
-`inspector` - functionwith the signature
+- `context`    - structure: see the update!() method of the material.
+- `inspector` - functionwith the signature
        idat = inspector(idat, j, conn, x, out, loc);
   where
    `idat` - a structure or an array that the inspector may
@@ -633,7 +634,8 @@ Inspect integration point quantities.
           stress, `j` is the element number, `conn` is the element connectivity,
           `out` is the output of the update!() method,  `loc` is the location
           of the integration point in the *reference* configuration.
-### Return
+          
+# Return
 The updated inspector data is returned.
 """
 function inspectintegpoints(self::AbstractFEMMDeforLinearMS, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}

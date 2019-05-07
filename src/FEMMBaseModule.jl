@@ -510,19 +510,19 @@ end
 Construct nodal field from integration points.
 
 Input arguments
-`geom`     - reference geometry field
-`u`        - displacement field
-`dT`       - temperature difference field
-`quantity`   - this is what you would assign to the 'quantity' argument
+- `geom`     - reference geometry field
+- `u`        - displacement field
+- `dT`       - temperature difference field
+- `quantity`   - this is what you would assign to the 'quantity' argument
            of the material update!() method.
-`component`- component of the 'quantity' array: see the material update()
+- `component`- component of the 'quantity' array: see the material update()
            method.
 Keyword arguments
-`nodevalmethod` = `:invdistance` (the default) or `:averaging`;
-`reportat` = at which point should the  element quantities be reported?
+- `nodevalmethod` = `:invdistance` (the default) or `:averaging`;
+- `reportat` = at which point should the  element quantities be reported?
     This argument is interpreted inside the `inspectintegpoints()` method.
 Output argument
- - the new field that can be used to map values to colors and so on
+- the new field that can be used to map values to colors and so on
 """
 function fieldfromintegpoints(self::FEMM,
     geom::NodalField{FFlt},  u::NodalField{T},
@@ -546,11 +546,11 @@ function fieldfromintegpoints(self::FEMM,
     if nodevalmethod == :averaging
         # Container of intermediate results
         idat = AveragingInspectorData(
-        component,
-        zeros(FFlt, nne),
-        zeros(Int, nnodes(geom)),
-        zeros(FFlt, nnodes(geom), length(component))
-        );
+	        component,
+	        zeros(FFlt, nne),
+	        zeros(Int, nnodes(geom)),
+	        zeros(FFlt, nnodes(geom), length(component))
+	        );
         # Loop over cells to interpolate to nodes
         idat = inspectintegpoints(self,  geom,  u,  dT,
             collect(1:count(fes)),  _avg_inspector,  idat, quantity;
@@ -570,11 +570,11 @@ function fieldfromintegpoints(self::FEMM,
             (reportat == :meanonly) "Inverse-distance interpolation requires :meanonly"
         # Container of intermediate results
         idat = InverseDistanceInspectorData(
-        component,
-        zeros(FFlt, nne),
-        zeros(FFlt, nnodes(geom)),
-        zeros(FFlt, nnodes(geom), length(component))
-        );
+	        component,
+	        zeros(FFlt, nne),
+	        zeros(FFlt, nnodes(geom)),
+	        zeros(FFlt, nnodes(geom), length(component))
+	        );
         # Loop over cells to interpolate to nodes
         idat = inspectintegpoints(self,  geom,  u,  dT,
             collect(1:count(fes)),  _idi_inspector,  idat, quantity;

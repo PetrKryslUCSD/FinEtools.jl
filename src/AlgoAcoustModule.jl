@@ -21,7 +21,7 @@ import LinearAlgebra: norm, lu, cross
 
 Steady-state acoustics solver.
 
-modeldata = dictionary with items
+`modeldata` = dictionary with keys
 
 - "fens"  = finite element node set
 - "regions"  = array of region dictionaries
@@ -52,8 +52,8 @@ would hold
   + "normal_flux" = normal component of the flux through the boundary (scalar),
         which is the normal derivative of the pressure.
 
-Output:
-modeldata= the dictionary on input is augmented with
+# Output
+`modeldata` = the dictionary is augmented with
 - "geom" = the nodal field that is the geometry
 - "P" = the nodal field that is the computed pressure (in the general a
             complex-number field)
