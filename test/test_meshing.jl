@@ -3639,3 +3639,107 @@ end
 end
 using .mesh_triangle_conversion_4
 mesh_triangle_conversion_4.test()
+
+module mmT4ttH80
+using FinEtools
+using Test
+using Arpack: eigs
+import LinearAlgebra: norm, cholesky, cross
+function test()
+	a,b,h, na,nb,nh = 1.0, 2.0, 3.0, 2, 3, 4
+	fens,fes  = T4block(a,b,h, na,nb,nh)
+	fens,fes  = T4toH8(fens,fes)
+
+	geom = NodalField(fens.xyz)
+	u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+
+	# File =  "T4toH8-mesh.vtk"
+	# vtkexportmesh(File, fes.conn, fens.xyz, FinEtools.MeshExportModule.H8)
+	# @async run(`"paraview.exe" $File`)
+
+# @show count(fes)
+	@test count(fes) == 576
+end
+
+end
+using .mmT4ttH80
+mmT4ttH80.test()
+
+module mmT4ttH81
+using FinEtools
+using Test
+using Arpack: eigs
+import LinearAlgebra: norm, cholesky, cross
+function test()
+	a,b,h, na,nb,nh = 1.0, 2.0, 3.0, 2, 3, 4
+	fens,fes  = T4block(a,b,h, na,nb,nh)
+	fens,fes  = T4toH8(fens,fes)
+
+	geom = NodalField(fens.xyz)
+	u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+
+	bfes = meshboundary(fes)
+	# @show count(bfes)
+	# File =  "T4toH8-mesh.vtk"
+	# vtkexportmesh(File, bfes.conn, fens.xyz, FinEtools.MeshExportModule.Q4)
+	# @async run(`"paraview.exe" $File`)
+
+	@test count(bfes) == 312
+end
+
+end
+using .mmT4ttH81
+mmT4ttH81.test()
+
+module mmT4refine20a
+using FinEtools
+using Test
+using Arpack: eigs
+import LinearAlgebra: norm, cholesky, cross
+function test()
+	a,b,h, na,nb,nh = 1.0, 2.0, 3.0, 2, 3, 4
+	fens,fes  = T4block(a,b,h, na,nb,nh)
+	fens,fes  = T4refine20(fens,fes)
+
+	geom = NodalField(fens.xyz)
+	u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+
+	# File =  "T4refine20-mesh.vtk"
+	# vtkexportmesh(File, fes.conn, fens.xyz, FinEtools.MeshExportModule.T4)
+	# @async run(`"paraview.exe" $File`)
+
+# @show count(fes)
+	@test count(fes) == 2880
+end
+
+end
+using .mmT4refine20a
+mmT4refine20a.test()
+
+module mmT4refine20b
+using FinEtools
+using Test
+using Arpack: eigs
+import LinearAlgebra: norm, cholesky, cross
+function test()
+	a,b,h, na,nb,nh = 1.0, 2.0, 3.0, 2, 3, 4
+	fens,fes  = T4block(a,b,h, na,nb,nh)
+	fens,fes  = T4refine20(fens,fes)
+
+	geom = NodalField(fens.xyz)
+	u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+
+	bfes = meshboundary(fes)
+	# @show count(bfes)
+	# File =  "T4refine20b-mesh.vtk"
+	# vtkexportmesh(File, bfes.conn, fens.xyz, FinEtools.MeshExportModule.T3)
+	# @async run(`"paraview.exe" $File`)
+
+# @show count(fes)
+	@test count(bfes) == 624
+end
+
+end
+using .mmT4refine20b
+mmT4refine20b.test()
+

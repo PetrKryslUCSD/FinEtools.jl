@@ -523,6 +523,14 @@ function T4refine(fens::FENodeSet, fes::FESetT4)
     return nfens, nfes
 end 
 
+"""
+    T10refine(fens::FENodeSet, fes::FESetT10)
+
+Refine the mesh of quadratic tetrahedra.
+
+Each tetrahedron is converted to eight tetrahedra (each face is
+quadri-sected).
+"""
 function T10refine(fens::FENodeSet, fes::FESetT10)
     conna = connasarray(fes); 
     # Create array of connectivities of the four-node tetrahedra
@@ -550,5 +558,127 @@ function T10refine(fens::FENodeSet, fes::FESetT10)
     # Now take the four-node tetrahedron mesh and converted to quadratic tetrahedra
     return T4toT10(fens, nfes)
 end 
+
+
+"""
+    T4refine20(fens::FENodeSet, fes::FESetT4)
+
+Refine a tetrahedral four-node mesh into another four-node tetrahedral mesh,
+with each original tetrahedron being subdivided into 20 new tetrahedra.
+
+Each vertex is given one hexahedron. The scheme generates 15 nodes per
+tetrahedron when creating the hexahedra, one for each edge, one for each face,
+and one for the interior.
+"""
+function T4refine20(fens::FENodeSet, fes::FESetT4)
+	nedges = 6;
+	ec = [1  2; 2  3; 3  1; 4  1; 4  2; 4  3];
+	nfaces = 4;
+	fc = [1  3  2; 1  2  4; 2  3  4; 3  1  4];
+	# Additional node numbers are numbered from here
+	newn = count(fens)+1;
+	# make a search structure for edges
+	edges = makecontainer();
+	for i= 1:length(fes.conn)
+	    for J = 1:nedges
+	        ev = fes.conn[i][ec[J,:]];
+	        newn = addhyperface!(edges,  ev,  newn);
+	    end
+	end
+	# Make a search structure for the faces
+	faces = makecontainer();
+	for i= 1:length(fes.conn)
+	    for J = 1:nfaces
+	        fv = fes.conn[i][fc[J,:]];
+	        newn = addhyperface!(faces,  fv,  newn);
+	    end
+	end
+	# Make a search structure for the volumes
+	volumes = makecontainer();
+	for i= 1:length(fes.conn)
+	    newn = addhyperface!(volumes, fes.conn[i],  newn);
+	end
+	# Allocate new nodes
+	xyz1 = fens.xyz;             # Pre-existing nodes
+	# Allocate for vertex nodes plus edge nodes plus face nodes +volume nodes
+	xyz = zeros(FFlt, newn-1, 3);
+	xyz[1:size(xyz1, 1), :] = xyz1; # existing nodes are copied over
+	# calculate the locations of the new nodes
+	# and construct the new nodes
+	for i in keys(edges)
+		C = edges[i];
+		for J = 1:length(C)
+			ix = vec([item for item in C[J].o]) # Fix me: the comprehension is not necessary, is it?
+			push!(ix,  i) # Add the anchor point as well
+			xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
+		end
+	end
+	for i in keys(faces)
+		C = faces[i];
+		for J = 1:length(C)
+			ix = vec([item for item in C[J].o]) # Fix me: the comprehension is not necessary, is it?
+			push!(ix,  i) # Add the anchor point as well
+			xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
+		end
+	end
+	for i in keys(volumes)
+		C = volumes[i];
+		for J = 1:length(C)
+			ix = vec([item for item in C[J].o]) # Fix me: the comprehension is not necessary, is it?
+			push!(ix,  i) # Add the anchor point as well
+			xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
+		end
+	end
+	fens = FENodeSet(xyz);
+	# construct new geometry cells
+	nconn = zeros(FInt, 20 * length(fes.conn), 4);
+	labels = zeros(FInt, 20 * length(fes.conn));
+	c = fill(0, 15)
+	hc = fill(0, 8)
+	nt   = [1 2 3 6
+			4 1 3 8
+			5 8 6 1
+			7 6 8 3
+			1 8 6 3]
+	# nh   = [15 12 8 14 11 5 1 7
+	# 		15 13 9 12 11 6 2 5 
+	# 		15 11 7 14 13 6 3 10 
+	# 		15 14 8 12 13 10 4 9]
+	nh   = [1 5 11 7 8 12 15 14
+	2 6 11 5 9 13 15 12
+	3 7 11 6 10 14 15 13
+	4 8 14 10 9 12 15 13]
+	nc = 1;
+	for i= 1:length(fes.conn)
+	    econn = zeros(FInt, nedges);
+	    for J = 1:nedges
+	        ev = fes.conn[i][ec[J,:]];
+	        h, n = findhyperface!(edges,  ev);
+	        econn[J] = n;
+	    end
+	    fconn = zeros(FInt, nfaces);
+	    for J = 1:nfaces
+	    	fv = fes.conn[i][fc[J,:]];
+	    	h, n = findhyperface!(faces,  fv);
+	    	fconn[J] = n;
+	    end
+	    h, vconn = findhyperface!(volumes, fes.conn[i]);
+	    c[1:4] = [k for k in fes.conn[i]] 
+	    c[5:10] = econn
+	    c[11:14] = fconn
+	    c[15] = vconn
+	    for hi = 1:size(nh, 1)
+	    	hc .= c[nh[hi, :]]
+	    	for ti = 1:size(nt, 1)
+	    		nconn[nc, :] .= hc[nt[ti, :]]	
+	    		labels[nc] = fes.label[i]
+	    		nc = nc+ 1;
+	    	end
+	    end
+	end
+	fes = FESetT4(nconn);
+	fes = setlabel!(fes, labels)
+	return fens, fes
+end
 
 end 

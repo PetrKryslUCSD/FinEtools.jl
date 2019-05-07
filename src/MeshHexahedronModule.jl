@@ -6,7 +6,7 @@ Module for generation of  hexahedral meshes.
 module MeshHexahedronModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FESetModule: AbstractFESet, FESetQ4, FESetH8, FESetH20, FESetH27, subset, bfun, connasarray, setlabel!, updateconn!
+import FinEtools.FESetModule: AbstractFESet, FESetQ4, FESetH8, FESetH20, FESetH27, FESetT4, subset, bfun, connasarray, setlabel!, updateconn!
 import FinEtools.FENodeSetModule: FENodeSet, count, xyz3
 import FinEtools.MeshQuadrilateralModule: Q4elliphole, Q4circlen
 import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
@@ -722,6 +722,116 @@ function H8cylindern(Radius::FFlt, Length::FFlt, nperradius, nL)
     fes = cat(fes,fes2);
     fens,fes = H8extrudeQ4(fens,fes,nL,(x,k) -> [x[1],x[2],k*Length/nL]);
     return fens,fes
+end
+
+"""
+    T4toH8(fens::FENodeSet, fes::FESetT4)
+
+Convert a tetrahedral four-node mesh into eight-node hexahedra.
+
+Each vertex is given one hexahedron. The scheme generates 15 nodes per
+tetrahedron when creating the hexahedra, one for each edge, one for each face,
+and one for the interior.
+"""
+function T4toH8(fens::FENodeSet, fes::FESetT4)
+	nedges = 6;
+	ec = [1  2; 2  3; 3  1; 4  1; 4  2; 4  3];
+	nfaces = 4;
+	fc = [1  3  2; 1  2  4; 2  3  4; 3  1  4];
+	# Additional node numbers are numbered from here
+	newn = count(fens)+1;
+	# make a search structure for edges
+	edges = makecontainer();
+	for i= 1:length(fes.conn)
+	    for J = 1:nedges
+	        ev = fes.conn[i][ec[J,:]];
+	        newn = addhyperface!(edges,  ev,  newn);
+	    end
+	end
+	# Make a search structure for the faces
+	faces = makecontainer();
+	for i= 1:length(fes.conn)
+	    for J = 1:nfaces
+	        fv = fes.conn[i][fc[J,:]];
+	        newn = addhyperface!(faces,  fv,  newn);
+	    end
+	end
+	# Make a search structure for the volumes
+	volumes = makecontainer();
+	for i= 1:length(fes.conn)
+	    newn = addhyperface!(volumes, fes.conn[i],  newn);
+	end
+	# Allocate new nodes
+	xyz1 = fens.xyz;             # Pre-existing nodes
+	# Allocate for vertex nodes plus edge nodes plus face nodes +volume nodes
+	xyz = zeros(FFlt, newn-1, 3);
+	xyz[1:size(xyz1, 1), :] = xyz1; # existing nodes are copied over
+	# calculate the locations of the new nodes
+	# and construct the new nodes
+	for i in keys(edges)
+		C = edges[i];
+		for J = 1:length(C)
+			ix = vec([item for item in C[J].o]) # Fix me: the comprehension is not necessary, is it?
+			push!(ix,  i) # Add the anchor point as well
+			xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
+		end
+	end
+	for i in keys(faces)
+		C = faces[i];
+		for J = 1:length(C)
+			ix = vec([item for item in C[J].o]) # Fix me: the comprehension is not necessary, is it?
+			push!(ix,  i) # Add the anchor point as well
+			xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
+		end
+	end
+	for i in keys(volumes)
+		C = volumes[i];
+		for J = 1:length(C)
+			ix = vec([item for item in C[J].o]) # Fix me: the comprehension is not necessary, is it?
+			push!(ix,  i) # Add the anchor point as well
+			xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
+		end
+	end
+	fens = FENodeSet(xyz);
+	# construct new geometry cells
+	nconn = zeros(FInt, 4 * length(fes.conn), 8);
+	labels = zeros(FInt, 4 * length(fes.conn));
+	c = fill(0, 15)
+	nc = 1;
+	for i= 1:length(fes.conn)
+	    econn = zeros(FInt, 1, nedges);
+	    for J = 1:nedges
+	        ev = fes.conn[i][ec[J,:]];
+	        h, n = findhyperface!(edges,  ev);
+	        econn[J] = n;
+	    end
+	    fconn = zeros(FInt, 1, nfaces);
+	    for J = 1:nfaces
+	    	fv = fes.conn[i][fc[J,:]];
+	    	h, n = findhyperface!(faces,  fv);
+	    	fconn[J] = n;
+	    end
+	    h, vconn = findhyperface!(volumes, fes.conn[i]);
+	    c[1:4] = [k for k in fes.conn[i]] 
+	    c[5:10] = econn
+	    c[11:14] = fconn
+	    c[15] = vconn
+	    nconn[nc, :] = c[[15 12 8 14 11 5 1 7]]
+	    labels[nc] = fes.label[i]
+	    nc = nc+ 1;
+	    nconn[nc, :] = c[[15 13 9 12 11 6 2 5]]
+	    labels[nc] = fes.label[i]
+	    nc = nc+ 1;
+	    nconn[nc, :] = c[[15 11 7 14 13 6 3 10]]
+	    labels[nc] = fes.label[i]
+	    nc = nc+ 1;
+	    nconn[nc, :] = c[[15 14 8 12 13 10 4 9]]
+	    labels[nc] = fes.label[i]
+	    nc = nc+ 1;
+	end
+	fes = FESetH8(nconn);
+	fes = setlabel!(fes, labels)
+	return fens, fes
 end
 
 end
