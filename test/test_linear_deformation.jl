@@ -8106,4 +8106,64 @@ end
 using .mmLE1NAFEMSstressESNICET4
 mmLE1NAFEMSstressESNICET4.test()
 
+module mmcubevibrationESNICEH8b
+using FinEtools
+using Test
+using Arpack: eigs
+import LinearAlgebra: norm, cholesky, cross
+function test()
+	# println("""
+	#         % Vibration modes of unit cube  of almost incompressible material.
+	#         %
+	#         % Reference: Puso MA, Solberg J (2006) A stabilized nodally integrated
+	#         % tetrahedral. International Journal for Numerical Methods in
+	#         % Engineering 67: 841-867.""")
+	#         t0 = time()
+
+
+	E = 1*phun("PA");
+	nu = 0.499;
+	rho = 1*phun("KG/M^3");
+	a = 1*phun("M"); b = a; h =  a;
+	n1 = 5;# How many element edges per side?
+	na =  n1; nb =  n1; nh  = n1;
+	neigvs = 20                   # how many eigenvalues
+	OmegaShift = (0.01*2*pi)^2;
+
+	MR = DeforModelRed3D
+	fens,fes  = T4block(a,b,h, na,nb,nh)
+	fens,fes  = T4toH8(fens,fes)
+
+	geom = NodalField(fens.xyz)
+	u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+
+	numberdofs!(u)
+
+	material=MatDeforElastIso(MR, rho, E, nu, 0.0)
+
+	femm = FEMMDeforLinearESNICEH8(MR, IntegDomain(fes, NodalTensorProductRule(3)), material)
+	femm = associategeometry!(femm, geom)
+
+	K =stiffness(femm, geom, u)
+	M =mass(femm, geom, u)
+	d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
+	d = d .- OmegaShift;
+	fs = real(sqrt.(complex(d)))/(2*pi)
+	# println("Eigenvalues: $fs [Hz]")
+
+	# for mode = 7:neigvs
+	# 	scattersysvec!(u, v[:, mode])
+	# 	fld = fieldfromintegpoints(femm, geom, u, :pressure, 1; nodevalmethod = :averaging)
+	# 	File =  "cube-mode$(mode).vtk"
+	# 	vtkexportmesh(File, fes.conn, fens.xyz, FinEtools.MeshExportModule.H8; vectors = [("u", u.values)], scalars = [("pressure", fld.values)])
+	# end
+	
+	@async run(`"paraview.exe" $File`)
+
+	@test norm(fs.-[0.0, 0.0, 0.0, 1.76692e-8, 1.08952e-7, 1.40754e-7, 0.267052, 0.273879, 0.351477, 0.358597, 0.360482, 0.361265, 0.363118, 0.36379, 0.410238, 0.410963, 0.424434, 0.454963, 0.45869, 0.459053])./norm(fs) < 1.0e-5
+end
+
+end
+using .mmcubevibrationESNICEH8b
+mmcubevibrationESNICEH8b.test()
 

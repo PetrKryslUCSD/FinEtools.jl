@@ -645,9 +645,9 @@ function T4refine20(fens::FENodeSet, fes::FESetT4)
 	# 		15 11 7 14 13 6 3 10 
 	# 		15 14 8 12 13 10 4 9]
 	nh   = [1 5 11 7 8 12 15 14
-	2 6 11 5 9 13 15 12
-	3 7 11 6 10 14 15 13
-	4 8 14 10 9 12 15 13]
+			2 6 11 5 9 13 15 12
+			3 7 11 6 10 14 15 13
+			4 8 14 10 9 12 15 13]
 	nc = 1;
 	for i= 1:length(fes.conn)
 	    econn = zeros(FInt, nedges);
