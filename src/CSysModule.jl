@@ -133,7 +133,7 @@ sdim`, the coordinate system matrix is the identity; otherwise the local
 coordinate directions are aligned with the linear subspace defined by the
 tangent vectors.
 
-# Warning 
+!!! warning 
 
 This *cannot* be reliably used to produce consistent stresses because each
 quadrature point gets a local coordinate system which depends on the
