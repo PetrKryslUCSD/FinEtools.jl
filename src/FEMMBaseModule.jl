@@ -37,7 +37,7 @@ abstract type AbstractFEMM; end
 Class for base finite element modeling machine.
 """
 mutable struct FEMMBase{S<:AbstractFESet, F<:Function} <: AbstractFEMM
-    integdomain::IntegDomain{S, F} # geometry data
+    integdomain::IntegDomain{S, F} # domain data
     mcsys::CSys # updater of the material orientation matrix
 end
 
@@ -228,6 +228,8 @@ end
         )  where {T<:Number, F<:NodalField{T}}
 
 Transfer a nodal field from a coarse mesh to a finer one.
+
+# Arguments
 - `ff` = the fine-mesh field (modified and also returned)
 - `fensf` = finite element node set for the fine-mesh
 - `fc` = the coarse-mesh field
@@ -237,6 +239,9 @@ Transfer a nodal field from a coarse mesh to a finer one.
   adjacent nodes
 - `parametrictolerance` = tolerance in parametric space for for check whether
   node is inside an element
+
+# Output
+Nodal field `ff` transferred to the fine mesh is output.
 """
 function transferfield!(ff::F, fensf::FENodeSet, fesf::AbstractFESet, fc::F, fensc::FENodeSet, fesc::AbstractFESet, geometricaltolerance::FFlt; parametrictolerance::FFlt = 0.01)  where {T<:Number, F<:NodalField{T}}
     fill!(ff.values, Inf) # the "infinity" value indicates a missed node
@@ -314,12 +319,17 @@ end
         F<:ElementalField{T}}
 
 Transfer an elemental field from a coarse mesh to a finer one.
+
+# Arguments
 - `ff` = the fine-mesh field (modified and also returned)
 - `fensf` = finite element node set for the fine-mesh
 - `fc` = the coarse-mesh field
 - `fensc` = finite element node set for the fine-mesh,
 - `fesc` = finite element set for the coarse mesh
 - `tolerance` = tolerance in physical space for searches of the adjacent nodes
+
+# Output
+Elemental field `ff` transferred to the fine mesh is output.
 """
 function transferfield!(ff::F, fensf::FENodeSet, fesf::AbstractFESet, fc::F, fensc::FENodeSet, fesc::AbstractFESet, geometricaltolerance::FFlt; parametrictolerance::FFlt = 0.01)  where {T<:Number, F<:ElementalField{T}}
     @assert count(fesf) == nents(ff)
@@ -364,8 +374,10 @@ end
 
 Compute the distributed-load vector.
 
-`fi`=force intensity object
-`m`= manifold dimension, 1= curve, 2= surface, 3= volume
+# Arguments
+- `fi`=force intensity object
+- `m`= manifold dimension, 1= curve, 2= surface, 3= volume. For body loads `m`
+is set to 3, for tractions on the surface it is set to 2, and so on.
 """
 function distribloads(self::FEMM, assembler::A,
     geom::NodalField{FFlt}, P::NodalField{T}, fi::ForceIntensity, m::FInt) where {FEMM<:AbstractFEMM, T<:Number, A<:AbstractSysvecAssembler}
@@ -509,7 +521,7 @@ end
 
 Construct nodal field from integration points.
 
-Input arguments
+# Arguments
 - `geom`     - reference geometry field
 - `u`        - displacement field
 - `dT`       - temperature difference field
@@ -521,7 +533,8 @@ Keyword arguments
 - `nodevalmethod` = `:invdistance` (the default) or `:averaging`;
 - `reportat` = at which point should the  element quantities be reported?
     This argument is interpreted inside the `inspectintegpoints()` method.
-Output argument
+
+# Output 
 - the new field that can be used to map values to colors and so on
 """
 function fieldfromintegpoints(self::FEMM,
@@ -630,9 +643,9 @@ end
       dT::NodalField{FFlt},  quantity::Symbol,  component::FInt;
       context...) where {FEMM<:AbstractFEMM, T<:Number}
 
-Construct nodal field from integration points.
+Construct elemental field from integration points.
 
-Input arguments
+# Arguments
 `geom`     - reference geometry field
 `u`        - displacement field
 `dT`       - temperature difference field
@@ -640,7 +653,8 @@ Input arguments
            of the material update!() method.
 `component`- component of the 'quantity' array: see the material update()
            method.
-Output argument
+
+# Output 
  - the new field that can be used to map values to colors and so on
 """
 function elemfieldfromintegpoints(self::FEMM,

@@ -104,7 +104,7 @@ end
       geom::NodalField, P::NodalField{T}) where {T<:Number,
       A<:AbstractSysvecAssembler}
 
-Compute load vector for nonzero EBC for fixed pressure.
+Compute load vector for nonzero EBC for prescribed pressure.
 """
 function nzebcloadsacousticmass(self::FEMMAcoust, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysvecAssembler}
     fes = self.integdomain.fes
@@ -185,7 +185,7 @@ end
       Pddot::NodalField{T}) where {T<:Number,
       A<:AbstractSysvecAssembler}
 
-Compute load vector for nonzero EBC for fixed second-order pressure rate.
+Compute load vector for nonzero EBC for prescribed second-order pressure rate.
 """
 function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A, geom::NodalField, Pddot::NodalField{T}) where {T<:Number, A<:AbstractSysvecAssembler}
     fes = self.integdomain.fes

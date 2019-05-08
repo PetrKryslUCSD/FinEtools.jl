@@ -122,6 +122,7 @@ Compute the linear, displacement independent, strain-displacement matrix for a
 one-manifold element.   *The input displacements are in the global Cartesian
 coordinate system, the output strains are in the material coordinate system.*
 
+# Arguments
 - `N` =matrix of basis function values
 - `gradN` =matrix of basis function gradients with respect to the Cartesian
   coordinates in the directions of the material orientation
@@ -167,6 +168,7 @@ two-manifold element in plane-strain setting.   *The input displacements are
 in the global Cartesian coordinate system, the output strains are in the
 material coordinate system.*
 
+# Arguments
 - `N` =matrix of basis function values
 - `gradN` =matrix of basis function gradients with respect to the Cartesian
   coordinates in the directions of the material orientation
@@ -214,6 +216,7 @@ two-manifold element in plane-stress setting.   *The input displacements
 are in the global Cartesian coordinate system, the output strains are in the
 material coordinate system.*
 
+# Arguments
 - `N` =matrix of basis function values
 - `gradN` =matrix of basis function gradients with respect to the Cartesian
   coordinates in the directions of the material orientation
@@ -261,6 +264,7 @@ two-manifold element in axially-symmetric setting.   *The input displacements
 are in the global Cartesian coordinate system, the output strains are in the
 material coordinate system.*
 
+# Arguments
 - `N` =matrix of basis function values
 - `gradN` =matrix of basis function gradients with respect to the Cartesian
   coordinates in the directions of the material orientation
@@ -313,6 +317,7 @@ for a three-manifold element.   *The input displacements are in the global
 Cartesian coordinate system, the output strains are in the material coordinate
 system.*
 
+# Arguments
 - `N` =matrix of basis function values
 - `gradN` =matrix of basis function gradients with respect to the Cartesian
   coordinates in the directions of the material orientation
@@ -362,6 +367,7 @@ Compute the displacement divergence matrix for a three-manifold element.
 *The input displacements are in the global Cartesian coordinate system, the
 output strains are in the material coordinate system.*
 
+# Arguments
 - `N` =matrix of basis function values
 - `gradN` =matrix of basis function gradients with respect to the Cartesian
   coordinates in the directions of the material orientation
@@ -402,6 +408,7 @@ Compute the matrix of displacement gradient in vector form for a three-manifold 
 *The input displacements are in the global Cartesian coordinate system, the
 output strains are in the material coordinate system.*
 
+# Arguments
 - `N` =matrix of basis function values
 - `gradN` =matrix of basis function gradients with respect to the Cartesian
   coordinates in the directions of the material orientation

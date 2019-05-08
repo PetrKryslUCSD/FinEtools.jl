@@ -33,7 +33,12 @@ mutable struct FEMMAcoustSurf{S<:AbstractFESet, F<:Function, M, NF<:Function} <:
     getnormal!::NF # get the  normal to the surface
 end
 
+"""
+    FEMMAcoustSurf(integdomain::IntegDomain{S, F},  material::M) where {S<:AbstractFESet, F<:Function, M}
 
+Create the FEMM for integrals over the surface. The normal is computed from
+the geometry of the surface elements.
+"""
 function FEMMAcoustSurf(integdomain::IntegDomain{S, F},  material::M) where {S<:AbstractFESet, F<:Function, M}
     function getnormal!(n::FFltVec, loc::FFltMat, J::FFltMat)
         sdim, mdim = size(J);
@@ -210,11 +215,12 @@ of the finite element model. Its transpose transforms displacements (or velociti
 accelerations) into the normal component of the displacement (or
 velocity, or acceleration) along the surface.
 
-Arguments
+# Arguments
 `geom`=geometry field
 `u` = displacement field 
 
-Notes:
+!!! note
+
 -- `n`=outer normal (pointing into the acoustic medium).
 -- The pressures along the surface are assumed constant (uniform) along 
 each finite element –- panel. The panel pressures are assumed to
