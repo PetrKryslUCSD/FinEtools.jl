@@ -96,7 +96,8 @@ Private = true
 Order = [:type]
 ```
 
-## FEM machine: Base
+## FEM machines
+### Base
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.FEMMBaseModule]
@@ -104,7 +105,7 @@ Private = true
 Order = [:type]
 ```
 
-## FEM machine: Heat diffusion
+### Heat diffusion
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.FEMMHeatDiffModule, FinEtools.FEMMHeatDiffSurfModule]
@@ -112,7 +113,7 @@ Private = true
 Order = [:type]
 ```
 
-## FEM machine: Acoustics
+### Acoustics
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.FEMMAcoustModule, FinEtools.FEMMAcoustSurfModule]
@@ -120,7 +121,7 @@ Private = true
 Order = [:type]
 ```
 
-## FEM machine: Linear deformation
+### Linear deformation
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.DeforModelRedModule, FinEtools.FEMMDeforLinearBaseModule, FinEtools.FEMMDeforLinearModule, FinEtools.FEMMDeforWinklerModule, FinEtools.FEMMDeforLinearMSModule, FinEtools.FEMMDeforSurfaceDampingModule, FinEtools.FEMMDeforLinearNICEModule, FinEtools.FEMMDeforLinearESNICEModule]

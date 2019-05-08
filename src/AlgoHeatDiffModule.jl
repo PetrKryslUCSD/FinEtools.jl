@@ -22,44 +22,45 @@ import LinearAlgebra: cholesky
 
 Steady-state heat conduction solver.
 
-modeldata = dictionary with items
+# Argument
+`modeldata` = dictionary with items
 
-- "fens"  = finite element node set
-- "regions"  = array of region dictionaries
-- "essential_bcs" = array of essential boundary condition dictionaries
-- "convection_bcs" = array of convection boundary condition dictionaries
-- "flux_bcs" = array of flux boundary condition dictionaries
+- `"fens"`  = finite element node set
+- `"regions"`  = array of region dictionaries
+- `"essential_bcs"` = array of essential boundary condition dictionaries
+- `"convection_bcs"` = array of convection boundary condition dictionaries
+- `"flux_bcs"` = array of flux boundary condition dictionaries
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains items:
-- "femm" = finite element mmodel machine (mandatory);
-- "Q" = material internal heat generation rate (optional; default  0.0)
+- `"femm"` = finite element mmodel machine (mandatory);
+- `"Q"` = material internal heat generation rate (optional; default  0.0)
 
 For essential boundary conditions (optional) each dictionary
 would hold
-  + "temperature" = fixed (prescribed) temperature (scalar),  or
+  + `"temperature"` = fixed (prescribed) temperature (scalar),  or
             a function with signature
                 function T = f(x)
             If not given, zero temperatures assumed.
-  + "node_list" = list of nodes on the boundary to which the condition applies
+  + `"node_list"` = list of nodes on the boundary to which the condition applies
             (mandatory)
 
 For convection boundary conditions (optional) each dictionary
 may hold
-  + "femm" = finite element mmodel machine (mandatory);
-  + "ambient_temperature" = fixed (prescribed) ambient temperature (scalar)
+  + `"femm"` = finite element mmodel machine (mandatory);
+  + `"ambient_temperature"` = fixed (prescribed) ambient temperature (scalar)
         If not given, zero temperatures assumed.
 
 For flux boundary conditions (optional) each dictionary
 would hold
-  + "femm" = finite element mmodel machine (mandatory);
-  + "normal_flux" = normal component of the flux through the boundary (scalar)
+  + `"femm"` = finite element mmodel machine (mandatory);
+  + `"normal_flux"` = normal component of the flux through the boundary (scalar)
         Positive  when outgoing.
 
-Output:
-modeldata= the dictionary on input is augmented with
-- "geom" = the nodal field that is the geometry
-- "temp" = the nodal field that is the computed temperature
+# Output
+`modeldata`= the dictionary on input is augmented with
+- `"geom"` = the nodal field that is the geometry
+- `"temp"` = the nodal field that is the computed temperature
 """
 function steadystate(modeldata::FDataDict)
     # Lists of recognized keys for the data dictionaries:

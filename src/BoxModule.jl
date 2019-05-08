@@ -12,6 +12,9 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 
 Is the given location inside the box?
 
+- `box` = vector entries arranged as [minx,maxx,miny,maxy,minz,maxz] (or
+  adjusted for lower space dimension).
+
 Note: point on the boundary of the box is counted as being inside.
 """
 function inbox(box::AbstractVector, x::AbstractVector)
@@ -135,7 +138,8 @@ end
 
 Compute the intersection of two boxes.  
 
-The function returns an empty box (length(b) == 0) if the intersection is empty; otherwise a box is returned. 
+The function returns an empty box (length(b) == 0) if the intersection is
+empty; otherwise a box is returned.
 """
 function intersectboxes(box1::AbstractVector, box2::AbstractVector)
     @assert length(box1) == length(box2) "Mismatched boxes"

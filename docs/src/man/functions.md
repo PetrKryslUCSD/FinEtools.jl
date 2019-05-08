@@ -96,7 +96,9 @@ Private = true
 Order = [:function]
 ```
 
-## Mesh import/export
+## Meshing
+
+### Mesh import/export
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.MeshImportModule, FinEtools.MeshExportModule]
@@ -104,7 +106,7 @@ Private = true
 Order = [:function]
 ```
 
-## Meshing with line elements
+### Meshing with line elements
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.MeshLineModule]
@@ -112,7 +114,7 @@ Private = true
 Order = [:function]
 ```
 
-## Meshing with triangles
+### Meshing with triangles
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.MeshTriangleModule]
@@ -120,7 +122,7 @@ Private = true
 Order = [:function]
 ```
 
-## Meshing with quadrilaterals
+### Meshing with quadrilaterals
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.MeshQuadrilateralModule]
@@ -128,7 +130,7 @@ Private = true
 Order = [:function]
 ```
 
-## Meshing with tetrahedra
+### Meshing with tetrahedra
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.MeshTetrahedronModule, FinEtools.VoxelBoxModule, FinEtools.VoxelTetMeshingModule]
@@ -136,7 +138,7 @@ Private = true
 Order = [:function]
 ```
 
-## Meshing with hexahedra
+### Meshing with hexahedra
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.MeshHexahedronModule]
@@ -144,7 +146,7 @@ Private = true
 Order = [:function]
 ```
 
-## Mesh modification
+### Mesh modification
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.MeshModificationModule]
@@ -152,7 +154,7 @@ Private = true
 Order = [:function]
 ```
 
-## Meshing utilities
+### Utilities
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.MeshUtilModule]
@@ -192,7 +194,9 @@ Private = true
 Order = [:function]
 ```
 
-## FEM machine: Base
+## FEM machines
+
+### Base
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.FEMMBaseModule]
@@ -200,7 +204,7 @@ Private = true
 Order = [:function]
 ```
 
-## FEM machine: Heat diffusion
+### Heat diffusion
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.FEMMHeatDiffModule, FinEtools.FEMMHeatDiffSurfModule]
@@ -208,7 +212,7 @@ Private = true
 Order = [:function]
 ```
 
-## FEM machine: Acoustics
+### Acoustics
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.FEMMAcoustModule, FinEtools.FEMMAcoustSurfModule]
@@ -216,9 +220,9 @@ Private = true
 Order = [:function]
 ```
 
-## FEM machine: Linear deformation
+### Linear deformation
 
-### Model reduction types
+#### Model reduction types
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.DeforModelRedModule]
@@ -226,7 +230,7 @@ Private = true
 Order = [:function]
 ```
  
-### Base functionality
+#### Base functionality
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.FEMMDeforLinearBaseModule, FinEtools.FEMMDeforLinearModule, FinEtools.FEMMDeforWinklerModule, FinEtools.FEMMDeforLinearMSModule, FinEtools.FEMMDeforSurfaceDampingModule, FinEtools.FEMMDeforLinearNICEModule, FinEtools.FEMMDeforLinearESNICEModule]
@@ -234,7 +238,7 @@ Private = true
 Order = [:function]
 ```
 
-### Simple FE models
+#### Simple FE models
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.FEMMDeforLinearModule, FinEtools.FEMMDeforWinklerModule,  FinEtools.FEMMDeforSurfaceDampingModule, ]
@@ -242,7 +246,7 @@ Private = true
 Order = [:function]
 ```
 
-### Advanced FE models
+#### Advanced FE models
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.FEMMDeforLinearMSModule, FinEtools.FEMMDeforLinearNICEModule, FinEtools.FEMMDeforLinearESNICEModule]
@@ -293,6 +297,7 @@ Order = [:function]
 ```
 
 ## Algorithms
+
 ### Base
 
 ```@autodocs

@@ -16,8 +16,12 @@ Abstract type of system-matrix assembler.
 """
 abstract type AbstractSysmatAssembler end;
 
+"""
+    SysmatAssemblerSparse{T<:Number} <: AbstractSysmatAssembler
+
+Type for assembling a sparse global matrix from elementwise matrices.
+"""
 mutable struct SysmatAssemblerSparse{T<:Number} <: AbstractSysmatAssembler
-    # Type for assembling of a sparse global matrix from elementwise matrices.
     buffer_length::FInt;
     matbuffer::Vector{T};
     rowbuffer::Vector{FInt};
@@ -141,7 +145,7 @@ end
 """
     SysmatAssemblerSparseSymm{T<:Number} <: AbstractSysmatAssembler
 
-Assembler for a **symmetric square** matrix  assembled from **symmetric square**
+Assembler for a **symmetric square** matrix  assembled from symmetric square
 matrices.
 """
 mutable struct SysmatAssemblerSparseSymm{T<:Number} <: AbstractSysmatAssembler
@@ -320,6 +324,7 @@ Start assembly.
 
 The method makes the buffer for the vector assembly. It must be called before
 the first call to the method assemble.
+
 `ndofs_row`= Total number of degrees of freedom.
 """
 function startassembly!(self::SysvecAssembler{T},  ndofs_row::FInt) where {T<:Number}
