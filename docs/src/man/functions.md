@@ -1,12 +1,5 @@
 # Functions
 
-```@contents
-Pages = [
-    "man/materials.md",
-]
-Depth = 1
-```
-
 ## Physical units
 
 ```@autodocs
