@@ -22,12 +22,9 @@ are needed.
 """
 const chunk = 1000
 
-"""
-    fixupdecimal(s)
 
-Fix up an old style floating-point number without the exponent letter.  
-"""
-function fixupdecimal(s)
+# Fix up an old style floating-point number without the exponent letter.  
+function _fixupdecimal(s)
     os = ""
     for i = length(s):-1:1
         os = s[i] * os
@@ -52,8 +49,10 @@ Limitations:
 3. The file should be free-form (data separated by commas). 
 Some fixed-format files can also be processed (large-field, but not small-field).
 
-## Return
-Data dictionary, with keys `fens` (finite element nodes), `fesets` (array of finite element sets).
+# Output
+Data dictionary, with keys 
+- "`fens`" (finite element nodes), 
+- "`fesets`" (array of finite element sets).
 """
 function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = false)
     lines = readlines(filename)
@@ -86,12 +85,12 @@ function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = fal
                 # $------1-------2-------3-------4-------5-------6-------7-------8-------9-------0
                 # GRID*                  5               0-1.66618812195+1-3.85740337853+0
                 # *       1.546691269367+1               0
-                node[nnode, 1] = parse(Float64, fixupdecimal(temp[9:24]))
-                node[nnode, 2] = parse(Float64, fixupdecimal(temp[41:56]))
-                node[nnode, 3] = parse(Float64, fixupdecimal(temp[57:72]))
+                node[nnode, 1] = parse(Float64, _fixupdecimal(temp[9:24]))
+                node[nnode, 2] = parse(Float64, _fixupdecimal(temp[41:56]))
+                node[nnode, 3] = parse(Float64, _fixupdecimal(temp[57:72]))
                 temp  = lines[current_line]
                 current_line = current_line + 1
-                node[nnode, 4] = parse(Float64, fixupdecimal(temp[9:24]))
+                node[nnode, 4] = parse(Float64, _fixupdecimal(temp[9:24]))
             else  
                 # Template:
                 #   GRID,1,,-1.32846E-017,3.25378E-033,0.216954
@@ -186,8 +185,10 @@ Limitations:
 2. Only 4-node and 10-node tetrahedra, 8-node or 20-node  hexahedra, 3-node triangles
     are handled.
 
-## Return
-Data dictionary, with keys `fens` (finite element nodes), `fesets` (array of finite element sets).
+# Output
+Data dictionary, with keys 
+- "`fens`" (finite element nodes), 
+- "`fesets`" (array of finite element sets).
 """
 function import_ABAQUS(filename; allocationchunk=chunk)
     lines = readlines(filename)
