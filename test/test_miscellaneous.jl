@@ -1838,19 +1838,19 @@ mmqtrapm3.test()
 module mfixupdecimal1
 using FinEtools
 using Test
-using FinEtools.MeshImportModule: fixupdecimal
+using FinEtools.MeshImportModule: _fixupdecimal
 function test()
-    s = fixupdecimal("-10.0-1")
+    s = _fixupdecimal("-10.0-1")
     @test parse(Float64, s) == -1.0
-    s = fixupdecimal("-10.033333-1")
+    s = _fixupdecimal("-10.033333-1")
     @test parse(Float64, s) == -1.0033333
-    s = fixupdecimal("-100.33333-002")
+    s = _fixupdecimal("-100.33333-002")
     @test parse(Float64, s) == -1.0033333
-    s = fixupdecimal("-1.0033333+0")
+    s = _fixupdecimal("-1.0033333+0")
     @test parse(Float64, s) == -1.0033333
-    s = fixupdecimal("-1.0033333+000")
+    s = _fixupdecimal("-1.0033333+000")
     @test parse(Float64, s) == -1.0033333
-    s = fixupdecimal(" +1.0033333+000 ")
+    s = _fixupdecimal(" +1.0033333+000 ")
     @test parse(Float64, s) == +1.0033333
     true
 end
