@@ -48,6 +48,14 @@ Abstract FEMM type for Nodally Integrated Continuum Elements (NICE) with energy-
 """
 abstract type AbstractFEMMDeforLinearESNICE <: AbstractFEMMDeforLinear end
 
+# Tetrahedron
+# The coefficient set below was obtained by fitting the ratio of energies
+# true/approximate for the finite element model of six tetrahedra arranged
+# into a rectangular block and subject to pure bending
+# Fitting for a small aspect-ratio range (1.0 to 10)
+_T4_stabilization_parameters = (2.101588423297799,  1.311321055432958)
+
+
 mutable struct _NodalBasisFunctionGradients
     gradN::FFltMat
     patchconn::FIntVec
@@ -200,7 +208,7 @@ function _buffers3(self::AbstractFEMMDeforLinearESNICE, geom::NodalField, u::Nod
     return dofnums, B, DB, elmat, elvec, elvecfix, gradN
 end
 
-function patchconn(fes, gl, thisnn)
+function _patchconn(fes, gl, thisnn)
     # Generate patch connectivity for a given node (thisnn)
     # from the connectivities of the finite elements attached to it.
     return vcat(collect(setdiff(Set([i for j=1:length(gl) for i in fes.conn[gl[j]]]), thisnn)), [thisnn])
@@ -228,7 +236,7 @@ function computenodalbfungrads(self, geom)
         thisnn = nix; # We are at this node
         if !isempty(gl) # This node has an element patch in this block
             # establish local numbering of all nodes of the patch @ node thisnn
-            p = patchconn(fes, gl, thisnn);
+            p = _patchconn(fes, gl, thisnn);
             np = length(p);
             lnmap[p] .= 1:np;# now store the local numbers
             c = reshape(geom.values[thisnn, :], 1, ndofs(geom))
@@ -286,12 +294,8 @@ Associate geometry field with the FEMM.
 
 Compute the  correction factors to account for  the shape of the  elements.
 """
-function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDeforLinearESNICET4}
-    # The coefficient set below was obtained by fitting the ratio of energies true/approximate
-    # for the finite element model of six tetrahedra arranged into a rectangular block
-    # and subject to pure bending
-    # (a, b) = (1.9726538699841933, 0.23880554398506101)
-    (a, b) = (2.101588423297799,  1.311321055432958) # Fitting for a small aspect-ratio range (1.0 to 10)
+function associategeometry!(self::F,  geom::NodalField{FFlt}; stabilization_parameters = _T4_stabilization_parameters) where {F<:FEMMDeforLinearESNICET4}
+    @show (a, b) = stabilization_parameters
     fes = self.integdomain.fes
     self.ephis = fill(zero(FFlt), count(fes))
     evols = fill(zero(FFlt), count(fes))
@@ -476,13 +480,17 @@ function inspectintegpoints(self::AbstractFEMMDeforLinearESNICE, geom::NodalFiel
     qpstress = fill(zero(FFlt), nstressstrain(self.mr)); # stress -- buffer
     out1 = fill(zero(FFlt), nstressstrain(self.mr)); # stress -- buffer
     out =  fill(zero(FFlt), nstressstrain(self.mr));# output -- buffer
+    outtot =  fill(zero(FFlt), nstressstrain(self.mr));# output -- buffer
     xe = fill(0.0, nodesperelem(fes), ndofs(geom))
+    eue = fill(zero(T), nodesperelem(fes) * ndofs(u))
+    gradN = fill(zero(FFlt), nodesperelem(fes), ndofs(u)); 
+    B = fill(zero(FFlt), nstressstrain(self.mr), nodesperelem(fes) * ndofs(u)); 
     # Loop over  all the elements and all the quadrature points within them
     for ilist = 1:length(felist) # Loop over elements
     	i = felist[ilist];
     	gathervalues_asmat!(geom, xe, fes.conn[i]);# retrieve element coords
     	for nix = fes.conn[i] # For all nodes connected by this element
-    		gradN = self.nodalbasisfunctiongrad[nix].gradN
+    		nodalgradN = self.nodalbasisfunctiongrad[nix].gradN
     		patchconn = self.nodalbasisfunctiongrad[nix].patchconn
     		Vpatch = self.nodalbasisfunctiongrad[nix].Vpatch
     		ue = fill(zero(T), length(patchconn) * ndofs(u))
@@ -491,14 +499,29 @@ function inspectintegpoints(self::AbstractFEMMDeforLinearESNICE, geom::NodalFiel
     		updatecsmat!(self.mcsys, loc, J, nix);
     		nd = length(patchconn) * ndofs(u)
     		Bnodal = fill(0.0, size(D, 1), nd)
-    		Blmat!(self.mr, Bnodal, Ns[1], gradN, loc, self.mcsys.csmat);
+    		Blmat!(self.mr, Bnodal, Ns[1], nodalgradN, loc, self.mcsys.csmat);
     		updatecsmat!(outputcsys, loc, J, nix); # Update output coordinate system
     		# Quadrature point quantities
     		A_mul_B!(qpstrain, Bnodal, ue); # strain in material coordinates
     		qpdT = dT.values[nix] # Quadrature point temperature increment
     		thermalstrain!(self.material, qpthstrain, qpdT)
-    		# Material updates the state and returns the output
+    		# Real Material: update the state and return the output
     		out = update!(self.material, qpstress, out, vec(qpstrain), qpthstrain, t, dt, loc, nix, quantity)
+    		copyto!(outtot, out)
+    		# Stabilization Material: update the state and return the output
+    		out = update!(self.stabilization_material, qpstress, out, vec(qpstrain), qpthstrain, t, dt, loc, nix, quantity)
+    		outtot .+= -self.nphis[nix].*out
+    		pci = findfirst(cx -> cx == nix, fes.conn[i]);# at which node are we?
+    		locjac!(loc, J, geom.values, fes.conn[i], Ns[pci], gradNparams[pci])
+    		updatecsmat!(self.mcsys, loc, J, fes.label[i]);
+    		At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
+    		gradN!(fes, gradN, gradNparams[pci], csmatTJ);
+    		Blmat!(self.mr, B, Ns[pci], gradN, loc, self.mcsys.csmat);
+    		gathervalues_asvec!(u, eue, fes.conn[i]);# retrieve element displacements
+    		A_mul_B!(qpstrain, B, eue); # strain in material coordinates
+    		out = update!(self.stabilization_material, qpstress, out, vec(qpstrain), qpthstrain, t, dt, loc, nix, quantity)
+    		outtot .+= +self.nphis[nix].*out
+    		out, outtot = outtot, out # swap in the total output
     		if (quantity == :Cauchy)   # Transform stress tensor,  if that is "out"
     		    (length(out1) >= length(out)) || (out1 = zeros(length(out)))
     		    rotstressvec(self.mr, out1, out, transpose(self.mcsys.csmat))# To global coord sys
