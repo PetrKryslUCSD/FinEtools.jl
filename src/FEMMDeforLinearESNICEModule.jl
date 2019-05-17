@@ -520,7 +520,7 @@ function inspectintegpoints(self::AbstractFEMMDeforLinearESNICE, geom::NodalFiel
     		gathervalues_asvec!(u, eue, fes.conn[i]);# retrieve element displacements
     		A_mul_B!(qpstrain, B, eue); # strain in material coordinates
     		out = update!(self.stabilization_material, qpstress, out, vec(qpstrain), qpthstrain, t, dt, loc, nix, quantity)
-    		outtot .+= +self.nphis[nix].*out
+    		outtot .+= +self.ephis[i].*out
     		out, outtot = outtot, out # swap in the total output
     		if (quantity == :Cauchy)   # Transform stress tensor,  if that is "out"
     		    (length(out1) >= length(out)) || (out1 = zeros(length(out)))
