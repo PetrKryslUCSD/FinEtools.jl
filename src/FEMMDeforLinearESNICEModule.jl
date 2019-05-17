@@ -295,7 +295,7 @@ Associate geometry field with the FEMM.
 Compute the  correction factors to account for  the shape of the  elements.
 """
 function associategeometry!(self::F,  geom::NodalField{FFlt}; stabilization_parameters = _T4_stabilization_parameters) where {F<:FEMMDeforLinearESNICET4}
-    @show (a, b) = stabilization_parameters
+    (a, b) = stabilization_parameters
     fes = self.integdomain.fes
     self.ephis = fill(zero(FFlt), count(fes))
     evols = fill(zero(FFlt), count(fes))
