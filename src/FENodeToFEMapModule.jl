@@ -42,11 +42,12 @@ end
 
 
 """
-    FENodeToFEMap(conns::FIntMat,nmax::FInt)
+    FENodeToFEMap(conn::Vector{NTuple{N, IT}}, nmax::FInt) where {N, IT<:Integer}
 
 Map from finite element nodes to the finite elements connecting them.
 
-`nmax` = largest possible node number
+- `conns` = connectivities as a vector of tuples
+- `nmax` = largest possible node number
 """
 function FENodeToFEMap(conn::Vector{NTuple{N, IT}}, nmax::FInt) where {N, IT<:Integer}
     map = FIntVec[]; sizehint!(map, nmax)
@@ -62,6 +63,14 @@ function FENodeToFEMap(conn::Vector{NTuple{N, IT}}, nmax::FInt) where {N, IT<:In
     return FENodeToFEMap(map)
 end
 
+"""
+    FENodeToFEMap(conns::FIntMat, nmax::FInt)
+
+Map from finite element nodes to the finite elements connecting them.
+
+- `conns` = integer array of the connectivities
+- `nmax` = largest possible node number
+"""
 function FENodeToFEMap(conns::FIntMat, nmax::FInt)
     map = FIntVec[]; sizehint!(map, nmax)
     for i = 1:nmax
