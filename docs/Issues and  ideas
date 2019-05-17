@@ -527,5 +527,5 @@ In order to accommodate nodally integrated finite elements.
 
 -- Double averaging for NICE?
 
--- divmat!() (and the gradient matrix) do not need to take a buffer. Efficiency is not a concern for these functions.
+-- divmat!() (and the gradient matrix) do not need to take a buffer. Efficiency is not a concern for these functions. Status: 05-17-2019 done.
 
