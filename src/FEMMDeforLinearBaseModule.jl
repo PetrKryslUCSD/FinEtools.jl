@@ -15,7 +15,7 @@ import FinEtools.NodalFieldModule: NodalField, nnodes
 import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 import FinEtools.FEMMBaseModule: AbstractFEMM, inspectintegpoints
 import FinEtools.CSysModule: CSys, updatecsmat!
-import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat!, divmat!, vgradmat!
+import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat!, divmat, vgradmat
 import FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, locjac!, add_nnt_ut_only!
 import FinEtools.MatDeforModule: rotstressvec
 import FinEtools.MatModule: massdensity
@@ -328,6 +328,19 @@ function _buffers2(self::AbstractFEMMDeforLinear, geom::NodalField, u::NodalFiel
    	return dofnums, loc, J, csmatTJ, gradN, elmat
 end
 
+"""
+    infsup_gh(self::AbstractFEMMDeforLinear, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
+
+Compute the matrix to produce the norm of the divergence of the displacement.
+
+This matrix is used in the numerical infsup test (Klaus-Jurgen Bathe, The
+inf-sup condition and its evaluation for mixed finite element methods,
+Computers and Structures 79 (2001) 243-252.)
+
+!!! note 
+This computation has not been optimized in any way. It can be expected to be
+inefficient.
+"""
 function infsup_gh(self::AbstractFEMMDeforLinear, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
 	fes = self.integdomain.fes
 	npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
@@ -341,7 +354,7 @@ function infsup_gh(self::AbstractFEMMDeforLinear, assembler::A, geom::NodalField
 	        updatecsmat!(self.mcsys, loc, J, fes.label[i]);
 	        At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
 	        gradN!(fes, gradN, gradNparams[j], csmatTJ);
-	        divm = divmat!(self.mr, Ns[j], gradN, loc);
+	        divm = divmat(self.mr, Ns[j], gradN, loc);
 	        elmat += (transpose(divm) * divm) * (Jac*w[j])
 	    end # Loop over quadrature points
 	    gatherdofnums!(u, dofnums, fes.conn[i]); # retrieve degrees of freedom
@@ -376,7 +389,16 @@ end
 """
     infsup_sh(self::AbstractFEMMDeforLinear, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
 
-Compute the matrix to produce the norm of the
+Compute the matrix to produce the seminorm of the displacement (square root of
+the sum of the squares of the derivatives of the components of displacement).
+
+This matrix is used in the numerical infsup test (Klaus-Jurgen Bathe, The
+inf-sup condition and its evaluation for mixed finite element methods,
+Computers and Structures 79 (2001) 243-252.)
+
+!!! note 
+This computation has not been optimized in any way. It can be expected to be
+inefficient.
 """
 function infsup_sh(self::AbstractFEMMDeforLinear, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
 	fes = self.integdomain.fes
@@ -391,7 +413,7 @@ function infsup_sh(self::AbstractFEMMDeforLinear, assembler::A, geom::NodalField
 	        updatecsmat!(self.mcsys, loc, J, fes.label[i]);
 	        At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
 	        gradN!(fes, gradN, gradNparams[j], csmatTJ);
-	        vgradm = vgradmat!(self.mr, Ns[j], gradN, loc);
+	        vgradm = vgradmat(self.mr, Ns[j], gradN, loc);
 	        elmat += (transpose(vgradm) * vgradm) * (Jac*w[j])
 	    end # Loop over quadrature points
 	    gatherdofnums!(u, dofnums, fes.conn[i]); # retrieve degrees of freedom

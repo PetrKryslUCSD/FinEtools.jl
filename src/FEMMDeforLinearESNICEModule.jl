@@ -27,7 +27,7 @@ import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, g
 import FinEtools.NodalFieldModule: NodalField, nnodes
 import FinEtools.CSysModule: CSys, updatecsmat!
 import FinEtools.FENodeToFEMapModule: FENodeToFEMap
-import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat!
+import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat!, divmat, vgradmat
 import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, loc!, jac!, locjac!, adjugate3!
 import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass, thermalstrainloads, inspectintegpoints
@@ -537,6 +537,83 @@ end
 function inspectintegpoints(self::AbstractFEMMDeforLinearESNICE, geom::NodalField{FFlt},  u::NodalField{T}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
     dT = NodalField(fill(zero(FFlt), nnodes(geom), 1)) # zero difference in temperature
     return inspectintegpoints(self, geom, u, dT, felist, inspector, idat, quantity; context...);
+end
+
+"""
+    infsup_gh(self::AbstractFEMMDeforLinearESNICE, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
+
+Compute the matrix to produce the norm of the divergence of the displacement.
+
+This matrix is used in the numerical infsup test (Klaus-Jurgen Bathe, The
+inf-sup condition and its evaluation for mixed finite element methods,
+Computers and Structures 79 (2001) 243-252.)
+
+!!! note 
+This computation has not been optimized in any way. It can be expected to be
+inefficient.
+"""
+function infsup_gh(self::AbstractFEMMDeforLinearESNICE, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
+	fes = self.integdomain.fes
+	npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
+	elmatsizeguess = 4*nodesperelem(fes)*ndofs(u)
+	startassembly!(assembler, elmatsizeguess, elmatsizeguess, nnodes(u) + count(fes), u.nfreedofs, u.nfreedofs);
+	for nix = 1:length(self.nodalbasisfunctiongrad)
+	    gradN = self.nodalbasisfunctiongrad[nix].gradN
+	    patchconn = self.nodalbasisfunctiongrad[nix].patchconn
+	    Vpatch = self.nodalbasisfunctiongrad[nix].Vpatch
+	    c = reshape(geom.values[nix, :], 1, ndofs(geom))
+	    nd = length(patchconn) * ndofs(u)
+	    divm = divmat(self.mr, Ns[1], gradN, c);
+	    elmat = (transpose(divm) * divm) * Vpatch
+	    dofnums = fill(0, nd)
+	    gatherdofnums!(u, dofnums, patchconn); # retrieve degrees of freedom
+	    assemble!(assembler, elmat, dofnums, dofnums); # assemble symmetric matrix
+	end # Loop over nodes
+	return makematrix!(assembler);
+end
+
+function infsup_gh(self::AbstractFEMMDeforLinearESNICE, geom::NodalField{FFlt},  u::NodalField{T}) where {T<:Number}
+    assembler = SysmatAssemblerSparseSymm();
+    return infsup_gh(self, assembler, geom, u);
+end
+
+"""
+    infsup_sh(self::AbstractFEMMDeforLinearESNICE, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
+
+Compute the matrix to produce the seminorm of the displacement (square root of
+the sum of the squares of the derivatives of the components of displacement).
+
+This matrix is used in the numerical infsup test (Klaus-Jurgen Bathe, The
+inf-sup condition and its evaluation for mixed finite element methods,
+Computers and Structures 79 (2001) 243-252.)
+
+!!! note 
+This computation has not been optimized in any way. It can be expected to be
+inefficient.
+"""
+function infsup_sh(self::AbstractFEMMDeforLinearESNICE, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
+	fes = self.integdomain.fes
+	npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
+	elmatsizeguess = 4*nodesperelem(fes)*ndofs(u)
+	startassembly!(assembler, elmatsizeguess, elmatsizeguess, nnodes(u) + count(fes), u.nfreedofs, u.nfreedofs);
+	for nix = 1:length(self.nodalbasisfunctiongrad)
+	    gradN = self.nodalbasisfunctiongrad[nix].gradN
+	    patchconn = self.nodalbasisfunctiongrad[nix].patchconn
+	    Vpatch = self.nodalbasisfunctiongrad[nix].Vpatch
+	    c = reshape(geom.values[nix, :], 1, ndofs(geom))
+	    nd = length(patchconn) * ndofs(u)
+	    vgradm = vgradmat(self.mr, Ns[1], gradN, c);
+	    elmat = (transpose(vgradm) * vgradm) * Vpatch
+	    dofnums = fill(0, nd)
+	    gatherdofnums!(u, dofnums, patchconn); # retrieve degrees of freedom
+	    assemble!(assembler, elmat, dofnums, dofnums); # assemble symmetric matrix
+	end # Loop over nodes
+	return makematrix!(assembler);
+end
+
+function infsup_sh(self::AbstractFEMMDeforLinear, geom::NodalField{FFlt},  u::NodalField{T}) where {T<:Number}
+    assembler = SysmatAssemblerSparseSymm();
+    return infsup_sh(self, assembler, geom, u);
 end
 
 end

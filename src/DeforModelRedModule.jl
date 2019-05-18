@@ -358,7 +358,7 @@ function Blmat!(MR::Type{DeforModelRed3D}, B::FFltMat, N::FFltMat, gradN::FFltMa
 end
 
 """
-    divmat!(MR::Type{DeforModelRed3D}, N::FFltMat, gradN::FFltMat, c::FFltMat)
+    divmat(MR::Type{DeforModelRed3D}, N::FFltMat, gradN::FFltMat, c::FFltMat)
 
 Compute the displacement divergence matrix for a three-manifold element.
 
@@ -381,7 +381,7 @@ Compute the displacement divergence matrix for a three-manifold element.
   is passed in as a buffer, set to zero,  and filled in  with the nonzero
   components.  It is also returned for convenience.
 """
-function divmat!(MR::Type{DeforModelRed3D}, N::FFltMat, gradN::FFltMat, c::FFltMat)
+function divmat(MR::Type{DeforModelRed3D}, N::FFltMat, gradN::FFltMat, c::FFltMat)
 	nnodes = size(gradN,1);
 	@assert (dim = size(c,2)) == 3;
 	divm = fill(0.0, 1, dim*nnodes)
@@ -401,7 +401,7 @@ function divmat!(MR::Type{DeforModelRed3D}, N::FFltMat, gradN::FFltMat, c::FFltM
 end
 
 """
-    vgradmat!(MR::Type{DeforModelRed3D}, N::FFltMat, gradN::FFltMat, c::FFltMat)
+    vgradmat(MR::Type{DeforModelRed3D}, N::FFltMat, gradN::FFltMat, c::FFltMat)
 
 Compute the matrix of displacement gradient in vector form for a three-manifold element.
 
@@ -424,7 +424,7 @@ Compute the matrix of displacement gradient in vector form for a three-manifold 
   is passed in as a buffer, set to zero,  and filled in  with the nonzero
   components.  It is also returned for convenience.
 """
-function vgradmat!(MR::Type{DeforModelRed3D}, N::FFltMat, gradN::FFltMat, c::FFltMat)
+function vgradmat(MR::Type{DeforModelRed3D}, N::FFltMat, gradN::FFltMat, c::FFltMat)
 	nnodes = size(gradN,1);
 	@assert (dim = size(c,2)) == 3;
 	vgradm = fill(0.0, dim*dim, dim*nnodes)
