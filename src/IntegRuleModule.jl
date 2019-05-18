@@ -517,8 +517,8 @@ function NodalSimplexRule(dim=1)
     @assert 1 <= dim <= 3 "Nodal-quadrature simplex rule of dimension $(dim) not available"
     order = 1 # order of the rule
     if (dim==1)
-        param_coords = reshape([-1.0 1.0]',npts,1)
-        weights = reshape([1.0 1.0],npts,1)
+        param_coords = reshape([-1.0 1.0]',2,1)
+        weights = reshape([1.0 1.0],2,1)
     elseif (dim==2)
         param_coords = FFlt[0 0; 1 0; 0 1];
         weights = FFlt[1/3 1/3 1/3]'/2;
