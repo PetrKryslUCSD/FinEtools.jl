@@ -17,7 +17,7 @@ import FinEtools.MatDeforElastIsoModule: MatDeforElastIso
 import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!, gathervalues_asmat!
 import FinEtools.NodalFieldModule: NodalField
 import FinEtools.CSysModule: CSys, updatecsmat!
-import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat! 
+import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat!, divmat, vgradmat
 import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, loc!, jac!, locjac!
 import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass, thermalstrainloads, inspectintegpoints
@@ -662,6 +662,105 @@ end
 function inspectintegpoints(self::AbstractFEMMDeforLinearMS, geom::NodalField{FFlt},  u::NodalField{T}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {T<:Number, F<:Function}
     dT = NodalField(fill(zero(FFlt), nnodes(geom), 1)) # zero difference in temperature
     return inspectintegpoints(self, geom, u, dT, felist, inspector, idat, quantity; context...);
+end
+
+"""
+    infsup_gh(self::AbstractFEMMDeforLinearMS, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
+
+Compute the matrix to produce the norm of the divergence of the displacement.
+
+This matrix is used in the numerical infsup test (Klaus-Jurgen Bathe, The
+inf-sup condition and its evaluation for mixed finite element methods,
+Computers and Structures 79 (2001) 243-252.)
+
+!!! note 
+This computation has not been optimized in any way. It can be expected to be
+inefficient.
+"""
+function infsup_gh(self::AbstractFEMMDeforLinearMS, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
+	fes = self.integdomain.fes
+	npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
+	dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = _buffers2(self, geom, u, npts)
+	startassembly!(assembler, size(elmat, 1), size(elmat, 2), count(fes), u.nfreedofs, u.nfreedofs);
+	for i = 1:count(fes) # Loop over elements
+		# NOTE: the coordinate system should be evaluated at a single point within the
+		# element in order for the derivatives to be consistent at all quadrature points
+		loc = centroid!(self,  loc, geom.values, fes.conn[i])
+		updatecsmat!(self.mcsys, loc, J, fes.label[i]);
+		vol = 0.0; # volume of the element
+		fill!(MeangradN, 0.0) # mean basis function gradients
+		for j = 1:npts # Loop over quadrature points
+		    jac!(J, geom.values, fes.conn[i], gradNparams[j]) 
+		    Jac[j] = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
+		    At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
+		    gradN!(fes, AllgradN[j], gradNparams[j], csmatTJ);
+		    dvol = Jac[j]*w[j]
+		    MeangradN .= MeangradN .+ AllgradN[j]*dvol
+		    vol = vol + dvol
+		end # Loop over quadrature points
+		MeangradN .= MeangradN/vol
+	    fill!(elmat,  0.0); # Initialize element matrix
+	    divm = divmat(self.mr, Ns[1], MeangradN, loc);
+	    elmat += (transpose(divm) * divm) * vol
+	    gatherdofnums!(u, dofnums, fes.conn[i]); # retrieve degrees of freedom
+	    assemble!(assembler, (elmat + elmat')/2, dofnums, dofnums); # assemble symmetric matrix
+	end # Loop over elements
+	return makematrix!(assembler);
+end
+
+function infsup_gh(self::AbstractFEMMDeforLinearMS, geom::NodalField{FFlt},  u::NodalField{T}) where {T<:Number}
+    assembler = SysmatAssemblerSparseSymm();
+    return infsup_gh(self, assembler, geom, u);
+end
+
+"""
+    infsup_sh(self::AbstractFEMMDeforLinearMS, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
+
+Compute the matrix to produce the seminorm of the displacement (square root of
+the sum of the squares of the derivatives of the components of displacement).
+
+This matrix is used in the numerical infsup test (Klaus-Jurgen Bathe, The
+inf-sup condition and its evaluation for mixed finite element methods,
+Computers and Structures 79 (2001) 243-252.)
+
+!!! note 
+This computation has not been optimized in any way. It can be expected to be
+inefficient.
+"""
+function infsup_sh(self::AbstractFEMMDeforLinearMS, assembler::A, geom::NodalField{FFlt}, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T<:Number}
+	fes = self.integdomain.fes
+	npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
+	dofnums, loc, J, csmatTJ, AllgradN, MeangradN, Jac, D, Dstab, B, DB, Bbar, elmat, elvec, elvecfix = _buffers2(self, geom, u, npts)
+	startassembly!(assembler, size(elmat, 1), size(elmat, 2), count(fes), u.nfreedofs, u.nfreedofs);
+	for i = 1:count(fes) # Loop over elements
+		# NOTE: the coordinate system should be evaluated at a single point within the
+		# element in order for the derivatives to be consistent at all quadrature points
+		loc = centroid!(self,  loc, geom.values, fes.conn[i])
+		updatecsmat!(self.mcsys, loc, J, fes.label[i]);
+		vol = 0.0; # volume of the element
+		fill!(MeangradN, 0.0) # mean basis function gradients
+		for j = 1:npts # Loop over quadrature points
+		    jac!(J, geom.values, fes.conn[i], gradNparams[j]) 
+		    Jac[j] = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
+		    At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
+		    gradN!(fes, AllgradN[j], gradNparams[j], csmatTJ);
+		    dvol = Jac[j]*w[j]
+		    MeangradN .= MeangradN .+ AllgradN[j]*dvol
+		    vol = vol + dvol
+		end # Loop over quadrature points
+		MeangradN .= MeangradN/vol
+	    fill!(elmat,  0.0); # Initialize element matrix
+	    vgradm = vgradmat(self.mr, Ns[1], MeangradN, loc);
+	    	    elmat = (transpose(vgradm) * vgradm) * vol
+	    gatherdofnums!(u, dofnums, fes.conn[i]); # retrieve degrees of freedom
+	    assemble!(assembler, (elmat + elmat')/2, dofnums, dofnums); # assemble symmetric matrix
+	end # Loop over elements
+	return makematrix!(assembler);
+end
+
+function infsup_sh(self::AbstractFEMMDeforLinearMS, geom::NodalField{FFlt},  u::NodalField{T}) where {T<:Number}
+    assembler = SysmatAssemblerSparseSymm();
+    return infsup_sh(self, assembler, geom, u);
 end
 
 end
