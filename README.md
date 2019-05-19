@@ -13,7 +13,8 @@
 
 ## News
  
-- 04/27/2019: The naming and various definitions of abstract types has been unified and streamlined. Because of the ensuing (slight) incompatibilities, the toolkit has been released in the version v2.0.0.
+- 05/19/2019: Implementation of the computation of the infsup condition for isoparametric, mean-strain, and nodally-integrated solid finite elements.
+
 
 [Past news](oldnews.md)
 

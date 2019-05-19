@@ -1,5 +1,7 @@
 # Past news
 
+- 04/27/2019: The naming and various definitions of abstract types has been unified and streamlined. Because of the ensuing (slight) incompatibilities, the toolkit has been released in the version v2.0.0.
+
 - 04/25/2019: Added support for Documenter-generated guide and user manual.
 
 - 04/13/2019: Added Reverse Cuthill-McKee renumbering.
