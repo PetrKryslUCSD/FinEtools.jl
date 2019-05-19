@@ -8321,7 +8321,7 @@ function test()
 		push!(h, 1.0/(count(fens))^(1/3))
 	end
 
-	@show lambdamin
+	# @show lambdamin
 	# pl = lineplot(log.(h), log.(lambdamin), name = "infsup", xlabel = "log(Element Size)", ylabel = "log(minimum eigenvalue)", canvas = DotCanvas)
 	# display(pl)
 	
