@@ -8301,14 +8301,14 @@ function test()
 
 		lambda, modes = eigen(Matrix(Gh), Matrix(Sh));
 
-		@show lambda
+		# @show lambda
 		abslambda = real.(filter(y -> !isnan(y), lambda));
 		ix = findall(y  -> y < 0.0, abslambda);
 		if !isempty(ix)
 			abslambda[ix] .= 0;
 		end
 
-		abslambda = sqrt.(sort(abslambda));
+		@show abslambda = sqrt.(sort(abslambda));
 		ix = findall(y  -> y > 0.0, abslambda);
 		# pl = lineplot(1:length(abslambda[ix]), log.(abslambda[ix]), name = "infsup", xlabel = "eigenvalue", ylabel = "log(eigenvalue)", canvas = DotCanvas)
 		# display(pl)
