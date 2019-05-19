@@ -3203,7 +3203,7 @@ function test()
 	File =  "annulusq8penalty.vtk"
 	vtkexportmesh(File,  connasarray(fes),  [geom.values Temp.values],
 		FinEtools.MeshExportModule.Q8; scalars=[("Temperature", Temp.values)])
-	# try rm(File); catch end
+	try rm(File); catch end
 	# println("Minimum/maximum temperature= $(minimum(Temp.values))/$(maximum(Temp.values)))")
 	@test norm([minimum(Temp.values), maximum(Temp.values)]-[-0.5010001850658392, 0.5010001850658563]) < 1.0e-5
 	true

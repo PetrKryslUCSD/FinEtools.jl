@@ -3240,7 +3240,7 @@ function test()
     File = "momap2para61-fine.vtk"
     MeshExportModule.vtkexportmesh(File, fensf, fesf; scalars = [("ff", ff.values), ("ffcopy", ff.values)])
     # @async run(`"paraview.exe" $File`)
-    # try rm(File) catch end
+    try rm(File) catch end
 
     diffff = NodalField(referenceff.values - ff.values)
     femm  = FEMMBase(IntegDomain(fesf, SimplexRule(3, 4)))
