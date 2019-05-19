@@ -611,7 +611,7 @@ function infsup_sh(self::AbstractFEMMDeforLinearESNICE, assembler::A, geom::Noda
 	return makematrix!(assembler);
 end
 
-function infsup_sh(self::AbstractFEMMDeforLinear, geom::NodalField{FFlt},  u::NodalField{T}) where {T<:Number}
+function infsup_sh(self::AbstractFEMMDeforLinearESNICE, geom::NodalField{FFlt},  u::NodalField{T}) where {T<:Number}
     assembler = SysmatAssemblerSparseSymm();
     return infsup_sh(self, assembler, geom, u);
 end
