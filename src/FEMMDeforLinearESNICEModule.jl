@@ -129,11 +129,6 @@ function FEMMDeforLinearESNICET4(mr::Type{MR}, integdomain::IntegDomain{S, F}, m
     return FEMMDeforLinearESNICET4(mr, integdomain, CSys(manifdim(integdomain.fes)), material, stabilization_material, _NodalBasisFunctionGradients[], fill(zero(FFlt), 1), fill(zero(FFlt), 1))
 end
 
-function centroid!(self::F, loc, X::FFltMat, conn::C) where {F<:FEMMDeforLinearESNICET4, C}
-    weights = fill(1.0  / 4, 4)
-    return loc!(loc, X, conn, reshape(weights, 4, 1))
-end
-
 function FEMMDeforLinearESNICEH8(mr::Type{MR}, integdomain::IntegDomain{S, F}, mcsys::CSys, material::M) where {MR<:AbstractDeforModelRed,  S<:FESetH8, F<:Function, M<:AbstractMatDeforLinearElastic}
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
@@ -146,11 +141,6 @@ function FEMMDeforLinearESNICEH8(mr::Type{MR}, integdomain::IntegDomain{S, F}, m
     @assert (mr == DeforModelRed3D) "3D model required"
     stabilization_material = _make_stabilization_material(material)
     return FEMMDeforLinearESNICEH8(mr, integdomain, CSys(manifdim(integdomain.fes)), material, stabilization_material, _NodalBasisFunctionGradients[], fill(zero(FFlt), 1), fill(zero(FFlt), 1))
-end
-
-function centroid!(self::F, loc, X::FFltMat, conn::C) where {F<:FEMMDeforLinearESNICEH8, C}
-    weights = fill(1.0  / 8, 8)
-    return loc!(loc, X, conn, reshape(weights, 8, 1))
 end
 
 function _buffers1(self::AbstractFEMMDeforLinearESNICE, geom::NodalField)
@@ -214,7 +204,7 @@ function _patchconn(fes, gl, thisnn)
     return vcat(collect(setdiff(Set([i for j=1:length(gl) for i in fes.conn[gl[j]]]), thisnn)), [thisnn])
 end
 
-function computenodalbfungrads(self, geom)
+function _computenodalbfungrads(self, geom)
     # # Compute the nodal basis function gradients.
     # # Return the cell array of structures with attributes
     # %      bfun_gradients{nix}.Nspd= basis function gradient matrix
@@ -269,7 +259,7 @@ function computenodalbfungrads(self, geom)
     return self
 end
 
-function aspectratio(X)
+function _tetaspectratiovol(X)
     edge1 = vec(X[2, :] - X[1, :])
     edge2 = vec(X[3, :] - X[1, :])
     edge3 = vec(X[4, :] - X[1, :])
@@ -302,10 +292,9 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}; stabilization_para
     self.nphis = fill(zero(FFlt), nnodes(geom))
     nvols = fill(zero(FFlt), nnodes(geom))
     for i = 1:count(fes) # Loop over elements
-        ar1, ar2, ar3, ar4, V = aspectratio(geom.values[collect(fes.conn[i]), :])
+        ar1, ar2, ar3, ar4, V = _tetaspectratiovol(geom.values[collect(fes.conn[i]), :])
         evols[i] = V;
-        ar = sort([ar1, ar2, ar3, ar4])
-        self.ephis[i] = (1.0 / (b * minimum(ar) ^a) + 1.0) ^(-1)
+        self.ephis[i] = (1.0 / (b * min(ar1, ar2, ar3, ar4) ^a) + 1.0) ^(-1)
         # Accumulate: the stabilization factor at the node is the weighted mean of the stabilization factors of the elements at that node
         for k = 1:nodesperelem(fes)
             nvols[fes.conn[i][k]] += evols[i]
@@ -317,7 +306,7 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}; stabilization_para
         self.nphis[k] /= nvols[k]
     end
     # Now calculate the nodal basis function gradients
-    return computenodalbfungrads(self, geom)
+    return _computenodalbfungrads(self, geom)
 end
 
 """
@@ -359,7 +348,7 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMDefo
         self.nphis[k] /= nvols[k]
     end
     # Now calculate the nodal basis function gradients
-    return computenodalbfungrads(self, geom)
+    return _computenodalbfungrads(self, geom)
 end
 """
     stiffness(self::AbstractFEMMDeforLinearESNICE, assembler::A,
