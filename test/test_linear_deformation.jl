@@ -8301,7 +8301,7 @@ function test()
 
 		lambda, modes = eigen(Matrix(Gh), Matrix(Sh));
 
-		# @show lambda
+		@show lambda
 		abslambda = real.(filter(y -> !isnan(y), lambda));
 		ix = findall(y  -> y < 0.0, abslambda);
 		if !isempty(ix)
@@ -8321,7 +8321,7 @@ function test()
 		push!(h, 1.0/(count(fens))^(1/3))
 	end
 
-	# @show lambdamin
+	@show lambdamin
 	# pl = lineplot(log.(h), log.(lambdamin), name = "infsup", xlabel = "log(Element Size)", ylabel = "log(minimum eigenvalue)", canvas = DotCanvas)
 	# display(pl)
 	
