@@ -76,6 +76,21 @@ nthermstrain(::Type{DeforModelRed3D})::FInt = 6;
     stresscomponentmap(::Type{DeforModelRed1D})
 
 Construct a dictionary to map from stress-component symbols to indexes.
+
+# Example
+Which component of the stress vector is for instance sigma_x?
+Do
+```
+julia> comp = stresscomponentmap(DeforModelRed1D)
+Dict{Symbol,Int64} with 2 entries:
+  :xx => 1
+  :x  => 1
+
+julia>
+
+julia> comp[:x]
+1
+```
 """
 function stresscomponentmap(::Type{DeforModelRed1D})
     a=Dict{Symbol,FInt}();
@@ -130,7 +145,7 @@ coordinate system, the output strains are in the material coordinate system.*
   Cartesian coordinates.
 - `Rm` =orthogonal matrix with the unit basis vectors of the local material
   orientation coordinate system as columns. `size(Rm)= (ndim,mdim)`, where
-  `ndim` = number of spatial dimensions of the embedding space (here `ndim <= 
+  `ndim` = number of spatial dimensions of the embedding space (here `ndim <=
   3`), and `mdim` = number of manifold dimensions (here `mdim == 1`).
 
 # Output
@@ -176,7 +191,7 @@ material coordinate system.*
   Cartesian coordinates.
 - `Rm` =orthogonal matrix with the unit basis vectors of the local material
   orientation coordinate system as columns. `size(Rm)= (ndim,mdim)`, where
-  `ndim` = number of spatial dimensions of the embedding space (here `ndim <= 
+  `ndim` = number of spatial dimensions of the embedding space (here `ndim <=
   3`), and `mdim` = number of manifold dimensions (here `mdim == 2`).
 
 # Output
@@ -224,7 +239,7 @@ material coordinate system.*
   Cartesian coordinates.
 - `Rm` =orthogonal matrix with the unit basis vectors of the local material
   orientation coordinate system as columns. `size(Rm)= (ndim,mdim)`, where
-  `ndim` = number of spatial dimensions of the embedding space (here `ndim <= 
+  `ndim` = number of spatial dimensions of the embedding space (here `ndim <=
   3`), and `mdim` = number of manifold dimensions (here `mdim == 2`).
 
 # Output
@@ -272,7 +287,7 @@ material coordinate system.*
   Cartesian coordinates.
 - `Rm` =orthogonal matrix with the unit basis vectors of the local material
   orientation coordinate system as columns. `size(Rm)= (ndim,mdim)`, where
-  `ndim` = number of spatial dimensions of the embedding space (here `ndim <= 
+  `ndim` = number of spatial dimensions of the embedding space (here `ndim <=
   3`), and `mdim` = number of manifold dimensions (here `mdim == 2`).
 
 # Output
@@ -325,7 +340,7 @@ system.*
   Cartesian coordinates.
 - `Rm` =orthogonal matrix with the unit basis vectors of the local material
   orientation coordinate system as columns. `size(Rm)= (ndim,mdim)`, where
-  `ndim` = number of spatial dimensions of the embedding space (here `ndim ==  
+  `ndim` = number of spatial dimensions of the embedding space (here `ndim ==
   3`), and `mdim` = number of manifold dimensions (here `mdim == 3`).
 
 # Output
@@ -371,7 +386,7 @@ Compute the displacement divergence matrix for a three-manifold element.
   Cartesian coordinates.
 - `Rm` =orthogonal matrix with the unit basis vectors of the local material
   orientation coordinate system as columns. `size(Rm)= (ndim,mdim)`, where
-  `ndim` = number of spatial dimensions of the embedding space (here `ndim ==  
+  `ndim` = number of spatial dimensions of the embedding space (here `ndim ==
   3`), and `mdim` = number of manifold dimensions (here `mdim == 3`).
 
 # Output
@@ -414,7 +429,7 @@ Compute the matrix of displacement gradient in vector form for a three-manifold 
   Cartesian coordinates.
 - `Rm` =orthogonal matrix with the unit basis vectors of the local material
   orientation coordinate system as columns. `size(Rm)= (ndim,mdim)`, where
-  `ndim` = number of spatial dimensions of the embedding space (here `ndim ==  
+  `ndim` = number of spatial dimensions of the embedding space (here `ndim ==
   3`), and `mdim` = number of manifold dimensions (here `mdim == 3`).
 
 # Output
@@ -429,7 +444,7 @@ function vgradmat(MR::Type{DeforModelRed3D}, N::FFltMat, gradN::FFltMat, c::FFlt
 	@assert (dim = size(c,2)) == 3;
 	vgradm = fill(0.0, dim*dim, dim*nnodes)
 	for i = 1:dim
-		vgradm[dim*(i-1)+1:dim*i, i:dim:nnodes*dim-dim+i] .= transpose(gradN); 
+		vgradm[dim*(i-1)+1:dim*i, i:dim:nnodes*dim-dim+i] .= transpose(gradN);
 	end
 	return vgradm::FFltMat;
 end
