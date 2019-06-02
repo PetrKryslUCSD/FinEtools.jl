@@ -14,7 +14,9 @@ Finite element node set type.
 mutable struct FENodeSet
 	"""
 	Array of node locations. Indexed with the node number.
-	The location of node j is given by `xyz[j,:]`.
+	The location of node `j` is given by `xyz[j,:]`.
+	Clearly, the nodes needs to be numbered between `1` and `size(xyz, 1)`.
+	The constructor makes a *copy* of the input `xyz` array for safety.
 	"""
 	xyz::Array{FFlt, 2}
 

@@ -83,7 +83,7 @@ end
 """
     nodesperelem(fes::AbstractFESet{NODESPERELEM}) where {NODESPERELEM}
 
-Provide the number of nodes per element.  
+Provide the number of nodes per element.
 """
 nodesperelem(fes::AbstractFESet{NODESPERELEM}) where {NODESPERELEM} = NODESPERELEM
 
@@ -107,7 +107,7 @@ count(self::T) where {T<:AbstractFESet} = length(self.conn)
 """
     fromarray!(self::AbstractFESet{NODESPERELEM}, conn::FIntMat) where {NODESPERELEM}
 
-Set  the connectivity from an integer array.  
+Set  the connectivity from an integer array.
 """
 function fromarray!(self::AbstractFESet{NODESPERELEM}, conn::FIntMat) where {NODESPERELEM}
     @assert size(conn, 2) == NODESPERELEM
@@ -120,6 +120,8 @@ end
 
 """
     connasarray(self::AbstractFESet{NODESPERELEM}) where {NODESPERELEM}
+
+Return the connectivity as an array.
 
 Return the connectivity as an integer array (matrix), where the number of rows
 matches the number of connectivities in the set.
@@ -155,6 +157,8 @@ end
 """
     bfun(self::T,  param_coords::FFltVec)::FFltMat where {T<:AbstractFESet}
 
+Compute the values of the basis functions.
+
 Compute the values of the basis functions at a given parametric coordinate.
 One basis function per row.
 """
@@ -164,6 +168,8 @@ end
 
 """
     bfundpar(self::T,  param_coords::FFltVec)::FFltMat where {T<:AbstractFESet}
+
+Compute the values of the basis function gradients.
 
 Compute the values of the basis function gradients with respect to the
 parametric coordinates at a given parametric coordinate. One basis function
@@ -177,6 +183,8 @@ end
     setlabel!(self::T, val::FInt) where {T<:AbstractFESet}
 
 Set the label of the entire finite elements set.
+
+All elements are labeled with this number.
 """
 function setlabel!(self::T, val::FInt) where {T<:AbstractFESet}
     self.label = zeros(FInt, size(self.conn, 1));
@@ -436,7 +444,7 @@ function gradN!(self::AbstractFESet3Manifold, gradN::FFltMat, gradNparams::FFltM
 end
 
 
-    
+
 ################################################################################
 ################################################################################
 
