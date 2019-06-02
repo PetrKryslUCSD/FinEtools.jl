@@ -23,39 +23,39 @@ Steady-state acoustics solver.
 
 `modeldata` = dictionary with string keys
 
-- "fens"  = finite element node set
-- "regions"  = array of region dictionaries
-- "essential_bcs" = array of essential boundary condition dictionaries
-- "ABCs" = array of absorbing boundary condition dictionaries
-- "flux_bcs" = array of flux boundary condition dictionaries
+- `"fens"`  = finite element node set
+- `"regions"`  = array of region dictionaries
+- `"essential_bcs"` = array of essential boundary condition dictionaries
+- `"ABCs"` = array of absorbing boundary condition dictionaries
+- `"flux_bcs"` = array of flux boundary condition dictionaries
 
 For each region (connected piece of the domain made of a particular material),
 mandatory, the  region dictionary  contains items:
-- "femm" = finite element mmodel machine (mandatory);
+- `"femm"` = finite element mmodel machine (mandatory);
 
 For essential boundary conditions (optional) each dictionary
 would hold
-  + "pressure" = fixed (prescribed) pressure (scalar),  or
+  + `"pressure"` = fixed (prescribed) pressure (scalar),  or
             a function with signature
                 function T = f(x)
             If not given, zero pressure assumed.
-  + "node_list" = list of nodes on the boundary to which the condition applies
+  + `"node_list"` = list of nodes on the boundary to which the condition applies
             (mandatory)
 
 For absorbing boundary conditions (optional) each dictionary
 may hold
-  + "femm" = finite element mmodel machine (mandatory).
+  + `"femm"` = finite element mmodel machine (mandatory).
 
 For flux boundary conditions (optional) each dictionary
 would hold
-  + "femm" = finite element mmodel machine (mandatory);
-  + "normal_flux" = normal component of the flux through the boundary (scalar),
+  + `"femm"` = finite element mmodel machine (mandatory);
+  + `"normal_flux"` = normal component of the flux through the boundary (scalar),
         which is the normal derivative of the pressure.
 
 # Output
 `modeldata` = the dictionary is augmented with
-- "geom" = the nodal field that is the geometry
-- "P" = the nodal field that is the computed pressure (in the general a
+- `"geom"` = the nodal field that is the geometry
+- `"P"` = the nodal field that is the computed pressure (in the general a
             complex-number field)
 """
 function steadystate(modeldata::FDataDict)

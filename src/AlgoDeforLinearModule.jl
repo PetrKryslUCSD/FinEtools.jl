@@ -66,16 +66,6 @@ would hold
 """
 function linearstatics(modeldata::FDataDict)
 
-    # For traction boundary conditions (optional):
-    # model_data.boundary_conditions.traction = cell array of struct,
-    #           each piece of surface with traction boundary condition gets one
-    #           element of the array with a struct with the attributes
-    #     traction=traction (vector), supply a zero for component in which
-    #           the boundary condition is inactive
-    #     fes = finite element set on the boundary to which
-    #                       the condition applies
-    #     integration_rule= integration rule
-    #
     # For body loads (optional):
     # model_data.body_load = cell array of struct,
     #          each piece of the domain can have each its own body load
