@@ -1,7 +1,7 @@
 """
     PhysicalUnitModule
 
-Module  to handle use of physical units in definitions of input data.  
+Module  to handle use of physical units in definitions of input data.
 """
 module PhysicalUnitModule
 
@@ -14,7 +14,7 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 
 Evaluate an expression in physical units.
 
-## Example
+# Example
 ```
 pu = ustring -> phun(ustring; system_of_units = :SIMM)
 E1s = 130.0*pu("GPa")
@@ -32,16 +32,16 @@ function phun(str::String; system_of_units = :SI, base_time_units = :SEC)::FFlt
 
     @assert system_of_units in [:SI :SIM :US :IMPERIAL :CGS :SIMM]
     @assert base_time_units in [:SEC :MIN :HR :DY :YR :WK]
-    
+
     """
         _physunitdict(system_of_units, base_time_units)
     Create a dictionary with physical unit conversion factors.
     Inputs:
     --`system_of_units`
-    if system_of_units  ==  :US 
+    if system_of_units  ==  :US
        basic assumed units are American Engineering:
        LENGTH = FT, TIME = SEC, MASS = SLUG TEMPERATURE = RAN FORCE = LB
-    elseif system_of_units  ==  :CGS 
+    elseif system_of_units  ==  :CGS
        basic assumed units are Centimeter,Gram,Second:
        LENGTH = CM, TIME = SEC, MASS = GM TEMPERATURE = K FORCE = DYNE
     elseif system_of_units  ==  :IMPERIAL

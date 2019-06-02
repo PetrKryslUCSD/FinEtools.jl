@@ -27,18 +27,19 @@ struct VectorCache{T<:Number, F<:Function}
 	"""
 	Function to update and retrieve the vector
 	"""
-    fillcache!::F 
+    fillcache!::F
     """
     Cache where the current value of the vector can be retrieved
     """
-    cache::Vector{T} 
+    cache::Vector{T}
 end
 
 """
     VectorCache(::Type{T}, nentries::FInt, fillcache!::F) where {T<:Number, F<:Function}
 
-Construct vector cache. The function to fill the vector cache is
-given. This function needs to have a signature of
+Construct vector cache. The function to fill the vector cache is given.
+
+This function needs to have a signature of
 ```
 fillcache!(cacheout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
 Calculate the vector and copy it into the cache....
