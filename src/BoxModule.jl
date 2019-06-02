@@ -23,11 +23,11 @@ function inbox(box::AbstractVector, x::AbstractVector)
     @assert 2*sdim == length(box)
     if !inrange(box[1], box[2], x[1])
         return false # short-circuit
-    end 
+    end
     for i=2:sdim
         if !inrange(box[2*i-1], box[2*i], x[i])
             return false # short-circuit
-        end 
+        end
     end
     return true
 end
@@ -104,6 +104,11 @@ function boundingbox(x::AbstractArray)
     return updatebox!(FFlt[], x)
 end
 
+"""
+    inflatebox!(box::AbstractVector, inflatevalue::Number)
+
+Inflate the box by the value supplied.
+"""
 function inflatebox!(box::AbstractVector, inflatevalue::Number)
     abox = deepcopy(box)
     sdim = Int(length(box)/2);
@@ -136,7 +141,7 @@ end
 """
     intersectboxes(box1::AbstractVector, box2::AbstractVector)
 
-Compute the intersection of two boxes.  
+Compute the intersection of two boxes.
 
 The function returns an empty box (length(b) == 0) if the intersection is
 empty; otherwise a box is returned.
