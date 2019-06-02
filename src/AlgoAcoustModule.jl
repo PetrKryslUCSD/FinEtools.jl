@@ -10,7 +10,7 @@ import FinEtools.AlgoBaseModule: dcheck!
 import FinEtools.FieldModule: ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!
 import FinEtools.NodalFieldModule: NodalField, nnodes
 import FinEtools.FEMMBaseModule: associategeometry!, distribloads
-import FinEtools.FEMMAcoustModule: acousticmass, acousticstiffness, nzebcloadsacousticmass, nzebcloadsacousticstiffness 
+import FinEtools.FEMMAcoustModule: acousticmass, acousticstiffness, nzebcloadsacousticmass, nzebcloadsacousticstiffness
 import FinEtools.FEMMAcoustSurfModule: acousticABC
 import FinEtools.ForceIntensityModule: ForceIntensity
 import SparseArrays: spzeros
@@ -21,7 +21,7 @@ import LinearAlgebra: norm, lu, cross
 
 Steady-state acoustics solver.
 
-`modeldata` = dictionary with keys
+`modeldata` = dictionary with string keys
 
 - "fens"  = finite element node set
 - "regions"  = array of region dictionaries
