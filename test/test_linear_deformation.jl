@@ -7761,7 +7761,7 @@ function test()
 # @show lambdamin
 # 	a = lineplot(log.(h), log.(lambdamin), name = "infsup", xlabel = "log(Element Size)", ylabel = "log(minimum eigenvalue)", canvas = DotCanvas)
 # 	display(a)
-	
+
 	@test norm(lambdamin - [0.262065, 0.1709, 0.126159, 0.100228, 0.0828139]) / norm(lambdamin) <= 1.0e-4
 
 end
@@ -7795,7 +7795,7 @@ function test()
 			fens.xyz[i,:] = fens.xyz[i,:] + vec(reshape(fens.xyz[i,:], 1, 3)*A);
 		end
 		# @show fens.xyz
-	
+
 		# File =  "minfsuptest1.vtk"
 		# vtkexportmesh(File, fens, fes)
 		# try rm(File); catch end
@@ -7804,7 +7804,7 @@ function test()
 
 		material = MatDeforElastIso(MR, E, nu)
 
-		
+
 		geom = NodalField(fens.xyz)
 		u = NodalField(zeros(size(fens.xyz,1), 3)) # displacement field
 		bfes = meshboundary(fes)
@@ -7818,9 +7818,9 @@ function test()
 		Gh = infsup_gh(femm, geom, u);
 		femm  =  FEMMDeforLinear(MR, IntegDomain(fes, TetRule(4)), material)
 		Sh = infsup_sh(femm, geom, u);
-		
+
 		lambda, modes = eigen(Matrix(Gh), Matrix(Sh));
-		
+
 		# @show lambda
 		abslambda = real.(filter(y -> !isnan(y), lambda));
 		ix = findall(y  -> y < 0.0, abslambda);
@@ -7844,7 +7844,7 @@ function test()
 	# @show lambdamin
 	# a = lineplot(log.(h), log.(lambdamin), name = "infsup", xlabel = "log(Element Size)", ylabel = "log(minimum eigenvalue)", canvas = DotCanvas)
 	# display(a)
-	
+
 	@test norm(lambdamin - [0.0729658, 0.0585958, 0.0459494] ) / norm(lambdamin) <= 1.0e-4
 
 end
@@ -7879,7 +7879,7 @@ function test()
 			fens.xyz[i,:] = fens.xyz[i,:] + vec(reshape(fens.xyz[i,:], 1, 3)*A);
 		end
 		# @show fens.xyz
-	
+
 		# File =  "minfsuptest1.vtk"
 		# vtkexportmesh(File, fens, fes)
 		# try rm(File); catch end
@@ -7888,7 +7888,7 @@ function test()
 
 		material = MatDeforElastIso(MR, E, nu)
 
-		
+
 		geom = NodalField(fens.xyz)
 		u = NodalField(zeros(size(fens.xyz,1), 3)) # displacement field
 		bfes = meshboundary(fes)
@@ -7928,7 +7928,7 @@ function test()
 	# @show lambdamin
 	# a = lineplot(log.(h), log.(lambdamin), name = "infsup", xlabel = "log(Element Size)", ylabel = "log(minimum eigenvalue)", canvas = DotCanvas)
 	# display(a)
-	
+
 	@test norm(lambdamin - [0.270777, 0.179116, 0.132893]) / norm(lambdamin) <= 1.0e-4
 
 end
@@ -7961,7 +7961,7 @@ function test()
 			fens.xyz[i,:] = fens.xyz[i,:] + vec(reshape(fens.xyz[i,:], 1, 3)*A);
 		end
 		# @show fens.xyz
-	
+
 		# File =  "minfsuptest1.vtk"
 		# vtkexportmesh(File, fens, fes)
 		# try rm(File); catch end
@@ -7970,7 +7970,7 @@ function test()
 
 		material = MatDeforElastIso(MR, E, nu)
 
-		
+
 		geom = NodalField(fens.xyz)
 		u = NodalField(zeros(size(fens.xyz,1), 3)) # displacement field
 		bfes = meshboundary(fes)
@@ -7984,9 +7984,9 @@ function test()
 		Gh = infsup_gh(femm, geom, u);
 		femm  =  FEMMDeforLinear(MR, IntegDomain(fes, GaussRule(3, 1)), material)
 		Sh = infsup_sh(femm, geom, u);
-		
+
 		lambda, modes = eigen(Matrix(Gh), Matrix(Sh));
-		
+
 		# @show lambda
 		abslambda = real.(filter(y -> !isnan(y), lambda));
 		ix = findall(y  -> y < 0.0, abslambda);
@@ -8010,8 +8010,8 @@ function test()
 	# @show lambdamin
 	# a = lineplot(log.(h), log.(lambdamin), name = "infsup", xlabel = "log(Element Size)", ylabel = "log(minimum eigenvalue)", canvas = DotCanvas)
 	# display(a)
-	
-	@test norm(lambdamin - [0.447936, 0.317169, 0.305056, 0.300754, 0.291477, 0.290534, 
+
+	@test norm(lambdamin - [0.447936, 0.317169, 0.305056, 0.300754, 0.291477, 0.290534,
 0.285866, 0.285624]) / norm(lambdamin) <= 1.0e-4
 
 end
@@ -8043,7 +8043,7 @@ function test()
         fens.xyz[i,:]=[(t*3.25+(1-t)*2)*cos(a), (t*2.75+(1-t)*1)*sin(a), z];
     end
 
-    
+
     geom = NodalField(fens.xyz)
     u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
 
@@ -8157,7 +8157,7 @@ function test()
 	# 	File =  "cube-mode$(mode).vtk"
 	# 	vtkexportmesh(File, fes.conn, fens.xyz, FinEtools.MeshExportModule.H8; vectors = [("u", u.values)], scalars = [("pressure", fld.values)])
 	# end
-	
+
 	@async run(`"paraview.exe" $File`)
 
 	@test norm(fs.-[0.0, 0.0, 0.0, 1.76692e-8, 1.08952e-7, 1.40754e-7, 0.267052, 0.273879, 0.351477, 0.358597, 0.360482, 0.361265, 0.363118, 0.36379, 0.410238, 0.410963, 0.424434, 0.454963, 0.45869, 0.459053])./norm(fs) < 1.0e-5
@@ -8186,12 +8186,12 @@ function test()
 		Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, orientation::Symbol = (6.0, 6.0, 6.0, ne, ne, ne, :a)
 
 		fens, fes = T4block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, orientation::Symbol)
-		
+
 		for i = 1:count(fens)
 			fens.xyz[i,:] = fens.xyz[i,:] + vec(reshape(fens.xyz[i,:], 1, 3)*A);
 		end
 		# @show fens.xyz
-	
+
 		# File =  "minfsuptest1.vtk"
 		# vtkexportmesh(File, fens, fes)
 		# try rm(File); catch end
@@ -8200,7 +8200,7 @@ function test()
 
 		material = MatDeforElastIso(MR, E, nu)
 
-		
+
 		geom = NodalField(fens.xyz)
 		u = NodalField(zeros(size(fens.xyz,1), 3)) # displacement field
 		bfes = meshboundary(fes)
@@ -8242,7 +8242,7 @@ function test()
 	# @show lambdamin
 	# a = lineplot(log.(h), log.(lambdamin), name = "infsup", xlabel = "log(Element Size)", ylabel = "log(minimum eigenvalue)", canvas = DotCanvas)
 	# display(a)
-	
+
 	@test norm(lambdamin - [0.136112, 0.0475213, 0.0505729]) / norm(lambdamin) <= 1.0e-4
 
 end
@@ -8270,12 +8270,12 @@ function test()
 
 		fens, fes = T4block(Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, orientation::Symbol)
 		fens, fes = T4toT10(fens, fes)
-		
+
 		for i = 1:count(fens)
 			fens.xyz[i,:] = fens.xyz[i,:] + vec(reshape(fens.xyz[i,:], 1, 3)*A);
 		end
 		# @show fens.xyz
-	
+
 		# File =  "minfsuptest1.vtk"
 		# vtkexportmesh(File, fens, fes)
 		# try rm(File); catch end
@@ -8284,7 +8284,7 @@ function test()
 
 		material = MatDeforElastIso(MR, E, nu)
 
-		
+
 		geom = NodalField(fens.xyz)
 		u = NodalField(zeros(size(fens.xyz,1), 3)) # displacement field
 		bfes = meshboundary(fes)
@@ -8324,7 +8324,7 @@ function test()
 	# @show lambdamin
 	# pl = lineplot(log.(h), log.(lambdamin), name = "infsup", xlabel = "log(Element Size)", ylabel = "log(minimum eigenvalue)", canvas = DotCanvas)
 	# display(pl)
-	
+
 	# For some reason the results are quite sensitive to numerical precision
 	# of the solver (even to the number of bits per floating-point number, 32
 	# versus 64)!
@@ -8335,3 +8335,177 @@ end
 using .minfsuptestik13
 minfsuptestik13.test()
 
+module munit_cube_modes_nice_t4_1
+using FinEtools
+using Test
+using Arpack
+using LinearAlgebra
+function test()
+    # println("""
+    # Vibration modes of unit cube  of almost incompressible material.
+    # %
+    # Reference: Puso MA, Solberg J (2006) A stabilized nodally integrated
+    # tetrahedral. International Journal for Numerical Methods in
+    # Engineering 67: 841-867.
+    # """)
+    t0 = time()
+
+    E = 1*phun("PA");
+    nu = 0.499;
+    rho = 1*phun("KG/M^3");
+    a = 1*phun("M"); b = a; h =  a;
+    n1 = 10;# How many element edges per side?
+    na =  n1; nb =  n1; nh  = n1;
+    neigvs = 20                   # how many eigenvalues
+    OmegaShift = (0.01*2*pi)^2;
+    stabfact = 0.015
+    Eigenvalues = [0.0, 5.93656e-8, 7.54751e-8, 9.80131e-8, 1.14899e-7, 1.27725e-7, 0.264544, 0.266128, 0.350568, 0.352546, 0.355279, 0.357389, 0.357701, 0.359704, 0.402389, 0.402968, 0.404977, 0.45061, 0.450974, 0.452039]
+
+    MR = DeforModelRed3D
+    fens,fes  = T4block(a,b,h, na,nb,nh)
+
+    geom = NodalField(fens.xyz)
+    u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+
+    numberdofs!(u)
+
+    material = MatDeforElastIso(MR, rho, E, nu, 0.0)
+
+    femm = FEMMDeforLinearNICET4(MR, IntegDomain(fes, NodalSimplexRule(3)), material)
+    associategeometry!(femm,  geom)
+    K  = stiffness(femm, geom, u)
+    M = mass(femm, geom, u)
+    d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
+    d = d .- OmegaShift;
+    fs = real(sqrt.(complex(d)))/(2*pi)
+    # # println("Eigenvalues: $fs [Hz]")
+    @test norm(vec(fs) .- vec(Eigenvalues)) < 1.0e-4*maximum(vec(Eigenvalues))
+
+    # mode = 17
+    # scattersysvec!(u, v[:,mode])
+    # File =  "unit_cube_modes.vtk"
+    # vtkexportmesh(File, fens, fes; vectors=[("mode$mode", u.values)])
+
+    true
+
+end
+end
+using .munit_cube_modes_nice_t4_1
+munit_cube_modes_nice_t4_1.test()
+
+module munit_cube_modes_nice_h8_1
+using FinEtools
+using Test
+using Arpack
+using LinearAlgebra
+function test()
+    # println("""
+    # Vibration modes of unit cube  of almost incompressible material.
+    # %
+    # Reference: Puso MA, Solberg J (2006) A stabilized nodally integrated
+    # tetrahedral. International Journal for Numerical Methods in
+    # Engineering 67: 841-867.
+    # """)
+    t0 = time()
+
+    E = 1*phun("PA");
+    nu = 0.499;
+    rho = 1*phun("KG/M^3");
+    a = 1*phun("M"); b = a; h =  a;
+    n1 = 10;# How many element edges per side?
+    na =  n1; nb =  n1; nh  = n1;
+    neigvs = 20                   # how many eigenvalues
+    OmegaShift = (0.01*2*pi)^2;
+    stabfact = 0.015
+    Eigenvalues = [8.87006e-8, 1.31442e-7, 1.48589e-7, 1.70175e-7, 2.06643e-7, 2.24457e-7, 0.296976, 0.296976, 0.363944, 0.363944, 0.363944, 0.374385, 0.374385, 0.374385, 0.413556, 0.413556, 0.472423, 0.472423, 0.472423, 0.485889]
+
+    MR = DeforModelRed3D
+    fens,fes  = H8block(a,b,h, na,nb,nh)
+
+    geom = NodalField(fens.xyz)
+    u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+
+    numberdofs!(u)
+
+    material = MatDeforElastIso(MR, rho, E, nu, 0.0)
+
+    femm = FEMMDeforLinearNICEH8(MR, IntegDomain(fes, NodalTensorProductRule(3)), material, stabfact)
+    associategeometry!(femm,  geom)
+    K  = stiffness(femm, geom, u)
+    M = mass(femm, geom, u)
+    d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
+    d = d .- OmegaShift;
+    fs = real(sqrt.(complex(d)))/(2*pi)
+    # println("Eigenvalues: $fs [Hz]")
+
+    @test norm(vec(fs) .- vec(Eigenvalues)) < 1.0e-4*maximum(vec(Eigenvalues))
+
+    # mode = 17
+    # scattersysvec!(u, v[:,mode])
+    # File =  "unit_cube_modes.vtk"
+    # vtkexportmesh(File, fens, fes; vectors=[("mode$mode", u.values)])
+
+    true
+
+end
+end
+using .munit_cube_modes_nice_h8_1
+munit_cube_modes_nice_h8_1.test()
+
+module munit_cube_modes_nice_h8_2
+using FinEtools
+using Test
+using Arpack
+using LinearAlgebra
+function test()
+    # println("""
+    # Vibration modes of unit cube  of almost incompressible material.
+    # %
+    # Reference: Puso MA, Solberg J (2006) A stabilized nodally integrated
+    # tetrahedral. International Journal for Numerical Methods in
+    # Engineering 67: 841-867.
+    # """)
+    t0 = time()
+
+    E = 1*phun("PA");
+    nu = 0.499;
+    rho = 1*phun("KG/M^3");
+    a = 1*phun("M"); b = a; h =  a;
+    n1 = 10;# How many element edges per side?
+    na =  n1; nb =  n1; nh  = n1;
+    neigvs = 20                   # how many eigenvalues
+    OmegaShift = (0.01*2*pi)^2;
+    Eigenvalues = [2.58577e-7, 2.67798e-7, 2.84363e-7, 3.30897e-7, 3.37868e-7, 3.58822e-7, 0.363492, 0.363492, 0.380626, 0.380626, 0.380626, 0.422026, 0.422026, 0.422026, 0.424577, 0.424577, 0.517043, 0.517043, 0.517043, 0.58519]
+
+    MR = DeforModelRed3D
+    fens,fes  = H8block(a,b,h, na,nb,nh)
+
+    geom = NodalField(fens.xyz)
+    u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
+
+    numberdofs!(u)
+
+    material = MatDeforElastIso(MR, rho, E, nu, 0.0)
+
+    femm = FEMMDeforLinearNICEH8(MR, IntegDomain(fes, NodalTensorProductRule(3)), material)
+    associategeometry!(femm,  geom)
+    K  = stiffness(femm, geom, u)
+    M = mass(femm, geom, u)
+    d,v,nev,nconv = eigs(K+OmegaShift*M, M; nev=neigvs, which=:SM)
+    d = d .- OmegaShift;
+    fs = real(sqrt.(complex(d)))/(2*pi)
+    # println("Eigenvalues: $fs [Hz]")
+
+    @test norm(vec(fs) .- vec(Eigenvalues)) < 1.0e-4*maximum(vec(Eigenvalues))
+
+    # mode = 17
+    # scattersysvec!(u, v[:,mode])
+    # File =  "unit_cube_modes.vtk"
+    # vtkexportmesh(File, fens, fes; vectors=[("mode$mode", u.values)])
+
+    true
+
+end
+end
+using .munit_cube_modes_nice_h8_2
+munit_cube_modes_nice_h8_2.test()

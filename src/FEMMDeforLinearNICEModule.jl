@@ -23,7 +23,7 @@ import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, g
 import FinEtools.NodalFieldModule: NodalField, nnodes
 import FinEtools.CSysModule: CSys, updatecsmat!
 import FinEtools.FENodeToFEMapModule: FENodeToFEMap
-import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat! 
+import FinEtools.DeforModelRedModule: nstressstrain, nthermstrain, Blmat!
 import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, loc!, jac!, locjac!, adjugate3!
 import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass, thermalstrainloads, inspectintegpoints
@@ -73,6 +73,12 @@ function FEMMDeforLinearNICEH8(mr::Type{MR}, integdomain::IntegDomain{S, F}, mat
     @assert mr == material.mr "Model reduction is mismatched"
     @assert (mr == DeforModelRed3D) "3D model required"
     stabfact = 0.05
+    return FEMMDeforLinearNICEH8(mr, integdomain, CSys(manifdim(integdomain.fes)), material, stabfact, _NodalBasisFunctionGradients[])
+end
+
+function FEMMDeforLinearNICEH8(mr::Type{MR}, integdomain::IntegDomain{S, F}, material::M, stabfact::FFlt) where {MR<:AbstractDeforModelRed,  S<:FESetH8, F<:Function, M<:AbstractMatDeforLinearElastic}
+    @assert mr == material.mr "Model reduction is mismatched"
+    @assert (mr == DeforModelRed3D) "3D model required"
     return FEMMDeforLinearNICEH8(mr, integdomain, CSys(manifdim(integdomain.fes)), material, stabfact, _NodalBasisFunctionGradients[])
 end
 
@@ -183,9 +189,9 @@ function computenodalbfungrads(self, geom)
                 @assert 1 <= pci <= nodesperelem(fes)
                 # centered coordinates of nodes in the material coordinate system
                 for cn = 1:length(kconn)
-                    xl[cn, :] = (reshape(geom.values[kconn[cn], :], 1, ndofs(geom)) - c) * self.mcsys.csmat 
+                    xl[cn, :] = (reshape(geom.values[kconn[cn], :], 1, ndofs(geom)) - c) * self.mcsys.csmat
                 end
-                jac!(J, xl, lconn, gradNparams[pci]) 
+                jac!(J, xl, lconn, gradNparams[pci])
                 At_mul_B!(csmatTJ, self.mcsys.csmat, J); # local Jacobian matrix
                 Jac = Jacobianvolume(self.integdomain, J, c, fes.conn[i], Ns[pci]);
                 Vpatch += Jac * w[pci];
