@@ -173,9 +173,9 @@ The set `fens2` will be included unchanged, in the same order,
 in the node set `fens`.
 The indexes of the node set `fens1` will have changed.
 
-### Example:
+# Example
 After the call to this function we have
-`k=new_indexes_of_fens1_nodes[j]` is the node in the node set fens which
+`k=new_indexes_of_fens1_nodes[j]` is the node in the node set `fens` which
 used to be node `j` in node set `fens1`.
 The finite element set connectivity that used to refer to `fens1`
 needs to be updated to refer to the same nodes in  the set `fens` as
@@ -201,7 +201,7 @@ function fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance:: FFlt)
         for i=1:nn2
             node2in[i] = inbox(ib, @view xyz2[i, :])
         end
-    end 
+    end
     # Mark nodes from the first array that are duplicated in the second
     if (tolerance > 0.0) # should we attempt to merge nodes?
         for i=1:nn1
@@ -219,7 +219,7 @@ function fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance:: FFlt)
                         if (distance < tolerance)
                             id1[i] = -rx; breakoff = true;
                         end
-                    end 
+                    end
                     if breakoff
                         break
                     end
@@ -240,7 +240,7 @@ function fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance:: FFlt)
     end
     mid=nn2+1;
     # ...and then we add in only non-duplicated nodes from the first set
-    for i=1:nn1 
+    for i=1:nn1
         if id1[i]>0
             id1[i] = mid;
             idm[mid] = mid;
@@ -273,14 +273,14 @@ Compact the finite element node set by deleting unconnected nodes.
   unconnected node), or a positive number (when node `j` is connected to
   other nodes by at least one finite element)
 
-### Output:
+# Output
 `fens` = new set of finite element nodes
 `new_numbering`= array which tells where in the new `fens` array the
      connected nodes are (or 0 when the node was unconnected). For instance,
      node 5 was connected, and in the new array it is the third node: then
      `new_numbering[5]` is 3.
 
-### Examples:
+# Examples
 Let us say there are nodes not connected to any finite element that you
 would like to remove from the mesh: here is how that would be
 accomplished.
@@ -352,11 +352,11 @@ end
 
 Merge several meshes together.
 
-The meshes are glued together by merging the nodes that fall within 
-a box of size `tolerance`. If `tolerance` is set to zero, no merging of 
+The meshes are glued together by merging the nodes that fall within
+a box of size `tolerance`. If `tolerance` is set to zero, no merging of
 nodes is performed; the nodes from the meshes are simply concatenated together.
 
-## Output
+# Output
 The merged node set, `fens`, and an array of finite element sets with
 renumbered  connectivities are returned.
 """
@@ -444,8 +444,9 @@ end
 
 Merge together  nodes of a single node set.
 
-Similar to `mergenodes(fens::FENodeSet, fes::AbstractFESet, tolerance::FFlt)`, but only
-the candidate nodes are considered for merging. This can potentially speed up the operation by orders of magnitude.
+Similar to `mergenodes(fens::FENodeSet, fes::AbstractFESet, tolerance::FFlt)`,
+but only the candidate nodes are considered for merging. This can potentially
+speed up the operation by orders of magnitude.
 """
 function mergenodes(fens::FENodeSet, fes::AbstractFESet, tolerance::FFlt, candidates::FIntVec)
     maxnn = count(fens) + 1
@@ -573,13 +574,13 @@ end
 
 General smoothing of meshes.
 
-## Keyword options:
+# Keyword options
 `method` = :taubin (default) or :laplace
 `fixedv` = Boolean array, one entry per vertex: is the vertex immovable (true)
     or movable  (false)
 `npass` = number of passes (default 2)
 
-## Return
+# Return
 The modified  node set.
 """
 function meshsmoothing(fens::FENodeSet, fes::T; options...) where {T<:AbstractFESet}
@@ -640,10 +641,10 @@ end
 """
     vertexneighbors(conn::FIntMat, nvertices::FInt)
 
-Find the node neighbors in the mesh. 
+Find the node neighbors in the mesh.
 
 Return an array of integer vectors, element I holds an array of numbers of nodes
-which are connected to node I (including node I).  
+which are connected to node I (including node I).
 """
 function vertexneighbors(conn::FIntMat, nvertices::FInt)
     vn = FIntVec[]; sizehint!(vn, nvertices)
@@ -665,21 +666,26 @@ end
     mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
       Point::FFltVec; kwargs...) where {T<:AbstractFESet}
 
-Mirror a 2-D mesh in a plane given by its normal and one point.
+Mirror a mesh in a plane given by its normal and one point.
 
-Warning: The code to relies on the numbering of the cells: to reverse the
-orientation of the mirrored cells, the connectivity is listed in reverse
-order.   If the mirrored cells do not follow this rule (for instance hexahedra
-for quadrilaterals), their areas/volumes will come out negative. In such a
-case the renumbering function of the connectivity needs to be supplied.
+# Keyword arguments
+- `renumb` = node renumbering function for the mirrored element
 
-For instance: H8 elements require  the renumbering function to be supplied as
-fens1,gcells1 = mirror_mesh(fens, gcells,...
-          [-1,0,0], [0,0,0], @(c)c([1, 4, 3, 2, 5, 8, 7, 6]));
+Warning: The code to relies on the numbering of the finite elements: to reverse
+the orientation of the mirrored finite elements, the connectivity is listed in
+reverse order.   If the mirrored finite elements do not follow this rule (for
+instance hexahedra or quadrilaterals), their areas/volumes will come out
+negative. In such a case the renumbering function of the connectivity needs to
+be supplied.
+
+For instance: H8 elements require the renumbering function to be supplied as
+```
+renumb(c) = c[[1, 4, 3, 2, 5, 8, 7, 6]]
+```
 """
 function mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
     Point::FFltVec; kwargs...) where {T<:AbstractFESet}
-    # Treat optional arguments.
+    # Default renumbering function.
     # Simply switch the order of nodes.  Works for simplexes...
     renumb(conn) = conn[end:-1:1];
     for apair in pairs(kwargs)
@@ -708,7 +714,7 @@ function mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
     end
     return fens1, fromarray!(fes1, conn)
 end
- 
+
 function _nodepartitioning3(fens::FENodeSet, nincluded::Vector{Bool}, npartitions::Int = 2)
     function inertialcutpartitioning!(partitioning, parts, X)
         nspdim = 3
@@ -720,14 +726,14 @@ function _nodepartitioning3(fens::FENodeSet, nincluded::Vector{Bool}, npartition
                     jp = partitioning[j]
                     StaticMoments[spdim, jp] += X[j, spdim]
                     npart[jp] += 1 # count the nodes in the current partition
-                end 
+                end
             end
         end
         CG = fill(zero(FFlt), nspdim, length(parts));
         for p = parts
             npart[p] = Int(npart[p] / nspdim)
             CG[:, p] = StaticMoments[:, p] / npart[p] # center of gravity of each partition
-        end 
+        end
         MatrixMomentOfInertia = fill(zero(FFlt), nspdim, nspdim, length(parts))
         @inbounds for j = 1:size(X, 1)
             if nincluded[j] # Is the node to be included in the partitioning?
@@ -739,20 +745,20 @@ function _nodepartitioning3(fens::FENodeSet, nincluded::Vector{Bool}, npartition
                 MatrixMomentOfInertia[1, 2, jp] -= xj * yj
                 MatrixMomentOfInertia[1, 3, jp] -= xj * zj
                 MatrixMomentOfInertia[2, 3, jp] -= yj * zj
-            end 
+            end
         end
         for p = parts
             MatrixMomentOfInertia[2, 1, p] = MatrixMomentOfInertia[1, 2, p]
             MatrixMomentOfInertia[3, 1, p] = MatrixMomentOfInertia[3, 1, p]
             MatrixMomentOfInertia[3, 2, p] = MatrixMomentOfInertia[3, 2, p]
-        end 
+        end
         longdir = fill(zero(FFlt), nspdim, length(parts))
         for p = parts
             F = eigen(MatrixMomentOfInertia[:, :, p])
             six = sortperm(F.values)
             longdir[:, p] = F.vectors[:, six[1]]
-        end 
-        toggle = fill(one(FFlt), length(parts)); 
+        end
+        toggle = fill(one(FFlt), length(parts));
         @inbounds for j = 1:size(X, 1)
             if nincluded[j] # Is the node to be included in the partitioning?
                 jp = partitioning[j]
@@ -769,10 +775,10 @@ function _nodepartitioning3(fens::FENodeSet, nincluded::Vector{Bool}, npartition
                     toggle[jp] = -toggle[jp]
                 end
                 partitioning[j] = 2 * jp - c
-            end 
-        end 
+            end
+        end
     end
-    
+
     nlevels = Int(round(ceil(log(npartitions)/log(2))))
     partitioning = fill(1, count(fens))  # start with nodes assigned to partition 1
     for level = 0:1:(nlevels - 1)
@@ -792,14 +798,14 @@ function _nodepartitioning2(fens::FENodeSet, nincluded::Vector{Bool}, npartition
                     jp = partitions[j]
                     StaticMoments[spdim, jp] += X[j, spdim]
                     npart[jp] += 1 # count the nodes in the current partition
-                end 
+                end
             end
         end
         CG = fill(zero(FFlt), nspdim, length(parts));
         for p = parts
             npart[p] = Int(npart[p] / nspdim)
             CG[:, p] = StaticMoments[:, p] / npart[p] # center of gravity of each partition
-        end 
+        end
         MatrixMomentOfInertia = fill(zero(FFlt), nspdim, nspdim, length(parts))
         @inbounds for j = 1:size(X, 1)
             if nincluded[j] # Is the node to be included in the partitioning?
@@ -808,18 +814,18 @@ function _nodepartitioning2(fens::FENodeSet, nincluded::Vector{Bool}, npartition
                 MatrixMomentOfInertia[1, 1, jp] += yj^2
                 MatrixMomentOfInertia[2, 2, jp] += xj^2
                 MatrixMomentOfInertia[1, 2, jp] -= xj * yj
-            end 
+            end
         end
         for p = parts
             MatrixMomentOfInertia[2, 1, p] = MatrixMomentOfInertia[1, 2, p]
-        end 
+        end
         longdir = fill(zero(FFlt), nspdim, length(parts))
         for p = parts
             F = eigen(MatrixMomentOfInertia[:, :, p])
             six = sortperm(F.values)
             longdir[:, p] = F.vectors[:, six[1]]
-        end 
-        toggle = fill(one(FFlt), length(parts)); 
+        end
+        toggle = fill(one(FFlt), length(parts));
         @inbounds for j = 1:size(X, 1)
             if nincluded[j] # Is the node to be included in the partitioning?
                 jp = partitions[j]
@@ -836,10 +842,10 @@ function _nodepartitioning2(fens::FENodeSet, nincluded::Vector{Bool}, npartition
                     toggle[jp] = -toggle[jp]
                 end
                 partitions[j] = 2 * jp - c
-            end 
-        end 
+            end
+        end
     end
-    
+
     nlevels = Int(round(ceil(log(npartitions)/log(2))))
     partitions = fill(1, count(fens))  # start with nodes assigned to partition 1
     for level = 0:1:(nlevels - 1)
@@ -866,7 +872,7 @@ for gp = partitionnumbers
   groupnodes = findall(k -> k == gp, partitioning)
   File =  "partition-nodes-Dollar(gp).vtk"
   vtkexportmesh(File, fens, FESetP1(reshape(groupnodes, length(groupnodes), 1)))
-end 
+end
 File =  "partition-mesh.vtk"
 vtkexportmesh(File, fens, fes)
 @async run(`"paraview.exe" DollarFile`)
@@ -878,10 +884,10 @@ function nodepartitioning(fens::FENodeSet, nincluded::Vector{Bool}, npartitions:
         return _nodepartitioning3(fens, nincluded, npartitions)
     elseif size(fens.xyz, 2) == 2
         return _nodepartitioning2(fens, nincluded, npartitions)
-    else 
+    else
         @warn "Not implemented for 1D"
     end
-end 
+end
 
 """
     nodepartitioning(fens::FENodeSet, npartitions)
@@ -889,7 +895,7 @@ end
 Compute the inertial-cut partitioning of the nodes.
 
 `npartitions` = number of partitions, but note that the actual number of
-partitions is going to be a power of two.
+partitions will be a power of two.
 
 In this variant all the nodes are to be included in the partitioning.
 
@@ -901,7 +907,7 @@ for gp = partitionnumbers
   groupnodes = findall(k -> k == gp, partitioning)
   File =  "partition-nodes-Dollar(gp).vtk"
   vtkexportmesh(File, fens, FESetP1(reshape(groupnodes, length(groupnodes), 1)))
-end 
+end
 File =  "partition-mesh.vtk"
 vtkexportmesh(File, fens, fes)
 @async run(`"paraview.exe" DollarFile`)
@@ -914,10 +920,10 @@ function nodepartitioning(fens::FENodeSet, npartitions::Int = 2)
         return _nodepartitioning3(fens, nincluded, npartitions)
     elseif size(fens.xyz, 2) == 2
         return _nodepartitioning2(fens, nincluded, npartitions)
-    else 
+    else
         @warn "Not implemented for 1D"
     end
-end 
+end
 
 """
     nodepartitioning(fens::FENodeSet, fesarr, npartitions::Vector{Int})
@@ -925,13 +931,13 @@ end
 Compute the inertial-cut partitioning of the nodes.
 
 `fesarr` = array of finite element sets that represent regions
-`npartitions` = array of the number of partitions in each region. However 
-note that the actual number of partitions is going to be a power of two.
+`npartitions` = array of the number of partitions in each region. However
+note that the actual number of partitions will be a power of two.
 
-The partitioning itself is carried out by `nodepartitioning()` with 
+The partitioning itself is carried out by `nodepartitioning()` with
 a list of nodes to be included in the partitioning. For each region I
-the nodes included in the partitioning are those connected to 
-the elements of that region, but not to elements that belong to 
+the nodes included in the partitioning are those connected to
+the elements of that region, but not to elements that belong to
 any of the previous regions, 1…I-1.
 """
 function nodepartitioning(fens::FENodeSet, fesarr, npartitions::Vector{Int})
@@ -957,11 +963,11 @@ function nodepartitioning(fens::FENodeSet, fesarr, npartitions::Vector{Int})
         np = maximum(partitioning1) # Number of partitions for region i
         partitioning1 = partitioning1 .+ totnpartitions # shift by the number of partitions in previous regions
         totnpartitions = totnpartitions + np # Increment the number of partitions
-        partitioning[nincluded] = partitioning1[nincluded] # Update overall partitioning 
+        partitioning[nincluded] = partitioning1[nincluded] # Update overall partitioning
         @. nincludedp = nincluded | nincludedp  # Update the list of nodes that have already been included
     end
     return partitioning
-end 
+end
 
 """
     adjgraph(conn, nfens)
@@ -977,21 +983,21 @@ conn = [9 1 8 4;
        8 2 7 5;
        2 6 7 7];
 nfens = 9;
-adjgraph(conn, nfens)   
+adjgraph(conn, nfens)
 
 ```
 should produce
 ```
 9-element Array{Array{Int64,1},1}:
- [9, 8, 4, 3, 2]      
- [1, 3, 8, 7, 5, 6]   
- [1, 2, 8] 
- [9, 1, 8] 
- [8, 2, 7] 
- [2, 7]    
+ [9, 8, 4, 3, 2]
+ [1, 3, 8, 7, 5, 6]
+ [1, 2, 8]
+ [9, 1, 8]
+ [8, 2, 7]
+ [2, 7]
  [8, 2, 5, 6]
  [9, 1, 4, 3, 2, 7, 5]
- [1, 8, 4]    
+ [1, 8, 4]
  ```
 """
 function adjgraph(conn, nfens)
@@ -1070,10 +1076,10 @@ conn = [9 1 8 4;
        8 2 7 5;
        2 6 7 7];
 nfens = 9;
-adjgr = adjgraph(conn, nfens)  
+adjgr = adjgraph(conn, nfens)
 nodedegrees(adjgr)
 
-julia> degrees = node_degrees(adjgr)        
+julia> degrees = node_degrees(adjgr)
 9-element Array{Int64,1}:
  5
  6
@@ -1083,7 +1089,7 @@ julia> degrees = node_degrees(adjgr)
  2
  4
  7
- 3  
+ 3
 """
 function nodedegrees(adjgr::Vector{Vector{Int}})
     degrees = fill(0, length(adjgr))
@@ -1122,7 +1128,7 @@ function revcm(adjgr::Vector{Vector{Int}}, degrees::Vector{Int})
 	inR = fill(false, n) # Is a node in the result list?
 	R = Int64[]
 	sizehint!(R, n)
-	Q = Int64[] # Node queue 
+	Q = Int64[] # Node queue
 	sizehint!(Q, n)
 	while true
 		P = 0 # Find the next node to start from
