@@ -63,6 +63,15 @@ function _threedD(E1::FFlt, E2::FFlt, E3::FFlt,
     return D
 end
 
+"""
+	MatDeforElastOrtho(mr::Type{MR}, E1::FFlt, E2::FFlt, E3::FFlt,
+	nu12::FFlt, nu13::FFlt, nu23::FFlt,
+	G12::FFlt, G13::FFlt, G23::FFlt) where {MR}
+
+Create elastic orthotropic material.
+
+Convenience version with only the specification of the elastic properties.
+"""
 function MatDeforElastOrtho(mr::Type{MR}, E1::FFlt, E2::FFlt, E3::FFlt,
     nu12::FFlt, nu13::FFlt, nu23::FFlt,
     G12::FFlt, G13::FFlt, G23::FFlt) where {MR}
@@ -72,6 +81,13 @@ function MatDeforElastOrtho(mr::Type{MR}, E1::FFlt, E2::FFlt, E3::FFlt,
     G12, G13, G23, CTE1, CTE2, CTE3)
 end
 
+"""
+	MatDeforElastOrtho(mr::Type{MR}, E::FFlt, nu::FFlt) where {MR}
+
+Create elastic orthotropic material which is really isotropic.
+
+Convenience version with only the specification of the elastic properties.
+"""
 function MatDeforElastOrtho(mr::Type{MR}, E::FFlt, nu::FFlt) where {MR}
     mass_density = 1.0
     CTE1 = CTE2 = CTE3 = 0.0
@@ -79,6 +95,13 @@ function MatDeforElastOrtho(mr::Type{MR}, E::FFlt, nu::FFlt) where {MR}
     return MatDeforElastOrtho(mr, mass_density, E, E, E,    nu, nu, nu,    G, G, G, CTE1, CTE2, CTE3)
 end
 
+"""
+	MatDeforElastOrtho(mr::Type{MR}, mass_density::FFlt,  E::FFlt, nu::FFlt, CTE::FFlt) where {MR}
+
+Create elastic orthotropic material which is really isotropic.
+
+Convenience version with only the specification of the elastic and thermal expansion properties.
+"""
 function MatDeforElastOrtho(mr::Type{MR}, mass_density::FFlt,  E::FFlt, nu::FFlt, CTE::FFlt) where {MR}
     CTE1 = CTE2 = CTE3 = CTE
     G = E / 2.0 / (1 + nu)
@@ -90,6 +113,13 @@ end
 # 3-D solid model
 ################################################################################
 
+"""
+	MatDeforElastOrtho(mr::Type{DeforModelRed3D}, mass_density::FFlt,
+		E1::FFlt, E2::FFlt, E3::FFlt, nu12::FFlt, nu13::FFlt, nu23::FFlt,
+		G12::FFlt, G13::FFlt, G23::FFlt, CTE1::FFlt, CTE2::FFlt, CTE3::FFlt)
+
+Create elastic orthotropic material for 3D models.
+"""
 function MatDeforElastOrtho(mr::Type{DeforModelRed3D}, mass_density::FFlt, E1::FFlt, E2::FFlt, E3::FFlt, nu12::FFlt, nu13::FFlt, nu23::FFlt, G12::FFlt, G13::FFlt, G23::FFlt, CTE1::FFlt, CTE2::FFlt, CTE3::FFlt)
 	function tangentmoduli3d!(self::MatDeforElastOrtho,  D::FFltMat,  t::FFlt, dt::FFlt, loc::FFltMat, label::FInt)
 	    copyto!(D,self.D);
@@ -140,6 +170,13 @@ end
 # 2-D plane stress
 ################################################################################
 
+"""
+	MatDeforElastOrtho(mr::Type{DeforModelRed2DStress}, mass_density::FFlt,
+		E1::FFlt, E2::FFlt, E3::FFlt, nu12::FFlt, nu13::FFlt, nu23::FFlt,
+		G12::FFlt, G13::FFlt, G23::FFlt, CTE1::FFlt, CTE2::FFlt, CTE3::FFlt)
+
+Create elastic orthotropic material for 2D plane stress models.
+"""
 function MatDeforElastOrtho(mr::Type{DeforModelRed2DStress}, mass_density::FFlt, E1::FFlt, E2::FFlt, E3::FFlt, nu12::FFlt, nu13::FFlt, nu23::FFlt, G12::FFlt, G13::FFlt, G23::FFlt, CTE1::FFlt, CTE2::FFlt, CTE3::FFlt)
 	function tangentmoduli2dstrs!(self::MatDeforElastOrtho,  D::FFltMat,  t::FFlt, dt::FFlt, loc::FFltMat, label::FInt)
 	    D[1:2, 1:2] = self.D[1:2, 1:2] - (reshape(self.D[1:2,3], 2, 1) * reshape(self.D[3,1:2], 1, 2))/self.D[3, 3]
@@ -175,7 +212,7 @@ function MatDeforElastOrtho(mr::Type{DeforModelRed2DStress}, mass_density::FFlt,
 			output[1] = sqrt(1.0/2*((s1-s2)^2+(s1-s3)^2+(s2-s3)^2+6*(s4^2+s5^2+s6^2)))
 		end
 		return output
-	end    
+	end
 	function thermalstrain2dstrs!(self::MatDeforElastOrtho, thstrain::FFltVec, dT= 0.0)
 		@assert length(thstrain) == nthermstrain(self.mr)
 		thstrain[1] = self.CTE1*dT
@@ -194,6 +231,13 @@ end
 # 2-D plane strain
 ################################################################################
 
+"""
+	MatDeforElastOrtho(mr::Type{DeforModelRed2DStrain}, mass_density::FFlt,
+		E1::FFlt, E2::FFlt, E3::FFlt, nu12::FFlt, nu13::FFlt, nu23::FFlt,
+		G12::FFlt, G13::FFlt, G23::FFlt, CTE1::FFlt, CTE2::FFlt, CTE3::FFlt)
+
+Create elastic orthotropic material for 2D plane strain models.
+"""
 function MatDeforElastOrtho(mr::Type{DeforModelRed2DStrain}, mass_density::FFlt, E1::FFlt, E2::FFlt, E3::FFlt, nu12::FFlt, nu13::FFlt, nu23::FFlt, G12::FFlt, G13::FFlt, G23::FFlt, CTE1::FFlt, CTE2::FFlt, CTE3::FFlt)
 	function tangentmoduli2dstrn!(self::MatDeforElastOrtho, D::FFltMat,  t::FFlt, dt::FFlt, loc::FFltMat, label::FInt)
 		ix = [1, 2, 4];
@@ -252,12 +296,19 @@ function MatDeforElastOrtho(mr::Type{DeforModelRed2DStrain}, mass_density::FFlt,
 		_threedD(E1, E2, E3,    nu12, nu13, nu23,    G12, G13, G23),
 		tangentmoduli2dstrn!, update2dstrn!, thermalstrain2dstrn!)
 end
- 
+
 
 ################################################################################
 # 2-D axially symmetric
 ################################################################################
 
+"""
+	MatDeforElastOrtho(mr::Type{DeforModelRed2DAxisymm}, mass_density::FFlt,
+		E1::FFlt, E2::FFlt, E3::FFlt, nu12::FFlt, nu13::FFlt, nu23::FFlt,
+		G12::FFlt, G13::FFlt, G23::FFlt, CTE1::FFlt, CTE2::FFlt, CTE3::FFlt)
+
+Create elastic orthotropic material for 2D axially symmetric models.
+"""
 function MatDeforElastOrtho(mr::Type{DeforModelRed2DAxisymm}, mass_density::FFlt, E1::FFlt, E2::FFlt, E3::FFlt, nu12::FFlt, nu13::FFlt, nu23::FFlt, G12::FFlt, G13::FFlt, G23::FFlt, CTE1::FFlt, CTE2::FFlt, CTE3::FFlt)
 	function tangentmoduli2daxi!(self::MatDeforElastOrtho, D::FFltMat, t::FFlt, dt::FFlt, loc::FFltMat, label::FInt)
 		for i = 1:4

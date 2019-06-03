@@ -41,7 +41,11 @@ end
 ################################################################################
 # 3-D solid model
 ################################################################################
+"""
+    MatDeforElastIso(mr::Type{DeforModelRed3D}, mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
 
+Create elastic isotropic material for 3D models.
+"""
 function MatDeforElastIso(mr::Type{DeforModelRed3D}, mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
 	function tangentmoduli3d!(self::MatDeforElastIso,  D::FFltMat,  t::FFlt, dt::FFlt, loc::FFltMat, label::FInt)
 		copyto!(D,self.D);
@@ -86,6 +90,11 @@ function MatDeforElastIso(mr::Type{DeforModelRed3D}, mass_density::FFlt, E::FFlt
 		tangentmoduli3d!, update3d!, thermalstrain3d!)
 end
 
+"""
+    MatDeforElastIso(mr::Type{MR}, E::FFlt, nu::FFlt) where {MR}
+
+Create isotropic elastic material with default mass density and thermal expansion.
+"""
 function MatDeforElastIso(mr::Type{MR}, E::FFlt, nu::FFlt) where {MR}
 	mass_density = 1.0
 	CTE = 0.0
@@ -98,6 +107,11 @@ end
 # 2-D plane stress
 ################################################################################
 
+"""
+    MatDeforElastIso(mr::Type{DeforModelRed2DStress}, mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
+
+Create elastic isotropic material for 2D plane stress models.
+"""
 function MatDeforElastIso(mr::Type{DeforModelRed2DStress}, mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
 	function tangentmoduli2dstrs!(self::MatDeforElastIso, D::FFltMat,  t::FFlt, dt::FFlt, loc::FFltMat, label::FInt)
 		D[1:2, 1:2] = self.D[1:2, 1:2] -  (reshape(self.D[1:2,3], 2, 1) * reshape(self.D[3,1:2], 1, 2))/self.D[3, 3]
@@ -150,6 +164,11 @@ end
 # 2-D plane strain
 ################################################################################
 
+"""
+    MatDeforElastIso(mr::Type{DeforModelRed2DStrain}, mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
+
+Create elastic isotropic material for 2D plane strain models.
+"""
 function MatDeforElastIso(mr::Type{DeforModelRed2DStrain}, mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
 	function tangentmoduli2dstrn!(self::MatDeforElastIso,  D::FFltMat,  t::FFlt, dt::FFlt, loc::FFltMat, label::FInt)
 		ix = [1, 2, 4];
@@ -216,6 +235,11 @@ end
 # 2-D axially symmetric
 ################################################################################
 
+"""
+    MatDeforElastIso(mr::Type{DeforModelRed2DAxisymm}, mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
+
+Create elastic isotropic material for 2D axially symmetric models.
+"""
 function MatDeforElastIso(mr::Type{DeforModelRed2DAxisymm}, mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
 	function tangentmoduli2daxi!(self::MatDeforElastIso,  D::FFltMat,  t::FFlt, dt::FFlt, loc::FFltMat, label::FInt)
 		for i = 1:4
@@ -265,9 +289,14 @@ function MatDeforElastIso(mr::Type{DeforModelRed2DAxisymm}, mass_density::FFlt, 
 end
 
 ################################################################################
-# 1-D 
+# 1-D
 ################################################################################
 
+"""
+    MatDeforElastIso(mr::Type{DeforModelRed1D}, mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
+
+Create elastic isotropic material for 1D models.
+"""
 function MatDeforElastIso(mr::Type{DeforModelRed1D}, mass_density::FFlt, E::FFlt, nu::FFlt, CTE::FFlt)
 	function tangentmoduli1d!(self::MatDeforElastIso, D::FFltMat, t::FFlt, dt::FFlt, loc::FFltMat, label::FInt)
 		D[1, 1] = self.E;
@@ -290,7 +319,7 @@ function MatDeforElastIso(mr::Type{DeforModelRed1D}, mass_density::FFlt, E::FFlt
 			copyto!(output,  stress[1]);
 		elseif quantity==:vonMises || quantity==:vonmises || quantity==:von_mises || quantity==:vm
 			s1=stress[1]; s2=0.0; s3=0.0;
-			s4=00.0; s5=0.0; s6=0.0;
+			s4=0.0; s5=0.0; s6=0.0;
 			(length(output) >= 1) || (output = zeros(1)) # make sure we can store it
 			output[1] = sqrt(1.0/2*((s1-s2)^2+(s1-s3)^2+(s2-s3)^2+6*(s4^2+s5^2+s6^2)))
 		end
