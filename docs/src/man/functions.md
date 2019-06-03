@@ -178,7 +178,7 @@ Private = true
 Order = [:function]
 ```
 
-## Force intensity 
+## Force intensity
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.ForceIntensityModule]
@@ -229,7 +229,7 @@ Modules = [FinEtools, FinEtools.DeforModelRedModule]
 Private = true
 Order = [:function]
 ```
- 
+
 #### Base functionality
 
 ```@autodocs
@@ -280,7 +280,7 @@ Private = true
 Order = [:function]
 ```
 
-### Material base functionality
+### Material for deformation, base functionality
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.MatDeforModule]
