@@ -68,7 +68,10 @@ end
       axisymmetric::Bool) where {S<:AbstractFESet}
 
 Construct with the default orientation matrix (identity), for axially
-symmetric models. The other dimension is  the default  unity (1.0).
+symmetric models. The other dimension is the default unity (1.0).
+
+This will probably be called when `axisymmetric = true`, since the default is
+`axisymmetric = false`.
 """
 function IntegDomain(fes::S, integration_rule::AbstractIntegRule, axisymmetric::Bool) where {S<:AbstractFESet}
     return IntegDomain(fes, integration_rule, otherdimensionunity, axisymmetric)
@@ -141,7 +144,7 @@ end
 
 Evaluate the surface Jacobian.
 
-For the zero-dimensional cell,  the surface Jacobian is (i) the product of the
+For the zero-dimensional cell, the surface Jacobian is (i) the product of the
 point Jacobian and the other dimension (units of length squared); or,  when
 used as axially symmetric (ii) the product of the point Jacobian and the
 circumference of the circle through the point `loc` times the other dimension
@@ -168,7 +171,7 @@ end
 
 Evaluate the volume Jacobian.
 
-For the zero-dimensional cell,  the volume Jacobian is (i) the product of the
+For the zero-dimensional cell, the volume Jacobian is (i) the product of the
 point Jacobian and the other dimension (units of length cubed); or,  when used
 as axially symmetric (ii) the product of the point Jacobian and the
 circumference of the circle through the point `loc` and the other dimension
@@ -197,9 +200,9 @@ Evaluate the manifold Jacobian for an m-dimensional manifold.
 
 For an 0-dimensional finite element,  the manifold Jacobian is for
 - m=0: +1
-- m=1: Jacobiancurve
-- m=2: Jacobiansurface
-- m=3: Jacobianvolume
+- m=1: `Jacobiancurve`
+- m=2: `Jacobiansurface`
+- m=3: `Jacobianvolume`
 """
 function Jacobianmdim(self::IntegDomain{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat, m::FInt)::FFlt where {T<:AbstractFESet0Manifold, CC}
     @assert (m >= 0)  && (m <= 3)
@@ -292,9 +295,9 @@ end
 Evaluate the manifold Jacobian for an m-dimensional manifold.
 
 For an 1-dimensional finite element,  the manifold Jacobian is for
-- m=1: Jacobiancurve
-- m=2: Jacobiansurface
-- m=3: Jacobianvolume
+- m=1: `Jacobiancurve`
+- m=2: `Jacobiansurface`
+- m=3: `Jacobianvolume`
 """
 function Jacobianmdim(self::IntegDomain{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat, m::FInt)::FFlt where {T<:AbstractFESet1Manifold, CC}
     @assert (m >= 1) && (m <= 3)
@@ -358,8 +361,8 @@ end
 Evaluate the manifold Jacobian for an m-dimensional manifold.
 
 For an 2-dimensional finite element,  the manifold Jacobian is for
-- m=2: Jacobiansurface
-- m=3: Jacobianvolume
+- m=2: `Jacobiansurface`
+- m=3: `Jacobianvolume`
 """
 function Jacobianmdim(self::IntegDomain{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat, m::FInt)::FFlt where {T<:AbstractFESet2Manifold, CC}
     @assert (m >= 2) && (m <= 3)
@@ -393,7 +396,7 @@ end
 Evaluate the manifold Jacobian for an m-dimensional manifold.
 
 For an 3-dimensional cell,  the manifold Jacobian is
-- m=3: Jacobianvolume
+- m=3: `Jacobianvolume`
 """
 function Jacobianmdim(self::IntegDomain{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat, m::FInt)::FFlt where {T<:AbstractFESet3Manifold, CC}
     @assert (m == 3)
@@ -404,7 +407,7 @@ end
     integrationdata(self::IntegDomain)
 
 Calculate the data needed for  numerical quadrature for the integration rule
-    stored by the integration domain.
+stored by the integration domain.
 """
 function  integrationdata(self::IntegDomain)
     return integrationdata(self, self.integration_rule)
