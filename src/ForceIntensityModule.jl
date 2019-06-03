@@ -12,12 +12,13 @@ import FinEtools.VectorCacheModule: VectorCache, updateretrieve!
     ForceIntensity{T<:Number, F<:Function}
 
 Distributed force (force intensity) type.
+
 The force intensity class. The physical units are
 force per unit volume, where volume depends on to which manifold
 the force is applied:
 - force/length^3 (when applied to a 3-D solid),
 - force/length^2 (when applied to a surface),
-- force/length^1 (when applied along a curve), or 
+- force/length^1 (when applied along a curve), or
 - force/length^0 (when applied at a point).
 
 Signature of the function to compute the value of the force  at any given point
@@ -39,7 +40,9 @@ end
       computeforce!::F) where {T<:Number, F<:Function}
 
 Construct force intensity when the function to compute the intensity vector is
-given. This function needs to have a signature of
+given.
+
+This function needs to have a signature of
 ```
 function computeforce!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
 Calculate the force  and copy it into the buffer....
@@ -58,7 +61,7 @@ end
 """
     ForceIntensity(force::FVec{T}) where {T<:Number}
 
-Construct force intensity when the constant force vector is given.
+Construct force intensity when the constant `force` vector is given.
 """
 function ForceIntensity(force::FVec{T}) where {T<:Number}
     function computeforce!(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
@@ -72,6 +75,7 @@ end
     ForceIntensity(force::T) where {T<:Number}
 
 Construct force intensity when the force is given as a scalar value.
+
 The dimension of the force vector in this case is 1.
 """
 function ForceIntensity(force::T) where {T<:Number}
@@ -85,7 +89,7 @@ Update the force intensity vector.
 
 Returns a vector (stored in the cache `self.cache`).
 """
-function updateforce!(self::ForceIntensity, XYZ::FFltMat,    tangents::FFltMat, fe_label::FInt)
+function updateforce!(self::ForceIntensity, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     return updateretrieve!(self.cache, XYZ, tangents, fe_label)
 end
 
