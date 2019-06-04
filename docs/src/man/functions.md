@@ -98,14 +98,6 @@ Order = [:function]
 
 ## Meshing
 
-### Mesh import/export
-
-```@autodocs
-Modules = [FinEtools, FinEtools.MeshImportModule, FinEtools.MeshExportModule]
-Private = true
-Order = [:function]
-```
-
 ### Meshing with line elements
 
 ```@autodocs
@@ -154,10 +146,18 @@ Private = true
 Order = [:function]
 ```
 
-### Utilities
+### Meshing utilities
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.MeshUtilModule]
+Private = true
+Order = [:function]
+```
+
+### Mesh import/export
+
+```@autodocs
+Modules = [FinEtools, FinEtools.MeshImportModule, FinEtools.MeshExportModule]
 Private = true
 Order = [:function]
 ```
@@ -250,48 +250,6 @@ Order = [:function]
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.FEMMDeforLinearMSModule, FinEtools.FEMMDeforLinearNICEModule, FinEtools.FEMMDeforLinearESNICEModule]
-Private = true
-Order = [:function]
-```
-
-## Material models
-
-### Material model abstractions
-
-```@autodocs
-Modules = [FinEtools, FinEtools.MatModule]
-Private = true
-Order = [:function]
-```
-
-### Material models for acoustics
-
-```@autodocs
-Modules = [FinEtools, FinEtools.MatModule, FinEtools.MatAcoustFluidModule]
-Private = true
-Order = [:function]
-```
-
-### Material models for heat diffusion
-
-```@autodocs
-Modules = [FinEtools, FinEtools.MatModule, FinEtools.MatHeatDiffModule]
-Private = true
-Order = [:function]
-```
-
-### Material for deformation, base functionality
-
-```@autodocs
-Modules = [FinEtools, FinEtools.MatDeforModule]
-Private = true
-Order = [:function]
-```
-
-### Material models for elasticity
-
-```@autodocs
-Modules = [FinEtools, FinEtools.MatDeforLinearElasticModule, FinEtools.MatDeforElastIsoModule, FinEtools.MatDeforElastOrthoModule,]
 Private = true
 Order = [:function]
 ```

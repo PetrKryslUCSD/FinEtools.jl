@@ -88,7 +88,7 @@ Private = true
 Order = [:type]
 ```
 
-## Force intensity 
+## Force intensity
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.ForceIntensityModule]
@@ -131,9 +131,42 @@ Order = [:type]
 
 ## Material models
 
+### Material model abstractions
+
 ```@autodocs
-Modules = [FinEtools, FinEtools.MatModule, FinEtools.MatHeatDiffModule, FinEtools.MatAcoustFluidModule,  FinEtools.MatDeforModule, 
-FinEtools.MatDeforLinearElasticModule, FinEtools.MatDeforElastIsoModule, FinEtools.MatDeforElastOrthoModule,]
+Modules = [FinEtools, FinEtools.MatModule]
+Private = true
+Order = [:type]
+```
+
+### Material models for acoustics
+
+```@autodocs
+Modules = [FinEtools, FinEtools.MatModule, FinEtools.MatAcoustFluidModule]
+Private = true
+Order = [:type]
+```
+
+### Material models for heat diffusion
+
+```@autodocs
+Modules = [FinEtools, FinEtools.MatModule, FinEtools.MatHeatDiffModule]
+Private = true
+Order = [:type]
+```
+
+### Material for deformation, base functionality
+
+```@autodocs
+Modules = [FinEtools, FinEtools.MatDeforModule]
+Private = true
+Order = [:type]
+```
+
+### Material models for elasticity
+
+```@autodocs
+Modules = [FinEtools, FinEtools.MatDeforLinearElasticModule, FinEtools.MatDeforElastIsoModule, FinEtools.MatDeforElastOrthoModule,]
 Private = true
 Order = [:type]
 ```
