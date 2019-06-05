@@ -170,9 +170,9 @@ export ImageMesher, ElementSizeWeightFunction, mesh!, volumes
 ###########################################################################
 # Abstract material
 ###########################################################################
-using FinEtools.MatModule: AbstractMat
+using FinEtools.MatModule: AbstractMat, massdensity
 # Exported: abstract type of material
-export AbstractMat
+export AbstractMat, massdensity
 
 ###########################################################################
 # Heat diffusion functionality

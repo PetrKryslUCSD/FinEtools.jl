@@ -301,7 +301,7 @@ Order = [:function]
 ## Material models for acoustics
 
 ```@autodocs
-Modules = [FinEtools, FinEtools.MatModule, FinEtools.MatAcoustFluidModule]
+Modules = [FinEtools, FinEtools.MatAcoustFluidModule]
 Private = true
 Order = [:function]
 ```
@@ -309,7 +309,7 @@ Order = [:function]
 ## Material models for heat diffusion
 
 ```@autodocs
-Modules = [FinEtools, FinEtools.MatModule, FinEtools.MatHeatDiffModule]
+Modules = [FinEtools, FinEtools.MatHeatDiffModule]
 Private = true
 Order = [:function]
 ```
