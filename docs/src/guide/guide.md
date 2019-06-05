@@ -1,4 +1,4 @@
-[Table of contents](https://petrkryslucsd.github.io/FinEtools.jl)
+[Table of contents](https://petrkryslucsd.github.io/FinEtools.jl/latest/index.html)
 
 # Guide
 
@@ -13,20 +13,20 @@ The FinEtools package consists of many modules which fall into several  categori
 - Utilities:
 `FTypesModule` (types), `PhysicalUnitModule` (definitions of  numbers with physical units), `AssemblyModule` (assembly of elementwise matrices and vectors),   `CSysModule` (coordinate system module),    `MatrixUtilityModule` (utilities for operations on elementwise matrices), `BoxModule`  (support for working with bounding boxes),  `ForceIntensityModule` (force-intensity module),        `RotationUtilModule` (support for spatial rotations).
 
-- Mesh  entities: 
+- Mesh  entities:
   `FENodeSetModule`, `FESetModule` (node set and finite element set  types).  
 
-- Mesh Generation: 
+- Mesh Generation:
    `MeshLineModule`,  `MeshQuadrilateralModule`,   `MeshTriangleModule`,   `MeshTetrahedronModule`,             `TetRemeshingModule`,  `VoxelTetMeshingModule`,     `MeshHexahedronModule`,       `VoxelBoxModule`.  
 
 - Mesh manipulation:  `MeshSelectionModule` (searching of nodes  and elements),  `MeshModificationModule` (mesh boundary, merging  of meshes and nodes, smoothing, partitioning),  `MeshUtilModule` (utilities), `FENodeToFEMapModule` (search structure from nodes to elements).
 
 - Mesh import/export:  `MeshImportModule`,  `MeshExportModule`.
 
-- Fields: 
+- Fields:
  `FieldModule`,    `GeneralFieldModule`, `ElementalFieldModule`,    `NodalFieldModule` (modules for representing quantities on the mesh).
 
-- Support for  integration over solids, surfaces, curves, and points: 
+- Support for  integration over solids, surfaces, curves, and points:
  `IntegRuleModule`,   `IntegDomainModule`.
 
 - General algorithms: `AlgoBaseModule` (algorithms), `FEMMBaseModule` (FEM machine for general tasks).
@@ -35,7 +35,7 @@ The FinEtools package consists of many modules which fall into several  categori
 
 - Acoustics: `AlgoAcoustModule` (algorithms), `FEMMAcoustModule`, `FEMMAcoustSurfModule` (FEM machines to evaluate the matrix and vector quantities),  `MatAcoustFluidModule` (acoustic fluid material).
 
-- Linear deformation:  `AlgoDeforLinearModule` (algorithms), `DeforModelRedModule`, 
+- Linear deformation:  `AlgoDeforLinearModule` (algorithms), `DeforModelRedModule`,
 `FEMMDeforLinearBaseModule`,  `FEMMDeforLinearModule`, `FEMMDeforLinearMSModule`,  `FEMMDeforWinklerModule` (FEM machines to evaluate the matrix and vector quantities), `MatDeforModule`, `MatDeforElastIsoModule`, `MatDeforElastOrthoModule` (elastic material models).
 
 
@@ -78,7 +78,7 @@ julia> E/phun("MPa")
 
 ## Mesh entities
 
-The mesh consists of one set of finite element nodes  and one or more sets of finite elements. 
+The mesh consists of one set of finite element nodes  and one or more sets of finite elements.
 
 One of the  organizing principles of the  finite element collection  is that  finite elements can appear as representations of the interior  of the domain, but in a different model as parts of the boundary.  Thus  for instance  4-node  quadrilaterals  are finite elements that represent cross-sections of  axially symmetric models or surfaces  of membranes,  but they are also the boundaries of hexahedral  models.
 
@@ -222,7 +222,7 @@ Additionally, surface-like  finite elements (quadrilaterals and triangles embedd
 As an example, consider a straight duct with anechoic termination. A triangle mesh is generated as
 
 ```julia
-fens,fes  =  T3block(Lx,Ly,n,2); 
+fens,fes  =  T3block(Lx,Ly,n,2);
 ```
 
 and its boundary is extracted as
@@ -260,7 +260,7 @@ The methods defined for the abstract field  include:
 
 - Gather and scatter the system vector.
 
-- Gather elementwise  vectors or matrices of values, the degree of freedom numbers, or the fixed values of the degrees of freedom. 
+- Gather elementwise  vectors or matrices of values, the degree of freedom numbers, or the fixed values of the degrees of freedom.
 
 - Set  or clear essential boundary conditions..
 
@@ -277,7 +277,7 @@ In this case  the  abstract field  is subtyped to a concrete field where the ent
 
 ### General Field
 
-In this case  the  abstract field  is subtyped to a concrete field where the entities are  use-case  specific. 
+In this case  the  abstract field  is subtyped to a concrete field where the entities are  use-case  specific.
 
 ### Numbering of the degrees of freedom
 
@@ -294,7 +294,7 @@ The finite element set is a collection of  finite elements defined by the connec
 
 ### Element types
 
-The finite element sets are instances of concrete types. Each particular shape and order of element has its own type. There are types for  linear  and quadratic quadrilaterals, for instance, `FESetQ4` and `FESetQ8`. Each element set provides access to the number of nodes  connected by the element (`nodesperelem`),  the connectivity as the two dimensional array    `conn`,  and the  integer label vector `label`. 
+The finite element sets are instances of concrete types. Each particular shape and order of element has its own type. There are types for  linear  and quadratic quadrilaterals, for instance, `FESetQ4` and `FESetQ8`. Each element set provides access to the number of nodes  connected by the element (`nodesperelem`),  the connectivity as the two dimensional array    `conn`,  and the  integer label vector `label`.
 
 The concrete finite element set types are subtypes of the abstract type for elements of different manifold dimension (3, 2, 1, and 0), for instance for the quadrilaterals that would be `AbstractFESet2Manifold`. These types are in turn  subtypes of the abstract finite element set type `AbstractFESet`.
 
@@ -372,18 +372,18 @@ The integral  is approximated with numerical quadrature as
 ```    
 
 Here ``f``  is the integrand, ``f(\xi_q)``  is the  value of the integrand  at the quadrature point, ``J(\xi_q)``  is the  value of the Jacobian  at the quadrature point.
-Importantly, the Jacobian incorporates the "other" dimension,  and therefore it is the  *volume* 
+Importantly, the Jacobian incorporates the "other" dimension,  and therefore it is the  *volume*
 Jacobian. (For the interior integrals the Jacobian  is computed by the `Jacobianvolume` method.)
 
 ### Integration  over the boundary
 
-The integrals are always  *surface* integrals. This means that for elements which are of  lower manifold 
+The integrals are always  *surface* integrals. This means that for elements which are of  lower manifold
 dimension than two the "other"  dimension needs to compensate.
 
 For  two-manifold finite elements (triangles and quadrilaterals) the "other" dimension is always 1.0.
 This really means there is no "other" dimension to a surface-like element.
 
-For  finite elements of manifold dimension  less than two, the  "other" dimension varies according 
+For  finite elements of manifold dimension  less than two, the  "other" dimension varies according
 to the model (axially symmetric versus simple  plane 2D) as shown  in the table below.
 
 | Manifold dimension        | Axially symmetric    | Plane 2D |
@@ -403,14 +403,14 @@ Here ``f``  is the integrand, ``f(\xi_q)`` is the  value of the integrand  at th
 
 The surface Jacobian in this case  is  equal to the curve Jacobian times `2*pi*r`.
 
-### Integration Data 
+### Integration Data
 
 The  module `IntegDomainModule` supports  the processing of  the geometry necessary for the evaluation of the various integrals.
 The module data structure  groups together  a finite element set with an appropriate integration rule, information about the model (axially symmetric or not), and a callback to evaluate  the "other" dimension.
 
 ### Other dimension
 
-The  discussion of the surface and volume integrals introduces the notion  of the  "other"  dimension. In order to evaluate Jacobians of various space dimensions  the  Geometry Data module takes into account  whether or not the model is axially symmetric, and evaluates the "other" dimension based upon this information. 
+The  discussion of the surface and volume integrals introduces the notion  of the  "other"  dimension. In order to evaluate Jacobians of various space dimensions  the  Geometry Data module takes into account  whether or not the model is axially symmetric, and evaluates the "other" dimension based upon this information.
 
 A finite element set is equipped with  a way of  calculating  the "other" dimension.  For instance, the line element with two nodes, L2, can be given  the "other" dimension  as a  "thickness"  so that  surface integrals  can be evaluated over the line element. However, if this line element  is used in an axially symmetric model, the same  "other" dimension  of "thickness"  will result in the integral  along the length of this line element  being a volume integral.
 
@@ -425,9 +425,9 @@ function Jacobianvolume(self::IntegDomain{T}, J::FFltMat, loc::FFltMat, conn::CC
     end
 end
 ```
-which  evaluates the volume Jacobian  for an element  of manifold dimension  2  (surface). Note that  first  the surface Jacobian  is calculated, which is then boosted to a volume Jacobian in two different ways, depending on whether  the model is axially symmetric or not. For the axially symmetric case  the "other"  dimension is implied, 
+which  evaluates the volume Jacobian  for an element  of manifold dimension  2  (surface). Note that  first  the surface Jacobian  is calculated, which is then boosted to a volume Jacobian in two different ways, depending on whether  the model is axially symmetric or not. For the axially symmetric case  the "other"  dimension is implied,
 
-The callback function computes the "other" dimension from  two kinds of  information: (a) the physical location  of the quadrature point,  and (b) the interpolation data for the element  (connectivity and the values of the basis functions at the quadrature point). 
+The callback function computes the "other" dimension from  two kinds of  information: (a) the physical location  of the quadrature point,  and (b) the interpolation data for the element  (connectivity and the values of the basis functions at the quadrature point).
 
 - The approach ad (a) is suitable  when the "other" dimension is given as a function of the physical coordinates. The  simplest case is obviously  a uniform distribution of the "other" dimension. When  no  callback is explicitly provided,  the  "other"  dimension  callback is  automatically generated as the trivial
 ```julia
@@ -453,7 +453,7 @@ As an example consider the weighted-residual form of the heat balance equation
 ```math
 \int_{V}  \vartheta c_V\frac{\partial T}{\partial t} \; \mathrm{d} V
             +\int_{V}(\mathrm{grad}\vartheta)\; \kappa (\mathrm{grad}T
-            )^T\; \mathrm{d} V 
+            )^T\; \mathrm{d} V
             -\int_{V}  \vartheta Q \; \mathrm{d} V  
             +\int_{S_2} \vartheta\;\overline{q}_{n}\; \mathrm{d} S+ \int_{S_3} \vartheta\;h
             (T-T_a)  \; \mathrm{d} S = 0
@@ -472,17 +472,17 @@ Now the test function and the trial function is substituted  into the  weighted 
 
 ### Example:  internal heat generation rate term
 
-For instance,  for the term 
+For instance,  for the term
 ```math
-\int_{V}  \vartheta Q \; \mathrm{d} V 
+\int_{V}  \vartheta Q \; \mathrm{d} V
 ```    
 
 we obtain
 ```math
-\int_{V} N_{\left<j\right>} Q \; \mathrm{d} V 
+\int_{V} N_{\left<j\right>} Q \; \mathrm{d} V
 ```    
 
-This integral evaluates to a number, the heat load  applied to the degree of freedom ``j``. When these numbers are evaluated for all  the free degrees of freedom,  they constitute the entries of the global heat load vector. 
+This integral evaluates to a number, the heat load  applied to the degree of freedom ``j``. When these numbers are evaluated for all  the free degrees of freedom,  they constitute the entries of the global heat load vector.
 
 
 Evaluating integrals of this form is so common that there is a module `FEMMBaseModule` with the method `distribloads` that computes and assembles the global vector. For instance to evaluate this heat load vector  on the mesh composed of three-node triangles, for a uniform heat generation rate `Q`, we can write
@@ -499,7 +499,7 @@ F1 = distribloads(FEMMBase(IntegDomain(fes, TriRule(1))), geom, Temp, fi, 3);
 The conductivity term from the weighted residual equation
 ```math
 \int_{V}(\mathrm{grad}\vartheta)\; \kappa (\mathrm{grad}T
-            )^T\; \mathrm{d} V 
+            )^T\; \mathrm{d} V
 ```    
 
 is rewritten with the test and trial functions as
@@ -509,7 +509,7 @@ is rewritten with the test and trial functions as
 ```    
 The sum over the degree of freedom number ``i`` should be split: some of the  coefficients ``T_i`` are for free degrees of freedom (``1 \le i \le  N_{\mathrm{f}}``, with ``N_{\mathrm{f}}`` being the total number of free degrees of freedom), while some are  fixed (prescribed) for nodes  which are located on the essential boundary condition surface ``S_1``  (``N_{\mathrm{f}} < i \le N``).
 
-Thus the term splits into two  pieces, 
+Thus the term splits into two  pieces,
 
 ```math
 \sum_{i=1}^{N_{\mathrm{f}}} \int_{V}(\mathrm{grad}N_{\left<j\right>})\; \kappa (\mathrm{grad}N_{\left<i\right>}
@@ -565,7 +565,7 @@ The following  operations are provided  by the base FEM machine:
 
 ### Acoustics FEM machines
 
-There is one for  the interior integrals  and one for  boundary integrals. 
+There is one for  the interior integrals  and one for  boundary integrals.
 The  machine for the interior integrals can be used to compute:
 
 - Evaluate the acoustic-mass matrix and the acoustic-stiffness matrix.
@@ -580,7 +580,7 @@ The machine for the boundary integrals can be used to compute:
 
 ###  Heat  conduction FEM machines
 
-There is one for  the interior integrals  and one for  boundary integrals. 
+There is one for  the interior integrals  and one for  boundary integrals.
 The  machine for the interior integrals can be used to compute:
 
 - Evaluate the conductivity matrix.
@@ -608,7 +608,7 @@ Additionally:
 - Function to inspect  integration points.
 
 The FEM machine `FEMMDeforLinear` simply stores the data required by the base `FEMMDeforLinearBase`.
- 
+
 The machine `FEMMDeforWinkler` is specialized for the boundary integrals for bodies  supported  on continuously distributed springs:
 
 - Compute the stiffness matrix corresponding to the springs.
@@ -724,7 +724,7 @@ For instance, for the method `linearstatics` of the `AlgoDeforLinearModule`, the
 `modeldata` dictionary needs to provide key-value pairs for the finite element node set, and
 the regions, the boundary conditions, and so on.
 
-The `modeldata` may be also supplemented with additional key-value pairs inside an algorithm 
+The `modeldata` may be also supplemented with additional key-value pairs inside an algorithm
 and returned for further processing by other algorithms.
 
 ## Queries of quadrature-point data
@@ -795,7 +795,7 @@ Check out the numerous tests in the `test` folder. There are hundreds of tests w
 
 ## Make up your own public interface
 
-Here we assume that the FinEtools package is installed. We also assume the user works in his or her own folder, which for simplicity we assume is a package folder in the same tree as the package folder for FinEtools. 
+Here we assume that the FinEtools package is installed. We also assume the user works in his or her own folder, which for simplicity we assume is a package folder in the same tree as the package folder for FinEtools.
 
 The user may have his or her additions to the FinEtools library, for instance a new material implementation, or a new FEMM (finite element model machine). Additionally, the user writes some code to solve particular problems.
 
