@@ -32,7 +32,7 @@ import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssemble
 using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, loc!, jac!, locjac!, adjugate3!
 import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass, thermalstrainloads, inspectintegpoints
 import FinEtools.FEMMBaseModule: associategeometry!
-import FinEtools.MatDeforModule: rotstressvec
+import FinEtools.MatDeforModule: rotstressvec!
 import FinEtools.MatModule: massdensity
 import LinearAlgebra: mul!, Transpose, UpperTriangular, eigvals, det
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
@@ -513,8 +513,8 @@ function inspectintegpoints(self::AbstractFEMMDeforLinearESNICE, geom::NodalFiel
     		out, outtot = outtot, out # swap in the total output
     		if (quantity == :Cauchy)   # Transform stress tensor,  if that is "out"
     		    (length(out1) >= length(out)) || (out1 = zeros(length(out)))
-    		    rotstressvec(self.mr, out1, out, transpose(self.mcsys.csmat))# To global coord sys
-    		    rotstressvec(self.mr, out, out1, outputcsys.csmat)# To output coord sys
+    		    rotstressvec!(self.mr, out1, out, transpose(self.mcsys.csmat))# To global coord sys
+    		    rotstressvec!(self.mr, out, out1, outputcsys.csmat)# To output coord sys
     		end
     		# Call the inspector
     		idat = inspector(idat, i, fes.conn[i], xe, out, loc);

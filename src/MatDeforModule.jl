@@ -292,18 +292,20 @@ end
 # 3-D model
 
 """
-    rotstressvec(::Type{DeforModelRed3D},  outstress::FFltVec,
+    rotstressvec!(::Type{DeforModelRed3D},  outstress::FFltVec,
       instress::FFltVec, Rm::FFltMat)
 
 Rotate the stress vector by the supplied rotation matrix.
 
-Calculate the rotation of the stress vector to the
-'bar' coordinate system given by the columns of the rotation matrix `Rm`.
+Calculate the rotation of the stress vector to the 'bar' coordinate system given
+by the columns of the rotation matrix `Rm`.
 
-`Rm` = columns are components of 'bar' basis vectors on the 'plain'
+- `outstress` = output stress vector, overwritten inside
+- `instress` = input stress vector
+- `Rm` = columns are components of 'bar' basis vectors on the 'plain'
      basis vectors
 """
-function  rotstressvec(::Type{DeforModelRed3D},  outstress::FFltVec,  instress::FFltVec, Rm::AbstractArray{FFlt, 2})
+function  rotstressvec!(::Type{DeforModelRed3D},  outstress::FFltVec,  instress::FFltVec, Rm::AbstractArray{FFlt, 2})
       # # Derivation of the transformation matrix [T]
     # #This is from Barbero''s  book Finite element analysis of composite
     # #materials  using Abaqus.  Note that his matrix "a"  is the transpose of
@@ -375,18 +377,20 @@ end
 # 2-D plane strain model
 
 """
-    rotstressvec(::Type{DeforModelRed2DStrain},  outstress::FFltVec,
+    rotstressvec!(::Type{DeforModelRed2DStrain},  outstress::FFltVec,
       instress::FFltVec,  Rm::FFltMat)
 
 Rotate the stress vector by the supplied rotation matrix.
 
-Calculate the rotation of the stress vector to the
-'bar' coordinate system given by the columns of the rotation matrix `Rm`.
+Calculate the rotation of the stress vector to the 'bar' coordinate system given
+by the columns of the rotation matrix `Rm`.
 
-`Rm` = columns are components of 'bar' basis vectors on the 'plain'
+- `outstress` = output stress vector, overwritten inside
+- `instress` = input stress vector
+- `Rm` = columns are components of 'bar' basis vectors on the 'plain'
      basis vectors
 """
-function  rotstressvec(::Type{DeforModelRed2DStrain},  outstress::FFltVec,  instress::FFltVec,  Rm::AbstractArray{FFlt, 2})
+function  rotstressvec!(::Type{DeforModelRed2DStrain},  outstress::FFltVec,  instress::FFltVec,  Rm::AbstractArray{FFlt, 2})
     a11=Rm[1,1]; a12=Rm[1,2]; a13=0.0;
     a21=Rm[2,1]; a22=Rm[2,2]; a23=0.0;
     a31=0.0; a32=0.0; a33=1.0;
@@ -404,18 +408,20 @@ end
 # 2-D plane stress model
 
 """
-    rotstressvec(::Type{DeforModelRed2DStress},  outstress::FFltVec,
+    rotstressvec!(::Type{DeforModelRed2DStress},  outstress::FFltVec,
       instress::FFltVec,  Rm::FFltMat)
 
 Rotate the stress vector by the supplied rotation matrix.
 
-Calculate the rotation of the stress vector to the
-'bar' coordinate system given by the columns of the rotation matrix `Rm`.
+Calculate the rotation of the stress vector to the 'bar' coordinate system given
+by the columns of the rotation matrix `Rm`.
 
-`Rm` = columns are components of 'bar' basis vectors on the 'plain'
+- `outstress` = output stress vector, overwritten inside
+- `instress` = input stress vector
+- `Rm` = columns are components of 'bar' basis vectors on the 'plain'
      basis vectors
 """
-function  rotstressvec(::Type{DeforModelRed2DStress},  outstress::FFltVec,  instress::FFltVec,  Rm::AbstractArray{FFlt, 2})
+function  rotstressvec!(::Type{DeforModelRed2DStress},  outstress::FFltVec,  instress::FFltVec,  Rm::AbstractArray{FFlt, 2})
     a11=Rm[1,1]; a12=Rm[1,2];
     a21=Rm[2,1]; a22=Rm[2,2];
     outstress[1] =  (a11^2)*instress[1] + (a21^2)*instress[2] + (2*a11*a21)*instress[3]
@@ -428,18 +434,20 @@ end
 # 2-D axially symmetric stress model
 
 """
-    rotstressvec(::Type{DeforModelRed2DAxisymm},  outstress::FFltVec,
+    rotstressvec!(::Type{DeforModelRed2DAxisymm},  outstress::FFltVec,
       instress::FFltVec,  Rm::FFltMat)
 
 Rotate the stress vector by the supplied rotation matrix.
 
-Calculate the rotation of the stress vector to the
-'bar' coordinate system given by the columns of the rotation matrix `Rm`.
+Calculate the rotation of the stress vector to the 'bar' coordinate system given
+by the columns of the rotation matrix `Rm`.
 
-`Rm` = columns are components of 'bar' basis vectors on the 'plain'
+- `outstress` = output stress vector, overwritten inside
+- `instress` = input stress vector
+- `Rm` = columns are components of 'bar' basis vectors on the 'plain'
      basis vectors
 """
-function  rotstressvec(::Type{DeforModelRed2DAxisymm},  outstress::FFltVec,  instress::FFltVec,  Rm::AbstractArray{FFlt, 2})
+function  rotstressvec!(::Type{DeforModelRed2DAxisymm},  outstress::FFltVec,  instress::FFltVec,  Rm::AbstractArray{FFlt, 2})
     a11=Rm[1,1]; a12=Rm[1,2];
     a21=Rm[2,1]; a22=Rm[2,2];
     outstress[1] =  (a11^2)*instress[1] + (a21^2)*instress[2] + (0.0)*instress[3] + (2*a11*a21)*instress[4]
@@ -454,18 +462,20 @@ end
 # 1-D stress model
 
 """
-    rotstressvec(::Type{DeforModelRed2DAxisymm},  outstress::FFltVec,
+    rotstressvec!(::Type{DeforModelRed2DAxisymm},  outstress::FFltVec,
       instress::FFltVec,  Rm::FFltMat)
 
 Rotate the stress vector by the supplied rotation matrix.
 
-Calculate the rotation of the stress vector to the
-'bar' coordinate system given by the columns of the rotation matrix `Rm`.
+Calculate the rotation of the stress vector to the 'bar' coordinate system given
+by the columns of the rotation matrix `Rm`.
 
-`Rm` = columns are components of 'bar' basis vectors on the 'plain'
+- `outstress` = output stress vector, overwritten inside
+- `instress` = input stress vector
+- `Rm` = columns are components of 'bar' basis vectors on the 'plain'
      basis vectors
 """
-function  rotstressvec(::Type{DeforModelRed1D},  outstress::FFltVec,  instress::FFltVec,  Rm::AbstractArray{FFlt, 2})
+function  rotstressvec!(::Type{DeforModelRed1D},  outstress::FFltVec,  instress::FFltVec,  Rm::AbstractArray{FFlt, 2})
     copyto!(outstress, instress)
     return outstress
 end

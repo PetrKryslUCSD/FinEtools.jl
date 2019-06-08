@@ -28,7 +28,7 @@ import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssemble
 using FinEtools.MatrixUtilityModule: add_btdb_ut_only!, complete_lt!, add_btv!, loc!, jac!, locjac!, adjugate3!
 import FinEtools.FEMMDeforLinearBaseModule: stiffness, nzebcloadsstiffness, mass, thermalstrainloads, inspectintegpoints
 import FinEtools.FEMMBaseModule: associategeometry!
-import FinEtools.MatDeforModule: rotstressvec
+import FinEtools.MatDeforModule: rotstressvec!
 import LinearAlgebra: mul!, Transpose, UpperTriangular, eigvals
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
