@@ -30,7 +30,7 @@ rotation matrix is given.
 The function signature:
 `update!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)`
 where
-- `csmatout`= output matrix buffer, 
+- `csmatout`= output matrix buffer, of size `(sdim, mdim)`
 - `XYZ`= location  in physical coordinates,
 - `tangents`= tangent vector matrix, tangents to the parametric coordinate
   curves  in the element,
@@ -118,7 +118,7 @@ elements.
 
 - `XYZ`= location  in physical coordinates,
 - `tangents`= tangent vector matrix, tangents to the parametric coordinate
-  curves  in the element, 
+  curves  in the element,
 - `fe_label`= finite element label.
 
 The basic assumption here is that the material is isotropic, and
@@ -133,7 +133,7 @@ sdim`, the coordinate system matrix is the identity; otherwise the local
 coordinate directions are aligned with the linear subspace defined by the
 tangent vectors.
 
-!!! warning 
+!!! warning
 
 This *cannot* be reliably used to produce consistent stresses because each
 quadrature point gets a local coordinate system which depends on the
