@@ -74,6 +74,9 @@ end
     wipe!(self::AbstractField)
 
 Wipe all the data from the field.
+
+This includes values, prescribed values, degree of freedom numbers, and "is
+fixed" flags. The number of free degrees of freedom is set to zero.
 """
 function wipe!(self::AbstractField)
     Zer = zero(eltype(self.fixed_values[1]))
@@ -229,7 +232,7 @@ function anyfixedvaluenz(self::AbstractField, conn::CC) where {CC}
             if self.is_fixed[conn[i],j] # free degree of freedom
                 if  abs(self.fixed_values[conn[i], j]) > 0.0
                     return true
-                end 
+                end
             end
         end
     end
@@ -539,7 +542,7 @@ function prescribeddofs(uebc::AbstractField, u::AbstractField)
 			end
 		end
 	end
-	return dofnums, prescribedvalues 
+	return dofnums, prescribedvalues
 end
 
 end
