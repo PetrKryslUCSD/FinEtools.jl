@@ -519,6 +519,24 @@ function scattersysvec!(self::AbstractField, vec::FVec{T}) where {T<:Number}
 end
 
 """
+    incrscattersysvec!(self::AbstractField, vec::FVec{T}) where {T<:Number}
+
+Increment values of the field by scattering a system vector.
+"""
+function incrscattersysvec!(self::AbstractField, vec::FVec{T}) where {T<:Number}
+    nents,dim = size(self.values);
+    for i = 1:nents
+        for j = 1:dim
+            dn = self.dofnums[i,j];
+            if (dn > 0) && (dn <= self.nfreedofs)
+                self.values[i,j] += vec[dn];
+            end
+        end
+    end
+    return  self
+end
+
+"""
     prescribeddofs(uebc, u)
 
 Find which degrees of freedom are prescribed.
