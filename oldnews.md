@@ -1,5 +1,7 @@
 # Past news
 
+- 05/19/2019: Implementation of the computation of the infsup condition for isoparametric, mean-strain, and nodally-integrated solid finite elements.
+
 - 04/27/2019: The naming and various definitions of abstract types has been unified and streamlined. Because of the ensuing (slight) incompatibilities, the toolkit has been released in the version v2.0.0.
 
 - 04/25/2019: Added support for Documenter-generated guide and user manual.
@@ -7,7 +9,7 @@
 - 04/13/2019: Added Reverse Cuthill-McKee renumbering.
 
 - 03/07/2019: Meshing functions for circles, spherical surfaces, and cylinders added.
-- 
+-
 - 11/09/2018: The name IntegData was changed to IntegDomain to better reflect the meaning of this type. Since this is an incompatible change, v1.0.0 tag was released.
 
 - 10/02/2018: The code-coverage computation seems to be broken. The coverage in the FinEtools package hasn't actually changed and it is still at 98%.
@@ -41,4 +43,3 @@ path_to_0.7. At this point the package runs and tests cleanly with 0.7.
 - 08/04/2017: Several Jupyter notebook tutorials are now available. Abaqus mesh import is now also implemented (for continuum elements). Initial implementation  of high-performance mean-strain hexahedra and tetrahedra has been completed.
 
 - 07/23/2017: Export of the finite element model to Abaqus  CAE (from Daussault Systems) has been implemented. The FinEtools package can of course  handle the finite element calculations that the export enables, but the point is to have an independent verification of the results. Export of continuum-element meshes for  vibration and static stress analysis  is currently included.
-

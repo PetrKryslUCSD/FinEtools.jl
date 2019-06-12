@@ -155,18 +155,6 @@ using FinEtools.MeshTetrahedronModule: T4block, T4blockx, T4toT10, T10toT4, T10b
 # Exported: mesh generation functions for tetrahedral elements
 export  T4block, T4blockx, T4toT10, T10toT4, T10block, T10blockx, T10layeredplatex, T4meshedges, T4voximg, T4refine, T10refine, T4refine20
 
-using FinEtools.VoxelBoxModule: VoxelBoxVolume, voxeldims, size, fillvolume!, fillsolid!,  intersectionop, unionop, complementop, differenceop,  solidsphere, solidhalfspace, solidbox, solidcylinder, trim, pad, threshold,  vtkexport
-# Exported: type for voxel-box data structure, query methods
-export VoxelBoxVolume, voxeldims, size
-# Exported: methods to set voxel values to generate geometry
-export fillvolume!, fillsolid!,  intersectionop, unionop, complementop,differenceop,  solidsphere, solidhalfspace, solidbox, solidcylinder
-# Exported: methods for  manipulation and visualization  of voxel boxes
-export trim, pad, threshold,  vtkexport
-
-using FinEtools.VoxelTetMeshingModule: ElementSizeWeightFunction, ImageMesher, mesh!, volumes
-# Exported: type for the image mesher, type for control of element size gradation, method for generating  the mesh and queries
-export ImageMesher, ElementSizeWeightFunction, mesh!, volumes
-
 ###########################################################################
 # Abstract material
 ###########################################################################
@@ -174,90 +162,75 @@ using FinEtools.MatModule: AbstractMat, massdensity
 # Exported: abstract type of material
 export AbstractMat, massdensity
 
-###########################################################################
-# Heat diffusion functionality
-###########################################################################
-using FinEtools.MatHeatDiffModule: MatHeatDiff
-# Exported: type of heat-diffusion  material
-export MatHeatDiff
-
-using FinEtools.FEMMHeatDiffModule: FEMMHeatDiff, conductivity, nzebcloadsconductivity, energy, inspectintegpoints
-# Exported: type  for linear heat diffusion and discretization methods
-export FEMMHeatDiff, conductivity, nzebcloadsconductivity, energy, inspectintegpoints
-
-using FinEtools.FEMMHeatDiffSurfModule: FEMMHeatDiffSurf, surfacetransfer, surfacetransferloads, nzebcsurfacetransferloads
-# Exported: type  for linear heat diffusion boundary conditions and discretization methods
-export FEMMHeatDiffSurf, surfacetransfer, surfacetransferloads, nzebcsurfacetransferloads
-
-###########################################################################
-# Acoustics functionality
-###########################################################################
-using FinEtools.MatAcoustFluidModule: MatAcoustFluid
-# Exported: type of acoustic fluid material
-export MatAcoustFluid
-
-using FinEtools.FEMMAcoustModule: FEMMAcoust, acousticmass, nzebcloadsacousticmass,
-acousticstiffness, nzebcloadsacousticstiffness
-# Exported: type for linear acoustics  and discretization methods
-export FEMMAcoust, acousticmass, nzebcloadsacousticmass,
-    acousticstiffness, nzebcloadsacousticstiffness
-
-using FinEtools.FEMMAcoustSurfModule: FEMMAcoustSurf, acousticABC, pressure2resultantforce, pressure2resultanttorque, acousticcouplingpanels
-# Exported: type for acoustic absorbing boundary condition  and  transformation matrices from pressure  to resultants
-export FEMMAcoustSurf, acousticABC, pressure2resultantforce, pressure2resultanttorque, acousticcouplingpanels
-
-###########################################################################
-# Linear deformation functionality
-###########################################################################
-using FinEtools.DeforModelRedModule: AbstractDeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,    DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D, nstressstrain, nthermstrain, stresscomponentmap, Blmat!, divmat, vgradmat
-# Exported: types  for model reduction in stress analysis
-export AbstractDeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,    DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D
-# Exported: num stresses/strains,  number of thermal strains, and map of  the numbering of stress components
-export nstressstrain, nthermstrain, stresscomponentmap
-# Exported: strain-displacement matrix and divergence matrix for all model-reduction types
-export Blmat!, divmat, vgradmat
-
-using FinEtools.MatDeforModule: AbstractMatDefor, strain2x2tto3v!, strain3vto2x2t!, strain3x3tto6v!, strain6vto3x3t!, strain9vto3x3t!, strain3x3tto9v!, strain9vto6v!, strain6vto9v!, stress2x2to3v!,  stress3vto2x2t!, stress3vto3x3t!, stress4vto3x3t!, stress6vto3x3t!, stress3x3tto6v!, stress9vto6v!,  stress6vto9v!, rotstressvec!
-# Exported: abstract type for  models of deformation,  conversion methods  for strain and stress, transformations  of strain and stress
-export AbstractMatDefor, strain2x2tto3v!, strain3vto2x2t!, strain3x3tto6v!, strain6vto3x3t!, strain9vto3x3t!, strain3x3tto9v!, strain9vto6v!, strain6vto9v!, stress2x2to3v!,  stress3vto2x2t!, stress3vto3x3t!, stress4vto3x3t!, stress6vto3x3t!, stress3x3tto6v!, stress9vto6v!,  stress6vto9v!, rotstressvec!
-
-using FinEtools.MatDeforLinearElasticModule: AbstractMatDeforLinearElastic
-# Exported: type of  isotropic elastic material
-export AbstractMatDeforLinearElastic
-
-using FinEtools.MatDeforElastIsoModule: MatDeforElastIso
-# Exported: type of  isotropic elastic material
-export MatDeforElastIso
-
-using FinEtools.MatDeforElastOrthoModule: MatDeforElastOrtho
-# Exported: type of orthotropic elastic material
-export MatDeforElastOrtho
-
-using FinEtools.FEMMDeforLinearBaseModule: AbstractFEMMDeforLinear, stiffness, nzebcloadsstiffness, thermalstrainloads, mass, inspectintegpoints
-# Exported: abstract type for linear information, discretization methods for the abstract type
-export AbstractFEMMDeforLinear, stiffness, nzebcloadsstiffness, thermalstrainloads, mass, inspectintegpoints
-
-using FinEtools.FEMMDeforLinearModule: FEMMDeforLinear
-# Exported: type for linear deformation
-export FEMMDeforLinear
-
-using FinEtools.FEMMDeforWinklerModule: FEMMDeforWinkler, surfacenormalspringstiffness
-# Exported: type for distributed-spring support, discretization method
-export FEMMDeforWinkler, surfacenormalspringstiffness
-
-using FinEtools.FEMMDeforLinearMSModule: FEMMDeforLinearMSH8, FEMMDeforLinearMST10, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
-# Exported: type for mean-strain solid elements, discretization methods
-export FEMMDeforLinearMSH8, FEMMDeforLinearMST10, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
-
-using FinEtools.FEMMDeforSurfaceDampingModule: FEMMDeforSurfaceDamping, dampingABC
-#Exported: type for surface damping (absorbing boundary conditions)
-export FEMMDeforSurfaceDamping, dampingABC
-
-using FinEtools.FEMMDeforLinearNICEModule: FEMMDeforLinearNICEH8, FEMMDeforLinearNICET4, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
-# Exported: type for NICE (Nodally-integrated continuum elements) solid elements, discretization methods
-export FEMMDeforLinearNICEH8, FEMMDeforLinearNICET4, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
-
-using FinEtools.FEMMDeforLinearESNICEModule: FEMMDeforLinearESNICET4, FEMMDeforLinearESNICEH8, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
-# Exported: type for ESICE (Energy-sampling stabilized nodally-integrated continuum elements) solid elements, discretization methods
-export FEMMDeforLinearESNICET4, FEMMDeforLinearESNICEH8, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
+# ###########################################################################
+# # Acoustics functionality
+# ###########################################################################
+# using FinEtools.MatAcoustFluidModule: MatAcoustFluid
+# # Exported: type of acoustic fluid material
+# export MatAcoustFluid
+#
+# using FinEtools.FEMMAcoustModule: FEMMAcoust, acousticmass, nzebcloadsacousticmass,
+# acousticstiffness, nzebcloadsacousticstiffness
+# # Exported: type for linear acoustics  and discretization methods
+# export FEMMAcoust, acousticmass, nzebcloadsacousticmass,
+#     acousticstiffness, nzebcloadsacousticstiffness
+#
+# using FinEtools.FEMMAcoustSurfModule: FEMMAcoustSurf, acousticABC, pressure2resultantforce, pressure2resultanttorque, acousticcouplingpanels
+# # Exported: type for acoustic absorbing boundary condition  and  transformation matrices from pressure  to resultants
+# export FEMMAcoustSurf, acousticABC, pressure2resultantforce, pressure2resultanttorque, acousticcouplingpanels
+#
+# ###########################################################################
+# # Linear deformation functionality
+# ###########################################################################
+# using FinEtools.DeforModelRedModule: AbstractDeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,    DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D, nstressstrain, nthermstrain, stresscomponentmap, Blmat!, divmat, vgradmat
+# # Exported: types  for model reduction in stress analysis
+# export AbstractDeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,    DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D
+# # Exported: num stresses/strains,  number of thermal strains, and map of  the numbering of stress components
+# export nstressstrain, nthermstrain, stresscomponentmap
+# # Exported: strain-displacement matrix and divergence matrix for all model-reduction types
+# export Blmat!, divmat, vgradmat
+#
+# using FinEtools.MatDeforModule: AbstractMatDefor, strain2x2tto3v!, strain3vto2x2t!, strain3x3tto6v!, strain6vto3x3t!, strain9vto3x3t!, strain3x3tto9v!, strain9vto6v!, strain6vto9v!, stress2x2to3v!,  stress3vto2x2t!, stress3vto3x3t!, stress4vto3x3t!, stress6vto3x3t!, stress3x3tto6v!, stress9vto6v!,  stress6vto9v!, rotstressvec!
+# # Exported: abstract type for  models of deformation,  conversion methods  for strain and stress, transformations  of strain and stress
+# export AbstractMatDefor, strain2x2tto3v!, strain3vto2x2t!, strain3x3tto6v!, strain6vto3x3t!, strain9vto3x3t!, strain3x3tto9v!, strain9vto6v!, strain6vto9v!, stress2x2to3v!,  stress3vto2x2t!, stress3vto3x3t!, stress4vto3x3t!, stress6vto3x3t!, stress3x3tto6v!, stress9vto6v!,  stress6vto9v!, rotstressvec!
+#
+# using FinEtools.MatDeforLinearElasticModule: AbstractMatDeforLinearElastic
+# # Exported: type of  isotropic elastic material
+# export AbstractMatDeforLinearElastic
+#
+# using FinEtools.MatDeforElastIsoModule: MatDeforElastIso
+# # Exported: type of  isotropic elastic material
+# export MatDeforElastIso
+#
+# using FinEtools.MatDeforElastOrthoModule: MatDeforElastOrtho
+# # Exported: type of orthotropic elastic material
+# export MatDeforElastOrtho
+#
+# using FinEtools.FEMMDeforLinearBaseModule: AbstractFEMMDeforLinear, stiffness, nzebcloadsstiffness, thermalstrainloads, mass, inspectintegpoints
+# # Exported: abstract type for linear information, discretization methods for the abstract type
+# export AbstractFEMMDeforLinear, stiffness, nzebcloadsstiffness, thermalstrainloads, mass, inspectintegpoints
+#
+# using FinEtools.FEMMDeforLinearModule: FEMMDeforLinear
+# # Exported: type for linear deformation
+# export FEMMDeforLinear
+#
+# using FinEtools.FEMMDeforWinklerModule: FEMMDeforWinkler, surfacenormalspringstiffness
+# # Exported: type for distributed-spring support, discretization method
+# export FEMMDeforWinkler, surfacenormalspringstiffness
+#
+# using FinEtools.FEMMDeforLinearMSModule: FEMMDeforLinearMSH8, FEMMDeforLinearMST10, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
+# # Exported: type for mean-strain solid elements, discretization methods
+# export FEMMDeforLinearMSH8, FEMMDeforLinearMST10, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
+#
+# using FinEtools.FEMMDeforSurfaceDampingModule: FEMMDeforSurfaceDamping, dampingABC
+# #Exported: type for surface damping (absorbing boundary conditions)
+# export FEMMDeforSurfaceDamping, dampingABC
+#
+# using FinEtools.FEMMDeforLinearNICEModule: FEMMDeforLinearNICEH8, FEMMDeforLinearNICET4, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
+# # Exported: type for NICE (Nodally-integrated continuum elements) solid elements, discretization methods
+# export FEMMDeforLinearNICEH8, FEMMDeforLinearNICET4, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
+#
+# using FinEtools.FEMMDeforLinearESNICEModule: FEMMDeforLinearESNICET4, FEMMDeforLinearESNICEH8, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
+# # Exported: type for ESICE (Energy-sampling stabilized nodally-integrated continuum elements) solid elements, discretization methods
+# export FEMMDeforLinearESNICET4, FEMMDeforLinearESNICEH8, stiffness, nzebcloadsstiffness, thermalstrainloads, inspectintegpoints
 end

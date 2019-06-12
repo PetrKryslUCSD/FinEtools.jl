@@ -1,166 +1,3 @@
-module m111ocylpull14nnn # From miscellaneous
-using FinEtools
-using Test
-function test()
-    # Cylinder  compressed by enforced displacement, axially symmetric model
-
-
-    # Parameters:
-    E1=1.0;
-    E2=1.0;
-    E3=3.0;
-    nu12=0.29;
-    nu13=0.29;
-    nu23=0.19;
-    G12=0.3;
-    G13=0.3;
-    G23=0.3;
-    p= 0.15;
-    rin=1.;
-    rex =1.2;
-    Length = 1*rex
-    ua = -0.05*Length
-    tolerance=rin/1000.
-
-    ##
-    # Note that the FinEtools objects needs to be created with the proper
-    # model-dimension reduction at hand.  In this case that is the axial symmetry
-    # assumption.
-    MR = DeforModelRed2DAxisymm
-
-    fens,fes = Q4block(rex-rin,Length,5,20);
-    fens.xyz[:, 1] = fens.xyz[:, 1] .+ rin
-    bdryfes = meshboundary(fes);
-
-    # now we create the geometry and displacement fields
-    geom = NodalField(fens.xyz)
-    u = NodalField(zeros(size(fens.xyz,1),2)) # displacement field
-
-    # the symmetry plane
-    l1 =selectnode(fens; box=[0 rex 0 0], inflate = tolerance)
-    setebc!(u,l1,true, 2, 0.0)
-    # The other end
-    l1 =selectnode(fens; box=[0 rex Length Length], inflate = tolerance)
-    setebc!(u,l1,true, 2, ua)
-
-    applyebc!(u)
-    numberdofs!(u)
-    # println("Number of degrees of freedom = $(u.nfreedofs)")
-    @test u.nfreedofs == 240
-
-    # Property and material
-    material = MatDeforElastIso(MR, 00.0, E1, nu23, 0.0)
-    # display(material)
-    # println("$(material.D)")
-    # @show MR
-    
-    femm = FEMMDeforLinear(MR, IntegDomain(fes, GaussRule(2, 2), true), material)
-
-    K =stiffness(femm, geom, u)
-    F = nzebcloadsstiffness(femm, geom, u)
-    U=  K\(F)
-    scattersysvec!(u,U[:])
-
-    fld= fieldfromintegpoints(femm, geom, u, :princCauchy, 1)
-    # println("Minimum/maximum = $(minimum(fld.values))/$(maximum(fld.values))")
-    @test abs(minimum(fld.values) - 0.0) < 1.0e-5
-    @test abs(maximum(fld.values) - 0.0) < 1.0e-5
-    fld= fieldfromintegpoints(femm, geom, u, :princCauchy, 2)
-    # println("Minimum/maximum = $(minimum(fld.values))/$(maximum(fld.values))")
-    @test abs(minimum(fld.values) - 0.0) < 1.0e-5
-    @test abs(maximum(fld.values) - 0.0) < 1.0e-5
-    fld= fieldfromintegpoints(femm, geom, u, :princCauchy, 3)
-    # println("Minimum/maximum = $(minimum(fld.values))/$(maximum(fld.values))")
-    @test abs(minimum(fld.values) - -0.050) < 1.0e-5
-    @test abs(maximum(fld.values) - -0.04999999999999919) < 1.0e-5
-
-    # File =  "mocylpull14.vtk"
-    # vtkexportmesh(File, fens, fes; scalars=[("sigmaz", fld.values)],
-    #               vectors=[("u", u.values)])
-    # @async run(`"paraview.exe" $File`)
-end
-end
-using .m111ocylpull14nnn
-m111ocylpull14nnn.test()
-
-module mophysun13 # From miscellaneous
-using FinEtools
-using Test
-function test()
-    E1=1.0;
-    nu23=0.19;
-    rin=1.;
-    rex =1.2;
-    Length = 1*rex
-    tolerance=rin/1000.
-
-    MR = DeforModelRed2DAxisymm
-
-    fens,fes = Q4block(rex-rin,Length,5,20);
-    fens.xyz[:, 1] = fens.xyz[:, 1] .+ rin
-    bdryfes = meshboundary(fes);
-
-    geom = NodalField(fens.xyz)
-    u = NodalField(zeros(size(fens.xyz,1),2)) 
-    l1 =selectnode(fens; box=[0 rex 0 0], inflate = tolerance)
-    setebc!(u,l1,true, 2, 0.0)
-    l1 =selectnode(fens; box=[0 rex Length Length], inflate = tolerance)
-    setebc!(u,l1,true, 2, 0.0)
-    applyebc!(u)
-    numberdofs!(u)
-    @test u.nfreedofs == 240
-
-    material=MatDeforElastIso(MR, 00.0, E1, nu23, 0.0)
-    # println("success? ")
-    # @code_llvm FEMMDeforLinear(MR, IntegDomain(fes, GaussRule(2, 2), true), material, true)
-    # femm = FEMMDeforLinear(MR, IntegDomain(fes, GaussRule(2, 2), true), material, true)
-    # println("failure? ")
-    # @code_llvm FEMMDeforLinear(MR, IntegDomain(fes, GaussRule(2, 2), true), material)
-    femm = FEMMDeforLinear(MR, IntegDomain(fes, GaussRule(2, 2), true), material)
-
-    true
-end
-end
-using .mophysun13
-mophysun13.test()
-
-module m111ocylpull14n1 # From miscellaneous
-using FinEtools
-using Test
-
-function test()
-    E1=1.0;
-    nu23=0.19;
-    rin=1.;
-    rex =1.2;
-    Length = 1*rex
-
-    MR = DeforModelRed2DAxisymm
-    fens,fes = Q4block(rex-rin,Length,5,20);
-    material = MatDeforElastIso(MR, 00.0, E1, nu23, 0.0)
-    
-    femm = FEMMDeforLinear(MR, IntegDomain(fes, GaussRule(2, 2), true), material)
-    femm.mr == MR
-    
-    true
-end
-end
-using .m111ocylpull14n1
-m111ocylpull14n1.test()
-
-module mocylpull14a
-using FinEtools
-using Test
-function test()
-    MR = DeforModelRed2DAxisymm
-    material = MatDeforElastIso(MR, 0.0, 1.0, 0.0, 0.0)
-    @test MR == material.mr
-    femm = FEMMDeforLinear(MR, IntegDomain(FESetP1(reshape([1],1,1)), GaussRule(2, 2), true), material)
-
-end
-end
-using .mocylpull14a
-mocylpull14a.test()
 
 module mmiscellaneous1mmm
 using FinEtools
@@ -182,258 +19,6 @@ end
 end
 using .mmiscellaneous1mmm
 mmiscellaneous1mmm.test()
-
-module mstressconversionm
-using FinEtools
-using Test
-import LinearAlgebra: norm
-function test()
-  symmtens(N) = begin t=rand(N, N); t = (t+t')/2.0; end
-  t = symmtens(2)
-  v = zeros(3)
-  strain2x2tto3v!(v, t)
-  to = zeros(2, 2)
-  strain3vto2x2t!(to, v)
-  @test norm(t-to) < eps(1.0)
-
-  t = symmtens(3)
-  v = zeros(6)
-  strain3x3tto6v!(v, t)
-  to = zeros(3, 3)
-  strain6vto3x3t!(to, v)
-  @test norm(t-to) < eps(1.0)
-
-  t = symmtens(2)
-  v = zeros(3)
-  stress2x2to3v!(v, t)
-  to = zeros(2, 2)
-  stress3vto2x2t!(to, v)
-  @test norm(t-to) < eps(1.0)
-
-  v = vec([1. 2. 3.])
-  t = zeros(3, 3)
-  stress3vto3x3t!(t, v)
-  to = [1. 3. 0; 3. 2. 0; 0 0 0]
-  @test norm(t-to) < eps(1.0)
-
-  v = vec([1. 2 3 4])
-  t = zeros(3, 3)
-  stress4vto3x3t!(t, v)
-  to = [1. 3 0; 3 2 0; 0 0 4]
-  @test norm(t-to) < eps(1.0)
-
-  v = rand(6)
-  t = zeros(3, 3)
-  stress6vto3x3t!(t, v)
-  vo = zeros(6)
-  stress3x3tto6v!(vo, t)
-  @test norm(v-vo) < eps(1.0)
-
-  v = rand(9)
-  t = zeros(3, 3)
-  strain9vto3x3t!(t, v)
-  t = (t + t')/2.0 # symmetrize
-  strain3x3tto9v!(v, t)
-  v6 = zeros(6)
-  strain9vto6v!(v6, v)
-  v9 = zeros(9)
-  strain6vto9v!(v9, v6)
-  @test norm(v-v9) < eps(1.0)
-
-  v = vec([1. 2 3 4 4 5 5 6 6])
-  v6 = zeros(6)
-  stress9vto6v!(v6, v)
-  v9 = zeros(9)
-  stress6vto9v!(v9, v6)
-  @test norm(v-v9) < eps(1.0)
-
-end
-end
-using .mstressconversionm
-mstressconversionm.test()
-
-module mmtwistedeexportmm
-using FinEtools
-using Test
-using FinEtools.MeshExportModule
-function test()
-  E = 0.29e8;
-  nu = 0.22;
-  W = 1.1;
-  L = 12.;
-  t =  0.32;
-  nl = 2; nt = 1; nw = 1; ref = 3;
-  p =   1/W/t;
-  #  Loading in the Z direction
-  loadv = [0;0;p]; dir = 3; uex = 0.005424534868469; # Harder: 5.424e-3;
-  #   Loading in the Y direction
-  #loadv = [0;p;0]; dir = 2; uex = 0.001753248285256; # Harder: 1.754e-3;
-  tolerance  = t/1000;
-
-  fens,fes  = H8block(L,W,t, nl*ref,nw*ref,nt*ref)
-
-  # Reshape into a twisted beam shape
-  for i = 1:count(fens)
-    a = fens.xyz[i,1]/L*(pi/2); y = fens.xyz[i,2]-(W/2); z = fens.xyz[i,3]-(t/2);
-    fens.xyz[i,:] = [fens.xyz[i,1],y*cos(a)-z*sin(a),y*sin(a)+z*cos(a)];
-  end
-
-  # Clamped end of the beam
-  l1  = selectnode(fens; box = [0 0 -100*W 100*W -100*W 100*W], inflate  =  tolerance)
-  e1 = FDataDict("node_list"=>l1, "component"=>1, "displacement"=>0.0)
-  e2 = FDataDict("node_list"=>l1, "component"=>2, "displacement"=>0.0)
-  e3 = FDataDict("node_list"=>l1, "component"=>3, "displacement"=>0.0)
-
-  # Traction on the opposite edge
-  boundaryfes  =   meshboundary(fes);
-  Toplist   = selectelem(fens,boundaryfes, box =  [L L -100*W 100*W -100*W 100*W], inflate =   tolerance);
-  el1femm  = FEMMBase(IntegDomain(subset(boundaryfes,Toplist), GaussRule(2, 2)))
-  flux1 = FDataDict("femm"=>el1femm, "traction_vector"=>loadv)
-
-
-  # Make the region
-  MR = DeforModelRed3D
-  material = MatDeforElastIso(MR, 00.0, E, nu, 0.0)
-  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, IntegDomain(fes, GaussRule(3,2)),
-            material))
-
-  # Make model data
-  modeldata =  FDataDict(
-  "fens"=> fens, "regions"=>  [region1],
-  "essential_bcs"=>[e1, e2, e3], "traction_bcs"=>  [flux1])
-
-
-  AE = AbaqusExporter("twisted_beam");
-  HEADING(AE, "Twisted beam example");
-  PART(AE, "part1");
-  END_PART(AE);
-  ASSEMBLY(AE, "ASSEM1");
-  INSTANCE(AE, "INSTNC1", "PART1");
-  NODE(AE, fens.xyz);
-  ELEMENT(AE, "c3d8rh", "AllElements", 1, connasarray(region1["femm"].integdomain.fes))
-  ELEMENT(AE, "SFM3D4", "TractionElements",
-    1+count(region1["femm"].integdomain.fes), connasarray(flux1["femm"].integdomain.fes))
-  NSET_NSET(AE, "l1", l1)
-  ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
-  SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", "Hourglass");
-  SURFACE_SECTION(AE, "TractionElements")
-  END_INSTANCE(AE);
-  END_ASSEMBLY(AE);
-  MATERIAL(AE, "elasticity")
-  ELASTIC(AE, E, nu)
-  SECTION_CONTROLS(AE, "section1", "HOURGLASS=ENHANCED")
-  STEP_PERTURBATION_STATIC(AE)
-  BOUNDARY(AE, "ASSEM1.INSTNC1.l1", 1)
-  BOUNDARY(AE, "ASSEM1.INSTNC1.l1", 2)
-  BOUNDARY(AE, "ASSEM1.INSTNC1.l1", 3)
-  DLOAD(AE, "ASSEM1.INSTNC1.TractionElements", vec(flux1["traction_vector"]))
-  END_STEP(AE)
-  close(AE)
-  nlines = 0
-  open("twisted_beam.inp") do f
-    s = readlines(f)
-    nlines = length(s)
-  end
-  @test nlines == 223
-  rm("twisted_beam.inp")
-
-  true
-end
-end
-using .mmtwistedeexportmm
-mmtwistedeexportmm.test()
-
-
-module mmtwistedeexport2mm
-using FinEtools
-using Test
-using FinEtools.MeshExportModule
-function test()
-  E = 0.29e8;
-  nu = 0.22;
-  W = 1.1;
-  L = 12.;
-  t =  0.32;
-  nl = 2; nt = 1; nw = 1; ref = 3;
-  p =   1/W/t;
-  #  Loading in the Z direction
-  loadv = [0;0;p]; dir = 3; uex = 0.005424534868469; # Harder: 5.424e-3;
-  #   Loading in the Y direction
-  #loadv = [0;p;0]; dir = 2; uex = 0.001753248285256; # Harder: 1.754e-3;
-  tolerance  = t/1000;
-
-  fens,fes  = H8block(L,W,t, nl*ref,nw*ref,nt*ref)
-
-  # Reshape into a twisted beam shape
-  for i = 1:count(fens)
-    a = fens.xyz[i,1]/L*(pi/2); y = fens.xyz[i,2]-(W/2); z = fens.xyz[i,3]-(t/2);
-    fens.xyz[i,:] = [fens.xyz[i,1],y*cos(a)-z*sin(a),y*sin(a)+z*cos(a)];
-  end
-
-  # Clamped end of the beam
-  l1  = selectnode(fens; box = [0 0 -100*W 100*W -100*W 100*W], inflate  =  tolerance)
-  e1 = FDataDict("node_list"=>l1, "component"=>1, "displacement"=>0.0)
-  e2 = FDataDict("node_list"=>l1, "component"=>2, "displacement"=>0.0)
-  e3 = FDataDict("node_list"=>l1, "component"=>3, "displacement"=>0.0)
-
-  # Traction on the opposite edge
-  boundaryfes  =   meshboundary(fes);
-  Toplist   = selectelem(fens,boundaryfes, box =  [L L -100*W 100*W -100*W 100*W], inflate =   tolerance);
-  el1femm  = FEMMBase(IntegDomain(subset(boundaryfes,Toplist), GaussRule(2, 2)))
-  flux1 = FDataDict("femm"=>el1femm, "traction_vector"=>loadv)
-
-
-  # Make the region
-  MR = DeforModelRed3D
-  material = MatDeforElastIso(MR, 00.0, E, nu, 0.0)
-  region1 = FDataDict("femm"=>FEMMDeforLinearMSH8(MR, IntegDomain(fes, GaussRule(3,2)),
-            material))
-
-  # Make model data
-  modeldata =  FDataDict(
-  "fens"=> fens, "regions"=>  [region1],
-  "essential_bcs"=>[e1, e2, e3], "traction_bcs"=>  [flux1])
-
-
-  AE = AbaqusExporter("twisted_beam");
-  HEADING(AE, "Twisted beam example");
-  PART(AE, "part1");
-  END_PART(AE);
-  ASSEMBLY(AE, "ASSEM1");
-  INSTANCE(AE, "INSTNC1", "PART1");
-  NODE(AE, fens.xyz);
-  ELEMENT(AE, "c3d8rh", "AllElements", 1, connasarray(region1["femm"].integdomain.fes))
-  ELEMENT(AE, "SFM3D4", "TractionElements",
-    1+count(region1["femm"].integdomain.fes), connasarray(flux1["femm"].integdomain.fes))
-  NSET_NSET(AE, "l1", l1)
-  ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
-  SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", "Hourglass");
-  SURFACE_SECTION(AE, "TractionElements")
-  END_INSTANCE(AE);
-  END_ASSEMBLY(AE);
-  MATERIAL(AE, "elasticity")
-  ELASTIC(AE, E, nu)
-  SECTION_CONTROLS(AE, "section1", "HOURGLASS=ENHANCED")
-  STEP_PERTURBATION_STATIC(AE)
-  BOUNDARY(AE, "ASSEM1.INSTNC1.l1", 1, 0.0)
-  BOUNDARY(AE, "ASSEM1.INSTNC1.l1", 2, 0.0)
-  BOUNDARY(AE, "ASSEM1.INSTNC1.l1", 3, 0.0)
-  DLOAD(AE, "ASSEM1.INSTNC1.TractionElements", vec(flux1["traction_vector"]))
-  END_STEP(AE)
-  close(AE)
-  nlines = 0
-  open("twisted_beam.inp") do f
-    s = readlines(f)
-    nlines = length(s)
-  end
-  @test nlines == 223
-  rm("twisted_beam.inp")
-
-  true
-end
-end
-using .mmtwistedeexport2mm
-mmtwistedeexport2mm.test()
 
 module mrichmmm
 using FinEtools
@@ -793,7 +378,7 @@ function test()
     #   groupnodes = findall(k -> k == gp, partitioning)
     #   File =  "partition-nodes-$(gp).vtk"
     #   vtkexportmesh(File, fens, FESetP1(reshape(groupnodes, length(groupnodes), 1)))
-    # end 
+    # end
     # File =  "partition-mesh.vtk"
     # vtkexportmesh(File, fens, fes)
     # @async run(`"paraview.exe" $File`)
@@ -1144,20 +729,6 @@ end
 using .mmcrossm
 mmcrossm.test()
 
-module mstresscomponentmap
-using FinEtools
-using Test
-function test()
-    MR = DeforModelRed1D
-    @test stresscomponentmap(MR)[:x] == 1
-    MR = DeforModelRed2DAxisymm
-    @test stresscomponentmap(MR)[:x] == 1
-    @test stresscomponentmap(MR)[:zz] == 3
-end
-end
-using .mstresscomponentmap
-mstresscomponentmap.test()
-
 module mgen_iso_csmat1
 using FinEtools
 using FinEtools.FESetModule
@@ -1484,129 +1055,6 @@ end
 using .mxmeasurementm3a1
 mxmeasurementm3a1.test()
 
-module minnerproduct1
-using FinEtools
-using Test
-using Arpack
-function test()
-    kappa = 0.2*[1.0 0; 0 1.0]; # conductivity matrix
-    magn = 0.06;# heat flux along the boundary
-    rin =  1.0;#internal radius
-    rex =  2.0;#external radius
-    nr = 20; nc = 280;
-    Angle = 2*pi;
-    thickness =  1.0;
-    tolerance = min(rin/nr,  rin/nc/2/pi)/10000;
-    
-    fens, fes  =  Q4annulus(rin, rex, nr, nc, Angle)
-    fens, fes  =  mergenodes(fens,  fes,  tolerance);
-    edge_fes  =  meshboundary(fes);
-    
-    geom = NodalField(fens.xyz)
-    Temp = NodalField(zeros(size(fens.xyz, 1), 1))
-    
-    l1  = selectnode(fens; box=[0.0 0.0 -rex -rex],  inflate = tolerance)
-    setebc!(Temp, l1, 1; val=zero(FFlt))
-    applyebc!(Temp)
-    
-    numberdofs!(Temp)
-    
-    material = MatHeatDiff(kappa)
-    femm = FEMMHeatDiff(IntegDomain(fes,  GaussRule(2, 2)),  material)
-    
-    K = conductivity(femm,  geom,  Temp)
-    
-    l1 = selectelem(fens, edge_fes, box=[-1.1*rex -0.9*rex -0.5*rex 0.5*rex]);
-    el1femm = FEMMBase(IntegDomain(subset(edge_fes, l1),  GaussRule(1, 2)))
-    fi = ForceIntensity(FFlt[-magn]);#entering the domain
-    F1 = (-1.0)* distribloads(el1femm,  geom,  Temp,  fi,  2);
-    
-    l1 = selectelem(fens, edge_fes, box=[0.9*rex 1.1*rex -0.5*rex 0.5*rex]);
-    el1femm =  FEMMBase(IntegDomain(subset(edge_fes, l1),  GaussRule(1, 2)))
-    fi = ForceIntensity(FFlt[+magn]);#leaving the domain
-    F2 = (-1.0)* distribloads(el1femm,  geom,  Temp,  fi,  2);
-    
-    F3 = nzebcloadsconductivity(femm,  geom,  Temp);
-    
-    F = (F1+F2+F3)
-    U = K\F
-    scattersysvec!(Temp, U[:])
-    
-    InnerProduct = FinEtools.FEMMBaseModule.innerproduct(femm,  geom,  Temp)
-
-    d,v,nev,nconv = eigs(InnerProduct; nev=7, which=:SM)
-    # # println("Smallest Eigenvalues: $(d)")
-    @test abs(d[1] - 9.60413e-5) / 9.60413e-5 < 1.0e-6
-    
-    true
-
-end
-end
-using .minnerproduct1
-minnerproduct1.test()
-
-module minnerproduct2
-using FinEtools
-using Test
-using Arpack
-function test()
-    kappa = 0.2*[1.0 0; 0 1.0]; # conductivity matrix
-    magn = 0.06;# heat flux along the boundary
-    rin =  1.0;#internal radius
-    rex =  2.0;#external radius
-    nr = 2; nc = 20;
-    Angle = 2*pi;
-    thickness =  1.0;
-    tolerance = min(rin/nr,  rin/nc/2/pi)/10000;
-    
-    fens, fes  =  Q4annulus(rin, rex, nr, nc, Angle)
-    fens, fes  =  mergenodes(fens,  fes,  tolerance);
-    edge_fes  =  meshboundary(fes);
-    
-    geom = NodalField(fens.xyz)
-    Temp = NodalField(zeros(size(fens.xyz, 1), 1))
-    
-    l1  = selectnode(fens; box=[0.0 0.0 -rex -rex],  inflate = tolerance)
-    setebc!(Temp, l1, 1; val=zero(FFlt))
-    applyebc!(Temp)
-    
-    numberdofs!(Temp)
-    
-    material = MatHeatDiff(kappa)
-    femm = FEMMHeatDiff(IntegDomain(fes,  GaussRule(2, 2)),  material)
-    
-    K = conductivity(femm,  geom,  Temp)
-    
-    l1 = selectelem(fens, edge_fes, box=[-1.1*rex -0.9*rex -0.5*rex 0.5*rex]);
-    el1femm = FEMMBase(IntegDomain(subset(edge_fes, l1),  GaussRule(1, 2)))
-    fi = ForceIntensity(FFlt[-magn]);#entering the domain
-    F1 = (-1.0)* distribloads(el1femm,  geom,  Temp,  fi,  2);
-    
-    l1 = selectelem(fens, edge_fes, box=[0.9*rex 1.1*rex -0.5*rex 0.5*rex]);
-    el1femm =  FEMMBase(IntegDomain(subset(edge_fes, l1),  GaussRule(1, 2)))
-    fi = ForceIntensity(FFlt[+magn]);#leaving the domain
-    F2 = (-1.0)* distribloads(el1femm,  geom,  Temp,  fi,  2);
-    
-    F3 = nzebcloadsconductivity(femm,  geom,  Temp);
-    
-    F = (F1+F2+F3)
-    U = K\F
-    scattersysvec!(Temp, U[:])
-    
-    InnerProductM = FinEtools.FEMMBaseModule.innerproduct(femm, SysmatAssemblerSparseHRZLumpingSymm(), geom,  Temp)
-    # # println("InnerProductM = $(InnerProductM)")
-
-    d,v,nev,nconv = eigs(InnerProductM; nev=7, which=:SM)
-    # # println("Smallest Eigenvalues: $(d)")
-    @test abs(d[1] - 0.086911) / 0.086911 < 1.0e-6
-    
-    true
-
-end
-end
-using .minnerproduct2
-minnerproduct2.test()
-
 module mboxintersection_1
 using FinEtools
 using Test
@@ -1629,7 +1077,7 @@ function test()
     b = intersectboxes(b1, b2)
     # println("b = $(b)")
     @test norm(b - [0.114056, 0.890426, 0.119944, 0.60264, 0.516064, 0.906292]) < 1.0e-4
-    
+
     b1 = [0.042525, 0.49648, 0.119944, 0.933498, 0.00175703, 0.966154]
     b2 = [0.514056, 0.890426, 0.0389293, 0.60264, 0.516064, 0.906292]
     # println("b1 = $(b1)")
@@ -1685,7 +1133,7 @@ function test()
     for i = 1:count(fes)
         for m = 1:length(anode)
             if in(anode[m], fes.conn[i])
-                global connectedcount = connectedcount + 1 
+                global connectedcount = connectedcount + 1
                 break
             end
         end
@@ -1722,9 +1170,9 @@ function test()
         0.9134
         0.6324
         0.0975]
-    x0 = fill(zero(FFlt), 6)    
+    x0 = fill(zero(FFlt), 6)
     maxiter = 20
-    x = conjugategradient(A, b, x0, maxiter) 
+    x = conjugategradient(A, b, x0, maxiter)
 end
 end
 using .mconjugategradient1
@@ -1739,7 +1187,7 @@ function test()
     hs = [(4.0/5.)^i for i in range(0, length = 3)]
     approxerrors = diff(xs)
     fun = y ->  approxerrors[1] / (hs[1]^y - hs[2]^y) - approxerrors[2] / (hs[2]^y - hs[3]^y)
-    
+
     beta = bisect(fun, 0.001, 2.0, 0.00001, 0.00001)
     beta = (beta[1] + beta[2]) / 2.0
     @assert abs(beta - 1.1697) < 1.0e-4
@@ -1871,8 +1319,8 @@ function test()
     reg1 = selectelem(fens, fes; box = [0.0 L/3 0.0 H], inflate = L/nL/1000)
     reg2 = selectelem(fens, fes; box = [L/3 L 0.0 H/2], inflate = L/nL/1000)
     reg3 = selectelem(fens, fes; box = [L/3 L H/2 H], inflate = L/nL/1000)
-    fesarr = vec([subset(fes, reg1) subset(fes, reg2) subset(fes, reg3)]) 
-    
+    fesarr = vec([subset(fes, reg1) subset(fes, reg2) subset(fes, reg3)])
+
     # Partitioning of all the nodes
     partitioning = nodepartitioning(fens, fesarr, vec([2 4 2]))
    @test norm(partitioning .- [2, 2, 2, 2, 2, 2, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 2, 2, 2, 2, 2, 2, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 2, 2, 2, 2, 2, 2, 6, 6,
@@ -1885,7 +1333,7 @@ function test()
     #   @show groupnodes
     # #   File =  "partition-nodes-$(gp).vtk"
     # #   vtkexportmesh(File, fens, FESetP1(reshape(groupnodes, length(groupnodes), 1)))
-    # end 
+    # end
     # for i = 1:length(fesarr)
     #     File =  "mesh-$(i).vtk"
     #     vtkexportmesh(File, fens, fesarr[i])
@@ -1904,8 +1352,8 @@ using Test
 function test()
     N = 10
     a = vec(rand(N))
-    i = convert(Vector{Int64}, round.(rand(N) * N) .+ 1) 
-    j = convert(Vector{Int64}, round.(rand(N) * N) .+ 1) 
+    i = convert(Vector{Int64}, round.(rand(N) * N) .+ 1)
+    j = convert(Vector{Int64}, round.(rand(N) * N) .+ 1)
     # println("i = $(i)")
     # println("j = $(j)")
     A = sparse(i, j, a, N+1, N+1)
@@ -1978,34 +1426,6 @@ end
 end
 using .mmAdjugate
 mmAdjugate.test()
-
-module mmMeasurement_3a
-using FinEtools
-using Test
-function test()
-    W = 1.1;
-    L = 12.;
-    t =  3.32;
-    nl, nt, nw = 5, 3, 4;
-    Ea =  210000*phun("MEGA*Pa")
-    nua =  0.3;
-
-    # println("New segmentation fault?")
-    for orientation in [:a :b :ca :cb]
-        fens,fes  = T4block(L,W,t, nl,nw,nt, orientation)
-        geom  =  NodalField(fens.xyz)
-        MR  =  DeforModelRed3D
-        material = MatDeforElastIso(MR, 0.0, Ea, nua, 0.0)
-
-        femm  =  FEMMDeforLinearNICET4(MR, IntegDomain(fes, NodalSimplexRule(3)), material)
-        V = integratefunction(femm, geom, (x) ->  1.0)
-        @test abs(V - W*L*t)/V < 1.0e-5
-    end
-
-end
-end
-using .mmMeasurement_3a
-mmMeasurement_3a.test()
 
 module mxmeasurementm3b1
 using FinEtools
@@ -2144,7 +1564,7 @@ function test()
            (alpha = 0.96, beta = 0.3, c = -1.3, truesol = -1.0e4),
            ]
     for t in testsets
-        parameters = [1.0, t.alpha, t.alpha^2] 
+        parameters = [1.0, t.alpha, t.alpha^2]
         model = p -> (t.truesol) - (t.c)*p^(t.beta)
         solns = [model(p) for p in parameters]
         solnestim, betaestim, cestim, residual = richextrapol(solns, parameters)
@@ -2153,7 +1573,7 @@ function test()
         @test abs(t.c - cestim) < 1.0e-5 * abs(t.c)
     end
     for t in testsets
-        parameters = [1.0, t.alpha, t.alpha^2] 
+        parameters = [1.0, t.alpha, t.alpha^2]
         model = p -> (t.truesol) - (t.c)*p^(t.beta)
         solns = [model(p) for p in parameters]
         solnestim, betaestim, cestim, residual = richextrapoluniform(solns, parameters)
@@ -2173,7 +1593,7 @@ using Test
 import LinearAlgebra: norm
 using FinEtools.AlgoBaseModule: richextrapol
 function test()
-    # Tests of Richardson extrapolation for sequence with Non-uniform refinement 
+    # Tests of Richardson extrapolation for sequence with Non-uniform refinement
     testsets = [ (parameters = [0.5, 0.3, 0.1], beta = 2.0, c = 0.3, truesol = 1.0),
            (parameters = [0.5, 0.4, 0.1], beta = 1.2, c = -0.3, truesol = 10.0),
            (parameters = [0.54, 0.14, 0.1], beta = 1.2, c = -0.3, truesol = 10.0),
@@ -2194,7 +1614,7 @@ function test()
       @test abs(t.truesol - solnestim) < 1.0e-6 * abs(t.truesol)
       @test abs(t.beta - betaestim) < 1.0e-5 * t.beta
       @test abs(t.c - cestim) < 1.0e-5 * abs(t.c)
-    end   
+    end
     true
 end
 end
@@ -2206,20 +1626,20 @@ using FinEtools
 using Test
 import LinearAlgebra: norm, cholesky
 function test()
-	a = SysmatAssemblerSparse(0.0)                                                        
-	startassembly!(a, 5, 5, 3, 7, 7)    
-	m = [0.24406   0.599773    0.833404  0.0420141                                             
-	0.786024  0.00206713  0.995379  0.780298                                              
-	0.845816  0.198459    0.355149  0.224996]                                     
-	assemble!(a, m, [1 7 5], [5 2 1 4])        
-	m = [0.146618  0.53471   0.614342    0.737833                                              
- 0.479719  0.41354   0.00760941  0.836455                                              
- 0.254868  0.476189  0.460794    0.00919633                                            
- 0.159064  0.261821  0.317078    0.77646                                               
- 0.643538  0.429817  0.59788     0.958909]                                   
-	assemble!(a, m, [2 3 1 7 5], [6 7 3 4])                                        
-	A = makematrix!(a) 
-	@test abs.(maximum([0.833404 0.599773 0.460794 0.0512104 0.24406 0.254868 0.476189; 0.0 0.0 0.614342 0.737833 0.0 0.146618 0.53471; 0.0 0.0 0.00760941 0.836455 0.0 0.479719 0.41354; 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.355149 0.198459 0.59788 1.1839 0.845816 0.643538 0.429817; 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.995379 0.00206713 0.317078 1.55676 0.786024 0.159064 0.261821]  - A)) < 1.0e-5             
+	a = SysmatAssemblerSparse(0.0)
+	startassembly!(a, 5, 5, 3, 7, 7)
+	m = [0.24406   0.599773    0.833404  0.0420141
+	0.786024  0.00206713  0.995379  0.780298
+	0.845816  0.198459    0.355149  0.224996]
+	assemble!(a, m, [1 7 5], [5 2 1 4])
+	m = [0.146618  0.53471   0.614342    0.737833
+ 0.479719  0.41354   0.00760941  0.836455
+ 0.254868  0.476189  0.460794    0.00919633
+ 0.159064  0.261821  0.317078    0.77646
+ 0.643538  0.429817  0.59788     0.958909]
+	assemble!(a, m, [2 3 1 7 5], [6 7 3 4])
+	A = makematrix!(a)
+	@test abs.(maximum([0.833404 0.599773 0.460794 0.0512104 0.24406 0.254868 0.476189; 0.0 0.0 0.614342 0.737833 0.0 0.146618 0.53471; 0.0 0.0 0.00760941 0.836455 0.0 0.479719 0.41354; 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.355149 0.198459 0.59788 1.1839 0.845816 0.643538 0.429817; 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.995379 0.00206713 0.317078 1.55676 0.786024 0.159064 0.261821]  - A)) < 1.0e-5
 	# @test abs(maximum(T_i)-1380.5883006341187) < 1.0e-3
 end
 end
@@ -2231,214 +1651,28 @@ using FinEtools
 using Test
 import LinearAlgebra: norm, cholesky
 function test()
-	a = SysmatAssemblerSparseSymm(0.0)                                                        
-		startassembly!(a, 5, 5, 3, 7, 7)    
-		m = [0.24406   0.599773    0.833404  0.0420141                                             
-			0.786024  0.00206713  0.995379  0.780298                                              
-			0.845816  0.198459    0.355149  0.224996]                                     
-		assemble!(a, m'*m, [5 2 1 4], [5 2 1 4])        
-		m = [0.146618  0.53471   0.614342    0.737833                                              
-			 0.479719  0.41354   0.00760941  0.836455                                              
-			 0.254868  0.476189  0.460794    0.00919633                                            
-			 0.159064  0.261821  0.317078    0.77646                                               
-			 0.643538  0.429817  0.59788     0.958909]                                   
-		assemble!(a, m'*m, [2 3 1 5], [2 3 1 5])                                        
-		A = makematrix!(a) 
-	@test abs.(maximum([ 2.85928   1.21875    0.891063  0.891614   2.56958   0.0  0.0                          
- 1.21875   1.15515    0.716396  0.0714644  1.56825   0.0  0.0                          
- 0.891063  0.716396   0.936979  0.0        1.36026   0.0  0.0                          
- 0.891614  0.0714644  0.0       0.661253   0.813892  0.0  0.0                          
- 2.56958   1.56825    1.36026   0.813892   4.15934   0.0  0.0                          
- 0.0       0.0        0.0       0.0        0.0       0.0  0.0                          
- 0.0       0.0        0.0       0.0        0.0       0.0  0.0 ]  - A)) < 1.0e-5             
-	@test abs.(maximum(A - transpose(A))) < 1.0e-5       
+	a = SysmatAssemblerSparseSymm(0.0)
+		startassembly!(a, 5, 5, 3, 7, 7)
+		m = [0.24406   0.599773    0.833404  0.0420141
+			0.786024  0.00206713  0.995379  0.780298
+			0.845816  0.198459    0.355149  0.224996]
+		assemble!(a, m'*m, [5 2 1 4], [5 2 1 4])
+		m = [0.146618  0.53471   0.614342    0.737833
+			 0.479719  0.41354   0.00760941  0.836455
+			 0.254868  0.476189  0.460794    0.00919633
+			 0.159064  0.261821  0.317078    0.77646
+			 0.643538  0.429817  0.59788     0.958909]
+		assemble!(a, m'*m, [2 3 1 5], [2 3 1 5])
+		A = makematrix!(a)
+	@test abs.(maximum([ 2.85928   1.21875    0.891063  0.891614   2.56958   0.0  0.0
+ 1.21875   1.15515    0.716396  0.0714644  1.56825   0.0  0.0
+ 0.891063  0.716396   0.936979  0.0        1.36026   0.0  0.0
+ 0.891614  0.0714644  0.0       0.661253   0.813892  0.0  0.0
+ 2.56958   1.56825    1.36026   0.813892   4.15934   0.0  0.0
+ 0.0       0.0        0.0       0.0        0.0       0.0  0.0
+ 0.0       0.0        0.0       0.0        0.0       0.0  0.0 ]  - A)) < 1.0e-5
+	@test abs.(maximum(A - transpose(A))) < 1.0e-5
 end
 end
 using .mmassembly2
 mmassembly2.test()
-
-module mmdivmat1
-using FinEtools
-using FinEtools.FEMMDeforLinearBaseModule: infsup_gh
-using Test
-import LinearAlgebra: norm, cholesky
-function test()
-	Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, orientation::Symbol = ( 1.0, 1.0, 1.0, 1, 1, 1, :a)
-	Ea, nua, alphaa = ( 1.0, 0.3, 0.0)
-	fens = FENodeSet(Float64[0     0     0
-     0     3     3
-     0     0     3
-     3     0     3]);
-	fes = FESetT4(reshape([1 2 3 4], 1, 4));
-
-
-	MR  =  DeforModelRed3D
-
-	# Property and material
-	material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
-
-	femm  =  FEMMDeforLinear(MR, IntegDomain(fes, TetRule(1)), material)
-
-	geom = NodalField(fens.xyz)
-	u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
-	numberdofs!(u)
-
-	Gh = infsup_gh(femm, geom, u);
-
-	Gh1 = [0.0  0    0.0  0   -0.0  0    0.0    0.0   -0.0   -0.0  0  0
-			0  0  0  0  0  0  0  0  0  0  0  0
-			0.0  0    0.5  0   -0.5  0    0.5    0.5   -0.5   -0.5  0  0
-			0  0  0  0  0  0  0  0  0  0  0  0
-			-0.0  0   -0.5  0    0.5  0   -0.5   -0.5    0.5    0.5  0  0
-			0  0  0  0  0  0  0  0  0  0  0  0
-			0.0  0    0.5  0   -0.5  0    0.5    0.5   -0.5   -0.5  0  0
-			0.0  0    0.5  0   -0.5  0    0.5    0.5   -0.5   -0.5  0  0
-			-0.0  0   -0.5  0    0.5  0   -0.5   -0.5    0.5    0.5  0  0
-			-0.0  0   -0.5  0    0.5  0   -0.5   -0.5    0.5    0.5  0  0
-			0  0  0  0  0  0  0  0  0  0  0  0
-			0  0  0  0  0  0  0  0  0  0  0  0]
-	@test norm(Gh - Gh1)  <= 1.0e-9
-end
-end
-using .mmdivmat1
-mmdivmat1.test()
-
-module mmvgradmat1
-using FinEtools
-using FinEtools.FEMMDeforLinearBaseModule: infsup_sh
-using Test
-import LinearAlgebra: norm, cholesky
-function test()
-	Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, orientation::Symbol = ( 1.0, 1.0, 1.0, 1, 1, 1, :a)
-	Ea, nua, alphaa = ( 1.0, 0.3, 0.0)
-	fens = FENodeSet(Float64[0     0     0
-     0     3     3
-     0     0     3
-     3     0     3]);
-	fes = FESetT4(reshape([1 2 3 4], 1, 4));
-
-
-	MR  =  DeforModelRed3D
-
-	# Property and material
-	material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
-
-	femm  =  FEMMDeforLinear(MR, IntegDomain(fes, TetRule(1)), material)
-
-	geom = NodalField(fens.xyz)
-	u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
-	numberdofs!(u)
-
-	Sh = infsup_sh(femm, geom, u);
-
-	Sh1 = [0.5   0   0   0   0   0   -0.5   0   0   -0.0000   0   0
-		   0    0.5   0   0   0   0   0   -0.5   0   0   -0.0000   0
-		   0   0    0.5   0   0   0   0   0   -0.5   0   0   -0.0000
-		   0   0   0    0.5   0   0   -0.5   0   0   0   0   0
-		   0   0   0   0    0.5   0   0   -0.5   0   0   0   0
-		   0   0   0   0   0    0.5   0   0   -0.5   0   0   0
-		   -0.5   0   0   -0.5   0   0    1.5000   0   0   -0.5   0   0
-		   0   -0.5   0   0   -0.5   0   0    1.5000   0   0   -0.5   0
-		   0   0   -0.5   0   0   -0.5   0   0    1.5000   0   0   -0.5
-		   -0.0000   0   0   0   0   0   -0.5   0   0    0.5   0   0
-		   0   -0.0000   0   0   0   0   0   -0.5   0   0    0.5   0
-		   0   0   -0.0000   0   0   0   0   0   -0.5   0   0    0.5]
-	@test norm(Sh - Sh1)  <= 1.0e-9
-end
-end
-using .mmvgradmat1
-mmvgradmat1.test()
-
-module mmdivmat2
-using FinEtools
-using FinEtools.FEMMDeforLinearBaseModule: infsup_gh
-using Test
-import LinearAlgebra: norm, cholesky
-function test()
-	Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, orientation::Symbol = ( 1.0, 1.0, 1.0, 1, 1, 1, :a)
-	Ea, nua, alphaa = ( 1.0, 0.3, 0.0)
-	fens = FENodeSet(Float64[           0            0            0
-							  -1.6200e-01   3.0000e+00   2.9791e+00
-							            0            0   3.0000e+00
-							   3.0000e+00   1.6200e-01   3.0000e+00]);
-	fes = FESetT4(reshape([1 2 3 4], 1, 4));
-
-
-	MR  =  DeforModelRed3D
-
-	# Property and material
-	material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
-
-	femm  =  FEMMDeforLinear(MR, IntegDomain(fes, TetRule(4)), material)
-
-	geom = NodalField(fens.xyz)
-	u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
-	numberdofs!(u)
-
-	Gh = infsup_gh(femm, geom, u);
-
-	Gh1 = [  7.0319e-08  -1.3022e-06  -1.8778e-04  -1.0111e-05   1.8724e-04            0  -1.7720e-04  -1.9604e-04   1.8778e-04   1.8724e-04   1.0111e-05            0
-  -1.3022e-06   2.4115e-05   3.4774e-03   1.8724e-04  -3.4673e-03            0   3.2814e-03   3.6305e-03  -3.4774e-03  -3.4673e-03  -1.8724e-04            0
-  -1.8778e-04   3.4774e-03   5.0146e-01   2.7000e-02  -5.0000e-01            0   4.7319e-01   5.2352e-01  -5.0146e-01  -5.0000e-01  -2.7000e-02            0
-  -1.0111e-05   1.8724e-04   2.7000e-02   1.4538e-03  -2.6921e-02            0   2.5478e-02   2.8188e-02  -2.7000e-02  -2.6921e-02  -1.4538e-03            0
-   1.8724e-04  -3.4673e-03  -5.0000e-01  -2.6921e-02   4.9855e-01            0  -4.7181e-01  -5.2200e-01   5.0000e-01   4.9855e-01   2.6921e-02            0
-            0            0            0            0            0            0            0            0            0            0            0            0
-  -1.7720e-04   3.2814e-03   4.7319e-01   2.5478e-02  -4.7181e-01            0   4.4651e-01   4.9401e-01  -4.7319e-01  -4.7181e-01  -2.5478e-02            0
-  -1.9604e-04   3.6305e-03   5.2352e-01   2.8188e-02  -5.2200e-01            0   4.9401e-01   5.4656e-01  -5.2352e-01  -5.2200e-01  -2.8188e-02            0
-   1.8778e-04  -3.4774e-03  -5.0146e-01  -2.7000e-02   5.0000e-01            0  -4.7319e-01  -5.2352e-01   5.0146e-01   5.0000e-01   2.7000e-02            0
-   1.8724e-04  -3.4673e-03  -5.0000e-01  -2.6921e-02   4.9855e-01            0  -4.7181e-01  -5.2200e-01   5.0000e-01   4.9855e-01   2.6921e-02            0
-   1.0111e-05  -1.8724e-04  -2.7000e-02  -1.4538e-03   2.6921e-02            0  -2.5478e-02  -2.8188e-02   2.7000e-02   2.6921e-02   1.4538e-03            0
-            0            0            0            0            0            0            0            0            0            0            0            0]
-    # @show Matrix(Gh)        
-	@test norm(Gh - Gh1) / norm(Gh1)  <= 2.0e-5
-end
-end
-using .mmdivmat2
-mmdivmat2.test()
-
-module mmvgradmat2
-using FinEtools
-using FinEtools.FEMMDeforLinearBaseModule: infsup_sh
-using Test
-import LinearAlgebra: norm, cholesky
-function test()
-	Length::FFlt, Width::FFlt, Height::FFlt, nL::FInt, nW::FInt, nH::FInt, orientation::Symbol = ( 1.0, 1.0, 1.0, 1, 1, 1, :a)
-	Ea, nua, alphaa = ( 1.0, 0.3, 0.0)
-	fens = FENodeSet(Float64[        0         0         0
-								   -0.1620    3.0000    2.9791
-								         0         0    3.0000
-								    3.0000    0.1620    3.0000]);
-	fes = FESetT4(reshape([1 2 3 4], 1, 4));
-
-
-	MR  =  DeforModelRed3D
-
-	# Property and material
-	material = MatDeforElastIso(MR, 0.0, Ea, nua, alphaa)
-
-	femm  =  FEMMDeforLinear(MR, IntegDomain(fes, TetRule(1)), material)
-
-	geom = NodalField(fens.xyz)
-	u = NodalField(zeros(size(fens.xyz,1),3)) # displacement field
-	numberdofs!(u)
-
-	Sh = infsup_sh(femm, geom, u);
-
-	Sh1 = [5.0148e-01            0            0  -3.4774e-03            0            0  -4.9800e-01            0            0  -2.6321e-17            0            0
-            0   5.0148e-01            0            0  -3.4774e-03            0            0  -4.9800e-01            0            0  -2.6321e-17            0
-            0            0   5.0148e-01            0            0  -3.4774e-03            0            0  -4.9800e-01            0            0  -2.6321e-17
-  -3.4774e-03            0            0   5.0000e-01            0            0  -4.9652e-01            0            0  -4.7374e-18            0            0
-            0  -3.4774e-03            0            0   5.0000e-01            0            0  -4.9652e-01            0            0  -4.7374e-18            0
-            0            0  -3.4774e-03            0            0   5.0000e-01            0            0  -4.9652e-01            0            0  -4.7374e-18
-  -4.9800e-01            0            0  -4.9652e-01            0            0   1.4945e+00            0            0  -5.0000e-01            0            0
-            0  -4.9800e-01            0            0  -4.9652e-01            0            0   1.4945e+00            0            0  -5.0000e-01            0
-            0            0  -4.9800e-01            0            0  -4.9652e-01            0            0   1.4945e+00            0            0  -5.0000e-01
-  -2.6321e-17            0            0  -4.7374e-18            0            0  -5.0000e-01            0            0   5.0000e-01            0            0
-            0  -2.6321e-17            0            0  -4.7374e-18            0            0  -5.0000e-01            0            0   5.0000e-01            0
-            0            0  -2.6321e-17            0            0  -4.7374e-18            0            0  -5.0000e-01            0            0   5.0000e-01]
-	@test norm(Sh - Sh1) / norm(Sh1)  <= 1.0e-4
-end
-end
-using .mmvgradmat2
-mmvgradmat2.test()
-
