@@ -9,11 +9,23 @@
 
 # FinEtools: Finite Element tools in Julia
 
+`FinEtools` is a package for basic operations on finite element meshes:
+Construction, modification, selection, and evaluation of quantities defined on a mesh.
+Utilities are provided for maintaining mesh-based data (fields), for defining
+normals and loads, for working with physical units and coordinate systems, and
+for integrating over finite element meshes.
+
+The package supports application packages, for instance:
+
+- [Linear acoustics](https://github.com/PetrKryslUCSD/FinEtoolsAcoustics.jl);
+- [Heat conduction](https://github.com/PetrKryslUCSD/FinEtoolsHeatDiff.jl);
+- [Linear stress analysis](https://github.com/PetrKryslUCSD/FinEtoolsLinearDefor.jl).
+
 ![Alt Visualization of acoustic pressure](http://hogwarts.ucsd.edu/~pkrysl/site.images/baffled-piston-a.png "FinEtools.jl")
 
 ## News
 
-- 06/11/2019: Applications are being extracted from FinEtools into their own separate packages. This will make the base library lighter and easier to understand.
+- 06/11/2019: Applications have been extracted from FinEtools into their own separate packages. This will make the base library lighter and easier to understand.
 
 [Past news](oldnews.md)
 

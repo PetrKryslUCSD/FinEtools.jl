@@ -163,23 +163,6 @@ using FinEtools.MatModule: AbstractMat, massdensity
 export AbstractMat, massdensity
 
 # ###########################################################################
-# # Acoustics functionality
-# ###########################################################################
-# using FinEtools.MatAcoustFluidModule: MatAcoustFluid
-# # Exported: type of acoustic fluid material
-# export MatAcoustFluid
-#
-# using FinEtools.FEMMAcoustModule: FEMMAcoust, acousticmass, nzebcloadsacousticmass,
-# acousticstiffness, nzebcloadsacousticstiffness
-# # Exported: type for linear acoustics  and discretization methods
-# export FEMMAcoust, acousticmass, nzebcloadsacousticmass,
-#     acousticstiffness, nzebcloadsacousticstiffness
-#
-# using FinEtools.FEMMAcoustSurfModule: FEMMAcoustSurf, acousticABC, pressure2resultantforce, pressure2resultanttorque, acousticcouplingpanels
-# # Exported: type for acoustic absorbing boundary condition  and  transformation matrices from pressure  to resultants
-# export FEMMAcoustSurf, acousticABC, pressure2resultantforce, pressure2resultanttorque, acousticcouplingpanels
-#
-# ###########################################################################
 # # Linear deformation functionality
 # ###########################################################################
 # using FinEtools.DeforModelRedModule: AbstractDeforModelRed, DeforModelRed1D, DeforModelRed2DStrain,    DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D, nstressstrain, nthermstrain, stresscomponentmap, Blmat!, divmat, vgradmat
