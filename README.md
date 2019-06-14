@@ -19,7 +19,7 @@ The package supports application packages, for instance:
 
 - [Linear acoustics](https://github.com/PetrKryslUCSD/FinEtoolsAcoustics.jl);
 - [Heat conduction](https://github.com/PetrKryslUCSD/FinEtoolsHeatDiff.jl);
-- [Linear stress analysis](https://github.com/PetrKryslUCSD/FinEtoolsLinearDefor.jl).
+- [Linear stress analysis](https://github.com/PetrKryslUCSD/FinEtoolsDeforLinear.jl).
 
 ![Alt Visualization of acoustic pressure](http://hogwarts.ucsd.edu/~pkrysl/site.images/baffled-piston-a.png "FinEtools.jl")
 
