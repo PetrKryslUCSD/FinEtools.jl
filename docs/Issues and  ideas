@@ -529,3 +529,8 @@ In order to accommodate nodally integrated finite elements.
 
 -- divmat!() (and the gradient matrix) do not need to take a buffer. Efficiency is not a concern for these functions. Status: 05-17-2019 done.
 
+-- Package registration:
+https://github.com/JuliaRegistries/Registrator.jl
+1. Set the Project.toml version field in your repository to your new desired version.
+2. comment on branch
+@JuliaRegistrator register()
