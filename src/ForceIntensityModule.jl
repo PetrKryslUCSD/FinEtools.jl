@@ -6,24 +6,24 @@ Module  to manage  distributed force intensity.
 module ForceIntensityModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.VectorCacheModule: VectorCache, updateretrieve!
+import FinEtools.VectorCacheModule: VectorCache, updateretrieve!, settime!
 
 """
     ForceIntensity{T<:Number, F<:Function}
 
 Distributed force (force intensity) type.
 
-The force intensity class. The physical units are
-force per unit volume, where volume depends on to which manifold
-the force is applied:
+The force intensity class. The physical units are force per unit volume,
+where volume depends on to which manifold the force is applied:
 - force/length^3 (when applied to a 3-D solid),
 - force/length^2 (when applied to a surface),
 - force/length^1 (when applied along a curve), or
 - force/length^0 (when applied at a point).
 
-Signature of the function to compute the value of the force  at any given point
-`XYZ`, using the columns of the Jacobian matrix of the element, `tangents`,
-and if necessary  also the finite element label, `fe_label`:
+Signature of the function to compute the value of the force  at any
+given point `XYZ`, using the columns of the Jacobian matrix of the
+element, `tangents`, and if necessary  also the finite element label,
+`fe_label`:
 
 ```
 getforce!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
@@ -32,16 +32,39 @@ getforce!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
 The buffer `forceout` is filled with the value  of the force.
 """
 struct ForceIntensity{T<:Number, F<:Function}
-    cache::VectorCache{T, F}   # cache of the current value of the force can be retrieved
+    cache::VectorCache{T, F}   # vector cache  where the current value of the force can be retrieved
 end
 
 """
-    ForceIntensity(::Type{T}, ndofn::FInt,
-      computeforce!::F) where {T<:Number, F<:Function}
+    ForceIntensity(::Type{T}, ndofn::FInt, computeforce!::F) where {T<:Number, F<:Function}
 
-Construct force intensity when the function to compute the intensity vector is
-given.
+Construct force intensity when the function to compute the intensity
+vector is given.
 
+This constructor is intended for *time-independent* vector caches.
+This function needs to have a signature of
+```
+function computeforce!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    Calculate the force  and copy it into the buffer....
+    return forceout
+end
+```
+and it needs to  fill in the buffer `forceout` with the current force at the
+location `XYZ`, using if appropriate the information supplied in the Jacobian
+matrix `tangents`, and the label of the finite element, `fe_label`.
+"""
+function ForceIntensity(::Type{T}, ndofn::FInt, computeforce!::F) where {T<:Number, F<:Function}
+    # Allocate the buffer to be ready for the first call
+    return ForceIntensity(VectorCache(T, ndofn, computeforce!));
+end
+
+"""
+    ForceIntensity(::Type{T}, ndofn::FInt, computeforce!::F, time::FFlt) where {T<:Number, F<:Function}
+
+Construct force intensity when the function to compute the intensity
+vector is given.
+
+This constructor is intended for time-dependent force intensity caches.
 This function needs to have a signature of
 ```
 function computeforce!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
@@ -51,11 +74,11 @@ end
 ```
 and it needs to  fill in the buffer `forceout` with the current force at the
 location `XYZ`, using if appropriate the information supplied in the Jacobian
-matrix `tangents`, and the label of the finite element, `fe_label`.
+matrix `tangents`, and the label of the finite element, `fe_label`. Finally, the time
 """
-function ForceIntensity(::Type{T}, ndofn::FInt, computeforce!::F) where {T<:Number, F<:Function}
+function ForceIntensity(::Type{T}, ndofn::FInt, computeforce!::F, time::FFlt) where {T<:Number, F<:Function}
     # Allocate the buffer to be ready for the first call
-    return ForceIntensity(VectorCache(computeforce!, zeros(T, ndofn)));
+    return ForceIntensity(VectorCache(T, ndofn, computeforce!, time));
 end
 
 """
@@ -64,11 +87,7 @@ end
 Construct force intensity when the constant `force` vector is given.
 """
 function ForceIntensity(force::FVec{T}) where {T<:Number}
-    function computeforce!(forceout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-        # do nothing:  the force is already in the buffer
-        return forceout
-    end
-    return ForceIntensity(VectorCache(computeforce!, deepcopy(force)));
+    return ForceIntensity(VectorCache(deepcopy(force)));
 end
 
 """
@@ -91,6 +110,16 @@ Returns a vector (stored in the cache `self.cache`).
 """
 function updateforce!(self::ForceIntensity, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     return updateretrieve!(self.cache, XYZ, tangents, fe_label)
+end
+
+"""
+    settime!(self::ForceIntensity, time::FFlt)
+
+Set the current time for the force intensity.
+"""
+function settime!(self::ForceIntensity, time::FFlt)
+	settime!(self.cache, time)
+	return self
 end
 
 end

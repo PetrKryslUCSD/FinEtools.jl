@@ -104,13 +104,13 @@ using FinEtools.MeshImportModule: import_NASTRAN, import_ABAQUS
 # Exported: mesh import functions
 export import_NASTRAN, import_ABAQUS
 
-using FinEtools.VectorCacheModule: VectorCache, updateretrieve!
+using FinEtools.VectorCacheModule: VectorCache, updateretrieve!, settime!
 # Exported: vector-cache type and methods to invoke the update callback
-export VectorCache, updateretrieve!
+export VectorCache, updateretrieve!, settime!
 
-using FinEtools.ForceIntensityModule: ForceIntensity, updateforce!
+using FinEtools.ForceIntensityModule: ForceIntensity, updateforce!, settime!
 # Exported: force-intensity type and methods to invoke the update callback
-export ForceIntensity, updateforce!
+export ForceIntensity, updateforce!, settime!
 
 using FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 # Exported: surface-normal evaluator type and methods to invoke the update callback
