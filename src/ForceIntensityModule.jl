@@ -42,7 +42,14 @@ Construct force intensity when the function to compute the intensity
 vector is given.
 
 This constructor is intended for *time-independent* vector caches.
-This function needs to have a signature of
+
+# Arguments
+- `T` = the type of the elements of the force vector, typically floating-point
+	or complex floating-point numbers,
+- `ndofn` = number of elements of the force vector (the length of the
+	force vector),
+- `computeforce!` = callback function.
+The function `computeforce!` needs to have a signature of
 ```
 function computeforce!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     Calculate the force  and copy it into the buffer....
@@ -65,11 +72,19 @@ Construct force intensity when the function to compute the intensity
 vector is given.
 
 This constructor is intended for time-dependent force intensity caches.
-This function needs to have a signature of
+
+# Arguments
+- `T` = the type of the elements of the force vector, typically floating-point
+	or complex floating-point numbers,
+- `ndofn` = number of elements of the force vector (the length of the
+	force vector),
+- `computeforce!` = callback function,
+- `time` = initial time.
+The function `computeforce!` needs to have a signature of
 ```
-function computeforce!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-Calculate the force  and copy it into the buffer....
-return forceout
+function computeforce!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0)
+	Calculate the force  and copy it into the buffer....
+	return forceout
 end
 ```
 and it needs to  fill in the buffer `forceout` with the current force at
@@ -83,7 +98,7 @@ as follows:
 XYZ = reshape([0.0, 0.0], 2, 1)
 tangents = reshape([0.0, 1.0], 2, 1)
 fe_label = 0
-setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
+setvector!(v, XYZ, tangents, fe_label; time::FFlt = 0.0) = begin
     return (time < 5.0 ?  v .= [10.0] : v .= [0.0])
 end
 vector = [10.0]
