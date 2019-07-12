@@ -89,7 +89,7 @@ the location `XYZ`, using if appropriate the information supplied in the
 Jacobian matrix `tangents`, and the label of the finite element,
 `fe_label`. The initial `time` is given.
 
-The time needs to be set before calling `updateforce!` with `settime!`
+The time needs to be set with `settime!` before calling `updateforce!`
 as follows:
 ```
 XYZ = reshape([0.0, 0.0], 2, 1)
