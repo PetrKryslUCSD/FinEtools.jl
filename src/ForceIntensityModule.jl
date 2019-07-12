@@ -44,10 +44,9 @@ vector is given.
 This constructor is intended for *time-independent* vector caches.
 
 # Arguments
-- `T` = the type of the elements of the force vector, typically floating-point
-	or complex floating-point numbers,
-- `ndofn` = number of elements of the force vector (the length of the
-	force vector),
+- `T` = the type of the elements of the force vector, typically
+floating-point or complex floating-point numbers,
+- `ndofn` = number of elements of the force vector (the length of the force vector),
 - `computeforce!` = callback function.
 The function `computeforce!` needs to have a signature of
 ```
@@ -74,10 +73,8 @@ vector is given.
 This constructor is intended for time-dependent force intensity caches.
 
 # Arguments
-- `T` = the type of the elements of the force vector, typically floating-point
-	or complex floating-point numbers,
-- `ndofn` = number of elements of the force vector (the length of the
-	force vector),
+- `T` = the type of the elements of the force vector, typically floating-point or complex floating-point numbers,
+- `ndofn` = number of elements of the force vector (the length of the force vector),
 - `computeforce!` = callback function,
 - `time` = initial time.
 The function `computeforce!` needs to have a signature of
