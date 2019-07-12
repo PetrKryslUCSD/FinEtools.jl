@@ -72,9 +72,28 @@ Calculate the force  and copy it into the buffer....
 return forceout
 end
 ```
-and it needs to  fill in the buffer `forceout` with the current force at the
-location `XYZ`, using if appropriate the information supplied in the Jacobian
-matrix `tangents`, and the label of the finite element, `fe_label`. Finally, the time
+and it needs to  fill in the buffer `forceout` with the current force at
+the location `XYZ`, using if appropriate the information supplied in the
+Jacobian matrix `tangents`, and the label of the finite element,
+`fe_label`. The initial `time` is given.
+
+The time needs to be set before calling `updateforce!` with `settime!`
+as follows:
+```
+XYZ = reshape([0.0, 0.0], 2, 1)
+tangents = reshape([0.0, 1.0], 2, 1)
+fe_label = 0
+setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
+    return (time < 5.0 ?  v .= [10.0] : v .= [0.0])
+end
+vector = [10.0]
+fi = ForceIntensity(FFlt, length(vector), setvector!, 0.0)
+v = updateforce!(fi, XYZ, tangents, fe_label)
+@test v == [10.0]
+settime!(fi, 6.0)
+v = updateforce!(fi, XYZ, tangents, fe_label)
+@test v == [0.0]
+```
 """
 function ForceIntensity(::Type{T}, ndofn::FInt, computeforce!::F, time::FFlt) where {T<:Number, F<:Function}
     # Allocate the buffer to be ready for the first call

@@ -41,12 +41,7 @@ function test()
    tangents = reshape([0.0, 1.0], 2, 1)
    fe_label = 0
    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
-      if time < 5.0
-         v .= [10.0]
-      else
-         v .= [0.0]
-      end
-      return v
+       return (time < 5.0 ?  v .= [10.0] : v .= [0.0])
    end
    vector = [10.0]
    fi = ForceIntensity(FFlt, length(vector), setvector!, 0.0)
