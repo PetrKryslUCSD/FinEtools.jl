@@ -24,12 +24,11 @@ Signature of the function to compute the value of the force  at any
 given point `XYZ`, using the columns of the Jacobian matrix of the
 element, `tangents`, and if necessary  also the finite element label,
 `fe_label`:
-
 ```
 getforce!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
 ```
-
-The buffer `forceout` is filled with the value  of the force.
+The buffer `forceout` is filled with the value  of the force. The vector
+`forceout` is also returned for convenience.
 """
 struct ForceIntensity{T<:Number, F<:Function}
     cache::VectorCache{T, F}   # vector cache  where the current value of the force can be retrieved
@@ -44,8 +43,7 @@ vector is given.
 This constructor is intended for *time-independent* vector caches.
 
 # Arguments
-- `T` = the type of the elements of the force vector, typically
-floating-point or complex floating-point numbers,
+- `T` = the type of the elements of the force vector, typically floating-point or complex floating-point numbers,
 - `ndofn` = number of elements of the force vector (the length of the force vector),
 - `computeforce!` = callback function.
 The function `computeforce!` needs to have a signature of
