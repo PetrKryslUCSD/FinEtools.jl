@@ -764,8 +764,7 @@ The following formats of finite element input files can be handled:
 
 ### Tutorials
 
-The `FinEtools` tutorials are written up in their own separate repository,
-[`FinEtoolsTutorials`](https://github.com/PetrKryslUCSD/FinEtoolsTutorials).
+The `FinEtools` tutorials are written up in the repositories for the applications, heat diffusion, linear and nonlinear deformation and so on.
 
 The tutorials are in the form of Julia files with markdown. These are converted to markdown files (or to Jupyter notebooks)
 using the [Literate](https://github.com/fredrikekre/Literate.jl) workflow.
