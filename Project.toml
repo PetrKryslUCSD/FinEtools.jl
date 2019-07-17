@@ -1,7 +1,7 @@
 name = "FinEtools"
 uuid = "91bb5406-6c9a-523d-811d-0644c4229550"
 authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
-version = "3.0.0"
+version = "3.0.1"
 
 [deps]
 Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
