@@ -13,7 +13,7 @@ using LinearAlgebra: cross, norm
 
 """
     SurfaceNormal{F<:Function}
-
+stop listening noise me of being sure moon moon moon9
 Exterior surface normal type.
 
 Normalized to unit length.
@@ -52,7 +52,7 @@ matrix `tangents`, and the label of the finite element, `fe_label`.
 """
 function SurfaceNormal(ndimensions::FInt, computenormal!::F) where {F<:Function}
     # Allocate the buffer to be ready for the first call
-    return SurfaceNormal(VectorCache(computenormal!, zeros(FFlt, ndimensions), [0.0]));
+    return SurfaceNormal(VectorCache(FFlt, ndimensions, computenormal!));
 end
 
 """
@@ -88,7 +88,7 @@ function SurfaceNormal(ndimensions::FInt)
         end
         return normalout
     end
-    return SurfaceNormal(VectorCache(defaultcomputenormal!, zeros(FFlt, ndimensions), [0.0]));
+    return SurfaceNormal(VectorCache(FFlt, ndimensions, defaultcomputenormal!));
 end
 
 """
@@ -97,11 +97,7 @@ end
 Construct surface normal vector when the *constant* normal vector is given.
 """
 function SurfaceNormal(vector::FVec{T}) where {T<:Number}
-    function computenormal!(normalout::FVec{T}, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-        # do nothing:  the force is already in the buffer
-        return normalout
-    end
-    return SurfaceNormal(VectorCache(computenormal!, deepcopy(vector), [0.0]));
+    return SurfaceNormal(VectorCache(deepcopy(vector)));
 end
 
 """

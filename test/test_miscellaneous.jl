@@ -1839,3 +1839,37 @@ end
 end
 using .forceintensitytest4
 forceintensitytest4.test()
+
+module surfacenormaltest1
+using FinEtools
+using Test
+function test()
+   XYZ = reshape([0.0, 0.0], 2, 1)
+   tangents = reshape([0.0, 1.0], 2, 1)
+   fe_label = 0
+   vector = [10.0, -3.0]
+   fi = SurfaceNormal(vector)
+   v = updatenormal!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+   @test v == [10.0, -3.0]
+end
+end
+using .surfacenormaltest1
+surfacenormaltest1.test()
+
+module surfacenormaltest2
+using FinEtools
+using Test
+function test()
+   XYZ = reshape([0.0, 0.0], 2, 1)
+   tangents = reshape([0.0, 1.0], 2, 1)
+   fe_label = 0
+   setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
+      v .= [10.0, -3.13]
+   end
+   fi = SurfaceNormal(2, setvector!)
+   v = updatenormal!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+   @test v == [10.0, -3.13]
+end
+end
+using .surfacenormaltest2
+surfacenormaltest2.test()
