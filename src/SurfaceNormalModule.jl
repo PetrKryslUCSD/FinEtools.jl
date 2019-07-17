@@ -1,7 +1,7 @@
 """
     SurfaceNormalModule
 
-Module to evaluate surface normal vector. 
+Module to evaluate surface normal vector.
 
 The normal is assumed to be the exterior normal, and the vector is normalized to unit length.
 """
@@ -16,10 +16,10 @@ using LinearAlgebra: cross, norm
 
 Exterior surface normal type.
 
-Normalized to unit length. 
+Normalized to unit length.
 
-Signature of the function to compute the value of the unit normal 
-at any given point `XYZ`, using the columns of the Jacobian matrix 
+Signature of the function to compute the value of the unit normal
+at any given point `XYZ`, using the columns of the Jacobian matrix
 of the element, `tangents`, and if necessary  also the finite element label, `fe_label`:
 
 ```
@@ -30,7 +30,7 @@ The buffer `normalout` is filled with the value  of the normal vector.
 """
 struct SurfaceNormal{F<:Function}
 	"""
-	    Cache of the current value of the normal 
+	    Cache of the current value of the normal
 	"""
     cache::VectorCache{FFlt, F}
 end
@@ -52,16 +52,16 @@ matrix `tangents`, and the label of the finite element, `fe_label`.
 """
 function SurfaceNormal(ndimensions::FInt, computenormal!::F) where {F<:Function}
     # Allocate the buffer to be ready for the first call
-    return SurfaceNormal(VectorCache(computenormal!, zeros(FFlt, ndimensions)));
+    return SurfaceNormal(VectorCache(computenormal!, zeros(FFlt, ndimensions), [0.0]));
 end
 
 """
-    SurfaceNormal(ndimensions::FInt) 
+    SurfaceNormal(ndimensions::FInt)
 
-Construct surface normal evaluator when the default calculation of the normal vector based 
+Construct surface normal evaluator when the default calculation of the normal vector based
 on the columns of the Jacobian matrix should be used. This function needs to have a signature of
 ```
-function computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt) 
+function computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     Calculate the normal and copy it into the buffer....
     return normalout # return the buffer
 end
@@ -72,7 +72,7 @@ matrix `tangents`, and the label of the finite element, `fe_label`.
 
 The normal vector has `ndimensions` entries.
 """
-function SurfaceNormal(ndimensions::FInt) 
+function SurfaceNormal(ndimensions::FInt)
     function defaultcomputenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
         fill!(normalout, 0.0)
         # Produce a default normal
@@ -80,7 +80,7 @@ function SurfaceNormal(ndimensions::FInt)
             normalout[:] .= cross(vec(tangents[:,1]),vec(tangents[:,2]));# outer normal to the surface
             normalout[:] = normalout./norm(normalout);
         elseif (size(tangents,1)==2)  && (size(tangents,2)==1)# curve in two dimensions
-            normalout[1] = +tangents[2,1]; 
+            normalout[1] = +tangents[2,1];
             normalout[2] = -tangents[1,1];# outer normal to the contour
             normalout[:] = normalout./norm(normalout);
         else
@@ -88,7 +88,7 @@ function SurfaceNormal(ndimensions::FInt)
         end
         return normalout
     end
-    return SurfaceNormal(VectorCache(defaultcomputenormal!, zeros(FFlt, ndimensions)));
+    return SurfaceNormal(VectorCache(defaultcomputenormal!, zeros(FFlt, ndimensions), [0.0]));
 end
 
 """
@@ -101,7 +101,7 @@ function SurfaceNormal(vector::FVec{T}) where {T<:Number}
         # do nothing:  the force is already in the buffer
         return normalout
     end
-    return SurfaceNormal(VectorCache(computenormal!, deepcopy(vector)));
+    return SurfaceNormal(VectorCache(computenormal!, deepcopy(vector), [0.0]));
 end
 
 """
