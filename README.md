@@ -9,19 +9,16 @@
 
 # FinEtools: Finite Element tools in Julia
 
-`FinEtools` is a package for basic operations on finite element meshes:
-Construction, modification, selection, and evaluation of quantities defined on a mesh.
-Utilities are provided for maintaining mesh-based data (fields), for defining
-normals and loads, for working with physical units and coordinate systems, and
-for integrating over finite element meshes.
+| `FinEtools` is a package for basic operations on finite element meshes: Construction, modification, selection, and evaluation of quantities defined on a mesh. Utilities are provided for maintaining mesh-based data (fields), for defining normals and loads, for working with physical units and coordinate systems, and for integrating over finite element meshes. | ![Alt Visualization of acoustic pressure](http://hogwarts.ucsd.edu/~pkrysl/site.images/baffled-piston-aa.png "FinEtools.jl") |
 
 The package supports application packages, for instance:
 
+- [Meshing](https://github.com/PetrKryslUCSD/FinEtoolsMeshing.jl);
+- [Meshing of biomedical images](https://github.com/PetrKryslUCSD/FinEtoolsVoxelMesher.jl);
 - [Linear acoustics](https://github.com/PetrKryslUCSD/FinEtoolsAcoustics.jl);
 - [Heat conduction](https://github.com/PetrKryslUCSD/FinEtoolsHeatDiff.jl);
-- [Linear stress analysis](https://github.com/PetrKryslUCSD/FinEtoolsDeforLinear.jl).
-
-![Alt Visualization of acoustic pressure](http://hogwarts.ucsd.edu/~pkrysl/site.images/baffled-piston-a.png "FinEtools.jl")
+- [Linear stress analysis](https://github.com/PetrKryslUCSD/FinEtoolsDeforLinear.jl);
+- [Nonlinear stress analysis](https://github.com/PetrKryslUCSD/FinEtoolsDeforNonlinear.jl).
 
 ## News
 
