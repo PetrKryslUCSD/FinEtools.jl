@@ -680,7 +680,7 @@ be supplied.
 
 For instance: H8 elements require the renumbering function to be supplied as
 ```
-renumb(c) = c[[1, 4, 3, 2, 5, 8, 7, 6]]
+renumb = (c) -> c[[1, 4, 3, 2, 5, 8, 7, 6]]
 ```
 """
 function mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
