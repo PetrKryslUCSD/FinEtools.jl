@@ -16,20 +16,22 @@ import Statistics: mean
 """
     connectednodes(fes::AbstractFESet)
 
-Extract the node numbers of the nodes  connected by given finite elements.
+Extract the node numbers of the nodes connected by given finite elements.
 
-Extract the list of unique node numbers for the nodes that are connected by the
-finite element set `fes`. Note that it is assumed that all the FEs are of the same
-type (the same number of connected nodes by each cell).
+Extract the list of unique node numbers for the nodes that are connected
+by the finite element set `fes`. Note that it is assumed that all the
+FEs are of the same type (the same number of connected nodes by each
+cell).
 """
 function connectednodes(fes::AbstractFESet)
     return unique(connasarray(fes)[:]);
 end
- 
+
 """
     connectedelems(fes::AbstractFESet, node_list::FIntVec)
 
-Extract the list of numbers for the fes  that are connected to given nodes.
+Extract the list of numbers for the fes  that are connected to given
+nodes.
 """
 function connectedelems(fes::AbstractFESet, node_list::FIntVec, nmax::FInt)
     f2fm = FENodeToFEMap(fes.conn, nmax)
@@ -47,7 +49,42 @@ end
 
 Select nodes using some criterion.
 
-See the function `vselect()` for examples of the criteria.
+# Arguments
+- `v` = array of locations, one location per row
+- `kwargs` = pairs of keyword argument/value
+
+## Selection criteria
+
+### box
+```
+nLx = vselect(fens.xyz, box = [0.0 Lx  0.0 0.0 0.0 0.0], inflate = Lx/1.0e5)
+```
+
+The keyword 'inflate' may be used to increase or decrease the extent of
+the box (or the distance) to make sure some nodes which would be on the
+boundary are either excluded or included.
+
+### distance
+```
+list = selectnode(fens.xyz, distance=1.0+0.1/2^nref, from=[0. 0.],
+        inflate=tolerance);
+```
+
+### plane
+```
+candidates = selectnode(fens, plane = [0.0 0.0 1.0 0.0], thickness = h/1000)
+```
+The keyword `plane` defines the plane by its normal (the first two or
+three numbers) and its distance from the origin (the last number). Nodes
+are selected they lie on the plane,  or near the plane within the
+distance `thickness` from the plane. The normal is assumed to be of unit
+length, if it isn't apply as such, it will be normalized internally.
+
+### nearestto
+Find the node nearest to the location given.
+```
+nh = selectnode(fens, nearestto = [R+Ro/2, 0.0, 0.0] )
+```
 """
 function selectnode(fens::FENodeSet; kwargs...)
     nodelist = vselect(fens.xyz; kwargs...)
@@ -59,6 +96,11 @@ end
     selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
 
 Select finite elements.
+
+# Arguments
+- `fens` = finite element node set
+- `fes` = finite element set
+- `kwargs` = keyword arguments to specify the selection criteria
 
 ## Selection criteria
 
@@ -119,12 +161,12 @@ Select all FEs connected together (Starting from node 13):
 l = selectelem(fens, fes, flood = true, startnode = 13)
 ```
 
-## Optional keyword arguments
+### Optional keyword arguments
 Should we consider the element only if all its nodes are in?
-`allin` = Boolean: if true, then all nodes of an element must satisfy the
-    criterion; otherwise  one is enough.
+- `allin` = Boolean: if true, then all nodes of an element must satisfy
+the criterion; otherwise  one is enough.
 
-## Output
+# Output
 `felist` = list of finite elements from the set that satisfy the criteria
 """
 function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
@@ -437,9 +479,9 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
     for i = 1:length(fes.conn)
         found = 0
         for nd in fes.conn[i]
-            if nd in nodelist 
-                found = found + 1 
-            end 
+            if nd in nodelist
+                found = found + 1
+            end
         end
         if allinvalue
             if found == nper
@@ -460,41 +502,8 @@ end
 
 Select locations (vertices) from the array based on some criterion.
 
-## Arguments
-`v` = array of locations, one location per row
-`kwargs` = pairs of keyword argument/value
-
-## Selection criteria
-
-### box
-```
-nLx = vselect(fens.xyz, box = [0.0 Lx  0.0 0.0 0.0 0.0], inflate = Lx/1.0e5)
-```
-
-The keyword 'inflate' may be used to increase or decrease the extent of
-the box (or the distance) to make sure some nodes which would be on the
-boundary are either excluded or included.
-
-### distance
-```
-list = selectnode(fens.xyz, distance=1.0+0.1/2^nref, from=[0. 0.],
-        inflate=tolerance);
-```
-
-### plane
-```
-candidates = selectnode(fens, plane = [0.0 0.0 1.0 0.0], thickness = h/1000)
-```
-The keyword `plane` defines the plane by its normal (the first two or three numbers) 
-and its distance from the origin (the last number). Nodes are selected they lie 
-on the plane,  or near the plane within the distance `thickness` from the plane. 
-The normal is assumed to be of unit length, if it isn't apply as such, it will be 
-normalized internally.
-
-### nearestto
-```
-nh = selectnode(fens, nearestto = [R+Ro/2, 0.0, 0.0] )
-```
+See the function `selectnode()` for examples of the criteria that can be
+used to search vertices.
 """
 function vselect(v::FFltMat; kwargs...)
 
