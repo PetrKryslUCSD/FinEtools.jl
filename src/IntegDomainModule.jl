@@ -10,10 +10,10 @@ situation, and integration rule used to evaluate integrals over the domain.
 """
 module IntegDomainModule
 
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FESetModule: AbstractFESet, AbstractFESet0Manifold, AbstractFESet1Manifold, AbstractFESet2Manifold, AbstractFESet3Manifold, Jacobian, bfun, bfundpar
-import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.IntegRuleModule: AbstractIntegRule
+using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ..FESetModule: AbstractFESet, AbstractFESet0Manifold, AbstractFESet1Manifold, AbstractFESet2Manifold, AbstractFESet3Manifold, Jacobian, bfun, bfundpar
+import ..FENodeSetModule: FENodeSet
+import ..IntegRuleModule: AbstractIntegRule
 
 """
     IntegDomain{S<:AbstractFESet, F<:Function}

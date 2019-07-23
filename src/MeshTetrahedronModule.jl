@@ -5,12 +5,12 @@ Module  for generation of meshes composed of tetrahedra.
 """
 module MeshTetrahedronModule
 
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FESetModule: count, FESetT4, FESetT10, setlabel!, connasarray
-import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
-import FinEtools.MeshSelectionModule: findunconnnodes, selectelem
-import FinEtools.MeshModificationModule: compactnodes, renumberconn!
+using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ..FESetModule: count, FESetT4, FESetT10, setlabel!, connasarray
+import ..FENodeSetModule: FENodeSet
+import ..MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
+import ..MeshSelectionModule: findunconnnodes, selectelem
+import ..MeshModificationModule: compactnodes, renumberconn!
 import Statistics: mean
 
 """

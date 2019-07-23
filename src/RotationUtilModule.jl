@@ -5,7 +5,7 @@ Module to handle two-dimensional and three-dimensional rotations.
 """
 module RotationUtilModule
 
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import LinearAlgebra: norm
 
 _I3 = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]

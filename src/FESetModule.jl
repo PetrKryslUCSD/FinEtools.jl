@@ -10,7 +10,7 @@ import Base.cat
 import LinearAlgebra: mul!, Transpose
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 import LinearAlgebra: norm, cross
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 """
     AbstractFESet{NODESPERELEM}

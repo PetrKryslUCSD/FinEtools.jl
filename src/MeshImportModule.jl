@@ -5,10 +5,10 @@ Module for mesh import  functions.
 """
 module MeshImportModule
 
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: AbstractFESet, FESetT3, FESetT4, FESetT10, FESetH8, FESetH20, setlabel!
-import FinEtools.MeshModificationModule: renumberconn!
+using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ..FENodeSetModule: FENodeSet
+import ..FESetModule: AbstractFESet, FESetT3, FESetT4, FESetT10, FESetH8, FESetH20, setlabel!
+import ..MeshModificationModule: renumberconn!
 import Unicode: uppercase, isdigit
 import LinearAlgebra: norm
 

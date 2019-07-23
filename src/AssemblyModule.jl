@@ -5,7 +5,7 @@ Module for assemblers  of system matrices and vectors.
 """
 module AssemblyModule
 
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import SparseArrays: sparse
 import LinearAlgebra: diag
 

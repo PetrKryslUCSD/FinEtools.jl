@@ -5,9 +5,9 @@ Module for nodal fields.
 """
 module NodalFieldModule
 
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FieldModule: AbstractField, nents
-import FinEtools.FieldModule.@add_Field_fields
+using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ..FieldModule: AbstractField, nents
+import ..FieldModule.@add_Field_fields
 
 """
     NodalField{T<:Number} <: AbstractField

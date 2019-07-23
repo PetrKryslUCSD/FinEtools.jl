@@ -5,11 +5,11 @@ Module for  selection of mesh entities.
 """
 module MeshSelectionModule
 
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FESetModule: AbstractFESet, bfundpar, nodesperelem, manifdim, connasarray
-import FinEtools.FENodeSetModule: FENodeSet, spacedim
-import FinEtools.BoxModule: inflatebox!, initbox!, updatebox!, boxesoverlap
-import FinEtools.FENodeToFEMapModule: FENodeToFEMap
+using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ..FESetModule: AbstractFESet, bfundpar, nodesperelem, manifdim, connasarray
+import ..FENodeSetModule: FENodeSet, spacedim
+import ..BoxModule: inflatebox!, initbox!, updatebox!, boxesoverlap
+import ..FENodeToFEMapModule: FENodeToFEMap
 import LinearAlgebra: norm, dot, cross
 import Statistics: mean
 

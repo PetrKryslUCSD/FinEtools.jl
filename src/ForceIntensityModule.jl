@@ -5,8 +5,8 @@ Module  to manage  distributed force intensity.
 """
 module ForceIntensityModule
 
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.VectorCacheModule: VectorCache, updateretrieve!, settime!
+using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ..VectorCacheModule: VectorCache, updateretrieve!, settime!
 
 """
     ForceIntensity{T<:Number, F<:Function}

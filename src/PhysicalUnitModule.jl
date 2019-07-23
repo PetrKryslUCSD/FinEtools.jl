@@ -5,7 +5,7 @@ Module  to handle use of physical units in definitions of input data.
 """
 module PhysicalUnitModule
 
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 # using Unicode
 
 

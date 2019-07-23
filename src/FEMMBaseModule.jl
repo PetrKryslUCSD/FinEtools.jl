@@ -9,20 +9,20 @@ import LinearAlgebra: mul!, Transpose
 my_At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 import SparseArrays: sparse
 import LinearAlgebra: norm
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: AbstractFESet, manifdim, nodesperelem, subset, map2parametric, inparametric, centroidparametric, bfun
-import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianmdim, Jacobianvolume
-import FinEtools.CSysModule: CSys
-import FinEtools.FieldModule: ndofs, nents, gatherdofnums!, gathervalues_asmat! 
-import FinEtools.NodalFieldModule: NodalField, nnodes
-import FinEtools.ElementalFieldModule: ElementalField, nelems
-import FinEtools.ForceIntensityModule: ForceIntensity, updateforce!
-import FinEtools.MatrixUtilityModule: locjac!
-import FinEtools.BoxModule: initbox!, boundingbox, inflatebox!
-import FinEtools.MeshModificationModule: nodepartitioning, compactnodes, renumberconn!
-import FinEtools.MeshSelectionModule: selectelem, vselect, findunconnnodes, connectednodes
-import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
+using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ..FENodeSetModule: FENodeSet
+import ..FESetModule: AbstractFESet, manifdim, nodesperelem, subset, map2parametric, inparametric, centroidparametric, bfun
+import ..IntegDomainModule: IntegDomain, integrationdata, Jacobianmdim, Jacobianvolume
+import ..CSysModule: CSys
+import ..FieldModule: ndofs, nents, gatherdofnums!, gathervalues_asmat! 
+import ..NodalFieldModule: NodalField, nnodes
+import ..ElementalFieldModule: ElementalField, nelems
+import ..ForceIntensityModule: ForceIntensity, updateforce!
+import ..MatrixUtilityModule: locjac!
+import ..BoxModule: initbox!, boundingbox, inflatebox!
+import ..MeshModificationModule: nodepartitioning, compactnodes, renumberconn!
+import ..MeshSelectionModule: selectelem, vselect, findunconnnodes, connectednodes
+import ..AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 
 """
     AbstractFEMM

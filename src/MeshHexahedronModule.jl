@@ -5,13 +5,13 @@ Module for generation of  hexahedral meshes.
 """
 module MeshHexahedronModule
 
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FESetModule: AbstractFESet, FESetQ4, FESetH8, FESetH20, FESetH27, FESetT4, subset, bfun, connasarray, setlabel!, updateconn!
-import FinEtools.FENodeSetModule: FENodeSet, count, xyz3
-import FinEtools.MeshQuadrilateralModule: Q4elliphole, Q4circlen
-import FinEtools.MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
-import FinEtools.MeshModificationModule: meshboundary, mergemeshes
-import FinEtools.MeshSelectionModule: selectelem, connectednodes
+using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ..FESetModule: AbstractFESet, FESetQ4, FESetH8, FESetH20, FESetH27, FESetT4, subset, bfun, connasarray, setlabel!, updateconn!
+import ..FENodeSetModule: FENodeSet, count, xyz3
+import ..MeshQuadrilateralModule: Q4elliphole, Q4circlen
+import ..MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
+import ..MeshModificationModule: meshboundary, mergemeshes
+import ..MeshSelectionModule: selectelem, connectednodes
 import LinearAlgebra: norm
 import Statistics: mean
 

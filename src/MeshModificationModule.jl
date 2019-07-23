@@ -5,11 +5,11 @@ Module for mesh modification operations.
 """
 module MeshModificationModule
 
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FESetModule: AbstractFESet, count, boundaryconn, boundaryfe, updateconn!, connasarray, fromarray!
-import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.BoxModule: boundingbox, inflatebox!, intersectboxes, inbox
-import FinEtools.MeshSelectionModule: connectednodes
+using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ..FESetModule: AbstractFESet, count, boundaryconn, boundaryfe, updateconn!, connasarray, fromarray!
+import ..FENodeSetModule: FENodeSet
+import ..BoxModule: boundingbox, inflatebox!, intersectboxes, inbox
+import ..MeshSelectionModule: connectednodes
 using Base.Sort
 using Base.Order
 import LinearAlgebra: norm, svd, dot, eigen

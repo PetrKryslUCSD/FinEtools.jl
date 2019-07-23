@@ -5,7 +5,7 @@ Module for general utility matrix product functions.
 """
 module MatrixUtilityModule
 
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 """
     loc!(loc::FFltMat, X::FFltMat, conn::C, N::FFltMat) where {C}

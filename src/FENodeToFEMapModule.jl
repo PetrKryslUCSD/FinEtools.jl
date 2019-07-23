@@ -5,7 +5,7 @@ Module to construct a map from finite element nodes to the finite elements.
 """
 module FENodeToFEMapModule
 
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 """
 Map from finite element nodes to the finite elements connecting
