@@ -11,7 +11,8 @@ import LinearAlgebra: norm, cross
 """
     CSys{F<:Function}
 
-Type for coordinate system transformations.
+Type for coordinate system transformations. Used to define material coordinate
+systems, and output coordinate systems, for instance.
 """
 struct CSys{F<:Function}
     isconstant::Bool
@@ -83,12 +84,12 @@ for this specific situation, `CSys(dim::FInt)`. That will be much more efficient
 `gen_iso_csmat`
 """
 function CSys(sdim::FInt, mdim::FInt)
-    csmat = fill(zero(FFlt), sdim, mdim); # Allocate buffer, prepare for the first call
-    function updatebuffer!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-      gen_iso_csmat!(csmatout, XYZ, tangents, fe_label)
-      return  csmatout
-    end
-    return CSys(false, false, updatebuffer!, csmat);
+	csmat = fill(zero(FFlt), sdim, mdim); # Allocate buffer, prepare for the first call
+	function updatebuffer!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+		gen_iso_csmat!(csmatout, XYZ, tangents, fe_label)
+		return  csmatout
+	end
+	return CSys(false, false, updatebuffer!, csmat);
 end
 
 """
@@ -139,8 +140,7 @@ This *cannot* be reliably used to produce consistent stresses because each
 quadrature point gets a local coordinate system which depends on the
 orientation of the element.
 """
-function gen_iso_csmat!(csmatout::FFltMat,
-    XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+function gen_iso_csmat!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     sdim, mdim = size(tangents);
     if sdim == mdim # finite element embedded in space of the same dimension
         copyto!(csmatout, [i==j ? one(FFlt) : zero(FFlt) for i=1:sdim, j=1:sdim]);
