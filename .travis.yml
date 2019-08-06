@@ -5,6 +5,7 @@ language: julia
 os:
   - linux
   - osx
+  - windows
 
 julia:
   - 1.0
