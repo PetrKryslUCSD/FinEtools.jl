@@ -42,10 +42,10 @@ Only version 1.x and the nightly builds of Julia are supported.
 
 ## Usage and Documentation
 
-[Tutorials](https://github.com/PetrKryslUCSD/FinEtoolsTutorials.git) in the form
+Tutorials in the form
 of marked-down Julia source files using the
 [Literate](https://github.com/fredrikekre/Literate.jl) workflow are available
-and more will  be added in the near future.
+and more will  be added in the near future. (Each application package has some tutorials. For instance for the [linear deformation](https://github.com/PetrKryslUCSD/FinEtoolsDeforLinear.jl/tree/master/tutorials).)
 
 The package has been used to build applications for various purposes. In
 addition to the list at the top, there are also examples of various  [mesh
