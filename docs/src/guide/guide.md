@@ -772,7 +772,7 @@ using the [Literate](https://github.com/fredrikekre/Literate.jl) workflow.
 ### Examples
 
 The examples of the use of the `FinEtools` package are separated in their own separate repositories, for instance 
-[`FinEtoolsHeatDiff`](https://github.com/PetrKryslUCSD/FinEtoolsHeatDiff.jl.git), [`FinEtoolsAcoustics`](https://github.com/PetrKryslUCSD/FinEtoolsAcoustics.jl.git), and so on. For a complete information refer to (https://github.com/PetrKryslUCSD?tab=repositories)[the list of the repositories].
+[`FinEtoolsHeatDiff`](https://github.com/PetrKryslUCSD/FinEtoolsHeatDiff.jl.git), [`FinEtoolsAcoustics`](https://github.com/PetrKryslUCSD/FinEtoolsAcoustics.jl.git), and so on. For a complete information refer to [the list of the repositories](https://github.com/PetrKryslUCSD?tab=repositories).
 
 The examples are in the form of  Julia files with multiple functions, where each function defines one or more related examples. Take for instance the example file `Fahy_examples.jl`. This incantation will run all the examples from the example file:
 
