@@ -14,10 +14,10 @@ The FinEtools package consists of many modules which fall into several  categori
 `FTypesModule` (types), `PhysicalUnitModule` (definitions of  numbers with physical units), `AssemblyModule` (assembly of elementwise matrices and vectors),   `CSysModule` (coordinate system module),    `MatrixUtilityModule` (utilities for operations on elementwise matrices), `BoxModule`  (support for working with bounding boxes),  `ForceIntensityModule` (force-intensity module),        `RotationUtilModule` (support for spatial rotations).
 
 - Mesh  entities:
-  `FENodeSetModule`, `FESetModule` (node set and finite element set  types).  
+  `FENodeSetModule`, `FESetModule` (node set and finite element set  types). 
 
 - Mesh Generation:
-   `MeshLineModule`,  `MeshQuadrilateralModule`,   `MeshTriangleModule`,   `MeshTetrahedronModule`,             `TetRemeshingModule`,  `VoxelTetMeshingModule`,     `MeshHexahedronModule`,       `VoxelBoxModule`.  
+   `MeshLineModule`,  `MeshQuadrilateralModule`,   `MeshTriangleModule`,   `MeshTetrahedronModule`,             `TetRemeshingModule`,  `VoxelTetMeshingModule`,     `MeshHexahedronModule`,       `VoxelBoxModule`. 
 
 - Mesh manipulation:  `MeshSelectionModule` (searching of nodes  and elements),  `MeshModificationModule` (mesh boundary, merging  of meshes and nodes, smoothing, partitioning),  `MeshUtilModule` (utilities), `FENodeToFEMapModule` (search structure from nodes to elements).
 
@@ -771,10 +771,10 @@ using the [Literate](https://github.com/fredrikekre/Literate.jl) workflow.
 
 ### Examples
 
-The `FinEtools` examples are separated in their own separate repositories,
-[`FinEtoolsHeatConductionExamples`](https://github.com/PetrKryslUCSD/FinEtoolsHeatConductionExamples), [`FinEtoolsAcousticsExamples`](https://github.com/PetrKryslUCSD/FinEtoolsAcousticsExamples), [`FinEtoolsLinearDeformationExamples`](https://github.com/PetrKryslUCSD/FinEtoolsLinearDeformationExamples), [`FinEtoolsMeshGenerationExamples`](https://github.com/PetrKryslUCSD/FinEtoolsMeshGenerationExamples).
+The examples of the use of the `FinEtools` package are separated in their own separate repositories, for instance 
+[`FinEtoolsHeatDiff`](https://github.com/PetrKryslUCSD/FinEtoolsHeatDiff.jl.git), [`FinEtoolsAcoustics`](https://github.com/PetrKryslUCSD/FinEtoolsAcoustics.jl.git), and so on. For a complete information refer to (https://github.com/PetrKryslUCSD?tab=repositories)[the list of the repositories].
 
-The examples are in the form of  Julia files with multiple functions, where each function defines one example. Take for instance the example file `Fahy_examples.jl`. This incantation will run all the examples from the example file:
+The examples are in the form of  Julia files with multiple functions, where each function defines one or more related examples. Take for instance the example file `Fahy_examples.jl`. This incantation will run all the examples from the example file:
 
 ```
 include("Fahy_examples.jl"); Fahy_examples.allrun()
