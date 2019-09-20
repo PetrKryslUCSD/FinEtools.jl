@@ -466,7 +466,7 @@ The  test function is  taken to be  one  finite element basis function at a time
 T = \sum_{i= 1} ^{N} N_{\left<i\right>} T_i .
 ```    
 
-Here by ``N_{\left<j\right>}`` we mean the basis function constructed on the mesh and associated with the node ``\left<j\right>``. We use the notation inspected times two to mean node number at which the degree of freedom  ``j`` lives.
+Here by ``N_{\left<j\right>}`` we mean the basis function constructed on the mesh and associated with the node ``\left<j\right>``. We use the notation ``\left<i\right>`` to mean node number at which the degree of freedom  ``j`` lives.
 
 Now the test function and the trial function is substituted  into the  weighted residual equation.  
 
