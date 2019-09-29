@@ -733,6 +733,28 @@ function BOUNDARY(self::AbaqusExporter, nodes, is_fixed::AbstractVector{B},  fix
 end
 
 """
+    BOUNDARY(self::AbaqusExporter, NSET::AbstractString, is_fixed::AbstractArray{B,2},  fixed_value::AbstractArray{F,2}) where {B, F}
+
+**TO DO** check whether or not the output of this function actually makes sense.
+Write out the `*BOUNDARY` option.
+
+`NSET` = name of a node set,
+`is_fixed`= array of Boolean flags (true means fixed, or prescribed),  one row per node,
+`fixed_value`=array of displacements to which the corresponding displacement components is fixed
+"""
+function BOUNDARY(self::AbaqusExporter, NSET::AbstractString, is_fixed::AbstractArray{B,2},  fixed_value::AbstractArray{F,2}) where {B, F}
+	println(self.ios, "*BOUNDARY");
+	for j=1:size(is_fixed,1)
+		for k=1:size(is_fixed,2)
+			#<node number>, <first dof>, <last dof>, <magnitude of displacement>
+			if is_fixed[j,k]
+				println(self.ios, NSET * ".$j,$k,$k,$(fixed_value[j,k])");
+			end
+		end
+	end
+end
+
+"""
     BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer)
 
 Write out the `*BOUNDARY` option to fix displacements at zero for a node set.
