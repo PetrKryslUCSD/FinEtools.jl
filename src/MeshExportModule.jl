@@ -696,25 +696,40 @@ function STEP_FREQUENCY(self::AbaqusExporter, Nmodes::Integer)
 end
 
 """
-    BOUNDARY(self::AbaqusExporter, NSET::AbstractString,
-        is_fixed::AbstractArray{B,2},  fixed_value::AbstractArray{F,2}) where {B, F}
+    BOUNDARY(self::AbaqusExporter, mesh, nodes,is_fixed::AbstractArray{B,2},  fixed_value::AbstractArray{F,2}) where {B, F}
 
 Write out the `*BOUNDARY` option.
 
+`mesh` = mesh (default is empty)
+`nodes` = array of node numbers, the note numbers are attached to the mesh label,
 `is_fixed`= array of Boolean flags (true means fixed, or prescribed),  one row per node,
 `fixed_value`=array of displacements to which the corresponding displacement components is fixed
+
+# Example
+
+```
+BOUNDARY(AE, "ASSEM1.INSTNC1", 1:4, fill(true, 4, 1), reshape([uy(fens.xyz[i, :]...) for i in 1:4], 4, 1))
+```
 """
-function BOUNDARY(self::AbaqusExporter, NSET::AbstractString,
-    is_fixed::AbstractArray{B,2},  fixed_value::AbstractArray{F,2}) where {B, F}
-  println(self.ios, "*BOUNDARY");
-  for j=1:size(is_fixed,1)
-    for k=1:size(is_fixed,2)
-      #<node number>, <first dof>, <last dof>, <magnitude of displacement>
-      if is_fixed[j,k]
-        println(self.ios, NSET * "$j,$k,$k,$(fixed_value[j,k])");
-      end
-    end
-  end
+function BOUNDARY(self::AbaqusExporter, mesh, nodes,is_fixed::AbstractArray{B,2},  fixed_value::AbstractArray{F,2}) where {B, F}
+	println(self.ios, "*BOUNDARY");
+	if mesh == ""
+		meshlabel = ""
+	else
+		meshlabel = mesh * "."
+	end
+	for j=1:length(nodes)
+		for k=1:size(is_fixed,2)
+			#<node number>, <first dof>, <last dof>, <magnitude of displacement>
+			if is_fixed[j,k]
+				println(self.ios, "$(meshlabel)$(nodes[j]),$k,$k,$(fixed_value[j,k])");
+			end
+		end
+	end
+end
+
+function BOUNDARY(self::AbaqusExporter, nodes, is_fixed::AbstractVector{B},  fixed_value::AbstractVector{F}) where {B, F}
+	BOUNDARY(self, nodes, reshape(is_fixed, length(is_fixed), 1), reshape(fixed_value, length(fixed_value), 1))
 end
 
 """
@@ -728,8 +743,8 @@ Invoke at Level: Model,  Step
 `dof`=Degree of freedom, 1, 2, 3
 """
 function BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer)
-  println(self.ios, "*BOUNDARY");
-  println(self.ios, NSET * ",$dof");
+	println(self.ios, "*BOUNDARY");
+	println(self.ios, NSET * ",$dof");
 end
 
 """
@@ -743,8 +758,8 @@ node set.
 `dof`=Degree of freedom, 1, 2, 3
 """
 function BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer, value::F) where {F}
-  println(self.ios, "*BOUNDARY,TYPE=DISPLACEMENT");
-  println(self.ios, NSET * ",$dof,$dof,$value");
+	println(self.ios, "*BOUNDARY,TYPE=DISPLACEMENT");
+	println(self.ios, NSET * ",$dof,$dof,$value");
 end
 
 """
@@ -753,12 +768,11 @@ end
 
 Write out the `*DLOAD` option.
 """
-function DLOAD(self::AbaqusExporter, ELSET::AbstractString,
-  traction::AbstractVector{F}) where {F}
-  println(self.ios, "*DLOAD, follower=NO");
-  nt = norm(traction)
-  print(self.ios, ELSET * ",TRVEC," * "$(nt),")
-  println(self.ios, "$(traction[1]/nt),$(traction[2]/nt),$(traction[3]/nt)");
+function DLOAD(self::AbaqusExporter, ELSET::AbstractString, traction::AbstractVector{F}) where {F}
+	println(self.ios, "*DLOAD, follower=NO");
+	nt = norm(traction)
+	print(self.ios, ELSET * ",TRVEC," * "$(nt),")
+	println(self.ios, "$(traction[1]/nt),$(traction[2]/nt),$(traction[3]/nt)");
 end
 
 """
