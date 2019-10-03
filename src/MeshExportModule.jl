@@ -696,11 +696,14 @@ function STEP_FREQUENCY(self::AbaqusExporter, Nmodes::Integer)
 end
 
 """
-    BOUNDARY(self::AbaqusExporter, mesh, nodes,is_fixed::AbstractArray{B,2},  fixed_value::AbstractArray{F,2}) where {B, F}
+    BOUNDARY(self::AbaqusExporter, mesh, nodes, is_fixed::AbstractArray{B,2}, fixed_value::AbstractArray{F,2}) where {B, F}
 
-Write out the `*BOUNDARY` option.
+Write out the `*BOUNDARY` option. 
 
-`mesh` = mesh (default is empty)
+The boundary condition is applied to the nodes specified in 
+the array `nodes`, in the mesh (or node set) `meshornset`.
+
+`meshornset` = mesh or node set (default is empty)
 `nodes` = array of node numbers, the note numbers are attached to the mesh label,
 `is_fixed`= array of Boolean flags (true means fixed, or prescribed),  one row per node,
 `fixed_value`=array of displacements to which the corresponding displacement components is fixed
@@ -711,12 +714,12 @@ Write out the `*BOUNDARY` option.
 BOUNDARY(AE, "ASSEM1.INSTNC1", 1:4, fill(true, 4, 1), reshape([uy(fens.xyz[i, :]...) for i in 1:4], 4, 1))
 ```
 """
-function BOUNDARY(self::AbaqusExporter, mesh, nodes,is_fixed::AbstractArray{B,2},  fixed_value::AbstractArray{F,2}) where {B, F}
+function BOUNDARY(self::AbaqusExporter, meshornset, nodes, is_fixed::AbstractArray{B,2}, fixed_value::AbstractArray{F,2}) where {B, F}
 	println(self.ios, "*BOUNDARY");
-	if mesh == ""
+	if meshornset == ""
 		meshlabel = ""
 	else
-		meshlabel = mesh * "."
+		meshlabel = meshornset * "."
 	end
 	for j=1:length(nodes)
 		for k=1:size(is_fixed,2)
@@ -733,25 +736,17 @@ function BOUNDARY(self::AbaqusExporter, nodes, is_fixed::AbstractVector{B},  fix
 end
 
 """
-    BOUNDARY(self::AbaqusExporter, NSET::AbstractString, is_fixed::AbstractArray{B,2},  fixed_value::AbstractArray{F,2}) where {B, F}
+    BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer,  fixed_value::FFlt)
 
-**TO DO** check whether or not the output of this function actually makes sense.
 Write out the `*BOUNDARY` option.
 
 `NSET` = name of a node set,
 `is_fixed`= array of Boolean flags (true means fixed, or prescribed),  one row per node,
 `fixed_value`=array of displacements to which the corresponding displacement components is fixed
 """
-function BOUNDARY(self::AbaqusExporter, NSET::AbstractString, is_fixed::AbstractArray{B,2},  fixed_value::AbstractArray{F,2}) where {B, F}
+function BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer,  fixed_value::FFlt)
 	println(self.ios, "*BOUNDARY");
-	for j=1:size(is_fixed,1)
-		for k=1:size(is_fixed,2)
-			#<node number>, <first dof>, <last dof>, <magnitude of displacement>
-			if is_fixed[j,k]
-				println(self.ios, NSET * ".$j,$k,$k,$(fixed_value[j,k])");
-			end
-		end
-	end
+	println(self.ios, NSET * ",$dof,$dof,$(fixed_value)");
 end
 
 """
@@ -765,8 +760,7 @@ Invoke at Level: Model,  Step
 `dof`=Degree of freedom, 1, 2, 3
 """
 function BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer)
-	println(self.ios, "*BOUNDARY");
-	println(self.ios, NSET * ",$dof");
+	BOUNDARY(self, NSET, dof,  0.0)
 end
 
 """
