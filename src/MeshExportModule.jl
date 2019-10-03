@@ -704,7 +704,7 @@ The boundary condition is applied to the nodes specified in
 the array `nodes`, in the mesh (or node set) `meshornset`.
 
 `meshornset` = mesh or node set (default is empty)
-`nodes` = array of node numbers, the note numbers are attached to the mesh label,
+`nodes` = array of node numbers, the node numbers are attached to the mesh label,
 `is_fixed`= array of Boolean flags (true means fixed, or prescribed),  one row per node,
 `fixed_value`=array of displacements to which the corresponding displacement components is fixed
 
@@ -721,11 +721,11 @@ function BOUNDARY(self::AbaqusExporter, meshornset, nodes, is_fixed::AbstractArr
 	else
 		meshlabel = meshornset * "."
 	end
-	for j=1:length(nodes)
+	for j in nodes
 		for k=1:size(is_fixed,2)
 			#<node number>, <first dof>, <last dof>, <magnitude of displacement>
 			if is_fixed[j,k]
-				println(self.ios, "$(meshlabel)$(nodes[j]),$k,$k,$(fixed_value[j,k])");
+				println(self.ios, "$(meshlabel)$(j),$k,$k,$(fixed_value[j,k])");
 			end
 		end
 	end
@@ -733,6 +733,19 @@ end
 
 function BOUNDARY(self::AbaqusExporter, nodes, is_fixed::AbstractVector{B},  fixed_value::AbstractVector{F}) where {B, F}
 	BOUNDARY(self, nodes, reshape(is_fixed, length(is_fixed), 1), reshape(fixed_value, length(fixed_value), 1))
+end
+
+"""
+    BOUNDARY(self::AbaqusExporter, meshornset, is_fixed::AbstractArray{B,2}, fixed_value::AbstractArray{F,2}) where {B, F}
+
+Write out the `*BOUNDARY` option.
+
+`meshornset` = name of a mesh or a node set,
+`is_fixed`= array of Boolean flags (true means fixed, or prescribed),  one row per node, as many columns as there are degrees of freedom per node,
+`fixed_value`=array of displacements to which the corresponding displacement components is fixed, as many columns as there are degrees of freedom per node
+"""
+function BOUNDARY(self::AbaqusExporter, meshornset, is_fixed::AbstractArray{B,2}, fixed_value::AbstractArray{F,2}) where {B, F}
+	BOUNDARY(self, meshornset, 1:size(is_fixed, 1), is_fixed, fixed_value)
 end
 
 """
