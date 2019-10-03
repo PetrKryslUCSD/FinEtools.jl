@@ -3275,8 +3275,6 @@ mesh_triangle_conversion_4.test()
 module mmT4ttH80
 using FinEtools
 using Test
-using Arpack: eigs
-import LinearAlgebra: norm, cholesky, cross
 function test()
 	a,b,h, na,nb,nh = 1.0, 2.0, 3.0, 2, 3, 4
 	fens,fes  = T4block(a,b,h, na,nb,nh)
@@ -3300,8 +3298,6 @@ mmT4ttH80.test()
 module mmT4ttH81
 using FinEtools
 using Test
-using Arpack: eigs
-import LinearAlgebra: norm, cholesky, cross
 function test()
 	a,b,h, na,nb,nh = 1.0, 2.0, 3.0, 2, 3, 4
 	fens,fes  = T4block(a,b,h, na,nb,nh)
@@ -3326,8 +3322,6 @@ mmT4ttH81.test()
 module mmT4refine20a
 using FinEtools
 using Test
-using Arpack: eigs
-import LinearAlgebra: norm, cholesky, cross
 function test()
 	a,b,h, na,nb,nh = 1.0, 2.0, 3.0, 2, 3, 4
 	fens,fes  = T4block(a,b,h, na,nb,nh)
@@ -3351,8 +3345,6 @@ mmT4refine20a.test()
 module mmT4refine20b
 using FinEtools
 using Test
-using Arpack: eigs
-import LinearAlgebra: norm, cholesky, cross
 function test()
 	a,b,h, na,nb,nh = 1.0, 2.0, 3.0, 2, 3, 4
 	fens,fes  = T4block(a,b,h, na,nb,nh)
@@ -3374,3 +3366,130 @@ end
 end
 using .mmT4refine20b
 mmT4refine20b.test()
+
+module mq4patchtest
+using FinEtools
+using Test
+function test()
+	# println("Q4. Plane stress.")
+
+	E = 1.0;
+	nu = 1.0/3;
+	alpha, beta, gamma, delta, eta, phi= 1.0/30, 1.0/34, -1.0/21, -1.0/51, -1.0/26, -1.0/35
+	ux(x, y) = alpha + beta * x + gamma * y
+	uy(x, y) = delta + eta * x + phi * y
+	
+	fens = FENodeSet([1.0 -0.3; 2.3 -0.3; 2.3 0.95; 1.0 0.95; 1.4 0.05; 1.9 -0.03; 1.7 0.5; 1.3 0.6])
+	fes = FESetQ4([1 2 6 5; 6 2 3 7; 7 3 4 8; 8 4 1 5; 5 6 7 8])
+
+	geom = NodalField(fens.xyz)
+	u = NodalField(zeros(size(fens.xyz, 1), 2)) # displacement field
+
+	# Apply prescribed displacements to exterior nodes
+	for i in 1:4
+		setebc!(u, [i], 1, val=ux(fens.xyz[i, :]...))
+		setebc!(u, [i], 2, val=uy(fens.xyz[i, :]...))
+	end
+
+	applyebc!(u)
+	numberdofs!(u)
+
+	# for i in 5:8
+	# 	uexact = [ux(fens.xyz[i, :]...), uy(fens.xyz[i, :]...)]
+	# 	println("u.values[$i, :] = $(u.values[i, :]), uexact = [$(uexact)]")
+	# end
+
+	AE = AbaqusExporter("q4_stress_export");
+	HEADING(AE, "q4_stress_export");
+	COMMENT(AE, "");
+	PART(AE, "part1");
+	END_PART(AE);
+	ASSEMBLY(AE, "ASSEM1");
+	INSTANCE(AE, "INSTNC1", "PART1");
+	NODE(AE, fens.xyz);
+	ELEMENT(AE, "CPS4", "AllElements", connasarray(fes))
+	NSET_NSET(AE, "clamped", 1:4)
+	ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
+	SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", 1.0);
+	END_INSTANCE(AE);
+	END_ASSEMBLY(AE);
+	MATERIAL(AE, "elasticity")
+	ELASTIC(AE, E, nu)
+	STEP_PERTURBATION_STATIC(AE)
+	BOUNDARY(AE, "ASSEM1.INSTNC1", 1:4, fill(true, 4, 2), [[ux(fens.xyz[i, :]...) for i in 1:4] [uy(fens.xyz[i, :]...) for i in 1:4]])
+	END_STEP(AE)
+	close(AE)
+	s = readlines("q4_stress_export.inp")
+	@test  length(s) == 49
+	try rm("q4_stress_export.inp") catch end
+
+	true
+
+end
+end
+using .mq4patchtest
+mq4patchtest.test()
+
+
+module mq4patchtest1
+using FinEtools
+using Test
+function test()
+	# println("Q4. Plane stress.")
+
+	E = 1.0;
+	nu = 1.0/3;
+	alpha, beta, gamma, delta, eta, phi= 1.0/30, 1.0/34, -1.0/21, -1.0/51, -1.0/26, -1.0/35
+	ux(x, y) = alpha + beta * x + gamma * y
+	uy(x, y) = delta + eta * x + phi * y
+	
+	fens = FENodeSet([1.0 -0.3; 2.3 -0.3; 2.3 0.95; 1.0 0.95; 1.4 0.05; 1.9 -0.03; 1.7 0.5; 1.3 0.6])
+	fes = FESetQ4([1 2 6 5; 6 2 3 7; 7 3 4 8; 8 4 1 5; 5 6 7 8])
+
+	geom = NodalField(fens.xyz)
+	u = NodalField(zeros(size(fens.xyz, 1), 2)) # displacement field
+
+	# Apply prescribed displacements to exterior nodes
+	for i in 1:4
+		setebc!(u, [i], 1, val=ux(fens.xyz[i, :]...))
+		setebc!(u, [i], 2, val=uy(fens.xyz[i, :]...))
+	end
+
+	applyebc!(u)
+	numberdofs!(u)
+
+	# for i in 5:8
+	# 	uexact = [ux(fens.xyz[i, :]...), uy(fens.xyz[i, :]...)]
+	# 	println("u.values[$i, :] = $(u.values[i, :]), uexact = [$(uexact)]")
+	# end
+
+	AE = AbaqusExporter("q4_stress_export1");
+	HEADING(AE, "q4_stress_export");
+	COMMENT(AE, "");
+	PART(AE, "part1");
+	END_PART(AE);
+	ASSEMBLY(AE, "ASSEM1");
+	INSTANCE(AE, "INSTNC1", "PART1");
+	NODE(AE, fens.xyz);
+	ELEMENT(AE, "CPS4", "AllElements", connasarray(fes))
+	NSET_NSET(AE, "clamped", 1:4)
+	ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
+	SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", 1.0);
+	END_INSTANCE(AE);
+	END_ASSEMBLY(AE);
+	MATERIAL(AE, "elasticity")
+	ELASTIC(AE, E, nu)
+	STEP_PERTURBATION_STATIC(AE)
+	BOUNDARY(AE, "clamped", 1, -1.0)
+	END_STEP(AE)
+	close(AE)
+	s = readlines("q4_stress_export1.inp")
+	@test length(s) == 42
+	try rm("q4_stress_export1.inp") catch end
+
+	true
+
+end
+end
+using .mq4patchtest1
+mq4patchtest1.test()
