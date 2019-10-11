@@ -534,3 +534,5 @@ https://github.com/JuliaRegistries/Registrator.jl
 1. Set the Project.toml version field in your repository to your new desired version.
 2. comment on branch
 @JuliaRegistrator register()
+
+-- innerproduct() is not being tested. Status:
