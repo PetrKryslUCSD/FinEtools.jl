@@ -39,7 +39,7 @@ Arguments:
 `ecoords` = matrix of the node coordinates for the element.
 `gradNparams` = matrix of basis function gradients
 """
-function jac!(J::FFltMat, ecoords::FFltMat, gradNparams::FFltMat) where {C}
+function jac!(J::FFltMat, ecoords::FFltMat, gradNparams::FFltMat)
     n = size(gradNparams, 1)
     @inbounds for j in 1:size(J, 2)
         @inbounds for i in 1:size(J, 1)
