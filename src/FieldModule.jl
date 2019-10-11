@@ -163,8 +163,8 @@ row and so on.
 in the correct size
 """
 function gathervalues_asmat!(self::AbstractField, dest::AbstractArray{T, 2},    conn::CC) where {CC, T}
-    for i = 1:length(conn)
-        for j = 1:size(self.values,2)
+    for j in 1:size(self.values,2)
+        @inbounds for i in 1:length(conn)
             dest[i, j] = self.values[conn[i], j];
         end
     end
