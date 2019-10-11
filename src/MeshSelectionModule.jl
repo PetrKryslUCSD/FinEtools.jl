@@ -497,6 +497,24 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
 
 end
 
+function _compute_vlist!(vlist::Vector{FInt}, abox::T, sdim::FInt, v::FFltMat) where {T}
+    # Helper functions
+    @inline inrange(rangelo,rangehi,x) = (rangelo <= x <= rangehi)
+    nn = 0
+    for j in 1:size(v,1)
+        matches = true
+        for i in 1:sdim
+            if !inrange(abox[2*i-1], abox[2*i], v[j, i])
+                matches = false; break
+            end
+        end
+        if matches
+            nn = nn + 1; vlist[nn] = j;
+        end
+    end
+    return vlist, nn
+end
+
 """
     vselect(v::FFltMat; kwargs...)
 
@@ -507,23 +525,8 @@ used to search vertices.
 """
 function vselect(v::FFltMat; kwargs...)
 
-    # Helper functions
-    @inline inrange(rangelo,rangehi,x) = (rangelo <= x <= rangehi)
-    function compute_vlist!(vlist::Vector{FInt}, abox::FFltVec, sdim::FInt, v::FFltMat)
-        nn = 0
-        for j in 1:size(v,1)
-            matches = true
-            for i in 1:sdim
-                if !inrange(abox[2*i-1], abox[2*i], v[j, i])
-                    matches = false; break
-                end
-            end
-            if matches
-                nn = nn + 1; vlist[nn] = j;
-            end
-        end
-        return vlist, nn
-    end
+
+
 
     # Extract arguments
     box = nothing; distance = nothing; from = nothing; plane  =  nothing;
@@ -564,7 +567,7 @@ function vselect(v::FFltMat; kwargs...)
         @assert dim == sdim "Dimension of box not matched to dimension of array of vertices"
         abox = vec(box)::FFltVec
         inflatebox!(abox, inflatevalue)
-        vlist, nn = compute_vlist!(vlist, abox, sdim, v)
+        vlist, nn = _compute_vlist!(vlist, abox, sdim, v)
     elseif distance != nothing
         fromvalue =fill!(deepcopy(v[1,:]), 0.0);
         if from!=nothing
