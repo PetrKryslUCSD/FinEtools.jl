@@ -4,7 +4,7 @@ using Test
 using Random
 function test()
   N = 1_000_000 # Number of nodes in the mesh
-  nen = 10 # Number of nodes per element
+  nen = 20 # Number of nodes per element
   nloops = 2*N
   indexes = randperm(N)[1:nen]
   buffnen3 = rand(nen, 3)
