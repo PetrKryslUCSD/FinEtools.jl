@@ -139,6 +139,7 @@ degrees of freedom,  then the next node and so on.
 in the correct size
 """
 function gathervalues_asvec!(self::AbstractField, dest::AbstractArray{T, 1}, conn::CC) where {CC, T}
+    # The order of the loops matters, first i, then j
     en::FInt = 1;
     for i = 1:length(conn)
         for j = 1:size(self.values,2)
@@ -163,8 +164,8 @@ row and so on.
 in the correct size
 """
 function gathervalues_asmat!(self::AbstractField, dest::AbstractArray{T, 2},    conn::CC) where {CC, T}
-    for i = 1:length(conn)
-        for j = 1:size(self.values,2)
+    @inbounds for j in 1:size(self.values,2)
+        @inbounds for i in 1:length(conn)
             dest[i, j] = self.values[conn[i], j];
         end
     end
@@ -185,6 +186,7 @@ is NOT fixed, the corresponding entry is  set to zero.
 in the correct size
 """
 function gatherfixedvalues_asvec!(self::AbstractField, dest::AbstractArray{T, 1},    conn::CC) where {CC, T}
+    # The order of the loops matters here! It must be i, j
     en::FInt = 1;
     for i = 1:length(conn)
         for j = 1:size(self.fixed_values,2)
@@ -214,8 +216,8 @@ is NOT fixed, the corresponding entry is  set to zero.
 in the correct size
 """
 function gatherfixedvalues_asmat!(self::AbstractField, dest::AbstractArray{T, 2},    conn::CC) where {CC, T}
-    for i = 1:length(conn)
-        for j = 1:size(self.fixed_values,2)
+    for j = 1:size(self.fixed_values,2)
+        for i = 1:length(conn)
             if self.is_fixed[conn[i],j] # fixed degree of freedom
                 dest[i, j] = self.fixed_values[conn[i], j];
             else
@@ -243,6 +245,9 @@ end
     gatherdofnums!(self::AbstractField, dest::A, conn::CC) where {A, CC}
 
 Gather dofnums from the field.
+
+The order is: for each node  in the connectivity, copy into the buffer all the degrees of
+freedom for that node,  then the next node  and so on.
 """
 function gatherdofnums!(self::AbstractField, dest::A, conn::CC) where {A, CC}
     en::FInt = 1;

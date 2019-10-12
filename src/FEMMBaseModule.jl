@@ -14,7 +14,7 @@ import ..FENodeSetModule: FENodeSet
 import ..FESetModule: AbstractFESet, manifdim, nodesperelem, subset, map2parametric, inparametric, centroidparametric, bfun
 import ..IntegDomainModule: IntegDomain, integrationdata, Jacobianmdim, Jacobianvolume
 import ..CSysModule: CSys
-import ..FieldModule: ndofs, nents, gatherdofnums!, gathervalues_asmat! 
+import ..FieldModule: ndofs, nents, gatherdofnums!, gathervalues_asmat!
 import ..NodalFieldModule: NodalField, nnodes
 import ..ElementalFieldModule: ElementalField, nelems
 import ..ForceIntensityModule: ForceIntensity, updateforce!
@@ -44,7 +44,7 @@ end
 """
     FEMMBase(integdomain::IntegDomain{S, F}) where {S<:AbstractFESet, F<:Function}
 
-Construct with the default orientation matrix (identity).  
+Construct with the default orientation matrix (identity).
 """
 function FEMMBase(integdomain::IntegDomain{S, F}) where {S<:AbstractFESet, F<:Function}
     return FEMMBase(integdomain, CSys(manifdim(integdomain.fes)))
@@ -59,10 +59,10 @@ There may be operations that could benefit from pre-computations
 that involve a geometry field. If so, associating the geometry
 field gives the FEMM a chance to save on repeated computations.
 
-Geometry field is normally passed into any routine that evaluates some 
-forms (integrals) over the mesh.  Whenever the geometry passed into a 
-routine is not consistent with the one for which `associategeometry!()` 
-was called before, `associategeometry!()` needs to be called with 
+Geometry field is normally passed into any routine that evaluates some
+forms (integrals) over the mesh.  Whenever the geometry passed into a
+routine is not consistent with the one for which `associategeometry!()`
+was called before, `associategeometry!()` needs to be called with
 the new geometry field.
 """
 function associategeometry!(self::AbstractFEMM,  geom::NodalField{FFlt})
@@ -72,7 +72,7 @@ end
 """
     inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {FEMM<:AbstractFEMM, T<:Number, F<:Function}
 
-Inspect integration points.  
+Inspect integration points.
 """
 function inspectintegpoints(self::FEMM, geom::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {FEMM<:AbstractFEMM, T<:Number, F<:Function}
     return idat # default is no-op
@@ -85,10 +85,10 @@ end
 
 Integrate a nodal-field function over the discrete manifold.
 
-`afield` = NODAL field to be supply the values 
+`afield` = NODAL field to be supply the values
 `fh` = function taking position and the field value as arguments, returning value of type `R`.
 
-Returns value of type `R`, which is initialized by `initial`.    
+Returns value of type `R`, which is initialized by `initial`.
 """
 function integratefieldfunction(self::AbstractFEMM, geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R;
     m::FInt=-1) where {T<:Number, FL<:NodalField{T}, R, F<:Function}
@@ -101,7 +101,8 @@ function integratefieldfunction(self::AbstractFEMM, geom::NodalField{FFlt},  afi
     mdim = manifdim(fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain);
-    a = fill(zero(T), nne,ndn); # array of field DOFS-- used as a buffer
+    a = fill(zero(T), nne, ndn); # array of field DOFS-- used as a buffer
+    ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of field DOFS-- used as a buffer
     loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
     val = fill(zero(T), 1, ndn); # field value at the point -- used as a buffer
     J = fill(zero(FFlt), sdim,mdim); # Jacobian matrix -- used as a buffer
@@ -113,8 +114,9 @@ function integratefieldfunction(self::AbstractFEMM, geom::NodalField{FFlt},  afi
     result = initial;           # initial value for the result
     for i=1:count(fes) #Now loop over all fes in the block
         gathervalues_asmat!(afield, a, fes.conn[i]);# retrieve element dofs
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         for j = 1:npts #Loop over all integration points
-            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             my_At_mul_B!(val, Ns[j], a);# Field value at the quadrature point
             Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i],  Ns[j], m);
             result = result + fh(loc,val)*Jac*w[j];
@@ -130,12 +132,12 @@ end
 
 Integrate a elemental-field function over the discrete manifold.
 
-`afield` = ELEMENTAL field to be supply the values 
+`afield` = ELEMENTAL field to be supply the values
 `fh` = function taking position and the field value as arguments, returning value of type `R`.
 
-Returns value of type `R`, which is initialized by `initial`. 
-""" 
-function integratefieldfunction(self::AbstractFEMM, geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R; 
+Returns value of type `R`, which is initialized by `initial`.
+"""
+function integratefieldfunction(self::AbstractFEMM, geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R;
     m::FInt=-1) where {T<:Number, FL<:ElementalField{T}, R, F<:Function}
     fes = self.integdomain.fes  # finite elements
     # Constants
@@ -147,6 +149,7 @@ function integratefieldfunction(self::AbstractFEMM, geom::NodalField{FFlt},  afi
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain);
     a = fill(zero(FFlt), nne,ndn); # array of field DOFS-- used as a buffer
+    ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of field DOFS-- used as a buffer
     loc = fill(zero(FFlt), 1,sdim); # quadrature point location -- used as a buffer
     J = fill(zero(FFlt), sdim,mdim); # Jacobian matrix -- used as a buffer
     if m >= 0
@@ -157,8 +160,9 @@ function integratefieldfunction(self::AbstractFEMM, geom::NodalField{FFlt},  afi
     result = initial;           # initial value for the result
     for i=1:count(fes) #Now loop over all fes in the block
         gathervalues_asmat!(afield, a, [i]);# retrieve element dofs
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         for j = 1:npts #Loop over all integration points
-            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i],  Ns[j], m);
             result = result + fh(loc, a)*Jac*w[j];
         end
@@ -209,12 +213,14 @@ function integratefunction(self::AbstractFEMM, geom::NodalField{FFlt}, fh::F, m:
     mdim = manifdim(fes);     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain);
+    ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of field DOFS-- used as a buffer
     loc = fill(zero(FFlt), 1,sdim); # quadrature point location -- used as a buffer
     J = fill(zero(FFlt), sdim,mdim); # Jacobian matrix -- used as a buffer
     result = 0.0;# Initialize the result
     for i = 1:count(fes)  # Now loop over all fes in the set
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         for j=1:npts #Loop over all integration points
-            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i],  Ns[j], m);
             result = result + fh(vec(loc))*Jac*w[j];
         end
@@ -269,7 +275,7 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::AbstractFESet, fc::F, fen
             fescsub = renumberconn!(fescsub, newnumber); # elements of the sub mesh
             present = findall(x -> x > 0, newnumber)
             fcsub  =  NodalField(fc.values[present, :]) # reduce the coarse-mesh field to the sub mesh
-            # Now we can find the values at the nodes of the subset of the fine mesh 
+            # Now we can find the values at the nodes of the subset of the fine mesh
             # working only with the sub mesh of the coarse mesh
             for i in pnl # for all nodes in the subset
                 nl = vselect(fenscsub.xyz; nearestto = fensf.xyz[i, :])
@@ -299,8 +305,8 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::AbstractFESet, fc::F, fen
             end # for i in pnl # for all nodes in the subset
         end # if !isempty(sublist)
     end # for p = 1:npartitions
-    
-    # Check that we haven't missed any node connected to some finite elements. 
+
+    # Check that we haven't missed any node connected to some finite elements.
     cnl = connectednodes(fesf)
     for i = cnl
         if any(v -> v == Inf, ff.values[i, :])
@@ -393,14 +399,16 @@ function distribloads(self::FEMM, assembler::A,
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain);
     # Prepare some buffers:
     dofnums = fill(zero(FInt), Cedim); # degree of freedom array -- used as a buffer
+    ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of field DOFS-- used as a buffer
     loc = fill(zero(FFlt), (1,sdim)); # quadrature point location -- used as a buffer
     J = fill(zero(FFlt), (sdim, mdim)) # Jac. matrix -- used as a buffer
     Fe = fill(zero(T), (Cedim, ))
     startassembly!(assembler, P.nfreedofs);
     for i = 1:nfes # Loop over elements
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(Fe, 0.0);
         for j = 1:npts
-            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i],  Ns[j], m);
             force = updateforce!(fi, loc, J, fes.label[i]); # retrieve the applied load
             Factor::FFlt = (Jac * w[j]);
@@ -534,7 +542,7 @@ Keyword arguments
 - `reportat` = at which point should the  element quantities be reported?
     This argument is interpreted inside the `inspectintegpoints()` method.
 
-# Output 
+# Output
 - the new field that can be used to map values to colors and so on
 """
 function fieldfromintegpoints(self::FEMM,
@@ -654,7 +662,7 @@ Construct elemental field from integration points.
 `component`- component of the 'quantity' array: see the material update()
            method.
 
-# Output 
+# Output
  - the new field that can be used to map values to colors and so on
 """
 function elemfieldfromintegpoints(self::FEMM,
@@ -733,11 +741,12 @@ function  buffers(self::FEMM, geom::NodalField{FFlt}, afield::NodalField{T}) whe
     mdim = manifdim(fes); # manifold dimension of the element
     Kedim = ndn*nne;      # dimension of the element matrix
     elmat = fill(zero(FFlt), Kedim, Kedim); # buffer
+    ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of Element coordinates
     dofnums = fill(zero(FInt), Kedim); # buffer
     loc = fill(zero(FFlt), 1, sdim); # buffer
     J = fill(zero(FFlt), sdim, mdim); # buffer
     gradN = fill(zero(FFlt), nne, mdim); # buffer
-    return dofnums, loc, J, gradN, elmat
+    return ecoords, dofnums, loc, J, gradN, elmat
 end
 
 """
@@ -749,7 +758,7 @@ Compute the inner-product (Gram) matrix.
 """
 function innerproduct(self::FEMM, assembler::A, geom::NodalField{FFlt}, afield::NodalField{T}) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, T}
     fes = self.integdomain.fes
-    dofnums, loc, J, gradN, elmat = buffers(self, geom, afield)
+    ecoords, dofnums, loc, J, gradN, elmat = buffers(self, geom, afield)
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     NexpTNexp = FFltMat[];# basis f. matrix -- buffer
     ndn = ndofs(afield)
@@ -763,9 +772,10 @@ function innerproduct(self::FEMM, assembler::A, geom::NodalField{FFlt}, afield::
     end
     startassembly!(assembler,  size(elmat,1),  size(elmat,2),  count(fes), afield.nfreedofs,  afield.nfreedofs);
     for i = 1:count(fes) # Loop over elements
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(elmat, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
-            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j]) 
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             thefactor::FFlt =(Jac*w[j]);
             elmat .+= NexpTNexp[j]*thefactor

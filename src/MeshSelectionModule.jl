@@ -497,6 +497,24 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
 
 end
 
+function _compute_vlist!(vlist::Vector{FInt}, abox::T, sdim::FInt, v::FFltMat) where {T}
+    # Helper functions
+    @inline inrange(rangelo,rangehi,x) = (rangelo <= x <= rangehi)
+    nn = 0
+    for j in 1:size(v,1)
+        matches = true
+        for i in 1:sdim
+            if !inrange(abox[2*i-1], abox[2*i], v[j, i])
+                matches = false; break
+            end
+        end
+        if matches
+            nn = nn + 1; vlist[nn] = j;
+        end
+    end
+    return vlist, nn
+end
+
 """
     vselect(v::FFltMat; kwargs...)
 
@@ -507,8 +525,8 @@ used to search vertices.
 """
 function vselect(v::FFltMat; kwargs...)
 
-    # Helper functions
-    inrange(rangelo::FFlt,rangehi::FFlt,x::FFlt) = ((x>=rangelo) && (x<=rangehi));
+
+
 
     # Extract arguments
     box = nothing; distance = nothing; from = nothing; plane  =  nothing;
@@ -533,13 +551,13 @@ function vselect(v::FFltMat; kwargs...)
     end
 
     # Did we get an inflate value
-    inflatevalue =0.0;
-    if inflate!=nothing
-        inflatevalue = inflate;
+    inflatevalue = 0.0;
+    if inflate != nothing
+        inflatevalue = FFlt(inflate);
     end
 
     # Initialize the output list
-    vlist= zeros(FInt, size(v,1)); nn= 0;
+    vlist = zeros(FInt, size(v,1)); nn = 0;
 
 
     # Process the different options
@@ -547,19 +565,9 @@ function vselect(v::FFltMat; kwargs...)
         sdim = size(v,2)
         dim = Int(round(length(box)/2.))::FInt;
         @assert dim == sdim "Dimension of box not matched to dimension of array of vertices"
-        abox=FFltVec(vec(box))
+        abox = vec(box)::FFltVec
         inflatebox!(abox, inflatevalue)
-        for j =1:size(v,1)
-          match = true
-          for i=1:sdim
-              if (!inrange(abox[2*i-1],abox[2*i],v[j, i]))
-                  match =  false; break
-              end
-          end
-          if match
-              nn = nn + 1; vlist[nn] = j;
-          end
-        end
+        vlist, nn = _compute_vlist!(vlist, abox, sdim, v)
     elseif distance != nothing
         fromvalue =fill!(deepcopy(v[1,:]), 0.0);
         if from!=nothing
