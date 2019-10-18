@@ -30,7 +30,7 @@ function loc!(loc::FFltMat, ecoords::FFltMat, N::FFltMat)
 end
 
 """
-    jac!(J::FFltMat, X::FFltMat, conn::C, gradNparams::FFltMat) where {C}
+    jac!(J::FFltMat, ecoords::FFltMat,gradNparams::FFltMat)
 
 Compute the Jacobian matrix at the quadrature point.
 
@@ -54,7 +54,7 @@ function jac!(J::FFltMat, ecoords::FFltMat, gradNparams::FFltMat)
 end
 
 """
-    locjac!(loc::FFltMat, J::FFltMat, X::FFltMat, conn::C, N::FFltMat, gradNparams::FFltMat) where {C}
+    locjac!(loc::FFltMat, J::FFltMat, ecoords::FFltMat, N::FFltMat, gradNparams::FFltMat)
 
 Compute location and Jacobian matrix at the quadrature point.
 
