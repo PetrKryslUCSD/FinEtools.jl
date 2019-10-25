@@ -4,39 +4,26 @@
 
 ## Modules
 
-The FinEtools package consists of many modules which fall into several  categories. The top-level module, `FinEtools`, includes all other modules and exports functions to constitute the public interface. The user is free to generate their own public interface, however. More details are provided [Make up your own public interface](@ref).
+The FinEtools package consists of many modules which fall into several  categories. The top-level module, `FinEtools`, includes all other modules and exports functions to constitute the public interface. The user is free to generate their own public interface, however. More details are provided in the section [Make up your own public interface](@ref).
 
 
-- Top-level:
-     `FinEtools` is the  top-level module.  For interactive use it is enough to do `using FinEtools`, however in some  cases functions from modules need to be  brought into the scope individually (most importantly, the algorithm modules). This is the ONLY  module that EXPORTS  functions, none of the other modules exports a single function. The entire  public (i. e. exported) interface of the FinEtools package is specified  in the file `FinEtools.jl` (i. e. in the `FinEtools` module). The user is free to specify his or her own set of exported functions from the FinEtools package to create an [ad hoc public interface](rollyourown.html).
+- **Top-level**:     `FinEtools` is the  top-level module.  For interactive use it is enough to do `using FinEtools`, however in some  cases functions from modules need to be  brought into the scope individually (most importantly, the algorithm modules). This is the ONLY  module that EXPORTS  functions, none of the other modules exports a single function. The entire  public (i. e. exported) interface of the FinEtools package is specified  in the file `FinEtools.jl` (i. e. in the `FinEtools` module). The user is free to specify his or her own set of exported functions from the FinEtools package to create an [ad hoc public interface](rollyourown.html).
 
-- Utilities:
-`FTypesModule` (types), `PhysicalUnitModule` (definitions of  numbers with physical units), `AssemblyModule` (assembly of elementwise matrices and vectors),   `CSysModule` (coordinate system module),    `MatrixUtilityModule` (utilities for operations on elementwise matrices), `BoxModule`  (support for working with bounding boxes),  `ForceIntensityModule` (force-intensity module),        `RotationUtilModule` (support for spatial rotations).
+- **Utilities**: Refer to the modules `FTypesModule` (definition of basic numerical types), `PhysicalUnitModule` (for use with numbers specified using physical units), `AssemblyModule` (assembly of elementwise matrices and vectors),   `CSysModule` (coordinate system module),    `MatrixUtilityModule` (utilities for operations on elementwise matrices), `BoxModule`  (support for working with bounding boxes),  `ForceIntensityModule` (force-intensity module),        `RotationUtilModule` (support for spatial rotations).
 
-- Mesh  entities:
-  `FENodeSetModule`, `FESetModule` (node set and finite element set  types). 
+- **Mesh  entities**:  `FENodeSetModule`, `FESetModule` (node set and finite element set  types). 
 
-- Mesh Generation:
-   `MeshLineModule`,  `MeshQuadrilateralModule`,   `MeshTriangleModule`,   `MeshTetrahedronModule`,             `TetRemeshingModule`,  `VoxelTetMeshingModule`,     `MeshHexahedronModule`,       `VoxelBoxModule`. 
+- **Mesh Generation**:   `MeshLineModule`,  `MeshQuadrilateralModule`,   `MeshTriangleModule`,   `MeshTetrahedronModule`,             `TetRemeshingModule`,  `VoxelTetMeshingModule`,     `MeshHexahedronModule`,       `VoxelBoxModule`. 
 
-- Mesh manipulation:  `MeshSelectionModule` (searching of nodes  and elements),  `MeshModificationModule` (mesh boundary, merging  of meshes and nodes, smoothing, partitioning),  `MeshUtilModule` (utilities), `FENodeToFEMapModule` (search structure from nodes to elements).
+- **Mesh manipulation**:  `MeshSelectionModule` (searching of nodes  and elements),  `MeshModificationModule` (mesh boundary, merging  of meshes and nodes, smoothing, partitioning),  `MeshUtilModule` (utilities), `FENodeToFEMapModule` (search structure from nodes to elements).
 
-- Mesh import/export:  `MeshImportModule`,  `MeshExportModule`.
+- **Mesh import/export**:  `MeshImportModule`,  `MeshExportModule`.
 
-- Fields:
- `FieldModule`,    `GeneralFieldModule`, `ElementalFieldModule`,    `NodalFieldModule` (modules for representing quantities on the mesh).
+- **Fields**:   `FieldModule`,    `GeneralFieldModule`, `ElementalFieldModule`,    `NodalFieldModule` (modules for representing quantities on the mesh).
 
-- Support for  integration over solids, surfaces, curves, and points:
- `IntegRuleModule`,   `IntegDomainModule`.
+- **Integration**: Support for  integration over solids, surfaces, curves, and points: `IntegRuleModule`,   `IntegDomainModule`.
 
-- General algorithms: `AlgoBaseModule` (algorithms), `FEMMBaseModule` (FEM machine for general tasks).
-
-- Heat conduction: `AlgoHeatDiffModule` (algorithms), `FEMMHeatDiffModule`, `FEMMHeatDiffSurfModule`  (FEM machines  to evaluate  the  matrix and vector quantities), `MatHeatDiffModule`  (heat diffusion material)
-
-- Acoustics: `AlgoAcoustModule` (algorithms), `FEMMAcoustModule`, `FEMMAcoustSurfModule` (FEM machines to evaluate the matrix and vector quantities),  `MatAcoustFluidModule` (acoustic fluid material).
-
-- Linear deformation:  `AlgoDeforLinearModule` (algorithms), `DeforModelRedModule`,
-`FEMMDeforLinearBaseModule`,  `FEMMDeforLinearModule`, `FEMMDeforLinearMSModule`,  `FEMMDeforWinklerModule` (FEM machines to evaluate the matrix and vector quantities), `MatDeforModule`, `MatDeforElastIsoModule`, `MatDeforElastOrthoModule` (elastic material models).
+- **General algorithms**: `AlgoBaseModule` (algorithms), `FEMMBaseModule` (FEM machine for general tasks).
 
 
 ## Arithmetic types
@@ -154,12 +141,6 @@ end
 ### Merging
 
 Multiple mesh regions  can be generated and then merged together into a single mesh. Refer to the `MeshModificationModule`. Meshes can be also mirrored.
-
-### Biomedical image mesh generation
-
-The function `H8voximg` can generate a hexahedral mesh from a three-dimensional image (such as a CT scan). The resulting meshes can be smoothed (`meshsmoothing`).
-
-A similar functionality  is also available for tetrahedra (`T4voximg`). A more sophisticated strategy is available in the `VoxelTetMeshingModule` module: the initial mesh can be progressively coarsened and smoothed, resulting  in a much more realistic looking geometry compared  to the initial jagged representation.
 
 ### Boundary extraction
 
@@ -289,8 +270,7 @@ The prescribed degrees of freedom are not numbered, and the prescribed degrees o
 ## Finite element
 
 The  finite element set is one of the basic entities in FinEtools.
-
-The finite element set is a collection of  finite elements defined by the connectivity (collection of node numbers, listing the nodes connected by the element in  a specific order). The finite element set  provides  specialized methods  to compute values of basis functions and the values of  the gradients of the basis functions  with respect to the parametric coordinates.
+It is a homogeneous collection of  finite elements defined by the connectivity (collection of node numbers, listing the nodes connected by the element in  a specific order). The finite element set  provides  specialized methods  to compute values of basis functions and the values of  the gradients of the basis functions  with respect to the parametric coordinates.
 
 ### Element types
 
@@ -405,8 +385,11 @@ The surface Jacobian in this case  is  equal to the curve Jacobian times `2*pi*r
 
 ### Integration Data
 
-The  module `IntegDomainModule` supports  the processing of  the geometry necessary for the evaluation of the various integrals.
-The module data structure  groups together  a finite element set with an appropriate integration rule, information about the model (axially symmetric or not), and a callback to evaluate  the "other" dimension.
+The  module `IntegDomainModule` supports  the processing of  the geometry
+necessary for the evaluation of the various integrals. The module data
+structure  groups together  a finite element set with an appropriate
+integration rule, information about the model (axially symmetric or not), and a
+callback to evaluate  the "other" dimension.
 
 ### Other dimension
 
@@ -563,66 +546,6 @@ The following  operations are provided  by the base FEM machine:
 
 - Construct a field  from integration-point quantities. This is typically used in the postprocessing phase, for instance to construct continuous distribution of stresses in the structure.
 
-### Acoustics FEM machines
-
-There is one for  the interior integrals  and one for  boundary integrals.
-The  machine for the interior integrals can be used to compute:
-
-- Evaluate the acoustic-mass matrix and the acoustic-stiffness matrix.
-
-- Evaluate the load vector corresponding to prescribed pressure  or the prescribed second order  rate of the pressure.
-
-The machine for the boundary integrals can be used to compute:
-
-- Compute  transformation matrix to convert  pressure  to resultant force  or pressure to resultant torque.
-
-- Compute the acoustic  ABC  (absorbing boundary condition) matrix.
-
-###  Heat  conduction FEM machines
-
-There is one for  the interior integrals  and one for  boundary integrals.
-The  machine for the interior integrals can be used to compute:
-
-- Evaluate the conductivity matrix.
-
-- Evaluate the load vector corresponding to prescribed temperature.
-
-The machine for the boundary integrals can be used to compute:
-
-- Compute surface heat transfer  matrix.
-
-- Compute  the heat load vector for surface heat transfer.
-
-- Compute the heat load vector  corresponding to prescribed temperatures on the boundary  with surface heat transfer.
-
-### Linear deformation FEM  machines
-
-For  the base machine for linear deformation, `FEMMDeforLinearBase`, assumes standard isoparametric  finite elements. It evaluates  the interior integrals:
-
-- The stiffness matrix, the mass matrix.
-
-- The load vector corresponding to thermal strains.
-
-Additionally:
-
-- Function to inspect  integration points.
-
-The FEM machine `FEMMDeforLinear` simply stores the data required by the base `FEMMDeforLinearBase`.
-
-The machine `FEMMDeforWinkler` is specialized for the boundary integrals for bodies  supported  on continuously distributed springs:
-
-- Compute the stiffness matrix corresponding to the springs.
-
-The  mean-strain FEM machine `FEMMDeforLinearMS` implements advanced hexahedral and tetrahedral elements based on multi-field theory and  energy-sampling  stabilization. It provides functions to compute:
-
-- The stiffness matrix, the mass matrix.
-
-- The load vector corresponding to thermal strains.
-
-Additionally it defines:
-
-- Function to inspect  integration points.
-
 ## Material and Material Orientation
 
 The material response  is described in  material-point-attached coordinate system. These coordinate systems  are Cartesian, and the material coordinate system is typically chosen to make  the response particularly simple.  So for orthotropic or transversely isotropic materials the axes would be aligned with the axes of orthotropy.
@@ -639,14 +562,6 @@ function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label:
 end
 ```
 
-### Materials for linear deformation analysis
-
-The module `MatDeforModule` provides functions to convert between vector and matrix (tensor) representations of stress and strain. Further, functions to rotate stress and strain between different coordinate systems (based upon the model-reduction type, 3-D, 2-D, or 1-D) are provided.
-
-Currently  there are material types for isotropic and orthotropic linear elastic materials. The user may add  additional material types by deriving from `AbstractMatDefor` and equipping them with three methods: (1) compute the tangent moduli, (2) update the material state, (3) compute the thermal strain.
-
-For full generality, material types  should implement these methods for fully three-dimensional, plane strain and plane stress, 2D axially symmetric, and one-dimensional deformation models.
-
 ## Algorithms
 
 Solution procedures and other  common operations on FEM models  are expressed  in algorithms. Anything that algorithms can do,  the user of FinEtools  can do manually, but to use an algorithm is convenient.
@@ -656,65 +571,6 @@ Algorithms typically (not always) accept a single argument, `modeldata`, a dicti
 ### Base algorithms
 
 These are not specific to the particular physics at hand. Examples of  algorithms are  Richardson extrapolation,  calculation of the norm of the field, or calculation of the norm  of the difference of two fields. These algorithms are the exceptions, they do not return `modeldata` but rather return directly computed values.
-
-### Acoustics algorithms
-
-At the moment there is one algorithm, for steady-state (harmonic) acoustics.
-
-#### Example:  baffled piston
-
-After the mesh  has been generated, the `modeldata` can be set up: Here we begin with  the region.
-
-```julia
-material = MatAcoustFluid(bulk, rho)
-region1 =  FDataDict("femm"=>FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), material))
-```
-
-We set up a definition of the absorbing boundary condition:
-
-```julia
-abc1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(outer_fes, GaussRule(2, 2)),
-          material))
-```
-
-The  surface of the piston is associated with a known-flux  boundary condition:
-
-```julia
-flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(piston_fes, GaussRule(2, 2)),
-          material),  "normal_flux"=> -rho*a_piston+0.0im);
-```
-
-And finally we make the model data,
-
-```julia
-modeldata =  FDataDict("fens"=>  fens,
-                 "omega"=>omega,
-                 "regions"=>[region1],
-                 "flux_bcs"=>[flux1], "ABCs"=>[abc1])
-```
-
-and call  the solver:
-
-```julia
-modeldata = FinEtools.AlgoAcoustModule.steadystate(modeldata)
-```
-
-When  the algorithm completes, `modeldata["P"]` is the computed pressure field.
-
-### Heat diffusion algorithms
-
-There is an implementation of an algorithm for steady-state heat conduction.
-
-### Linear deformation algorithms
-
-There are algorithms for
-
-- Linear static analysis;
-- Export  of the deformed shape for visualization;
-- Export  of the nodal and elementwise stress fields for visualization;
-- Modal (free-vibration) analysis;
-- Export  of modal shapes for visualization;
-- Subspace-iteration method implementation.
 
 ### Model data
 
