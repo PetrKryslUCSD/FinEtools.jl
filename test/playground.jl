@@ -1,107 +1,46 @@
 
-module mgather1
+module mxmeasure1
+using FinEtools
 using Test
-using Random
 function test()
-  N = 1_000_000 # Number of nodes in the mesh
-  nen = 20 # Number of nodes per element
-  nloops = 2*N
-  indexes = randperm(N)[1:nen]
-  buffnen3 = rand(nen, 3)
-  buff3nen = rand(3, nen)
-  dataN3 = rand(N, 3)
-  data3N = Matrix(transpose(dataN3))
+    W = 4.1;
+    L = 12.;
+    t =  3.32;
+    nl, nt, nw = 2, 3, 4;
 
-  t1 = @elapsed for l in 1:nloops
-    for i in 1:nen
-      ii = indexes[i]
-      for j in 1:3
-        buffnen3[i, j] = dataN3[ii, j]
-      end
-    end
-  end
+    fens,fes  = H27block(L,W,t, nl,nw,nt)
+    geom  =  NodalField(fens.xyz)
 
-  t2 = @elapsed for l in 1:nloops
-    for j in 1:3
-      for i in 1:nen
-        ii = indexes[i]
-        buffnen3[i, j] = dataN3[ii, j]
-      end
-    end
-  end
+    femm  =  FEMMBase(IntegDomain(fes, GaussRule(3, 3)))
 
-  t3 = @elapsed for l in 1:nloops
-    for i in 1:nen
-      ii = indexes[i]
-      for j in 1:3
-        buff3nen[j, i] = dataN3[ii, j]
-      end
-    end
-  end
+    # Test the calculation of the volume
+    V = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(V - W*L*t)/V < 1.0e-5
 
-  t4 = @elapsed for l in 1:nloops
-    for j in 1:3
-      for i in 1:nen
-        ii = indexes[i]
-        buff3nen[j, i] = dataN3[ii, j]
-      end
-    end
-  end
+    # Test the calculation of the center of gravity
+    Sx = integratefunction(femm, geom, (x) ->  x[1])
+    @test Sx / V ≈ L / 2
 
-
-  t5 = @elapsed for l in 1:nloops
-    for i in 1:nen
-      ii = indexes[i]
-      for j in 1:3
-        buffnen3[i, j] = data3N[j, ii]
-      end
-    end
-  end
-
-  t6 = @elapsed for l in 1:nloops
-    for j in 1:3
-      for i in 1:nen
-        ii = indexes[i]
-        buffnen3[i, j] = data3N[j, ii]
-      end
-    end
-  end
-
-  t7 = @elapsed for l in 1:nloops
-    for i in 1:nen
-      ii = indexes[i]
-      for j in 1:3
-        buff3nen[j, i] = data3N[j, ii]
-      end
-    end
-  end
-
-  t8 = @elapsed for l in 1:nloops
-    for j in 1:3
-      for i in 1:nen
-        ii = indexes[i]
-        buff3nen[j, i] = data3N[j, ii]
-      end
-    end
-  end
-
-  [t1, t2, t3, t4, t5, t6, t7, t8] ./ nloops .* 1e6 # In microseconds
+    # Test the calculation of the moments of inertia
+    # The block is translated to be centered at the origin
+    fens.xyz[:, 1] .-= L / 2
+    fens.xyz[:, 2] .-= W / 2
+    fens.xyz[:, 3] .-= t / 2
+    geom  =  NodalField(fens.xyz)
+    Sx = integratefunction(femm, geom, (x) ->  x[1])
+    @test abs(Sx / V) / L <= eps(1.0)
+    Sy = integratefunction(femm, geom, (x) ->  x[2])
+    @test abs(Sy / V) / W <= eps(1.0)
+    Sz = integratefunction(femm, geom, (x) ->  x[3])
+    @test abs(Sz / V) / t <= eps(1.0)
+    Ixx = integratefunction(femm, geom, (x) ->  x[2]^2 + x[3]^2)
+    @test abs(Ixx - V * (W^2 + t^2) / 12) / V <= eps(V)
+    Iyy = integratefunction(femm, geom, (x) ->  x[1]^2 + x[3]^2)
+    @test abs(Iyy - V * (L^2 + t^2) / 12) / V <= eps(V)
+    Ixy = integratefunction(femm, geom, (x) ->  (-x[1] * x[2]))
+    @test abs(Ixy) / V <= eps(V)
+    true
 end
 end
-using Main.mgather1
-ts = [0.0 for i in 1:8]
-ntries = 100
-for i in 1:ntries
-  ts .+= mgather1.test()
-end
-ts ./= ntries
-ts = Float32.(ts)
-
-println("Mesh data N x 3, Element buffer nen x 3, Loop i, j: Time $(ts[1]) [mus]")
-println("Mesh data N x 3, Element buffer nen x 3, Loop j, i: Time $(ts[2]) [mus]")
-println("Mesh data N x 3, Element buffer 3 x nen, Loop i, j: Time $(ts[3]) [mus]")
-println("Mesh data N x 3, Element buffer 3 x nen, Loop j, i: Time $(ts[4]) [mus]")
-println("Mesh data 3 x N, Element buffer nen x 3, Loop i, j: Time $(ts[5]) [mus]")
-println("Mesh data 3 x N, Element buffer nen x 3, Loop j, i: Time $(ts[6]) [mus]")
-println("Mesh data 3 x N, Element buffer 3 x nen, Loop i, j: Time $(ts[7]) [mus]")
-println("Mesh data 3 x N, Element buffer 3 x nen, Loop j, i: Time $(ts[8]) [mus]")
+using .mxmeasure1
+mxmeasure1.test()

@@ -194,11 +194,9 @@ Sy = integratefunction(femm, geom, (x) ->  x[2])
 Sz = integratefunction(femm, geom, (x) ->  x[3])
 CG = vec([Sx Sy Sz]/V)
 ```
-Compute the moments of inertia:
+Compute a moment of inertia of the mesh relative to the origin:
 ```
-Ixx = measure(femm,geom,@(x)(norm(x-CG)^2*eye(3)-(x-CG)'*(x-CG)))
-mass = V*rhos;
-Inertia = I*rhos;
+Ixx = integratefunction(femm, geom, (x) ->  x[2]^2 + x[3]^2)
 ```
 """
 function integratefunction(self::AbstractFEMM, geom::NodalField{FFlt}, fh::F, m::FInt = -1) where {F<:Function}
