@@ -123,11 +123,11 @@ function add_gkgt_ut_only!(Ke::FFltMat, gradN::FFltMat, Jac_w::FFlt,
     # A_mul_Bt!(kappa_bargradNT, kappa_bar, gradN); # intermediate result
     @inbounds for nx = 1:nne
         @inbounds for mx = 1:mdim
-        accum::FFlt  = 0.0
-        @inbounds @simd for px = 1:mdim
-            accum += kappa_bar[mx, px]*gradN[nx, px]
-        end
-        kappa_bargradNT[mx, nx] = Jac_w*accum
+	        accum::FFlt  = 0.0
+	        @inbounds @simd for px = 1:mdim
+	            accum += kappa_bar[mx, px]*gradN[nx, px]
+	        end
+	        kappa_bargradNT[mx, nx] = Jac_w*accum
         end
     end
     # Ke = Ke + gradN*(kappa_bar*(Jac*w[j]))*gradN'; only upper triangle
@@ -196,11 +196,11 @@ function add_btdb_ut_only!(Ke::FFltMat, B::FFltMat, Jac_w::FFlt, D::FFltMat, DB:
     #  Ke = Ke + (B'*(D*(Jac*w[j]))*B); only the upper triangle
     @inbounds for nx = 1:Kedim
         @inbounds for mx = 1:nx # only the upper triangle
-        accum::FFlt  = 0.0
-        @inbounds for px = 1:nstr
-            accum += B[px, mx]*DB[px, nx]
-        end
-        Ke[mx, nx] += accum
+	        accum::FFlt  = 0.0
+	        @inbounds for px = 1:nstr
+	            accum += B[px, mx]*DB[px, nx]
+	        end
+	        Ke[mx, nx] += accum
         end
     end
     return true
