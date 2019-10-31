@@ -154,13 +154,58 @@ Private = true
 Order = [:function]
 ```
 
-### Mesh import/export
+### Mesh import
 
 ```@autodocs
-Modules = [FinEtools, FinEtools.MeshImportModule, FinEtools.MeshExportModule]
+Modules = [FinEtools, FinEtools.MeshImportModule]
 Private = true
 Order = [:function]
 ```
+
+### Mesh export
+
+#### VTK
+```@autodocs
+Modules = [FinEtools, FinEtools.MeshExportModule.VTK]
+Private = true
+Order = [:function]
+```
+
+#### Abaqus
+```@autodocs
+Modules = [FinEtools, FinEtools.MeshExportModule.Abaqus]
+Private = true
+Order = [:function]
+```
+
+#### NASTRAN
+```@autodocs
+Modules = [FinEtools, FinEtools.MeshExportModule.NASTRAN]
+Private = true
+Order = [:function]
+```
+
+#### STL
+```@autodocs
+Modules = [FinEtools, FinEtools.MeshExportModule.STL]
+Private = true
+Order = [:function]
+```
+
+#### CSV
+```@autodocs
+Modules = [FinEtools, FinEtools.MeshExportModule.CSV]
+Private = true
+Order = [:function]
+```
+
+#### H2Lib
+```@autodocs
+Modules = [FinEtools, FinEtools.MeshExportModule.H2Lib]
+Private = true
+Order = [:function]
+```
+
 
 ## Vector-cache utilities
 

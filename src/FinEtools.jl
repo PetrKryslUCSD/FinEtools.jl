@@ -77,22 +77,22 @@ using .MeshSelectionModule: connectednodes, connectedelems, selectnode, selectel
 # Exported: functions to select (find) nodes and elements
 export connectednodes, connectedelems, selectnode, selectelem, findunconnnodes
 
-using .MeshExportModule: vtkexportmesh
+using .MeshExportModule.VTK: vtkexportmesh
 # Exported: VTK export
 export vtkexportmesh
-using .MeshExportModule: AbaqusExporter, close, HEADING, COMMENT, PART, END_PART,    ASSEMBLY, END_ASSEMBLY, INSTANCE, END_INSTANCE, NODE, ELEMENT,    NSET_NSET, ELSET_ELSET, ORIENTATION, MATERIAL, ELASTIC, EXPANSION, DENSITY, SECTION_CONTROLS, SOLID_SECTION, SURFACE_SECTION, STEP_PERTURBATION_STATIC, STEP_FREQUENCY,   STEP_PERTURBATION_BUCKLE, BOUNDARY, DLOAD, CLOAD, TEMPERATURE,    END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
+using .MeshExportModule.Abaqus: AbaqusExporter, close, HEADING, COMMENT, PART, END_PART,    ASSEMBLY, END_ASSEMBLY, INSTANCE, END_INSTANCE, NODE, ELEMENT,    NSET_NSET, ELSET_ELSET, ORIENTATION, MATERIAL, ELASTIC, EXPANSION, DENSITY, SECTION_CONTROLS, SOLID_SECTION, SURFACE_SECTION, STEP_PERTURBATION_STATIC, STEP_FREQUENCY,   STEP_PERTURBATION_BUCKLE, BOUNDARY, DLOAD, CLOAD, TEMPERATURE,    END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
 # Exported: Abaqus export
 export AbaqusExporter, close, HEADING, COMMENT, PART, END_PART,    ASSEMBLY, END_ASSEMBLY, INSTANCE, END_INSTANCE, NODE, ELEMENT,    NSET_NSET, ELSET_ELSET, ORIENTATION, MATERIAL, ELASTIC, EXPANSION, DENSITY, SECTION_CONTROLS, SOLID_SECTION, SURFACE_SECTION, STEP_PERTURBATION_STATIC, STEP_FREQUENCY,   STEP_PERTURBATION_BUCKLE, BOUNDARY, DLOAD, CLOAD, TEMPERATURE,    END_STEP,  NODE_PRINT, EL_PRINT,  ENERGY_PRINT
-using .MeshExportModule: savecsv
+using .MeshExportModule.CSV: savecsv
 # Exported: simple CSV export
 export savecsv
-using .MeshExportModule: NASTRANExporter, close, CEND, BEGIN_BULK, ENDDATA, GRID, PSOLID, MAT1, CTETRA
+using .MeshExportModule.NASTRAN: NASTRANExporter, close, CEND, BEGIN_BULK, ENDDATA, GRID, PSOLID, MAT1, CTETRA
 # Exported: NASTRAN  export
 export NASTRANExporter, close, CEND, BEGIN_BULK, ENDDATA, GRID, PSOLID, MAT1, CTETRA
-using .MeshExportModule: STLExporter, solid, facet, endsolid
+using .MeshExportModule.STL: STLExporter, solid, facet, endsolid
 # Exported: STL export
 export STLExporter, solid, facet, endsolid
-using .MeshExportModule: h2libexporttri
+using .MeshExportModule.H2Lib: h2libexporttri
 # Exported: H2Lib export
 export h2libexporttri
 

@@ -5,17 +5,19 @@ Module for export of meshes and data defined on meshes.
 """
 module MeshExportModule
 
-using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import ..FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
-import ..FENodeSetModule: FENodeSet
+
+
+module VTK
+################################################################################
+# VTK export
+################################################################################
+using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
+import ...FENodeSetModule: FENodeSet
 import Base.close
 
 using Printf
 import LinearAlgebra: norm, cross
-
-################################################################################
-# VTK export
-################################################################################
 
 const P1=1
 const L2=3
@@ -305,9 +307,16 @@ function vtkexportvectors(theFile::String, Points, vectors)
     return true
 end
 
+end # VTK
+
+module Abaqus
 ################################################################################
 # Abaqus export
 ################################################################################
+using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
+import ...FENodeSetModule: FENodeSet
+import Base.close
 
 """
     AbaqusExporter
@@ -900,7 +909,9 @@ function close(self::AbaqusExporter)
   close(self.ios)
 end
 
+end # Abaqus
 
+module CSV
 ################################################################################
 # CSV export
 ################################################################################
@@ -944,9 +955,17 @@ function savecsv(name::String; kwargs...)
     return true
 end
 
+end # CSV
+
+module NASTRAN
 ################################################################################
 # NASTRAN export
 ################################################################################
+using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
+import ...FENodeSetModule: FENodeSet
+import Base.close
+using Printf
 
 """
 NASTRANExporter
@@ -1052,10 +1071,14 @@ function close(self::NASTRANExporter)
     close(self.ios)
 end
 
+end # NASTRAN
 
+module STL
 ################################################################################
 # STL export
 ################################################################################
+using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using Printf
 
 """
 STLExporter
@@ -1106,11 +1129,13 @@ function close(self::STLExporter)
     close(self.ios)
 end
 
+end # STL
 
+module H2Lib
 ################################################################################
 # H2Lib triangular-surface export
 ################################################################################
-
+using Printf
 import Base.BitSet
 
 mutable struct _HypFace
@@ -1211,5 +1236,7 @@ function h2libexporttri(theFile::String, Connectivity, Points)
     fid=close(fid);
     return true
 end
+
+end # H2Lib
 
 end
