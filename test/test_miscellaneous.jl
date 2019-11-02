@@ -794,7 +794,7 @@ using FinEtools
 using Test
 function test()
     f = NodalField(zeros(5, 1))
-    setebc!(f, [3,4], true, 1;        val=7.0)
+    setebc!(f, [3,4], true, 1, 7.0)
     # display(f)
     applyebc!(f)
     dest = zeros(2,1)
@@ -815,7 +815,7 @@ function test()
 
 
     f = NodalField(zeros(5, 1))
-    setebc!(f, [3,4], 1; val=8.2)
+    setebc!(f, [3,4], 1, 8.2)
     # display(f)
     applyebc!(f)
     dest = zeros(2,1)

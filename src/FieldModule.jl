@@ -352,8 +352,7 @@ function setebc!(self::AbstractField, fenids::FIntVec, is_fixed::Bool, comp::FIn
 end
 
 """
-    setebc!(self::AbstractField, fenids::FIntVec, is_fixed::Bool, comp::FInt,
-      val::T) where {T<:Number}
+    setebc!(self::AbstractField, fenids::FIntVec, is_fixed::Bool, comp::FInt, val::T = 0.0) where {T<:Number}
 
 Set the EBCs (essential boundary conditions).
 
@@ -368,7 +367,7 @@ which degrees of freedom are free and which are fixed and therefore is
 presumed to invalidate the current degree-of-freedom numbering. In such a case
 this method sets `nfreedofs = 0`; and  `dofnums=0`.
 """
-function setebc!(self::AbstractField, fenids::FIntVec, is_fixed::Bool, comp::FInt, val::T) where {T<:Number}
+function setebc!(self::AbstractField, fenids::FIntVec, is_fixed::Bool, comp::FInt, val::T = 0.0) where {T<:Number}
     @assert (comp >= 1 && comp <= size(self.values,2)) "Requested  nonexistent  degree of freedom"
     @assert maximum(fenids) <= size(self.values,1) "Requested nonexistent node"
     @assert minimum(fenids) >= 1 "Requested nonexistent node"
@@ -401,7 +400,7 @@ end
 
 
 """
-    setebc!(self::AbstractField, fenids::FIntVec, comp::FInt; val::T=zero(T)) where {T<:Number}
+    setebc!(self::AbstractField, fenids::FIntVec, comp::FInt, val::T=0.0) where {T<:Number}
 
 Set the EBCs (essential boundary conditions).
 
@@ -414,47 +413,8 @@ which degrees of freedom are free and which are fixed and therefore is
 presumed to invalidate the current degree-of-freedom numbering. In such a case
 this method sets `nfreedofs = 0`; and  `dofnums=0`.
 """
-function setebc!(self::AbstractField, fenids::FIntVec, comp::FInt; val::T=zero(T)) where {T<:Number}
+function setebc!(self::AbstractField, fenids::FIntVec, comp::FInt, val::T=0.0) where {T<:Number}
     return setebc!(self, fenids, true, comp, val)
-end
-
-"""
-    setebc!(self::AbstractField, fenids::FIntVec, is_fixed::Bool, comp::FInt; val::T=zero(T)) where {T<:Number}
-
-Set the EBCs (essential boundary conditions).
-
-`fenids` = array of N node identifiers
-`comp` = integer, which  degree of freedom (component),
-`val` = scalar of type `T`
-
-Note:  Any call to `setebc!()` potentially changes the current assignment which
-degrees of freedom are free and which are fixed and therefore is presumed to
-invalidate the current degree-of-freedom numbering. In such a case this method
-sets `nfreedofs = 0`; and  `dofnums=0`.
-"""
-function setebc!(self::AbstractField, fenids::FIntVec, is_fixed::Bool, comp::FInt; val::T=zero(T)) where {T<:Number}
-    return setebc!(self, fenids, is_fixed, comp, val)
-end
-
-"""
-    setebc!(self::AbstractField, fenids::FIntVec, is_fixed::Bool, comp::FIntVec; val::T=zero(T)) where {T<:Number}
-
-Set the EBCs (essential boundary conditions).
-
-`fenids` = array of N node identifiers
-`comp` = integer vector, which degree of freedom (component),
-`val` = scalar of type `T`
-
-Note:  Any call to `setebc!()` potentially changes the current assignment which
-degrees of freedom are free and which are fixed and therefore is presumed to
-invalidate the current degree-of-freedom numbering. In such a case this method
-sets `nfreedofs = 0`; and  `dofnums=0`.
-"""
-function setebc!(self::AbstractField, fenids::FIntVec, is_fixed::Bool, comp::FIntVec; val::T=zero(T)) where {T<:Number}
-	for j in comp
-		setebc!(self, fenids, is_fixed, j, val)
-	end
-    return self
 end
 
 """
@@ -464,14 +424,14 @@ Set the EBCs (essential boundary conditions).
 
 `fenids` = array of N node identifiers
 `comp` = integer vector, which degree of freedom (component),
-`val` = scalar of type `T`, default is `zero(T)`
+`val` = scalar of type `T`, default is `0.0`
 
 Note:  Any call to `setebc!()` potentially changes the current assignment which
 degrees of freedom are free and which are fixed and therefore is presumed to
 invalidate the current degree-of-freedom numbering. In such a case this method
 sets `nfreedofs = 0`; and  `dofnums=0`.
 """
-function setebc!(self::AbstractField, fenids::FIntVec, is_fixed::Bool, comp::FIntVec, val::T=zero(T)) where {T<:Number}
+function setebc!(self::AbstractField, fenids::FIntVec, is_fixed::Bool, comp::FIntVec, val::T=0.0) where {T<:Number}
 	for j in comp
 		setebc!(self, fenids, is_fixed, j, val)
 	end
