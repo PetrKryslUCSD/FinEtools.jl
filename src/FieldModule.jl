@@ -287,7 +287,7 @@ function numberdofs!(self::AbstractField)
     return  self
 end
 
-function _setebc!(self::AbstractField, fenid::FInt, is_fixed::Bool, comp::FInt, val::FVec{T}) where {T<:Number}
+function _setebc!(self::AbstractField, fenid::FInt, is_fixed::Bool, comp::FInt, val::T) where {T<:Number}
     self.is_fixed[fenid,comp] = is_fixed;
     if self.is_fixed[fenid,comp]
     	self.fixed_values[fenid,comp] = val;
