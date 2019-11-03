@@ -1081,6 +1081,7 @@ module STL
 using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 using Printf
 import LinearAlgebra: norm, cross
+import Base.close
 
 """
 STLExporter
