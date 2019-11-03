@@ -36,7 +36,6 @@ The module `FTypesModule` defines these types, and also defines abbreviations fo
 Some algorithms expect input in the form of the data dictionary, `FDataDict`, and also produce output in this form.
 
 
-
 ## Physical units
 
 The `PhysicalUnitModule` provides a simple function, `phun`, which can help with providing input numbers with the correct conversion between physical units. For instance, it is possible to specify the input data as
@@ -128,7 +127,7 @@ Hexahedral meshes can also be created by extrusion of  quadrilateral meshes (`H8
 
 ### Shaping
 
-Simple meshes  such as blocks can be deformed into geometrically complex shapes, for instance  by tapering  or oother relocation of the nodes. For instance, we can generate a block  and then bend it  into one quarter  of  an annulus as
+Simple meshes  such as blocks can be deformed into geometrically complex shapes, for instance  by tapering  or other relocation of the nodes. For instance, we can generate a block  and then bend it  into one quarter  of  an annulus as
 
 ```julia
 fens,fes = Q4block(rex-rin,pi/2,5,20);
@@ -155,13 +154,13 @@ generates a mesh of quadrilaterals in the set `fes`,  and `bdryfes = meshboundar
 
 ### Conversion  between element types
 
-For any element shape  (line, triangle,  quadrilateral, hexahedron, tetrahedron) there is  the linear version and the quadratic version. Conversion routines are provided so tthat, for example, mesh can be generated as eight-node  hexahedra  and then converted  to twenty node hexahedra as
+For any element shape  (line, triangle,  quadrilateral, hexahedron, tetrahedron) there is  the linear version and the quadratic version. Conversion routines are provided so that, for example, mesh can be generated as eight-node  hexahedra  and then converted  to twenty-node hexahedra as
 
 ```julia
-fens,fes = H8toH20(fens,fes)
+fens, fes = H8toH20(fens, fes)
 ```
 
-Other conversion routines NEEDS  TO BE WRITTEN
+Other conversion routines can convert triangles to quadrilaterals, tetrahedra to hexahedra, and so on.
 
 ### Refinement
 
@@ -198,7 +197,7 @@ Geometrical techniques for selecting finite elements  or nodes can be based on
 - distance from a given plane;
 - connectedness (selection by flooding).
 
-Additionally, surface-like  finite elements (quadrilaterals and triangles embedded in three dimensions, or lines embedded in two dimensions) can be selected based upon the orientation of their normal (`facing`  criterion).
+Additionally, surface-like  finite elements (quadrilaterals and triangles embedded in three dimensions), or lines embedded in two dimensions, can be selected based upon the orientation of their normal (`facing`  criterion).
 
 As an example, consider a straight duct with anechoic termination. A triangle mesh is generated as
 
@@ -243,7 +242,7 @@ The methods defined for the abstract field  include:
 
 - Gather elementwise  vectors or matrices of values, the degree of freedom numbers, or the fixed values of the degrees of freedom.
 
-- Set  or clear essential boundary conditions..
+- Set  or clear essential boundary conditions.
 
 - Copy a field. Clear the entries of the field.
 
@@ -265,12 +264,12 @@ In this case  the  abstract field  is subtyped to a concrete field where the ent
 The simplest method is at the moment implemented: number all free degrees of freedom, row-by-row and column-by-column,
 starting from 1 up to `f.nfreedofs`, for the field `f`.
 
-The prescribed degrees of freedom are not numbered, and the prescribed degrees of freedom are marked with 0.
+The prescribed degrees of freedom are not numbered, and are marked with the "degree of freedom number" 0.
 
 ## Finite element
 
 The  finite element set is one of the basic entities in FinEtools.
-It is a homogeneous collection of  finite elements defined by the connectivity (collection of node numbers, listing the nodes connected by the element in  a specific order). The finite element set  provides  specialized methods  to compute values of basis functions and the values of  the gradients of the basis functions  with respect to the parametric coordinates.
+It is a homogeneous collection of  finite elements defined by the connectivity (collection of node numbers, listing the nodes connected by the element in  a specific order). The finite element set  provides  specialized methods  to compute the values of basis functions and the values of  the gradients of the basis functions  with respect to the parametric coordinates.
 
 ### Element types
 
@@ -311,9 +310,9 @@ The concrete finite element set type provides specialized methods to compute the
 
 ## Integration
 
-There are two kinds of integrals in the weighted-residual finite element method: integrals over the interior  of the domain,  and integrals over the boundary of the domain.
+There are two kinds of integrals in the weighted-residual finite element method: integrals over the *interior*  of the domain,  and integrals over the *boundary* of the domain.
 
-Consequently, in a typical simulation one would need  two meshes: one for the interior  of the domain,  and one for the boundary. Obviously, the one for the boundary will be derived from the mesh  constructed for the interior.
+Consequently, in a typical simulation one would need  two meshes: one for the interior  of the domain,  and one for the boundary. Obviously, the mesh for the boundary will be derived from the mesh  constructed for the interior.
 
 Often only a part  of the entire boundary   is   used:  on some parts of the boundary  the  boundary condition is implied as homogeneous (i. e. zero). For instance, a traction-free boundary. Therefore the necessary integrals are typically evaluated over a subset of the entire boundary.
 
@@ -321,7 +320,7 @@ Often only a part  of the entire boundary   is   used:  on some parts of the bou
 
 Finite elements  have  a certain manifold dimension.  Tetrahedra  and hexahedra are three-manifolds, triangles and quadrilaterals are two-manifolds, triangles and quadrilaterals are two-manifolds, lines are one-manifolds, and points are zero-manifolds.
 
-Elements are equipped with an "other" dimension which boosts the manifold dimension to produce the required dimension for  the integration. For instance,  a line element can be equipped with an "other" dimension to represent a cross-section so that a volume integral can be evaluated over a line element. Or, a line element can be given an "other" dimension as a thickness to result in a physical dimension needed to evaluate a surface integral.
+Elements are equipped with an "other" dimension attribute which boosts the manifold dimension to produce the required dimension for  the integration. For instance,  a line element can be equipped with an "other" dimension to represent a cross-section so that a volume integral can be evaluated over a line element. Or, a line element can be given an "other" dimension as a thickness to result in a physical dimension needed to evaluate a surface integral.
 
 The "other"  dimension  has the following meaning  for finite elements of different manifold dimensions:
 
@@ -397,7 +396,7 @@ The  discussion of the surface and volume integrals introduces the notion  of th
 
 A finite element set is equipped with  a way of  calculating  the "other" dimension.  For instance, the line element with two nodes, L2, can be given  the "other" dimension  as a  "thickness"  so that  surface integrals  can be evaluated over the line element. However, if this line element  is used in an axially symmetric model, the same  "other" dimension  of "thickness"  will result in the integral  along the length of this line element  being a volume integral.
 
-Thus, the way in which the "other"  dimension gets used by the Geometry Data methods depends on the model. As an example, consider  the  method
+Thus, the way in which the "other"  dimension gets used by the integration domain methods depends on the model. As an example, consider  the  method
 ```julia
 function Jacobianvolume(self::IntegDomain{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:AbstractFESet2Manifold, CC<:AbstractArray{FInt}}
     Jac = Jacobiansurface(self, J, loc, conn, N)::FFlt
@@ -550,7 +549,7 @@ The following  operations are provided  by the base FEM machine:
 
 The material response  is described in  material-point-attached coordinate system. These coordinate systems  are Cartesian, and the material coordinate system is typically chosen to make  the response particularly simple.  So for orthotropic or transversely isotropic materials the axes would be aligned with the axes of orthotropy.
 
-The type `CSys` (module `CSysModule`) is the updater of the material coordinate system matrix. The object is equipped with a callback to store the current orientation matrix. For instance: the coordinate system for an orthotropic material wound around a cylinder could be described in the coordinate system `CSys(3, 3, updatecs!)`, where the callback is defined as
+The type `CSys` (module `CSysModule`) is the updater of the material coordinate system matrix. The object is equipped with a callback to store the current orientation matrix. For instance: the coordinate system for an orthotropic material wound around a cylinder could be described in the coordinate system `CSys(3, 3, updatecs!)`, where the callback `updatecs!` is defined as
 
 ```julia
 function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
