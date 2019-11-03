@@ -317,6 +317,7 @@ using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat,
 import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
 import ...FENodeSetModule: FENodeSet
 import Base.close
+using LinearAlgebra
 
 """
     AbaqusExporter
@@ -1079,6 +1080,8 @@ module STL
 ################################################################################
 using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 using Printf
+import LinearAlgebra: norm, cross
+import Base.close
 
 """
 STLExporter
