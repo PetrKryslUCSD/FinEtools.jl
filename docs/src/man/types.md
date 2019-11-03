@@ -105,68 +105,12 @@ Private = true
 Order = [:type]
 ```
 
-### Heat diffusion
-
-```@autodocs
-Modules = [FinEtools, FinEtools.FEMMHeatDiffModule, FinEtools.FEMMHeatDiffSurfModule]
-Private = true
-Order = [:type]
-```
-
-### Acoustics
-
-```@autodocs
-Modules = [FinEtools, FinEtools.FEMMAcoustModule, FinEtools.FEMMAcoustSurfModule]
-Private = true
-Order = [:type]
-```
-
-### Linear deformation
-
-```@autodocs
-Modules = [FinEtools, FinEtools.DeforModelRedModule, FinEtools.FEMMDeforLinearBaseModule, FinEtools.FEMMDeforLinearModule, FinEtools.FEMMDeforWinklerModule, FinEtools.FEMMDeforLinearMSModule, FinEtools.FEMMDeforSurfaceDampingModule, FinEtools.FEMMDeforLinearNICEModule, FinEtools.FEMMDeforLinearESNICEModule]
-Private = true
-Order = [:type]
-```
-
 ## Material models
 
 ### Material model abstractions
 
 ```@autodocs
 Modules = [FinEtools, FinEtools.MatModule]
-Private = true
-Order = [:type]
-```
-
-### Material models for acoustics
-
-```@autodocs
-Modules = [FinEtools, FinEtools.MatModule, FinEtools.MatAcoustFluidModule]
-Private = true
-Order = [:type]
-```
-
-### Material models for heat diffusion
-
-```@autodocs
-Modules = [FinEtools, FinEtools.MatModule, FinEtools.MatHeatDiffModule]
-Private = true
-Order = [:type]
-```
-
-### Material for deformation, base functionality
-
-```@autodocs
-Modules = [FinEtools, FinEtools.MatDeforModule]
-Private = true
-Order = [:type]
-```
-
-### Material models for elasticity
-
-```@autodocs
-Modules = [FinEtools, FinEtools.MatDeforLinearElasticModule, FinEtools.MatDeforElastIsoModule, FinEtools.MatDeforElastOrthoModule,]
 Private = true
 Order = [:type]
 ```
