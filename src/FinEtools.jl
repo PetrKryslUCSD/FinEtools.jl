@@ -151,9 +151,9 @@ using .MeshHexahedronModule: H8block,  H8blockx,  H8sphere,  H8refine, H8hexahed
 # Exported: mesh generation functions for hexahedral elements
 export  H8block,  H8blockx,  H8sphere,  H8refine, H8hexahedron, H8extrudeQ4, H8spheren, H8voximg,  H8layeredplatex, H8elliphole, H8toH27,  H27block, H20block,  H8toH20, H20blockx, H27blockx, H8cylindern, T4toH8
 
-using .MeshTetrahedronModule: T4block, T4blockx, T4toT10, T10toT4, T10block, T10blockx, T10layeredplatex, T4meshedges, T4voximg, T4refine, T10refine, T4refine20
+using .MeshTetrahedronModule: T4block, T4blockx, T4toT10, T10toT4, T10block, T10blockx, T10layeredplatex, T4meshedges, T4voximg, T4refine, T10refine, T4refine20, T4quartercyln
 # Exported: mesh generation functions for tetrahedral elements
-export  T4block, T4blockx, T4toT10, T10toT4, T10block, T10blockx, T10layeredplatex, T4meshedges, T4voximg, T4refine, T10refine, T4refine20
+export  T4block, T4blockx, T4toT10, T10toT4, T10block, T10blockx, T10layeredplatex, T4meshedges, T4voximg, T4refine, T10refine, T4refine20, T4quartercyln
 
 ###########################################################################
 # Abstract material

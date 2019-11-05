@@ -6,11 +6,13 @@ Module  for generation of meshes composed of tetrahedra.
 module MeshTetrahedronModule
 
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import ..FESetModule: count, FESetT4, FESetT10, setlabel!, connasarray
+import ..FESetModule: count, FESetT4, FESetT10, setlabel!, connasarray, subset
 import ..FENodeSetModule: FENodeSet
 import ..MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
-import ..MeshSelectionModule: findunconnnodes, selectelem
-import ..MeshModificationModule: compactnodes, renumberconn!
+import ..MeshSelectionModule: findunconnnodes, selectelem, connectednodes
+import ..MeshModificationModule: compactnodes, renumberconn!, meshboundary
+import ..MeshHexahedronModule: H8hexahedron
+using LinearAlgebra: norm
 import Statistics: mean
 
 """
@@ -678,6 +680,63 @@ function T4refine20(fens::FENodeSet, fes::FESetT4)
 	end
 	fes = FESetT4(nconn);
 	fes = setlabel!(fes, labels)
+	return fens, fes
+end
+
+"""
+    T4quartercyln(Radius, Length, nperradius, nL)
+
+    Four-node tetrahedron mesh of one quarter of solid  cylinder with given number of edges per radius.
+"""
+function T4quartercyln(Radius, Length, nperradius, nL)
+	tol = min(Length/nL,Radius/2/nperradius)/100;
+	xyz = [0 0 0; Radius 0 0; Radius/sqrt(2) Radius/sqrt(2) 0; 0 Radius 0; 0 0 Length; Radius 0 Length; Radius/sqrt(2) Radius/sqrt(2) Length; 0 Radius Length];
+	fens, fes = H8hexahedron(xyz, nperradius, nperradius, nL);
+	orientation = :b;
+	if orientation == :a
+		t4ia = [1 8 5 6; 3 4 2 7; 7 2 6 8; 4 7 8 2; 2 1 6 8; 4 8 1 2];
+		t4ib = [1 8 5 6; 3 4 2 7; 7 2 6 8; 4 7 8 2; 2 1 6 8; 4 8 1 2];
+	elseif orientation == :ca
+		t4ia = [8 4 7 5; 6 7 2 5; 3 4 2 7; 1 2 4 5; 7 4 2 5];
+		t4ib = [7 3 6 8; 5 8 6 1; 2 3 1 6; 4 1 3 8; 6 3 1 8];
+	elseif orientation == :cb
+		t4ia = [7 3 6 8; 5 8 6 1; 2 3 1 6; 4 1 3 8; 6 3 1 8];
+		t4ib = [8 4 7 5; 6 7 2 5; 3 4 2 7; 1 2 4 5; 7 4 2 5];
+	else # orientation == :b
+		t4ia = [2 7 5 6; 1 8 5 7; 1 3 4 8; 2 1 5 7; 1 2 3 7; 3 7 8 1];
+		t4ib = [2 7 5 6; 1 8 5 7; 1 3 4 8; 2 1 5 7; 1 2 3 7; 3 7 8 1];
+	end
+	conns = fill(0, 6*count(fes), 4);
+	gc=1; ix=1;
+	for i in 1:nperradius
+		for j in 1:nperradius
+			for k in 1:nL
+				nn = collect(fes.conn[ix]);
+				if (mod(sum([i,j,k]),2)==0)
+					t4i = t4ib;
+				else
+					t4i = t4ia;
+				end
+				for r in 1:size(t4i,1)
+					conns[gc,:] .= nn[t4i[r,:]];
+					gc=gc+1;
+				end
+				ix=ix+1;
+			end
+		end
+	end
+	fes = FESetT4(conns[1:gc-1,:]);
+
+	bfes = meshboundary(fes);
+	z1=selectelem(fens,bfes,facing = true, direction = [0,0,-1.0], tolerance = 0.999);
+	z2=selectelem(fens,bfes,facing = true, direction = [0,0,+1.0], tolerance = 0.999);
+	x1=selectelem(fens,bfes,facing = true, direction = [-1.0,0,0], tolerance = 0.999);
+	y1=selectelem(fens,bfes,facing = true, direction = [0,-1.0,0], tolerance = 0.999);
+	round1 = setdiff(1:count(bfes),vcat(x1,y1,z1,z2));
+	cn = connectednodes(subset(bfes,round1));
+	for  j in 1:length(cn)
+		fens.xyz[cn[j],1:2] .*= Radius/norm(fens.xyz[cn[j],1:2])
+	end
 	return fens, fes
 end
 
