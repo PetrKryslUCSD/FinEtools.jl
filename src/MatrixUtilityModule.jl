@@ -281,4 +281,19 @@ function adjugate3!(B, A)
     return B
 end
 
+"""
+    symmetrize!(a)
+
+Make the matrix on input symmetric.
+"""
+function symmetrize!(a)
+	@assert size(a, 1) == size(a, 2)
+    @inbounds for c in 1:size(a, 2)
+    	@inbounds for r in c:size(a, 1)
+    		a[c, r] =  a[r, c] += a[c, r]
+    	end
+    end
+    a .= 0.5 * a
+end
+
 end
