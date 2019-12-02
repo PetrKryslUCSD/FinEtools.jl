@@ -92,10 +92,11 @@ end
     gathersysvec{F<:AbstractField}(self::F)
 
 Gather values from the field for the whole system vector.
+Return a vector.
 """
 function gathersysvec(self::F) where {F<:AbstractField}
     nents,dim = size(self.values)
-    vec = zeros(typeof(self.values[1,1]),self.nfreedofs,1)
+    vec = zeros(typeof(self.values[1,1]),self.nfreedofs)
     for i = 1:nents
         for j = 1:dim
             en = self.dofnums[i,j]
