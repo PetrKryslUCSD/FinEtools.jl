@@ -1934,3 +1934,24 @@ end
 end
 using .mxmeasure1
 mxmeasure1.test()
+
+module maddbts1
+using FinEtools
+using FinEtools.MatrixUtilityModule: add_btsigma!
+using LinearAlgebra: norm
+using Test
+function test()
+	for i in 1:10
+		B = rand(6, 30)
+		s = rand(6)
+		c = rand()
+		F1 = B' * (c * s)
+		F2 = fill(0.0, size(B, 2))
+		add_btsigma!(F2, B, c, s)
+		@test norm(F1 - F2) / norm(F1) < 1.0e-6
+	end
+	true
+end
+end
+using .maddbts1
+maddbts1.test()
