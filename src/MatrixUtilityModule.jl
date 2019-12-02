@@ -207,6 +207,29 @@ function add_btdb_ut_only!(Ke::FFltMat, B::FFltMat, Jac_w::FFlt, D::FFltMat, DB:
 end
 
 """
+    add_btsigma!(Fe::FFltVec, B::FFltMat, coefficient::FFlt, sigma::FFltVec)
+
+Add the product  `B'*(sigma*coefficient)`, to the elementwise vector `Fe`.
+
+The vector `Fe` is assumed to be suitably initialized.
+
+The vector `Fe` is modified.  The vector `sigma` is not modified
+inside this function. 
+"""
+function add_btsigma!(Fe::FFltVec, B::FFltMat, coefficient::FFlt, sigma::FFltVec)
+    @assert size(B, 1) == length(sigma)
+    nstr, Kedim = size(B)
+    @inbounds for nx = 1:Kedim
+	    accum::FFlt  = 0.0
+	    @inbounds for px = 1:nstr
+	    	accum += sigma[px]*B[px, nx]
+		end
+		Fe[nx] += coefficient*accum
+	end
+    return true
+end
+
+"""
     add_nnt_ut_only!(Ke::FFltMat, Nn::FFltMat, Jac_w_coeff::FFlt)
 
 Add the product  `Nn*(Nn'*(coeff*(Jac*w(j)))`, to the elementwise matrix `Ke`.
