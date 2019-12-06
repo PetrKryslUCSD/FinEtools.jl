@@ -298,6 +298,40 @@ Abstract type of system vector assembler.
 abstract type AbstractSysvecAssembler end;
 
 """
+    startassembly!(self::SysvecAssembler{T},
+      ndofs_row::FInt) where {T<:Number}
+
+Start assembly.
+
+The method makes the buffer for the vector assembly. It must be called before
+the first call to the method assemble.
+
+`ndofs_row`= Total number of degrees of freedom.
+"""
+function startassembly!(self::SV,  ndofs_row::FInt) where {SV<:AbstractSysvecAssembler, T<:Number}
+end
+
+"""
+    assemble!(self::SysvecAssembler{T}, vec::MV,
+      dofnums::D) where {T<:Number, MV<:AbstractArray{T}, D<:AbstractArray{FInt}}
+
+Assemble an elementwise vector.
+
+The method assembles a column element vector using the vector of degree of
+freedom numbers for the rows.
+"""
+function assemble!(self::SV, vec::MV, dofnums::D) where {SV<:AbstractSysvecAssembler, T<:Number, MV<:AbstractArray{T}, D<:AbstractArray{FInt}}
+end
+
+"""
+    makevector!(self::SysvecAssembler)
+
+Make the global vector.
+"""
+function makevector!(self::SV) where {SV<:AbstractSysvecAssembler}
+end
+
+"""
     SysvecAssembler
 
 Assembler for the system vector.
