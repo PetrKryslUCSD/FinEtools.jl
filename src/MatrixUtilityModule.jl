@@ -420,7 +420,7 @@ end
 
 Compute the matrix `C = A * B'`
 """
-function mulCAB!(C::FFltMat, A::FFltMat, B::FFltMat)
+function mulCABt!(C::FFltMat, A::FFltMat, B::FFltMat)
     n = size(B, 1)
     @assert size(C, 1) == size(A, 1)
     @assert size(C, 2) == size(B, 1)
