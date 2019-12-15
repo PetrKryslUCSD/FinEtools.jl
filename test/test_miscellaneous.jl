@@ -2021,14 +2021,14 @@ mxmatmul3a2.test()
 
 module mxmatmul3a3
 using FinEtools
-using FinEtools.MatrixUtilityModule: det
+using FinEtools.MatrixUtilityModule: detC
 using LinearAlgebra: norm, det
 using Test
 
 function test()
 	for i in 1:10
 		C = rand(3, 3)
-		@test abs(det(Val(3), C) - det(C)) <= 1.0e-6 * norm(C)
+		@test abs(detC(Val(3), C) - det(C)) <= 1.0e-6 * norm(C)
 	end
     true
 end
