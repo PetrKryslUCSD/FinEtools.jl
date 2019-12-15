@@ -1986,3 +1986,29 @@ end
 end
 using .mxmatmul3a1
 mxmatmul3a1.test()
+
+
+module mxmatmul3a2
+using FinEtools
+using FinEtools.MatrixUtilityModule: mulCAB!, mulCAtB!, mulCABt!
+using LinearAlgebra: norm
+using Test
+
+function test()
+	for i in 1:10
+		A = rand(3, 5)
+		B = rand(5, 3)
+		C = rand(3, 3)
+		@test norm(mulCAB!(C, A, B) .- A*B) <= 1.0e-6 * norm(C)
+	end
+    for i in 1:10
+    	A = rand(8, 3)
+    	B = rand(8, 3)
+    	C = rand(3, 3)
+    	@test norm(mulCAtB!(C, A, B) .- A'*B) <= 1.0e-6 * norm(C)
+    end
+    true
+end
+end
+using .mxmatmul3a2
+mxmatmul3a2.test()
