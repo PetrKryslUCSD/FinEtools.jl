@@ -18,7 +18,7 @@ Arguments:
 `N` = matrix of basis function values
 """
 function loc!(loc::FFltMat, ecoords::FFltMat, N::FFltMat)
-    return mulCAtB!(loc, ecoords, N)
+	return mulCAtB!(loc, N, ecoords)
 end
 
 """

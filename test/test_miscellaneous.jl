@@ -1998,13 +1998,13 @@ function test()
 	for i in 1:10
 		A = rand(3, 5)
 		B = rand(5, 3)
-		C = rand(3, 3)
+		C = A * B
 		@test norm(mulCAB!(C, A, B) .- A*B) <= 1.0e-6 * norm(C)
 	end
     for i in 1:10
     	A = rand(8, 3)
     	B = rand(8, 3)
-    	C = rand(3, 3)
+    	C = A' * B
     	@test norm(mulCAtB!(C, A, B) .- A'*B) <= 1.0e-6 * norm(C)
     end
     true
