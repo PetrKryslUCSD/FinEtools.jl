@@ -18,15 +18,7 @@ Arguments:
 `N` = matrix of basis function values
 """
 function loc!(loc::FFltMat, ecoords::FFltMat, N::FFltMat)
-    n = size(N, 1)
-    @inbounds for j in 1:size(loc, 2)
-        la = 0.0
-        @inbounds for k in 1:n
-            la += N[k] * ecoords[k, j]
-        end
-        loc[j] = la
-    end
-    return loc
+    return mulCAtB!(loc, ecoords, N)
 end
 
 """
@@ -377,6 +369,50 @@ function mulCABt!(::Val{3}, C, A, B)
 	C[3, 2]  = (A[3, 1]*B[2, 1] + A[3, 2]*B[2, 2] + A[3, 3]*B[2, 3]);
 	C[3, 3]  = (A[3, 1]*B[3, 1] + A[3, 2]*B[3, 2] + A[3, 3]*B[3, 3]);
 	return C
+end
+
+"""
+    mulCAtB!(C::FFltMat, A::FFltMat, B::FFltMat)
+
+Compute the matrix `C = A' * B`
+"""
+function mulCAtB!(C::FFltMat, A::FFltMat, B::FFltMat)
+    n = size(B, 1)
+    @assert size(C, 1) == size(A, 2)
+    @assert size(C, 2) == size(B, 2)
+    @assert size(A, 1) == size(B, 1)
+    @inbounds for j in 1:size(C, 2)
+        @inbounds for i in 1:size(C, 1)
+            Ca = 0.0
+            @inbounds for k in 1:n
+                Ca += A[k, i] * B[k, j]
+            end
+            C[i, j] = Ca
+        end
+    end
+    return C
+end
+
+"""
+    mulCAB!(C::FFltMat, A::FFltMat, B::FFltMat)
+
+Compute the matrix `C = A * B`
+"""
+function mulCAB!(C::FFltMat, A::FFltMat, B::FFltMat)
+    n = size(B, 1)
+    @assert size(C, 1) == size(A, 1)
+    @assert size(C, 2) == size(B, 2)
+    @assert size(A, 2) == size(B, 1)
+    @inbounds for j in 1:size(C, 2)
+        @inbounds for i in 1:size(C, 1)
+            Ca = 0.0
+            @inbounds for k in 1:n
+                Ca += A[i, k] * B[k, j]
+            end
+            C[i, j] = Ca
+        end
+    end
+    return C
 end
 
 end
