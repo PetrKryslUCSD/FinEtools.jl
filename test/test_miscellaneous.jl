@@ -2009,12 +2009,29 @@ function test()
     end
     for i in 1:10
     	A = rand(8, 3)
-    	B = rand(3, 8)
+    	B = rand(8, 3)
     	C = A * B'
-    	@test norm(mulCAB'!(C, A, B) .- A*B') <= 1.0e-6 * norm(C)
+    	@test norm(mulCABt!(C, A, B) .- A*B') <= 1.0e-6 * norm(C)
     end
     true
 end
 end
 using .mxmatmul3a2
 mxmatmul3a2.test()
+
+module mxmatmul3a3
+using FinEtools
+using FinEtools.MatrixUtilityModule: det
+using LinearAlgebra: norm, det
+using Test
+
+function test()
+	for i in 1:10
+		C = rand(3, 3)
+		@test abs(det(Val(3), C) - det(C)) <= 1.0e-6 * norm(C)
+	end
+    true
+end
+end
+using .mxmatmul3a3
+mxmatmul3a3.test()
