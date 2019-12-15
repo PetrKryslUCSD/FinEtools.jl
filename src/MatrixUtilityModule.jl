@@ -415,4 +415,26 @@ function mulCAB!(C::FFltMat, A::FFltMat, B::FFltMat)
     return C
 end
 
+"""
+    mulCABt!(C::FFltMat, A::FFltMat, B::FFltMat)
+
+Compute the matrix `C = A * B'`
+"""
+function mulCAB!(C::FFltMat, A::FFltMat, B::FFltMat)
+    n = size(B, 1)
+    @assert size(C, 1) == size(A, 1)
+    @assert size(C, 2) == size(B, 1)
+    @assert size(A, 2) == size(B, 2)
+    @inbounds for j in 1:size(C, 2)
+        @inbounds for i in 1:size(C, 1)
+            Ca = 0.0
+            @inbounds for k in 1:n
+                Ca += A[i, k] * B[j, k]
+            end
+            C[i, j] = Ca
+        end
+    end
+    return C
+end
+
 end
