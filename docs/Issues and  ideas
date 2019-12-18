@@ -537,7 +537,7 @@ https://github.com/JuliaRegistries/Registrator.jl
 
 -- innerproduct() is not being tested. Status:
 
--- How to implement the "gather operation" Efficiently?
+-- How to implement the "gather operation" efficiently?
 
 module mgather1
 using Test
@@ -645,3 +645,76 @@ println("Mesh data 3 x N, Element buffer nen x 3, Loop i, j: Time $(ts[5]) [mus]
 println("Mesh data 3 x N, Element buffer nen x 3, Loop j, i: Time $(ts[6]) [mus]")
 println("Mesh data 3 x N, Element buffer 3 x nen, Loop i, j: Time $(ts[7]) [mus]")
 println("Mesh data 3 x N, Element buffer 3 x nen, Loop j, i: Time $(ts[8]) [mus]")
+
+Results:
+
+Mesh data N x 3, Element buffer nen x 3, Loop i, j: Time 0.09680472 [mus]                                                   
+Mesh data N x 3, Element buffer nen x 3, Loop j, i: Time 0.04763569 [mus]          <====== FASTEST                                         
+Mesh data N x 3, Element buffer 3 x nen, Loop i, j: Time 0.09928007 [mus]                                                   
+Mesh data N x 3, Element buffer 3 x nen, Loop j, i: Time 0.052601 [mus]                                                     
+Mesh data 3 x N, Element buffer nen x 3, Loop i, j: Time 0.06879589 [mus]                                                   
+Mesh data 3 x N, Element buffer nen x 3, Loop j, i: Time 0.052395895 [mus]                                                  
+Mesh data 3 x N, Element buffer 3 x nen, Loop i, j: Time 0.07161312 [mus]                                                   
+Mesh data 3 x N, Element buffer 3 x nen, Loop j, i: Time 0.056804158 [mus]         
+
+
+– What about accessing arrays? Here is an example with static arrays and regular arrays:
+
+using StaticArrays
+
+struct Point3D{T} <: FieldVector{3, T}
+    x::T
+    y::T
+    z::T
+end
+
+mutable struct MPoint3D{T} <: FieldVector{3, T}
+    x::T
+    y::T
+    z::T
+end
+
+function f1!(v)
+    for i in eachindex(v)
+        x, y, z = v[i]
+        v[i] = Point3D(2x, x*y, x*z)
+    end
+end
+
+function f2!(v)
+    for i in eachindex(v)
+        x, y, z = v[i]
+        v[i] .= (2x, x*y, x*z)
+    end
+end
+
+function f5!(v)
+    for i in 1:size(v, 1)
+        x, y, z = v[i, 1], v[i, 2], v[i, 3]
+        v[i, 1], v[i, 2], v[i, 3] = 2x, x*y, x*z
+    end
+end
+
+function f6!(v)
+    for i in 1:size(v, 2)
+        x, y, z = v[1, i], v[2, i], v[3, i]
+        v[1, i], v[2, i], v[3, i] = 2x, x*y, x*z
+    end
+end
+
+using BenchmarkTools
+v1 = [@SVector(rand(3)) for i = 1:1000000];
+v2 = [@MVector(rand(3)) for i = 1:1000000];
+v3 = [Point3D(rand(3))  for i = 1:1000000];
+v4 = [MPoint3D(rand(3)) for i = 1:1000000];
+v5 = rand(1000000, 3);
+v6 = rand(3, 1000000);
+
+@btime f1!($v1)   # 1.693 ms (0 allocations: 0 bytes)  
+@btime f2!($v2)  # 2.821 ms (0 allocations: 0 bytes)  
+
+@btime f1!($v3)  # 1.728 ms (0 allocations: 0 bytes)     
+@btime f2!($v4)  # 57.962 ms (3000000 allocations: 45.78 MiB)   
+
+@btime f5!($v5)  # 1.518 ms (0 allocations: 0 bytes)  <========== FASTEST
+@btime f6!($v6)    # 1.739 ms (0 allocations: 0 bytes)
