@@ -454,7 +454,7 @@ end
 """
     detC(::Val{3}, C::FFltMat)
 
-Compute determinant of `C`.
+Compute determinant of 3X3 `C`.
 """
 function detC(::Val{3}, C::FFltMat)
 	#define MAT3DUTIL_DET_3X3(T3X3) 
