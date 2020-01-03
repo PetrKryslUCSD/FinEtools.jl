@@ -467,4 +467,25 @@ function detC(::Val{3}, C::FFltMat)
 		(C[1, 1] * C[2, 3] * C[3, 2]))
 end
 
+"""
+    mulvAu!(C, A::FFltMat, B)
+
+Compute the product `C = A * B`, where `C` and `B` are "vectors".
+
+The use of BLAS is purposefully avoided in order to eliminate contentions of
+multi-threaded execution of the library code with the user-level threads.
+"""
+function mulvAu!(C::T, A::FFltMat, B::T) where {T}
+	M, N = size(A); 
+	@assert length(C) == M
+    @assert length(B) == N
+	C .= 0.0
+	@avx  for n in 1:N
+		for m in 1:M
+			C[m] += A[m,n] * B[n]
+		end
+	end
+	return C
+end
+
 end
