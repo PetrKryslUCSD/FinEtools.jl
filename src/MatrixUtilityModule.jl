@@ -363,14 +363,14 @@ function mulCABt!(::Val{3}, C, A, B)
 end
 
 """
-    mulCAtB!(C::FFltMat, A::FFltMat, B::FFltMat)
+    mulCAtB!(C, A, B)
 
 Compute the matrix `C = A' * B`
 
 The use of BLAS is purposefully avoided in order to eliminate contentions of
 multi-threaded execution of the library code with the user-level threads.
 """
-function mulCAtB!(C::FFltMat, A::FFltMat, B::FFltMat)
+function mulCAtB!(C, A, B)
     M, N = size(C); K = size(B,1)
     @assert size(C, 1) == size(A, 2)
     @assert size(C, 2) == size(B, 2)
@@ -406,14 +406,14 @@ function mulCAtB!(C::FFltMat, A::FFltMat, B::FFltMat)
 end
 
 """
-    mulCAB!(C::FFltMat, A::FFltMat, B::FFltMat)
+    mulCAB!(C, A, B)
 
 Compute the matrix `C = A * B`
 
 The use of BLAS is purposefully avoided in order to eliminate contentions of
 multi-threaded execution of the library code with the user-level threads.
 """
-function mulCAB!(C::FFltMat, A::FFltMat, B::FFltMat)
+function mulCAB!(C, A, B)
 	M, N = size(C); K = size(B,1)
 	@assert size(C, 1) == size(A, 1)
     @assert size(C, 2) == size(B, 2)
@@ -429,14 +429,14 @@ function mulCAB!(C::FFltMat, A::FFltMat, B::FFltMat)
 end
 
 """
-    mulCABt!(C::FFltMat, A::FFltMat, B::FFltMat)
+    mulCABt!(C, A, B)
 
 Compute the matrix `C = A * B'`
 
 The use of BLAS is purposefully avoided in order to eliminate contentions of
 multi-threaded execution of the library code with the user-level threads.
 """
-function mulCABt!(C::FFltMat, A::FFltMat, B::FFltMat)
+function mulCABt!(C, A, B)
     M, N = size(C); K = size(B,2)
 	@assert size(C, 1) == size(A, 1)
 	@assert size(C, 2) == size(B, 1)
@@ -468,14 +468,14 @@ function detC(::Val{3}, C::FFltMat)
 end
 
 """
-    mulvAu!(C, A::FFltMat, B)
+    mulvAu!(C, A, B)
 
 Compute the product `C = A * B`, where `C` and `B` are "vectors".
 
 The use of BLAS is purposefully avoided in order to eliminate contentions of
 multi-threaded execution of the library code with the user-level threads.
 """
-function mulvAu!(C::T, A::FFltMat, B::T) where {T}
+function mulvAu!(C, A, B) 
 	M, N = size(A); 
 	@assert length(C) == M
     @assert length(B) == N
