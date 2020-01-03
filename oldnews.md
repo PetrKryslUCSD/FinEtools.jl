@@ -1,5 +1,7 @@
 # Past news
 
+- 10/11/2019: Corrected a design blunder in the matrix utilities.
+
 - 06/11/2019: Applications have been extracted from FinEtools into their own separate packages. This will make the base library lighter and easier to understand.
 
 - 05/19/2019: Implementation of the computation of the infsup condition for isoparametric, mean-strain, and nodally-integrated solid finite elements.
@@ -11,7 +13,7 @@
 - 04/13/2019: Added Reverse Cuthill-McKee renumbering.
 
 - 03/07/2019: Meshing functions for circles, spherical surfaces, and cylinders added.
--
+
 - 11/09/2018: The name IntegData was changed to IntegDomain to better reflect the meaning of this type. Since this is an incompatible change, v1.0.0 tag was released.
 
 - 10/02/2018: The code-coverage computation seems to be broken. The coverage in the FinEtools package hasn't actually changed and it is still at 98%.

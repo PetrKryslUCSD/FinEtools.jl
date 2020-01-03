@@ -22,7 +22,8 @@ The package supports application packages, for instance:
 
 ## News
 
-- 10/11/2019: Corrected a design blunder in the matrix utilities.
+- 01/02/2020: Matrix multiplication code improved with the help of the `LoopVectorization` package.
+
 
 [Past news](oldnews.md)
 
