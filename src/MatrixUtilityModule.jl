@@ -468,14 +468,14 @@ function detC(::Val{3}, C::FFltMat)
 end
 
 """
-    mulvAu!(C, A, B)
+    mulCAB!(C::Vector{T}, A, B::Vector{T})  where {T}
 
 Compute the product `C = A * B`, where `C` and `B` are "vectors".
 
 The use of BLAS is purposefully avoided in order to eliminate contentions of
 multi-threaded execution of the library code with the user-level threads.
 """
-function mulvAu!(C, A, B) 
+function mulCAB!(C::Vector{T}, A, B::Vector{T})  where {T}
 	M, N = size(A); 
 	@assert length(C) == M
     @assert length(B) == N
