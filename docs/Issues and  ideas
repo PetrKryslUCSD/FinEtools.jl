@@ -718,3 +718,5 @@ v6 = rand(3, 1000000);
 
 @btime f5!($v5)  # 1.518 ms (0 allocations: 0 bytes)  <========== FASTEST
 @btime f6!($v6)    # 1.739 ms (0 allocations: 0 bytes)
+
+– For Loops 2.0: Index Notation And The Future Of Tensor Compilers | Peter Ahrens
