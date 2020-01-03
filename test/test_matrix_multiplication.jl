@@ -253,6 +253,7 @@ mmmultest6.test(M, N, K)
 module mmvtest1
 using FinEtools
 using FinEtools.MatrixUtilityModule: mulvAu!
+using LinearAlgebra
 using Test
 function test()
 	M, N = 7, 9
