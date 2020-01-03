@@ -249,3 +249,19 @@ M, N, K = 2^4, 2^4, 2^4
 mmmultest6.test(M, N, K)
 M, N, K = 2^3, 2^3, 2^3
 mmmultest6.test(M, N, K)
+
+module mmvtest1
+using FinEtools
+using FinEtools.MatrixUtilityModule: mulvAu!
+using Test
+function test()
+	C, A, B = rand(M), rand(M, N), rand(N)
+	@test norm(mulvAu!(C, A, B) - A * B) / norm(C) <= 1.0e-9
+	C, A, B = rand(M), rand(M, N), rand(N)
+	@test norm(mulvAu!(C, A, B) - A * B) / norm(C) <= 1.0e-9
+	C, A, B = rand(M), rand(M, N), rand(N)
+	@test norm(mulvAu!(C, A, B) - A * B) / norm(C) <= 1.0e-9
+end
+end
+using .mmvtest1
+mmvtest1.test()
