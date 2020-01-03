@@ -255,6 +255,7 @@ using FinEtools
 using FinEtools.MatrixUtilityModule: mulvAu!
 using Test
 function test()
+	M, N = 7, 9
 	C, A, B = rand(M), rand(M, N), rand(N)
 	@test norm(mulvAu!(C, A, B) - A * B) / norm(C) <= 1.0e-9
 	C, A, B = rand(M), rand(M, N), rand(N)
