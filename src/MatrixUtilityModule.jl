@@ -305,7 +305,7 @@ end
 """
     mulCAB!(::Val{3}, C, A, B)
 
-Compute the product of matrices `C = A * B`
+Compute the product of 3X3 matrices `C = A * B`
 
 """
 function mulCAB!(::Val{3}, C, A, B)
@@ -325,7 +325,7 @@ end
 """
     mulCAtB!(::Val{3}, C, A, B)
 
-Compute the product of matrices `C = Transpose(A) * B`
+Compute the product of 3X3 matrices `C = Transpose(A) * B`
 
 """
 function mulCAtB!(::Val{3}, C, A, B)
@@ -345,7 +345,7 @@ end
 """
     mulCABt!(::Val{3}, C, A, B)
 
-Compute the product of matrices `C = A * Transpose(B)`
+Compute the product of 3X3 matrices `C = A * Transpose(B)`
 
 """
 function mulCABt!(::Val{3}, C, A, B)
@@ -366,6 +366,9 @@ end
     mulCAtB!(C::FFltMat, A::FFltMat, B::FFltMat)
 
 Compute the matrix `C = A' * B`
+
+The use of BLAS is purposefully avoided in order to eliminate contentions of
+multi-threaded execution of the library code with the user-level threads.
 """
 function mulCAtB!(C::FFltMat, A::FFltMat, B::FFltMat)
     M, N = size(C); K = size(B,1)
@@ -406,6 +409,9 @@ end
     mulCAB!(C::FFltMat, A::FFltMat, B::FFltMat)
 
 Compute the matrix `C = A * B`
+
+The use of BLAS is purposefully avoided in order to eliminate contentions of
+multi-threaded execution of the library code with the user-level threads.
 """
 function mulCAB!(C::FFltMat, A::FFltMat, B::FFltMat)
 	M, N = size(C); K = size(B,1)
@@ -426,6 +432,9 @@ end
     mulCABt!(C::FFltMat, A::FFltMat, B::FFltMat)
 
 Compute the matrix `C = A * B'`
+
+The use of BLAS is purposefully avoided in order to eliminate contentions of
+multi-threaded execution of the library code with the user-level threads.
 """
 function mulCABt!(C::FFltMat, A::FFltMat, B::FFltMat)
     M, N = size(C); K = size(B,2)
