@@ -6,6 +6,7 @@ Module for general utility matrix product functions.
 module MatrixUtilityModule
 
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using LoopVectorization
 
 """
     loc!(loc::FFltMat, ecoords::FFltMat, N::FFltMat)
@@ -32,17 +33,7 @@ Arguments:
 `gradNparams` = matrix of basis function gradients
 """
 function jac!(J::FFltMat, ecoords::FFltMat, gradNparams::FFltMat)
-    n = size(gradNparams, 1)
-    @inbounds for j in 1:size(J, 2)
-        @inbounds for i in 1:size(J, 1)
-            Ja = 0.0
-            @inbounds for k in 1:n
-                Ja += ecoords[k, i] * gradNparams[k, j]
-            end
-            J[i, j] = Ja
-        end
-    end
-    return J
+    return mulCAtB!(J, ecoords, gradNparams)
 end
 
 """
@@ -377,19 +368,37 @@ end
 Compute the matrix `C = A' * B`
 """
 function mulCAtB!(C::FFltMat, A::FFltMat, B::FFltMat)
-    n = size(B, 1)
+    M, N = size(C); K = size(B,1)
     @assert size(C, 1) == size(A, 2)
     @assert size(C, 2) == size(B, 2)
     @assert size(A, 1) == size(B, 1)
-    @inbounds for j in 1:size(C, 2)
-        @inbounds for i in 1:size(C, 1)
-            Ca = 0.0
-            @inbounds for k in 1:n
-                Ca += A[k, i] * B[k, j]
-            end
-            C[i, j] = Ca
-        end
-    end
+    if mod(M, 2) == 0 && mod(N, 2) == 0
+	    @inbounds for m ∈ 1:2:M
+	    	m1 = m + 1
+	    	@inbounds for n ∈ 1:2:N 
+	    		n1 = n + 1
+		    	C11, C21, C12, C22 = 0.0, 0.0, 0.0, 0.0 
+		    	@inbounds for k ∈ 1:K
+		    		C11 += A[k,m] * B[k,n] 
+		    		C21 += A[k,m1] * B[k,n] 
+		    		C12 += A[k,m] * B[k,n1] 
+		    		C22 += A[k,m1] * B[k,n1]
+		    	end
+		    	C[m,n] = C11
+		    	C[m1,n] = C21
+		    	C[m,n1] = C12
+		    	C[m1,n1] = C22
+		    end
+	    end
+	else
+		@inbounds for n ∈ 1:N, m ∈ 1:M 
+	    	Cmn = 0.0
+	    	@inbounds for k ∈ 1:K
+	    		Cmn += A[k,m] * B[k,n]
+	    	end
+	    	C[m,n] = Cmn
+	    end
+	end
     return C
 end
 
@@ -399,20 +408,18 @@ end
 Compute the matrix `C = A * B`
 """
 function mulCAB!(C::FFltMat, A::FFltMat, B::FFltMat)
-    n = size(B, 1)
-    @assert size(C, 1) == size(A, 1)
+	M, N = size(C); K = size(B,1)
+	@assert size(C, 1) == size(A, 1)
     @assert size(C, 2) == size(B, 2)
     @assert size(A, 2) == size(B, 1)
-    @inbounds for j in 1:size(C, 2)
-        @inbounds for i in 1:size(C, 1)
-            Ca = 0.0
-            @inbounds for k in 1:n
-                Ca += A[i, k] * B[k, j]
-            end
-            C[i, j] = Ca
-        end
-    end
-    return C
+	C .= 0
+	@avx  for n in 1:N, k in 1:K 
+		Bkn = B[k,n]
+		for m in 1:M
+			C[m,n] += A[m,k] * Bkn
+		end
+	end
+	return C
 end
 
 """
@@ -421,19 +428,17 @@ end
 Compute the matrix `C = A * B'`
 """
 function mulCABt!(C::FFltMat, A::FFltMat, B::FFltMat)
-    n = size(B, 2)
-    @assert size(C, 1) == size(A, 1)
-    @assert size(C, 2) == size(B, 1)
-    @assert size(A, 2) == size(B, 2)
-    @inbounds for j in 1:size(C, 2)
-        @inbounds for i in 1:size(C, 1)
-            Ca = 0.0
-            @inbounds for k in 1:n
-                Ca += A[i, k] * B[j, k]
-            end
-            C[i, j] = Ca
-        end
-    end
+    M, N = size(C); K = size(B,2)
+	@assert size(C, 1) == size(A, 1)
+	@assert size(C, 2) == size(B, 1)
+	@assert size(A, 2) == size(B, 2)
+	C .= 0
+   	@avx for n ∈ 1:N, k ∈ 1:K # for k ∈ 1:K, n ∈ 1:N #
+   		Bnk = B[n,k]
+   		for m ∈ 1:M
+   			C[m,n] += A[m,k] * Bnk
+   		end
+   	end
     return C
 end
 
