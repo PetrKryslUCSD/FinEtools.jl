@@ -1,6 +1,6 @@
 module mmmultest1
 using Test
-using BenchmarkTools
+# using BenchmarkTools
 using LoopVectorization
 using LinearAlgebra
 using FinEtools.MatrixUtilityModule: mulCAB!
@@ -55,7 +55,7 @@ mmmultest1.test(7)
 
 module mmmultest2
 using Test
-using BenchmarkTools
+# using BenchmarkTools
 using LoopVectorization
 using LinearAlgebra
 using FinEtools.MatrixUtilityModule: mulCAB!
@@ -108,7 +108,7 @@ mmmultest2.test(2^3)
 
 module mmmultest3
 using Test
-using BenchmarkTools
+# using BenchmarkTools
 using LoopVectorization
 using LinearAlgebra
 using FinEtools.MatrixUtilityModule: mulCAtB!
@@ -148,7 +148,7 @@ mmmultest3.test(2^3)
 
 module mmmultest4
 using Test
-using BenchmarkTools
+# using BenchmarkTools
 using LoopVectorization
 using LinearAlgebra
 using FinEtools.MatrixUtilityModule: mulCAtB!
@@ -194,7 +194,7 @@ mmmultest4.test(M, N, K)
 
 module mmmultest6
 using Test
-using BenchmarkTools
+# using BenchmarkTools
 using LoopVectorization
 using LinearAlgebra
 using FinEtools.MatrixUtilityModule: mulCABt!
