@@ -412,18 +412,29 @@ Compute the matrix `C = A * B`
 
 The use of BLAS is purposefully avoided in order to eliminate contentions of
 multi-threaded execution of the library code with the user-level threads.
+
+Note: See the note https://discourse.julialang.org/t/ann-loopvectorization/32843/36
 """
 function mulCAB!(C, A, B)
 	M, N = size(C); K = size(B,1)
-	@assert size(C, 1) == size(A, 1)
-    @assert size(C, 2) == size(B, 2)
-    @assert size(A, 2) == size(B, 1)
-	C .= 0
-	@avx  for n in 1:N, k in 1:K 
-		Bkn = B[k,n]
-		for m in 1:M
-			C[m,n] += A[m,k] * Bkn
-		end
+	@assert M == size(A, 1)
+    @assert N == size(B, 2)
+    @assert size(A, 2) == K
+    # Surprisingly the code below (nkm) is slower than the one in the order mnk.
+	# C .= 0
+	# @avx  for n in 1:N, k in 1:K 
+	# 	Bkn = B[k,n]
+	# 	for m in 1:M
+	# 		C[m,n] += A[m,k] * Bkn
+	# 	end
+	# end
+	z = zero(eltype(C))
+	@avx  for m ∈ 1:M, n ∈ 1:N 
+		Cmn = z
+	    for k ∈ 1:K
+	        Cmn += A[m,k] * B[k,n]
+	    end
+	    C[m,n] = Cmn
 	end
 	return C
 end
