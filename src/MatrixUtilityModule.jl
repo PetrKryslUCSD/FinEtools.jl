@@ -375,33 +375,43 @@ function mulCAtB!(C, A, B)
     @assert size(C, 1) == size(A, 2)
     @assert size(C, 2) == size(B, 2)
     @assert size(A, 1) == size(B, 1)
-    if mod(M, 2) == 0 && mod(N, 2) == 0
-	    @inbounds for m ∈ 1:2:M
-	    	m1 = m + 1
-	    	@inbounds for n ∈ 1:2:N 
-	    		n1 = n + 1
-		    	C11, C21, C12, C22 = 0.0, 0.0, 0.0, 0.0 
-		    	@inbounds for k ∈ 1:K
-		    		C11 += A[k,m] * B[k,n] 
-		    		C21 += A[k,m1] * B[k,n] 
-		    		C12 += A[k,m] * B[k,n1] 
-		    		C22 += A[k,m1] * B[k,n1]
-		    	end
-		    	C[m,n] = C11
-		    	C[m1,n] = C21
-		    	C[m,n1] = C12
-		    	C[m1,n1] = C22
-		    end
-	    end
-	else
-		@inbounds for n ∈ 1:N, m ∈ 1:M 
-	    	Cmn = 0.0
-	    	@inbounds for k ∈ 1:K
-	    		Cmn += A[k,m] * B[k,n]
-	    	end
-	    	C[m,n] = Cmn
-	    end
-	end
+    # When the @avx macro is available, this code is faster:
+    z = zero(eltype(C))
+    @avx for n in 1:size(C,2), m in 1:size(C,1)
+        Cmn = z
+        for k in 1:size(A,1)
+            Cmn += A[k,m] * B[k,n]
+        end
+        C[m,n] = Cmn
+    end
+    # Otherwise, this code works just fine:
+ 	# if mod(M, 2) == 0 && mod(N, 2) == 0
+	#     @inbounds for m in 1:2:M
+	#     	m1 = m + 1
+	#     	@inbounds for n in 1:2:N 
+	#     		n1 = n + 1
+	# 	    	C11, C21, C12, C22 = 0.0, 0.0, 0.0, 0.0 
+	# 	    	@inbounds for k in 1:K
+	# 	    		C11 += A[k,m] * B[k,n] 
+	# 	    		C21 += A[k,m1] * B[k,n] 
+	# 	    		C12 += A[k,m] * B[k,n1] 
+	# 	    		C22 += A[k,m1] * B[k,n1]
+	# 	    	end
+	# 	    	C[m,n] = C11
+	# 	    	C[m1,n] = C21
+	# 	    	C[m,n1] = C12
+	# 	    	C[m1,n1] = C22
+	# 	    end
+	#     end
+	# else
+	# 	@inbounds for n in 1:N, m in 1:M 
+	#     	Cmn = 0.0
+	#     	@inbounds for k in 1:K
+	#     		Cmn += A[k,m] * B[k,n]
+	#     	end
+	#     	C[m,n] = Cmn
+	#     end
+	# end
     return C
 end
 
@@ -413,7 +423,7 @@ Compute the matrix `C = A * B`
 The use of BLAS is purposefully avoided in order to eliminate contentions of
 multi-threaded execution of the library code with the user-level threads.
 
-Note: See the note https://discourse.julialang.org/t/ann-loopvectorization/32843/36
+Note: See the thread https://discourse.julialang.org/t/ann-loopvectorization/32843/36
 """
 function mulCAB!(C, A, B)
 	M, N = size(C); K = size(B,1)
@@ -429,9 +439,9 @@ function mulCAB!(C, A, B)
 	# 	end
 	# end
 	z = zero(eltype(C))
-	@avx  for m ∈ 1:M, n ∈ 1:N 
+	@avx  for m in 1:M, n in 1:N 
 		Cmn = z
-	    for k ∈ 1:K
+	    for k in 1:K
 	        Cmn += A[m,k] * B[k,n]
 	    end
 	    C[m,n] = Cmn
