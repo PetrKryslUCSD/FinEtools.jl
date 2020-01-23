@@ -376,9 +376,9 @@ function mulCAtB!(C, A, B)
     @assert size(C, 2) == size(B, 2)
     @assert size(A, 1) == size(B, 1)
     # When the @avx macro is available, this code is faster:
-    z = zero(eltype(C))
+    # z = zero(eltype(C))
     @avx for n in 1:size(C,2), m in 1:size(C,1)
-        Cmn = z
+        Cmn = zero(eltype(C)) # Cmn = z # For some reason this bombed in LoopVectorization 0.4.0
         for k in 1:size(A,1)
             Cmn += A[k,m] * B[k,n]
         end
