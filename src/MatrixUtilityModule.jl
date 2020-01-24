@@ -438,9 +438,9 @@ function mulCAB!(C, A, B)
 	# 		C[m,n] += A[m,k] * Bkn
 	# 	end
 	# end
-	z = zero(eltype(C))
+	# z = zero(eltype(C))
 	@avx  for m in 1:M, n in 1:N 
-		Cmn = z
+		Cmn = zero(eltype(C))
 	    for k in 1:K
 	        Cmn += A[m,k] * B[k,n]
 	    end
