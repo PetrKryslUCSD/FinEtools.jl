@@ -22,6 +22,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 01/23/2020: Dependencies have been updated to work with Julia 1.3.1.
 - 01/02/2020: Matrix multiplication code improved with the help of the `LoopVectorization` package.
 
 
