@@ -6,4 +6,5 @@
 *.jld
 *.sublime-workspace
 docs/build/
+.vscode/
 
