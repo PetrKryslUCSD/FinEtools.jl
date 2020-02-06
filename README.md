@@ -18,7 +18,8 @@ The package supports application packages, for instance:
 - [Linear acoustics](https://github.com/PetrKryslUCSD/FinEtoolsAcoustics.jl);
 - [Heat conduction](https://github.com/PetrKryslUCSD/FinEtoolsHeatDiff.jl);
 - [Linear stress analysis](https://github.com/PetrKryslUCSD/FinEtoolsDeforLinear.jl);
-- [Nonlinear stress analysis](https://github.com/PetrKryslUCSD/FinEtoolsDeforNonlinear.jl).
+- [Nonlinear stress analysis](https://github.com/PetrKryslUCSD/FinEtoolsDeforNonlinear.jl);
+- [Vibration in fluids](https://github.com/PetrKryslUCSD/FinEtoolsVibInFluids.jl).
 
 ## News
 
