@@ -11,11 +11,13 @@ import LinearAlgebra: norm
 _I3 = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
 
 """
-    rotmat3!(Rmout::FFltMat, a::FFltVec)
+    rotmat3!(Rmout::FFltMat, a::T) where {T}
 
 Compute a 3D rotation matrix.
+
+`a` = array, vector, or tuple with three floating-point numbers
 """
-function rotmat3!(Rmout::FFltMat, a::FFltVec)
+function rotmat3!(Rmout::FFltMat, a::T) where {T}
     m,n = size(Rmout);
     @assert (m == n) && (m == 3) && (length(a) == m)
     na = norm(a);
@@ -24,14 +26,31 @@ function rotmat3!(Rmout::FFltMat, a::FFltVec)
             Rmout[i, j] = (i == j ? 1.0 : 0.0)
         end
     else
-        thetatilde = zeros(3,3);
-        skewmat!(thetatilde, a);
-        a = a/na;
+        # thetatilde = zeros(3,3);
+        # skewmat!(thetatilde, a);
+        # a = a/na;
+        # ca = cos(na);
+        # sa = sin(na);
+        # aa = a*a';
+        # copyto!(Rmout, ca * (_I3-aa) + sa/na*thetatilde + aa);
+        as = (a[1]/na, a[2]/na, a[3]/na)
         ca = cos(na);
         sa = sin(na);
-        aa = a*a';
-        copyto!(Rmout, ca * (_I3-aa) + sa/na*thetatilde + aa);
+        oca = (1.0 - ca)
+        for j in 1:3, i in 1:3
+            Rmout[i, j] = oca * as[i] * as[j]
+        end
+        Rmout[1, 2] += sa * -as[3] 
+        Rmout[1, 3] += sa * as[2];
+        Rmout[2, 1] += sa * as[3] 
+        Rmout[2, 3] += sa * -as[1];
+        Rmout[3, 1] += sa * -as[2];
+        Rmout[3, 2] += sa * as[1];
+        Rmout[1, 1] += ca
+        Rmout[2, 2] += ca
+        Rmout[3, 3] += ca
     end
+    return Rmout
 end
 
 
@@ -42,8 +61,8 @@ Compute skew-symmetric matrix.
 """
 function skewmat!(S, theta)
     @assert  length(theta)== 3 "Input must be a 3-vector"
-    S[:,:]=[ 0.0    -theta[3] theta[2];
-            theta[3]   0.0   -theta[1];
+    S[:,:].=[0.0     -theta[3]  theta[2];
+             theta[3]   0.0    -theta[1];
             -theta[2] theta[1]  0.0];
     return S;
 end
