@@ -13,7 +13,7 @@ _I3 = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
 """
     rotmat3!(Rmout::FFltMat, a::T) where {T}
 
-Compute a 3D rotation matrix.
+Compute a 3D rotation matrix in-place.
 
 `a` = array, vector, or tuple with three floating-point numbers
 """
@@ -53,6 +53,16 @@ function rotmat3!(Rmout::FFltMat, a::T) where {T}
     return Rmout
 end
 
+
+"""
+    rotmat3(a::T) where {T}
+
+Prepare a rotation matrix from a rotation vector
+"""
+function rotmat3(a::T) where {T}
+    Rmout = fill(0.0, 3, 3)
+    return rotmat3!(Rmout, a)
+end
 
 """
     skewmat!(S, theta)

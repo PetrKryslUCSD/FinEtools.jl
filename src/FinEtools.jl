@@ -27,9 +27,9 @@ using .PhysicalUnitModule: phun
 # Exported: function for evaluating physical units
 export phun
 
-using .RotationUtilModule: rotmat3!, skewmat!, cross3!, cross2
+using .RotationUtilModule: rotmat3!, rotmat3, skewmat!, cross3!, cross2
 # Exported: functions for 3D rotation matrix computation, skew symmetric matrix computation,  in-place  cross product of 3-vectors, and  cross product of 2-vectors
-export rotmat3!, skewmat!, cross3!, cross2
+export rotmat3!, rotmat3, skewmat!, cross3!, cross2
 
 using .CSysModule: CSys, updatecsmat!
 # Exported: type  for coordinate systems, methods to invoke the update callback
