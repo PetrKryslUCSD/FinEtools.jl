@@ -61,9 +61,16 @@ Compute skew-symmetric matrix.
 """
 function skewmat!(S, theta)
     @assert  length(theta)== 3 "Input must be a 3-vector"
-    S[:,:].=[0.0     -theta[3]  theta[2];
-             theta[3]   0.0    -theta[1];
-            -theta[2] theta[1]  0.0];
+    # S[:,:].=[0.0     -theta[3]  theta[2];
+    #          theta[3]   0.0    -theta[1];
+    #         -theta[2] theta[1]  0.0];
+    S[1, 1] = S[2, 2] = S[3, 3] = 0.0
+    S[1, 2] = -theta[3]
+    S[1, 3] = theta[2];
+    S[2, 1] = theta[3]
+    S[2, 3] = -theta[1];
+    S[3, 1] = -theta[2] 
+    S[3, 2] = theta[1]
     return S;
 end
 

@@ -2095,3 +2095,20 @@ end
 using .mrotationmatrixs2
 mrotationmatrixs2.test()
 
+module mskew1
+using FinEtools
+using Test
+function test()
+    S = fill(0.0, 3, 3)
+    theta = rand(3)
+    skewmat!(S, theta)
+    S1 = fill(0.0, 3, 3)
+    S1[:,:].=[0.0     -theta[3]  theta[2];
+                 theta[3]   0.0    -theta[1];
+                -theta[2] theta[1]  0.0];
+    @test norm(S - S1) / norm(S) <= 1.0e-6
+    true
+end
+end
+using .mskew1
+mskew1.test()
