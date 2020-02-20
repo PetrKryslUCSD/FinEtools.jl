@@ -2097,6 +2097,7 @@ mrotationmatrixs2.test()
 
 module mskew1
 using FinEtools
+using LinearAlgebra: norm, I
 using Test
 function test()
     S = fill(0.0, 3, 3)
