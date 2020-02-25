@@ -524,10 +524,6 @@ See the function `selectnode()` for examples of the criteria that can be
 used to search vertices.
 """
 function vselect(v::FFltMat; kwargs...)
-
-
-
-
     # Extract arguments
     box = nothing; distance = nothing; from = nothing; plane  =  nothing;
     thickness = nothing; nearestto = nothing; inflate = 0.0;
@@ -553,7 +549,7 @@ function vselect(v::FFltMat; kwargs...)
     # Did we get an inflate value
     inflatevalue = 0.0;
     if inflate != nothing
-        inflatevalue = FFlt(inflate);
+        @show inflatevalue = FFlt(inflate);
     end
 
     # Initialize the output list
@@ -567,6 +563,7 @@ function vselect(v::FFltMat; kwargs...)
         @assert dim == sdim "Dimension of box not matched to dimension of array of vertices"
         abox = vec(box)::FFltVec
         inflatebox!(abox, inflatevalue)
+        @show abox, sdim
         vlist, nn = _compute_vlist!(vlist, abox, sdim, v)
     elseif distance != nothing
         fromvalue =fill!(deepcopy(v[1,:]), 0.0);
