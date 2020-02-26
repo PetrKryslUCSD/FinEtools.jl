@@ -138,6 +138,14 @@ Private = true
 Order = [:function]
 ```
 
+### Mesh selection
+
+```@autodocs
+Modules = [FinEtools, FinEtools.MeshSelectionModule]
+Private = true
+Order = [:function]
+```
+
 ### Mesh modification
 
 ```@autodocs
