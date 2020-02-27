@@ -140,11 +140,7 @@ Order = [:function]
 
 ### Mesh selection
 
-```@autodocs
-Modules = [FinEtools, FinEtools.MeshSelectionModule]
-Private = true
-Order = [:function]
-```
+See above as "Selecting nodes and elements".
 
 ### Mesh modification
 
