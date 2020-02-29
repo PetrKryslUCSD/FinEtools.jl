@@ -14,8 +14,8 @@ notifications:
   email: false
 
 after_success:
-  - julia --project=coverage/ -e 'using Pkg; Pkg.instantiate()'
-  - julia --project=coverage/ coverage/coverage.jl
+  - julia -e 'using Pkg; cd(Pkg.dir("FinEtools")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder()); Codecov.submit(process_folder())'
+
 
 jobs:
   include:
