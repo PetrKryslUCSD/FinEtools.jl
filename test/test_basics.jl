@@ -127,3 +127,24 @@ end
 end
 using .mbas009
 mbas009.test()
+
+module mbas010
+using FinEtools
+using FinEtools.AlgoBaseModule: fieldnorm
+using Test
+function test()
+   fens,fes = Q8block(1.3, 3.1,13,12); # Mesh
+   geom = NodalField(fens.xyz)
+   femm = FEMMBase(IntegDomain(fes, GaussRule(2, 3)))
+   regions = [FDataDict("femm"=>femm)]
+   # x = NodalField(reshape(fens.xyz[:, 1], count(fens), 1))
+   # targetfields = [x]
+   c = NodalField(fill(1.0, count(fens), 1))
+   targetfields = [c]
+   modeldata = FDataDict("fens"=>fens, "regions"=>regions, "targetfields"=>targetfields, "geom"=>geom, "elementsize"=>3.1 / 12)
+   @test abs(fieldnorm(modeldata) - sqrt(1.3 * 3.1)) <= 1.0e-5
+   true
+end
+end
+using .mbas010
+mbas010.test()
