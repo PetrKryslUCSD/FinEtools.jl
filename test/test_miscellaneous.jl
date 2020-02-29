@@ -148,6 +148,47 @@ end
 using .mmmeasurementm5
 mmmeasurementm5.test()
 
+module mmmeasurementm5q4
+using FinEtools
+using Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl, nw = 2, 3, 4;
+
+    fens,fes  = Q4block(L,W,nl,nw)
+    geom  =  NodalField(fens.xyz)
+
+    femm  =  FEMMBase(IntegDomain(fes, GaussRule(2, 2)))
+    S = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(S - W*L)/S < 1.0e-5
+
+end
+end
+using .mmmeasurementm5q4
+mmmeasurementm5q4.test()
+
+module mmmeasurementm5q8
+using FinEtools
+using Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl, nw = 2, 3, 4;
+
+    fens,fes  = Q8block(L,W,nl,nw)
+    geom  =  NodalField(fens.xyz)
+
+    femm  =  FEMMBase(IntegDomain(fes, GaussRule(2, 3)))
+    S = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(S - W*L)/S < 1.0e-5
+
+end
+end
+using .mmmeasurementm5q8
+mmmeasurementm5q8.test()
 
 module mmmeasurementm6
 using FinEtools
