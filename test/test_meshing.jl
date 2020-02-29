@@ -3582,3 +3582,24 @@ end
 end
 using .mT4quartercylnm
 mT4quartercylnm.test()
+
+module mt10convt41
+using FinEtools
+using FinEtools.MeshImportModule
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+    xs = collect(linearspace(0.0, 2.0, 5))
+    ys = collect(linearspace(0.0, 1.0, 6).^2)
+    zs = collect(linearspace(0.0, 1.0, 3))
+    fens, fes = T4blockx(xs, ys, zs, :a)
+    @test count(fes) == 240
+    fens, fes = T4toT10(fens, fes)
+    @test count(fes) == 240
+    fens, fes = T10toT4(fens, fes)
+    @test count(fes) == 240
+    true
+end
+end
+using .mt10convt41
+mt10convt41.test()
