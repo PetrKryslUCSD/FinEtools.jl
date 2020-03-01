@@ -620,3 +620,44 @@ end
 using .mvass1
 mvass1.test()
 
+module mmhrzass1
+using FinEtools
+using LinearAlgebra
+using Test
+function test()
+    N = 30
+    elem_mat_dim = 8
+    elem_mat_nmatrices = 3
+    elmat = rand(elem_mat_dim, elem_mat_dim)
+    elmat = (elmat + elmat')
+    Mref = fill(0.0, N, N)
+    add!(Mref, e, d) = begin
+        em2 = sum(sum(e, dims = 1));
+        dem2 = sum(diag(e));
+        ffactor = em2/dem2 
+        for i in 1:length(d)
+            Mref[d[i], d[i]] += ffactor*e[i, i]
+        end
+        Mref
+    end
+    a = SysmatAssemblerSparseHRZLumpingSymm()
+    startassembly!(a, elem_mat_dim, 0, elem_mat_nmatrices, N, 0) 
+    dofnums = [10, 29, 15, 1, 7, 3, 6, 2]
+    assemble!(a, elmat,  dofnums, dofnums) 
+    add!(Mref, elmat, dofnums)
+    dofnums = [15, 1, 7, 11, 29, 3, 8, 4]
+    assemble!(a, elmat,  dofnums, dofnums) 
+    add!(Mref, elmat, dofnums)
+    dofnums = reshape([25, 1, 17, 13, 30, 13, 18, 14], elem_mat_dim, 1)
+    assemble!(a, elmat,  dofnums, dofnums) 
+    add!(Mref, elmat, dofnums)
+    M = makematrix!(a)
+    s = 0.0
+    for i in 1:N
+        s += abs(M[i, i]-diag(Mref)[i])
+    end
+    @test s / norm(elmat) <= 1.0e-9
+end
+end
+using .mmhrzass1
+mmhrzass1.test()
