@@ -55,7 +55,7 @@ end
 """
     add_mggt_ut_only!(Ke::FFltMat, gradN::FFltMat, mult::FFlt)
 
-Add the product `gradN*mult*gradNT*(Jac*w[j])` to the elementwise matrix `Ke`.
+Add the product `gradN*mult*gradNT` to the elementwise matrix `Ke`.
 The argument `mult` is a scalar.
 *Only upper triangle* is computed; the lower triangle is not touched.
 (Use `complete_lt!` to complete the lower triangle, if needed.)
@@ -218,7 +218,8 @@ end
 Add the product  `Nn*(Nn'*(coeff*(Jac*w(j)))`, to the elementwise matrix `Ke`.
 *Only upper triangle* is computed; the lower triangle is not touched.
 
-The matrix `Ke` is assumed to be suitably initialized.
+The matrix `Ke` is assumed to be suitably initialized. The 
+matrix `Nn` has a single column.
 
 The matrix `Ke` is modified.  The matrix `Nn` is not modified
 inside this function.
@@ -237,31 +238,6 @@ end
 
 function add_nnt_ut_only!(Ke::FFltMat, N::FFltVec, Jac_w_coeff::FFlt)
     return add_nnt_ut_only!(Ke, reshape(N, length(N), 1), Jac_w_coeff)
-end
-
-
-"""
-    add_btv!(elvec::FFltVec, B::FFltMat, sig::FFltMat, Jac_w_coeff::FFlt)
-
-Add product of the strain-displacement matrix transpose times the stress vector.
-
-Note:  the coefficient `Jac_w_coeff` will be typically  NEGATIVE.
-
-The argument `elvec` needs to be suitably  initialized before the first call
-(filled with zeros, for instance),  and it is updated upon return.
-The arguments `B`, `sig` are not modified.
-"""
-function add_btv!(elvec::FFltVec, B::FFltMat, sig::FFltVec, Jac_w_coeff::FFlt)
-    @assert size(B, 1) == length(sig)
-    @assert size(B, 2) == length(elvec)
-    Kedim = length(elvec)
-    nsig = length(sig)
-    @inbounds for mx = 1:Kedim
-        @inbounds for px = 1:nsig
-            elvec[mx] += B[px, mx]*Jac_w_coeff*sig[px]
-        end
-    end
-    return true
 end
 
 """
@@ -291,6 +267,8 @@ end
     symmetrize!(a)
 
 Make the matrix on input symmetric.
+
+The operation is in-place.
 """
 function symmetrize!(a)
 	@assert size(a, 1) == size(a, 2)

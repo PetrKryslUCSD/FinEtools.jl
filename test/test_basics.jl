@@ -304,3 +304,82 @@ end
 using .mbascs06
 mbascs06.test()
 
+module mbascs06
+using FinEtools
+using FinEtools.MatrixUtilityModule: complete_lt!, add_mggt_ut_only!, add_gkgt_ut_only!, add_btdb_ut_only!, add_btsigma!, add_nnt_ut_only!
+using LinearAlgebra
+using Test
+function test()
+    let
+        N = 8
+        Ke::FFltMat, gradN::FFltMat, mult::FFlt = fill(0.0, N, N), rand(N, 2), 3.0
+        add_mggt_ut_only!(Ke::FFltMat, gradN::FFltMat, mult::FFlt)
+        complete_lt!(Ke::FFltMat)
+        @test norm(Ke - (mult .* (gradN * gradN'))) / norm(Ke) <= 1.0e-9
+    end
+
+    
+    let
+        N = 8
+        Ke::FFltMat, gradN::FFltMat, Jac_w::FFlt = fill(0.0, N, N), rand(N, 3), 0.33
+        kappa_bar::FFltMat = rand(3, 3)
+        kappa_bar = kappa_bar + kappa_bar'
+        kappa_bargradNT::FFltMat = fill(0.0, 3, N) 
+        add_gkgt_ut_only!(Ke::FFltMat, gradN::FFltMat, Jac_w::FFlt,
+            kappa_bar::FFltMat, kappa_bargradNT::FFltMat)    
+        complete_lt!(Ke::FFltMat)
+        @test norm(Ke - (Jac_w .* (gradN * kappa_bar * gradN'))) / norm(Ke) <= 1.0e-9
+    end
+
+    
+    let
+        N = 12
+        Ke::FFltMat, B::FFltMat, Jac_w::FFlt = fill(0.0, N, N), rand(3, N), 0.33
+        D::FFltMat = rand(3, 3)
+        D = D + D'
+        DB::FFltMat = fill(0.0, 3, N) 
+        add_btdb_ut_only!(Ke::FFltMat, B::FFltMat, Jac_w::FFlt, D::FFltMat, DB::FFltMat)
+        complete_lt!(Ke::FFltMat)
+        @test norm(Ke - (Jac_w .* (B' * D * B))) / norm(Ke) <= 1.0e-9
+    end
+
+   
+    let
+        N = 16
+        Fe::FFltVec, B::FFltMat, coefficient::FFlt, sigma::FFltVec = fill(0.0, N), rand(3, N), 0.33, rand(3)
+        D::FFltMat = rand(3, 3)
+        D = D + D'
+        add_btsigma!(Fe::FFltVec, B::FFltMat, coefficient::FFlt, sigma::FFltVec)
+        @test norm(Fe - (coefficient * (B' * sigma))) / norm(Fe) <= 1.0e-9
+    end
+
+    
+    let
+        M = 21
+        Ke::FFltMat, Nn::FFltMat, Jac_w_coeff::FFlt = fill(0.0, M, M), rand(M, 1), 0.533
+        add_nnt_ut_only!(Ke::FMat{FFlt}, Nn::FFltMat, Jac_w_coeff::FFlt)
+        complete_lt!(Ke::FFltMat)
+        @test norm(Ke - ((Nn*Nn')*(Jac_w_coeff))) / norm(Ke) <= 1.0e-9
+    end
+
+    true
+end
+end
+using .mbascs06
+mbascs06.test()
+
+module msymmx
+using FinEtools
+using FinEtools.MatrixUtilityModule: symmetrize!
+using LinearAlgebra
+using Test
+function test()
+    a = rand(6, 6)
+    b = deepcopy(a)
+    symmetrize!(a)
+    @test norm(a - (b + b')/2) / norm(a) <= 1.0e-9
+    true
+end
+end
+using .msymmx
+msymmx.test()
