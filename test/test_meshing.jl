@@ -3818,3 +3818,76 @@ end
 end
 using .mh8hex2pt
 mh8hex2pt.test()
+
+module mexpmulvf1
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+  rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol = 100.0, 200.0, 13, 16, pi/3, :a
+  fens, fes = T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::
+    Symbol)
+  d = (fens.xyz[:, 1].^2 + fens.xyz[:, 2].^2)
+  File = "mesh.vtk"
+  # Export of multiple scalar fields
+  result =  VTK.vtkexportmesh(File, fens, fes; scalars = [("d", d), ("invd", 1 ./ d)])
+  @test result == true
+  rm(File)
+  # @async run(`"paraview.exe" $File`)
+end
+end
+using .mexpmulvf1
+mexpmulvf1.test()
+
+module mexpstl1
+using FinEtools
+using FinEtools.MeshExportModule: STL
+using Test
+function test()
+  rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol = 1.0, 2.0, 7, 16, pi/3, :a
+  fens, fes = T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::
+    Symbol)
+  fens.xyz = xyz3(fens)
+  filename = "mesh.stl"
+  e = STLExporter(filename::AbstractString)
+  solid(e, "thesolid")
+  for i in 1:count(fes)
+      c = fes.conn[i]
+      facet(e, fens.xyz[c[1],:], fens.xyz[c[2],:], fens.xyz[c[3],:])
+  end
+  endsolid(e, "thesolid")
+  close(e)
+  @test filesize(filename) > 0
+  rm(filename)
+    # @async run(`"paraview.exe" $File`)
+end
+end
+using .mexpstl1
+mexpstl1.test()
+
+
+module mexpvecv1
+using FinEtools
+using FinEtools.MeshExportModule: VTK, VTK.vtkexportvectors
+using Test
+function test()
+    rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol = 100.0, 200.0, 13, 16, pi/3, :a
+    fens, fes = T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::
+      Symbol)
+    d = (fens.xyz[:, 1].^2 + fens.xyz[:, 2].^2)
+    File = "mesh.vtk"
+    # Export of multiple scalar fields
+    result =  VTK.vtkexportmesh(File, fens, fes; scalars = [("d", d), ("invd", 1 ./ d)])
+    @test result == true
+    rm(File)
+
+    vectors = [("grad", deepcopy(fens.xyz))]
+    filename = "vectors.vtk"
+    result =  VTK.vtkexportmesh(filename, fens, fes; vectors = vectors)
+    @test result == true
+      rm(filename)
+      true
+end
+end
+using .mexpvecv1
+mexpvecv1.test()
