@@ -451,3 +451,127 @@ end
 end
 using .mtrapr112
 mtrapr112.test()
+
+module mfld1a1
+using FinEtools
+using LinearAlgebra
+using Test
+cleandchi() = deepcopy(FinEtools.NodalFieldModule.NodalField{Float64}(
+    [0.0 0.0 0.0 -0.002084946198827584 0.0 0.0; 6.938893903907228e-18 1.0842021724855044e-19 -0.14078343955580946 -0.001474279595600101 -2.710505431213761e-20 1.0842021724855044e-19; 2.7755575615628914e-17 0.0 -0.19909784957735863 -8.605854744103691e-19 0.0 -5.421010862427522e-20; 2.7755575615628914e-17 1.3552527156068805e-20 -0.14078343955580952 0.001474279595600101 0.0 0.0; 0.0 0.0 0.0 0.0020849461988275853 0.0 0.0], 
+    [0 0 0 1 0 0; 2 3 4 5 6 7; 8 9 10 11 12 13; 14 15 16 17 18 19; 0 0 0 20 0 0], 
+    Bool[1 1 1 0 1 1; 0 0 0 0 0 0; 0 0 0 0 0 0; 0 0 0 0 0 0; 1 1 1 0 1 1], 
+    [0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0; 0.0 0.0 0.0 0.0 0.0 0.0], 20)
+)
+cleandchiv() = deepcopy([-0.002084946198827584, 6.938893903907228e-18, 1.0842021724855044e-19, -0.14078343955580946, -0.001474279595600101, -2.710505431213761e-20, 1.0842021724855044e-19, 2.7755575615628914e-17, 0.0, -0.19909784957735863, -8.605854744103691e-19, 0.0, -5.421010862427522e-20, 2.7755575615628914e-17, 1.3552527156068805e-20, -0.14078343955580952, 0.001474279595600101, 0.0, 0.0, 0.0020849461988275853])
+function test()
+    dchi = cleandchi()
+    v = gathersysvec(dchi)
+    @test norm(v - cleandchiv()) / norm(cleandchiv()) <= 1.0e-6
+    v[:] .= 0.0
+    gathersysvec!(dchi, v)
+    @test norm(v - cleandchiv()) / norm(cleandchiv()) <= 1.0e-6
+    elv = fill(0.0, 12)
+    gathervalues_asvec!(dchi, elv, [1, 2])
+    @test norm(elv - [0.0, 0.0, 0.0, -0.002084946198827584, 0.0, 0.0, 6.938893903907228e-18, 1.0842021724855044e-19, -0.14078343955580946, -0.001474279595600101, -2.710505431213761e-20, 1.0842021724855044e-19]) / norm(elv) <= 1.0e-6
+    gatherfixedvalues_asvec!(dchi, elv, [1, 2])
+    norm(elv) <= 1.0e-15
+    @test FinEtools.FieldModule.anyfixedvaluenz(dchi, [1, 2]) == false
+    edn = fill(0, 12)
+    gatherdofnums!(dchi, edn, [1, 2])
+    @test norm(edn - vec([0 0 0 1 0 0; 2 3 4 5 6 7]')) == 0
+    dchi = cleandchi()
+    numberdofs!(dchi)
+    @test norm(dchi.dofnums - cleandchi().dofnums) == 0
+
+    dchi = cleandchi()
+    setebc!(dchi, 1, true, 1, -0.013)
+    @test dchi.is_fixed[1, 1] == true
+    @test dchi.fixed_values[1, 1] == -0.013
+    setebc!(dchi, 5, true, 4, 0.61)
+    @test dchi.is_fixed[5, 4] == true
+    @test dchi.fixed_values[5, 4] == 0.61
+
+    dchi = cleandchi()
+    setebc!(dchi, [1, 5], true, 2, [-0.013, 2.0])
+    @test dchi.is_fixed[1, 2] == true
+    @test dchi.fixed_values[1, 2] == -0.013
+    @test dchi.is_fixed[5, 2] == true
+    @test dchi.fixed_values[5, 2] == 2.0
+
+    dchi = cleandchi()
+    setebc!(dchi, [1, 5], true, 2, -10.0)
+    @test dchi.is_fixed[1, 2] == true
+    @test dchi.fixed_values[1, 2] == -10.0
+    @test dchi.is_fixed[5, 2] == true
+    @test dchi.fixed_values[5, 2] == -10.0
+
+    dchi = cleandchi()
+    setebc!(dchi, [1, 5], true, 2)
+    @test dchi.is_fixed[1, 2] == true
+    @test dchi.fixed_values[1, 2] == 0.0
+    @test dchi.is_fixed[5, 2] == true
+    @test dchi.fixed_values[5, 2] == 0.0
+
+    dchi = cleandchi()
+    setebc!(dchi, [1, 5], 2, [-10.0, 10.0])
+    @test dchi.is_fixed[1, 2] == true
+    @test dchi.fixed_values[1, 2] == -10.0
+    @test dchi.is_fixed[5, 2] == true
+    @test dchi.fixed_values[5, 2] == 10.0
+
+    dchi = cleandchi()
+    setebc!(dchi, [1, 5], 2)
+    @test dchi.is_fixed[1, 2] == true
+    @test dchi.fixed_values[1, 2] == 0.0
+    @test dchi.is_fixed[5, 2] == true
+    @test dchi.fixed_values[5, 2] == 0.0
+
+    dchi = cleandchi()
+    setebc!(dchi, [1, 5], true, [2, 3], -10.0)
+    @test dchi.is_fixed[1, 2] == true
+    @test dchi.fixed_values[1, 2] == -10.0
+    @test dchi.is_fixed[5, 3] == true
+    @test dchi.fixed_values[5, 3] == -10.0
+
+    dchi = cleandchi()
+    setebc!(dchi, [1, 5], true, [2, 3])
+    @test dchi.is_fixed[1, 2] == true
+    @test dchi.fixed_values[1, 2] == 0.0
+    @test dchi.is_fixed[5, 3] == true
+    @test dchi.fixed_values[5, 3] == 0.0
+
+    dchi = cleandchi()
+    setebc!(dchi, [1, 5])
+    for i in [1, 5]
+        @test any([!dchi.is_fixed[i, idx] for idx in 1:ndofs(dchi)]) == false
+        @test any([dchi.fixed_values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
+    end
+
+    dchi = cleandchi()
+    setebc!(dchi, 3)
+    for i in [3]
+        @test any([!dchi.is_fixed[i, idx] for idx in 1:ndofs(dchi)]) == false
+        @test any([dchi.fixed_values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
+    end
+    
+    dchi = cleandchi()
+    setebc!(dchi)
+    for i in 1:nents(dchi)
+        @test any([dchi.is_fixed[i, idx] for idx in 1:ndofs(dchi)]) == false
+        @test any([dchi.fixed_values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
+    end
+
+    dchi = cleandchi()
+    v = gathersysvec(dchi)
+    dchi.values[:] .= 0.0
+    scattersysvec!(dchi, v)
+    v = gathersysvec(dchi)
+    @test norm(v - cleandchiv()) / norm(cleandchiv()) <= 1.0e-6
+    v[:] .= 0.0
+    gathersysvec!(dchi, v)
+    @test norm(v - cleandchiv()) / norm(cleandchiv()) <= 1.0e-6
+    true
+end
+end
+using .mfld1a1
+mfld1a1.test()
