@@ -383,3 +383,71 @@ end
 end
 using .msymmx
 msymmx.test()
+
+module mgausr111
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using LinearAlgebra
+using Test
+function test()
+  fens,fes = H8spheren(3.1, 5)
+  @test (count(fens), count(fes)) == (175, 108)
+  # File = "mesh.vtk"
+  # VTK.vtkexportmesh(File, fens, fes)
+  geom  =  NodalField(fens.xyz)
+  results = []
+  for order in 1:10
+      femm  =  FEMMBase(IntegDomain(fes, GaussRule(3, order)))
+      V = integratefunction(femm, geom, (x) ->  1.0)
+      push!(results, V)
+  end
+  @test norm(results - [15.06847962861544, 15.137585913524491, 15.137585913524477, 15.137585913524472, 15.137585913524491, 15.13758591352459, 15.137585913524601, 15.137585913524363, 15.137585913524278, 15.137585913524612]) <= 1.0e-9
+  true
+end
+end
+using .mgausr111
+mgausr111.test()
+
+module mtrapr111
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using LinearAlgebra
+using Test
+function test()
+  fens,fes = H8spheren(3.1, 5)
+  @test (count(fens), count(fes)) == (175, 108)
+  # File = "mesh.vtk"
+  # VTK.vtkexportmesh(File, fens, fes)
+  geom  =  NodalField(fens.xyz)
+  femm  =  FEMMBase(IntegDomain(fes, TrapezoidalRule(3)))
+  V = integratefunction(femm, geom, (x) ->  1.0)
+  @test abs(V - 15.27579848334253) / V <= eps(V)
+  true
+end
+end
+using .mtrapr111
+mtrapr111.test()
+
+module mtrapr112
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using LinearAlgebra
+using Test
+function test()
+  rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol = 100.0, 200.0, 3, 6, pi/3, :a
+  fens, fes = T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::
+      Symbol)
+  # File = "mesh.vtk"
+  # VTK.vtkexportmesh(File, fens, fes)
+  geom  =  NodalField(fens.xyz)
+  femm  =  FEMMBase(IntegDomain(fes, TrapezoidalRule(2)))
+  V1 = integratefunction(femm, geom, (x) ->  1.0)
+  # 
+  femm  =  FEMMBase(IntegDomain(fes, GaussRule(2, 2)))
+  V2 = integratefunction(femm, geom, (x) ->  1.0)
+  @test abs(V1 - V2) / V1 <= 1000 * eps(V1)
+  true
+end
+end
+using .mtrapr112
+mtrapr112.test()
