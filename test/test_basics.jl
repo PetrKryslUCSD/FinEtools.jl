@@ -593,3 +593,30 @@ end
 end
 using .mfld1a1
 mfld1a1.test()
+
+module mvass1
+using FinEtools
+using LinearAlgebra
+using Test
+function test()
+    N = 30
+    v = fill(0.0, N)
+    a = SysvecAssembler()
+    startassembly!(a,  N)
+    vec, dofnums = rand(3), [1, 7, 2]
+    assemble!(a, vec, dofnums) 
+    for (i, p) in zip(dofnums, vec)
+        v[i] += p
+    end
+    vec, dofnums = rand(7), [29, 15, 1, 7, 3, 6, 2]
+    assemble!(a, vec, dofnums) 
+    for (i, p) in zip(dofnums, vec)
+        v[i] += p
+    end
+    w = makevector!(a)
+    @test norm(v-w) / norm(w) <= 1.0e-9
+end
+end
+using .mvass1
+mvass1.test()
+
