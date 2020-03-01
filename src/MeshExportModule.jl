@@ -1110,11 +1110,11 @@ function facet(self::STLExporter, v1::Vector{FFlt}, v2::Vector{FFlt}, v3::Vector
     W = v3 - v1
     normal = cross(V, W)
     normal = normal / norm(normal)
-    @printf self.ios "facet normal %e %e %e\n" normal[1] normal[2] normal[3]
+    @printf self.ios "facet normal %f %f %f\n" normal[1] normal[2] normal[3]
     @printf self.ios "    outer loop\n"
-    @printf self.ios "        vertex %e %e %e\n" v1[1] v1[2] v1[3]
-    @printf self.ios "        vertex %e %e %e\n" v2[1] v2[2] v2[3]
-    @printf self.ios "        vertex %e %e %e\n" v3[1] v3[2] v3[3]
+    @printf self.ios "        vertex %f %f %f\n" v1[1] v1[2] v1[3]
+    @printf self.ios "        vertex %f %f %f\n" v2[1] v2[2] v2[3]
+    @printf self.ios "        vertex %f %f %f\n" v3[1] v3[2] v3[3]
     @printf self.ios "    endloop\n"
     @printf self.ios "endfacet\n"
 end
