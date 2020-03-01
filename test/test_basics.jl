@@ -452,10 +452,12 @@ end
 using .mtrapr112
 mtrapr112.test()
 
+
 module mfld1a1
 using FinEtools
 using LinearAlgebra
 using Test
+
 cleandchi() = deepcopy(FinEtools.NodalFieldModule.NodalField{Float64}(
     [0.0 0.0 0.0 -0.002084946198827584 0.0 0.0; 6.938893903907228e-18 1.0842021724855044e-19 -0.14078343955580946 -0.001474279595600101 -2.710505431213761e-20 1.0842021724855044e-19; 2.7755575615628914e-17 0.0 -0.19909784957735863 -8.605854744103691e-19 0.0 -5.421010862427522e-20; 2.7755575615628914e-17 1.3552527156068805e-20 -0.14078343955580952 0.001474279595600101 0.0 0.0; 0.0 0.0 0.0 0.0020849461988275853 0.0 0.0], 
     [0 0 0 1 0 0; 2 3 4 5 6 7; 8 9 10 11 12 13; 14 15 16 17 18 19; 0 0 0 20 0 0], 
@@ -570,6 +572,22 @@ function test()
     v[:] .= 0.0
     gathersysvec!(dchi, v)
     @test norm(v - cleandchiv()) / norm(cleandchiv()) <= 1.0e-6
+
+    dchi = cleandchi()
+    v = gathersysvec(dchi)
+    dchi.values[:] .= 0.0
+    incrscattersysvec!(dchi, v)
+    incrscattersysvec!(dchi, v)
+    incrscattersysvec!(dchi, v)
+    v = gathersysvec(dchi)
+    @test norm(v - 3 .* cleandchiv()) / norm(cleandchiv()) <= 1.0e-6
+    
+    dchi = cleandchi()
+    setebc!(dchi)
+    numberdofs!(dchi)
+    dofnums, prescribedvalues = prescribeddofs(cleandchi(), dchi)
+    @test norm(dofnums - [1, 2, 3, 5, 6, 25, 26, 27, 29, 30]) == 0
+    @test norm(prescribedvalues - [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) <= 1.0e-9
     true
 end
 end

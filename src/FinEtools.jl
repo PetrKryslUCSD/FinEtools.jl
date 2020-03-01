@@ -53,9 +53,9 @@ using .FENodeToFEMapModule: FENodeToFEMap
 # Exported: type for maps from nodes to finite elements
 export FENodeToFEMap
 
-using .FieldModule: AbstractField, ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!, gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!, gatherfixedvalues_asmat!,numberdofs!, setebc!, applyebc!, scattersysvec!, copyto!, wipe!, prescribeddofs
+using .FieldModule: AbstractField, ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!, gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!, gatherfixedvalues_asmat!,numberdofs!, setebc!, applyebc!, scattersysvec!, copyto!, wipe!, prescribeddofs, incrscattersysvec!
 # Exported: abstract field type, methods for the abstract field type (retrieval of data  from a field, setting of data in the field)
-export AbstractField, ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!, gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!, gatherfixedvalues_asmat!, numberdofs!, setebc!, applyebc!, scattersysvec!, copyto!, wipe!, prescribeddofs
+export AbstractField, ndofs,  nents, gathersysvec, gathersysvec!, gathervalues_asvec!, gathervalues_asmat!, gatherdofnums!, gatherfixedvalues_asvec!, gatherfixedvalues_asmat!, numberdofs!, setebc!, applyebc!, scattersysvec!, copyto!, wipe!, prescribeddofs, incrscattersysvec!
 
 using .GeneralFieldModule: GeneralField
 # Exported: type of general field

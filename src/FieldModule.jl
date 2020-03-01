@@ -564,16 +564,15 @@ Find which degrees of freedom are prescribed.
 
 """
 function prescribeddofs(uebc::AbstractField, u::AbstractField)
-	dofnums = FInt[]
+    dofnums = FInt[]
 	prescribedvalues = eltype(uebc.values)[]
 	nents, dim = size(uebc.values)
 	@assert size(uebc.values) == size(u.values)
-	for i = 1:nents
-		for j = 1:dim
+	for i in 1:nents
+		for j in 1:dim
 			if uebc.is_fixed[i,j]
-			    push!(prescribedvalues, uebc.fixed_values[i,j]);
 			    dn = u.dofnums[i,j];
-			    @assert  (dn > 0) && (dn <= u.nfreedofs)
+                push!(prescribedvalues, uebc.fixed_values[i,j]);
 			    push!(dofnums, dn)
 			end
 		end
