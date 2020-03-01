@@ -252,6 +252,11 @@ VECTORS v double
 -1.0 -2.0 0.0
 1.0 1.0 0.0
 ```
+
+!!! note
+
+The filter "Glyph" must be used Paraview. Also in the drop-down 
+menu "Glyph mode" select "all points".
 """
 function vtkexportvectors(theFile::String, Points, vectors)
     fid=open(theFile,"w");

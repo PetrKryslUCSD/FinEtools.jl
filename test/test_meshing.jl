@@ -3885,8 +3885,7 @@ function test()
     filename = "vectors.vtk"
     result =  VTK.vtkexportmesh(filename, fens, fes; vectors = vectors)
     @test result == true
-      rm(filename)
-      true
+    rm(filename)
 end
 end
 using .mexpvecv1
