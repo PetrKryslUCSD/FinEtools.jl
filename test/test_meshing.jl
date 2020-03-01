@@ -3635,3 +3635,186 @@ end
 end
 using .mt4vox1
 mt4vox1.test()
+
+module mt6block1
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+  rho=1.21*1e-9;# mass density
+  c =345.0*1000;# millimeters per second
+  bulk= c^2*rho;
+  Lx=1900.0;# length of the box, millimeters
+  Ly=800.0; # length of the box, millimeters
+
+  fens,fes = T6block(Lx,Ly,3,2); # Mesh
+  # @show count(fens), count(fes)
+  @test (count(fens), count(fes)) == (35, 12) 
+  fens.xyz = xyz3(fens)
+  fens.xyz[:, 3] .= (fens.xyz[:, 1].^2 + fens.xyz[:, 2].^2)/1.e3
+  File = "mesh.vtk"
+  VTK.vtkexportmesh(File, fens, fes)
+  rm(File)
+  # @async run(`"paraview.exe" $File`)
+end
+end
+using .mt6block1
+mt6block1.test()
+
+module mt6annul1
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+  rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol = 100.0, 200.0, 3, 6, pi/3, :a
+  fens,fes = T6annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::
+    Symbol)
+  # @show count(fens), count(fes)
+  @test (count(fens), count(fes)) == (91, 36)   
+  fens.xyz = xyz3(fens)
+  fens.xyz[:, 3] .= (fens.xyz[:, 1].^2 + fens.xyz[:, 2].^2)/1.e3
+  File = "mesh.vtk"
+  VTK.vtkexportmesh(File, fens, fes)
+  rm(File)
+  # @async run(`"paraview.exe" $File`)
+end
+end
+using .mt6annul1
+mt6annul1.test()
+
+module mt3annul1
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+  rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol = 100.0, 200.0, 3, 6, pi/3, :a
+  fens,fes = T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::
+    Symbol)
+  # @show count(fens), count(fes)
+  @test (count(fens), count(fes)) == (28, 36)   
+  fens.xyz = xyz3(fens)
+  fens.xyz[:, 3] .= (fens.xyz[:, 1].^2 + fens.xyz[:, 2].^2)/1.e3
+  File = "mesh.vtk"
+  VTK.vtkexportmesh(File, fens, fes)
+  rm(File)
+  # @async run(`"paraview.exe" $File`)
+end
+end
+using .mt3annul1
+mt3annul1.test()
+
+module mt3refi1
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+  rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol = 100.0, 200.0, 3, 6, pi/3, :a
+  fens,fes = T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::
+    Symbol)
+  fens,fes = T3refine(fens,fes)
+  # @show count(fens), count(fes)
+  @test (count(fens), count(fes)) == (91, 144)   
+  fens.xyz = xyz3(fens)
+  fens.xyz[:, 3] .= (fens.xyz[:, 1].^2 + fens.xyz[:, 2].^2)/1.e3
+  File = "mesh.vtk"
+  VTK.vtkexportmesh(File, fens, fes)
+  # rm(File)
+  # @async run(`"paraview.exe" $File`)
+end
+end
+using .mt3refi1
+mt3refi1.test()
+
+module mh8refix
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+  fens,fes = H8block(3.1, 10.1, 7.7, 3, 9, 6)
+  fens,fes = H8refine(fens,fes)
+  @test (count(fens), count(fes)) == (1729, 1296) 
+  # File = "mesh.vtk"
+  # VTK.vtkexportmesh(File, fens, fes)
+  # rm(File)
+  # @async run(`"/c/Program\ Files/ParaView\ 5.7.0-Windows-Python3.7-msvc2015-64bit/bin/paraview" $File`)
+end
+end
+using .mh8refix
+mh8refix.test()
+
+module mh8sphere1
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+  fens,fes = H8sphere(3.1, 1)
+  @test (count(fens), count(fes)) == (65, 32)
+  # File = "mesh.vtk"
+  # VTK.vtkexportmesh(File, fens, fes)
+  # rm(File)
+  # @async run(`"/c/Program\ Files/ParaView\ 5.7.0-Windows-Python3.7-msvc2015-64bit/bin/paraview" $File`)
+end
+end
+using .mh8sphere1
+mh8sphere1.test()
+
+module mh8spheren1
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+  fens,fes = H8spheren(3.1, 5)
+  @test (count(fens), count(fes)) == (175, 108)
+  File = "mesh.vtk"
+  VTK.vtkexportmesh(File, fens, fes)
+  # rm(File)
+  # @async run(`"/c/Program\ Files/ParaView\ 5.7.0-Windows-Python3.7-msvc2015-64bit/bin/paraview" $File`)
+end
+end
+using .mh8spheren1
+mh8spheren1.test()
+
+module mh8voximg1
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+  img = fill(1, 30, 20, 10)
+  fens, fes = H8voximg(img, FFlt[1.0, 1.1, 1.3], [1])
+  @test (count(fens), count(fes)) == (7161, 6000)
+  # File = "mesh.vtk"
+  # VTK.vtkexportmesh(File, fens, fes)
+  # rm(File)
+  # @async run(`"/c/Program\ Files/ParaView\ 5.7.0-Windows-Python3.7-msvc2015-64bit/bin/paraview" $File`)
+  geom  =  NodalField(fens.xyz)
+  femm  =  FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
+  # Test the volume
+  V = integratefunction(femm, geom, (x) ->  1.0)
+  @test abs(V - (*).(30, 20, 10) * (*).(1.0, 1.1, 1.3))/V < 1.0e-5
+  true
+end
+end
+using .mh8voximg1
+mh8voximg1.test()
+
+module mh8hex2pt
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+  fens, fes = H8hexahedron([-1.0 -1.0 -1.0; 1.0 1.0 1.0], 2, 3, 4)
+  @test (count(fens), count(fes)) == (60, 24)
+  # File = "mesh.vtk"
+  # VTK.vtkexportmesh(File, fens, fes)
+  # rm(File)
+  # @async run(`"/c/Program\ Files/ParaView\ 5.7.0-Windows-Python3.7-msvc2015-64bit/bin/paraview" $File`)
+  geom  =  NodalField(fens.xyz)
+  femm  =  FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
+  # Test the volume
+  V = integratefunction(femm, geom, (x) ->  1.0)
+  @test abs(V - 8.0)/V < 1.0e-5
+  true
+end
+end
+using .mh8hex2pt
+mh8hex2pt.test()
