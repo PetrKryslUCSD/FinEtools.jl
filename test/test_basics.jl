@@ -794,3 +794,53 @@ end
 end
 using .m2djac3
 m2djac3.test()
+
+module mgrad2mm
+using FinEtools
+using FinEtools.FESetModule: gradN!
+using LinearAlgebra
+using Test
+function test()
+  rho=1.21*1e-9;# mass density
+  c =345.0*1000;# millimeters per second
+  bulk= c^2*rho;
+  Lx=1900.0;# length of the box, millimeters
+  Ly=800.0; # length of the box, millimeters
+
+  fens,fes = Q4block(Lx,Ly,3,2); # Mesh
+  # show(fes.conn)
+  gradN, gradNparams, redJ = fill(0.0, nodesperelem(fes), 2), bfundpar(fes, [0.57, 0.57]), Matrix(1.0*I, 2, 2)
+
+  gradN!(fes, gradN::FFltMat, gradNparams::FFltMat, redJ::FFltMat)
+  @test norm(gradN - [-0.10750000000000001 -0.10750000000000001; 0.10750000000000001 -0.39249999999999996; 0.39249999999999996 0.39249999999999996; -0.39249999999999996 0.10750000000000001]) <= 1.0e-6
+end
+end
+using .mgrad2mm
+mgrad2mm.test()
+
+ module mgrad3mm
+ using FinEtools
+ using FinEtools.FESetModule: gradN!
+ using LinearAlgebra
+ using Test
+ function test()
+   rho=1.21*1e-9;# mass density
+   c =345.0*1000;# millimeters per second
+   bulk= c^2*rho;
+   Lx=1900.0;# length of the box, millimeters
+   Ly=800.0; # length of the box, millimeters
+   Lz=800.0; # length of the box, millimeters
+
+   fens,fes = H8block(Lx,Ly,Lz, 3,2, 4); # Mesh
+   # show(fes.conn)
+   gradN, gradNparams, redJ = fill(0.0, nodesperelem(fes), 3), bfundpar(fes, [0.57, 0.57, -0.57]), Matrix(1.0*I, 3, 3)
+
+   gradN!(fes, gradN::FFltMat, gradNparams::FFltMat, redJ::FFltMat)
+   # @show gradN
+   @test norm(gradN - [-0.0843875 -0.0843875 -0.023112500000000005; 0.0843875 -0.30811249999999996 -0.0843875; 0.30811249999999996 0.30811249999999996 -0.30811249999999996; -0.30811249999999996 0.0843875 -0.0843875; -0.023112500000000005 -0.023112500000000005 0.023112500000000005; 0.023112500000000005 -0.0843875 0.0843875; 0.0843875 0.0843875 0.30811249999999996; -0.0843875 0.023112500000000005 0.0843875]) <= 1.0e-6
+end
+end
+using .mgrad3mm
+mgrad3mm.test()
+
+  
