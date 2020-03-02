@@ -3917,3 +3917,55 @@ end
 end
 using .mexpvecv2
 mexpvecv2.test()
+
+module mt4nastranexp1
+using FinEtools
+using FinEtools.MeshExportModule
+using FinEtools.MeshImportModule
+using Test
+function test()
+    xs = collect(linearspace(0.0, pi / 2, 5))
+    ys = collect(linearspace(0.0, 1.0, 6).^2)
+    zs = collect(linearspace(0.0, 1.0, 3))
+    fens, fes = T4blockx(xs, ys, zs, :a)
+    fens, fes = T4toT10(fens, fes)
+    @test count(fes) == 240
+    bfes = meshboundary(fes)
+    @test count(bfes) == 2*2*(4*5 + 5*2 + 4*2)
+    fens, fes = T10refine(fens, fes)
+    for i = 1:count(fens)
+        a, y, z = fens.xyz[i,:]
+        fens.xyz[i,1] = sin(a) * (y + 0.5)
+        fens.xyz[i,2] = cos(a) * (y + 0.5)
+        fens.xyz[i,3] = z
+    end
+    @test count(fes) == 240*8
+    bfes = meshboundary(fes)
+    @test count(bfes) == 4*2*2*(4*5 + 5*2 + 4*2)
+
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegDomain(fes, SimplexRule(3, 4)))
+   
+    File = "Refine-T10-a.vtk"
+    vtkexportmesh(File, fens, bfes)
+    # rm(File)
+    # @async run(`"paraview.exe" $File`)
+    e = NASTRANExporter("Refine-T10-a.nas")
+    BEGIN_BULK(e)
+    for i in 1:count(fens)
+        GRID(e, i, fens.xyz[i,:])
+    end
+    conn = connasarray(fes)
+    for i in 1:count(fes)
+        CTETRA(e, i, 1, conn[i, :])
+    end
+    ENDDATA(e)
+    close(e)
+
+    output = MeshImportModule.import_NASTRAN("Refine-T10-a.nas";    allocationchunk = 13, expectfixedformat = false)
+    @test count(output["fens"]) == 3213 
+    @test count(output["fesets"][1]) == 1920
+end
+end
+using .mt4nastranexp1
+mt4nastranexp1.test()
