@@ -710,3 +710,45 @@ end
 end
 using .mdistributedl1
 mdistributedl1.test()
+
+module m1djac1
+using FinEtools
+using Test
+function test()
+    Lx=1900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
+    th = 21.0
+
+    fens,fes = Q4block(Lx,Ly,3,2); # Mesh
+    bfes = meshboundary(fes)
+    bfemm  =  FEMMBase(IntegDomain(bfes, GaussRule(1, 2), th))
+
+    geom  =  NodalField(fens.xyz)
+    circumarea = integratefunction(bfemm, geom, (x) ->  1.0, 2)
+    @test abs(circumarea - 2*(Lx+Ly)*th) <= 1.0e-9
+true
+end
+end
+using .m1djac1
+m1djac1.test()
+
+module m1djac2
+using FinEtools
+using Test
+function test()
+    Lx=1900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
+    th = 21.0
+
+    fens,fes = Q4block(Lx,Ly,3,2); # Mesh
+    bfes = meshboundary(fes)
+    bfemm  =  FEMMBase(IntegDomain(bfes, GaussRule(1, 2)))
+
+    geom  =  NodalField(fens.xyz)
+    circumference = integratefunction(bfemm, geom, (x) ->  1.0, 1)
+    @test abs(circumference - 2*(Lx+Ly)) <= 1.0e-9
+true
+end
+end
+using .m1djac2
+m1djac2.test()
