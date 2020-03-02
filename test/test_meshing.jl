@@ -3905,14 +3905,14 @@ function test()
     # Export of multiple scalar fields
     result =  VTK.vtkexportmesh(File, fens, fes; scalars = [("d", d), ("invd", 1 ./ d)])
     @test result == true
-    # rm(File)
+    rm(File)
 
     points = [vec(fens.xyz[idx, :]) for idx in 1:count(fens)] 
     vectors = [("grad", [vec(fens.xyz[idx, [2,1,3]]) for idx in 1:count(fens)])]
     filename = "vectors.vtk"
     result =  VTK.vtkexportvectors(filename, points, vectors)
     @test result == true
-    # rm(filename)
+    rm(filename)
 end
 end
 using .mexpvecv2
@@ -3965,7 +3965,44 @@ function test()
     output = MeshImportModule.import_NASTRAN("Refine-T10-a.nas";    allocationchunk = 13, expectfixedformat = false)
     @test count(output["fens"]) == 3213 
     @test count(output["fesets"][1]) == 1920
+    rm("Refine-T10-a.nas")
 end
 end
 using .mt4nastranexp1
 mt4nastranexp1.test()
+
+module mefexp22
+using FinEtools
+using LinearAlgebra
+using FinEtools.MeshExportModule: VTK
+using FinEtools.AlgoBaseModule: evalconvergencestudy
+using Test
+function test()
+    Lx=1900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
+    nx, ny = 10, 9
+    th = 7.0
+    f(x) = cos(0.93 * pi * x[1]/Lx) + sin(1.7 * pi * x[2]/Ly)
+    g(x) = -cos(0.93 * pi * x[1]/Lx) + 2*sin(1.7 * pi * x[2]/Ly)
+
+    fens,fes = Q4block(Lx,Ly,nx, ny); # Mesh
+    femm  =  FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
+    geom  =  NodalField(fens.xyz)
+    psi  =  NodalField([f(fens.xyz[idx, :]) for idx in 1:count(fens)])
+    numberdofs!(psi)
+    psie  = ElementalField(
+        [f((fens.xyz[fes.conn[idx][1], :]+fens.xyz[fes.conn[idx][2], :]+fens.xyz[fes.conn[idx][3], :]+fens.xyz[fes.conn[idx][4], :])./4) 
+        for idx in 1:count(fes)])
+    phie  = ElementalField(
+        [g((fens.xyz[fes.conn[idx][1], :]+fens.xyz[fes.conn[idx][2], :]+fens.xyz[fes.conn[idx][3], :]+fens.xyz[fes.conn[idx][4], :])./4) 
+        for idx in 1:count(fes)])
+    File = "mesh.vtk"
+    # Export of multiple scalar fields
+    result =  VTK.vtkexportmesh(File, fens, fes; scalars = [("psie", psie.values), ("phie", phie.values)])
+    @test result == true
+    rm(File)
+true
+end
+end
+using .mefexp22
+mefexp22.test()
