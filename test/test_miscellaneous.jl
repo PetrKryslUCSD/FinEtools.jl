@@ -2296,4 +2296,68 @@ end
 using .mffip1
 mffip1.test()
 
+module meffip1
+using FinEtools
+using LinearAlgebra
+using FinEtools.MeshExportModule: VTK
+using FinEtools.AlgoBaseModule: evalconvergencestudy
+import FinEtools.FEMMBaseModule: inspectintegpoints
+using  FinEtools.MatrixUtilityModule: locjac!
+using Test
+
+Lx=1900.0;# length of the box, millimeters
+Ly=800.0; # length of the box, millimeters
+nx, ny = 10, 9
+th = 7.0
+
+f(x) = cos(0.93 * pi * x[1]/Lx) + sin(1.7 * pi * x[2]/Ly)
+g(x) = -cos(0.93 * pi * x[1]/Lx) + 2*sin(1.7 * pi * x[2]/Ly)
+
+function inspectintegpoints(self::FEMM, geom::NodalField{FFlt}, u::NodalField{FFlt}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {FEMM<:FEMMBase, T<:Number, F<:Function}
+    fes = self.integdomain.fes
+    npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
+    nne = nodesperelem(fes); 
+    sdim = ndofs(geom);   # number of space dimensions
+    mdim = manifdim(fes); # manifold dimension of the element
+    ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of Element coordinates
+    loc = fill(zero(FFlt), 1, sdim); # buffer
+    J = fill(zero(FFlt), sdim, mdim); # buffer
+    for ilist in 1:length(felist) # Loop over elements
+        i = felist[ilist];
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
+        for j in 1:npts # Loop over quadrature points
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
+            out = [f(loc)]
+            idat = inspector(idat, i, fes.conn[i], ecoords, out, loc);
+        end # Loop over quadrature points
+    end # Loop over elements
+    return idat; # return the updated inspector data
+end
+
+function test()
     
+    fens,fes = Q4block(Lx,Ly,nx, ny); # Mesh
+    femm  =  FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
+    geom  =  NodalField(fens.xyz)
+    u  =  NodalField(0.0.*fens.xyz)
+    dT  =  NodalField(fill(0.0, count(fens), 1))
+    psi  =  NodalField(fill(0.0, count(fens), 2))
+    for i in 1:count(fens)
+        psi.values[i, 1] = f(fens.xyz[i, :]) 
+        psi.values[i, 2] = g(fens.xyz[i, :]) 
+    end
+    numberdofs!(psi)
+
+    psih = elemfieldfromintegpoints(femm, geom, u, dT, :psi, 1) 
+
+    File = "psi.vtk"
+    # Export of multiple scalar fields
+    result =  VTK.vtkexportmesh(File, fens, fes; scalars = [("psi", psi.values), ("psih", psih.values)])
+    @test result == true
+    # rm(File)
+true
+end
+end
+using .meffip1
+meffip1.test()
+

@@ -843,4 +843,36 @@ end
 using .mgrad3mm
 mgrad3mm.test()
 
-  
+module mgffip1
+using FinEtools
+using LinearAlgebra
+using FinEtools.MeshExportModule: VTK
+using FinEtools.AlgoBaseModule: evalconvergencestudy
+import FinEtools.FEMMBaseModule: inspectintegpoints
+using  FinEtools.MatrixUtilityModule: locjac!
+using Test
+
+Lx=1900.0;# length of the box, millimeters
+Ly=800.0; # length of the box, millimeters
+nx, ny = 10, 9
+th = 7.0
+
+f(x) = cos(0.93 * pi * x[1]/Lx) + sin(1.7 * pi * x[2]/Ly)
+g(x) = -cos(0.93 * pi * x[1]/Lx) + 2*sin(1.7 * pi * x[2]/Ly)
+
+function test()
+    
+    fens,fes = Q4block(Lx,Ly,nx, ny); # Mesh
+    femm  =  FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
+    psi  =  GeneralField(fill(0.0, count(fens), 2))
+    for i in 1:count(fens)
+        psi.values[i, 1] = f(fens.xyz[i, :]) 
+        psi.values[i, 2] = g(fens.xyz[i, :]) 
+    end
+    numberdofs!(psi)
+    @test psi.nfreedofs == 220
+true
+end
+end
+using .mgffip1
+mgffip1.test()
