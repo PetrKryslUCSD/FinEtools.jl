@@ -2154,3 +2154,79 @@ end
 end
 using .mskew1
 mskew1.test()
+
+module mfdiffx1
+using FinEtools
+using FinEtools.AlgoBaseModule: fielddiffnorm
+using Test
+function test()
+    Lx=1900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
+    nx, ny = 30,21
+    th = 7.0
+
+    fens,fes = Q4block(Lx,Ly,nx, ny); # Mesh
+    femm  =  FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
+    geom  =  NodalField(fens.xyz)
+    psi  =  NodalField(fill(1.361, count(fens), 1))
+    numberdofs!(psi)
+    modeldatacoarse = FDataDict("fens"=>fens, "regions"=>[FDataDict("femm"=>femm)], "targetfields"=>[psi], "geom"=>geom, "elementsize"=>Ly/ny, "geometricaltolerance"=>Ly/ny/100, "parametrictolerance"=> 1.0e-3)
+    fens,fes = Q4refine(fens, fes)
+    femm  =  FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
+    geom  =  NodalField(fens.xyz)
+    psi  =  NodalField(fill(1.361, count(fens), 1))
+    numberdofs!(psi)
+    modeldatafine = FDataDict("fens"=>fens, "regions"=>[FDataDict("femm"=>femm)], "targetfields"=>[psi], "geom"=>geom, "elementsize"=>Ly/ny/2, "geometricaltolerance"=>Ly/ny/2/100, "parametrictolerance"=> 1.0e-3)
+    @test fielddiffnorm(modeldatacoarse, modeldatafine) <= 1.0e-10
+true
+end
+end
+using .mfdiffx1
+mfdiffx1.test()
+
+module mconvstudy1
+using FinEtools
+using LinearAlgebra
+using FinEtools.MeshExportModule: VTK
+using FinEtools.AlgoBaseModule: evalconvergencestudy
+using Test
+function test()
+    Lx=1900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
+    nx, ny = 10, 9
+    th = 7.0
+    f(x) = cos(0.93 * pi * x[1]/Lx) + sin(1.7 * pi * x[2]/Ly)
+
+    fens,fes = Q4block(Lx,Ly,nx, ny); # Mesh
+    femm  =  FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
+    geom  =  NodalField(fens.xyz)
+    psi  =  NodalField([f(fens.xyz[idx, :]) for idx in 1:count(fens)])
+    numberdofs!(psi)
+    modeldatacoarse = FDataDict("fens"=>fens, "regions"=>[FDataDict("femm"=>femm)], "targetfields"=>[psi], "geom"=>geom, "elementsize"=>Ly/ny, "geometricaltolerance"=>Ly/ny/100, "parametrictolerance"=> 1.0e-3)
+
+    fens,fes = Q4refine(fens, fes)
+    femm  =  FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
+    geom  =  NodalField(fens.xyz)
+    psi  =  NodalField([f(fens.xyz[idx, :]) for idx in 1:count(fens)])
+    numberdofs!(psi)
+    modeldatafine = FDataDict("fens"=>fens, "regions"=>[FDataDict("femm"=>femm)], "targetfields"=>[psi], "geom"=>geom, "elementsize"=>Ly/ny/2, "geometricaltolerance"=>Ly/ny/2/100, "parametrictolerance"=> 1.0e-3)
+
+    fens,fes = Q4refine(fens, fes)
+    femm  =  FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
+    geom  =  NodalField(fens.xyz)
+    psi  =  NodalField([f(fens.xyz[idx, :]) for idx in 1:count(fens)])
+    numberdofs!(psi)
+    modeldatafinest = FDataDict("fens"=>fens, "regions"=>[FDataDict("femm"=>femm)], "targetfields"=>[psi], "geom"=>geom, "elementsize"=>Ly/ny/2/2, "geometricaltolerance"=>Ly/ny/2/2/100, "parametrictolerance"=> 1.0e-3)
+    results = evalconvergencestudy([modeldatacoarse, modeldatafine, modeldatafinest])
+    @test norm(results[2] - [0.01899881220352146, 0.004766370375169633]) <= 1.0e-5
+    @test abs(results[3] - 1.994946257850443) <= 1.0e-3
+
+    # File = "mesh.vtk"
+    # # Export of multiple scalar fields
+    # result =  VTK.vtkexportmesh(File, fens, fes; scalars = [("psi", psi.values)])
+    # @test result == true
+true
+end
+end
+using .mconvstudy1
+mconvstudy1.test()

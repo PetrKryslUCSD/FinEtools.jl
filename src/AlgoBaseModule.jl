@@ -255,9 +255,15 @@ end
 
 Evaluate a convergence study from a model-data sequence.  
 
-`modeldatasequence` = array of `modeldata` dictionaries.
+`modeldatasequence` = array of `modeldata` dictionaries. At least two.
 
-Refer to methods `fieldnorm` and `fielddiffnorm` for details on the required keys in the dictionaries.
+Refer to methods `fieldnorm` and `fielddiffnorm` for details 
+on the required keys in the dictionaries.
+
+# Output
+`elementsizes` = element size array, 
+`errornorms` = norms of the error, 
+`convergencerate` = rate of convergence
 """
 function evalconvergencestudy(modeldatasequence)
     # Find the element sizes
