@@ -661,3 +661,28 @@ end
 end
 using .mmhrzass1
 mmhrzass1.test()
+
+module mgram1
+using FinEtools
+using Test
+function test()
+    W = 1.1;
+    L = 12.;
+    t =  0.32;
+    nl, nt, nw = 2, 3, 4;
+
+    fens,fes  = H8block(L,W,t, nl,nw,nt)
+    geom  =  NodalField(fens.xyz)
+    psi  =  NodalField(fill(1.0, count(fens), 1))
+    numberdofs!(psi)
+
+    femm  =  FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
+    G = innerproduct(femm, geom, psi)
+    v = gathersysvec(psi)
+
+    @test abs(v' * G * v - 4.224) / 4.224 <=  1.0e-5
+    true
+end
+end
+using .mgram1
+mgram1.test()
