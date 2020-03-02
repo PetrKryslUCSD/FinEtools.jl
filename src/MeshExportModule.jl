@@ -206,10 +206,20 @@ function vtkexportmesh(theFile::String, Connectivity, Points, Cell_type;
                     print(fid,"CELL_DATA ",size(data, 1),"\n");
                     did_cell_data = true
                 end
-                print(fid,"SCALARS ", name," double\n");
-                print(fid,"LOOKUP_TABLE default\n");
-                for j= 1:size(data,  1)
-                    print(fid,data[j],"\n");
+                if size(data, 2) > 1 # there are multiple scalar fields here
+                    for i = 1:size(data, 2)
+                        print(fid,"SCALARS ", name * "$(i)"," double\n");
+                        print(fid,"LOOKUP_TABLE default\n");
+                        for j= 1:size(data,  1)
+                            print(fid,data[j, i],"\n");
+                        end
+                    end
+                else  # there's just one scalar field here
+                    print(fid,"SCALARS ", name," double\n");
+                    print(fid,"LOOKUP_TABLE default\n");
+                    for j= 1:size(data,  1)
+                        print(fid,data[j],"\n");
+                    end
                 end
                 print(fid,"\n");
             end

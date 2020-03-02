@@ -4006,3 +4006,77 @@ end
 end
 using .mefexp22
 mefexp22.test()
+
+module mefexp23
+using FinEtools
+using LinearAlgebra
+using FinEtools.MeshExportModule: VTK
+using FinEtools.AlgoBaseModule: evalconvergencestudy
+using Test
+function test()
+    Lx=1900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
+    nx, ny = 10, 9
+    th = 7.0
+    f(x) = cos(0.93 * pi * x[1]/Lx) + sin(1.7 * pi * x[2]/Ly)
+    g(x) = -cos(0.93 * pi * x[1]/Lx) + 2*sin(1.7 * pi * x[2]/Ly)
+
+    fens,fes = Q4block(Lx,Ly,nx, ny); # Mesh
+    femm  =  FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
+    geom  =  NodalField(fens.xyz)
+    psi  =  NodalField(fill(0.0, count(fens), 2))
+    for i in 1:count(fens)
+        psi.values[i, 1] = f(fens.xyz[i, :]) 
+        psi.values[i, 2] = g(fens.xyz[i, :]) 
+    end
+    numberdofs!(psi)
+    # psie  = ElementalField(
+    #     [f((fens.xyz[fes.conn[idx][1], :]+fens.xyz[fes.conn[idx][2], :]+fens.xyz[fes.conn[idx][3], :]+fens.xyz[fes.conn[idx][4], :])./4) 
+    #     for idx in 1:count(fes)])
+    # phie  = ElementalField(
+    #     [g((fens.xyz[fes.conn[idx][1], :]+fens.xyz[fes.conn[idx][2], :]+fens.xyz[fes.conn[idx][3], :]+fens.xyz[fes.conn[idx][4], :])./4) 
+    #     for idx in 1:count(fes)])
+    File = "mesh.vtk"
+    # Export of multiple scalar fields
+    result =  VTK.vtkexportmesh(File, fens, fes; scalars = [("psi", psi.values)])
+    @test result == true
+    rm(File)
+true
+end
+end
+using .mefexp23
+mefexp23.test()
+
+module mefexp24
+using FinEtools
+using LinearAlgebra
+using FinEtools.MeshExportModule: VTK
+using FinEtools.AlgoBaseModule: evalconvergencestudy
+using Test
+function test()
+    Lx=1900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
+    nx, ny = 10, 9
+    th = 7.0
+    f(x) = cos(0.93 * pi * x[1]/Lx) + sin(1.7 * pi * x[2]/Ly)
+    g(x) = -cos(0.93 * pi * x[1]/Lx) + 2*sin(1.7 * pi * x[2]/Ly)
+
+    fens,fes = Q4block(Lx,Ly,nx, ny); # Mesh
+    femm  =  FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
+    geom  =  NodalField(fens.xyz)
+    psie  =  ElementalField(fill(0.0, count(fes), 2))
+    for i in 1:count(fes)
+        psie.values[i, 1] = f((fens.xyz[fes.conn[i][1], :]+fens.xyz[fes.conn[i][2], :]+fens.xyz[fes.conn[i][3], :]+fens.xyz[fes.conn[i][4], :])./4)
+        psie.values[i, 2] = g((fens.xyz[fes.conn[i][1], :]+fens.xyz[fes.conn[i][2], :]+fens.xyz[fes.conn[i][3], :]+fens.xyz[fes.conn[i][4], :])./4)
+    end
+    numberdofs!(psie)
+    File = "mesh.vtk"
+    # Export of multiple scalar fields
+    result =  VTK.vtkexportmesh(File, fens, fes; scalars = [("psie", psie.values)])
+    @test result == true
+    rm(File)
+true
+end
+end
+using .mefexp24
+mefexp24.test()
