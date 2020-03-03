@@ -984,3 +984,80 @@ end
 end
 using .mnsimpr3
 mnsimpr3.test()
+
+module mntpr1
+using FinEtools
+using FinEtools.MeshExportModule
+using Test
+function test()
+    xs = collect(linearspace(0.0, pi / 2, 5))
+    fens, fes = L2blockx(xs)
+    @test count(fes) == 4
+    
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegDomain(fes, NodalTensorProductRule(1)))
+    V1 = integratefunction(femm, geom, (x) ->  1.0)
+    femm  =  FEMMBase(IntegDomain(fes, TrapezoidalRule(1)))
+    V2 = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(V1 - V2) / V1 <= 1.0e-5
+    true
+end
+end
+using .mntpr1
+mntpr1.test()
+
+module mntpr2
+using FinEtools
+using FinEtools.MeshExportModule
+using Test
+function test()
+    xs = collect(linearspace(0.0, pi / 2, 5))
+    ys = collect(linearspace(0.0, 1.0, 6).^2)
+    fens, fes = Q4blockx(xs, ys)
+    for i = 1:count(fens)
+        a, y = fens.xyz[i,:]
+        fens.xyz[i,1] = sin(a) * (y + 0.5)
+        fens.xyz[i,2] = cos(a) * (y + 0.5)
+    end
+    @test count(fes) == 20
+    
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegDomain(fes, NodalTensorProductRule(2)))
+    V1 = integratefunction(femm, geom, (x) ->  1.0)
+    femm  =  FEMMBase(IntegDomain(fes, TrapezoidalRule(2)))
+    V2 = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(V1 - V2) / V1 <= 1.0e-5
+    true
+end
+end
+using .mntpr2
+mntpr2.test()
+
+module mntpr3
+using FinEtools
+using FinEtools.MeshExportModule
+using Test
+function test()
+    xs = collect(linearspace(0.0, pi / 2, 5))
+    ys = collect(linearspace(0.0, 1.0, 6).^2)
+    zs = collect(linearspace(0.0, 1.0, 3))
+    fens, fes = H8blockx(xs, ys, zs)
+    for i = 1:count(fens)
+        a, y, z = fens.xyz[i,:]
+        fens.xyz[i,1] = sin(a) * (y + 0.5)
+        fens.xyz[i,2] = cos(a) * (y + 0.5)
+        fens.xyz[i,3] = z
+    end
+    @test count(fes) == 40
+    
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegDomain(fes, NodalTensorProductRule(3)))
+    V1 = integratefunction(femm, geom, (x) ->  1.0)
+    femm  =  FEMMBase(IntegDomain(fes, TrapezoidalRule(3)))
+    V2 = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(V1 - V2) / V1 <= 1.0e-5
+    true
+end
+end
+using .mntpr3
+mntpr3.test()
