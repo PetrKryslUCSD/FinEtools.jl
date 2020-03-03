@@ -4147,3 +4147,33 @@ end
 end
 using .mh8ellip1
  mh8ellip1.test()
+
+ module mh8sphere1x1
+ using FinEtools
+ using LinearAlgebra
+ using FinEtools.MeshExportModule: VTK
+ using Test
+ function test()
+     fens,fes = H8sphere(3.1, 1)
+     @test (count(fens), count(fes)) == (65, 32)
+     # File = "mesh.vtk"
+     # VTK.vtkexportmesh(File, fens, fes)
+     # rm(File)
+
+     bfes = meshboundary(fes)
+
+     list = selectelem(fens, bfes, plane = [0.0, -1.0, 0.0, 0.0], thickness = 0.001)
+     @test length(list) == 12
+     # File = "bmesh.vtk"
+     # VTK.vtkexportmesh(File, fens, subset(bfes, list))
+     # rm(File)
+
+     list = selectelem(fens, bfes, facing = true, direction = function(x)x/norm(x); end, dotmin = 0.99)
+     @test length(list) == 12
+     # File = "bmesh.vtk"
+     # VTK.vtkexportmesh(File, fens, subset(bfes, list))
+     # rm(File)
+ end
+end
+using .mh8sphere1x1
+mh8sphere1x1.test()
