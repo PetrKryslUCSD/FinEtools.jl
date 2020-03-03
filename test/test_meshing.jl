@@ -4128,3 +4128,22 @@ end
 end
 using .mtetvt1
 mtetvt1.test()
+
+module mh8ellip1
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+    xradius::FFlt, yradius::FFlt, L::FFlt, H::FFlt, T::FFlt,
+          nL::FInt, nH::FInt, nW::FInt, nT::FInt = 0.3, 0.45, 0.9, 0.8, 0.1, 5, 4, 3, 2
+  fens, fes = H8elliphole(xradius::FFlt, yradius::FFlt, L::FFlt, H::FFlt, T::FFlt,
+      nL::FInt, nH::FInt, nW::FInt, nT::FInt)
+  # @show count(fens), count(fes)
+  @test (count(fens), count(fes)) == (120, 54) 
+  File = "mesh.vtk"
+  VTK.vtkexportmesh(File, fens, fes)
+  rm(File)
+end
+end
+using .mh8ellip1
+ mh8ellip1.test()
