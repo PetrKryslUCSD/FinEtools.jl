@@ -871,8 +871,39 @@ function test()
     end
     numberdofs!(psi)
     @test psi.nfreedofs == 220
+
+    psi  =  GeneralField(fill(0.0, count(fens)))
+    for i in 1:count(fens)
+        psi.values[i, 1] = f(fens.xyz[i, :]) 
+    end
+    numberdofs!(psi)
+    @test psi.nfreedofs == 110
 true
 end
 end
 using .mgffip1
 mgffip1.test()
+
+module msurfn1
+using FinEtools
+using LinearAlgebra
+using FinEtools.MeshExportModule: VTK
+using Test
+
+function test()
+        ndimensions = 2
+        tangents, fe_label = reshape([1.0; 1.0], 2, 1), 0
+        n = SurfaceNormal(ndimensions::FInt)
+        normal =  updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, fe_label::FInt)
+        @test norm(normal-[0.7071067811865475, -0.7071067811865475]) <= 1.0e-5
+        
+        ndimensions = 3
+        tangents, fe_label = reshape([1.0 0.0; 1.0 0.0; 0.0 1.0], 3, 2), 0
+        n = SurfaceNormal(ndimensions::FInt)
+        normal =  updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, fe_label::FInt)
+        @test norm(normal-[0.7071067811865475, -0.7071067811865475, 0.0]) <= 1.0e-5
+        true
+    end
+end
+using .msurfn1
+msurfn1.test()
