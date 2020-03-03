@@ -907,3 +907,80 @@ function test()
 end
 using .msurfn1
 msurfn1.test()
+
+module mnsimpr1
+using FinEtools
+using FinEtools.MeshExportModule
+using Test
+function test()
+    xs = collect(linearspace(0.0, pi / 2, 5))
+    fens, fes = L2blockx(xs)
+    @test count(fes) == 4
+    
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegDomain(fes, NodalSimplexRule(3)))
+    V1 = integratefunction(femm, geom, (x) ->  1.0)
+    femm  =  FEMMBase(IntegDomain(fes, SimplexRule(3, 4)))
+    V2 = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(V1 - V2) / V1 <= 1.0e-5
+    true
+end
+end
+using .mnsimpr1
+mnsimpr1.test()
+
+module mnsimpr2
+using FinEtools
+using FinEtools.MeshExportModule
+using Test
+function test()
+    xs = collect(linearspace(0.0, pi / 2, 5))
+    ys = collect(linearspace(0.0, 1.0, 6).^2)
+    fens, fes = T3blockx(xs, ys, :a)
+    for i = 1:count(fens)
+        a, y = fens.xyz[i,:]
+        fens.xyz[i,1] = sin(a) * (y + 0.5)
+        fens.xyz[i,2] = cos(a) * (y + 0.5)
+    end
+    @test count(fes) == 40
+    
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegDomain(fes, NodalSimplexRule(3)))
+    V1 = integratefunction(femm, geom, (x) ->  1.0)
+    femm  =  FEMMBase(IntegDomain(fes, SimplexRule(3, 4)))
+    V2 = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(V1 - V2) / V1 <= 1.0e-5
+    true
+end
+end
+using .mnsimpr2
+mnsimpr2.test()
+
+module mnsimpr3
+using FinEtools
+using FinEtools.MeshExportModule
+using Test
+function test()
+    xs = collect(linearspace(0.0, pi / 2, 5))
+    ys = collect(linearspace(0.0, 1.0, 6).^2)
+    zs = collect(linearspace(0.0, 1.0, 3))
+    fens, fes = T4blockx(xs, ys, zs, :a)
+    for i = 1:count(fens)
+        a, y, z = fens.xyz[i,:]
+        fens.xyz[i,1] = sin(a) * (y + 0.5)
+        fens.xyz[i,2] = cos(a) * (y + 0.5)
+        fens.xyz[i,3] = z
+    end
+    @test count(fes) == 240
+    
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegDomain(fes, NodalSimplexRule(3)))
+    V1 = integratefunction(femm, geom, (x) ->  1.0)
+    femm  =  FEMMBase(IntegDomain(fes, SimplexRule(3, 4)))
+    V2 = integratefunction(femm, geom, (x) ->  1.0)
+    @test abs(V1 - V2) / V1 <= 1.0e-5
+    true
+end
+end
+using .mnsimpr3
+mnsimpr3.test()
