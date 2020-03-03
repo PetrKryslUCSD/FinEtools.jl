@@ -1191,3 +1191,40 @@ end
 end
 using .mbas010x2
 mbas010x2.test()
+
+
+module mbas010x3
+using FinEtools
+using FinEtools.AlgoBaseModule: fieldnorm
+using Test
+function test()
+    a, b, na, nb = 1.3, 3.1, 3, 2
+    fens,fes = T3block(a, b, na, nb); # Mesh
+    geom = NodalField(fens.xyz)
+    femm = FEMMBase(IntegDomain(fes, NodalSimplexRule(2), true))
+
+    V = integratefunction(femm, geom, (x) ->  1.0, 3)
+    @test abs(V - pi * a^2 * b) / V <= eps(V)
+    true
+end
+end
+using .mbas010x3
+mbas010x3.test()
+
+module mbas010x4
+using FinEtools
+using Test
+function test()
+    a, b, na, nb = 1.3, 3.1, 3, 2
+    fens,fes = T3block(a, b, na, nb); # Mesh
+    geom = NodalField(fens.xyz)
+    bfes  =   meshboundary(fes);
+    femm = FEMMBase(IntegDomain(bfes, NodalSimplexRule(1), true))
+    
+    S = integratefunction(femm, geom, (x) ->  1.0, 2)
+    @test abs(S - (2 * pi * a * b + 2 * pi * a^2)) / S <= eps(S)
+    true
+end
+end
+using .mbas010x4
+mbas010x4.test()
