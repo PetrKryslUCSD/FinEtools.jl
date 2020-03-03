@@ -2284,6 +2284,7 @@ function test()
     numberdofs!(psi)
 
     psih = fieldfromintegpoints(femm, geom, u, dT, :psi, 1) 
+    @test nnodes(psih) == count(fens)
 
     File = "psi.vtk"
     # Export of multiple scalar fields
@@ -2349,6 +2350,7 @@ function test()
     numberdofs!(psi)
 
     psih = elemfieldfromintegpoints(femm, geom, u, dT, :psi, 1) 
+    @test nelems(psih) == count(fes)
 
     File = "psi.vtk"
     # Export of multiple scalar fields
