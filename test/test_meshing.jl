@@ -4177,3 +4177,34 @@ using .mh8ellip1
 end
 using .mh8sphere1x1
 mh8sphere1x1.test()
+
+module mh8sphere1x2
+using FinEtools
+using LinearAlgebra
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+    fens,fes = H8sphere(3.1, 1)
+    @test (count(fens), count(fes)) == (65, 32)
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    fens2,fesa = mergenmeshes(meshes, 0.0001)
+    @test (count(fens2), count(fesa[1])) == (65, 32)
+
+    
+    fens1,fes1 = mirrormesh(fens, fes, [0, -1.0, 0], [0.0, 0, 0])
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    push!(meshes, (fens1, fes1))
+    fens,fesa = mergenmeshes(meshes, 0.0001)
+    fes = cat(fesa[1], fesa[2])
+    @test (count(fens), count(fes)) == (111, 64) 
+
+    # File = "mesh.vtk"
+    # VTK.vtkexportmesh(File, fens, fes)
+    # rm(File)
+    true
+end
+end
+using .mh8sphere1x2
+mh8sphere1x2.test()
