@@ -13,7 +13,7 @@ using LinearAlgebra: cross, norm
 
 """
     SurfaceNormal{F<:Function}
-stop listening noise me of being sure moon moon moon9
+
 Exterior surface normal type.
 
 Normalized to unit length.
@@ -23,7 +23,7 @@ at any given point `XYZ`, using the columns of the Jacobian matrix
 of the element, `tangents`, and if necessary  also the finite element label, `fe_label`:
 
 ```
-getnormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
 ```
 
 The buffer `normalout` is filled with the value  of the normal vector.
