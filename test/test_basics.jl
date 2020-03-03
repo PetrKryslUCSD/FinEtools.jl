@@ -1061,3 +1061,19 @@ end
 end
 using .mntpr3
 mntpr3.test()
+
+module mr3m1
+using FinEtools
+using LinearAlgebra
+using Test
+function test()
+    a = rand(3)
+    R = rotmat3(a)
+    R1 = fill(0.0, 3, 3)
+    rotmat3!(R1, a)
+    @test norm(R - R1) <= 1.0e-9
+    @test norm(R*R1' - I) <= 1.0e-9
+end
+end
+using .mr3m1
+mr3m1.test()
