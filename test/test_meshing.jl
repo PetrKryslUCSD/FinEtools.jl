@@ -4080,3 +4080,51 @@ end
 end
 using .mefexp24
 mefexp24.test()
+
+module mtetvt1
+using FinEtools
+using FinEtools.MeshTetrahedronModule: tetv
+using Test
+function reftetv(X::FFltMat)
+    local one6th = 1.0/6
+    # @assert size(X, 1) == 4
+    # @assert size(X, 2) == 3
+    @inbounds let
+        A1 = X[2,1]-X[1,1];
+        A2 = X[2,2]-X[1,2];
+        A3 = X[2,3]-X[1,3];
+        B1 = X[3,1]-X[1,1];
+        B2 = X[3,2]-X[1,2];
+        B3 = X[3,3]-X[1,3];
+        C1 = X[4,1]-X[1,1];
+        C2 = X[4,2]-X[1,2];
+        C3 = X[4,3]-X[1,3];
+        return one6th * ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
+    end
+end
+function test()
+    X = fill(0.0, 4, 3)
+    xs = collect(linearspace(0.0, pi / 2, 5))
+    ys = collect(linearspace(0.0, 1.0, 6).^2)
+    zs = collect(linearspace(0.0, 1.0, 7).^2)
+    fens, fes = T4blockx(xs, ys, zs, :a)
+    match = true
+    for i in 1:count(fes)
+        X[1, :] = fens.xyz[fes.conn[i][1], :];
+        X[2, :] = fens.xyz[fes.conn[i][2], :];
+        X[3, :] = fens.xyz[fes.conn[i][3], :];
+        X[4, :] = fens.xyz[fes.conn[i][4], :];
+        match = match &&  (reftetv(X) == tetv(X))
+    end
+    @test match
+
+    X = Float64[0  4  3
+    9  2  4
+    6  1  7
+    0  1  5] # for these points the volume is 10.0
+    @test tetv((X')...) == tetv(X)
+    @test tetv(X, 1, 2, 3, 4) == tetv(X)
+end
+end
+using .mtetvt1
+mtetvt1.test()

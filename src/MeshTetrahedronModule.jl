@@ -308,8 +308,43 @@ function tetv(X::FFltMat)
     end
 end
 
+"""
+    tetv(X)
+
+Compute the volume of a tetrahedron.
+
+```
+X = [0  4  3
+9  2  4
+6  1  7
+0  1  5] # for these points the volume is 10.0
+tetv(X)
+```
+"""
 function tetv(v11::FFlt, v12::FFlt, v13::FFlt, v21::FFlt, v22::FFlt, v23::FFlt, v31::FFlt, v32::FFlt, v33::FFlt, v41::FFlt, v42::FFlt, v43::FFlt)
     local one6th = 1.0/6
+    return one6th * tetvtimes6(v11::FFlt, v12::FFlt, v13::FFlt, v21::FFlt, v22::FFlt, v23::FFlt, v31::FFlt, v32::FFlt, v33::FFlt, v41::FFlt, v42::FFlt, v43::FFlt)
+end
+
+"""
+    tetv(X)
+
+Compute the volume of a tetrahedron.
+
+```
+X = Float64[0  4  3
+9  2  4
+6  1  7
+0  1  5] # for these points the volume is 10.0
+tetv(X, 1, 2, 3, 4)
+```
+"""
+function tetv(v::FFltMat, i1::Int, i2::Int, i3::Int, i4::Int)
+    local one6th = 1.0/6
+    return one6th * tetvtimes6(v[i1,1], v[i1,2], v[i1,3], v[i2,1], v[i2,2], v[i2,3], v[i3,1], v[i3,2], v[i3,3], v[i4,1], v[i4,2], v[i4,3])
+end
+
+function tetvtimes6(v11::FFlt, v12::FFlt, v13::FFlt, v21::FFlt, v22::FFlt, v23::FFlt, v31::FFlt, v32::FFlt, v33::FFlt, v41::FFlt, v42::FFlt, v43::FFlt)
     A1 = v21 - v11;
     A2 = v22 - v12;
     A3 = v23 - v13;
@@ -319,7 +354,7 @@ function tetv(v11::FFlt, v12::FFlt, v13::FFlt, v21::FFlt, v22::FFlt, v23::FFlt, 
     C1 = v41 - v11;
     C2 = v42 - v12;
     C3 = v43 - v13;
-    return one6th * ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
+    return ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
 end
 
 """
@@ -328,21 +363,7 @@ end
 Compute 6 times the volume of the tetrahedron.
 """
 function tetv1times6(v::FFltMat, i1::Int, i2::Int, i3::Int, i4::Int)
-    # local one6th = 1.0/6
-    # @assert size(X, 1) == 4
-    # @assert size(X, 2) == 3
-    @inbounds let
-        A1 = v[i2,1]-v[i1,1];
-        A2 = v[i2,2]-v[i1,2];
-        A3 = v[i2,3]-v[i1,3];
-        B1 = v[i3,1]-v[i1,1];
-        B2 = v[i3,2]-v[i1,2];
-        B3 = v[i3,3]-v[i1,3];
-        C1 = v[i4,1]-v[i1,1];
-        C2 = v[i4,2]-v[i1,2];
-        C3 = v[i4,3]-v[i1,3];
-        return ((-A3*B2+A2*B3)*C1 +  (A3*B1-A1*B3)*C2 + (-A2*B1+A1*B2)*C3);
-    end
+    return tetvtimes6(v[i1,1], v[i1,2], v[i1,3], v[i2,1], v[i2,2], v[i2,3], v[i3,1], v[i3,2], v[i3,3], v[i4,1], v[i4,2], v[i4,3])
 end
 
 """
