@@ -1126,7 +1126,6 @@ end
 using .MMATD1
 MMATD1.test()
 
-
 module mmassembl2
 using FinEtools
 using Test
@@ -1153,3 +1152,42 @@ end
 end
 using .mmassembl2
 mmassembl2.test()
+
+
+module mbas010x1
+using FinEtools
+using FinEtools.AlgoBaseModule: fieldnorm
+using Test
+function test()
+    a, b, na, nb = 1.3, 3.1, 3, 2
+    fens,fes = Q8block(a, b, na, nb); # Mesh
+    geom = NodalField(fens.xyz)
+    femm = FEMMBase(IntegDomain(fes, GaussRule(2, 3), true))
+
+    V = integratefunction(femm, geom, (x) ->  1.0, 3)
+    @test abs(V - pi * a^2 * b) / V <= eps(V)
+    true
+end
+end
+using .mbas010x1
+mbas010x1.test()
+
+
+module mbas010x2
+using FinEtools
+using FinEtools.AlgoBaseModule: fieldnorm
+using Test
+function test()
+    a, b, na, nb = 1.3, 3.1, 3, 2
+    fens,fes = Q8block(a, b, na, nb); # Mesh
+    geom = NodalField(fens.xyz)
+    bfes  =   meshboundary(fes);
+    femm = FEMMBase(IntegDomain(bfes, GaussRule(1, 3), true))
+    
+    S = integratefunction(femm, geom, (x) ->  1.0, 2)
+    @test abs(S - (2 * pi * a * b + 2 * pi * a^2)) / S <= eps(S)
+    true
+end
+end
+using .mbas010x2
+mbas010x2.test()
