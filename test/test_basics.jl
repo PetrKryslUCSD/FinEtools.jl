@@ -620,6 +620,35 @@ end
 using .mvass1
 mvass1.test()
 
+module mvass2
+using FinEtools
+using LinearAlgebra
+using Test
+function test()
+    N = 30
+    v = fill(0.0, N)
+    a = SysvecAssembler()
+    startassembly!(a,  N)
+    vec, dofnums = rand(3), [1, 7, 2]
+    assemble!(a, vec, dofnums) 
+    for (i, p) in zip(dofnums, vec)
+        v[i] += p
+    end
+    vec, dofnums = rand(7), [29, 0, 1, 7, 3, 0, 2]
+    assemble!(a, vec, dofnums) 
+    for (i, p) in zip(dofnums, vec)
+        if i > 0
+            v[i] += p
+        end
+    end
+    w = makevector!(a)
+    @test norm(v-w) / norm(w) <= 1.0e-9
+end
+end
+using .mvass2
+mvass2.test()
+
+
 module mmhrzass1
 using FinEtools
 using LinearAlgebra
@@ -703,6 +732,9 @@ function test()
 
     femm  =  FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
     fi = ForceIntensity([11.0])
+    F = distribloads(femm, geom, psi, fi, 3) 
+    @test abs(sum(F) - (*).(L,W,t, 11.0)) / 667 <=  1.0e-5
+    fi = ForceIntensity(11.0)
     F = distribloads(femm, geom, psi, fi, 3) 
     @test abs(sum(F) - (*).(L,W,t, 11.0)) / 667 <=  1.0e-5
 true
@@ -1077,3 +1109,47 @@ end
 end
 using .mr3m1
 mr3m1.test()
+
+module MMATD1
+using FinEtools
+using LinearAlgebra
+using Test
+mutable struct Mat<:AbstractMat
+    mass_density:: Float64
+end
+
+function test()
+    m = Mat(133.0)
+    @test massdensity(m) == 133.0
+end
+end
+using .MMATD1
+MMATD1.test()
+
+
+module mmassembl2
+using FinEtools
+using Test
+import LinearAlgebra: norm, cholesky
+function test()
+    a = SysmatAssemblerSparse(0.0)
+    startassembly!(a, 5, 5, 3, 7, 7)
+    m = [0.24406   0.599773    0.833404  0.0420141
+    0.786024  0.00206713  0.995379  0.780298
+    0.845816  0.198459    0.355149  0.224996]
+    assemble!(a, m, [1 7 5], [5 0 1 4])
+    m = [0.146618  0.53471   0.614342    0.737833
+ 0.479719  0.41354   0.00760941  0.836455
+ 0.254868  0.476189  0.460794    0.00919633
+ 0.159064  0.261821  0.317078    0.77646
+ 0.643538  0.429817  0.59788     0.958909]
+    assemble!(a, m, [2 3 1 0 5], [6 7 3 4])
+    A = makematrix!(a)
+    # @show Matrix(A)
+    @test abs.(maximum([0.833404 0.0 0.460794 0.05121043 0.24406 0.254868 0.476189; 
+0.0 0.0 0.614342 0.737833 0.0 0.146618 0.53471; 0.0 0.0 0.00760941 0.836455 0.0 0.479719 0.41354; 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.355149 0.0 0.59788 1.183905 0.845816 0.643538 0.429817; 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 0.995379 0.0 0.0 0.780298 0.786024 0.0 0.0]  - A)) < 1.0e-5
+    # @test abs(maximum(T_i)-1380.5883006341187) < 1.0e-3
+end
+end
+using .mmassembl2
+mmassembl2.test()
