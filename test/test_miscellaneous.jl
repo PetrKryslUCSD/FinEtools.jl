@@ -2363,7 +2363,7 @@ end
 using .meffip1
 meffip1.test()
 
-module msurfn1
+module msurfn1x
 using FinEtools
 using LinearAlgebra
 using FinEtools.MeshExportModule: VTK
@@ -2384,8 +2384,8 @@ function test()
         true
     end
 end
-using .msurfn1
-msurfn1.test()
+using .msurfn1x
+msurfn1x.test()
 
 module mffipx1
 using FinEtools
