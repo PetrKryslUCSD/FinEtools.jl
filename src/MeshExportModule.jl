@@ -1257,4 +1257,37 @@ end
 
 end # H2Lib
 
+module MESH
+################################################################################
+# MESH export
+################################################################################
+using DelimitedFiles
+using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
+import ...FENodeSetModule: FENodeSet
+
+MESHtypemap = Dict{DataType, String}(FESetP1=>"P1", FESetL2=>"L2", FESetT3=>"T3",
+    FESetQ4=>"Q4", FESetT4=>"T4", FESetH8=>"H8", FESetQ8=>"Q8", FESetL3=>"L3", FESetT6=>"T6",
+    FESetT10=>"T10", FESetH20=>"H20")
+
+function write_MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:AbstractFESet}
+    meshfilebase, ext = splitext(meshfile)
+    dinfo = [
+    meshfilebase * "-xyz.dat", 
+    MESHtypemap[typeof(fes)], 
+    meshfilebase * "-conn.dat"]
+    open(dinfo[1], "w") do file
+        writedlm(file, fens.xyz, ' ')
+    end
+    open(dinfo[3], "w") do file
+        writedlm(file, connasarray(fes), ' ')
+    end
+    open(meshfilebase * ".mesh", "w") do file
+        writedlm(file, dinfo)
+    end
+    return true
+end
+
+end
+
 end
