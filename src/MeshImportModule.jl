@@ -139,8 +139,10 @@ function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = fal
 
     end # while
 
-    node=node[1:nnode,:]
-    elem=elem[1:nelem,:]
+    # Trim the arrays
+    node = node[1:nnode,:]
+    elem = elem[1:nelem,:]
+
     # The nodes need to be in serial order:  if they are not,  the element
     # connectivities  will not point at the right nodes
     @assert  norm(collect(1:nnode)-node[:,1]) == 0 "Nodes are not in serial order"
@@ -154,17 +156,26 @@ function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = fal
 
     @assert ((ennod[1] == 4) || (ennod[1] == 10)) "Unknown element type"
     conn = elem[:,4:3+convert(FInt, ennod[1])]
+    pids = elem[:,2] # property identifier: different identifiers, different materials
+    upids = unique(pids)
 
     # Create output arguments. First the nodes
     fens = FENodeSet(xyz)
-    if ennod[1] == 4
-        fes = FESetT4(conn)
-    else
-        fes = FESetT10(conn)
-    end
-    setlabel!(fes, elem[:,2])
 
-    output = FDataDict("fens"=>fens, "fesets"=>[fes])
+    # Now for each distinct property identifier, create one finite element set
+    fesets = AbstractFESet[]
+    for pid in upids
+        ix = [i for i in 1:length(pids) if pids[i] == pid] 
+        C = conn[ix, :]
+        if ennod[1] == 4
+            fes = FESetT4(C)
+        else
+            fes = FESetT10(C)
+        end
+        push!(fesets, fes)
+    end
+    
+    output = FDataDict("fens"=>fens, "fesets"=>fesets, "property_ids"=>upids)
     return output
 end
 
