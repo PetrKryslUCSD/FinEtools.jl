@@ -308,9 +308,9 @@ function centroidparametric(self::T) where {T<:AbstractFESet}
 end
 
 """
-    Jacobian(self::T, J::FFltMat)::FFlt where {T<:AbstractFESet1Manifold}
+    Jacobian(self::T, J::FFltMat)::FFlt where {T<:AbstractFESet0Manifold}
 
-Evaluate the curve Jacobian.
+Evaluate the point Jacobian.
 
 - `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
