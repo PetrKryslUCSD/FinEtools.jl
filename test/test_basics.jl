@@ -304,7 +304,7 @@ end
 using .mbascs06
 mbascs06.test()
 
-module mbascs06
+module mbascs06Alpha
 using FinEtools
 using FinEtools.MatrixUtilityModule: complete_lt!, add_mggt_ut_only!, add_gkgt_ut_only!, add_btdb_ut_only!, add_btsigma!, add_nnt_ut_only!
 using LinearAlgebra
@@ -365,8 +365,8 @@ function test()
     true
 end
 end
-using .mbascs06
-mbascs06.test()
+using .mbascs06Alpha
+mbascs06Alpha.test()
 
 module msymmx
 using FinEtools
