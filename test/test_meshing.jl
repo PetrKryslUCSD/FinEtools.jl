@@ -1,3 +1,50 @@
+
+# module mimptm2
+# using FinEtools
+# using FinEtools.MeshImportModule
+# using FinEtools.MeshExportModule: VTK
+# using Test
+# function test()
+#  output = MeshImportModule.import_GMSH(dirname(@__FILE__) * "/" * "cylinder.msh";
+#    allocationchunk = 13)
+#  @show length(output["fesets"])
+#  @show typeof.(output["fesets"])
+#  fens, fes = output["fens"], output["fesets"][1]
+#    # show(fes.conn[count(fes), :])
+#    File = "cylinder.vtk"
+#    VTK.vtkexportmesh(File, fens, fes)
+#    # rm(File)
+
+#    # @test fes.conn[1,:] == NTuple{4,Int64}[(1, 2, 3, 4),]
+#    # @test fes.conn[2,:] == NTuple{4,Int64}[(2, 5, 6, 3),]
+#    # @async run(`"paraview.exe" $File`)
+#  end
+# end
+# using .mimptm2
+# mimptm2.test()
+
+# module mimptm1
+# using FinEtools
+# using FinEtools.MeshImportModule
+# using FinEtools.MeshExportModule: VTK
+# using Test
+# function test()
+#   output = MeshImportModule.import_GMSH(dirname(@__FILE__) * "/" * "twoquads.msh";
+#     allocationchunk = 13)
+#   fens, fes = output["fens"], output["fesets"][1]
+#   # show(fes.conn[count(fes), :])
+#   File = "twoquads.vtk"
+#   VTK.vtkexportmesh(File, fens, fes)
+#   # rm(File)
+
+#   @test fes.conn[1,:] == NTuple{4,Int64}[(1, 2, 3, 4),]
+#   @test fes.conn[2,:] == NTuple{4,Int64}[(2, 5, 6, 3),]
+#   # @async run(`"paraview.exe" $File`)
+# end
+# end
+# using .mimptm1
+# mimptm1.test()
+
 module miscellaneous2mm
 using FinEtools
 using Test
