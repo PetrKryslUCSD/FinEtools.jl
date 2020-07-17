@@ -7,7 +7,11 @@ module MeshImportModule
 
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FENodeSetModule: FENodeSet
-import ..FESetModule: AbstractFESet, FESetT3, FESetQ4, FESetT4, FESetT10, FESetH8, FESetH20, setlabel!
+import ..FESetModule: setlabel!, nodesperelem
+import ..FESetModule: AbstractFESet, FESetL2, FESetL3, FESetP1
+import ..FESetModule: FESetQ4, FESetQ8, FESetQ9
+import ..FESetModule: FESetT3, FESetT6, FESetT4, FESetT10
+import ..FESetModule: FESetH8, FESetH20, FESetH27
 import ..MeshModificationModule: renumberconn!
 import Unicode: uppercase, isdigit
 import LinearAlgebra: norm
