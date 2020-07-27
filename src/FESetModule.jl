@@ -88,6 +88,13 @@ Provide the number of nodes per element.
 nodesperelem(fes::AbstractFESet{NODESPERELEM}) where {NODESPERELEM} = NODESPERELEM
 
 """
+    nodesperelem(::Type{T}) where {NODESPERELEM, T<:AbstractFESet{NODESPERELEM}}
+
+Provide the number of nodes per element for a given type.
+"""
+nodesperelem(::Type{T}) where {NODESPERELEM, T<:AbstractFESet{NODESPERELEM}} = NODESPERELEM
+
+"""
     manifdim(me)
 
 Get the manifold dimension.

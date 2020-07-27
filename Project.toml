@@ -18,7 +18,4 @@ Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [compat]
 Arpack = "0.4.0"
-LoopVectorization = "0.6"
-StatsBase = "0.32"
 julia = "1.4"
-
