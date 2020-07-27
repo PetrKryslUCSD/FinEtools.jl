@@ -88,14 +88,20 @@ version = "0.4.3"
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[OffsetArrays]]
+git-tree-sha1 = "2066e16af994955287f2e03ba1d9e890eb43b0dd"
 uuid = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
 version = "1.1.2"
 
 [[OpenBLAS_jll]]
+deps = ["CompilerSupportLibraries_jll", "Libdl", "Pkg"]
+git-tree-sha1 = "0c922fd9634e358622e333fc58de61f05a048492"
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
+version = "0.3.9+5"
 
 [[OrderedCollections]]
+git-tree-sha1 = "293b70ac1780f9584c89268a6e2a560d938a7065"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
+version = "1.3.0"
 
 [[Pkg]]
 deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
