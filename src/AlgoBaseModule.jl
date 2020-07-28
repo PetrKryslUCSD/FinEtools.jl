@@ -56,17 +56,19 @@ This function is applicable to any the mesh sizes (monotonically increasing, or 
 - `residual` = residual after equations from which the above quantities were
   solved (this is a measure of how accurately was the system solved).
 """
-function richextrapol(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn}}
-   	lower, upper = 0.001, 10.0
-   	solnn = maximum(abs.(solns));
+function richextrapol(solns::T, params::T; lower_conv_rate = 0.001, upper_conv_rate = 10.0) where {T<:AbstractArray{Tn} where {Tn}}
+    # These two constants may needs to be tweaked in special cases. They are the
+    # lower and upper bound on the convergence rate.
+    lower, upper = lower_conv_rate, upper_conv_rate
+    solnn = maximum(abs.(solns));
    	nsolns = solns./solnn # Normalize data for robust calculation
    	nhs1, nhs2, nhs3 = params ./ maximum(params) # Normalize the parameter values
     napproxerror1, napproxerror2 = diff(nsolns) # Normalized approximate errors
-   	napperr1, napperr2 = (napproxerror1, napproxerror2) ./ max(abs(napproxerror1), abs(napproxerror2)) 
-   	maxfun = 0.0
-   	for y =  range(lower, stop=upper, length=100)                
-   		maxfun = max(maxfun, napperr1 * (nhs2^y - nhs3^y) - napperr2 * (nhs1^y - nhs2^y))
-   	end
+    napperr1, napperr2 = (napproxerror1, napproxerror2) ./ max(abs(napproxerror1), abs(napproxerror2)) 
+    maxfun = 0.0
+    for y =  range(lower, stop=upper, length=100)                
+       maxfun = max(maxfun, napperr1 * (nhs2^y - nhs3^y) - napperr2 * (nhs1^y - nhs2^y))
+   end
    	napperrs1, napperr2 = (napperr1, napperr2) ./ maxfun  # Normalize the function values
    	fun = y ->  napperrs1 * (nhs2^y - nhs3^y) - napperr2 * (nhs1^y - nhs2^y)
    	# x = collect(lower:lower:upper)
@@ -74,11 +76,16 @@ function richextrapol(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn
    	# p = plot(x=x, y = y, Geom.line);
    	# draw(PDF("File.pdf", 16cm, 9cm), p)
    	tolx, tolf = 1.0e-6 * lower, 1.0e-12  # Note: the function value is normalized to 1.0
-   	beta = bisect(fun, lower, upper, tolx, tolf)
-   	beta = (beta[1] + beta[2]) / 2.0
-   	c = napproxerror1 / (params[1]^beta - params[2]^beta)
-   	nestimtrueerror = c * params[3]^beta
-   	solnestim = (nsolns[3] + nestimtrueerror) * solnn
+   	fl = fun(lower);
+    fu = fun(upper);
+    if fl*fu > 0.0
+        error("richextrapol: Data does not allow for extrapolation, no bracket found")
+    end
+    beta = bisect(fun, lower, upper, fl, fu, tolx, tolf)
+    beta = (beta[1] + beta[2]) / 2.0
+    c = napproxerror1 / (params[1]^beta - params[2]^beta)
+    nestimtrueerror = c * params[3]^beta
+    solnestim = (nsolns[3] + nestimtrueerror) * solnn
    	c = c * solnn # adjust for not-normalized data
    	# just to check things, calculate the residual
    	residual = fill(zero(solns[1]),3)
@@ -86,7 +93,7 @@ function richextrapol(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn
    		residual[I] = (solnestim-solns[I])-c*params[I]^beta; # this should be close to zero
    	end
    	return solnestim, beta, c, residual
-end
+   end
 
 """
     richextrapoluniform(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn}}
@@ -123,6 +130,45 @@ function richextrapoluniform(solns::T, params::T) where {T<:AbstractArray{Tn} wh
         residual[I] = (solnestim-solns[I])-c*params[I]^beta; # this should be close to zero
     end
     return solnestim, beta, c, residual
+end
+
+"""
+    bisect(fun, xl, xu, fl, fu, tolx, tolf)
+
+Implementation of the bisection method.
+
+Tolerance both on `x` and on `f(x)` is used.
+- `fun` = function,
+- `xl`,`xu`= lower and upper value of the bracket,
+- `fl`,`fu`= function value at the lower and upper limit of the bracket.
+The true values must have opposite signs (that is they must constitute a bracket). Otherwise  this algorithm will fail.
+- `tolx`= tolerance on the location of the root,
+- `tolf`= tolerance on the function value
+"""
+function bisect(fun, xl, xu, fl, fu, tolx, tolf)
+    iter = 0;
+    if (xl > xu)
+        temp = xl; xl = xu; xu = temp;
+    end
+    # fl = fun(xl);
+    # fu = fun(xu);
+    # @assert fl*fu < 0.0 "Need to get a bracket"
+    while true
+        xr = (xu + xl) / 2.0; # bisect interval
+        fr = fun(xr); # value at the midpoint
+        if (fr*fl < 0.0)
+            xu = xr; fu = fr;# upper --> midpoint
+        elseif (fr == 0.0)
+            xl = xr; xu = xr;# exactly at the root
+        else
+            xl = xr; fl = fr;# lower --> midpoint
+        end
+        if (abs(xu-xl) < tolx) || (abs(fr) < tolf)
+            break; # We are done
+        end
+        iter = iter+1;
+    end
+    return xl, xu;
 end
 
 """
