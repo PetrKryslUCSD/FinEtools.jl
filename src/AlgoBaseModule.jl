@@ -38,7 +38,7 @@ function dcheck!(d::FDataDict, recognized_keys::Array{String})
 end
 
 """
-    richextrapol(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn}}
+    richextrapol(solns::T, params::T; lower_conv_rate = 0.001, upper_conv_rate = 10.0) where {T<:AbstractArray{Tn} where {Tn}}
 
 Richardson extrapolation.
 
