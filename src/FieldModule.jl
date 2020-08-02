@@ -268,14 +268,26 @@ Number the degrees of freedom.
 
 The free components in the field are numbered consecutively. No effort is
 made to optimize the numbering in any way. If you'd like to optimize the
-numbering of the degrees of freedom, use the above form that sets the
+numbering of the degrees of freedom, use a form that sets the
 permutation of the degrees of freedom, or the permutation of the nodes.
 """
 function numberdofs!(self::AbstractField)
+    return numberdofs!(self, 1:nents(self))
+end
+
+"""
+    numberdofs!(self::AbstractField, entperm)
+
+Number the degrees of freedom.
+
+The free components in the field are numbered consecutively. The sequence of the
+entities is given by the `entperm` permutation (array or range). 
+"""
+function numberdofs!(self::AbstractField, entperm)
     fixed_dofnum::FInt = 0
     nents,dim = size(self.values)
     self.nfreedofs::FInt =0
-    for i=1:nents
+    for i in entperm
         for j=1:dim
             if !self.is_fixed[i,j] # free degree of freedom
                 self.nfreedofs = self.nfreedofs + 1

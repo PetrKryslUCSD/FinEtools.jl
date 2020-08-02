@@ -739,6 +739,40 @@ end
 using .mmmfieldmm1
 mmmfieldmm1.test()
 
+module mmmfieldma1
+using FinEtools
+using Test
+import LinearAlgebra: norm
+function test()
+    W = 4.1;
+    L = 12.;
+    t =  5.32;
+    a = 0.3
+    nl, nt, nw = 4, 3, 2;
+
+    fens,fes  = H8block(L,W,t, nl,nw,nt)
+    geom  =  NodalField(fens.xyz)
+    u = deepcopy(geom)
+    setebc!(u)
+    copyto!(u, geom)
+    @test norm(u.values - geom.values) < 1.0e-5
+    wipe!(u)
+    numberdofs!(u, count(fens):-1:1)
+    @test isapprox(vec(u.dofnums[1,:]), vec([178 179 180]))
+    # @show u
+    @test norm(u.dofnums) > 1.0e-3
+    wipe!(u)
+    @test norm(u.dofnums) == 0
+    setebc!(u, [1, 3])
+    numberdofs!(u)
+    @test norm(u.dofnums[1,:]) == 0
+    @test norm(u.dofnums[3,:]) == 0
+    @test norm(u.dofnums[2,:]) > 0.0
+end
+end
+using .mmmfieldma1
+mmmfieldma1.test()
+
 module mmcrossm
 using FinEtools
 using FinEtools.RotationUtilModule
