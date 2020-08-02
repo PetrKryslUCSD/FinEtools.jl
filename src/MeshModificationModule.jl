@@ -1042,27 +1042,24 @@ modified from source of
 
 `A` is assumed to be symmetric.
 """
-function adjgraph(A::SparseMatrixCSC)
+function adjgraph(A::SparseMatrixCSC; sorted = false)
 	cptr = A.colptr
 	rval = A.rowval
 	ncols = length(cptr)-1
 	neighbors = Vector{Vector{Int}}(undef, ncols)
-	for i = 1:length(neighbors)
-		neighbors[i] = Int[]
-	end
-	sbyf = let A = A
-		j->_coldeg(A, j)
-	end
-	for j = 1:ncols
+	_cdeg = j -> cptr[j+1]-cptr[j]
+    jadj = fill(zero(Int), ncols)
+	for j in 1:ncols
 		strt = cptr[j]
-		jdeg = _coldeg(A, j)
-		jadj = Vector{Int}(undef, jdeg)
+		jdeg = _cdeg(j)
 		for i = 1:jdeg
 			jadj[i] = rval[strt+i-1]
 		end
-		sort!(jadj, by=sbyf)
-		neighbors[j] = jadj
-	end
+		neighbors[j] = [jadj[m] for m in 1:jdeg]
+        if sorted
+            sort!(neighbors[j], by=_cdeg)
+        end
+    end
 	return neighbors
 end
 
@@ -1116,47 +1113,53 @@ function _findP(inR, degrees)
 end
 
 """
-    revcm(adjgr::Vector{Vector{Int}}, degrees::Vector{Int})
+    revcm(adjgr::Vector{Vector{T}}, degrees::Vector{T}) where {T}
 
 Reverse Cuthill-McKee node-renumbering algorithm.
 """
-function revcm(adjgr::Vector{Vector{Int}}, degrees::Vector{Int})
-	@assert length(adjgr) == length(degrees)
-	# Initialization
-	n = length(adjgr)
-	ndegperm = sortperm(degrees) # sorted nodal degrees
-	inR = fill(false, n) # Is a node in the result list?
-	R = Int64[]
-	sizehint!(R, n)
-	Q = Int64[] # Node queue
-	sizehint!(Q, n)
-	while true
-		P = 0 # Find the next node to start from
-		while !isempty(ndegperm)
-			i = popfirst!(ndegperm)
-			if !inR[i]
-				P = i
-				break
-			end
-		end
-		if P == 0
-			break # That was the last node
-		end
-		# Now we have a node to start from: put it into the result list
-		push!(R, P); inR[P] = true
-		empty!(Q) # empty the queue
-		append!(Q, adjgr[P]) # put the adjacent nodes into the queue
-		while length(Q) >= 1
-			C = popfirst!(Q) # child to put into the result list
-			if !inR[C]
-				push!(R, C); inR[C] = true
-			end
-			for i in adjgr[C] # at all adjacent nodes into the queue
-				if !inR[i]
-					push!(Q, i)
-				end
-			end
-		end
+function revcm(adjgr::Vector{Vector{T}}, degrees::Vector{T}) where {T}
+    @assert length(adjgr) == length(degrees)
+    # Initialization
+    n = length(adjgr)
+    ndegperm = sortperm(degrees) # sorted nodal degrees
+    inR = fill(false, n) # Is a node in the result list?
+    inQ = fill(false, n) # Is a node in the queue?
+    R = T[]
+    sizehint!(R, n)
+    Q = T[] # Node queue
+    sizehint!(Q, n)
+    while true
+        P = zero(T) # Find the next node to start from
+        while !isempty(ndegperm)
+            i = popfirst!(ndegperm)
+            if !inR[i]
+                P = i
+                break
+            end
+        end
+        if P == zero(T)
+            break # That was the last node
+        end
+        # Now we have a node to start from: put it into the result list
+        push!(R, P); inR[P] = true
+        # Clean out the in-queue markers
+        for i in Q
+            inQ[i] = false
+        end
+        empty!(Q) # empty the queue
+        append!(Q, adjgr[P]); inQ[adjgr[P]] .= true # put adjacent nodes in queue
+        while length(Q) >= 1
+            C = popfirst!(Q) # child to put into the result list
+            inQ[C] = false
+            if !inR[C]
+                push!(R, C); inR[C] = true
+            end
+            for i in adjgr[C] # add all adjacent nodes into the queue
+                if (!inR[i]) && (!inQ[i]) # contingent on not being in result/queue
+                    push!(Q, i); inQ[i] = true
+                end
+            end
+        end
     end
     return reverse(R) # reverse the result list
 end
