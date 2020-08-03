@@ -1020,24 +1020,33 @@ function adjgraph(conn, nfens)
     return neighbors
 end
 
-"""
-    _coldeg(A::SparseMatrixCSC, j::Int)
+function quicksort!(A, lo, hi, byfun) 
+    function _partition!(A, lo, hi, byfun) 
+        pivot = byfun(hi)
+        i = lo
+        for j in lo:hi
+            if byfun(j) < pivot
+                A[i], A[j] = A[j], A[i]
+                i = i + 1
+            end
+        end
+        A[i], A[hi] = A[hi], A[i]
+        return i
+    end
 
-This function has been modified from source of
-(https://github.com/rleegates/CuthillMcKee.jl/blob/master/src/CuthillMcKee.jl)
-
-`A` is assumed to be symmetric.
-"""
-function _coldeg(A::SparseMatrixCSC, j::Int)
-	cptr = A.colptr
-	return cptr[j+1]-cptr[j]
+    if lo < hi
+        p = _partition!(A, lo, hi, byfun)
+        quicksort!(A, lo, p - 1, byfun)
+        quicksort!(A, p + 1, hi, byfun)
+    end
+    A
 end
 
 """
     adjgraph(A)
 
 Compute the adjacency graph from a sparse matrix. This function has been
-modified from source of
+heavily modified from the source of
 (https://github.com/rleegates/CuthillMcKee.jl/blob/master/src/CuthillMcKee.jl)
 
 `A` is assumed to be symmetric.
@@ -1057,7 +1066,16 @@ function adjgraph(A::SparseMatrixCSC; sorted = false)
 		end
 		neighbors[j] = [jadj[m] for m in 1:jdeg]
         if sorted
-            sort!(neighbors[j], by=_cdeg)
+            # a = deepcopy(neighbors[j])
+            quicksort!(neighbors[j], 1, jdeg, m -> _cdeg(neighbors[j][m]))
+            # sort!(a, by=_cdeg)
+            # if !isapprox(a, neighbors[j])
+            #     if !isapprox(_cdeg.(a), _cdeg.(neighbors[j]))
+            #         @show a, neighbors[j]
+            #         @show _cdeg.(a)
+            #         error("Whoa")
+            #     end
+            # end 
         end
     end
 	return neighbors
