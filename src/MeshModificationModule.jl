@@ -1029,7 +1029,7 @@ heavily modified from the source of
 
 `A` is assumed to be symmetric.
 """
-function adjgraph(A::SparseMatrixCSC; sorted = true)
+function adjgraph(A::SparseMatrixCSC; sorted = false)
 	cptr = A.colptr
 	rval = A.rowval
 	ncols = length(cptr)-1
@@ -1039,7 +1039,9 @@ function adjgraph(A::SparseMatrixCSC; sorted = true)
 		cstart = cptr[j]
 		jdeg = _cdeg(cptr, j)
 		neighbors[j] = [rval[cstart+m-1] for m in 1:jdeg]
-        if sorted
+    end
+    if sorted
+        for j in 1:ncols
             sort!(neighbors[j], by=j -> _cdeg(cptr, j))
         end
     end
