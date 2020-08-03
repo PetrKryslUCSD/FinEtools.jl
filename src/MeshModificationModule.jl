@@ -1020,8 +1020,8 @@ function adjgraph(conn, nfens)
     return neighbors
 end
 
-function quicksort!(A, lo, hi, byfun) 
-    function _partition!(A, lo, hi, byfun) 
+function quicksort!(A, lo, hi, byfun::F)  where {F}
+    function _partition!(A, lo, hi, byfun::F)  where {F}
         pivot = byfun(hi)
         i = lo
         for j in lo:hi
@@ -1051,7 +1051,7 @@ heavily modified from the source of
 
 `A` is assumed to be symmetric.
 """
-function adjgraph(A::SparseMatrixCSC; sorted = false)
+function adjgraph(A::SparseMatrixCSC; sorted = true)
 	cptr = A.colptr
 	rval = A.rowval
 	ncols = length(cptr)-1
@@ -1066,16 +1066,7 @@ function adjgraph(A::SparseMatrixCSC; sorted = false)
 		end
 		neighbors[j] = [jadj[m] for m in 1:jdeg]
         if sorted
-            # a = deepcopy(neighbors[j])
-            quicksort!(neighbors[j], 1, jdeg, m -> _cdeg(neighbors[j][m]))
-            # sort!(a, by=_cdeg)
-            # if !isapprox(a, neighbors[j])
-            #     if !isapprox(_cdeg.(a), _cdeg.(neighbors[j]))
-            #         @show a, neighbors[j]
-            #         @show _cdeg.(a)
-            #         error("Whoa")
-            #     end
-            # end 
+            sort!(neighbors[j], by=_cdeg)
         end
     end
 	return neighbors
