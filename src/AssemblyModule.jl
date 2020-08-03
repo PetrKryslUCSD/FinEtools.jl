@@ -126,20 +126,25 @@ function makematrix!(self::SysmatAssemblerSparse)
     # The method makes a sparse matrix from the assembly buffers.
     @assert length(self.rowbuffer) >= self.buffer_pointer-1
     @assert length(self.colbuffer) >= self.buffer_pointer-1
+    # Here we will go through the rows and columns, and whenever the row or
+    # the column refer to indexes outside of the limits of the matrix, the
+    # corresponding value will be set to 0 and assembled to row and column 1.
     @inbounds for j=1:self.buffer_pointer-1
         if (self.rowbuffer[j] > self.ndofs_row) || (self.rowbuffer[j] <= 0)
-            self.rowbuffer[j]=self.ndofs_row+1;
+            self.rowbuffer[j] = 1;
+            self.matbuffer[j] = 0.0
         end
         if (self.colbuffer[j] > self.ndofs_col) || (self.colbuffer[j] <= 0)
-            self.colbuffer[j]=self.ndofs_col+1;
+            self.colbuffer[j] = 1;
+            self.matbuffer[j] = 0.0
         end
     end
     S = sparse(self.rowbuffer[1:self.buffer_pointer-1],
                self.colbuffer[1:self.buffer_pointer-1],
                self.matbuffer[1:self.buffer_pointer-1],
-               self.ndofs_row+1, self.ndofs_col+1);
-    self=SysmatAssemblerSparse(0.0*self.matbuffer[1])# get rid of the buffers
-    return S[1:end-1,1:end-1]
+               self.ndofs_row, self.ndofs_col);
+    self = SysmatAssemblerSparse(0.0*self.matbuffer[1])# get rid of the buffers
+    return S
 end
 
 """
@@ -267,25 +272,30 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
     # The method makes a sparse matrix from the assembly buffers.
     @assert length(self.rowbuffer) >= self.buffer_pointer-1
     @assert length(self.colbuffer) >= self.buffer_pointer-1
+    # Here we will go through the rows and columns, and whenever the row or
+    # the column refer to indexes outside of the limits of the matrix, the
+    # corresponding value will be set to 0 and assembled to row and column 1.
     @inbounds for j=1:self.buffer_pointer-1
         if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
-            self.rowbuffer[j]=self.ndofs+1;
+            self.rowbuffer[j] = 1;
+            self.matbuffer[j] = 0.0
         end
         if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
-            self.colbuffer[j]=self.ndofs+1;
+            self.colbuffer[j] = 1;
+            self.matbuffer[j] = 0.0
         end
     end
     S = sparse(self.rowbuffer[1:self.buffer_pointer-1],
                self.colbuffer[1:self.buffer_pointer-1],
                self.matbuffer[1:self.buffer_pointer-1],
-               self.ndofs+1, self.ndofs+1);   
-    S = S+copy(transpose(S)); # This is to address the lack of a function for adding together a sparse matrix with a transpose of the sparse matrix; at the moment (January 2018), this defaults to the addition of two dense matrices and the result is DENSE. Hence a copy of the transpose needs to be made.
-    #   S = S+transpose(S);    # construct the other triangle
+               self.ndofs, self.ndofs); 
+    #  Now we need to construct the other triangle of the matrix. The diagonal
+    #  will be duplicated.
+    S = S + transpose(S); 
     @inbounds for j=1:size(S,1)
         S[j,j]=S[j,j]/2.0;      # the diagonal is there twice; fix it;
     end
-    self=SysmatAssemblerSparse(0.0*self.matbuffer[1])# get rid of the buffers
-    S = S[1:end-1,1:end-1]
+    self = SysmatAssemblerSparse(0.0*self.matbuffer[1])# get rid of the buffers
     return S
 end
 
@@ -502,27 +512,30 @@ function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
     # The method makes a sparse matrix from the assembly buffers.
     @assert length(self.rowbuffer) >= self.buffer_pointer-1
     @assert length(self.colbuffer) >= self.buffer_pointer-1
+    # Here we will go through the rows and columns, and whenever the row or
+    # the column refer to indexes outside of the limits of the matrix, the
+    # corresponding value will be set to 0 and assembled to row and column 1.
     @inbounds for j=1:self.buffer_pointer-1
         if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
-            self.rowbuffer[j]=self.ndofs+1;
+            self.rowbuffer[j] = 1;
+            self.matbuffer[j] = 0.0
         end
         if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
-            self.colbuffer[j]=self.ndofs+1;
+            self.colbuffer[j] = 1;
+            self.matbuffer[j] = 0.0
         end
     end
     S = sparse(self.rowbuffer[1:self.buffer_pointer-1],
                self.colbuffer[1:self.buffer_pointer-1],
                self.matbuffer[1:self.buffer_pointer-1],
-               self.ndofs+1, self.ndofs+1);   
-    S = S+copy(transpose(S)); # This is to address the lack of a function for adding together a sparse matrix with a transpose of the sparse matrix; at the moment (January 2018), this defaults to the addition of two dense matrices and the result is DENSE. Hence a copy of the transpose needs to be made.
-    #   S = S+transpose(S);    # construct the other triangle
+               self.ndofs, self.ndofs);  
+    # Construct the other half of the matrix. (Even though this one really should be diagonal!)
+    S = S + transpose(S);    # construct the other triangle
     @inbounds for j=1:size(S,1)
         S[j,j]=S[j,j]/2.0;      # the diagonal is there twice; fix it;
     end
     self=SysmatAssemblerSparse(0.0*self.matbuffer[1])# get rid of the buffers
-    S = S[1:end-1,1:end-1]
     return S
 end
-
 
 end
