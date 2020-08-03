@@ -1020,28 +1020,6 @@ function adjgraph(conn, nfens)
     return neighbors
 end
 
-function quicksort!(A, lo, hi, byfun::F)  where {F}
-    function _partition!(A, lo, hi, byfun::F)  where {F}
-        pivot = byfun(hi)
-        i = lo
-        for j in lo:hi
-            if byfun(j) < pivot
-                A[i], A[j] = A[j], A[i]
-                i = i + 1
-            end
-        end
-        A[i], A[hi] = A[hi], A[i]
-        return i
-    end
-
-    if lo < hi
-        p = _partition!(A, lo, hi, byfun)
-        quicksort!(A, lo, p - 1, byfun)
-        quicksort!(A, p + 1, hi, byfun)
-    end
-    A
-end
-
 """
     adjgraph(A)
 
