@@ -1056,17 +1056,13 @@ function adjgraph(A::SparseMatrixCSC; sorted = true)
 	rval = A.rowval
 	ncols = length(cptr)-1
 	neighbors = Vector{Vector{Int}}(undef, ncols)
-	_cdeg = j -> cptr[j+1]-cptr[j]
-    jadj = fill(zero(Int), ncols)
-	for j in 1:ncols
-		strt = cptr[j]
-		jdeg = _cdeg(j)
-		for i = 1:jdeg
-			jadj[i] = rval[strt+i-1]
-		end
-		neighbors[j] = [jadj[m] for m in 1:jdeg]
+	_cdeg = (cptr, j) -> cptr[j+1]-cptr[j]
+    for j in 1:ncols
+		cstart = cptr[j]
+		jdeg = _cdeg(cptr, j)
+		neighbors[j] = [rval[cstart+m-1] for m in 1:jdeg]
         if sorted
-            sort!(neighbors[j], by=_cdeg)
+            sort!(neighbors[j], by=j -> _cdeg(cptr, j))
         end
     end
 	return neighbors
