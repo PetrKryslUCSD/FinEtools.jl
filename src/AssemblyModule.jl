@@ -64,18 +64,16 @@ end
       ndofs_row::FInt, ndofs_col::FInt) where {T<:Number}
 
 Start the assembly of a global matrix.
+
+The method makes buffers for matrix assembly. It must be called before
+the first call to the method `assemble!`.
+- `elem_mat_nrows`= number of rows in typical element matrix,
+- `elem_mat_ncols`= number of columns in a typical element matrix,
+- `elem_mat_nmatrices`= number of element matrices,
+- `ndofs_row`= Total number of equations in the row direction,
+- `ndofs_col`= Total number of equations in the column direction.
 """
-function startassembly!(self::SysmatAssemblerSparse{T},
-  elem_mat_nrows::FInt, elem_mat_ncols::FInt, elem_mat_nmatrices::FInt,
-  ndofs_row::FInt, ndofs_col::FInt) where {T<:Number}
-    # Start the assembly of a global matrix.
-    # The method makes buffers for matrix assembly. It must be called before
-    # the first call to the method assemble.
-    # elem_mat_nrows= number of rows in typical element matrix,
-    # elem_mat_ncols= number of columns in a typical element matrix,
-    # elem_mat_nmatrices= number of element matrices,
-    # ndofs_row= Total number of equations in the row direction,
-    # ndofs_col= Total number of equations in the column direction.
+function startassembly!(self::SysmatAssemblerSparse{T}, elem_mat_nrows::FInt, elem_mat_ncols::FInt, elem_mat_nmatrices::FInt, ndofs_row::FInt, ndofs_col::FInt) where {T<:Number}
     self.buffer_length = elem_mat_nmatrices*elem_mat_nrows*elem_mat_ncols;
     self.rowbuffer = zeros(FInt,self.buffer_length);
     self.colbuffer = zeros(FInt,self.buffer_length);
@@ -200,18 +198,16 @@ end
       ndofs::FInt, ignore2::FInt) where {T<:Number}
 
 Start the assembly of a symmetric square global matrix.
+
+The method makes buffers for matrix assembly. It must be called before
+the first call to the method `assemble!`.
+- `elem_mat_nrows`= number of rows in typical element matrix,
+- `elem_mat_ncols`= number of columns in a typical element matrix,
+- `elem_mat_nmatrices`= number of element matrices,
+- `ndofs_row`= Total number of equations in the row direction,
+- `ndofs_col`= Total number of equations in the column direction.
 """
-function startassembly!(self::SysmatAssemblerSparseSymm{T},
-  elem_mat_dim::FInt, ignore1::FInt, elem_mat_nmatrices::FInt,
-  ndofs::FInt, ignore2::FInt) where {T<:Number}
-    # Start the assembly of a global matrix.
-    # The method makes buffers for matrix assembly. It must be called before
-    # the first call to the method assemble.
-    # elem_mat_nrows= number of rows in typical element matrix,
-    # elem_mat_ncols= number of columns in a typical element matrix,
-    # elem_mat_nmatrices= number of element matrices,
-    # ndofs_row= Total number of equations in the row direction,
-    # ndofs_col= Total number of equations in the column direction.
+function startassembly!(self::SysmatAssemblerSparseSymm{T}, elem_mat_dim::FInt, ignore1::FInt, elem_mat_nmatrices::FInt, ndofs::FInt, ignore2::FInt) where {T<:Number}
     self.buffer_length = elem_mat_nmatrices*elem_mat_dim^2;
     self.rowbuffer = zeros(FInt,self.buffer_length);
     self.colbuffer = zeros(FInt,self.buffer_length);
@@ -442,16 +438,16 @@ end
       ndofs::FInt, ignore2::FInt) where {T<:Number}
 
 Start the assembly of a symmetric lumped square global matrix.
+
+The method makes buffers for matrix assembly. It must be called before
+the first call to the method `assemble!`.
+- `elem_mat_nrows`= number of rows in typical element matrix,
+- `ignore1`= number of columns in a typical element matrix: equal to `elem_mat_nrows`,
+- `elem_mat_nmatrices`= number of element matrices,
+- `ndofs_row`= Total number of equations in the row direction,
+- `ignore2`= Total number of equations in the column direction: equal to `ndofs_row`.
 """
 function startassembly!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, elem_mat_dim::FInt, ignore1::FInt, elem_mat_nmatrices::FInt, ndofs::FInt,ignore2::FInt) where {T<:Number}
-    # Start the assembly of a global matrix.
-    # The method makes buffers for matrix assembly. It must be called before
-    # the first call to the method assemble.
-    # elem_mat_nrows= number of rows in typical element matrix,
-    # elem_mat_ncols= number of columns in a typical element matrix,
-    # elem_mat_nmatrices= number of element matrices,
-    # ndofs_row= Total number of equations in the row direction,
-    # ndofs_col= Total number of equations in the column direction.
     self.buffer_length = elem_mat_nmatrices*elem_mat_dim^2;
     self.rowbuffer = zeros(FInt,self.buffer_length);
     self.colbuffer = zeros(FInt,self.buffer_length);
