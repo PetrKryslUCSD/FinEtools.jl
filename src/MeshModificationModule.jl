@@ -1030,7 +1030,7 @@ The results will be wrong if it isn't.
 
 - `sorted`: Should the neighbor lists be sorted by column degree? The default is
   `true`, but often results of very similar quality are obtained when this is
-  set to `false` and the lists are not sorted.
+  set to `false` and the lists are not sorted. The second option is much faster, as the sorting is expensive.
 """
 function adjgraph(A::SparseMatrixCSC; sorted = true)
     colptr = A.colptr
