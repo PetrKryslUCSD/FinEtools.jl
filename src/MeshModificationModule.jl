@@ -1023,29 +1023,32 @@ end
 """
     adjgraph(A)
 
-Compute the adjacency graph from a sparse matrix. This function has been
-heavily modified from the source of
-(https://github.com/rleegates/CuthillMcKee.jl/blob/master/src/CuthillMcKee.jl)
+Compute the adjacency graph from a sparse matrix. 
 
-`A` is assumed to be symmetric.
+The sparse matrix `A` is assumed to be symmetric.
+The results will be wrong if it isn't.
+
+- `sorted`: Should the neighbor lists be sorted by column degree? The default is
+  `true`, but often results of very similar quality are obtained when this is
+  set to `false` and the lists are not sorted.
 """
-function adjgraph(A::SparseMatrixCSC; sorted = false)
-	cptr = A.colptr
-	rval = A.rowval
-	ncols = length(cptr)-1
-	neighbors = Vector{Vector{Int}}(undef, ncols)
-	_cdeg = (cptr, j) -> cptr[j+1]-cptr[j]
+function adjgraph(A::SparseMatrixCSC; sorted = true)
+    colptr = A.colptr
+    rowval = A.rowval
+    ncols = length(colptr)-1
+    neighbors = Vector{Vector{Int}}(undef, ncols)
+    cdeg = diff(colptr) # the degree is colptr[j+1]-colptr[j]
     for j in 1:ncols
-		cstart = cptr[j]
-		jdeg = _cdeg(cptr, j)
-		neighbors[j] = [rval[cstart+m-1] for m in 1:jdeg]
+        cstart = colptr[j]
+        jdeg = cdeg[j]
+        neighbors[j] = [rowval[cstart+m-1] for m in 1:jdeg]
     end
     if sorted
         for j in 1:ncols
-            sort!(neighbors[j], by=j -> _cdeg(cptr, j))
+            sort!(neighbors[j], by = j -> cdeg[j])
         end
     end
-	return neighbors
+    return neighbors
 end
 
 """
