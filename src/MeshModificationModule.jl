@@ -1014,6 +1014,9 @@ function adjgraph(conn, nfens)
     		end
         end
     end
+    # All of these can be done in parallel,  they are totally independent. The
+    # question is when to switch over to parallel execution amortize the cost
+    # of starting up threads.
     for i = 1:length(neighbors)
     	neighbors[i] = unique(neighbors[i])
     end
@@ -1030,7 +1033,8 @@ The results will be wrong if it isn't.
 
 - `sorted`: Should the neighbor lists be sorted by column degree? The default is
   `true`, but often results of very similar quality are obtained when this is
-  set to `false` and the lists are not sorted. The second option is much faster, as the sorting is expensive.
+  set to `false` and the lists are not sorted. The second option is much
+  faster, as the sorting is expensive.
 """
 function adjgraph(A::SparseMatrixCSC; sorted = true)
     colptr = A.colptr
@@ -1043,6 +1047,9 @@ function adjgraph(A::SparseMatrixCSC; sorted = true)
         jdeg = cdeg[j]
         neighbors[j] = [rowval[cstart+m-1] for m in 1:jdeg]
     end
+    # All of these sorts can be done in parallel,  they are totally independent.
+    # The question is when to switch over to parallel execution so as to
+    # amortize the cost of starting up threads.
     if sorted
         for j in 1:ncols
             sort!(neighbors[j], by = j -> cdeg[j])
