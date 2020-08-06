@@ -3299,7 +3299,6 @@ mesh_rcm_4.test()
 module mesh_triangle_conversion_4
 using FinEtools
 using FinEtools.MeshExportModule
-using FinEtools.MeshModificationModule: adjgraph, nodedegrees, revcm
 using Test
 using SparseArrays
 using LinearAlgebra: norm, I
