@@ -4292,6 +4292,9 @@ function test()
     fens, fes = Q4block(Lx,Ly,4,2); # Mesh
     
     write_MESH("q4-4-2", fens, fes)
+    try rm("q4-4-2-conn.dat") catch end
+    try rm("q4-4-2-xyz.dat") catch end
+    try rm("q4-4-2.mesh") catch end
     true
 end
 end
