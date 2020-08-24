@@ -2,34 +2,60 @@
 
 # Guide
 
-## Modules
+## Break down into modules
 
 The FinEtools package consists of many modules which fall into several  categories. The top-level module, `FinEtools`, includes all other modules and exports functions to constitute the public interface. The user is free to generate their own public interface, however. More details are provided in the section [Make up your own public interface](@ref).
 
 
-- **Top-level**:     `FinEtools` is the  top-level module.  For interactive use it is enough to do `using FinEtools`, however in some  cases functions from modules need to be  brought into the scope individually (most importantly, the algorithm modules). This is the ONLY  module that EXPORTS  functions, none of the other modules exports a single function. The entire  public (i. e. exported) interface of the FinEtools package is specified  in the file `FinEtools.jl` (i. e. in the `FinEtools` module). The user is free to specify his or her own set of exported functions from the FinEtools package to create an [ad hoc public interface](rollyourown.html).
+- **Top-level**:     `FinEtools` is the  top-level module.  For interactive use
+    it is enough to do `using FinEtools`, however in some  cases functions from
+    modules need to be  brought into the scope individually (most importantly,
+    the algorithm modules). This is the ONLY  module that EXPORTS  functions,
+    none of the other modules exports a single function. The entire  public
+    (i. e. exported) interface of the FinEtools package is specified  in the
+    file `FinEtools.jl` (i. e. in the `FinEtools` module). The user is free to
+    specify his or her own set of exported functions from the FinEtools package
+    to create an [ad hoc public interface](rollyourown.html).
 
-- **Utilities**: Refer to the modules `FTypesModule` (definition of basic numerical types), `PhysicalUnitModule` (for use with numbers specified using physical units), `AssemblyModule` (assembly of elementwise matrices and vectors),   `CSysModule` (coordinate system module),    `MatrixUtilityModule` (utilities for operations on elementwise matrices), `BoxModule`  (support for working with bounding boxes),  `ForceIntensityModule` (force-intensity module),        `RotationUtilModule` (support for spatial rotations).
+- **Utilities**: Refer to the modules `FTypesModule` (definition of basic
+    numerical types), `PhysicalUnitModule` (for use with numbers specified
+    using physical units), `AssemblyModule` (assembly of elementwise matrices
+    and vectors),   `CSysModule` (coordinate system module),
+    `MatrixUtilityModule` (utilities for operations on elementwise matrices),
+    `BoxModule`  (support for working with bounding boxes),
+    `ForceIntensityModule` (force-intensity module), `RotationUtilModule`
+    (support for spatial rotations).
 
 - **Mesh  entities**:  `FENodeSetModule`, `FESetModule` (node set and finite element set  types). 
 
-- **Mesh Generation**:   `MeshLineModule`,  `MeshQuadrilateralModule`,   `MeshTriangleModule`,   `MeshTetrahedronModule`,             `TetRemeshingModule`,  `VoxelTetMeshingModule`,     `MeshHexahedronModule`,       `VoxelBoxModule`. 
+- **Mesh Generation**:   `MeshLineModule`,  `MeshQuadrilateralModule`,
+    `MeshTriangleModule`,   `MeshTetrahedronModule`, `MeshHexahedronModule`,
+    `VoxelBoxModule`. 
 
-- **Mesh manipulation**:  `MeshSelectionModule` (searching of nodes  and elements),  `MeshModificationModule` (mesh boundary, merging  of meshes and nodes, smoothing, partitioning),  `MeshUtilModule` (utilities), `FENodeToFEMapModule` (search structure from nodes to elements).
+- **Mesh manipulation**:  `MeshSelectionModule` (searching of nodes  and
+    elements),  `MeshModificationModule` (mesh boundary, merging  of meshes and
+    nodes, smoothing, partitioning),  `MeshUtilModule`
+    (utilities), `FENodeToFEMapModule` (search structure from nodes to
+    elements).
 
 - **Mesh import/export**:  `MeshImportModule`,  `MeshExportModule`.
 
-- **Fields**:   `FieldModule`,    `GeneralFieldModule`, `ElementalFieldModule`,    `NodalFieldModule` (modules for representing quantities on the mesh).
+- **Fields**:   `FieldModule`,    `GeneralFieldModule`, `ElementalFieldModule`,
+    `NodalFieldModule` (modules for representing quantities on the mesh).
 
-- **Integration**: Support for  integration over solids, surfaces, curves, and points: `IntegRuleModule`,   `IntegDomainModule`.
+- **Integration**: Support for  integration over solids, surfaces, curves, and
+    points: `IntegRuleModule`,   `IntegDomainModule`.
 
-- **General algorithms**: `AlgoBaseModule` (algorithms), `FEMMBaseModule` (FEM machine for general tasks).
+- **General algorithms**: `AlgoBaseModule` (algorithms), `FEMMBaseModule`
+    (FEM machine for general tasks).
 
 
 ## Arithmetic types
 
-The FinEtools package is fairly strict about typing arguments. The arithmetic types used throughout are `FInt` for integer data,
-`FFlt` for floating-point data, and `Complex{FFlt}` for applications that work with complex linear algebra quantities.
+The FinEtools package tries to make typing arguments easier. The arithmetic
+types used throughout are `FInt` for integer data, `FFlt` for floating-point
+data, and `Complex{FFlt}` for applications that work with complex linear
+algebra quantities.
 
 The module `FTypesModule` defines these types, and also defines abbreviations for vectors and matrices with entries of these types.
 
@@ -221,7 +247,13 @@ where the numbers of the finite elements  whose normals point in the general dir
 
 ## Fields
 
-The structure to maintain the numbering  and values of the degrees of freedom in the mesh  is the field.
+The structure to maintain the numbering  and values of the degrees of freedom in the mesh  is the field. Consider for instance the temperature field: we write
+```math
+T(x) = \sum_i N_i(x) T_i
+```
+The understanding is that $T_i$ are the degrees of freedom, and the basis functions $N_i(x)$ are defined implicitly by the finite element mesh. Each element has its own set of functions, which when multiplied by the degree of freedom values describe the temperature over each individual finite element. The basis functions are associated with the nodes of the finite elements. The degrees of freedom are also (explicitly) associated with the nodes. The field may also be generalized a bit by extending the above sum simply to entities of the mesh, not only the nodes, but perhaps also the elements.
+
+The role of the field is then to maintain the correspondence between the entities and the numbers and values of the degrees of freedom.
 
 ### Abstract  Field
 
@@ -266,9 +298,11 @@ starting from 1 up to `f.nfreedofs`, for the field `f`.
 
 The prescribed degrees of freedom are not numbered, and are marked with the "degree of freedom number" 0.
 
+There is also a method to supply the numbering of the nodes, perhaps  resulting from the Reverse Cuthill-McKee permutation. This may be useful when using LU or LDLT factorization as the fill-in may be minimized.
+
 ## Finite element
 
-The  finite element set is one of the basic entities in FinEtools.
+The  finite element set is one of the basic entities in `FinEtools`.
 It is a homogeneous collection of  finite elements defined by the connectivity (collection of node numbers, listing the nodes connected by the element in  a specific order). The finite element set  provides  specialized methods  to compute the values of basis functions and the values of  the gradients of the basis functions  with respect to the parametric coordinates.
 
 ### Element types
@@ -310,7 +344,7 @@ The concrete finite element set type provides specialized methods to compute the
 
 ## Integration
 
-There are two kinds of integrals in the weighted-residual finite element method: integrals over the *interior*  of the domain,  and integrals over the *boundary* of the domain.
+There are two kinds of integrals in the weighted-residual finite element method: integrals over the **interior**  of the domain,  and integrals over the **boundary** of the domain.
 
 Consequently, in a typical simulation one would need  two meshes: one for the interior  of the domain,  and one for the boundary. Obviously, the mesh for the boundary will be derived from the mesh  constructed for the interior.
 
@@ -350,20 +384,25 @@ The integral  is approximated with numerical quadrature as
 \int_{\Omega} f dV \approx \sum_q f(\xi_q) J(\xi_q) W_q
 ```    
 
-Here ``f``  is the integrand, ``f(\xi_q)``  is the  value of the integrand  at the quadrature point, ``J(\xi_q)``  is the  value of the Jacobian  at the quadrature point.
-Importantly, the Jacobian incorporates the "other" dimension,  and therefore it is the  *volume*
-Jacobian. (For the interior integrals the Jacobian  is computed by the `Jacobianvolume` method.)
+Here ``f``  is the integrand, ``f(\xi_q)``  is the  value of the integrand  at
+the quadrature point, ``J(\xi_q)``  is the  value of the Jacobian  at the
+quadrature point. Importantly, the Jacobian incorporates the "other" dimension,
+and therefore it is the  *volume* Jacobian. (For the interior integrals the
+Jacobian  is computed by the `Jacobianvolume` method.)
 
 ### Integration  over the boundary
 
-The integrals are always  *surface* integrals. This means that for elements which are of  lower manifold
-dimension than two the "other"  dimension needs to compensate.
+The integrals are always  *surface* integrals. This means that for elements
+which are of  lower manifold dimension than two the "other"  dimension needs to
+compensate.
 
-For  two-manifold finite elements (triangles and quadrilaterals) the "other" dimension is always 1.0.
-This really means there is no "other" dimension to a surface-like element.
+For  two-manifold finite elements (triangles and quadrilaterals) the "other"
+dimension is always 1.0. This really means there is no "other" dimension to a
+surface-like element.
 
-For  finite elements of manifold dimension  less than two, the  "other" dimension varies according
-to the model (axially symmetric versus simple  plane 2D) as shown  in the table below.
+For  finite elements of manifold dimension  less than two, the  "other"
+dimension varies according to the model (axially symmetric versus simple  plane
+2D) as shown  in the table below.
 
 | Manifold dimension        | Axially symmetric    | Plane 2D |
 | ------------- | ------------- | ----- |
@@ -375,14 +414,19 @@ The integral  is approximated with numerical quadrature as
 \int_{\partial \Omega} f dS \approx \sum_q f(\xi_q) J(\xi_q) W_q  
 ```    
 
-Here ``f``  is the integrand, ``f(\xi_q)`` is the  value of the integrand  at the quadrature point,
-``J(\xi_q)`` is the  value of the Jacobian  at the quadrature point. Importantly, the Jacobian incorporates the "other" dimension,  and therefore it is the  *surface* Jacobian. (For the boundary integrals the Jacobian  is computed by the `Jacobiansurface` method.)
+Here ``f``  is the integrand, ``f(\xi_q)`` is the  value of the integrand  at
+the quadrature point, ``J(\xi_q)`` is the  value of the Jacobian  at the
+quadrature point. Importantly, the Jacobian incorporates the "other" dimension,
+and therefore it is the  *surface* Jacobian. (For the boundary integrals the
+Jacobian  is computed by the `Jacobiansurface` method.)
 
 #### Example: axially symmetric model, line element L2
 
 The surface Jacobian in this case  is  equal to the curve Jacobian times `2*pi*r`.
 
-### Integration Data
+### Integration Domain
+
+As explained above, integrating over the interior or the boundary may mean different things based on the features of the solution domain: axially symmetric?, plane strain or plane stress?, and so forth.
 
 The  module `IntegDomainModule` supports  the processing of  the geometry
 necessary for the evaluation of the various integrals. The module data
@@ -429,7 +473,7 @@ Importantly, the  Integration Domain (`IntegDomain`) method `integrationdata` ev
 
 ## FEM machines
 
-The construction of the matrices and vectors of the discrete form of the weighted residual equation is performed in FEM  machines. (FEM = Finite Element Method.)
+The construction of the matrices and vectors of the *discrete* form of the weighted residual equation is performed in FEM  machines. (FEM = Finite Element Method.)
 
 As an example consider the weighted-residual form of the heat balance equation
 ```math
@@ -535,9 +579,11 @@ where the geometry comes from the geometry field `geom`, and the temperature fie
 
 The following  operations are provided  by the base FEM machine:
 
-- Integrate  a function expressed in terms of a field. This is typically used  to  evaluate RMS discretization errors.
+- Integrate  a function expressed in terms of a field. This is typically used to
+  evaluate RMS discretization errors.
 
-- Integrate a function of the position. Perhaps the evaluation of the moments of inertia,  or the calculation of the volume.
+- Integrate a function of the position. Perhaps the evaluation of the moments of
+  inertia,  or the calculation of the volume.
 
 - Transfer field between meshes of different resolutions.
 
@@ -584,16 +630,23 @@ and returned for further processing by other algorithms.
 
 ## Queries of quadrature-point data
 
-NEEDS  TO BE WRITTEN
+A number of quantities exist at integration (quadrature) points. For instance for heat conduction this data may refer to the temperature gradients and heat flux vectors. In stress analysis, such data would typically be stress invariants  or stress components.
 
+How this data is calculated at the quadrature point obviously varies depending on the element type. Not only on the element order, but the element formulation may invoke rules other than those of simple gradient-taking: take as an example mean-strain  elements, which define strains by using averaging rules over the entire element, so not looking at a single integration point only.
+
+For this purpose, `FinEtools` has ways of defining implementations of the function `inspectintegpoints` to take into account the particular features of the various finite element formulations. Each FEMM typically defines its own specialized method. 
 
 ## Postprocessing
 
+One way in which quadrature-point data is postprocessed into graphical means is by constructing node-based fields. For instance, extrapolating quadrature-point data to the nodes is commonly done in finite element programs. This procedure is typically referred to as "averaging at the nodes". The name implies that not only the quadrature-point data is extrapolated to the nodes of the element, but since each element incident on a node may have predicted (extrapolated) a different value of a quantity (for example stress), these different values need to be somehow reconciled, and averaging, perhaps weighted averaging, is the usual procedure.
+
 ### Compute continuous stress fields
+
+Individual FEMMs may have different ways of extrapolating to the nodes. These are implemented in various methods of the function `fieldfromintegpoints`. The resulting field represents quadrature-point data as a nodal field, where the degrees of freedom are extrapolated values to the nodes.
 
 ### Compute elementwise stress fields
 
-NEEDS  TO BE WRITTEN
+Most finite element postprocessing softwares find it difficult to present results which are discontinuous at inter-element boundaries. Usually the only way in which data based on individual elements with no continuity across element boundaries is presented is by taking an average over the entire element and represent the values as uniform across each element. Various methods of the function `elemfieldfromintegpoints` produce elemental fields of this nature.
 
 ## Import/export
 
@@ -621,8 +674,9 @@ The following formats of finite element input files can be handled:
 
 The `FinEtools` tutorials are written up in the repositories for the applications, heat diffusion, linear and nonlinear deformation and so on.
 
-The tutorials are in the form of Julia files with markdown. These are converted to markdown files (or to Jupyter notebooks)
-using the [Literate](https://github.com/fredrikekre/Literate.jl) workflow.
+The tutorials are in the form of Julia files with markdown. These are converted
+to markdown files using the [Literate]
+(https://github.com/fredrikekre/Literate.jl) workflow.
 
 ### Examples
 
