@@ -74,7 +74,7 @@ L = 10.0*phun("M"); # side of the square plate
 t = 0.05*phun("M"); # thickness of the square plate
 ```
 
-The usual sets of units are included, `:US`, `:IMPERIAL`, `:CGS`, `:SIMM` (millimeter-based SI units), and `:SI` (meter-based SI units). The resulting  values assigned to the variables are floating-point numbers, for instance
+A few common sets of units are included, `:US`, `:IMPERIAL`, `:CGS`, `:SIMM` (millimeter-based SI units), and `:SI` (meter-based SI units). The resulting  values assigned to the variables are floating-point numbers, for instance
 
 ```julia
 julia> E = 200*phun("GPa")
@@ -251,7 +251,7 @@ The structure to maintain the numbering  and values of the degrees of freedom in
 ```math
 T(x) = \sum_i N_i(x) T_i
 ```
-The understanding is that $T_i$ are the degrees of freedom, and the basis functions $N_i(x)$ are defined implicitly by the finite element mesh. Each element has its own set of functions, which when multiplied by the degree of freedom values describe the temperature over each individual finite element. The basis functions are associated with the nodes of the finite elements. The degrees of freedom are also (explicitly) associated with the nodes. The field may also be generalized a bit by extending the above sum simply to entities of the mesh, not only the nodes, but perhaps also the elements.
+The understanding is that $T_i$ are the degrees of freedom, and the basis functions $N_i(x)$ are defined implicitly by the finite element mesh. (More about basis functions below.) Each element has its own set of functions, which when multiplied by the degree of freedom values describe the temperature over each individual finite element. The basis functions are implicitly associated with the nodes of the finite elements. The degrees of freedom are also (explicitly) associated with the nodes. The field may also be generalized a bit by extending the above sum simply to entities of the mesh, not only the nodes, but perhaps also the elements.
 
 The role of the field is then to maintain the correspondence between the entities and the numbers and values of the degrees of freedom.
 
@@ -311,7 +311,7 @@ The finite element sets are instances of concrete types. Each particular shape a
 
 The concrete finite element set types are subtypes of the abstract type for elements of different manifold dimension (3, 2, 1, and 0), for instance for the quadrilaterals that would be `AbstractFESet2Manifold`. These types are in turn  subtypes of the abstract finite element set type `AbstractFESet`.
 
-The concrete finite element set type provides specialized methods to compute the values of the basis functions, `bfun`, and methods to compute  the gradients of the basis functions with respect to the parametric coordinates, `bfundpar`.
+The concrete finite element set type provides specialized methods to compute the values of the basis functions, `bfun`, and methods to compute  the gradients of the basis functions with respect to the parametric coordinates, `bfundpar`. `FinEtools` at the moment supports only the so-called **nodal** basis functions: each basis function is associated with a node. And that is  true both globally (in the sense that each basis function is globally supported),  and locally over each finite element, and all such functions are  1 at its own node, and zero at all the other nodes.
 
 ### Finite element set functions
 
@@ -487,12 +487,12 @@ As an example consider the weighted-residual form of the heat balance equation
 
 where ``\vartheta(x) =0``  for  ``x \in{S_1}`` .
 
-The  test function is  taken to be  one  finite element basis function at a time, ``\vartheta = N_{\left<j\right>}``, and the trial function is
+The  test function is  taken to be  one  finite element basis function at a time, ``\vartheta = N_{j}``, and the trial function is
 ```math
-T = \sum_{i= 1} ^{N} N_{\left<i\right>} T_i .
+T = \sum_{i= 1} ^{N} N_{i} T_i .
 ```    
 
-Here by ``N_{\left<j\right>}`` we mean the basis function constructed on the mesh and associated with the node ``\left<j\right>``. We use the notation ``\left<i\right>`` to mean node number at which the degree of freedom  ``j`` lives.
+Here by ``N_{j}`` we mean the basis function constructed on the mesh and associated with the node where the degree of freedom ``j`` is situated. 
 
 Now the test function and the trial function is substituted  into the  weighted residual equation.  
 
@@ -505,7 +505,7 @@ For instance,  for the term
 
 we obtain
 ```math
-\int_{V} N_{\left<j\right>} Q \; \mathrm{d} V
+\int_{V} N_{j} Q \; \mathrm{d} V
 ```    
 
 This integral evaluates to a number, the heat load  applied to the degree of freedom ``j``. When these numbers are evaluated for all  the free degrees of freedom,  they constitute the entries of the global heat load vector.
@@ -515,10 +515,10 @@ Evaluating integrals of this form is so common that there is a module `FEMMBaseM
 
 ```julia
 fi = ForceIntensity(FFlt[Q]);
-F1 = distribloads(FEMMBase(IntegDomain(fes, TriRule(1))), geom, Temp, fi, 3);
+F1 = distribloads(FEMMBase(IntegDomain(fes, TriRule(1))), geom, tempr, fi, 3);
 ```
 
-`IntegDomain(fes, TriRule(1))` constructs integration domain for the  finite elements `fes` using a triangular  integration rule with a single point. `FEMMBase` is the base  FEM  machine,  and all it needs at this point is the integration domain. The method  `distribloads` is defined for the  base FEM machine, the geometry field `geom`, the numbering of the degrees of freedom is taken from the field `Temp`, the internal heat generation rate is defined as the force intensity `fi`, and the integrals  are volume integrals  (3).
+`IntegDomain(fes, TriRule(1))` constructs integration domain for the  finite elements `fes` using a triangular  integration rule with a single point. `FEMMBase` is the base  FEM  machine,  and all it needs at this point is the integration domain. The method  `distribloads` is defined for the  base FEM machine, the geometry field `geom`, the numbering of the degrees of freedom is taken from the field `tempr`, the internal heat generation rate is defined as the force intensity `fi`, and the integrals  are volume integrals  (3).
 
 ### Example: conductivity term
 
@@ -530,7 +530,7 @@ The conductivity term from the weighted residual equation
 
 is rewritten with the test and trial functions as
 ```math
-\sum_{i=1}^N \int_{V}(\mathrm{grad}N_{\left<j\right>})\; \kappa (\mathrm{grad}N_{\left<i\right>}
+\sum_{i=1}^N \int_{V}(\mathrm{grad}N_{j})\; \kappa (\mathrm{grad}N_{i}
             )^T\; \mathrm{d} V \; T_i
 ```    
 The sum over the degree of freedom number ``i`` should be split: some of the  coefficients ``T_i`` are for free degrees of freedom (``1 \le i \le  N_{\mathrm{f}}``, with ``N_{\mathrm{f}}`` being the total number of free degrees of freedom), while some are  fixed (prescribed) for nodes  which are located on the essential boundary condition surface ``S_1``  (``N_{\mathrm{f}} < i \le N``).
@@ -538,34 +538,34 @@ The sum over the degree of freedom number ``i`` should be split: some of the  co
 Thus the term splits into two  pieces,
 
 ```math
-\sum_{i=1}^{N_{\mathrm{f}}} \int_{V}(\mathrm{grad}N_{\left<j\right>})\; \kappa (\mathrm{grad}N_{\left<i\right>}
+\sum_{i=1}^{N_{\mathrm{f}}} \int_{V}(\mathrm{grad}N_{j})\; \kappa (\mathrm{grad}N_{i}
             )^T\; \mathrm{d} V \; T_i
 ```    
 
 where the  individual integrals are entries of the conductivity matrix, and
 
 ```math
-\sum_{i=N_{\mathrm{f}}+1}^N \int_{V}(\mathrm{grad}N_{\left<j\right>})\; \kappa (\mathrm{grad}N_{\left<i\right>}
+\sum_{i=N_{\mathrm{f}}+1}^N \int_{V}(\mathrm{grad}N_{j})\; \kappa (\mathrm{grad}N_{i}
             )^T\; \mathrm{d} V \; T_i
 ```
 
 
 which  will represent heat loads  due to nonzero  prescribed boundary condition.
 
-The FEM machine  for heat conduction  can be created as
+The FEM machine  for the heat conduction problem can be created as
 
 ```julia
 material = MatHeatDiff(thermal_conductivity)
 femm = FEMMHeatDiff(IntegDomain(fes, TriRule(1)), material)
 ```
 
-where we first create a `material` to  deliver the thermal conductivity matrix ``\kappa``, and then  we create  the FEM  machine  from the integration domain  for a mesh  consisting of three node triangles, using one-point integration rule, and the material. This  FEM machine  can then be passed to a method
+where we first create a `material` to  provide access to the thermal conductivity matrix ``\kappa``, and then  we create  the FEM  machine  from the integration domain  for a mesh  consisting of three node triangles, using one-point integration rule, and the material. This  FEM machine  can then be passed to a method, for instance the calculate the global conductivity matrix `K`
 
 ```julia
 K = conductivity(femm, geom, Temp)
 ```
 
-to evaluate the global conductivity matrix `K`, where the geometry comes from the geometry field `geom`, and the temperature field `Temp` provides the  numbering of the degrees of freedom.
+where the geometry comes from the geometry field `geom`, and the temperature field `Temp` provides the  numbering of the degrees of freedom. Note that the global conductivity matrix is square, and of size ``N_{\mathrm{f}}\timesN_{\mathrm{f}}``. In other words, it is only for the degrees of freedom that are free (actual unknowns).
 
 The heat load term  due to the  nonzero essential boundary conditions  is evaluated with the method `nzebcloadsconductivity`
 
@@ -573,7 +573,7 @@ The heat load term  due to the  nonzero essential boundary conditions  is evalua
 F2 = nzebcloadsconductivity(femm, geom, Temp);
 ```
 
-where the geometry comes from the geometry field `geom`, and the temperature field `Temp` provides the  numbering of the degrees of freedom and the values of the prescribed (fixed) degrees of freedom. The result is a contribution to the global heat load vector.
+where the geometry comes from the geometry field `geom`, and the temperature field `Temp` provides the  numbering of the degrees of freedom and the values of the prescribed (fixed) degrees of freedom. The result is a contribution to the global heat load vector. 
 
 ### Base FEM machine
 
