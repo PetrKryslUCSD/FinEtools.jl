@@ -427,6 +427,12 @@ end
     SysmatAssemblerSparseHRZLumpingSymm(zer::T=0.0) where {T<:Number}
 
 Construct blank system matrix assembler. The matrix entries are of type `T`.
+
+!!! note This assembler can compute and assemble diagonalized mass matrices.
+    However, if the meaning of the entries of the mass matrix  differs
+    (translation versus rotation), the mass matrices will not be computed
+    correctly. Put bluntly: it can only be used for homogeneous mass matrices,
+    all translation degrees of freedom, for instance. 
 """
 function SysmatAssemblerSparseHRZLumpingSymm(zer::T=0.0) where {T<:Number}
     return SysmatAssemblerSparseHRZLumpingSymm{T}(0,[zer],[0],[0],0,0)
@@ -462,17 +468,24 @@ end
       dofnums::FIntMat, ignore::FIntMat) where {T<:Number}
 
 Assemble a HRZ-lumped square symmetric matrix.
+
+Assembly of a HRZ-lumped square symmetric matrix. The method assembles the
+scaled diagonal of the square symmetric matrix using the two vectors of
+equation numbers for the rows and columns.
 """
 function assemble!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, mat::FMat{T},  dofnums::FIntVec, ignore::FIntVec) where {T<:Number}
-    # Assembly of a HRZ-lumped square symmetric matrix.
-    # The method assembles the scaled diagonal of the square symmetric matrix using the two vectors of equation numbers for the rows and columns.
+    
     nrows=length(dofnums); ncolumns=nrows;
     p = self.buffer_pointer
     @assert p+ncolumns*nrows <= self.buffer_length+1
     @assert size(mat) == (nrows, ncolumns)
+    @assert nrows == ncolumns # only square matrices allowed
     # Now comes the lumping procedure
-    em2 = sum(sum(mat, dims = 1));
-    dem2 = sum(diag(mat));
+    em2 = sum(sum(mat, dims = 1)); # total mass times the number of space dimensions
+    dem2 = zero(eltype(mat)); # total mass on the diagonal times the number of space dimensions
+    for i in 1:nrows
+        dem2 += mat[i, i]
+    end
     ffactor = em2/dem2 # total-element-mass compensation factor
     @inbounds for j=1:ncolumns
         @inbounds for i=j:nrows
