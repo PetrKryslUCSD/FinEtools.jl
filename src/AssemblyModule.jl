@@ -412,6 +412,12 @@ E. Hinton, T. Rock, O. C. Zienkiewicz, Earthquake Engineering & Structural Dynam
 volume 4, number 3, 245--249, 1976.
 }
 
+
+!!! note This assembler can compute and assemble diagonalized mass matrices.
+    However, if the meaning of the entries of the mass matrix  differs
+    (translation versus rotation), the mass matrices will not be computed
+    correctly. Put bluntly: it can only be used for homogeneous mass matrices,
+    all translation degrees of freedom, for instance. 
 """
 mutable struct SysmatAssemblerSparseHRZLumpingSymm{T<:Number} <: AbstractSysmatAssembler
     # Type for assembling of a sparse global matrix from elementwise matrices.
@@ -428,11 +434,6 @@ end
 
 Construct blank system matrix assembler. The matrix entries are of type `T`.
 
-!!! note This assembler can compute and assemble diagonalized mass matrices.
-    However, if the meaning of the entries of the mass matrix  differs
-    (translation versus rotation), the mass matrices will not be computed
-    correctly. Put bluntly: it can only be used for homogeneous mass matrices,
-    all translation degrees of freedom, for instance. 
 """
 function SysmatAssemblerSparseHRZLumpingSymm(zer::T=0.0) where {T<:Number}
     return SysmatAssemblerSparseHRZLumpingSymm{T}(0,[zer],[0],[0],0,0)
