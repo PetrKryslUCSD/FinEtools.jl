@@ -413,7 +413,9 @@ volume 4, number 3, 245--249, 1976.
 }
 
 
-!!! note This assembler can compute and assemble diagonalized mass matrices.
+!!! note 
+    
+    This assembler can compute and assemble diagonalized mass matrices.
     However, if the meaning of the entries of the mass matrix  differs
     (translation versus rotation), the mass matrices will not be computed
     correctly. Put bluntly: it can only be used for homogeneous mass matrices,
