@@ -5,6 +5,8 @@ Module for  selection of mesh entities.
 """
 module MeshSelectionModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FESetModule: AbstractFESet, bfundpar, nodesperelem, manifdim, connasarray
 import ..FENodeSetModule: FENodeSet, spacedim

@@ -5,6 +5,8 @@ Module for generation of  hexahedral meshes.
 """
 module MeshHexahedronModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FESetModule: AbstractFESet, FESetQ4, FESetH8, FESetH20, FESetH27, FESetT4, subset, bfun, connasarray, setlabel!, updateconn!
 import ..FENodeSetModule: FENodeSet, count, xyz3

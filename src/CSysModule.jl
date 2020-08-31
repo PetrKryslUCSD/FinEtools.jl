@@ -5,6 +5,8 @@ Module for management of coordinate systems.
 """
 module CSysModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import LinearAlgebra: norm, cross
 

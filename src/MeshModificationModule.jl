@@ -5,6 +5,8 @@ Module for mesh modification operations.
 """
 module MeshModificationModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FESetModule: AbstractFESet, count, boundaryconn, boundaryfe, updateconn!, connasarray, fromarray!
 import ..FENodeSetModule: FENodeSet

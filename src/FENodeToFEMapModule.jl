@@ -5,6 +5,8 @@ Module to construct a map from finite element nodes to the finite elements.
 """
 module FENodeToFEMapModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 """

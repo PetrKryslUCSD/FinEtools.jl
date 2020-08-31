@@ -5,6 +5,8 @@ Module for comments/base operations on interiors and boundaries of domains.
 """
 module FEMMBaseModule
 
+__precompile__(true)
+
 import LinearAlgebra: mul!, Transpose
 my_At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 import SparseArrays: sparse

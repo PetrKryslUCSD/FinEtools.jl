@@ -5,6 +5,8 @@ Module for mesh import  functions.
 """
 module MeshImportModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FENodeSetModule: FENodeSet
 import ..FESetModule: setlabel!, nodesperelem

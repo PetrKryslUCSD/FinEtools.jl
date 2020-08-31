@@ -5,6 +5,8 @@ Module for general fields.
 """
 module GeneralFieldModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FieldModule.AbstractField
 import ..FieldModule.@add_Field_fields

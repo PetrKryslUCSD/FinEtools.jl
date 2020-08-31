@@ -5,6 +5,8 @@ Module to define  basic types of quantities used in FinEtools.
 """
 module FTypesModule
 
+__precompile__(true)
+
 import Base.Complex
 
 const FInt = Int

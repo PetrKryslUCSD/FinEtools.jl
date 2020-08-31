@@ -5,6 +5,8 @@ Module  for generation of meshes composed of tetrahedra.
 """
 module MeshTetrahedronModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FESetModule: count, FESetT4, FESetT10, setlabel!, connasarray, subset
 import ..FENodeSetModule: FENodeSet

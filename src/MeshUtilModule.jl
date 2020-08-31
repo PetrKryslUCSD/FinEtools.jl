@@ -5,6 +5,8 @@ Module for mesh utility functions used in other meshing modules.
 """
 module MeshUtilModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import Base.BitSet
 import LinearAlgebra: norm

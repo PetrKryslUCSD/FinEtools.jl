@@ -5,7 +5,7 @@ Module for export of meshes and data defined on meshes.
 """
 module MeshExportModule
 
-
+__precompile__(true)
 
 module VTK
 ################################################################################

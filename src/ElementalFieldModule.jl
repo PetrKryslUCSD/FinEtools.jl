@@ -5,6 +5,8 @@ Module for elemental fields.
 """
 module ElementalFieldModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FieldModule: AbstractField, nents
 import ..FieldModule.@add_Field_fields

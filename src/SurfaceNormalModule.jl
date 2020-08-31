@@ -7,6 +7,8 @@ The normal is assumed to be the exterior normal, and the vector is normalized to
 """
 module SurfaceNormalModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..VectorCacheModule: VectorCache, updateretrieve!
 using LinearAlgebra: cross, norm

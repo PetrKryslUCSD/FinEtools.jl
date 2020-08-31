@@ -5,6 +5,8 @@ Module for numerical integration rules.
 """
 module IntegRuleModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 """

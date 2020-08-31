@@ -5,6 +5,8 @@ Module  to manage  distributed force intensity.
 """
 module ForceIntensityModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..VectorCacheModule: VectorCache, updateretrieve!, settime!
 

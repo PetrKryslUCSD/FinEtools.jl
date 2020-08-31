@@ -5,6 +5,8 @@ Module to manage vector caches.
 """
 module VectorCacheModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 """

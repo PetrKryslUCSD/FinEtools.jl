@@ -5,6 +5,8 @@ Module  for generation of meshes composed of quadrilaterals.
 """
 module MeshQuadrilateralModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FESetModule: AbstractFESet, FESetQ4, FESetQ8, bfun, cat, connasarray
 import ..FENodeSetModule: FENodeSet, count

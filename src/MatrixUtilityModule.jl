@@ -5,6 +5,8 @@ Module for general utility matrix product functions.
 """
 module MatrixUtilityModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 using LoopVectorization
 

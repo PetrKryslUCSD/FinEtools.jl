@@ -5,6 +5,8 @@ Module for finite element sets.
 """
 module FESetModule
 
+__precompile__(true)
+
 import Base.count
 import Base.cat
 import LinearAlgebra: mul!, Transpose

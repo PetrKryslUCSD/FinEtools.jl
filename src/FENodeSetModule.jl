@@ -5,6 +5,8 @@ Module for the finite element node set.
 """
 module FENodeSetModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import Base.count
 

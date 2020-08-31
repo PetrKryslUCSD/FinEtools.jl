@@ -5,6 +5,8 @@ Module for abstract fields.
 """
 module FieldModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import Base.copyto!
 

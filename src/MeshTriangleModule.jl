@@ -5,6 +5,8 @@ Module  for generation of meshes composed of triangles.
 """
 module MeshTriangleModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FESetModule: AbstractFESet, FESetT3, FESetT6, FESetQ4, connasarray
 import ..FENodeSetModule: FENodeSet

@@ -5,6 +5,8 @@ Module for working with bounding boxes.
 """
 module BoxModule
 
+__precompile__(true)
+
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 """
