@@ -390,7 +390,7 @@ function import_ABAQUS(filename; allocationchunk=chunk)
                     return FESetT3(elemset1.elem[:, 2:4])
                 elseif (length(TYPE) >= 5) && ((TYPE[1:5] == "CPS4R") || (TYPE[1:4] == "CPS4"))
                     return FESetQ4(elemset1.elem[:, 2:5])
-                elseif (length(TYPE) >= 4) && ((TYPE[1:4] == "CPS3") 
+                elseif (length(TYPE) >= 4) && (TYPE[1:4] == "CPS3") 
                     return FESetT3(elemset1.elem[:, 2:4])
                 else
                     return nothing
