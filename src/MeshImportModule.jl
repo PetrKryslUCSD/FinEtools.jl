@@ -201,13 +201,12 @@ end
 """
     import_ABAQUS(filename)
 
-Import tetrahedral (4- and 10-node) or hexahedral (8- and 20-node) Abaqus mesh
-(.inp file).
+Import Abaqus mesh (.inp file).
 
 Limitations:
 1. Only the `*NODE` and `*ELEMENT`  sections are read
-2. Only 4-node and 10-node tetrahedra, 8-node or 20-node  hexahedra, 3-node triangles
-    are handled.
+2. Only 4-node and 10-node tetrahedra, 8-node or 20-node  hexahedra, 4-node
+   quadrilaterals, 3-node triangles are handled.
 
 # Output
 Data dictionary, with keys 
@@ -391,6 +390,8 @@ function import_ABAQUS(filename; allocationchunk=chunk)
                     return FESetT3(elemset1.elem[:, 2:4])
                 elseif (length(TYPE) >= 5) && ((TYPE[1:5] == "CPS4R") || (TYPE[1:4] == "CPS4"))
                     return FESetQ4(elemset1.elem[:, 2:5])
+                elseif (length(TYPE) >= 4) && ((TYPE[1:4] == "CPS3") 
+                    return FESetT3(elemset1.elem[:, 2:4])
                 else
                     return nothing
                 end
