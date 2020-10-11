@@ -185,10 +185,17 @@ function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = fal
     return output
 end
 
-mutable struct AbaqusElementSection
+mutable struct _AbaqusElementSection
     ElementLine::AbstractString
     nelem::FInt
     elem::Array{FInt,2}
+end
+
+mutable struct _AbaqusNSetSection
+    NSetLine::AbstractString
+    nsetname::AbstractString
+    generate::Bool
+    nodes::Vector{FInt}
 end
 
 """
@@ -204,8 +211,9 @@ Limitations:
 
 # Output
 Data dictionary, with keys 
-- "`fens`" (finite element nodes), 
-- "`fesets`" (array of finite element sets).
+- "`fens`" = finite element nodes.
+- "`fesets`" = array of finite element sets.
+- "`nsets`" = dictionary of "node sets", the keys are the names of the sets.
 """
 function import_ABAQUS(filename; allocationchunk=chunk)
     lines = readlines(filename)
@@ -247,7 +255,7 @@ function import_ABAQUS(filename; allocationchunk=chunk)
     end # while
 
     nelemset = 0
-    elemset = AbaqusElementSection[]
+    elemset = _AbaqusElementSection[]
     Reading_elements = false
     next_line = 1
     while true
@@ -260,7 +268,7 @@ function import_ABAQUS(filename; allocationchunk=chunk)
             Reading_elements = true
             nelemset = nelemset + 1
             nelem = 0
-            a = AbaqusElementSection(temp, nelem, zeros(FInt, allocationchunk, maxelnodes+1))
+            a = _AbaqusElementSection(temp, nelem, zeros(FInt, allocationchunk, maxelnodes+1))
             push!(elemset, a)
             temp = uppercase(strip(lines[next_line]))
             next_line = next_line + 1
@@ -306,6 +314,56 @@ function import_ABAQUS(filename; allocationchunk=chunk)
         end
     end
 
+    nsetsarr = _AbaqusNSetSection[]
+    Reading_nsetsarr = false
+    next_line = 1
+    while true
+        if next_line > length(lines)
+            break
+        end
+        temp = uppercase(strip(lines[next_line]))
+        next_line = next_line + 1
+        if (length(temp) >= 5) && (temp[1:5] == "*NSET")
+            Reading_nsetsarr = true
+            # *NSET, NSET=THE-REGION, GENERATE
+            l = split(temp, ",")
+            sn = ""
+            generate = false
+            for t in l
+                t = rstrip(lstrip(t))
+                ts = split(t, "=")
+                if ts[1] == "NSET"
+                    sn = ts[2]
+                end
+                if ts[1] == "GENERATE"
+                    generate = true
+                end
+            end
+            a = _AbaqusNSetSection(temp, sn, generate, FInt[])
+            push!(nsetsarr, a)
+            temp = uppercase(strip(lines[next_line]))
+            next_line = next_line + 1
+        end
+        if Reading_nsetsarr
+            if temp[1:1] == "*" # another section started
+                Reading_nsetsarr = false
+            else
+                A = split(temp, ",")
+                if nsetsarr[end].generate
+                    fn = parse(FInt, A[1])
+                    ln = parse(FInt, A[2])
+                    st = parse(FInt, A[3])
+                    nsetsarr[end].nodes = collect(fn:st:ln)
+                else
+                    for ixxxx = 1:length(A)
+                        nn = parse(FInt, A[ixxxx])
+                        push!(nsetsarr[end].nodes,  nn)
+                    end
+                end
+            end
+        end
+    end # while
+
     # Process output arguments
     # Nodes
     xyz = node[:,2:4]
@@ -325,7 +383,7 @@ function import_ABAQUS(filename; allocationchunk=chunk)
                     return FESetH8(elemset1.elem[:, 2:9])
                 elseif (length(TYPE) >= 5) && (TYPE[1:5] == "C3D20")
                     return FESetH20(elemset1.elem[:, 2:21])
-                elseif (length(TYPE) >= 4) && (TYPE[1:4] == "C3D4")
+                elseif ((length(TYPE) >= 4) && (TYPE[1:4] == "C3D4")) || ((length(TYPE) >= 5) && (TYPE[1:5] == "DC3D4"))
                     return FESetT4(elemset1.elem[:, 2:5])
                 elseif (length(TYPE) >= 5) && (TYPE[1:5] == "C3D10")
                     return FESetT10(elemset1.elem[:, 2:11])
@@ -351,7 +409,12 @@ function import_ABAQUS(filename; allocationchunk=chunk)
         end
     end
 
-    output = FDataDict("fens"=>fens, "fesets"=>fesets, "warnings"=>warnings)
+    nsets = Dict()
+    for ixxxx = 1:length(nsetsarr)
+        nsets[nsetsarr[ixxxx].nsetname] = nsetsarr[ixxxx].nodes
+    end
+
+    output = FDataDict("fens"=>fens, "fesets"=>fesets, "nsets"=>nsets, "warnings"=>warnings)
     return output
 end
 
