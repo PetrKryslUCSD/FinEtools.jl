@@ -791,4 +791,107 @@ function innerproduct(self::FEMM, geom::NodalField{FFlt}, afield::NodalField{T})
     return innerproduct(self, assembler, geom, afield);
 end
 
+
+"""
+    field_elem_to_nodal!(self::AbstractFEMM, geom::NodalField{FFlt}, ef::EFL, nf::NFL) where {T<:Number, EFL<:ElementalField{T}, NFL<:NodalField{T}}
+
+Make a nodal field  from an elemental field over the discrete manifold.
+
+`ef` = ELEMENTAL field to be supply the values
+`nf` = NODAL field to be supply the values
+
+Returns `nf`.
+"""
+function field_elem_to_nodal!(self::AbstractFEMM, geom::NodalField{FFlt}, ef::EFL, nf::NFL) where {T<:Number, EFL<:ElementalField{T}, NFL<:NodalField{T}}
+    fes = self.integdomain.fes  # finite elements
+    # Dimensions
+    nfes = count(fes); # number of finite elements in the set
+    ndn = ndofs(nf); # number of degrees of freedom per node
+    nne = nodesperelem(fes); # number of nodes per element
+    sdim = ndofs(geom);            # number of space dimensions
+    mdim = manifdim(fes);     # manifold dimension of the element
+    # Precompute basis f. values + basis f. gradients wrt parametric coor
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain);
+    a = fill(zero(T), nne,ndn); # array of field DOFS-- used as a buffer
+    ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of field DOFS-- used as a buffer
+    loc = fill(zero(FFlt), 1,sdim); # quadrature point location -- used as a buffer
+    J = fill(zero(FFlt), sdim,mdim); # Jacobian matrix -- used as a buffer
+    nvolums = fill(zero(FFlt), nents(nf))
+    # initial value for the result
+    nf.values .= zero(T)
+    for i in 1:count(fes) #Now loop over all fes in the block
+    	ev = ef.values[i,:]
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
+        for j in 1:npts #Loop over all integration points
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
+            Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i],  Ns[j], mdim);
+            for k in 1:length(fes.conn[i])
+            	g = fes.conn[i][k]
+            	nf.values[g,:] .+= ev*Jac*w[j];
+            	nvolums[g] += Jac*w[j];
+            end
+        end
+    end
+    for g in 1:nents(nf)
+    	nf.values[g,:] ./= nvolums[g]
+    end
+    return nf
 end
+
+"""
+    field_nodal_elem_to!(self::AbstractFEMM, geom::NodalField{FFlt}, nf::NFL, ef::EFL) where {T<:Number, EFL<:ElementalField{T}, NFL<:NodalField{T}}
+
+Make an elemental field  from a nodal field over the discrete manifold.
+
+`nf` = NODAL field to be supply the values
+`ef` = ELEMENTAL field to be supply the values
+
+Returns `ef`.
+"""
+function field_nodal_to_elem!(self::AbstractFEMM, geom::NodalField{FFlt}, nf::NFL, ef::EFL) where {T<:Number, EFL<:ElementalField{T}, NFL<:NodalField{T}}
+	fes = self.integdomain.fes  # finite elements
+	# Dimensions
+	nfes = count(fes); # number of finite elements in the set
+	ndn = ndofs(ef); # number of degrees of freedom per element
+	nne = nodesperelem(fes); # number of nodes per element
+	sdim = ndofs(geom);            # number of space dimensions
+	mdim = manifdim(fes);     # manifold dimension of the element
+	# Precompute basis f. values + basis f. gradients wrt parametric coor
+	npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain);
+	a = fill(zero(T), nne,ndn); # array of field DOFS-- used as a buffer
+	ev = fill(zero(T), ndn); # array of field DOFS-- used as a buffer
+	ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of field DOFS-- used as a buffer
+	loc = fill(zero(FFlt), 1,sdim); # quadrature point location -- used as a buffer
+	J = fill(zero(FFlt), sdim,mdim); # Jacobian matrix -- used as a buffer
+	nvolums = fill(zero(FFlt), nents(nf))
+	# initial value for the result
+	ef.values .= zero(T)
+	for i in 1:count(fes) #Now loop over all fes in the block
+		gathervalues_asmat!(geom, ecoords, fes.conn[i]);
+		for j in 1:npts #Loop over all integration points
+			locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
+			Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i],  Ns[j], mdim);
+			for k in 1:length(fes.conn[i])
+				g = fes.conn[i][k]
+				nvolums[g] += Ns[j][k]*Jac*w[j];
+			end
+		end
+	end
+	for i in 1:count(fes) #Now loop over all fes in the block
+		gathervalues_asmat!(nf, a, fes.conn[i]);# retrieve element dofs
+		ev .= zero(T)
+		evol = 0.0
+		for k in 1:length(fes.conn[i])
+			g = fes.conn[i][k]
+			ev .+= a[k]*nvolums[g];
+			evol += nvolums[g];
+		end
+		ef.values[i,:] .= ev/evol
+	end
+	return ef
+end
+
+end # module
+
+
+

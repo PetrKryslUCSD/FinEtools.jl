@@ -373,9 +373,9 @@ end
 # % See also: Q4_sphere
 
 """
-    bar(x[, y])
+    Q4spheren(radius::FFlt, nperradius)
 
-Compute
+Generate mesh of a sphere.
 """
 function Q4spheren(radius::FFlt, nperradius)
     if (mod(nperradius,2) != 0)
