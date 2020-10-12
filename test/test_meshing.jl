@@ -4732,3 +4732,64 @@ end
 end
 using .mnf2ef2para11
 mnf2ef2para11.test()
+
+module mef2nf2para12
+using FinEtools
+using FinEtools.MeshSelectionModule: vselect
+using FinEtools.MeshExportModule
+using FinEtools.MeshExportModule.VTK
+using FinEtools.FEMMBaseModule: field_elem_to_nodal!
+using FinEtools.FEMMBaseModule: field_nodal_to_elem!
+using Test
+import LinearAlgebra: norm
+function test()
+	A = 1500.0*phun("m") # length  of loaded rectangle
+	B = 2000.0*phun("m") # length  of loaded rectangle
+	C = 1000.0*phun("m") # span of the plate
+
+	Meshing = T3blockx
+	# Select how find the mesh should be
+	Refinement = 4
+	nA, nB, nC = Refinement * 5, Refinement * 5, Refinement * 1;
+	xs = collect(linearspace(0.0, A, nA + 1))
+	ys = collect(linearspace(0.0, B, nB + 1))
+	fens,fes = Meshing(xs, ys)
+	# fens,fes = T3toT6(fens,fes)	
+
+	centroidpc = centroidparametric(fes)
+	N = bfun(fes, centroidpc)
+	NT = transpose(N)
+
+	ef = ElementalField(zeros(count(fes), 1))
+	for i = 1:count(fes)
+		c = [k for k in fes.conn[i]]
+		centroid = NT * fens.xyz[c, :]
+		x, y = centroid
+		ef.values[i, :] .= sin(2*x/A) * cos(6.5*y/B)
+	end
+	File = "mef2nf2para12-coarse-ef.vtk"
+	VTK.vtkexportmesh(File, fens, fes; scalars = [("ef", ef.values)])
+	try rm(File) catch end
+	# @async run(`"paraview.exe" $File`)
+	# try rm(File) catch end
+
+	femm  = FEMMBase(IntegDomain(fes, TriRule(3)))
+	geom = NodalField(fens.xyz)
+	nf = NodalField(zeros(count(fens), 1))
+	field_elem_to_nodal!(femm, geom, ef, nf)
+
+	for sm in 1:3
+		field_nodal_to_elem!(femm, geom, nf, ef)
+		field_elem_to_nodal!(femm, geom, ef, nf)
+	end
+
+	File = "mef2nf2para12-coarse-nf-smoothed.vtk"
+	VTK.vtkexportmesh(File, fens, fes; scalars = [("nf", nf.values)])
+	File = "mef2nf2para12-coarse-ef-smoothed.vtk"
+	VTK.vtkexportmesh(File, fens, fes; scalars = [("ef", ef.values)])
+	try rm(File) catch end
+	@test true
+end
+end
+using .mef2nf2para12
+mef2nf2para12.test()
