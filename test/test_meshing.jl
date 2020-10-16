@@ -3993,7 +3993,7 @@ function test()
    
     File = "Refine-T10-a.vtk"
     vtkexportmesh(File, fens, bfes)
-    # rm(File)
+    try rm(File); catch; end
     # @async run(`"paraview.exe" $File`)
     e = NASTRANExporter("Refine-T10-a.nas")
     BEGIN_BULK(e)
@@ -5160,3 +5160,30 @@ end
 end
 using .mef2nf2maxa12
 mef2nf2maxa12.test()
+
+module mimptexptm1
+using FinEtools
+using FinEtools.MeshImportModule
+using FinEtools.MeshExportModule.MESH
+using Test
+function test()
+    output = MeshImportModule.import_NASTRAN(dirname(@__FILE__) * "/" * "cylinder.nas"; allocationchunk = 13, expectfixedformat = true)
+    @test count(output["fens"]) == 1406
+    @test count(output["fesets"][1]) == 829
+    # show(fes.conn[count(fes), :])
+    fens = output["fens"]
+    fes = output["fesets"][1]
+
+    File = "cylinder"
+    MESH.write_MESH(File, fens, fes)
+    
+    output = MeshImportModule.import_MESH(File)
+    @test count(output["fens"]) == 1406
+    @test count(output["fesets"][1]) == 829
+    try  rm(File); catch end
+      true
+end
+end
+using .mimptexptm1
+mimptexptm1.test()
+

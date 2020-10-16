@@ -17,6 +17,7 @@ import ..FESetModule: FESetH8, FESetH20, FESetH27
 import ..MeshModificationModule: renumberconn!
 import Unicode: uppercase, isdigit
 import LinearAlgebra: norm
+using DelimitedFiles
 
 """
 !!! note
@@ -418,6 +419,68 @@ function import_ABAQUS(filename; allocationchunk=chunk)
     end
 
     output = FDataDict("fens"=>fens, "fesets"=>fesets, "nsets"=>nsets, "warnings"=>warnings)
+    return output
+end
+
+"""
+    import_MESH(filename)
+
+Import mesh in the MESH format (.mesh, .xyz, .conn triplet of files).
+
+# Output
+Data dictionary, with keys 
+- "`fens`" = finite element nodes.
+- "`fesets`" = array of finite element sets.
+"""
+function import_MESH(filename)
+    warnings = String[]
+    meshfilebase, ext = splitext(filename)
+    if ext == ""
+        ext = ".mesh"
+    end
+    meshfile = meshfilebase * ext
+    meshfiledir = dirname(meshfile)
+    # Mesh file in the format of the FinEtools .mesh file
+    datinfo = open(meshfile, "r") do file
+        readdlm(file)
+    end
+    # The first line is the name of the file with the coordinates
+    Xfile = isfile(datinfo[1]) ? datinfo[1] : joinpath(meshfiledir, datinfo[1])
+    X = open(Xfile, "r") do file
+        readdlm(file, ' ', Float64)
+    end
+    # RAW: should be able to handle multiple element sets.
+    # The second line is the name of the element name tag.
+    etype = datinfo[2]
+    Cfile = isfile(datinfo[3]) ? datinfo[3] : joinpath(meshfiledir, datinfo[3])
+    C = open(Cfile, "r") do file
+        readdlm(file, ' ', Int64)
+    end
+
+    fens = FENodeSet(X)
+
+    if     etype == "H8"
+        fes = FESetH8(C)
+    elseif etype == "H20"
+        fes = FESetH20(C)
+    elseif etype == "T4"
+        fes = FESetT4(C)
+    elseif etype == "T10"
+        fes = FESetT10(C)
+    elseif etype == "Q4"
+        fes = FESetQ4(C)
+    elseif etype == "Q8"
+        fes = FESetQ8(C)
+    elseif etype == "T3"
+        fes = FESetT3(C)
+    elseif etype == "T6"
+        fes = FESetT6(C)
+    else
+        push!(warnings, "Don't know how to handle " * etype)
+        fes = nothing
+    end
+  
+    output = FDataDict("fens"=>fens, "fesets"=>[fes], "warnings"=>warnings)
     return output
 end
 

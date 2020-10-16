@@ -100,9 +100,9 @@ using .MeshModificationModule: meshboundary,  fusenodes,  compactnodes,  mergeme
 # Exported: extraction of boundary, fusing of nodes  and merging of meshes, mesh smoothing,  node partitioning
 export  meshboundary,  fusenodes,  compactnodes,  mergemeshes, mergenmeshes, mergenodes,  renumberconn!,  meshsmoothing, mirrormesh, nodepartitioning, interior2boundary, adjgraph, nodedegrees, revcm
 
-using .MeshImportModule: import_NASTRAN, import_ABAQUS
+using .MeshImportModule: import_NASTRAN, import_ABAQUS, import_MESH
 # Exported: mesh import functions
-export import_NASTRAN, import_ABAQUS
+export import_NASTRAN, import_ABAQUS, import_MESH
 
 using .VectorCacheModule: VectorCache, updateretrieve!, settime!
 # Exported: vector-cache type and methods to invoke the update callback
