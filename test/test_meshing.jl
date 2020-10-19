@@ -5181,6 +5181,9 @@ function test()
     @test count(output["fens"]) == 1406
     @test count(output["fesets"][1]) == 829
     try  rm(File); catch end
+    try  rm("cylinder-conn.dat"); catch end
+    try  rm("cylinder-xyz.dat"); catch end
+    try  rm("cylinder.mesh"); catch end
       true
 end
 end
