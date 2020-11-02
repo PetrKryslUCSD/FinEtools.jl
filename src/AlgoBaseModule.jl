@@ -46,7 +46,8 @@ Richardson extrapolation.
 - `solns` =  array of three solution values
 - `params` = array of values of three parameters for which the `solns` have been obtained
 
-This function is applicable to any the mesh sizes (monotonically increasing, or decreasing).
+This function is applicable to any sequence of the mesh sizes
+(monotonically increasing, or decreasing).
   
 # Output
 - `solnestim`= estimate of the asymptotic solution from the data points in the
@@ -242,7 +243,7 @@ end
 """
     fielddiffnorm(modeldatacoarse, modeldatafine)
 
-Compute norm of the difference of the target fields.  
+Compute norm of the difference of the fields.  
 
 # Arguments
 For both the "coarse"- and "fine"-mesh `modeldata` the data dictionaries need to contain the mandatory keys:
@@ -301,15 +302,15 @@ end
 
 Evaluate a convergence study from a model-data sequence.  
 
-`modeldatasequence` = array of `modeldata` dictionaries. At least two.
+- `modeldatasequence` = array of `modeldata` dictionaries. At least two must be included.
 
 Refer to methods `fieldnorm` and `fielddiffnorm` for details 
 on the required keys in the dictionaries.
 
 # Output
-`elementsizes` = element size array, 
-`errornorms` = norms of the error, 
-`convergencerate` = rate of convergence
+- `elementsizes` = element size array, 
+- `errornorms` = norms of the error, 
+- `convergencerate` = rate of convergence
 """
 function evalconvergencestudy(modeldatasequence)
     # Find the element sizes
@@ -422,6 +423,9 @@ Apply penalty essential boundary conditions.
 - `dofnums`, `prescribedvalues` = arrays computed by `prescribeddofs()`
 - `penfact` = penalty multiplier, in relative terms: how many times the maximum
 	absolute value of the diagonal elements should the penalty term be?
+
+# Output
+- Updated matrix `K` and vector `F`.
 """
 function penaltyebc!(K, F, dofnums, prescribedvalues, penfact)
     maxdiagK = 0.0
