@@ -22,6 +22,10 @@ abstract type AbstractSysmatAssembler end;
     SysmatAssemblerSparse{T<:Number} <: AbstractSysmatAssembler
 
 Type for assembling a sparse global matrix from elementwise matrices.
+
+!!! note
+
+    All fields of the datatype are private. No need to access them directly.
 """
 mutable struct SysmatAssemblerSparse{T<:Number} <: AbstractSysmatAssembler
     buffer_length::FInt;
