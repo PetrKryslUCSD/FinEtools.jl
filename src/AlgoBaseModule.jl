@@ -216,12 +216,12 @@ end
 Compute norm of the target field.  
 
 # Argument
-`modeldata` = data dictionary, mandatory keys:
-    - "fens" = finite element node set
-    - "regions" = array of regions
-    - "targetfields" = array of fields, one for each region
-    - "geom" = geometry field
-    - "elementsize" = representative element size,
+- `modeldata` = data dictionary, mandatory keys:
+    + `fens` = finite element node set
+    + `regions` = array of regions
+    + `targetfields` = array of fields, one for each region
+    + `geom` = geometry field
+    + `elementsize` = representative element size,
 """
 function fieldnorm(modeldata)
     fens = modeldata["fens"]
@@ -246,6 +246,8 @@ end
 Compute norm of the difference of the fields.  
 
 # Arguments
+- `modeldatacoarse, modeldatafine` = data dictionaries.
+
 For both the "coarse"- and "fine"-mesh `modeldata` the data dictionaries need to contain the mandatory keys:
 - `"fens"` = finite element node set
 - `"regions"` = array of regions
