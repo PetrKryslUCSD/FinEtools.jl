@@ -222,6 +222,9 @@ Compute norm of the target field.
     + `targetfields` = array of fields, one for each region
     + `geom` = geometry field
     + `elementsize` = representative element size,
+
+# Output
+- Norm of the field as floating-point scalar.
 """
 function fieldnorm(modeldata)
     fens = modeldata["fens"]
@@ -258,6 +261,9 @@ For both the "coarse"- and "fine"-mesh `modeldata` the data dictionaries need to
   refer to the documentation of `transferfield!`)
 - `"parametrictolerance"` = parametric tolerance (used in field transfer; refer
   to the documentation of `transferfield!`)
+
+# Output
+- Norm of the field as floating-point scalar.
 """
 function fielddiffnorm(modeldatacoarse, modeldatafine)
     # Load coarse-mesh data
@@ -386,10 +392,11 @@ at the values of the parameter `ps`. `ws` is the optional weights vector;
 if it is not supplied, uniformly distributed default weights are assumed.  
 
 Notes: 
+
 – The mean is subtracted from both functions. 
-– This function is not particularly efficient: it computes the mean of 
-both functions and it allocates arrays instead of overwriting the 
-contents of the arguments.
+– This function is not particularly efficient: it computes the mean of both
+  functions and it allocates arrays instead of overwriting the contents of the
+  arguments.
 """
 function qcovariance(ps, xs, ys; ws = nothing)
     @assert length(ps) == length(xs) == length(ys)
@@ -423,8 +430,8 @@ Apply penalty essential boundary conditions.
 - `K` = stiffness matrix
 - `F` = global load vector 
 - `dofnums`, `prescribedvalues` = arrays computed by `prescribeddofs()`
-- `penfact` = penalty multiplier, in relative terms: how many times the maximum
-	absolute value of the diagonal elements should the penalty term be?
+- `penfact` = penalty multiplier, in relative terms: how many times the
+  maximum absolute value of the diagonal elements should the penalty term be?
 
 # Output
 - Updated matrix `K` and vector `F`.
