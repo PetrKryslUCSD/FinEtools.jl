@@ -8,8 +8,8 @@ module AssemblyModule
 __precompile__(true)
 
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import SparseArrays: sparse
-import LinearAlgebra: diag
+using  SparseArrays: sparse, spzeros
+using  LinearAlgebra: diag
 
 """
     AbstractSysmatAssembler
@@ -30,34 +30,68 @@ mutable struct SysmatAssemblerSparse{T<:Number} <: AbstractSysmatAssembler
     colbuffer::Vector{FInt};
     buffer_pointer::FInt;
     ndofs_row::FInt; ndofs_col::FInt;
+    nomatrixresult::Bool
 end
 
 """
-    SysmatAssemblerSparse(zero::T=0.0) where {T<:Number}
+    SysmatAssemblerSparse(zero::T=0.0, nomatrixresult = false) where {T<:Number}
 
-Construct blank system matrix assembler. The matrix entries are of type `T`.
+Construct blank system matrix assembler. 
+
+The matrix entries are of type `T`. The assembler either produces a sparse
+matrix (when `nomatrixresult = true`), or does not (when `nomatrixresult =
+false`). When the assembler does not produce the sparse matrix when
+`makematrix!` is called, it still can be constructed from the buffers stored in
+the assembler.
+
 
 # Example
 
 This is how a sparse matrix is assembled from two rectangular dense matrices.
 ```
-	a = SysmatAssemblerSparse(0.0)                                                        
-	startassembly!(a, 5, 5, 3, 7, 7)    
-	m = [0.24406   0.599773    0.833404  0.0420141                                             
-		0.786024  0.00206713  0.995379  0.780298                                              
-		0.845816  0.198459    0.355149  0.224996]                                     
-	assemble!(a, m, [1 7 5], [5 2 1 4])        
-	m = [0.146618  0.53471   0.614342    0.737833                                              
-		 0.479719  0.41354   0.00760941  0.836455                                              
-		 0.254868  0.476189  0.460794    0.00919633                                            
-		 0.159064  0.261821  0.317078    0.77646                                               
-		 0.643538  0.429817  0.59788     0.958909]                                   
-	assemble!(a, m, [2 3 1 7 5], [6 7 3 4])                                        
-	A = makematrix!(a) 
+    a = SysmatAssemblerSparse(0.0)                                                        
+    startassembly!(a, 5, 5, 3, 7, 7)    
+    m = [0.24406   0.599773    0.833404  0.0420141                                             
+        0.786024  0.00206713  0.995379  0.780298                                              
+        0.845816  0.198459    0.355149  0.224996]                                     
+    assemble!(a, m, [1 7 5], [5 2 1 4])        
+    m = [0.146618  0.53471   0.614342    0.737833                                              
+         0.479719  0.41354   0.00760941  0.836455                                              
+         0.254868  0.476189  0.460794    0.00919633                                            
+         0.159064  0.261821  0.317078    0.77646                                               
+         0.643538  0.429817  0.59788     0.958909]                                   
+    assemble!(a, m, [2 3 1 7 5], [6 7 3 4])                                        
+    A = makematrix!(a) 
 ```
+
+When the `nomatrixresult` is set as true, no matrix is produced.
+```
+    a = SysmatAssemblerSparse(0.0, true)                                                        
+    startassembly!(a, 5, 5, 3, 7, 7)    
+    m = [0.24406   0.599773    0.833404  0.0420141                                             
+        0.786024  0.00206713  0.995379  0.780298                                              
+        0.845816  0.198459    0.355149  0.224996]                                     
+    assemble!(a, m, [1 7 5], [5 2 1 4])        
+    m = [0.146618  0.53471   0.614342    0.737833                                              
+         0.479719  0.41354   0.00760941  0.836455                                              
+         0.254868  0.476189  0.460794    0.00919633                                            
+         0.159064  0.261821  0.317078    0.77646                                               
+         0.643538  0.429817  0.59788     0.958909]                                   
+    assemble!(a, m, [2 3 1 7 5], [6 7 3 4])                                        
+    A = makematrix!(a) 
+```
+Here `A` is a sparse zero matrix. To construct the correct matrix is still 
+possible, for instance like this:
+```
+    a.nomatrixresult = false
+    A = makematrix!(a) 
+```
+At this point all the buffers of the assembler have been cleared, and 
+`makematrix!(a) ` is no longer possible.
+
 """
-function SysmatAssemblerSparse(zero::T=0.0) where {T<:Number}
-    return SysmatAssemblerSparse{T}(0,[zero],[0],[0],0,0,0)
+function SysmatAssemblerSparse(zero::T=0.0, nomatrixresult = false) where {T<:Number}
+    return SysmatAssemblerSparse{T}(0,[zero],[0],[0],0,0,0,nomatrixresult)
 end
 
 """
@@ -139,12 +173,20 @@ function makematrix!(self::SysmatAssemblerSparse)
             self.matbuffer[j] = 0.0
         end
     end
-    S = sparse(self.rowbuffer[1:self.buffer_pointer-1],
-               self.colbuffer[1:self.buffer_pointer-1],
-               self.matbuffer[1:self.buffer_pointer-1],
-               self.ndofs_row, self.ndofs_col);
-    self = SysmatAssemblerSparse(0.0*self.matbuffer[1])# get rid of the buffers
-    return S
+    if self.nomatrixresult
+        # No actual sparse matrix is returned. The entire result of the assembly
+        # is preserved in the assembler buffers. 
+        return spzeros(self.ndofs_row, self.ndofs_col);
+    else
+        # The sparse matrix is constructed and returned. The  buffers used for
+        # the assembly are cleared.
+        S = sparse(self.rowbuffer[1:self.buffer_pointer-1],
+                     self.colbuffer[1:self.buffer_pointer-1],
+                     self.matbuffer[1:self.buffer_pointer-1],
+                     self.ndofs_row, self.ndofs_col);
+        self = SysmatAssemblerSparse(0.0*self.matbuffer[1])# get rid of the buffers
+        return S
+    end
 end
 
 """
