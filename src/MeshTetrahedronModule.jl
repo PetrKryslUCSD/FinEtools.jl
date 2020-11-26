@@ -26,11 +26,12 @@ Generate a tetrahedral mesh  of the 3D block.
 Four-node tetrahedra in a regular arrangement, with uniform spacing between
 the nodes, with a given orientation of the diagonals.
 
-The mesh is produced by splitting each logical  rectangular cell into six
-tetrahedra.
-Range =<0, Length> x <0, Width> x <0, Height>
-Divided into elements: nL,  nW,  nH in the first,  second,  and
-third direction (x, y, z).
+The mesh is produced by splitting each logical  rectangular cell into five or
+six tetrahedra, depending on the orientation: `orientation` = `:a`, `:b`
+generates 6 tetrahedra per cell. `:ca`, `:cb` generates 5 tetrahedra per cell.
+
+Range =<0, Length> x <0, Width> x <0, Height>.
+Divided into elements: nL x nW x nH.
 """
 function T4block(Length::FFlt, Width::FFlt, Height::FFlt,
   nL::FInt, nW::FInt, nH::FInt, orientation::Symbol=:a)
@@ -47,8 +48,8 @@ Generate a graded tetrahedral mesh  of a 3D block.
 Four-node tetrahedra in a regular arrangement, with non-uniform given spacing
 between the nodes, with a given orientation of the diagonals.
 
-The mesh is produced by splitting each logical  rectangular cell into six
-tetrahedra.
+The mesh is produced by splitting each logical  rectangular cell into five or
+six tetrahedra: refer to `T4block`.
 """
 function T4blockx(xs::FFltMat, ys::FFltMat, zs::FFltMat, orientation::Symbol)
     return T4blockx(vec(xs), vec(ys), vec(zs), orientation)
@@ -62,8 +63,8 @@ Generate a graded tetrahedral mesh  of a 3D block.
 Four-node tetrahedra in a regular arrangement, with non-uniform given spacing
 between the nodes, with a given orientation of the diagonals.
 
-The mesh is produced by splitting each logical  rectangular cell into six
-tetrahedra.
+The mesh is produced by splitting each logical  rectangular cell into five or
+six tetrahedra: refer to `T4block`.
 """
 function T4blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec, orientation::Symbol)
     nL =length(xs)-1;
