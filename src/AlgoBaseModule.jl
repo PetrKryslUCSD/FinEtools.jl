@@ -46,7 +46,8 @@ Richardson extrapolation.
 - `solns` =  array of three solution values
 - `params` = array of values of three parameters for which the `solns` have been obtained
 
-This function is applicable to any the mesh sizes (monotonically increasing, or decreasing).
+This function is applicable to any sequence of the mesh sizes
+(monotonically increasing, or decreasing).
   
 # Output
 - `solnestim`= estimate of the asymptotic solution from the data points in the
@@ -215,12 +216,15 @@ end
 Compute norm of the target field.  
 
 # Argument
-`modeldata` = data dictionary, mandatory keys:
-    - "fens" = finite element node set
-    - "regions" = array of regions
-    - "targetfields" = array of fields, one for each region
-    - "geom" = geometry field
-    - "elementsize" = representative element size,
+- `modeldata` = data dictionary, mandatory keys:
+    + `fens` = finite element node set
+    + `regions` = array of regions
+    + `targetfields` = array of fields, one for each region
+    + `geom` = geometry field
+    + `elementsize` = representative element size,
+
+# Output
+- Norm of the field as floating-point scalar.
 """
 function fieldnorm(modeldata)
     fens = modeldata["fens"]
@@ -242,9 +246,11 @@ end
 """
     fielddiffnorm(modeldatacoarse, modeldatafine)
 
-Compute norm of the difference of the target fields.  
+Compute norm of the difference of the fields.  
 
 # Arguments
+- `modeldatacoarse, modeldatafine` = data dictionaries.
+
 For both the "coarse"- and "fine"-mesh `modeldata` the data dictionaries need to contain the mandatory keys:
 - `"fens"` = finite element node set
 - `"regions"` = array of regions
@@ -255,6 +261,9 @@ For both the "coarse"- and "fine"-mesh `modeldata` the data dictionaries need to
   refer to the documentation of `transferfield!`)
 - `"parametrictolerance"` = parametric tolerance (used in field transfer; refer
   to the documentation of `transferfield!`)
+
+# Output
+- Norm of the field as floating-point scalar.
 """
 function fielddiffnorm(modeldatacoarse, modeldatafine)
     # Load coarse-mesh data
@@ -301,15 +310,15 @@ end
 
 Evaluate a convergence study from a model-data sequence.  
 
-`modeldatasequence` = array of `modeldata` dictionaries. At least two.
+- `modeldatasequence` = array of `modeldata` dictionaries. At least two must be included.
 
 Refer to methods `fieldnorm` and `fielddiffnorm` for details 
 on the required keys in the dictionaries.
 
 # Output
-`elementsizes` = element size array, 
-`errornorms` = norms of the error, 
-`convergencerate` = rate of convergence
+- `elementsizes` = element size array, 
+- `errornorms` = norms of the error, 
+- `convergencerate` = rate of convergence
 """
 function evalconvergencestudy(modeldatasequence)
     # Find the element sizes
@@ -383,10 +392,11 @@ at the values of the parameter `ps`. `ws` is the optional weights vector;
 if it is not supplied, uniformly distributed default weights are assumed.  
 
 Notes: 
+
 – The mean is subtracted from both functions. 
-– This function is not particularly efficient: it computes the mean of 
-both functions and it allocates arrays instead of overwriting the 
-contents of the arguments.
+– This function is not particularly efficient: it computes the mean of both
+  functions and it allocates arrays instead of overwriting the contents of the
+  arguments.
 """
 function qcovariance(ps, xs, ys; ws = nothing)
     @assert length(ps) == length(xs) == length(ys)
@@ -420,8 +430,11 @@ Apply penalty essential boundary conditions.
 - `K` = stiffness matrix
 - `F` = global load vector 
 - `dofnums`, `prescribedvalues` = arrays computed by `prescribeddofs()`
-- `penfact` = penalty multiplier, in relative terms: how many times the maximum
-	absolute value of the diagonal elements should the penalty term be?
+- `penfact` = penalty multiplier, in relative terms: how many times the
+  maximum absolute value of the diagonal elements should the penalty term be?
+
+# Output
+- Updated matrix `K` and vector `F`.
 """
 function penaltyebc!(K, F, dofnums, prescribedvalues, penfact)
     maxdiagK = 0.0
