@@ -249,7 +249,7 @@ end
 Compute norm of the difference of the fields.  
 
 # Arguments
-- `modeldatacoarse, modeldatafine` = data dictionaries.
+- `modeldatacoarse`, `modeldatafine` = data dictionaries.
 
 For both the "coarse"- and "fine"-mesh `modeldata` the data dictionaries need to contain the mandatory keys:
 - `"fens"` = finite element node set
