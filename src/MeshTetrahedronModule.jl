@@ -1,7 +1,7 @@
 """
     MeshTetrahedronModule
 
-Module  for generation of meshes composed of tetrahedra.
+Module for generation of meshes composed of tetrahedra.
 """
 module MeshTetrahedronModule
 
