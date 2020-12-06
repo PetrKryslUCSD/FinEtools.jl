@@ -1,7 +1,7 @@
 name = "FinEtools"
 uuid = "91bb5406-6c9a-523d-811d-0644c4229550"
 authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
-version = "4.7.7"
+version = "4.8.0"
 
 [deps]
 Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
@@ -20,4 +20,4 @@ Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 Arpack = "^0.4"
 LoopVectorization = "^0.9"
 StatsBase = "^0.33"
-julia = "^1.5"
+julia = "~1.5"
