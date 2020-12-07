@@ -1273,15 +1273,28 @@ MESHtypemap = Dict{DataType, String}(FESetP1=>"P1", FESetL2=>"L2", FESetT3=>"T3"
 function write_MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:AbstractFESet}
     meshfilebase, ext = splitext(meshfile)
     dinfo = [
-    meshfilebase * "-xyz.dat", 
-    MESHtypemap[typeof(fes)], 
-    meshfilebase * "-conn.dat"]
+        meshfilebase * "-xyz.dat", 
+        MESHtypemap[typeof(fes)], 
+        meshfilebase * "-conn.dat",
+    ]
+    # write out a file with the coordinates of the nodes
     open(dinfo[1], "w") do file
         writedlm(file, fens.xyz, ' ')
     end
+    # write out a file with the connectivity
     open(dinfo[3], "w") do file
         writedlm(file, connasarray(fes), ' ')
     end
+    # if any label is different from the default (0), write out the labels
+    if any(i -> i != 0, fes.label)
+        push!(dinfo, meshfilebase * "-label.dat")
+        # write out a file with the labels
+        open(dinfo[4], "w") do file
+            writedlm(file, fes.label, ' ')
+        end
+    end
+    
+    # write out a file with the metadata
     open(meshfilebase * ".mesh", "w") do file
         writedlm(file, dinfo)
     end

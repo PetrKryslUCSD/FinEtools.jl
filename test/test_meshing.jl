@@ -1,3 +1,35 @@
+module mexpmeshx1ba3
+using FinEtools
+using FinEtools.MeshExportModule: MESH, MESH.write_MESH
+using FinEtools.MeshImportModule
+using LinearAlgebra: norm
+using Test
+function test()
+    rho=1.21*1e-9;# mass density
+    c =345.0*1000;# millimeters per second
+    bulk= c^2*rho;
+    Lx=1900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
+
+    fens, fes = Q4block(Lx,Ly,4,2); # Mesh
+    setlabel!(fes, 3)
+
+    write_MESH("q4-4-2", fens, fes)
+
+    output = MeshImportModule.import_MESH("q4-4-2.mesh")
+    @test count(output["fens"]) == count(fens)
+    @test count(output["fesets"][1]) == count(fes)
+    @test norm(output["fesets"][1].label - fes.label) == 0
+
+    try rm("q4-4-2-conn.dat") catch end
+    try rm("q4-4-2-label.dat") catch end
+    try rm("q4-4-2-xyz.dat") catch end
+    try rm("q4-4-2.mesh") catch end
+    true
+end
+end
+using .mexpmeshx1ba3
+mexpmeshx1ba3.test()
 
 # module mimptm2
 # using FinEtools
@@ -4785,6 +4817,7 @@ function test()
 
 	File = "mef2nf2para12-coarse-nf-smoothed.vtk"
 	VTK.vtkexportmesh(File, fens, fes; scalars = [("nf", nf.values)])
+  try rm(File) catch end
 	File = "mef2nf2para12-coarse-ef-smoothed.vtk"
 	VTK.vtkexportmesh(File, fens, fes; scalars = [("ef", ef.values)])
 	try rm(File) catch end
@@ -5152,6 +5185,7 @@ function test()
 
     File = "mef2nf2maxa12-coarse-nf-smoothed.vtk"
     VTK.vtkexportmesh(File, fens, fes; scalars = [("nf", nf.values)])
+    try rm(File) catch end
     File = "mef2nf2maxa12-coarse-ef-smoothed.vtk"
     VTK.vtkexportmesh(File, fens, fes; scalars = [("ef", ef.values)])
     try rm(File) catch end

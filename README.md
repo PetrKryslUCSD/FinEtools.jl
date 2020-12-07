@@ -20,6 +20,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 12/07/2020: Export of meshes in the .mesh format with the labels enabled.
 - 08/02/2020: Enabled permuting of nodes in the field.
 - 02/29/2020: Many new tests added. Code coverage enabled.
 - 01/23/2020: Dependencies have been updated to work with Julia 1.3.1.

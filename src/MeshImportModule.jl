@@ -449,7 +449,6 @@ function import_MESH(filename)
     X = open(Xfile, "r") do file
         readdlm(file, ' ', Float64)
     end
-    # RAW: should be able to handle multiple element sets.
     # The second line is the name of the element name tag.
     etype = datinfo[2]
     Cfile = isfile(datinfo[3]) ? datinfo[3] : joinpath(meshfiledir, datinfo[3])
@@ -478,6 +477,15 @@ function import_MESH(filename)
     else
         push!(warnings, "Don't know how to handle " * etype)
         fes = nothing
+    end
+
+    # Is an optional label file present?
+    if length(datinfo) >= 4
+        labelfile = isfile(datinfo[4]) ? datinfo[4] : joinpath(meshfiledir, datinfo[4])
+        lab = open(labelfile, "r") do file
+            readdlm(file, ' ', Int64)
+        end
+        setlabel!(fes, vec(lab))
     end
   
     output = FDataDict("fens"=>fens, "fesets"=>[fes], "warnings"=>warnings)
