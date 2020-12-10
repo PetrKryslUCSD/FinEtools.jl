@@ -740,3 +740,11 @@ a = rand(3)
  0.0338781  0.0179865  0.105291                                                                                                                    
  0.198319   0.105291   0.616362     
 ```
+
+- Registry update. It can be speeded up with
+```
+using Pkg
+pkg"registry rm General"
+ENV["JULIA_PKG_SERVER"] = ""
+pkg"registry add General"
+```
