@@ -99,6 +99,10 @@ function  _myunique2(A::FIntVec)
 end
 
 function  _myunique2(A::FIntMat) # speeded up; now the bottleneck is _mysortrows
+    Out = A[_myunique2index(A),:];
+end
+
+function  _myunique2index(A::FIntMat) # speeded up; now the bottleneck is _mysortrows
     #println("size(A)=$(size(A))")
     maxA=maximum(A[:])::FInt
     sA=deepcopy(A)
@@ -141,8 +145,7 @@ function  _myunique2(A::FIntMat) # speeded up; now the bottleneck is _mysortrows
     ad[end]=ad[end]+1;
     iu[end]=(ad[end]>1)
     #iu =map((x) -> (x>1? true: false),(ad + [ad[2:end];1]));
-    Out =A[rix[iu],:];
-    return Out
+    return rix[iu];
 end
 
 # ### This code is correct, but very slow.
