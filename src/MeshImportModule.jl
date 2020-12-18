@@ -356,8 +356,10 @@ function import_ABAQUS(filename; allocationchunk=chunk)
                     nsetsarr[end].nodes = collect(fn:st:ln)
                 else
                     for ixxxx = 1:length(A)
-                        nn = parse(FInt, A[ixxxx])
-                        push!(nsetsarr[end].nodes,  nn)
+                        if !isempty(A[ixxxx])
+                            nn = parse(FInt, A[ixxxx])
+                            push!(nsetsarr[end].nodes,  nn)
+                        end
                     end
                 end
             end

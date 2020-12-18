@@ -5224,3 +5224,18 @@ end
 using .mimptexptm1
 mimptexptm1.test()
 
+module mAbaqimportm1
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using FinEtools.MeshImportModule
+using Test
+function test()
+  output = MeshImportModule.import_ABAQUS("./problem_LE10NAFEMS_MST10.inp";  allocationchunk = 11)
+  
+    fens, fes = output["fens"], output["fesets"][1]
+    @test count(fes) == 60
+    @test length(output["nsets"]["L3"]) == 7
+end
+end
+using .mAbaqimportm1
+ mAbaqimportm1.test()
