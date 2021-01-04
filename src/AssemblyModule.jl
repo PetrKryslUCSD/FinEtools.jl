@@ -381,18 +381,18 @@ function assemble!(self::SysmatAssemblerReduced{T}, mat::FMat{T}, dofnums_row::F
     for i in 1:R
         gi = dofnums_row[i]
         if gi < 1
-            mat[i, :] = zero(T)
+            mat[i, :] .= zero(T)
             dofnums_row[i] = 1
         end
     end
     for i in 1:C
         gi = dofnums_col[i]
         if gi < 1
-            mat[:, i] = zero(T)
+            mat[:, i] .= zero(T)
             dofnums_col[i] = 1
         end
     end
-    lt = self.t[]
+    lt = self.t[dofnums_row, :]
     self.m .+= lt' * mat * lt
     return self
 end
