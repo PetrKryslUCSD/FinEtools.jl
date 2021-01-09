@@ -2,9 +2,9 @@
 
 [[Adapt]]
 deps = ["LinearAlgebra"]
-git-tree-sha1 = "42c42f2221906892ceb765dbcb1a51deeffd86d7"
+git-tree-sha1 = "345a14764e43fe927d6f5c250fe4c8e4664e6ee8"
 uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
-version = "2.3.0"
+version = "2.4.0"
 
 [[Arpack]]
 deps = ["Arpack_jll", "Libdl", "LinearAlgebra"]
@@ -20,9 +20,9 @@ version = "3.5.0+3"
 
 [[ArrayInterface]]
 deps = ["LinearAlgebra", "Requires", "SparseArrays"]
-git-tree-sha1 = "b7898df8dff4098db4a9494d2451c5c2edd4cb2c"
+git-tree-sha1 = "a0c202d58f0f99156bd77972fe75ae8498fd9f4b"
 uuid = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
-version = "2.14.5"
+version = "2.14.13"
 
 [[Artifacts]]
 deps = ["Pkg"]
@@ -96,9 +96,9 @@ deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 
 [[JLLWrappers]]
-git-tree-sha1 = "c70593677bbf2c3ccab4f7500d0f4dacfff7b75c"
+git-tree-sha1 = "a431f5f2ca3f4feef3bd7a5e94b8b8d4f2f647a0"
 uuid = "692b3bcd-3c85-4b1f-b108-f13ce0eb3210"
-version = "1.1.3"
+version = "1.2.0"
 
 [[LibGit2]]
 deps = ["Printf"]
@@ -116,9 +116,9 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
 [[LoopVectorization]]
 deps = ["ArrayInterface", "DocStringExtensions", "IfElse", "LinearAlgebra", "OffsetArrays", "SLEEFPirates", "UnPack", "VectorizationBase"]
-git-tree-sha1 = "9a0145feae3fc55b86e3d1d3a5b3c83c6c05e445"
+git-tree-sha1 = "9e5f8bbdcd44cbc9ab1119cb89d1bafc88e49eb8"
 uuid = "bdcacae8-1622-11e9-2a5c-532679323890"
-version = "0.9.8"
+version = "0.9.17"
 
 [[Markdown]]
 deps = ["Base64"]
@@ -135,9 +135,9 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[OffsetArrays]]
 deps = ["Adapt"]
-git-tree-sha1 = "45d5e495ab559357aee8cb1dfb8c12b0787d4545"
+git-tree-sha1 = "5b644e46f71e744fac0775b885809fd82c4ca904"
 uuid = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
-version = "1.4.1"
+version = "1.5.0"
 
 [[OpenBLAS_jll]]
 deps = ["CompilerSupportLibraries_jll", "Libdl", "Pkg"]
@@ -177,9 +177,9 @@ uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 
 [[SLEEFPirates]]
 deps = ["IfElse", "Libdl", "VectorizationBase"]
-git-tree-sha1 = "d82dffab8f9e50d5110c5650c25fdf9e00dec316"
+git-tree-sha1 = "d6614c338e6f245f260abb8e50cee51da436a6d2"
 uuid = "476501e8-09a2-5ece-8869-fb82de89a1fa"
-version = "0.6.1"
+version = "0.6.3"
 
 [[Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
@@ -211,6 +211,14 @@ git-tree-sha1 = "7bab7d4eb46b225b35179632852b595a3162cb61"
 uuid = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 version = "0.33.2"
 
+[[SymRCM]]
+deps = ["LinearAlgebra", "SparseArrays", "Test"]
+git-tree-sha1 = "04097e2b9f3f44c6aa35a48f1acbfceeb591b862"
+repo-rev = "master"
+repo-url = "https://github.com/PetrKryslUCSD/SymRCM.jl.git"
+uuid = "286e6d88-80af-4590-acc9-0001b223b9bd"
+version = "0.2.0"
+
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
@@ -229,6 +237,6 @@ uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [[VectorizationBase]]
 deps = ["ArrayInterface", "Hwloc", "IfElse", "Libdl", "LinearAlgebra"]
-git-tree-sha1 = "fa6ef8980ee738089ef69298e9aa824cc0a86c25"
+git-tree-sha1 = "629d98b15d33fa5f4e0b2df97fee7f4bdf6c165f"
 uuid = "3d5dd08c-fd9d-11e8-17fa-ed2836048c2f"
-version = "0.14.2"
+version = "0.14.12"
