@@ -2496,3 +2496,23 @@ end
 using .mffipx1
 mffipx1.test()
 
+
+module mmiscellaneous23
+using DelimitedFiles
+using SparseArrays
+using FinEtools
+using FinEtools.MatrixUtilityModule: export_sparse, import_sparse
+using Test
+function test()
+    N = 10
+    A = sprand(N, N, 0.1)
+    export_sparse("A.txt", A)
+    B = import_sparse("A.txt")
+    @test (A - B) == spzeros(size(B)...)
+    try rm("A.txt")
+    catch end
+    true
+end
+end
+using .mmiscellaneous23
+mmiscellaneous23.test()

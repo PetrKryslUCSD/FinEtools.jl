@@ -7,6 +7,8 @@ module MatrixUtilityModule
 
 __precompile__(true)
 
+using DelimitedFiles
+using SparseArrays
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 using LoopVectorization
 
@@ -487,6 +489,45 @@ function mulCAB!(C::Vector{T}, A, B::Vector{T})  where {T}
 		end
 	end
 	return C
+end
+
+"""
+    export_sparse(filnam, M)
+
+Export sparse matrix to a text file.
+"""
+function export_sparse(filnam, M)
+#readdlm(source, ',')
+    open(filnam, "w") do io
+        out = [(size(M)..., 0.0)]
+        I, J, V = findnz(M)
+        out = vcat(out, [(I[i], J[i], V[i]) for i in 1:length(I)])
+        writedlm(io, out, ',')
+    end;
+end
+
+"""
+    import_sparse(filnam)
+
+Import sparse matrix from a text file.
+"""
+function import_sparse(filnam)
+    B = open(filnam, "r") do io
+        rows = readlines(io)
+        s = split(replace(rows[1], "," => " "))
+        m, n = parse(Int64, s[1]), parse(Int64, s[2])
+        I = fill(0, length(rows)-1)
+        J = fill(0, length(rows)-1)
+        V = fill(0.0, length(rows)-1)
+        for i in 1:length(I)
+            s = split(replace(rows[i+1], "," => " "))
+            I[i] = parse(Int64, s[1])
+            J[i] = parse(Int64, s[2])
+            V[i] = parse(Float64, s[3])
+        end
+        B = sparse(I, J, V, m, n)
+    end
+    return B
 end
 
 end
