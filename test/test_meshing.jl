@@ -3133,7 +3133,7 @@ mesh_H8cylindern_1.test()
 module mesh_rcm_1
 using FinEtools
 using FinEtools.MeshExportModule
-using FinEtools.MeshModificationModule: adjgraph, nodedegrees, revcm
+using SymRCM: adjgraph, nodedegrees, symrcm
 using Test
 using SparseArrays
 
@@ -3148,7 +3148,7 @@ function test()
 	@test ag == Array{Int64,1}[[9, 8, 4, 3, 2], [1, 3, 8,
 	7, 5, 6], [1, 2, 8], [9, 1, 8], [8, 2, 7], [2, 7], [8, 2, 5, 6], [9, 1, 4, 3, 2, 7, 5], [1, 8, 4]]
 	@test nd == [5, 6, 3, 3, 3, 2, 4, 7, 3]
-	numbering = revcm(ag, nd)
+	numbering = symrcm(ag, nd)
 	@test numbering == [4, 9, 5, 8, 3, 1, 7, 2, 6]
 
 
@@ -3166,7 +3166,7 @@ mesh_rcm_1.test()
 module mesh_rcm_2
 using FinEtools
 using FinEtools.MeshExportModule
-using FinEtools.MeshModificationModule: adjgraph, nodedegrees, revcm
+using SymRCM: adjgraph, nodedegrees, symrcm
 using Test
 using SparseArrays
 
@@ -3219,9 +3219,9 @@ function test()
 	A[12, 28]  =  0.644722
 	A[14, 29]  =  0.839357
 
-	ag = adjgraph(A; sorted = true)
+	ag = adjgraph(A; sortbydeg = true)
 	nd = nodedegrees(ag)
-	numbering = revcm(ag, nd)
+	numbering = symrcm(ag, nd)
 	# display(spy(A))
 	# display(spy(A[numbering, numbering]))
 end
@@ -3234,7 +3234,7 @@ mesh_rcm_2.test()
 module mesh_rcm_3
 using FinEtools
 using FinEtools.MeshExportModule
-using FinEtools.MeshModificationModule: adjgraph, nodedegrees, revcm
+using SymRCM: adjgraph, nodedegrees, symrcm
 using Test
 using SparseArrays
 
@@ -3285,9 +3285,9 @@ function test()
 	A1[12, 19]  =  0.510702
 
 	A = vcat(hcat(A1, 0*A1, 0*A1), hcat(0*A1, 0*A1, 0*A1), hcat(0*A1, 0*A1, A1))
-	ag = adjgraph(A; sorted = true)
+	ag = adjgraph(A; sortbydeg = true)
 	nd = nodedegrees(ag)
-	numbering = revcm(ag, nd)
+	numbering = symrcm(ag, nd)
 	# display(spy(A))
 	# display(spy(A[numbering, numbering]))
 	@test numbering[end-4:end] == [22, 21, 20, 10, 9]
@@ -3300,7 +3300,7 @@ mesh_rcm_3.test()
 module mesh_rcm_4
 using FinEtools
 using FinEtools.MeshExportModule
-using FinEtools.MeshModificationModule: adjgraph, nodedegrees, revcm
+using SymRCM: adjgraph, nodedegrees, symrcm
 using Test
 using SparseArrays
 using LinearAlgebra: norm
@@ -3310,9 +3310,9 @@ function test()
 
 	A = sprand(nfens, nfens, 1/nfens)
 	A = A+A'
-	ag = adjgraph(A; sorted = true)
+	ag = adjgraph(A; sortbydeg = true)
 	nd = nodedegrees(ag)
-	numbering = revcm(ag, nd)
+	numbering = symrcm(ag, nd)
 	# display(spy(A))
 	# display(spy(A[numbering, numbering]))
 	b = rand(nfens)
@@ -4337,6 +4337,7 @@ module mmmfieldma2
 using FinEtools
 using Test
 import LinearAlgebra: norm
+using SymRCM: adjgraph, nodedegrees, symrcm
 using SparseArrays
 function test()
     N = 10000
@@ -4344,7 +4345,7 @@ function test()
     S = sprand(N, N, nz)
     ag = adjgraph(S)
     nd = nodedegrees(ag)
-    p = revcm(ag, nd)
+    p = symrcm(ag, nd)
 end
 end
 using .mmmfieldma2
@@ -4355,6 +4356,7 @@ module mmmfieldma3
 using FinEtools
 using Test
 import LinearAlgebra: norm
+using SymRCM: adjgraph, nodedegrees, symrcm
 using SparseArrays
 # using UnicodePlots
 function test()
@@ -4425,7 +4427,7 @@ function test()
     # display(pl)
     ag = adjgraph(B)
     nd = nodedegrees(ag)
-    p = revcm(ag, nd)
+    p = symrcm(ag, nd)
     # pl = spy(B[p, p], canvas = DotCanvas)
     # display(pl)
 end
