@@ -18,8 +18,8 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [compat]
-Arpack = "^0.4"
-LoopVectorization = "^0.9"
+Arpack = "^0.5"
+LoopVectorization = "^0.11"
 StatsBase = "^0.33"
 SymRCM = "^0.2"
-julia = "~1.5"
+julia = "^1.5"
