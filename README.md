@@ -20,6 +20,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 02/07/2021: Tests clean with Julia 1.6 release candidate.
 - 12/07/2020: Export of meshes in the .mesh format with the labels enabled.
 - 08/02/2020: Enabled permuting of nodes in the field.
 - 02/29/2020: Many new tests added. Code coverage enabled.
@@ -35,7 +36,7 @@ This package is  registered, and hence one can do just
 ```julia
 ] add FinEtools
 ```
-Only version 1.x and the nightly builds of Julia are supported.
+Only version 1.x and the nightly builds of Julia are supported. The best bet is Julia 1.5.3.
 
 ## Testing
 
@@ -48,12 +49,9 @@ Only version 1.x and the nightly builds of Julia are supported.
 Tutorials in the form
 of marked-down Julia source files using the
 [Literate](https://github.com/fredrikekre/Literate.jl) workflow are available
-and more will  be added in the near future. (Each application package has some tutorials. For instance for the [linear deformation](https://github.com/PetrKryslUCSD/FinEtoolsDeforLinear.jl/tree/master/tutorials).)
+and more will  be added in the near future. Each application package has some tutorials. For a complete list refer to [the search](https://github.com/PetrKryslUCSD?tab=repositories&q=FinEtools+Tutorial&type=&language=).
 
-The package has been used to build applications for various purposes. In
-addition to the list at the top, there are also examples of various  [mesh
-generation
-tasks](https://github.com/PetrKryslUCSD/FinEtoolsMeshGenerationExamples.git)).
+The package has been used to build applications for various purposes. For a complete list refer to [the search](https://github.com/PetrKryslUCSD?tab=repositories&q=FinEtools&type=&language=).
 
 The documentation  is published as [Github pages](https://petrkryslucsd.github.io/FinEtools.jl/latest/).
 
