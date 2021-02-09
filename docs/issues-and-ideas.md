@@ -748,3 +748,6 @@ pkg"registry rm General"
 ENV["JULIA_PKG_SERVER"] = ""
 pkg"registry add General"
 ```
+ 
+-- DOCUMENTER_KEY
+DocumenterTools.genkeys(user="PetrKryslUCSD", repo="git@github.com:PetrKryslUCSD/FinEtools.jl.git")
