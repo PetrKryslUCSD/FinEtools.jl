@@ -5256,7 +5256,7 @@ function test()
     Lx=1900.0;# length of the box, millimeters
     Ly=800.0; # length of the box, millimeters
 
-    fens, fes = Q4block(Lx, Ly, 4000, 2000); # 0Mesh
+    fens, fes = Q4block(Lx, Ly, 40, 20); # 0Mesh
     setlabel!(fes, 3)
 
     H5MESH.write_H5MESH("block", fens, fes)
