@@ -15,6 +15,8 @@ import ..FESetModule: FESetQ4, FESetQ8, FESetQ9
 import ..FESetModule: FESetT3, FESetT6, FESetT4, FESetT10
 import ..FESetModule: FESetH8, FESetH20, FESetH27
 import ..MeshModificationModule: renumberconn!
+import ..MeshExportModule: H5MESH
+import ..MeshExportModule: VTK
 import Unicode: uppercase, isdigit
 import LinearAlgebra: norm
 using DelimitedFiles
@@ -489,6 +491,62 @@ function import_MESH(filename)
         end
         setlabel!(fes, vec(lab))
     end
+  
+    output = FDataDict("fens"=>fens, "fesets"=>[fes], "warnings"=>warnings)
+    return output
+end
+
+"""
+    import_H5MESH(filename)
+
+Import mesh in the H5MESH format (.h5mesh file).
+
+# Output
+Data dictionary, with keys 
+- "`fens`" = finite element nodes.
+- "`fesets`" = array of finite element sets.
+"""
+function import_H5MESH(filename)
+    warnings = String[]
+    meshfilebase, ext = splitext(filename)
+    if ext == ""
+        ext = ".h5mesh"
+    end
+    fname = meshfilebase
+    
+    X = H5MESH.retrieve_matrix(fname, ext, "xyz")
+    fens = FENodeSet(X)
+
+    etype = H5MESH.retrieve_number(fname, ext, "etype")
+
+    C = H5MESH.retrieve_matrix(fname, ext, "conn")
+    if eltype(C) != FInt
+        C = FInt.(C)
+    end
+    if     etype == VTK.H8
+        fes = FESetH8(C)
+    elseif etype == VTK.H20
+        fes = FESetH20(C)
+    elseif etype == VTK.T4
+        fes = FESetT4(C)
+    elseif etype == VTK.T10
+        fes = FESetT10(C)
+    elseif etype == VTK.Q4
+        fes = FESetQ4(C)
+    elseif etype == VTK.Q8
+        fes = FESetQ8(C)
+    elseif etype == VTK.T3
+        fes = FESetT3(C)
+    elseif etype == VTK.T6
+        fes = FESetT6(C)
+    else
+        push!(warnings, "Don't know how to handle " * etype)
+        fes = nothing
+    end
+
+    lab = H5MESH.retrieve_matrix(fname, ext, "label")
+    setlabel!(fes, vec(lab))
+    
   
     output = FDataDict("fens"=>fens, "fesets"=>[fes], "warnings"=>warnings)
     return output

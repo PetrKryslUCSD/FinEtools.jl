@@ -5240,4 +5240,36 @@ function test()
 end
 end
 using .mAbaqimportm1
- mAbaqimportm1.test()
+mAbaqimportm1.test()
+
+
+module mh5t01
+using FinEtools
+using FinEtools.MeshExportModule: H5MESH
+using FinEtools.MeshImportModule: import_H5MESH
+using LinearAlgebra: norm
+using Test
+function test()
+    rho=1.21*1e-9;# mass density
+    c =345.0*1000;# millimeters per second
+    bulk= c^2*rho;
+    Lx=1900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
+
+    fens, fes = Q4block(Lx, Ly, 4000, 2000); # 0Mesh
+    setlabel!(fes, 3)
+
+    H5MESH.write_H5MESH("block", fens, fes)
+
+    output = import_H5MESH("block.h5mesh")
+    #@show output
+    @test count(output["fens"]) == count(fens)
+    @test count(output["fesets"][1]) == count(fes)
+    @test norm(output["fesets"][1].label - fes.label) == 0
+
+    #try rm("q4-4-2.h5mesh") catch end
+    true
+end
+end
+using .mh5t01
+mh5t01.test()

@@ -95,6 +95,12 @@ export STLExporter, solid, facet, endsolid
 using .MeshExportModule.H2Lib: h2libexporttri
 # Exported: H2Lib export
 export h2libexporttri
+# Exported: MESH export
+using .MeshExportModule.MESH
+export MESH
+# Exported: H5MESH export
+using .MeshExportModule.H5MESH
+export H5MESH
 
 using .MeshModificationModule: meshboundary,  fusenodes,  compactnodes,  mergemeshes, mergenmeshes, mergenodes,  renumberconn!,  meshsmoothing, mirrormesh, nodepartitioning, interior2boundary
 # Exported: extraction of boundary, fusing of nodes  and merging of meshes, mesh smoothing,  node partitioning
@@ -102,7 +108,7 @@ export  meshboundary,  fusenodes,  compactnodes,  mergemeshes, mergenmeshes, mer
 
 using .MeshImportModule: import_NASTRAN, import_ABAQUS, import_MESH
 # Exported: mesh import functions
-export import_NASTRAN, import_ABAQUS, import_MESH
+export import_NASTRAN, import_ABAQUS, import_MESH, import_H5MESH
 
 using .VectorCacheModule: VectorCache, updateretrieve!, settime!
 # Exported: vector-cache type and methods to invoke the update callback

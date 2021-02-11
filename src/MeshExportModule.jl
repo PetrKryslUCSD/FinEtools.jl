@@ -1303,4 +1303,136 @@ end
 
 end
 
+
+module H5MESH
+################################################################################
+# HDF5 mesh export
+################################################################################
+using HDF5
+using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
+import ...FENodeSetModule: FENodeSet
+import ..VTK: VTKtypemap
+
+function write_H5MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:AbstractFESet}
+    meshfilebase, ext = splitext(meshfile)
+    fname = meshfilebase 
+    if ext == ""
+        ext = ".h5mesh"
+    end
+    etype = get(()->error("Unknown VTK type!"), VTKtypemap, typeof(fes));
+    # If the file exists, delete all contents
+    h5open(with_extension(fname, ext), "w") do fid
+    end
+    # Store the mesh data
+    store_matrix(fname, ext, "xyz", fens.xyz)
+    store_matrix(fname, ext, "label", fes.label)
+    C = connasarray(fes)
+    mn = maximum(C)
+    if mn < typemax(Int32)
+        C = Int32.(C)
+    end
+    store_matrix(fname, ext, "conn", C)
+    store_number(fname, ext, "etype", etype)
+    return true
+end
+
+
+"""
+    retrieve_matrix(fname, mname)
+
+Retrieve a matrix. 
+"""
+function retrieve_string(fname, ext, sname)
+    fname = with_extension(fname, ext)
+    try
+        return h5open(fname, "r") do file
+            read(file, sname)
+        end
+    catch SystemError
+        return nothing
+    end
+end
+
+"""
+    store_string(fname, ext, sname, str)
+
+Store a string.
+"""
+function store_string(fname, ext, sname, str)
+    fname = with_extension(fname, ext)
+    h5open(fname, "cw") do file
+        write(file, sname, str) 
+    end
+end
+
+"""
+    retrieve_matrix(fname, mname)
+
+Retrieve a matrix. 
+"""
+function retrieve_number(fname, ext, sname)
+    fname = with_extension(fname, ext)
+    try
+        return h5open(fname, "r") do file
+            read(file, sname)
+        end
+    catch SystemError
+        return nothing
+    end
+end
+
+"""
+    store_string(fname, ext, sname, str)
+
+Store a string.
+"""
+function store_number(fname, ext, sname, str)
+    fname = with_extension(fname, ext)
+    h5open(fname, "cw") do file
+        write(file, sname, str) 
+    end
+end
+
+"""
+    retrieve_matrix(fname, mname)
+
+Retrieve a matrix. 
+"""
+function retrieve_matrix(fname, ext, mname)
+    fname = with_extension(fname, ext)
+    try
+        return h5open(fname, "r") do file
+            read(file, mname)
+        end
+    catch SystemError
+        return nothing
+    end
+end
+
+"""
+    store_matrix(fname, ext, mname, matrix)
+
+Store a matrix.
+"""
+function store_matrix(fname, ext, mname, matrix)
+    fname = with_extension(fname, ext)
+    h5open(fname, "cw") do file
+        write(file, mname, matrix) 
+    end
+end
+
+function with_extension(filename, ext)
+    if ext[1] == '.'
+        ext = ext[2:end]
+    end
+    if match(Regex(".*\\." * ext * "\$"), filename) == nothing
+        filename = filename * "." * ext
+    end
+    return filename
+end
+
+
+end
+
 end
