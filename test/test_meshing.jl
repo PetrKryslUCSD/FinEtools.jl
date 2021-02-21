@@ -5319,3 +5319,54 @@ end
 end
 using .mt3ext01
 mt3ext01.test()
+
+
+module mt3ext02
+using FinEtools
+using FinEtools.MeshTetrahedronModule: T4extrudeT3
+using FinEtools.MeshExportModule: VTK
+using FinEtools.MeshImportModule
+using LinearAlgebra: norm
+using Test
+function test()
+    
+    radius = 30
+    output = MeshImportModule.import_ABAQUS("./weird_sphere.inp";  allocationchunk = 11)
+    surfens, surfes = output["fens"], output["fesets"][1]
+    
+    nlayers = 5
+
+    function radially(X, layer)
+        n = X ./ norm(X)
+        X .= n.*(1.0 + layer/nlayers/5)*radius
+    end
+    fens, fes = T4extrudeT3(surfens, surfes, nlayers, radially)
+    @test count(fens) == (nlayers+1) * count(surfens)
+    
+    @test count(fes) == 3 * nlayers * count(surfes)
+    # @show count(fens)
+    goodnodes = true
+    for i in 1:count(fes)
+        for j in 1:4
+            @test (    1 <= fes.conn[i][j] <= count(fens) )
+            goodnodes = goodnodes && (    1 <= fes.conn[i][j] <= count(fens) )
+        end
+    end
+    @test goodnodes == true
+    File = "mesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    try rm(File) catch end
+    # @async run(`"paraview.exe" $File`)
+
+    bfes = meshboundary(fes)
+    File = "boundary_mesh.vtk"
+    VTK.vtkexportmesh(File, fens, bfes)
+    try rm(File) catch end
+    # @async run(`"paraview.exe" $File`)
+    
+    
+    true
+end
+end
+using .mt3ext02
+mt3ext02.test()
