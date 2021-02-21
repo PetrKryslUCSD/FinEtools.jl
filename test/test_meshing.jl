@@ -5293,9 +5293,9 @@ function test()
 
     fens, fes = T4extrudeT3(surfens, surfes, nlayers, (X, layer) -> [X[1], X[2], layer*Lz/nlayers])
     @test count(fens) == (nlayers+1) * count(surfens)
-    @show fens, fes
+    # @show fens, fes
     @test count(fes) == 3 * nlayers * count(surfes)
-    @show count(fens)
+    # @show count(fens)
     goodnodes = true
     for i in 1:count(fes)
         for j in 1:4
