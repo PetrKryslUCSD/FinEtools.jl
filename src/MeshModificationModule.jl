@@ -518,7 +518,7 @@ Let us say there are nodes not connected to any finite element that you would
 like to remove from the mesh: here is how that would be accomplished.
 ```
 connected = findunconnnodes(fens, fes);
-fens, new_numbering = compactfens(fens, connected);
+fens, new_numbering = compactnodes(fens, connected);
 fes = renumberconn!(fes, new_numbering);
 ```
 Finally, check that the mesh is valid:
