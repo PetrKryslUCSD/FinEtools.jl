@@ -20,6 +20,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 02/20/2021: Implemented extrusion of triangular meshes into tetrahedra.
 - 02/07/2021: Tests clean with Julia 1.6 release candidate.
 - 12/07/2020: Export of meshes in the .mesh format with the labels enabled.
 - 08/02/2020: Enabled permuting of nodes in the field.
