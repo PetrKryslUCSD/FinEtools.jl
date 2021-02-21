@@ -5353,12 +5353,19 @@ function test()
         end
     end
     @test goodnodes == true
+
+    
+    surbfes = meshboundary(surfes)
+
+    bfes = meshboundary(fes)
+
+    @test count(bfes) == 2*count(surfes) + 2*nlayers*count(surbfes)
+    
     File = "mesh.vtk"
     VTK.vtkexportmesh(File, fens, fes)
     try rm(File) catch end
     # @async run(`"paraview.exe" $File`)
 
-    bfes = meshboundary(fes)
     File = "boundary_mesh.vtk"
     VTK.vtkexportmesh(File, fens, bfes)
     try rm(File) catch end
