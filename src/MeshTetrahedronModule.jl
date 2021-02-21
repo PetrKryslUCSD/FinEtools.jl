@@ -8,12 +8,13 @@ module MeshTetrahedronModule
 __precompile__(true)
 
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import ..FESetModule: count, FESetT4, FESetT10, setlabel!, connasarray, subset
+import ..FESetModule: count, FESetT4, FESetT10, FESetT3, setlabel!, connasarray, subset, updateconn!
 import ..FENodeSetModule: FENodeSet
 import ..MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
 import ..MeshSelectionModule: findunconnnodes, selectelem, connectednodes
 import ..MeshModificationModule: compactnodes, renumberconn!, meshboundary
 import ..MeshHexahedronModule: H8hexahedron
+
 using LinearAlgebra: norm
 import Statistics: mean
 
@@ -762,6 +763,74 @@ function T4quartercyln(Radius, Length, nperradius, nL)
 		fens.xyz[cn[j],1:2] .*= Radius/norm(fens.xyz[cn[j],1:2])
 	end
 	return fens, fes
+end
+
+
+function doextrude(fens, fes::FESetT3, nLayers, extrusionh)
+    nn1 = count(fens); # number of nodes in the surface to be extruded
+    nt1 = count(fes)
+    ntets = 3*nt1*nLayers; # number of tetrahedra to be generated 
+    tconn = zeros(FInt, ntets, 4);
+    xyz = zeros(FFlt, nn1*(nLayers+1), 3); # array of coordinates for each of the nodes in the resulting mesh
+    for j in 1:nn1
+        xyz[j, :] = extrusionh(view(fens.xyz, j, :), 0);
+    end
+    for k in 1:nLayers
+        for j in 1:nn1
+            f = j+k*nn1;
+            xyz[f, :] = extrusionh(view(fens.xyz, j, :), k);
+        end 
+    end
+
+    cel = 1;
+    for layer in 1:nLayers
+        for triangle in 1:nt1
+            # Extrusion of triangle i,j,k. nt1 = total number of nodes in the surface mesh.
+            # The algorithm traverses triangles one by one and generates three tetrahedra 
+            # per triangle. The connectivities of those tetrahedra are:
+            i, j, k = (fes.conn[triangle] .+ (layer-1)*nn1)
+            N = nn1
+            tconn[cel, :] = [
+            i, 
+            i < j ? j : j+N,
+            i < k ? k : k+N,
+            i+N
+            ]
+            cel = cel+1;
+            tconn[cel, :] = [
+            j, 
+            j < k ? k : k+N,
+            j < i ? i : i+N,
+            j+N
+            ]
+            cel = cel+1;
+            tconn[cel, :] = [
+            k, 
+            k < i ? i : i+N,
+            k < j ? j : j+N,
+            k+N
+            ]
+            cel = cel+1;
+        end
+    end
+    efes = FESetT4(tconn);
+    efens = FENodeSet(xyz);
+    return efens, efes
+end
+
+"""
+T4extrudeT3(fens::FENodeSet,  fes::FESetT3, nLayers::FInt, extrusionh::F) where {F<:Function}
+
+Extrude a mesh of triangles into a mesh of tetrahedra (T4).
+"""
+function T4extrudeT3(fens::FENodeSet,  fes::FESetT3, nLayers::FInt, extrusionh::F) where {F<:Function}
+    id = fill(0, count(fens))
+    cn = connectednodes(fes);
+    id[cn[:]] = vec([i for i in 1:length(cn)]);
+    surfes = deepcopy(fes);
+    updateconn!(surfes, id);
+    surfens = FENodeSet(fens.xyz[cn[:], :]);
+    return doextrude(surfens, surfes, nLayers, extrusionh);
 end
 
 end 
