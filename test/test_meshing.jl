@@ -5348,7 +5348,6 @@ function test()
     goodnodes = true
     for i in 1:count(fes)
         for j in 1:4
-            @test (    1 <= fes.conn[i][j] <= count(fens) )
             goodnodes = goodnodes && (    1 <= fes.conn[i][j] <= count(fens) )
         end
     end
