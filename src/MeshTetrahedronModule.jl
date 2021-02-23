@@ -484,7 +484,9 @@ function T4voximggen(img::Array{DataT, 3},  voxval::Array{DataT, 1}) where {Data
         for J= 1:N
             for K= 1:P
                 if  (img[I, J, K]>=minvoxval) && (img[I, J, K]<=maxvoxval)
-                    store_elements(I, J, K);
+                    if (img[I, J, K] in voxvalset)
+                        store_elements(I, J, K);
+                    end
                 end
             end
         end
