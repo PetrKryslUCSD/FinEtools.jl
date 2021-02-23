@@ -424,13 +424,16 @@ function T4voximggen(img::Array{DataT, 3},  voxval::Array{DataT, 1}) where {Data
     t4ia = [8 4 7 5; 6 7 2 5; 3 4 2 7; 1 2 4 5; 7 4 2 5];
     t4ib = [7 3 6 8; 5 8 6 1; 2 3 1 6; 4 1 3 8; 6 3 1 8];
 
-    function find_nonempty(minvoxval, maxvoxval)
+    function find_nonempty(minvoxval, maxvoxval, voxvalset)
         Nvoxval=0
         for I= 1:M
             for J= 1:N
                 for K= 1:P
                     if (img[I, J, K]>=minvoxval) && (img[I, J, K]<=maxvoxval)
-                        Nvoxval=Nvoxval+1
+                        # now perform the more expensive in-set test
+                        if (img[I, J, K] in voxvalset)
+                            Nvoxval=Nvoxval+1
+                        end
                     end
                 end
             end
@@ -439,7 +442,8 @@ function T4voximggen(img::Array{DataT, 3},  voxval::Array{DataT, 1}) where {Data
     end
     minvoxval= minimum(voxval)  # include voxels at or above this number
     maxvoxval= maximum(voxval)  # include voxels at or below this number
-    Nvoxval =find_nonempty(minvoxval, maxvoxval) # how many "full" voxels are there?
+    voxvalset = Set(voxval)
+    Nvoxval = find_nonempty(minvoxval, maxvoxval, voxvalset) # how many "full" voxels are there?
 
     # Allocate output arrays:  one voxel is converted to 5 tetrahedra
     t =zeros(FInt, 5*Nvoxval, 4);
