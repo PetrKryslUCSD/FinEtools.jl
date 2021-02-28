@@ -266,8 +266,9 @@ function transferfield!(ff::F, fensf::FENodeSet, fesf::AbstractFESet, fc::F, fen
         # Find the bounding box
         subbox = boundingbox(fensf.xyz[pnl, :])
         tol = 2*geometricaltolerance # increase the box a bit
+        subbox = inflatebox!(subbox, tol)
         # Construct a sub mesh of the coarse mesh that covers the nodes from this partition
-        sublist = selectelem(fensc, fesc, overlappingbox = subbox, inflate = tol)
+        sublist = selectelem(fensc, fesc, overlappingbox = subbox)
         if !isempty(sublist) # there are some finite elements to work with
             fescsub = subset(fesc, sublist)
             connected = findunconnnodes(fensc, fescsub);
