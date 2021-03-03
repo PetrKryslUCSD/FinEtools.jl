@@ -377,14 +377,15 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
 
     # Select all FEs whose bounding box overlaps given box
     if (overlappingbox !== nothing)
-        inflatebox!(overlappingbox, inflate)
+        obox = deepcopy(overlappingbox) # do not mess with the array on input
+        inflatebox!(obox, inflate)
         bbox = zeros(2 * size(fens.xyz, 2))
         for i in 1:length(fes.conn)
             bbox = initbox!(bbox, vec(fens.xyz[fes.conn[i][1], :]))
             for k in 2:length(fes.conn[i])
                 bbox = updatebox!(bbox, fens.xyz[fes.conn[i][k], :])
             end
-            if boxesoverlap(overlappingbox, bbox)
+            if boxesoverlap(obox, bbox)
                 felist[i]=i; # this element overlaps the box
             end
         end
