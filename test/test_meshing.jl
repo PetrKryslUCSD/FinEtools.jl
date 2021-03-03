@@ -5376,3 +5376,58 @@ end
 end
 using .mt3ext02
 mt3ext02.test()
+
+
+module mselecte1a1
+using FinEtools
+using Test
+function test()
+    W = 10.1;
+    L = 12.3;
+    t =  32.0;
+    nl = 2; nt = 1; nw = 1; ref = 1;
+    tolerance  = 0.1;
+    
+    fens,fes  = H8block(L,W,t, nl*ref,nw*ref,nt*ref)
+    
+    box = initbox!([], [L, W, t].+ tolerance)
+    cornerlist = selectelem(fens, fes, overlappingbox = box, inflate = 0.0)
+    @test length(cornerlist) == 0
+    
+    box = initbox!([], [L, W, t].+ tolerance)
+    cornerlist = selectelem(fens, fes, overlappingbox = box)
+    @test length(cornerlist) == 0
+    
+    box = initbox!([], [L, W, t].+ tolerance)
+    cornerlist = selectelem(fens, fes, overlappingbox = box, inflate = 0.1)
+    @test length(cornerlist) == 1
+    
+    box = initbox!([], [L, W, t].+ tolerance)
+    cornerlist = selectelem(fens, fes, overlappingbox = box, inflate = 0.09)
+    @test length(cornerlist) == 0
+
+    # # # Traction on the opposite edge
+    # boundaryfes  =   meshboundary(fes);
+    # Toplist   = selectelem(fens,boundaryfes, facing = true,
+    # direction = [-1.0 0.0 0.0], dotmin = 0.999);
+    # # display(Toplist)
+    # @test length(Toplist) == 49
+    # Toplist   = selectelem(fens,boundaryfes, box = [L L -Inf Inf -Inf Inf],
+    # allin = true, inflate  =  tolerance);
+    # # display(Toplist)
+    # @test length(Toplist) == 49
+    # Toplist   = selectelem(fens,boundaryfes, box = [L L -Inf Inf -Inf Inf],
+    # allin = false, inflate  =  tolerance);
+    # # display(Toplist)
+    # @test length(Toplist) == 77
+    
+    # File =  "b.vtk"
+    # vtkexportmesh(File, subset(boundaryfes, Toplist).conn, fens.xyz,
+    #     FinEtools.MeshExportModule.Q4)
+    # File =  "a.vtk"
+    # vtkexportmesh(File, fes.conn, fens.xyz,  FinEtools.MeshExportModule.H8)
+    # @async run(`"paraview.exe" $File`)
+end
+end
+using .mselecte1a1
+mselecte1a1.test()

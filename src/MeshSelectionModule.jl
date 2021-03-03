@@ -190,6 +190,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
 
     # Extract arguments
     allin = nothing; flood = nothing; facing = nothing; label = nothing;
+    inflate = 0.0
     # nearestto = nothing; smoothpatch = nothing;
     startnode = 0; dotmin = 0.01
     overlappingbox = nothing
@@ -205,12 +206,14 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
             overlappingbox = val
         elseif sy == :nearestto
             nearestto = val
+        elseif sy == :inflate
+            inflate = val
         elseif sy == :allin
             allin = val
         end
     end
 
-    if flood != nothing
+    if flood !== nothing
         for apair in pairs(kwargs)
             sy, val = apair
             if sy == :startnode
@@ -245,20 +248,6 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
     #     else
     #         error('Need the number of the starting finite element');
     #     end
-    # end
-
-    # if overlappingbox != nothing
-    #     overlapping_box = true;
-    #     # box=options.overlapping_box;
-    #     # bounding_boxes =[];# precomputed bounding boxes of fes can be passed in
-    #     # if isfield(options,'bounding_boxes')
-    #     #     bounding_boxes = options.bounding_boxes;
-    #     # end
-    #     # inflate = 0;
-    #     # if isfield(options,'inflate')
-    #     #     inflate = (options.inflate);
-    #     # end
-    #     # box = inflate_box (box, inflate);
     # end
 
     # if isfield(options, 'nearestto')
@@ -387,11 +376,12 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
 
 
     # Select all FEs whose bounding box overlaps given box
-    if (overlappingbox != nothing)
+    if (overlappingbox !== nothing)
+        inflatebox!(overlappingbox, inflate)
         bbox = zeros(2 * size(fens.xyz, 2))
-        for i = 1:length(fes.conn)
+        for i in 1:length(fes.conn)
             bbox = initbox!(bbox, vec(fens.xyz[fes.conn[i][1], :]))
-            for k = 2:length(fes.conn[i])
+            for k in 2:length(fes.conn[i])
                 bbox = updatebox!(bbox, fens.xyz[fes.conn[i][k], :])
             end
             if boxesoverlap(overlappingbox, bbox)
