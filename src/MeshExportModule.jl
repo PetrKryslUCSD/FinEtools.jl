@@ -1433,6 +1433,115 @@ function with_extension(filename, ext)
 end
 
 
+end # H5MESH
+
+module VTKWrite
+################################################################################
+# VTK export using WriteVTK. Unstructured, binary, file is written.
+################################################################################
+
+using WriteVTK
+using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
+import ...FENodeSetModule: FENodeSet
+
+using Printf
+import LinearAlgebra: norm, cross
+
+const _VTK_TYPE_MAP = Dict{DataType, Int}(FESetP1=>1, FESetL2=>3, FESetT3=>5,    FESetQ4=>9, FESetT4=>10, FESetH8=>12, FESetQ8=>23, FESetL3=>21, FESetT6=>22, FESetT10=>24, FESetH20=>25)
+
+
+const P1=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetP1])
+const L2=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetL2])
+const T3=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetT3])
+const Q4=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetQ4])
+const T4=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetT4])
+const H8=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetH8])
+const L3=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetL3])
+const T6=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetT6])
+const Q8=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetQ8])
+const T10=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetT10])
+const H20=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetH20])
+
+"""
+    vtkwrite(theFile::String, fens::FENodeSet, fes::T; opts...) where {T<:AbstractFESet}
+
+Export mesh to VTK as an unstructured grid (binary file).
+
+`opts` = keyword argument list, where `scalars` = array of tuples, (name, data)
+`vectors` = array of tuples, (name, data)
+
+For the `scalars`: If `data` is a vector, that data is exported as a single
+field. On the other hand, if it is an 2d array, each column is exported  as a
+separate field.
+
+"""
+function vtkwrite(theFile::String, fens::FENodeSet, fes::T; opts...) where {T<:AbstractFESet}
+    celltype = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[typeof(fes)])
+    return vtkwrite(theFile, connasarray(fes), fens.xyz, celltype; opts...)
 end
+
+"""
+    vtkwrite(theFile::String, Connectivity, Points, celltype;
+        vectors=nothing, scalars=nothing)
+
+Export mesh to VTK as an unstructured grid (binary format).
+
+`opts` = keyword argument list, where `scalars` = array of tuples, (name, data)
+`vectors` = array of tuples, (name, data)
+
+For the `scalars`: If `data` is a vector, that data is exported as a single
+field. On the other hand, if it is an 2d array, each column is exported  as a
+separate field.
+"""
+function vtkwrite(theFile::String, Connectivity, Points, celltype; vectors=nothing, scalars=nothing)
+    # The array `Points` has number of rows equal to the number of points,
+    # whereas `points` expect this to be the transpose
+    points = fill(zero(eltype(Points)), size(Points, 2), size(Points, 1))
+    # Copy
+    for i in 1:size(Points, 1)
+        points[:, i] .= Points[i, :]
+    end 
+    if typeof(Connectivity[1]) <: Tuple # Vector of connectivity tuples: convert to an array
+        c = fill(0, length(Connectivity), length(Connectivity[1]))
+        for i = 1:length(Connectivity)
+            c[i, :] = [Connectivity[i]...]
+        end
+        Connectivity = c
+    end
+    # Prepare an array of the cells
+    cells = [MeshCell(celltype, view(Connectivity, i, :)) for i in 1:size(Connectivity, 1)]
+    vtkfile = vtk_grid(theFile, points, cells, compress=3)
+    if scalars !== nothing
+        for nt in scalars
+            an = nt[1] # name of the shape collection
+            d = nt[2]
+            pdata = fill(0.0, size(d, 2), size(d, 1))
+            for j in 1:size(pdata, 1)
+                for i in 1:size(pdata, 2)
+                    pdata[j, i] = d[i, j]
+                end
+            end
+            vtkfile[an] = pdata
+        end
+    end
+    if vectors !== nothing
+        for nt in vectors
+            an = nt[1] # name of the shape collection
+            d = nt[2]
+            pdata = fill(0.0, size(d, 2), size(d, 1))
+            for j in 1:size(pdata, 1)
+                for i in 1:size(pdata, 2)
+                    pdata[j, i] = d[i, j]
+                end
+            end
+            vtkfile[an] = pdata
+        end
+    end
+    return vtk_save(vtkfile)
+end
+    
+end # VTKWrite
+
 
 end
