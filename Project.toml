@@ -17,6 +17,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 SymRCM = "286e6d88-80af-4590-acc9-0001b223b9bd"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
+WriteVTK = "64499a7a-5c06-52f2-abe2-ccb03c286192"
 
 [compat]
 Arpack = "^0.5"
@@ -24,4 +25,5 @@ HDF5 = "^0.15"
 LoopVectorization = "^0.11"
 StatsBase = "^0.33"
 SymRCM = "^0.2"
+WriteVTK = "^1.9"
 julia = "1.6"
