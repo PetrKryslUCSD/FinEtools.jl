@@ -188,7 +188,7 @@ function makematrix!(self::SysmatAssemblerSparse)
                      self.colbuffer[1:self.buffer_pointer-1],
                      self.matbuffer[1:self.buffer_pointer-1],
                      self.ndofs_row, self.ndofs_col);
-        self = SysmatAssemblerSparse(0.0*self.matbuffer[1])# get rid of the buffers
+        self = SysmatAssemblerSparse(zero(eltype(self.matbuffer)))# get rid of the buffers
         return S
     end
 end
@@ -339,7 +339,7 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
     @inbounds for j=1:size(S,1)
         S[j,j]=S[j,j]/2.0;      # the diagonal is there twice; fix it;
     end
-    self = SysmatAssemblerSparse(0.0*self.matbuffer[1])# get rid of the buffers
+    self = SysmatAssemblerSparseSymm(zero(eltype(self.matbuffer))) # get rid of the buffers
     return S
 end
 
