@@ -1262,3 +1262,17 @@ end
 end
 using .massnomat1
 massnomat1.test()
+
+
+module mwithnodes4
+using FinEtools
+using Test
+function test()
+   fens,fes = Q4block(1.3, 3.1, 3, 2); # Mesh
+   l = selectelem(fens, fes, withnodes = [3, 4, 7, 8, 11, 12])
+   @test l == [5, 6]
+   true
+end
+end
+using .mwithnodes4
+mwithnodes4.test()

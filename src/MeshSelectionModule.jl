@@ -154,6 +154,15 @@ exteriorbfl = selectelem(fens, bdryfes,
    box=[1.0, 1.0, 0.0, pi/2, 0.0, Thickness], inflate=tolerance);
 ```
 
+### withnodes
+
+Select elements whose nodes are in a given list of node numbers.
+
+Example:
+```julia
+l = selectelem(fens, fes, withnodes = [13, 14])
+```
+
 ### flood
 Select all FEs connected together, starting from a given node.
 
@@ -189,7 +198,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
     # product of its normal and the direction vector is greater than tolerance.
 
     # Extract arguments
-    allin = nothing; flood = nothing; facing = nothing; label = nothing;
+    allin = nothing; flood = nothing; facing = nothing; label = nothing; withnodes = nothing
     inflate = 0.0
     # nearestto = nothing; smoothpatch = nothing;
     startnode = 0; dotmin = 0.01
@@ -208,6 +217,8 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
             nearestto = val
         elseif sy == :inflate
             inflate = val
+        elseif sy == :withnodes
+            withnodes = val
         elseif sy == :allin
             allin = val
         end
@@ -291,6 +302,26 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
             end
         end
         return findall(x -> x != 0, felist); # return the nonzero element numbers;
+    end
+
+    # Helper Function: are all nodes of an element in the list?
+    function nodesin(c, withnodes)
+        for i in c
+            if !(i in withnodes)
+                return false
+            end
+        end
+        return true
+    end
+
+    # Select all elements whose nodes are in a given list
+    if withnodes != nothing
+        for i=1:length(fes.conn)
+            if nodesin(fes.conn[i], withnodes)
+                felist[i] =i;   # matched this element
+            end
+        end
+        return  felist[findall(x->x!=0, felist)]; # return the nonzero element numbers
     end
 
     # Helper function: calculate the normal to a boundary finite element
