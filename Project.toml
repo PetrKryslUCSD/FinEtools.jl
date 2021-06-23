@@ -1,7 +1,7 @@
 name = "FinEtools"
 uuid = "91bb5406-6c9a-523d-811d-0644c4229550"
 authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
-version = "5.1.6"
+version = "5.1.7"
 
 [deps]
 Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
@@ -22,7 +22,7 @@ WriteVTK = "64499a7a-5c06-52f2-abe2-ccb03c286192"
 [compat]
 Arpack = "^0.5"
 HDF5 = "^0.15"
-LoopVectorization = "^0.11"
+LoopVectorization = "^0.12"
 StatsBase = "^0.33"
 SymRCM = "^0.2"
 WriteVTK = "^1.9"
