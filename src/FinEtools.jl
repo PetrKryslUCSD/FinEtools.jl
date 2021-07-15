@@ -35,11 +35,13 @@ using .CSysModule: CSys, updatecsmat!
 # Exported: type  for coordinate systems, methods to invoke the update callback
 export CSys, updatecsmat!
 
-using .FESetModule: AbstractFESet,  AbstractFESet0Manifold,  AbstractFESet1Manifold,  AbstractFESet2Manifold,  AbstractFESet3Manifold, manifdim, nodesperelem, count, fromarray!, connasarray, setlabel!, subset, cat, updateconn!, bfun, bfundpar, map2parametric, inparametric, centroidparametric,  FESetP1, FESetL2, FESetL3, FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6, FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
+using .FESetModule: AbstractFESet,  AbstractFESet0Manifold,  AbstractFESet1Manifold,  AbstractFESet2Manifold,  AbstractFESet3Manifold, manifdim, nodesperelem, count, delegateof, accepttodelegate, fromarray!, connasarray, setlabel!, subset, cat, updateconn!, bfun, bfundpar, map2parametric, inparametric, centroidparametric,  FESetP1, FESetL2, FESetL3, FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6, FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
 # Exported: types of finite element sets, abstract and concrete
 export AbstractFESet,  AbstractFESet0Manifold,  AbstractFESet1Manifold,  AbstractFESet2Manifold,  AbstractFESet3Manifold, FESetP1, FESetL2, FESetL3, FESetT3, FESetQ4, FESetQ9, FESetQ8, FESetT6, FESetH8, FESetH20, FESetH27, FESetT4, FESetT10
 # Exported: methods for accessing dimensions and counts
 export manifdim, nodesperelem, count
+# Exported: methods for accepting delegation and revealing the delegating object
+export delegateof, accepttodelegate
 # Exported: methods for  manipulating connectivity  and labels
 export fromarray!, connasarray, setlabel!, subset, cat, updateconn!
 # Exported: methods for computing basis function values and derivatives of basis functions  with respect to the parametric coordinates, and methods for working with parametric coordinates

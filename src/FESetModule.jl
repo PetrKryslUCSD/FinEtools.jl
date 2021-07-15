@@ -55,9 +55,12 @@ abstract type AbstractFESet3Manifold{NODESPERELEM} <: AbstractFESet{NODESPERELEM
 Generate standard fields for the finite element set.
 """
 macro add_FESet_fields(NODESPERELEM)
-    return esc(:(
-    conn::Array{NTuple{$NODESPERELEM, FInt}, 1};
-    label::FIntVec; )
+    return esc(
+        :(
+            conn::Array{NTuple{$NODESPERELEM, FInt}, 1};
+            label::FIntVec;
+            delegateof
+            )
     )
 end
 # show(macroexpand(:(@add_FESet_fields 6)))
@@ -72,7 +75,7 @@ macro define_FESet(NAME, MANIFOLD, NODESPERELEM)
         mutable struct $NAME <: $MANIFOLD{$NODESPERELEM}
             @add_FESet_fields $NODESPERELEM
             function $NAME(conn::FIntMat)
-                self = new(NTuple{$NODESPERELEM, FInt}[], FInt[])
+                self = new(NTuple{$NODESPERELEM, FInt}[], FInt[], nothing)
                 self = fromarray!(self, conn)
                 setlabel!(self, 0)
                 return self
@@ -112,6 +115,20 @@ manifdim(me::AbstractFESet3Manifold{NODESPERELEM}) where {NODESPERELEM} = 3
 Get the number of individual connectivities in the FE set.
 """
 count(self::T) where {T<:AbstractFESet} = length(self.conn)
+
+"""
+    delegateof(self::T) where {T<:AbstractFESet} 
+
+Return the object of which the elements set is a delegate.
+"""
+delegateof(self::T) where {T<:AbstractFESet} = self.delegateof
+
+"""
+    accepttodelegate(self::T, delegateof) where {T<:AbstractFESet}
+
+Accept to delegate for an object.
+"""
+accepttodelegate(self::T, delegateof) where {T<:AbstractFESet} = (self.delegateof = delegateof; self)
 
 """
     fromarray!(self::AbstractFESet{NODESPERELEM}, conn::FIntMat) where {NODESPERELEM}
