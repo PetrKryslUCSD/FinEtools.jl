@@ -20,6 +20,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 07/14/2021: Implemented the mechanism of the "delegate of"  to facilitate creation of user-defined finite elements.
 - 04/08/2021: Implemented export of VTK binary files using WriteVTK.
 - 02/20/2021: Implemented extrusion of triangular meshes into tetrahedra.
 - 02/07/2021: Tests clean with Julia 1.6 release candidate.

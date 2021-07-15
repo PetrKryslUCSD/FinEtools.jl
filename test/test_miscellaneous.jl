@@ -2516,3 +2516,31 @@ end
 end
 using .mmiscellaneous23
 mmiscellaneous23.test()
+
+
+module mmiscellaneous23x1
+using DelimitedFiles
+using SparseArrays
+using FinEtools
+
+mutable struct FESetYEtAnother
+end
+
+using Test
+function test()
+    rho=1.21*1e-9;# mass density
+    c =345.0*1000;# millimeters per second
+    bulk= c^2*rho;
+    Lx=1900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
+
+    fens,fes = Q4block(Lx,Ly,3,2); # Mesh
+    fes1 = FESetYEtAnother()
+    @test accepttodelegate(fes, fes1) == fes
+    @test delegateof(fes) === fes1
+    
+        true
+end
+end
+using .mmiscellaneous23x1
+mmiscellaneous23x1.test()
