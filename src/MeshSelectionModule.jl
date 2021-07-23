@@ -165,6 +165,7 @@ l = selectelem(fens, fes, withnodes = [13, 14])
 
 ### flood
 Select all FEs connected together, starting from a given node.
+Connections through a vertex (node) are sufficient.
 
 Example:
 Select all FEs connected together (Starting from node 13):
