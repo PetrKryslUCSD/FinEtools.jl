@@ -387,18 +387,21 @@ function import_ABAQUS(filename; allocationchunk=chunk)
                     return FESetH8(elemset1.elem[:, 2:9])
                 elseif (length(TYPE) >= 5) && (TYPE[1:5] == "C3D20")
                     return FESetH20(elemset1.elem[:, 2:21])
-                elseif ((length(TYPE) >= 4) && (TYPE[1:4] == "C3D4")) || ((length(TYPE) >= 5) && (TYPE[1:5] == "DC3D4"))
+                elseif ((length(TYPE) >= 4) && (TYPE[1:4] == "C3D4")) || 
+                    ((length(TYPE) >= 5) && (TYPE[1:5] == "DC3D4"))
                     return FESetT4(elemset1.elem[:, 2:5])
                 elseif (length(TYPE) >= 5) && (TYPE[1:5] == "C3D10")
                     return FESetT10(elemset1.elem[:, 2:11])
-                elseif (length(TYPE) >= 5) && (TYPE[1:5] == "DC2D3")
+                elseif ((length(TYPE) >= 2) && (TYPE[1:2] == "S3")) ||
+                    ((length(TYPE) >= 3) && (TYPE[1:3] == "S3R"))  || 
+                    ((length(TYPE) >= 4) && (TYPE[1:4] == "CPS3")) || 
+                    ((length(TYPE) >= 5) && (TYPE[1:5] == "DC2D3"))
                     return FESetT3(elemset1.elem[:, 2:4])
-                elseif (length(TYPE) >= 2) && (TYPE[1:2] == "S3") || (length(TYPE) >= 2) && (TYPE[1:2] == "S3R") 
-                    return FESetT3(elemset1.elem[:, 2:4])
-                elseif (length(TYPE) >= 5) && ((TYPE[1:5] == "CPS4R") || (TYPE[1:4] == "CPS4")) || (TYPE[1:4] == "S4")) || (TYPE[1:4] == "S4R"))
+                elseif ((length(TYPE) >= 5) && (TYPE[1:5] == "DC2D4")) ||
+                    ((length(TYPE) >= 4) && (TYPE[1:4] == "CPS4")) ||
+                    ((length(TYPE) >= 2) && (TYPE[1:2] == "S4")) ||
+                    ((length(TYPE) >= 3) && (TYPE[1:3] == "S4R"))
                     return FESetQ4(elemset1.elem[:, 2:5])
-                elseif (length(TYPE) >= 4) && (TYPE[1:4] == "CPS3") 
-                    return FESetT3(elemset1.elem[:, 2:4])
                 elseif (length(TYPE) >= 4) && (TYPE[1:4] == "CPS6") 
                     return FESetT6(elemset1.elem[:, 2:7])
                 else
