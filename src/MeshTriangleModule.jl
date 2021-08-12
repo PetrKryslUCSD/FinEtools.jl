@@ -7,10 +7,13 @@ module MeshTriangleModule
 
 __precompile__(true)
 
+import LinearAlgebra: norm
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import ..FESetModule: AbstractFESet, FESetT3, FESetT6, FESetQ4, connasarray
+import ..FESetModule: AbstractFESet, FESetT3, FESetT6, FESetQ4, connasarray, subset
 import ..FENodeSetModule: FENodeSet
 import ..MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
+import ..MeshModificationModule: meshboundary, connectednodes, fusenodes, updateconn!, compactnodes, renumberconn!
+import ..MeshSelectionModule: selectelem, findunconnnodes
 import Statistics: mean
 
 """
@@ -240,5 +243,74 @@ function T6annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orienta
     fens.xyz=xy;
     return fens,fes
 end
+
+
+"""
+    T3circlen(radius::FFlt, nperradius)
+
+Mesh of a quarter circle with a given number of elements per radius.
+
+The parameter `nperradius` should be an even 
+number; if that isn't so is adjusted to by adding one. 
+"""
+function T3circlen(radius::FFlt, nperradius)
+    fens,fes = T3block(1.0, 1.0, 1, 1)
+    fens.xyz[1, 1] = 1.0
+    fens.xyz[1, 2] = 0.0
+    fens.xyz[2, 1] = sqrt(2.0)/2
+    fens.xyz[2, 2] = sqrt(2.0)/2
+    fens.xyz[3, 1] = 0.0
+    fens.xyz[3, 2] = 0.0
+    fens.xyz[4, 1] = 0.0
+    fens.xyz[4, 2] = 1.0
+    tolerance = 1.0/nperradius/10
+    n = 1
+    while n < nperradius
+        fens,fes = T3refine(fens, fes)
+        bfes = meshboundary(fes)
+        lx = selectelem(fens, bfes; box = Float64[0 0 -Inf Inf], inflate = tolerance)
+        ly = selectelem(fens, bfes; box = Float64[-Inf Inf 0 0], inflate = tolerance)
+        lc = setdiff(1:count(bfes), vcat(lx, ly))
+        l1 = connectednodes(subset(bfes, lc))
+        for j in l1
+            d = norm(fens.xyz[j, :]) 
+            fens.xyz[j, :] .*= 1.0/d
+        end
+        n = n*2
+    end
+    fens.xyz .*= radius
+    return fens,fes
+end
+
+"""
+    T3circleseg(angle::FFlt, radius::FFlt, nperradius, ncircumferentially, orientation::Symbol=:a)
+
+Mesh of a segment of a circle.
+
+The subtended angle is `angle` in radians. The orientation: refer to `T3block`.
+"""
+function T3circleseg(angle::FFlt, radius::FFlt, ncircumferentially, nperradius, orientation::Symbol=:a)
+    fens,fes = T3block(angle, radius, ncircumferentially, nperradius, orientation);
+    for i in 1:count(fens)
+        a = angle - fens.xyz[i, 1]
+        r = fens.xyz[i, 2]
+        fens.xyz[i, :] .= (r*cos(a), r*sin(a))
+    end
+    tolerance = radius/max(nperradius, ncircumferentially)/100
+    fens, newn = fusenodes(fens, fens, tolerance)
+    updateconn!(fes, newn)
+    connected = findunconnnodes(fens, fes);
+    fens, newn = compactnodes(fens, connected);
+    fes = renumberconn!(fes, newn);
+    keep = fill(true, count(fes))
+    ca = connasarray(fes)
+    for j in 1:count(fes)
+        keep[j] = (length(unique(ca[j, :])) == 3)
+    end
+    l =  findall(x -> x == true, keep)
+    fes = subset(fes, l)
+    return fens,fes
+end
+
 
 end

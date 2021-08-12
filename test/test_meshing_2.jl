@@ -880,3 +880,80 @@ end
 end
 using .momap2para6378_2
 momap2para6378_2.test()
+
+module mcircle3
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+   fens,fes = T3circlen(1.3, 5); # Mesh
+   # File = "mesh.vtk"
+   #   VTK.vtkexportmesh(File, fens, fes)
+   l = selectnode(fens, box = [0.0, 1.3, 0.0, 0.0], inflate = 0.01)
+   @test l == [1, 3, 7, 12, 16, 28, 32, 44, 49]
+   true
+end
+end
+using .mcircle3
+mcircle3.test()
+
+module mcircle3a
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+    r = 1.3
+    m, n = 8, 4
+    fens,fes = T3block(pi/2, r, m, n); # Mesh
+    for i in 1:count(fens)
+        a = pi/2 - fens.xyz[i, 1]
+        r = fens.xyz[i, 2]
+        fens.xyz[i, :] .= (r*cos(a), r*sin(a))
+    end
+    fens, newn = fusenodes(fens, fens, r/1000)
+    updateconn!(fes, newn)
+    connected = findunconnnodes(fens, fes);
+    fens, newn = compactnodes(fens, connected);
+    @test count(fens) == (m+1)*(n+1) - (m+1) + 1
+    fes = renumberconn!(fes, newn);
+    keep = fill(true, count(fes))
+    ca = connasarray(fes)
+    for j in 1:count(fes)
+        keep[j] = (length(unique(ca[j, :])) == 3)
+    end
+    l =  findall(x -> x == true, keep)
+    fes = subset(fes, l)
+    @test count(fes) == 2*m*n - m
+    # File = "mesh.vtk"
+    # VTK.vtkexportmesh(File, fens, fes)
+    bfes = meshboundary(fes)
+    # File = "mesh-boundary.vtk"
+    # VTK.vtkexportmesh(File, fens, bfes)
+    @test count(bfes) == m+2*n
+    true
+end
+end
+using .mcircle3a
+mcircle3a.test()
+
+module mcircle3b
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+    r = 1.3
+    nc, nr = 8, 4
+    fens,fes = T3circleseg(pi/2, r, nc, nr); # Mesh
+    # File = "mesh.vtk"
+    # VTK.vtkexportmesh(File, fens, fes)
+    bfes = meshboundary(fes)
+    # File = "mesh-boundary.vtk"
+    # VTK.vtkexportmesh(File, fens, bfes)
+    @test count(fens) == (nc+1)*(nr+1) - (nc+1) + 1
+    @test count(fes) == 2*nc*nr - nc
+    @test count(bfes) == nc+2*nr
+    true
+end
+end
+using .mcircle3b
+mcircle3b.test()
