@@ -355,27 +355,10 @@ function _ontosphere!(xyz, radius)
     end
 end
 
-# % Surface mesh of 1/8 of a sphere with a given number of elements per circumference. 
-# %
-# % function [fens,fes]=Q4_sphere_n(radius,nperradius,thickness)
-# %
-# % Create a mesh of 1/8 of the sphere of "radius". The  mesh will consist of
-# % 3*(nperradius/2)^2 quadrilateral elements, which corresponds to 4*nperradius
-# % element edges per circumference. The parameter nperradius should be an even 
-# % number; if that isn't so is adjusted to by adding one. 
-# % 
-# % The quadrilaterals have thickness "thickness".
-# %
-# % Examples: 
-# % [fens,fes]=Q4_sphere_n(77.1,5,1.0);
-# % drawmesh({fens,fes},'nodes','fes','facecolor','y', 'linewidth',2); hold on
-# %
-# % See also: Q4_sphere
-
 """
     Q4spheren(radius::FFlt, nperradius)
 
-Generate mesh of a sphere.
+Generate mesh of a spherical surface (1/8th of the sphere).
 """
 function Q4spheren(radius::FFlt, nperradius)
     if (mod(nperradius,2) != 0)
