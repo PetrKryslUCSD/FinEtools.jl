@@ -8,9 +8,10 @@ module MeshQuadrilateralModule
 __precompile__(true)
 
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import ..FESetModule: AbstractFESet, FESetQ4, FESetQ8, bfun, cat, connasarray
+import ..FESetModule: AbstractFESet, FESetQ4, FESetQ8, bfun, cat, connasarray, FESetL2
 import ..FENodeSetModule: FENodeSet, count
-import ..MeshModificationModule: mergemeshes
+import ..MeshModificationModule: mergemeshes, updateconn!
+import ..MeshSelectionModule: connectednodes
 import ..MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace, linearspace
 import LinearAlgebra: norm
 import Statistics: mean
@@ -402,6 +403,61 @@ function Q4circlen(radius::FFlt, nperradius)
         fens.xyz[j, 3] = 0.0
     end
     return fens,fes
+end
+
+
+function doextrude(fens, fes::FESetL2, nLayers, extrusionh)
+    nn1 = count(fens);
+    nnt = nn1*nLayers;
+    ngc = count(fes)*nLayers;
+    qconn = zeros(FInt, ngc, 4);
+    conn = connasarray(fes)
+    nnpe = size(conn, 2)
+    xyz = zeros(FFlt, nn1*(nLayers+1), size(fens.xyz, 2));
+    x1 = fill(0.0, size(fens.xyz, 2))
+    for j=1:nn1
+        x1[:] .= fens.xyz[j, :]
+        xyz[j, :] .= extrusionh(x1, 0);
+    end
+    for k = 1:nLayers
+        for j = 1:nn1
+            x1[:] .= fens.xyz[j, :]
+            f = j+k*nn1;
+            xyz[f, :] .= extrusionh(x1, k);
+        end
+    end
+
+    gc = 1;
+    for k = 1:nLayers
+        for i = 1:count(fes)
+            for n in 1:nnpe
+                qconn[gc, n] = conn[i, n] + (k-1)*nn1
+            end
+            for n in 1:nnpe
+                qconn[gc, n+nnpe] = conn[i, nnpe+1-n] + (k)*nn1
+            end
+            gc = gc+1;
+        end
+    end
+    efes = FESetQ4(qconn);
+    efens = FENodeSet(xyz);
+    return efens, efes
+end
+
+
+"""
+    Q4extrudeL2(fens::FENodeSet,  fes::FESetL2, nLayers::FInt, extrusionh::F) where {F<:Function}
+
+Extrude a mesh of linear segments into a mesh of quadrilaterals (Q4).
+"""
+function Q4extrudeL2(fens::FENodeSet,  fes::FESetL2, nLayers::FInt, extrusionh::F) where {F<:Function}
+    id = vec([i for i in 1:count(fens)])
+    cn = connectednodes(fes);
+    id[cn[:]] = vec([i for i in 1:length(cn)]);
+    l2fes= deepcopy(fes);
+    updateconn!(l2fes, id);
+    l2fens = FENodeSet(fens.xyz[cn[:], :]);
+    return doextrude(l2fens, l2fes, nLayers, extrusionh)
 end
 
 end

@@ -957,3 +957,71 @@ end
 end
 using .mcircle3b
 mcircle3b.test()
+
+module ml2extrude1
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+    X = [0.0 0.0;
+        0.0 -0.2;
+        0.3 -0.2;
+        0.3 -0.4
+    ]
+    l2fens = FENodeSet(X);
+    conn = [1 2; 2 3; 3 4]
+    l2fes = FESetL2(conn);
+    # fens,fes = Q4extrudeL2(l2fens, l2fes, 5, (x, k) -> vcat(vec(x), (k-1)*1)); # Mesh
+    ex = function (x, k)
+        x .+= k*0.1
+        x
+    end
+    fens,fes = Q4extrudeL2(l2fens, l2fes, 5, ex); # Mesh
+    # File = "mesh.vtk"
+    # VTK.vtkexportmesh(File, fens, fes)
+    # bfes = meshboundary(fes)
+    # File = "mesh-boundary.vtk"
+    # VTK.vtkexportmesh(File, fens, bfes)
+    @test count(fens) == 24
+    @test count(fes) == 15
+    # @test count(bfes) == nc+2*nr
+    true
+end
+end
+using .ml2extrude1
+ml2extrude1.test()
+
+
+module ml2extrude2
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+    X = [0.0 0.0 0.0;
+        0.0 -0.2 0.0;
+        0.3 -0.2 0.0;
+        0.3 -0.4 0.0
+    ]
+    l2fens = FENodeSet(X);
+    conn = [1 2; 2 3; 3 4]
+    l2fes = FESetL2(conn);
+    # fens,fes = Q4extrudeL2(l2fens, l2fes, 5, (x, k) -> vcat(vec(x), (k-1)*1)); # Mesh
+    ex = function (x, k)
+        x[3] += (k-1)*0.1
+        x
+    end
+    fens,fes = Q4extrudeL2(l2fens, l2fes, 5, ex); # Mesh
+    # File = "mesh.vtk"
+    # VTK.vtkexportmesh(File, fens, fes)
+    bfes = meshboundary(fes)
+    # File = "mesh-boundary.vtk"
+    # VTK.vtkexportmesh(File, fens, bfes)
+    @test count(fens) == 24
+    @test count(fes) == 15
+    @test count(bfes) == 5+5+3+3
+    true
+end
+end
+using .ml2extrude2
+ml2extrude2.test()
+

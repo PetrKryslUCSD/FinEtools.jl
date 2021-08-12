@@ -143,9 +143,9 @@ export AbstractFEMM, FEMMBase, associategeometry!, integratefieldfunction, integ
 ###########################################################################
 # Mesh-generation functionality for various shapes
 ###########################################################################
-using .MeshQuadrilateralModule: Q4annulus, Q4quadrilateral, Q4elliphole, Q4block, Q4blockx, Q4refine, Q8block, Q4toQ8, Q8annulus, Q8blockx, Q4spheren, Q4circlen
+using .MeshQuadrilateralModule: Q4annulus, Q4quadrilateral, Q4elliphole, Q4block, Q4blockx, Q4refine, Q8block, Q4toQ8, Q8annulus, Q8blockx, Q4spheren, Q4circlen, Q4extrudeL2
 # Exported: mesh generation functions for quadrilateral elements
-export Q4annulus, Q4quadrilateral, Q4elliphole, Q4block, Q4blockx, Q4refine, Q8block, Q4toQ8, Q8annulus, Q8blockx, Q4spheren, Q4circlen
+export Q4annulus, Q4quadrilateral, Q4elliphole, Q4block, Q4blockx, Q4refine, Q8block, Q4toQ8, Q8annulus, Q8blockx, Q4spheren, Q4circlen, Q4extrudeL2
 
 using .MeshLineModule: L2block, L2blockx, L3blockx
 # Exported: mesh generation functions for line elements
