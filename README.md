@@ -41,7 +41,7 @@ This package is  registered, and hence one can do just
 ```julia
 ] add FinEtools
 ```
-Only version 1.x and the nightly builds of Julia are supported. The best bet is Julia 1.5.3.
+Only version 1.x and the nightly builds of Julia are supported. The best bet is the latest stable Julia.
 
 ## Testing
 
