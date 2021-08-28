@@ -2,8 +2,8 @@
 [![Build status](https://github.com/PetrKryslUCSD/FinEtools.jl/workflows/CI/badge.svg)](https://github.com/PetrKryslUCSD/FinEtools.jl/actions)
 [![Code Coverage](https://codecov.io/gh/PetrKryslUCSD/FinEtools.jl/branch/master/graph/badge.svg)](https://app.codecov.io/gh/PetrKryslUCSD/FinEtools.jl)
 [![Latest documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://petrkryslucsd.github.io/FinEtools.jl/latest)
-[Codebase graph](https://next.github.com/projects/repo-visualization#explore-for-yourself)
-[![PetrKryslUCSD/FinEtools.jl](https://img.shields.io/badge/Codebase-graph-green.svg)](https://next.github.com/projects/repo-visualization#explore-for-yourself)
+
+[![Codebase Graph](https://img.shields.io/badge/Codebase-graph-green.svg)](https://next.github.com/projects/repo-visualization#explore-for-yourself)(paste PetrKryslUCSD/FinEtools.jl into the box)
 
 # FinEtools: Finite Element tools in Julia
 
