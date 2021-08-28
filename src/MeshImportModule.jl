@@ -502,8 +502,10 @@ function import_MESH(filename)
     return output
 end
 
+using DataValet
+
 """
-    import_H5MESH(filename)
+    import_H5MESH(meshfile)
 
 Import mesh in the H5MESH format (.h5mesh file).
 
@@ -512,20 +514,20 @@ Data dictionary, with keys
 - "`fens`" = finite element nodes.
 - "`fesets`" = array of finite element sets.
 """
-function import_H5MESH(filename)
+function import_H5MESH(meshfile)
     warnings = String[]
-    meshfilebase, ext = splitext(filename)
+    meshfilebase, ext = splitext(meshfile)
     if ext == ""
         ext = ".h5mesh"
     end
-    fname = meshfilebase
+    fname = DataValet.with_extension(meshfile, ext) 
     
-    X = H5MESH.retrieve_matrix(fname, ext, "xyz")
+    X = DataValet.retrieve_matrix(fname, "xyz")
     fens = FENodeSet(X)
 
-    etype = H5MESH.retrieve_number(fname, ext, "etype")
+    etype = DataValet.retrieve_value(fname, "etype")
 
-    C = H5MESH.retrieve_matrix(fname, ext, "conn")
+    C = DataValet.retrieve_matrix(fname, "conn")
     if eltype(C) != FInt
         C = FInt.(C)
     end
@@ -550,7 +552,7 @@ function import_H5MESH(filename)
         fes = nothing
     end
 
-    lab = H5MESH.retrieve_matrix(fname, ext, "label")
+    lab = DataValet.retrieve_matrix(fname, "label")
     setlabel!(fes, vec(lab))
     
   
