@@ -2,10 +2,12 @@
 Issues:
 
 -- Define the labels in the finite elements that to be a vector no matter what.
+```
 labels = fes.label; # individual element labels
 if length(fes.label) == 0
     labels = zeros(FInt, nfes);
 end
+```
 Implemented  05/07/2017
 
 -- Get rid of the property modules: replace with definition in the materials.
@@ -48,7 +50,9 @@ the finite element sets. Keyword arguments  should be removed everywhere.
 
 -- What is @propagate_inbounds for?
 
--- julia> A = rand(3,4);
+-- 
+```
+julia> A = rand(3,4);
 
 julia> B = A .- mean(A,1)
 3×4 Array{Float64,2}:
@@ -59,18 +63,22 @@ julia> B = A .- mean(A,1)
 julia> mean(B,1)
 1×4 Array{Float64,2}:
  0.0  0.0  0.0  0.0
+```
 
  -- Use return type annotations.
 
  -- Replace explicit loops with in-place matrix mult functions? A_mult_B! and so on...
  Notes: Tested for  the heat conduction model. Around 20% slower: more
  memory allocations.
+ ```
  A_mul_Bt!(kappa_bargradNT, (Jac*w[j])*kappa_bar, gradN); # intermediate result
  A_mul_B!(Ke1, gradN, kappa_bargradNT);
  Ke[:,:] += Ke1[:,:]
+ ```
  Conductivity
   8.454714 seconds (10.00 M allocations: 2.398 GB, 10.42% gc time)
 versus
+```
 A_mul_Bt!(kappa_bargradNT, (Jac*w[j])*kappa_bar, gradN); # intermediate result
 A_mul_B!(Ke1, gradN, kappa_bargradNT);
 @inbounds for nx = 1:Kedim # complete the lower triangle
@@ -78,6 +86,7 @@ A_mul_B!(Ke1, gradN, kappa_bargradNT);
     Ke[mx, nx] = Ke[mx, nx] + Ke1[nx, mx]
   end
 end
+```
 Conductivity
   9.182616 seconds (4.00 M allocations: 1.504 GB, 10.83% gc time)
 versus
@@ -165,20 +174,22 @@ now passed in as buffers.
 
 -- stochastic lifestyle website
 
--- update!() for the material could have  another method  with deformation
+-- `update!()` for the material could have  another method  with deformation
 gradient going in instead of strain.
 
 --- Right now the tangent moduli are computed  just once  for the
 small-deformation elastic model.
-self.material.tangentmoduli!(self.material, D, 0.0, 0.0, loc, 0)
+`self.material.tangentmoduli!(self.material, D, 0.0, 0.0, loc, 0)`
 That is fine when the material is homogeneous within  the  domain,
 but it needs to be made more general for heterogeneous structures.
 
 -- Conversion between  matrices and vectors:  must decide which is which
 and stick to it.
+```
 const a = reshape(collect(1:1000),1000,1);
 @time vec(a);  # This is MUCH faster
 @time dropdims(a, dims = 2);
+```
 
 -- Acoustic ABC: surface FEMM?
 Implemented 05/30/2017
@@ -194,31 +205,37 @@ Implemented August 2017
 
 -- Packages:  symbol-gen, compare-files
 
---- function inspectintegpoints(self::FEMMDeforLinear,
+--- 
+```
+function inspectintegpoints(self::FEMMDeforLinear,
               geom::NodalField{FFlt},  u::NodalField{T},
               dT::NodalField{FFlt},
               felist::FIntVec,
               inspector::Function,  idat; context...) where {T<:Number}
+```
 change to
+```
 function inspectintegpoints(self::FEMMDeforLinear,
               geom::NodalField{FFlt},  u::NodalField{T},
               dT::NodalField{FFlt},
               felist::FIntVec,
               inspector::F,  idat::D; context...) where {T<:Number, F<:Function, D}
-
+```
 
 -- Can I do this for all finite elements in one shot?
+```
 for i = 1:count(fb.fes)
   getconn!(fb.fes, conn, i);
   gathervalues_asmat!(geom, x, conn);# retrieve element coordinates
   idat = inspectintegpoints(self,  geom,  u,  dT,
             [i],  idi_inspector,  idat; output = output,  context...);
 end
+```
 Implemented 06/03/2017: the inspector function now does not need to refer to
 data defined within a loop  over the finite elements, and the inspector can be
 called just once for all the finite elements.
 
--- inspectintegpoints:  the inspector function has been redefined.  The
+-- `inspectintegpoints`:  the inspector function has been redefined.  The
 arguments are different.  The description needs to be updated and all references
 need to be updated. Implemented: July 2017.
 
@@ -227,13 +244,17 @@ Apparently, that is the Julia convention.
 Implemented  06 17 2017
 
 -- Instead of
+```
 function test_vectorized(a, a_old)
     @. a[:] = a_old[:] * 2
 end
+```
 use
+```
 @views function test_vectorized3(a, a_old)
     @. a[:] = a_old[:] * 2
 end
+```
 
 -- Instead of "restart" use  https://github.com/timholy/Revise.jl
 
@@ -257,12 +278,15 @@ simple-drag-drop-text
 -- Atom themes:
 "behave" is an excellent dark theme:  very easy on the eyes
 
--- Pkg.clone("https://github.com/JuliaDiffEq/DiffEqTutorials.jl")
+-- Notebooks
+```
+Pkg.clone("https://github.com/JuliaDiffEq/DiffEqTutorials.jl")
 using IJulia
 notebook(dir=Pkg.dir("DiffEqTutorials"))
 using IJulia;
 ENV["IJULIA_DEBUG"] = true
 notebook(detached=true)
+```
 
 
 -- When  Atom would not start: run this
@@ -270,11 +294,13 @@ notebook(detached=true)
   in a command window
 
 -- Start notebook:
+```
 function examples()
   path = joinpath(@__DIR__,"..","examples")
   @eval using IJulia
   @eval notebook(dir=$path)
 end
+```
 
 -- Mean-strain extrapolation technology: need to consider the thermal properties
 of the stabilization material. It needs to produce  thermal strains  just as
@@ -309,11 +335,14 @@ Extensions:
 Bookmarks, Julia Language Support 0.8, Partial Diff
 
 Setup of the executable:
+```
 {
     "julia.executablePath": "C:\\Users\\PetrKrysl\\AppData\\Local\\Julia-0.7.0-DEV\\bin\\julia.exe",
 }
+```
 
 Key bindings:
+```
 // Place your key bindings in this file to overwrite the defaults
 [
 { "key": "ctrl+1", "command": "extension.partialDiff.markSection1",
@@ -325,8 +354,9 @@ Key bindings:
 { "key": "ctrl+shift+i", "command": "editor.action.reindentlines",
         "when": "editorTextFocus" },
 ]
-
+```
 User settings:
+```
 {
     "julia.executablePath": "C:\\Users\\PetrKrysl\\AppData\\Local\\Julia-0.6.0\\bin\\julia.exe",
     "terminal.integrated.shell.windows": "C:\\Program Files\\Git\\bin\\bash.exe",
@@ -340,6 +370,7 @@ User settings:
     "editor.wordWrap": "on",
     "editor.wrappingIndent": "indent",
 }
+```
 
 -- Speed up the elementwise-field transfer the same way it's been done for the nodal fields.
 (Using a search structure based on partitioning and sub- meshes.)
@@ -366,14 +397,16 @@ Both fail for instance for  C-language code.
 Solution: don't bother with splitting lines, rely on auto-wrap.
 
 -- Configuring PyPlot to use Anaconda
+```
 ENV["PYTHON"]="C:\\ProgramData\\Anaconda3\\python.exe"
 ENV["PYTHON"]="C:\\Users\\PetrKrysl\\Documents\\WinPython-64bit-3.6.3.0Qt5\\python-3.6.3.amd64\\python.exe"
 Pkg.build("PyCall")
+```
 
 -- VS code: To insert a symbol, simply execute the Unicode: Insert Math Symbol command and type in the name of your desired symbol or select it from the drop-down list. (Unicode Latex extension..)
 
 -- SIMD optimizations are not turned on by default, because they only speed up very particular kinds of code, and turning them on everywhere would slow down the compiler too much.
-
+```
 function mysum3(A)
     s = zero(eltype(A))
     @simd for a in A
@@ -381,7 +414,7 @@ function mysum3(A)
     end
     return s
 end
-
+```
 -- Implement
 fen2fe  = FENodeToFEMap(fes, nnodes(geom))
 or in other words use the tuple-based connectivity. Status: implemented in November 2017.
@@ -411,6 +444,8 @@ we can construct that assembler not just from the number of free degrees
 of freedom, but from the total number of  degrees of freedom.
 
 -- Naming of formal parameters that are modified inside a function:
+
+```
 module mmmmmmmmmmmm
 function f2!(a!)
   a![1] = 2;
@@ -420,6 +455,7 @@ B=[5]
 using .mmmmmmmmmmmm: f2!
 f2!(B)
 println("B = $(B)")
+```b
 I like that a! is telling me inside the function that I’m changing something passed in as argument.
 
 -- https://github.com/tonsky/FiraCode/wiki/VS-Code-Instructions
@@ -436,6 +472,7 @@ I like that a! is telling me inside the function that I’m changing something p
 - Would it make sense to use named tuples instead of data dictionary?
 
 - VS Code JSON settings (user)
+```
 {
     "terminal.integrated.shell.windows": "C:\\Program Files\\Git\\bin\\bash.exe",
     "terminal.integrated.fontSize": 11,
@@ -461,10 +498,12 @@ I like that a! is telling me inside the function that I’m changing something p
     "editor.renderWhitespace": "boundary",
     "window.menuBarVisibility": "visible",
 }
+```
 
 - Change the name IntegData to IntegDomain. A much better name for the concept of an object which enables integration over some geometrical domain. Status: Implemented 11/08/2018.
 
 -- Rename abstract types for consistency: Change
+```
 abstract type AbstractSysmatAssembler end;
 abstract type AbstractSysvecAssembler end;
 abstract type IntegRule end
@@ -476,8 +515,9 @@ abstract type AbstractFEMMDeforLinearNICE <: AbstractFEMMDeforLinear end
 abstract type Field end
 abstract type FESet3Manifold{NODESPERELEM} <: FESet{NODESPERELEM} end
 abstract type MatDefor end
-
+```
 into
+```
 abstract type AbstractSysmatAssembler end;
 abstract type AbstractSysvecAssembler end;
 abstract type AbstractIntegRule end
@@ -492,7 +532,7 @@ abstract type AbstractFESet3Manifold{NODESPERELEM} <: AbstractFESet{NODESPERELEM
 abstract type AbstractField end
 
 abstract type AbstractMatDefor end
-
+```
 Status: Implemented 04/27/2019.
 
 -- Do we still need functions stored in the structs for materials?
@@ -502,7 +542,7 @@ Status: 04/27/2019. It appears we do: the issue is how to make the module functi
 This will eliminate the need to know in advance the size, while avoiding the overhead penalty with push!().
 
 -- Color schemes for ST 3: Make STproject.sublime-project project file with
-
+```
 {
 	"folders":
 	[
@@ -518,12 +558,12 @@ This will eliminate the need to know in advance the size, while avoiding the ove
                  "color_scheme": "Packages/Theme - Asphalt/Asphalt.tmTheme",
     },
 }
+```
 
-
--- updatecsmat!(), update!(): last argument should be the number of the entity, not just the number of an element.
+-- `updatecsmat!()`, `update!()`: last argument should be the number of the entity, not just the number of an element.
 In order to accommodate nodally integrated finite elements.
 
--- inspectintegpoints(): For nodally integrated elements this could be optimized to sweep through the nodes just once, when possible.
+-- `inspectintegpoints()`: For nodally integrated elements this could be optimized to sweep through the nodes just once, when possible.
 
 -- Double averaging for NICE?
 
@@ -533,12 +573,13 @@ In order to accommodate nodally integrated finite elements.
 https://github.com/JuliaRegistries/Registrator.jl
 1. Set the Project.toml version field in your repository to your new desired version.
 2. comment on branch
-@JuliaRegistrator register()
+`@JuliaRegistrator register`
 
 -- innerproduct() is not being tested. Status:
 
 -- How to implement the "gather operation" efficiently?
 
+```
 module mgather1
 using Test
 using Random
@@ -656,10 +697,11 @@ Mesh data 3 x N, Element buffer nen x 3, Loop i, j: Time 0.06879589 [mus]
 Mesh data 3 x N, Element buffer nen x 3, Loop j, i: Time 0.052395895 [mus]                                                  
 Mesh data 3 x N, Element buffer 3 x nen, Loop i, j: Time 0.07161312 [mus]                                                   
 Mesh data 3 x N, Element buffer 3 x nen, Loop j, i: Time 0.056804158 [mus]         
-
+```
 
 – What about accessing arrays? Here is an example with static arrays and regular arrays:
 
+```
 using StaticArrays
 
 struct Point3D{T} <: FieldVector{3, T}
@@ -718,6 +760,7 @@ v6 = rand(3, 1000000);
 
 @btime f5!($v5)  # 1.518 ms (0 allocations: 0 bytes)  <========== FASTEST
 @btime f6!($v6)    # 1.739 ms (0 allocations: 0 bytes)
+```
 
 – For Loops 2.0: Index Notation And The Future Of Tensor Compilers | Peter Ahrens
 
@@ -750,4 +793,6 @@ pkg"registry add General"
 ```
  
 -- DOCUMENTER_KEY
+```
 DocumenterTools.genkeys(user="PetrKryslUCSD", repo="git@github.com:PetrKryslUCSD/FinEtools.jl.git")
+```
