@@ -21,6 +21,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 08/29/2021: Mesh export/import in the HDF5 format using DataDrop.
 - 08/12/2021: Added quadrilateral mesh generation by extrusion of a wire.
 - 08/12/2021: Added triangle mesh generation for circular segments.
 - 07/14/2021: Implemented the mechanism of the "delegate of"  to facilitate creation of user-defined finite elements.

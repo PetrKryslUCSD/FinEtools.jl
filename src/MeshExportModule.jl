@@ -1309,7 +1309,7 @@ module H5MESH
 # HDF5 mesh export
 ################################################################################
 using HDF5
-using DataValet
+using DataDrop
 using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
 import ...FENodeSetModule: FENodeSet
@@ -1320,21 +1320,21 @@ function write_H5MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:Abstr
     if ext == ""
         ext = ".h5mesh"
     end
-    fname = DataValet.with_extension(meshfile, ext) 
+    fname = DataDrop.with_extension(meshfile, ext) 
     etype = get(()->error("Unknown VTK type!"), VTKtypemap, typeof(fes));
     # If the file exists, delete all contents
     h5open(fname, "w") do fid
     end
     # Store the mesh data
-    DataValet.store_matrix(fname, "xyz", fens.xyz)
-    DataValet.store_matrix(fname, "label", fes.label)
+    DataDrop.store_matrix(fname, "xyz", fens.xyz)
+    DataDrop.store_matrix(fname, "label", fes.label)
     C = connasarray(fes)
     mn = maximum(C)
     if mn < typemax(Int32)
         C = Int32.(C)
     end
-    DataValet.store_matrix(fname, "conn", C)
-    DataValet.store_value(fname, "etype", etype)
+    DataDrop.store_matrix(fname, "conn", C)
+    DataDrop.store_value(fname, "etype", etype)
     return true
 end
 
