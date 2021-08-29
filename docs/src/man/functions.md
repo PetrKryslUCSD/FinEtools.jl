@@ -125,7 +125,7 @@ Order = [:function]
 ### Meshing with tetrahedra
 
 ```@autodocs
-Modules = [FinEtools, FinEtools.MeshTetrahedronModule, FinEtools.VoxelBoxModule, FinEtools.VoxelTetMeshingModule]
+Modules = [FinEtools, FinEtools.MeshTetrahedronModule]
 Private = true
 Order = [:function]
 ```
@@ -206,6 +206,20 @@ Order = [:function]
 #### H2Lib
 ```@autodocs
 Modules = [FinEtools, FinEtools.MeshExportModule.H2Lib]
+Private = true
+Order = [:function]
+```
+
+#### VTKWrite
+```@autodocs
+Modules = [FinEtools, FinEtools.MeshExportModule.VTKWrite]
+Private = true
+Order = [:function]
+```
+
+#### H5MESH
+```@autodocs
+Modules = [FinEtools, FinEtools.MeshExportModule.H5MESH]
 Private = true
 Order = [:function]
 ```
