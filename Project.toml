@@ -22,10 +22,10 @@ WriteVTK = "64499a7a-5c06-52f2-abe2-ccb03c286192"
 
 [compat]
 Arpack = "^0.5"
+DataDrop = "^0.1"
 HDF5 = "^0.15"
 LoopVectorization = "^0.12"
 StatsBase = "^0.33"
 SymRCM = "^0.2"
 WriteVTK = "^1.10"
-DataDrop = "^0.1"
 julia = "^1.6"
