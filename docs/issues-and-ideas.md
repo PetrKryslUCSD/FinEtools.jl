@@ -793,6 +793,9 @@ pkg"registry add General"
 ```
  
 -- DOCUMENTER_KEY
-```
-DocumenterTools.genkeys(user="PetrKryslUCSD", repo="git@github.com:PetrKryslUCSD/FinEtools.jl.git")
+```                                    
+using Pkg; Pkg.add("DocumenterTools");                                 
+using DocumenterTools                                                  
+DocumenterTools.genkeys(user="PetrKryslUCSD", repo="git@github.com:PetrKryslUCSD/FinEtools.jl.git")                                                  
+using Pkg; Pkg.rm("DocumenterTools");  
 ```
