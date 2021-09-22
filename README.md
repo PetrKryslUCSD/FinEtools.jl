@@ -21,6 +21,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 09/21/2021: Fixed import problems for Abaqus files.
 - 08/29/2021: Mesh export/import in the HDF5 format using DataDrop.
 - 08/12/2021: Added quadrilateral mesh generation by extrusion of a wire.
 - 08/12/2021: Added triangle mesh generation for circular segments.
