@@ -298,23 +298,14 @@ function import_ABAQUS(filename; allocationchunk=chunk)
         end
     end # while
 
-    node = node[1:nnode, :] # truncate the array to just the lines read
-    # The nodes need to be in serial order:  if they are not,  the element
-    # connectivities  will not point at the right nodes. So,  if that's the case we
-    # will figure out the sequential numbering of the nodes  and then we will
-    # renumbered the connectivvities of the elements.
-    newnumbering = collect(1:nnode)
-    if norm(collect(1:nnode)-node[:,1]) != 0
-        newnumbering = zeros(FInt, convert(FInt, maximum(node[:,1])))
-        jn = 1
-        for ixxxx = 1:size(node, 1)
-            if node[ixxxx,1] != 0
-                on = convert(FInt, node[ixxxx,1])
-                newnumbering[on] = jn
-                jn = jn + 1
-            end
-        end
-    end
+    # The nodes may not be in serial order. We need to renumber the nodes and adjust the connectivities.
+    nodenumbers = FInt.(node[1:nnode, 1])
+    newnumbering = fill(0, maximum(nodenumbers))
+    newnumbering[nodenumbers] = 1:length(nodenumbers) 
+
+    # truncate the array to just the lines read
+    node = node[1:nnode, :] 
+    
 
     nsetsarr = _AbaqusNSetSection[]
     Reading_nsetsarr = false

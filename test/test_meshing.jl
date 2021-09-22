@@ -5431,3 +5431,26 @@ end
 end
 using .mselecte1a1
 mselecte1a1.test()
+
+
+module mmAbaqusimport7
+using FinEtools
+using FinEtools.MeshImportModule
+using FinEtools.MeshExportModule: VTKWrite
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+    
+    output = MeshImportModule.import_ABAQUS("./barrelvault_s3r_fineirreg.inp";
+    allocationchunk = 11)
+    fens, fes = output["fens"], output["fesets"][1]
+    @test boundingbox(fens.xyz) == [229.813339, 300.0, 0.0, 192.836288, 0.0, 300.0]
+    @test output["nsets"]["APEX"]  == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]  
+    File = "junk.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    # @async run(`"paraview.exe" $File`)
+    # try rm(File) catch end
+end
+end
+using .mmAbaqusimport7
+mmAbaqusimport7.test()
