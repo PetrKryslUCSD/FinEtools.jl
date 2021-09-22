@@ -416,7 +416,8 @@ function import_ABAQUS(filename; allocationchunk=chunk)
 
     nsets = Dict()
     for ixxxx = 1:length(nsetsarr)
-        nsets[nsetsarr[ixxxx].nsetname] = nsetsarr[ixxxx].nodes
+        newnodes = newnumbering[nsetsarr[ixxxx].nodes]
+        nsets[nsetsarr[ixxxx].nsetname] = newnodes
     end
 
     output = FDataDict("fens"=>fens, "fesets"=>fesets, "nsets"=>nsets, "warnings"=>warnings)
