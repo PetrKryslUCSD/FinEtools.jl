@@ -974,4 +974,31 @@ function nodepartitioning(fens::FENodeSet, fesarr, npartitions::Vector{Int})
     return partitioning
 end
 
+"""
+    distortblock(fens::FENodeSet, xdispmul::FFlt, ydispmul::FFlt)
+
+Distort a block mesh by shifting around the nodes. The goal is to
+distort the horizontal and vertical mesh lines into slanted lines.
+"""
+function distortblock(ofens::FENodeSet, xdispmul::FFlt, ydispmul::FFlt)
+    Lx = maximum(ofens.xyz[:, 1])
+    Ly = maximum(ofens.xyz[:, 2])
+    xic(x) = (2*x - Lx) / Lx
+    etac(y) = (2*y - Ly) / Ly
+
+    fens = deepcopy(ofens)
+
+    for k in 1:count(fens)
+        x, y = fens.xyz[k, :]
+        xi, eta  = xic(x), etac(y)  
+        u = xdispmul*(1+xi)*(1-xi)*eta
+        v = ydispmul*xi*(1+eta)*(1-eta)
+
+        fens.xyz[k, 1] = x + u
+        fens.xyz[k, 2] = y + v
+    end
+
+    return fens
+end
+
 end
