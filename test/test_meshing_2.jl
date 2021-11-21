@@ -1129,3 +1129,55 @@ end
 end
 using .miscellaneous_4g
 miscellaneous_4g.test()
+
+
+module miscellaneous_5g
+using FinEtools
+using Test
+using FinEtools.MeshExportModule
+function test()
+    rho=1.21*1e-9;# mass density
+    c =345.0*1000;# millimeters per second
+    bulk= c^2*rho;
+    Lx=900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
+    nx = 8
+    ny = 5
+    a = Lx/nx*1.2
+    b = Ly/ny*3/2
+
+    fens, fes = distortblock(Q4block, Lx, Ly, nx, ny, 1.0*Lx/nx, 1.0*Ly/ny)
+
+    File = "mesh_5g.vtk"
+    MeshExportModule.VTK.vtkexportmesh(File, fens, fes)
+
+end
+end
+using .miscellaneous_5g
+miscellaneous_5g.test()
+
+
+module miscellaneous_6g
+using FinEtools
+using Test
+using FinEtools.MeshExportModule
+function test()
+    rho=1.21*1e-9;# mass density
+    c =345.0*1000;# millimeters per second
+    bulk= c^2*rho;
+    Lx=900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
+    nx = 8
+    ny = 5
+    a = Lx/nx*1.2
+    b = Ly/ny*3/2
+
+    fens, fes = distortblock(Q4block, Lx, Ly, nx, ny, 1.0*Lx/nx, 0.0*Ly/ny)
+
+    File = "mesh_6g.vtk"
+    MeshExportModule.VTK.vtkexportmesh(File, fens, fes)
+
+end
+end
+using .miscellaneous_6g
+miscellaneous_6g.test()

@@ -1001,4 +1001,20 @@ function distortblock(ofens::FENodeSet, xdispmul::FFlt, ydispmul::FFlt)
     return fens
 end
 
+"""
+    distortblock(B::F, Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, xdispmul::FFlt, ydispmul::FFlt) where {F <: Function}
+
+Distort a block mesh by shifting around the nodes. The goal is to distort the
+horizontal and vertical mesh lines into slanted lines. This is useful when
+testing finite elements where special directions must be avoided.
+"""
+function distortblock(B::F, Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, xdispmul::FFlt, ydispmul::FFlt) where {F <: Function}
+    fens, fes = B(Length, Width, nL, nW)
+    if xdispmul == 0.0 && ydispmul == 0.0
+        return fens, fes
+    end
+    nfens = distortblock(fens, xdispmul, ydispmul)
+    return nfens, fes
+end
+
 end
