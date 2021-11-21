@@ -5267,7 +5267,7 @@ function test()
     @test count(output["fesets"][1]) == count(fes)
     @test norm(output["fesets"][1].label - fes.label) == 0
 
-    #try rm("q4-4-2.h5mesh") catch end
+    try rm("block.h5mesh") catch end
     true
 end
 end
