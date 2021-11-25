@@ -28,7 +28,7 @@ end
 """
     CSys(sdim::FInt, mdim::FInt, computecsmat::F) where {F<:Function}
 
-Construct ccoordinate system when the function to compute the
+Construct coordinate system when the function to compute the
 rotation matrix is given.
 
 The function signature:
