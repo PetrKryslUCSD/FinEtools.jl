@@ -96,7 +96,7 @@ function CSys(sdim::FInt, mdim::FInt)
 end
 
 """
-    function updatecsmat!(self::CSys, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    updatecsmat!(self::CSys, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
 
 Update the coordinate system orientation matrix.
 
