@@ -1041,7 +1041,7 @@ function test()
     b = Ly/ny*3/2
 
     fens,fes = T3block(Lx,Ly,nx,ny); # Mesh
-    fens = distortblock(fens, 1.0*Lx/nx, -1.0*Ly/ny)
+    fens = distortblock(fens, 1.0/nx, -1.0/ny)
 
     File = "mesh_1g.vtk"
     MeshExportModule.VTK.vtkexportmesh(File, fens, fes)
@@ -1068,7 +1068,7 @@ function test()
     b = Ly/ny*3/2
 
     fens,fes = Q8block(Lx,Ly,nx,ny); # Mesh
-    fens = distortblock(fens, 1.0*Lx/nx, -1.0*Ly/ny)
+    fens = distortblock(fens, 1.0/nx, -1.0/ny)
 
     File = "mesh_2g.vtk"
     MeshExportModule.VTK.vtkexportmesh(File, fens, fes)
@@ -1094,7 +1094,7 @@ function test()
     b = Ly/ny*3/2
 
     fens,fes = Q4block(Lx,Ly,nx,ny); # Mesh
-    fens = distortblock(fens, 1.0*Lx/nx, -1.0*Ly/ny)
+    fens = distortblock(fens, 1.0/nx, -1.0/ny)
 
     File = "mesh_3g.vtk"
     MeshExportModule.VTK.vtkexportmesh(File, fens, fes)
@@ -1120,7 +1120,7 @@ function test()
     b = Ly/ny*3/2
 
     fens,fes = Q4block(Lx,Ly,nx,ny); # Mesh
-    fens = distortblock(fens, 1.0*Lx/nx, 1.0*Ly/ny)
+    fens = distortblock(fens, 1.0/nx, 1.0/ny)
 
     File = "mesh_4g.vtk"
     MeshExportModule.VTK.vtkexportmesh(File, fens, fes)
@@ -1146,7 +1146,7 @@ function test()
     a = Lx/nx*1.2
     b = Ly/ny*3/2
 
-    fens, fes = distortblock(Q4block, Lx, Ly, nx, ny, 1.0*Lx/nx, 1.0*Ly/ny)
+    fens, fes = distortblock(Q4block, Lx, Ly, nx, ny, 1.0/nx, 1.0/ny)
 
     File = "mesh_5g.vtk"
     MeshExportModule.VTK.vtkexportmesh(File, fens, fes)
@@ -1172,7 +1172,7 @@ function test()
     a = Lx/nx*1.2
     b = Ly/ny*3/2
 
-    fens, fes = distortblock(Q4block, Lx, Ly, nx, ny, 1.0*Lx/nx, 0.0*Ly/ny)
+    fens, fes = distortblock(Q4block, Lx, Ly, nx, ny, 1.0/nx, 0.0*Ly/ny)
 
     File = "mesh_6g.vtk"
     MeshExportModule.VTK.vtkexportmesh(File, fens, fes)

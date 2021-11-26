@@ -1009,11 +1009,15 @@ horizontal and vertical mesh lines into slanted lines. This is useful when
 testing finite elements where special directions must be avoided.
 """
 function distortblock(B::F, Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, xdispmul::FFlt, ydispmul::FFlt) where {F <: Function}
-    fens, fes = B(Length, Width, nL, nW)
-    if xdispmul == 0.0 && ydispmul == 0.0
-        return fens, fes
+    @assert 1.0 >= abs(xdispmul) >= 0.0
+    @assert 1.0 >= abs(ydispmul) >= 0.0
+    fens, fes = B(1.0, 1.0, nL, nW)
+    nfens = deepcopy(fens)
+    if xdispmul != 0.0 || ydispmul != 0.0
+        nfens = distortblock(fens, xdispmul, ydispmul)
     end
-    nfens = distortblock(fens, xdispmul, ydispmul)
+    nfens.xyz[:, 1] .*= Length
+    nfens.xyz[:, 2] .*= Width
     return nfens, fes
 end
 
