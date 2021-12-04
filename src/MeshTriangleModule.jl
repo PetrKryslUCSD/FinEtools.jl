@@ -14,6 +14,7 @@ import ..FENodeSetModule: FENodeSet
 import ..MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
 import ..MeshModificationModule: meshboundary, connectednodes, fusenodes, updateconn!, compactnodes, renumberconn!
 import ..MeshSelectionModule: selectelem, findunconnnodes
+import ..MeshQuadrilateralModule: Q4block
 import Statistics: mean
 
 """
@@ -157,22 +158,41 @@ end
 Convert a mesh of quadrilateral Q4's to two T3 triangles  each.
 """
 function Q4toT3(fens::FENodeSet, fes::FESetQ4, orientation::Symbol=:default)
-    connl1=[1  2  3];
-    connl2=[1  3  4];
+    numbering1 = ([1, 2, 3], [1, 3, 4])
+    numbering2 = ([1, 2, 4], [3, 4, 2])
+    numbering = numbering1
     if orientation==:alternate
-        connl1=[1, 2, 4];
-        connl2=[3, 4, 2];
+        numbering = numbering2
     end
-    nedges=4;
-    nconns=zeros(FInt,2*count(fes),3);
+    nedges = 4;
+    nconns = zeros(FInt,2*count(fes),3);
     conns = connasarray(fes)
-    nc=1;
-    for i= 1:size(conns, 1)
-        conn = conns[i,:];
-        nconns[nc,:] =conn[connl1];
-        nc= nc+ 1;
-        nconns[nc,:] =conn[connl2];
-        nc= nc+ 1;
+    if orientation==:random
+        draw = rand(Bool, size(conns, 1))
+        nc=1;
+        for i= 1:size(conns, 1)
+            conn = conns[i,:];
+            if draw[i]
+                nconns[nc,:] =conn[numbering1[1]];
+                nc= nc+ 1;
+                nconns[nc,:] =conn[numbering1[2]];
+                nc= nc+ 1;
+            else
+                nconns[nc,:] =conn[numbering2[1]];
+                nc= nc+ 1;
+                nconns[nc,:] =conn[numbering2[2]];
+                nc= nc+ 1;
+            end
+        end
+    else
+        nc=1;
+        for i= 1:size(conns, 1)
+            conn = conns[i,:];
+            nconns[nc,:] =conn[numbering[1]];
+            nc= nc+ 1;
+            nconns[nc,:] =conn[numbering[2]];
+            nc= nc+ 1;
+        end
     end
     nfes = FESetT3(nconns);
     return fens,nfes            # I think I should not be overwriting the input!

@@ -163,6 +163,10 @@ using .MeshTetrahedronModule: T4block, T4blockx, T4toT10, T10toT4, T10block, T10
 # Exported: mesh generation functions for tetrahedral elements
 export  T4block, T4blockx, T4toT10, T10toT4, T10block, T10blockx, T10layeredplatex, T4meshedges, T4voximg, T4refine, T10refine, T4refine20, T4quartercyln
 
+using .MeshMixinsModule: T3blockrand
+# Exported: various mesh generation functions 
+export T3blockrand
+
 ###########################################################################
 # Abstract material
 ###########################################################################

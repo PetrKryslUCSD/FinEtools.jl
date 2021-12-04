@@ -1181,3 +1181,26 @@ end
 end
 using .miscellaneous_6g
 miscellaneous_6g.test()
+
+
+module mt3rand1x
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using LinearAlgebra
+using Test
+function test()
+    Lx=900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
+    nx = 8
+    ny = 11
+
+    fens,fes = T3blockrand(Lx,Ly,nx,ny); # Mesh
+    fens,fes = Q4toT3(fens,fes,:random); # Mesh
+    File = "mesh_c.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+
+    true
+end
+end
+using .mt3rand1x
+mt3rand1x.test()
