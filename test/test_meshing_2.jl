@@ -1195,7 +1195,6 @@ function test()
     ny = 11
 
     fens,fes = T3blockrand(Lx,Ly,nx,ny); # Mesh
-    fens,fes = Q4toT3(fens,fes,:random); # Mesh
     File = "mesh_c.vtk"
     VTK.vtkexportmesh(File, fens, fes)
 
