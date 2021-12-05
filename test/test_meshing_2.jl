@@ -1203,3 +1203,25 @@ end
 end
 using .mt3rand1x
 mt3rand1x.test()
+
+
+module mt3rand2x
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using LinearAlgebra
+using Test
+function test()
+    Lx=1900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
+    nx = 38
+    ny = 35
+
+    fens,fes = T3blockrand(Lx,Ly,nx,ny); # Mesh
+        File = "mesh_d.vtk"
+        VTK.vtkexportmesh(File, fens, fes)
+
+    true
+end
+end
+using .mt3rand2x
+mt3rand2x.test()
