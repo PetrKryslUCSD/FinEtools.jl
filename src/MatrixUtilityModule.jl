@@ -194,6 +194,49 @@ function add_btdb_ut_only!(Ke::FFltMat, B::FFltMat, Jac_w::FFlt, D::FFltMat, DB:
 end
 
 """
+    add_b1tdb2_ut_only!(Ke::FFltMat, B1::FFltMat, B2::FFltMat, Jac_w::FFlt, D::FFltMat, DB2::FFltMat)
+
+Add the product  `(B1'*(D*(Jac_w))*B2)`, to the elementwise matrix `Ke`.
+
+The matrix `Ke` is assumed to be suitably initialized: the results of this
+computation are **added**. The matrix `Ke` may be rectangular.
+
+The matrix `D` may be rectangular.
+
+The matrix Ke is modified.  The matrices `B1`, `B2`, and `D` are not modified
+inside this function. The scratch buffer `DB` is overwritten
+during each call of this function.
+"""
+function add_b1tdb2!(Ke::FFltMat, B1::FFltMat, B2::FFltMat, Jac_w::FFlt, D::FFltMat, DB2::FFltMat)
+    Kedim1, Kedim2 = size(Ke)
+    Ddim1, Ddim2 = size(D)
+    @assert size(B1) == (Ddim1, Kedim1)
+    @assert size(B2) == (Ddim2, Kedim2)
+    @assert size(DB2) == (Ddim1, Kedim2)
+    # A_mul_B!(DB, D, B)    # intermediate product
+    for nx = 1:Kedim2
+        for mx = 1:Ddim1
+            accum::FFlt  = 0.0
+            for px = 1:Ddim2
+                accum += D[mx, px]*B2[px, nx]
+            end
+            DB2[mx, nx] = Jac_w*accum
+        end
+    end
+    #  Ke = Ke + (B'*(D*(Jac*w[j]))*B); only the upper triangle
+    for nx = 1:Kedim2
+        for mx = 1:Kedim1 # only the upper triangle
+            accum::FFlt  = 0.0
+            for px = 1:Ddim1
+                accum += B1[px, mx]*DB2[px, nx]
+            end
+            Ke[mx, nx] += accum
+        end
+    end
+    return true
+end
+
+"""
     add_btsigma!(Fe::FFltVec, B::FFltMat, coefficient::FFlt, sigma::FFltVec)
 
 Add the product  `B'*(sigma*coefficient)`, to the elementwise vector `Fe`.

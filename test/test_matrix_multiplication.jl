@@ -267,3 +267,25 @@ end
 end
 using .mmvtest1
 mmvtest1.test()
+
+
+module mt3b1db2x1y
+using FinEtools
+using FinEtools.MatrixUtilityModule: add_b1tdb2!
+using LinearAlgebra
+using Test
+function test()
+    M, N, P, Q = 33, 20, 7, 5
+    Ke = fill(0.0, M, N)
+    B1 = rand(P, M)
+    B2 = rand(Q, N)
+    D = rand(P, Q)
+    DB2 = fill(0.0, P, N)
+    Jac_w = 0.331
+    add_b1tdb2!(Ke, B1, B2, Jac_w, D, DB2)
+    @test norm(Ke - B1'*D*B2*Jac_w) < 1.0e-9 * norm(Ke)
+    true
+end
+end
+using .mt3b1db2x1y
+mt3b1db2x1y.test()
