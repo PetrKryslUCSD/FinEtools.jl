@@ -59,7 +59,8 @@ end
 """
     add_mggt_ut_only!(Ke::FFltMat, gradN::FFltMat, mult::FFlt)
 
-Add the product `gradN*mult*gradNT` to the elementwise matrix `Ke`.
+Add the product `gradN*mult*gradNT` to the matrix `Ke`.
+
 The argument `mult` is a scalar.
 *Only upper triangle* is computed; the lower triangle is not touched.
 (Use `complete_lt!` to complete the lower triangle, if needed.)
@@ -90,7 +91,8 @@ end
     add_gkgt_ut_only!(Ke::FFltMat, gradN::FFltMat, Jac_w::FFlt,
       kappa_bar::FFltMat, kappa_bargradNT::FFltMat)
 
-Add the product `gradN*kappa_bar*gradNT*(Jac*w[j])` to the elementwise matrix `Ke`.
+Add the product `gradN*kappa_bar*gradNT*(Jac*w[j])` to the matrix `Ke`.
+
 *Only upper triangle* is computed; the lower triangle is not touched.
 (Use `complete_lt!` to complete the lower triangle, if needed.)
 
@@ -154,7 +156,8 @@ end
     add_btdb_ut_only!(Ke::FFltMat, B::FFltMat, Jac_w::FFlt,
                   D::FFltMat, DB::FFltMat)
 
-Add the product  `(B'*(D*(Jac*w[j]))*B)`, to the elementwise matrix Ke.
+Add the product  `(B'*(D*(Jac*w[j]))*B)`, to the matrix Ke.
+
 *Only upper triangle* is computed; the lower triangle is not touched.
 (Use `complete_lt!` to complete the lower triangle, if needed.)
 
@@ -194,9 +197,9 @@ function add_btdb_ut_only!(Ke::FFltMat, B::FFltMat, Jac_w::FFlt, D::FFltMat, DB:
 end
 
 """
-    add_b1tdb2_ut_only!(Ke::FFltMat, B1::FFltMat, B2::FFltMat, Jac_w::FFlt, D::FFltMat, DB2::FFltMat)
+    add_b1tdb2!(Ke::FFltMat, B1::FFltMat, B2::FFltMat, Jac_w::FFlt, D::FFltMat, DB2::FFltMat)
 
-Add the product  `(B1'*(D*(Jac_w))*B2)`, to the elementwise matrix `Ke`.
+Add the product  `(B1'*(D*(Jac_w))*B2)`, to the matrix `Ke`.
 
 The matrix `Ke` is assumed to be suitably initialized: the results of this
 computation are **added**. The matrix `Ke` may be rectangular.
@@ -214,7 +217,7 @@ function add_b1tdb2!(Ke::FFltMat, B1::FFltMat, B2::FFltMat, Jac_w::FFlt, D::FFlt
     @assert size(B2) == (Ddim2, Kedim2)
     @assert size(DB2) == (Ddim1, Kedim2)
     # A_mul_B!(DB, D, B)    # intermediate product
-    for nx = 1:Kedim2
+    @inbounds for nx = 1:Kedim2
         for mx = 1:Ddim1
             accum::FFlt  = 0.0
             for px = 1:Ddim2
@@ -224,7 +227,7 @@ function add_b1tdb2!(Ke::FFltMat, B1::FFltMat, B2::FFltMat, Jac_w::FFlt, D::FFlt
         end
     end
     #  Ke = Ke + (B'*(D*(Jac*w[j]))*B); only the upper triangle
-    for nx = 1:Kedim2
+    @inbounds for nx = 1:Kedim2
         for mx = 1:Kedim1 # only the upper triangle
             accum::FFlt  = 0.0
             for px = 1:Ddim1
@@ -262,7 +265,8 @@ end
 """
     add_nnt_ut_only!(Ke::FFltMat, Nn::FFltMat, Jac_w_coeff::FFlt)
 
-Add the product  `Nn*(Nn'*(coeff*(Jac*w(j)))`, to the elementwise matrix `Ke`.
+Add the product  `Nn*(Nn'*(coeff*(Jac*w(j)))`, to the matrix `Ke`.
+
 *Only upper triangle* is computed; the lower triangle is not touched.
 
 The matrix `Ke` is assumed to be suitably initialized. The 
@@ -290,7 +294,7 @@ end
 """
     adjugate3!(B, A)
 
-Compute the adjugate matrix of `A`.
+Compute the adjugate matrix of 3x3 matrix `A`.
 """
 function adjugate3!(B, A)
     # % A = rand(3)
