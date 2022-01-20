@@ -226,7 +226,7 @@ function add_b1tdb2!(Ke::FFltMat, B1::FFltMat, B2::FFltMat, Jac_w::FFlt, D::FFlt
             DB2[mx, nx] = Jac_w*accum
         end
     end
-    #  Ke = Ke + (B'*(D*(Jac*w[j]))*B); only the upper triangle
+    #  Ke = Ke + (B1'*(D*(Jac_w))*B2)
     @inbounds for nx = 1:Kedim2
         for mx = 1:Kedim1 # only the upper triangle
             accum::FFlt  = 0.0
