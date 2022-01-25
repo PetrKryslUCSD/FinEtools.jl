@@ -1493,7 +1493,7 @@ function vtkwritecollection(theFile::String, Connectivity, Points, celltype, tim
     end
     if vectors !== nothing
         @assert length(times) == length(vectors)
-        for (i, t, nt) in zip(1:length(times), times, scalars)
+        for (i, t, nt) in zip(1:length(times), times, vectors)
             an = nt[1] # name of the shape collection
             d = nt[2]
             pvd[t] = vtkwrite(DataDrop.with_extension(theFile * "-$i", ".vtu"), Connectivity, Points, celltype; vectors=[(an, d)])
