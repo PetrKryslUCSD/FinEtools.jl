@@ -21,6 +21,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 01/25/2022: Added export of a ParaView collection of a time sequence of data.
 - 12/03/2021: Added a utility to generate a random-looking triangular mesh.
 - 11/17/2021: Added utility to distort a block of mesh.
 - 09/21/2021: Fixed import problems for Abaqus files.
