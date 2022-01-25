@@ -5,6 +5,8 @@ Module for export of meshes and data defined on meshes.
 """
 module MeshExportModule
 
+
+
 __precompile__(true)
 
 module VTK
@@ -1346,6 +1348,7 @@ module VTKWrite
 ################################################################################
 
 using WriteVTK
+using DataDrop
 using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
 import ...FENodeSetModule: FENodeSet
@@ -1373,8 +1376,8 @@ const H20=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetH20])
 
 Export mesh to VTK as an unstructured grid (binary file).
 
-`opts` = keyword argument list, where `scalars` = array of tuples, (name, data)
-`vectors` = array of tuples, (name, data)
+`opts` = keyword argument list, where `scalars` = array of tuples, 
+    `(name, data)`, `vectors` = array of tuples, `(name, data)`
 
 For the `scalars`: If `data` is a vector, that data is exported as a single
 field. On the other hand, if it is an 2d array, each column is exported  as a
@@ -1398,6 +1401,8 @@ Export mesh to VTK as an unstructured grid (binary format).
 For the `scalars`: If `data` is a vector, that data is exported as a single
 field. On the other hand, if it is an 2d array, each column is exported  as a
 separate field.
+
+Returns the `vtk` file.
 """
 function vtkwrite(theFile::String, Connectivity, Points, celltype; vectors=nothing, scalars=nothing)
     # The array `Points` has number of rows equal to the number of points,
@@ -1416,7 +1421,7 @@ function vtkwrite(theFile::String, Connectivity, Points, celltype; vectors=nothi
     end
     # Prepare an array of the cells
     cells = [MeshCell(celltype, view(Connectivity, i, :)) for i in 1:size(Connectivity, 1)]
-    vtkfile = vtk_grid(theFile, points, cells, compress=3)
+    vtkfile = vtk_grid(DataDrop.with_extension(theFile, ".vtu"), points, cells, compress=3)
     if scalars !== nothing
         for nt in scalars
             an = nt[1] # name of the shape collection
@@ -1443,7 +1448,59 @@ function vtkwrite(theFile::String, Connectivity, Points, celltype; vectors=nothi
             vtkfile[an] = pdata
         end
     end
-    return vtk_save(vtkfile)
+    vtk_save(vtkfile)
+    return vtkfile
+end
+
+"""
+    vtkwritecollection(theFile::String, fens::FENodeSet, fes::T, times; opts...) where {T<:AbstractFESet}
+
+Write a collection of VTK files (`.pvd` file).
+
+`times`: array of times
+
+All the other arguments are the same as for `vtkwrite`. If `scalars` or
+`vectors` are supplied, they correspond to the times in the `times` array.
+
+See the `vtkwritecollection` methods.
+"""
+function vtkwritecollection(theFile::String, fens::FENodeSet, fes::T, times; opts...) where {T<:AbstractFESet}
+    celltype = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[typeof(fes)])
+    return vtkwritecollection(theFile, connasarray(fes), fens.xyz, celltype, times; opts...)
+end
+
+"""
+    vtkwritecollection(theFile::String, Connectivity, Points, celltype, times; vectors=nothing, scalars=nothing)
+
+Write a collection of VTK files (`.pvd` file).
+
+`times`: array of times
+
+All the other arguments are the same as for `vtkwrite`. If `scalars` or
+`vectors` are supplied, they correspond to the times in the `times` array.
+
+See the `vtkwritecollection` methods.
+"""
+function vtkwritecollection(theFile::String, Connectivity, Points, celltype, times; vectors=nothing, scalars=nothing)
+    pvd = paraview_collection(DataDrop.with_extension(theFile, "pvd"))
+    if scalars !== nothing
+        @assert length(times) == length(scalars)
+        for (i, t, nt) in zip(1:length(times), times, scalars)
+            an = nt[1] # name of the shape collection
+            d = nt[2]
+            pvd[t] = vtkwrite(DataDrop.with_extension(theFile * "-$i", ".vtu"), Connectivity, Points, celltype; scalars=[(an, d)])
+        end
+    end
+    if vectors !== nothing
+        @assert length(times) == length(vectors)
+        for (i, t, nt) in zip(1:length(times), times, scalars)
+            an = nt[1] # name of the shape collection
+            d = nt[2]
+            pvd[t] = vtkwrite(DataDrop.with_extension(theFile * "-$i", ".vtu"), Connectivity, Points, celltype; vectors=[(an, d)])
+        end
+    end
+    vtk_save(pvd)
+    return pvd
 end
     
 end # VTKWrite

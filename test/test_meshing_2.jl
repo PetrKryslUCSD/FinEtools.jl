@@ -1225,3 +1225,42 @@ end
 end
 using .mt3rand2x
 mt3rand2x.test()
+
+
+module mvtkcollection1
+using FinEtools
+using FinEtools.MeshSelectionModule: vselect
+using FinEtools.MeshExportModule
+using FinEtools.MeshExportModule: VTKWrite
+using Test
+import LinearAlgebra: norm
+function test()
+    A = 50.0*phun("m") # length  of loaded rectangle
+    B = 200.0*phun("m") # length  of loaded rectangle
+    C = 100.0*phun("m") # span of the plate
+
+    # Select how find the mesh should be
+    Refinement = 2
+    nA, nB, nC = Refinement * 1, Refinement * 2, Refinement * 4;
+    xs = reshape(collect(linearspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linearspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
+    fensc,fesc = T10blockx(xs, ys, zs, :b)
+    fc = NodalField(zeros(count(fensc), 1))
+    scalars = []; times = []
+    for t in 0.0:0.1:1.0
+        for i = 1:count(fensc)
+            x, y, z = fensc.xyz[i, :]
+            fc.values[i, :] .= sin(5*t) * sin(2*x/A) * cos(6.5*y/B) * sin(3*z/C-1.0)
+        end
+        push!(scalars, ("p", deepcopy(fc.values)))
+        push!(times, t)
+    end
+    File = "mvtkcollection1"
+    VTKWrite.vtkwritecollection(File, fensc, fesc, times; scalars = scalars)
+    # @async run(`"paraview.exe" $File`)
+    try rm(File) catch end
+end
+end
+using .mvtkcollection1
+mvtkcollection1.test()
