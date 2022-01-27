@@ -112,12 +112,14 @@ the first call to the method `assemble!`.
 - `elem_mat_nmatrices`= number of element matrices,
 - `ndofs_row`= Total number of equations in the row direction,
 - `ndofs_col`= Total number of equations in the column direction.
+
+The values stored in the buffers are initially undefined!
 """
 function startassembly!(self::SysmatAssemblerSparse{T}, elem_mat_nrows::FInt, elem_mat_ncols::FInt, elem_mat_nmatrices::FInt, ndofs_row::FInt, ndofs_col::FInt) where {T<:Number}
     self.buffer_length = elem_mat_nmatrices*elem_mat_nrows*elem_mat_ncols;
-    self.rowbuffer = zeros(FInt,self.buffer_length);
-    self.colbuffer = zeros(FInt,self.buffer_length);
-    self.matbuffer = zeros(T,self.buffer_length);
+    self.rowbuffer = Array{FInt, 1}(undef, self.buffer_length);
+    self.colbuffer = Array{FInt, 1}(undef, self.buffer_length);
+    self.matbuffer = Array{T, 1}(undef, self.buffer_length);
     self.buffer_pointer = 1;
     self.ndofs_row = ndofs_row;
     self.ndofs_col = ndofs_col;
@@ -254,12 +256,14 @@ the first call to the method `assemble!`.
 - `elem_mat_nmatrices`= number of element matrices,
 - `ndofs_row`= Total number of equations in the row direction,
 - `ndofs_col`= Total number of equations in the column direction.
+
+The values stored in the buffers are initially undefined!
 """
 function startassembly!(self::SysmatAssemblerSparseSymm{T}, elem_mat_dim::FInt, ignore1::FInt, elem_mat_nmatrices::FInt, ndofs::FInt, ignore2::FInt) where {T<:Number}
     self.buffer_length = elem_mat_nmatrices*elem_mat_dim^2;
-    self.rowbuffer = zeros(FInt,self.buffer_length);
-    self.colbuffer = zeros(FInt,self.buffer_length);
-    self.matbuffer = zeros(T,self.buffer_length);
+    self.rowbuffer = Array{FInt, 1}(undef, self.buffer_length);
+    self.colbuffer = Array{FInt, 1}(undef, self.buffer_length);
+    self.matbuffer = Array{T, 1}(undef, self.buffer_length);
     self.buffer_pointer = 1;
     self.ndofs = ndofs;
     return self
@@ -329,6 +333,13 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
             self.matbuffer[j] = 0.0
         end
     end
+    # We are making sure it is truly symmetric
+    # @info "New"
+    # r = view(self.rowbuffer, 1:self.buffer_pointer-1)
+    # c = view(self.colbuffer, 1:self.buffer_pointer-1)
+    # v = view(self.matbuffer, 1:self.buffer_pointer-1)
+    # S = sparse(vcat(r, c), vcat(c, r), vcat(v, v), self.ndofs, self.ndofs); 
+    # @info "Old"
     S = sparse(self.rowbuffer[1:self.buffer_pointer-1],
                self.colbuffer[1:self.buffer_pointer-1],
                self.matbuffer[1:self.buffer_pointer-1],
@@ -337,7 +348,7 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
     #  will be duplicated.
     S = S + transpose(S); 
     @inbounds for j=1:size(S,1)
-        S[j,j]=S[j,j]/2.0;      # the diagonal is there twice; fix it;
+        S[j,j] *= 0.5;      # the diagonal is there twice; fix it;
     end
     self = SysmatAssemblerSparseSymm(zero(eltype(self.matbuffer))) # get rid of the buffers
     return S
@@ -506,7 +517,7 @@ function assemble!(self::SysvecAssembler{T}, vec::MV,
     for i = 1:length(dofnums)
         gi = dofnums[i];
         if (0 < gi <= self.ndofs)
-            self.F_buffer[gi] = self.F_buffer[gi] + vec[i];
+            self.F_buffer[gi] += vec[i];
         end
     end
 end
@@ -575,12 +586,14 @@ the first call to the method `assemble!`.
 - `elem_mat_nmatrices`= number of element matrices,
 - `ndofs_row`= Total number of equations in the row direction,
 - `ignore2`= Total number of equations in the column direction: equal to `ndofs_row`.
+
+The values stored in the buffers are initially undefined!
 """
 function startassembly!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, elem_mat_dim::FInt, ignore1::FInt, elem_mat_nmatrices::FInt, ndofs::FInt,ignore2::FInt) where {T<:Number}
     self.buffer_length = elem_mat_nmatrices*elem_mat_dim^2;
-    self.rowbuffer = zeros(FInt,self.buffer_length);
-    self.colbuffer = zeros(FInt,self.buffer_length);
-    self.matbuffer = zeros(T,self.buffer_length);
+    self.rowbuffer = Array{FInt, 1}(undef, self.buffer_length);
+    self.colbuffer = Array{FInt, 1}(undef, self.buffer_length);
+    self.matbuffer = Array{T, 1}(undef, self.buffer_length);
     self.buffer_pointer = 1;
     self.ndofs = ndofs;
     return self
