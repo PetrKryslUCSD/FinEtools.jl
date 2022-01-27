@@ -124,9 +124,9 @@ using .SurfaceNormalModule: SurfaceNormal, updatenormal!
 # Exported: surface-normal evaluator type and methods to invoke the update callback
 export SurfaceNormal, updatenormal!
 
-using .AssemblyModule: AbstractSysmatAssembler, SysmatAssemblerSparse, SysmatAssemblerSparseSymm, SysmatAssemblerSparseHRZLumpingSymm, startassembly!, assemble!, makematrix!, AbstractSysvecAssembler, SysvecAssembler, startassembly!, assemble!, makevector!, SysmatAssemblerReduced
+using .AssemblyModule: AbstractSysmatAssembler, SysmatAssemblerSparse, SysmatAssemblerSparseSymm, SysmatAssemblerSparseDiag, SysmatAssemblerSparseHRZLumpingSymm, startassembly!, assemble!, makematrix!, AbstractSysvecAssembler, SysvecAssembler, startassembly!, assemble!, makevector!, SysmatAssemblerReduced
 # Exported: types and methods for  sparse matrix assembly  and vector assembly
-export AbstractSysmatAssembler, SysmatAssemblerSparse, SysmatAssemblerSparseSymm, SysmatAssemblerSparseHRZLumpingSymm, startassembly!, assemble!, makematrix!, AbstractSysvecAssembler, SysvecAssembler, startassembly!, assemble!, makevector!, SysmatAssemblerReduced
+export AbstractSysmatAssembler, SysmatAssemblerSparse, SysmatAssemblerSparseSymm, SysmatAssemblerSparseDiag, SysmatAssemblerSparseHRZLumpingSymm, startassembly!, assemble!, makematrix!, AbstractSysvecAssembler, SysvecAssembler, startassembly!, assemble!, makevector!, SysmatAssemblerReduced
 
 using .IntegRuleModule: AbstractIntegRule, TriRule, GaussRule, TetRule, PointRule, SimplexRule, TrapezoidalRule, NodalSimplexRule, NodalTensorProductRule
 # Exported: type for various integration rules
