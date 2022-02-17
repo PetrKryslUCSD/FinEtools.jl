@@ -952,7 +952,7 @@ function savecsv(name::String; kwargs...)
     for j = 1:ncol
         @assert length(columns[j]) == nrow "Columns must have the same number of rows"
     end
-    if !occursin(r"^.*\.csv$", name) && !occursin(r"^.*\.CSV$", name)
+    if DataDrop.file_extension(name) == ""
         name = name * ".csv"
     end
     open(name, "w") do fid
