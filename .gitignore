@@ -3,6 +3,8 @@ playground.jl
 *.jl.*.cov
 *.jl.mem
 *.vtk
+*.vtu
+*.pvd
 *.jls
 *.jld
 *.sublime-workspace
