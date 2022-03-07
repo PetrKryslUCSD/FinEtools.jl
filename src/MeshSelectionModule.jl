@@ -87,6 +87,13 @@ Find the node nearest to the location given.
 ```
 nh = selectnode(fens, nearestto = [R+Ro/2, 0.0, 0.0] )
 ```
+
+
+### farthestfrom
+Find the node farthest from the location given.
+```
+nh = selectnode(fens, farthestfroms = [R+Ro/2, 0.0, 0.0] )
+```
 """
 function selectnode(fens::FENodeSet; kwargs...)
     nodelist = vselect(fens.xyz; kwargs...)
@@ -200,8 +207,7 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
 
     # Extract arguments
     allin = nothing; flood = nothing; facing = nothing; label = nothing; withnodes = nothing
-    inflate = 0.0
-    # nearestto = nothing; smoothpatch = nothing;
+    inflate = 0.0; nearestto = nothing; farthestfrom = nothing; # smoothpatch = nothing;
     startnode = 0; dotmin = 0.01
     overlappingbox = nothing
     for apair in pairs(kwargs)
@@ -216,6 +222,8 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
             overlappingbox = val
         elseif sy == :nearestto
             nearestto = val
+        elseif sy == :farthestfrom
+            farthestfrom = val
         elseif sy == :inflate
             inflate = val
         elseif sy == :withnodes
@@ -260,11 +268,6 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
     #     else
     #         error('Need the number of the starting finite element');
     #     end
-    # end
-
-    # if isfield(options, 'nearestto')
-    #     nearestto = true;
-    #     locations = options.nearestto;
     # end
 
     # The  elements of this array are flipped from zero  when the element satisfies
@@ -551,7 +554,7 @@ used to search vertices.
 function vselect(v::FFltMat; kwargs...)
     # Extract arguments
     box = nothing; distance = nothing; from = nothing; plane  =  nothing;
-    thickness = nothing; nearestto = nothing; inflate = 0.0;
+    thickness = nothing; nearestto = nothing; farthestfrom = nothing; inflate = 0.0;
     for apair in pairs(kwargs)
         sy, val = apair
         if sy == :box
@@ -566,6 +569,8 @@ function vselect(v::FFltMat; kwargs...)
             thickness = val
         elseif sy == :nearestto
             nearestto = val
+        elseif sy == :farthestfrom
+            farthestfrom = val
         elseif sy == :inflate
             inflate = val
         end
@@ -623,6 +628,15 @@ function vselect(v::FFltMat; kwargs...)
             distance[i] = norm(location-vec(v[i,:]))
         end
         Mv,j = findmin(distance)
+        vlist[1] = j;
+        nn=1;
+    elseif farthestfrom != nothing
+        location = vec(farthestfrom);
+        distance =  zeros(size(v,1));
+        for i=1:size(v,1)
+            distance[i] = norm(location-vec(v[i,:]))
+        end
+        Mv,j = findmax(distance)
         vlist[1] = j;
         nn=1;
     end

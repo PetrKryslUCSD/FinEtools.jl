@@ -31,6 +31,35 @@ end
 using .mexpmeshx1ba3
 mexpmeshx1ba3.test()
 
+module mexpmeshx1bb1
+using FinEtools
+using FinEtools.MeshExportModule: MESH, MESH.write_MESH
+using FinEtools.MeshImportModule
+using LinearAlgebra: norm
+using Test
+function test()
+    rho=1.21*1e-9;# mass density
+    c =345.0*1000;# millimeters per second
+    bulk= c^2*rho;
+    Lx=1900.0;# length of the box, millimeters
+    Ly=800.0; # length of the box, millimeters
+
+    fens, fes = Q4block(Lx,Ly,4,2); # Mesh
+    setlabel!(fes, 3)
+
+    l = selectnode(fens, nearestto = [0.0, 0.0])
+    @test l[1] == 1
+    # @show fens.xyz[l, :]
+
+    @show l = selectnode(fens, farthestfrom = [0.0, 0.0])
+    @test l[1] == 15
+    # @show fens.xyz[l, :]
+    true
+end
+end
+using .mexpmeshx1bb1
+mexpmeshx1bb1.test()
+
 # module mimptm2
 # using FinEtools
 # using FinEtools.MeshImportModule
