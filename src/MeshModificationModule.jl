@@ -32,7 +32,7 @@ function interior2boundary(interiorconn::Array{Int, 2}, extractb::Array{Int, 2})
 end
 
 """
-meshboundary(fes::T) where {T<:AbstractFESet}
+    meshboundary(fes::T) where {T<:AbstractFESet}
 
 Extract the boundary finite elements from a mesh.
 
