@@ -1,20 +1,9 @@
-authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
 name = "FinEtools"
 uuid = "91bb5406-6c9a-523d-811d-0644c4229550"
-version = "5.3.9"
-
-[compat]
-Arpack = "^0.5"
-DataDrop = "^0.1"
-HDF5 = "^0.15"
-LoopVectorization = "^0.12"
-StatsBase = "^0.33"
-SymRCM = "^0.2"
-WriteVTK = "^1"
-julia = "^1.6"
+authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
+version = "5.4.0"
 
 [deps]
-Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
 DataDrop = "aa547a04-dd37-49ab-8e73-656744f8a8fc"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
@@ -29,6 +18,15 @@ SymRCM = "286e6d88-80af-4590-acc9-0001b223b9bd"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 WriteVTK = "64499a7a-5c06-52f2-abe2-ccb03c286192"
+
+[compat]
+DataDrop = "^0.1"
+HDF5 = "^0.15"
+LoopVectorization = "^0.12"
+StatsBase = "^0.33"
+SymRCM = "^0.2"
+WriteVTK = "^1"
+julia = "^1.7"
 
 [extras]
 CPUSummary = "2a0fbf3d-bb9c-48f3-b0a9-814d99fd7ab9"

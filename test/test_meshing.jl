@@ -51,7 +51,7 @@ function test()
     @test l[1] == 1
     # @show fens.xyz[l, :]
 
-    @show l = selectnode(fens, farthestfrom = [0.0, 0.0])
+    l = selectnode(fens, farthestfrom = [0.0, 0.0])
     @test l[1] == 15
     # @show fens.xyz[l, :]
     true
