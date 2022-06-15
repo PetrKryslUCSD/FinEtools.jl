@@ -9,7 +9,7 @@ __precompile__(true)
 
 import LinearAlgebra: mul!, Transpose
 my_At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
-import SparseArrays: sparse
+import SparseArrays: sparse, findnz
 import LinearAlgebra: norm
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FENodeSetModule: FENodeSet
@@ -25,6 +25,7 @@ import ..BoxModule: initbox!, boundingbox, inflatebox!
 import ..MeshModificationModule: nodepartitioning, compactnodes, renumberconn!
 import ..MeshSelectionModule: selectelem, vselect, findunconnnodes, connectednodes
 import ..AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
+import ..FENodeToFEMapModule: FENodeToFEMap
 
 """
     AbstractFEMM
@@ -450,7 +451,7 @@ function connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:AbstractFEMM}
     rb = FInt[]; sizehint!(rb, N)
     cb = FInt[]; sizehint!(cb, N)
     vb = ones(FInt, N);
-    @inbounds for  j = 1:nfes
+    for  j = 1:nfes
         @inbounds for  k = 1:nconns
             append!(rb, fes.conn[j])
             @inbounds for  m = 1:nconns
@@ -459,6 +460,40 @@ function connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:AbstractFEMM}
         end
     end
     return sparse(rb, cb, vb, nnodes, nnodes)
+end
+
+"""
+    dualconnectionmatrix(self::FEMM, fens::FENodeSet, minnodes = 1) where {FEMM<:AbstractFEMM}
+
+Compute the dual connection matrix.
+
+The matrix has a nonzero in all the rows and columns which correspond to
+elements connected by some finite element nodes.
+
+- `minnodes`: minimum number of nodes that the elements needs to share in order
+  to be neighbors (default 1)
+"""
+function dualconnectionmatrix(self::FEMM, fens::FENodeSet, minnodes = 1) where {FEMM<:AbstractFEMM}
+    fes = self.integdomain.fes
+    nfes = length(fes.conn)
+    nconns = nodesperelem(fes)
+    N = nfes*nconns*nconns
+    rb = FInt[]; sizehint!(rb, N)
+    cb = FInt[]; sizehint!(cb, N)
+    m = FENodeToFEMap(fes.conn, count(fens))
+    for  j in 1:length(m.map)
+        for  i in 1:length(m.map[j])
+            append!(rb, m.map[j])
+            @inbounds for k in 1:length(m.map[j])
+                push!(cb, m.map[j][i])
+            end
+        end
+    end
+    vb = ones(FInt, length(rb));
+    C = sparse(rb, cb, vb, nfes, nfes)
+    I, J, V = findnz(C)
+    ix = findall(x -> x >= minnodes, V)
+    return  sparse(I[ix], J[ix], V[ix], nfes, nfes)
 end
 
 

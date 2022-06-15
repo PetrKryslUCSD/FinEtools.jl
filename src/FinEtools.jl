@@ -136,9 +136,9 @@ using .IntegDomainModule: IntegDomain, otherdimensionunity, Jacobianpoint, Jacob
 # Exported: type to handle  integration data for various manifold dimensions
 export IntegDomain, otherdimensionunity, Jacobianpoint, Jacobiancurve, Jacobiansurface, Jacobianvolume, Jacobianmdim, integrationdata
 
-using .FEMMBaseModule: AbstractFEMM, FEMMBase, associategeometry!, integratefieldfunction, integratefunction, transferfield!, distribloads, connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints, innerproduct, field_elem_to_nodal!, field_nodal_to_elem!
+using .FEMMBaseModule: AbstractFEMM, FEMMBase, associategeometry!, integratefieldfunction, integratefunction, transferfield!, distribloads, connectionmatrix, dualconnectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints, innerproduct, field_elem_to_nodal!, field_nodal_to_elem!
 # Exported: type base discretization methods
-export AbstractFEMM, FEMMBase, associategeometry!, integratefieldfunction, integratefunction, transferfield!, distribloads, connectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints, innerproduct, field_elem_to_nodal!, field_nodal_to_elem!
+export AbstractFEMM, FEMMBase, associategeometry!, integratefieldfunction, integratefunction, transferfield!, distribloads, connectionmatrix, dualconnectionmatrix, fieldfromintegpoints, elemfieldfromintegpoints, innerproduct, field_elem_to_nodal!, field_nodal_to_elem!
 
 ###########################################################################
 # Mesh-generation functionality for various shapes

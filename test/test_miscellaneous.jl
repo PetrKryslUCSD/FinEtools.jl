@@ -2544,3 +2544,32 @@ end
 end
 using .mmiscellaneous23x1
 mmiscellaneous23x1.test()
+
+
+module mmconnection2
+using FinEtools
+using SparseArrays
+using Test
+function test()
+    h = 3.0; l = 4.0
+    nh = 2; nl  = 3; 
+
+    fens,fes  = T3block(h, l, nh, nl)
+    File =  "mesh.vtk"
+    vtkexportmesh(File, fens, fes)
+    
+    femm = FEMMBase(IntegDomain(fes, GaussRule(2, 2)))
+    C = dualconnectionmatrix(femm, fens, 2)
+    @test C == sparse([1, 2, 1, 2, 3, 7, 2, 3, 4, 3, 4, 5, 9, 4, 5, 6, 5, 6, 11, 2, 7, 8, 7, 8, 9, 4, 8, 9, 10, 9, 10, 11, 6, 10, 11, 12, 11, 12], [1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 11, 11, 11, 11, 12, 12], [3, 2, 
+    2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 
+    2, 3], 12, 12)
+    # Degree = [length(findall(x->x!=0, C[j,:])) for j in 1:size(C, 1)]
+    # # println("Maximum degree  = $(maximum(Degree))")
+    # # println("Minimum degree  = $(minimum(Degree))")
+    # @test maximum(Degree) == 27
+    # @test minimum(Degree) == 8
+end
+
+test()
+nothing
+end
