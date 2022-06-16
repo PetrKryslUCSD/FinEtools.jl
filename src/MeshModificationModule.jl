@@ -720,7 +720,7 @@ function mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
     return fens1, fromarray!(fes1, conn)
 end
 
-function _nodepartitioning3(fens::FENodeSet, nincluded::Vector{Bool}, npartitions::Int = 2)
+function _nodepartitioning3(xyz, nincluded::Vector{Bool}, npartitions::Int = 2)
     function inertialcutpartitioning!(partitioning, parts, X)
         nspdim = 3
         StaticMoments = fill(zero(FFlt), nspdim, length(parts));
@@ -785,14 +785,14 @@ function _nodepartitioning3(fens::FENodeSet, nincluded::Vector{Bool}, npartition
     end
 
     nlevels = Int(round(ceil(log(npartitions)/log(2))))
-    partitioning = fill(1, count(fens))  # start with nodes assigned to partition 1
+    partitioning = fill(1, size(xyz, 1))  # start with nodes assigned to partition 1
     for level = 0:1:(nlevels - 1)
-        inertialcutpartitioning!(partitioning, collect(1:2^level), fens.xyz)
+        inertialcutpartitioning!(partitioning, collect(1:2^level), xyz)
     end
     return partitioning
 end
 
-function _nodepartitioning2(fens::FENodeSet, nincluded::Vector{Bool}, npartitions::Int = 2)
+function _nodepartitioning2(xy, nincluded::Vector{Bool}, npartitions::Int = 2)
     function inertialcutpartitioning!(partitions, parts, X)
         nspdim = 2
         StaticMoments = fill(zero(FFlt), nspdim, length(parts));
@@ -852,9 +852,9 @@ function _nodepartitioning2(fens::FENodeSet, nincluded::Vector{Bool}, npartition
     end
 
     nlevels = Int(round(ceil(log(npartitions)/log(2))))
-    partitions = fill(1, count(fens))  # start with nodes assigned to partition 1
+    partitions = fill(1, size(xy, 1))  # start with nodes assigned to partition 1
     for level = 0:1:(nlevels - 1)
-        inertialcutpartitioning!(partitions, collect(1:2^level), fens.xyz)
+        inertialcutpartitioning!(partitions, collect(1:2^level), xy)
     end
     return partitions
 end
@@ -875,20 +875,20 @@ partitioning = nodepartitioning(fens, npartitions)
 partitionnumbers = unique(partitioning)
 for gp = partitionnumbers
   groupnodes = findall(k -> k == gp, partitioning)
-  File =  "partition-nodes-Dollar(gp).vtk"
+  File =  "partition-nodes-\$(gp).vtk"
   vtkexportmesh(File, fens, FESetP1(reshape(groupnodes, length(groupnodes), 1)))
 end
 File =  "partition-mesh.vtk"
 vtkexportmesh(File, fens, fes)
-@async run(`"paraview.exe" DollarFile`)
+@async run(`"paraview.exe" \$File`)
 ```
 """
 function nodepartitioning(fens::FENodeSet, nincluded::Vector{Bool}, npartitions::Int = 2)
     @assert npartitions >= 2
     if size(fens.xyz, 2) == 3
-        return _nodepartitioning3(fens, nincluded, npartitions)
+        return _nodepartitioning3(fens.xyz, nincluded, npartitions)
     elseif size(fens.xyz, 2) == 2
-        return _nodepartitioning2(fens, nincluded, npartitions)
+        return _nodepartitioning2(fens.xyz, nincluded, npartitions)
     else
         @warn "Not implemented for 1D"
     end
@@ -922,9 +922,26 @@ function nodepartitioning(fens::FENodeSet, npartitions::Int = 2)
     @assert npartitions >= 2
     nincluded = fill(true, count(fens)) # The default is all nodes are included in the partitioning.
     if size(fens.xyz, 2) == 3
-        return _nodepartitioning3(fens, nincluded, npartitions)
+        return _nodepartitioning3(fens.xyz, nincluded, npartitions)
     elseif size(fens.xyz, 2) == 2
-        return _nodepartitioning2(fens, nincluded, npartitions)
+        return _nodepartitioning2(fens.xyz, nincluded, npartitions)
+    else
+        @warn "Not implemented for 1D"
+    end
+end
+
+"""
+    pointpartitioning(xyz, npartitions::Int = 2)
+
+Compute the inertial-cut partitioning of a set of points.
+"""
+function pointpartitioning(xyz, npartitions::Int = 2)
+    @assert npartitions >= 2
+    nincluded = fill(true, size(xyz, 1)) # The default is all nodes are included in the partitioning.
+    if size(xyz, 2) == 3
+        return _nodepartitioning3(xyz, nincluded, npartitions)
+    elseif size(xyz, 2) == 2
+        return _nodepartitioning2(xyz, nincluded, npartitions)
     else
         @warn "Not implemented for 1D"
     end
