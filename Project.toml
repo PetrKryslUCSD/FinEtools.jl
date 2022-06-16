@@ -27,6 +27,7 @@ LoopVectorization = "^0.12"
 StatsBase = "^0.33"
 SymRCM = "^0.2"
 WriteVTK = "^1"
+Revise = "^3"
 julia = "^1.7"
 
 [extras]
