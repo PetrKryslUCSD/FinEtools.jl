@@ -11,14 +11,15 @@ makedocs(
 	authors = "Petr Krysl",
 	sitename = "FinEtools.jl",
 	pages = Any[
-	"Home" => "index.md",
-	"Guide" => "guide/guide.md",
-	"Types and Functions" => Any[
-		"man/types.md",
-		"man/functions.md"]
-		]
+		"Home" => "index.md",
+		"How to" => "howto/howto.md",
+		"Tutorials" => "tutorials/tutorials.md",
+		"Concepts" => "concepts/concepts.md",
+		"Reference" => "man/man.md",
+        ]
 	)
 
 deploydocs(
     repo = "github.com/PetrKryslUCSD/FinEtools.jl.git",
+	devbranch = "main"
 )
