@@ -16,7 +16,7 @@ The package supports application packages, for instance:
 - [Heat conduction](https://github.com/PetrKryslUCSD/FinEtoolsHeatDiff.jl);
 - [Linear stress analysis](https://github.com/PetrKryslUCSD/FinEtoolsDeforLinear.jl);
 - [Nonlinear stress analysis](https://github.com/PetrKryslUCSD/FinEtoolsDeforNonlinear.jl);
-- [Nonlinear analysis of flexible beam structures](https://github.com/PetrKryslUCSD/FinEtoolsFlexBeams.jl);
+- [Analysis of flexible beam and shell structures](https://github.com/PetrKryslUCSD/FinEtoolsFlexStructures.jl);
 - [Vibration in fluids](https://github.com/PetrKryslUCSD/FinEtoolsVibInFluids.jl).
 
 ## News
