@@ -4,7 +4,7 @@ FinEtools (C) 2017-2022, Petr Krysl
 Finite Element tools.  Julia implementation  of the finite element method
 for continuum mechanics.
 
-Documentation: https://petrkryslucsd.github.io/FinEtools.jl/latest/    
+Documentation: https://petrkryslucsd.github.io/FinEtools.jl/dev/    
 """
 module FinEtools
 
