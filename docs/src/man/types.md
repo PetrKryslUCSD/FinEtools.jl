@@ -1,5 +1,12 @@
 # Types
 
+## Contents
+
+```@contents
+Pages = ["types.md"]
+Depth = 3
+```
+
 ## Coordinate systems
 
 ```@autodocs
