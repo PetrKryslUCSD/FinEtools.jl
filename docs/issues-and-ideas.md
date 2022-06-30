@@ -536,7 +536,7 @@ abstract type AbstractMatDefor end
 Status: Implemented 04/27/2019.
 
 -- Do we still need functions stored in the structs for materials?
-Status: 04/27/2019. It appears we do: the issue is how to make the module functions called the correct functions defined for concrete types without having to define the methods for the types inside the module.
+Status: 04/27/2019. It appears we do: the issue is how to make the module functions call the correct functions defined for concrete types without having to define the methods for the types inside the module.
 
 -- Implement a true growing vector for allocating entries in the Assembly module.
 This will eliminate the need to know in advance the size, while avoiding the overhead penalty with push!().
