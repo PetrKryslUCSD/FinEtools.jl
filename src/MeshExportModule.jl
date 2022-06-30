@@ -46,9 +46,13 @@ numnodesmap = Dict{Int, Int}(P1=>1, L2=>2, T3=>3,
 
 Export mesh to a VTK 1.0 file as an unstructured grid.
 
-`opts` = keyword argument list, where
-`scalars` = array of tuples, (name, data)
-`vectors` = array of tuples, (name, data)
+Arguments:
+- `theFile` = file name,
+- `fens` = finite element node set,
+- `fes` = finite element set,
+- `opts` = keyword argument list, where
+    + `scalars` = array of tuples, (name, data)
+    + `vectors` = array of tuples, (name, data)
 
 For the `scalars`: If `data` is a vector, that data is exported as a single field.
 On the other hand, if it is an 2d array, each column is exported  as a separate field.
@@ -66,9 +70,13 @@ end
 
 Export mesh to a VTK 1.0 file as an unstructured grid.
 
-`opts` = keyword argument list, where
-`scalars` = array of tuples, (name, data)
-`vectors` = array of tuples, (name, data)
+Arguments:
+- `theFile` = file name,
+- `Connectivity` = array of connectivities, one row per element,
+- `Points` = array of node coordinates, one row per node,
+- `Cell_type` = type of the cell, refer to the predefined constants P1, L2, ..., H20, ...
+- `scalars` = array of tuples, (name, data)
+- `vectors` = array of tuples, (name, data)
 
 For the `scalars`: If `data` is a vector, that data is exported as a single field.
 On the other hand, if it is an 2d array, each column is exported  as a separate field.
@@ -237,6 +245,8 @@ end
 
 Export vector data to a VTK 1.0 file.
 
+Arguments:
+- `theFile` = file name,
 - `Points` = array of collection of coordinates (tuples or vectors), 
 - `vectors` = array of tuples, `(name, data)`, where `name` is a string, and
   `data` is array of collection of coordinates (tuples or vectors).
@@ -940,6 +950,11 @@ using DataDrop
     savecsv(name::String; kwargs...)
 
 Save arrays as a CSV file.
+
+Example:
+```julia
+savecsv("ab", a = rand(3), b = rand(3))
+```
 """
 function savecsv(name::String; kwargs...)
     colnames = Symbol[]
@@ -990,7 +1005,7 @@ using Printf
 """
 NASTRANExporter
 
-Export mesh to Abaqus.
+Exporter of the mesh to NASTRAN.
 """
 mutable struct NASTRANExporter
     filename::AbstractString
@@ -1070,6 +1085,11 @@ function MAT1(self::NASTRANExporter, mid::Int, E::FFlt, nu::FFlt, rho::FFlt = 0.
     @printf self.ios "MAT1,%d,%g,,%g,%g,%g,%g,%g\n" mid E nu rho A TREF GE
 end
 
+"""
+    CTETRA(self::NASTRANExporter, eid::Int, pid::Int, conn::Vector{Int})
+
+Write a statement for a single tetrahedron element.
+"""
 function CTETRA(self::NASTRANExporter, eid::Int, pid::Int, conn::Vector{Int})
     nc = length(conn)
     @printf self.ios "CTETRA,%d,%d" eid pid
@@ -1105,7 +1125,7 @@ import Base.close
 """
 STLExporter
 
-Export surface mesh as STL file.
+Exporter of a surface mesh as an STL file.
 """
 mutable struct STLExporter
     filename::AbstractString
@@ -1120,10 +1140,20 @@ mutable struct STLExporter
     end
 end
 
+"""
+    solid(self::STLExporter, name::AbstractString = "thesolid")
+
+Write a statement to begin the solid.
+"""
 function solid(self::STLExporter, name::AbstractString = "thesolid")
     @printf self.ios "solid %s\n" name
 end
 
+"""
+    facet(self::STLExporter, v1::Vector{FFlt}, v2::Vector{FFlt}, v3::Vector{FFlt})
+
+Write a single facet.
+"""
 function facet(self::STLExporter, v1::Vector{FFlt}, v2::Vector{FFlt}, v3::Vector{FFlt})
     V = v2 - v1
     W = v3 - v1
@@ -1138,6 +1168,11 @@ function facet(self::STLExporter, v1::Vector{FFlt}, v2::Vector{FFlt}, v3::Vector
     @printf self.ios "endfacet\n"
 end
 
+"""
+    endsolid(self::STLExporter, name::AbstractString = "thesolid")
+
+Write statement to end the solid.
+"""
 function endsolid(self::STLExporter, name::AbstractString = "thesolid")
     @printf self.ios "endsolid %s\n" name
 end
@@ -1210,6 +1245,11 @@ function hypfacedicttoarray(container)
     return a
 end
 
+"""
+    h2libexporttri(theFile::String, Connectivity, Points)
+
+Write a file in the H2Lib format.
+"""
 function h2libexporttri(theFile::String, Connectivity, Points)
     @assert size(Connectivity, 2) == 3 "Only triangles accepted"
     adjust = 1 # the library is C-based and expects indexes to be zero-based
@@ -1274,7 +1314,12 @@ MESHtypemap = Dict{DataType, String}(FESetP1=>"P1", FESetL2=>"L2", FESetT3=>"T3"
     FESetQ4=>"Q4", FESetT4=>"T4", FESetH8=>"H8", FESetQ8=>"Q8", FESetL3=>"L3", FESetT6=>"T6",
     FESetT10=>"T10", FESetH20=>"H20")
 
-function write_MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:AbstractFESet}
+"""
+    write_MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:AbstractFESet}
+
+Write the mesh in the MESH format.
+"""
+    function write_MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:AbstractFESet}
     meshfilebase, ext = splitext(meshfile)
     dinfo = [
         meshfilebase * "-xyz.dat", 
@@ -1319,6 +1364,13 @@ import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT
 import ...FENodeSetModule: FENodeSet
 import ..VTK: VTKtypemap
 
+"""
+    write_H5MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:AbstractFESet}
+
+Write the mesh in the H5MESH format.
+
+The mesh is stored in a HDF5 file.
+"""
 function write_H5MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:AbstractFESet}
     meshfilebase, ext = splitext(meshfile)
     if ext == ""
@@ -1378,7 +1430,11 @@ const H20=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetH20])
 
 Export mesh to VTK as an unstructured grid (binary file).
 
-`opts` = keyword argument list, where `scalars` = array of tuples, 
+Arguments:
+- `theFile` = file name,
+- `fens` = finite element node set,
+- `fes` = finite element set,
+- `opts` = keyword argument list, where `scalars` = array of tuples, 
     `(name, data)`, `vectors` = array of tuples, `(name, data)`
 
 For the `scalars`: If `data` is a vector, that data is exported as a single
@@ -1392,19 +1448,24 @@ function vtkwrite(theFile::String, fens::FENodeSet, fes::T; opts...) where {T<:A
 end
 
 """
-    vtkwrite(theFile::String, Connectivity, Points, celltype;
-        vectors=nothing, scalars=nothing)
+    vtkwrite(theFile::String, Connectivity, Points, celltype; vectors=nothing, scalars=nothing)
 
 Export mesh to VTK as an unstructured grid (binary format).
 
-`opts` = keyword argument list, where `scalars` = array of tuples, (name, data)
-`vectors` = array of tuples, (name, data)
+Arguments:
+- `theFile` = file name,
+- `Connectivity` = array of connectivities, one row per element,
+- `Points` = array of node coordinates, one row per node,
+- `Cell_type` = type of the cell, refer to the predefined 
+    constants `WriteVTK.P1`, `WriteVTK.L2`, ..., `WriteVTK.H20``, ...
+- `scalars` = array of tuples, (name, data)
+- `vectors` = array of tuples, (name, data)
 
 For the `scalars`: If `data` is a vector, that data is exported as a single
 field. On the other hand, if it is an 2d array, each column is exported  as a
 separate field.
 
-Returns the `vtk` file.
+Return the `vtk` file.
 """
 function vtkwrite(theFile::String, Connectivity, Points, celltype; vectors=nothing, scalars=nothing)
     # The array `Points` has number of rows equal to the number of points,
