@@ -24,10 +24,10 @@ using DelimitedFiles
 """
 !!! note
 
-The arrays are reallocated as the data is read from files. The size of the
-arrays is increased by this much. If the number of entities to be read  is
-large, the chunk should be probably increased so that only a few reallocations
-are needed.
+    The arrays are reallocated as the data is read from files. The size of the
+    arrays is increased by this much. If the number of entities to be read  is
+    large, the chunk should be probably increased so that only a few reallocations
+    are needed.
 """
 const chunk = 1000
 

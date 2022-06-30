@@ -79,8 +79,8 @@ finite elements.
   coordinate system  is being evaluated.
 
 !!! note
-If  the coordinate system matrix  should be identity, better use the constructor
-for this specific situation, `CSys(dim::FInt)`. That will be much more efficient.
+    If  the coordinate system matrix  should be identity, better use the constructor
+    for this specific situation, `CSys(dim::FInt)`. That will be much more efficient.
 
 # See also
 `gen_iso_csmat`

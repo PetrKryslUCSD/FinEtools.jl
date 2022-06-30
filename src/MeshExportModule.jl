@@ -276,8 +276,8 @@ VECTORS v double
 ```
 
 !!! note
-The filter "Glyph" must be used within Paraview. Also in the drop-down 
-menu "Glyph mode" select "all points".
+    The filter "Glyph" must be used within Paraview. Also in the drop-down 
+    menu "Glyph mode" select "all points".
 """
 function vtkexportvectors(theFile::String, Points, vectors)
     fid=open(theFile,"w");
