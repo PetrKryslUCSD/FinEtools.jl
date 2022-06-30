@@ -1,5 +1,17 @@
 # Functions
 
+## Contents
+
+```@contents
+Pages = ["functions.md"]
+```
+
+## Index
+
+```@index
+Pages = ["functions.md"]
+```
+
 ## Physical units
 
 ```@autodocs
