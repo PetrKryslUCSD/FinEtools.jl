@@ -77,6 +77,7 @@ Order = [:type]
 Modules = [FinEtools, FinEtools.MeshImportModule, FinEtools.MeshExportModule]
 Private = true
 Order = [:type]
+Depth = 3
 ```
 
 ## Vector-cache utilities
