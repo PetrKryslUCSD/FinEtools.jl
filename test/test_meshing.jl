@@ -3666,6 +3666,71 @@ end
 using .mq4patchtest2
 mq4patchtest2.test()
 
+module mq4patchtest3a
+using FinEtools
+using Test
+function test()
+	# println("Q4. Plane stress.")
+
+	E = 1.0;
+	nu = 1.0/3;
+	alpha, beta, gamma, delta, eta, phi= 1.0/30, 1.0/34, -1.0/21, -1.0/51, -1.0/26, -1.0/35
+	ux(x, y) = alpha + beta * x + gamma * y
+	uy(x, y) = delta + eta * x + phi * y
+	
+	fens = FENodeSet([1.0 -0.3; 2.3 -0.3; 2.3 0.95; 1.0 0.95; 1.4 0.05; 1.9 -0.03; 1.7 0.5; 1.3 0.6])
+	fes = FESetQ4([1 2 6 5; 6 2 3 7; 7 3 4 8; 8 4 1 5; 5 6 7 8])
+
+	geom = NodalField(fens.xyz)
+	u = NodalField(zeros(size(fens.xyz, 1), 2)) # displacement field
+
+	# Apply prescribed displacements to exterior nodes
+	for i in 1:4
+		setebc!(u, [i], 1, ux(fens.xyz[i, :]...))
+		setebc!(u, [i], 2, uy(fens.xyz[i, :]...))
+	end
+
+	applyebc!(u)
+	numberdofs!(u)
+
+	# for i in 5:8
+	# 	uexact = [ux(fens.xyz[i, :]...), uy(fens.xyz[i, :]...)]
+	# 	println("u.values[$i, :] = $(u.values[i, :]), uexact = [$(uexact)]")
+	# end
+
+	AE = AbaqusExporter("q4_stress_export3a");
+	HEADING(AE, "q4_stress_export3a");
+	COMMENT(AE, "");
+	PART(AE, "part1");
+	END_PART(AE);
+	ASSEMBLY(AE, "ASSEM1");
+	INSTANCE(AE, "INSTNC1", "PART1");
+	NODE(AE, fens.xyz);
+	ELEMENT(AE, "CPS4", "AllElements", 1, connasarray(fes))
+	NSET_NSET(AE, "clamped", 1:4)
+	ORIENTATION(AE, "GlobalOrientation", vec([1. 0 0]), vec([0 1. 0]));
+	SOLID_SECTION(AE, "elasticity", "GlobalOrientation", "AllElements", 1.0);
+	END_INSTANCE(AE);
+	END_ASSEMBLY(AE);
+	MATERIAL(AE, "elasticity")
+    ELASTIC(AE, E, E, E, nu, nu, nu, E/2/(1+nu), E/2/(1+nu),  E/2/(1+nu))
+	EXPANSION(AE, 0.0)
+    DENSITY(AE, 1.0)
+    STEP_PERTURBATION_STATIC(AE)
+	BOUNDARY(AE, "ASSEM1.INSTNC1", u.is_fixed, u.fixed_values)
+	END_STEP(AE)
+	close(AE)
+	s = readlines("q4_stress_export3a.inp")
+	@test  length(s) == 54
+	try rm("q4_stress_export3a.inp") catch end
+
+	true
+
+end
+end
+using .mq4patchtest3a
+mq4patchtest3a.test()
+
 module mT4quartercylnm
 using FinEtools
 using FinEtools.MeshExportModule: VTK
