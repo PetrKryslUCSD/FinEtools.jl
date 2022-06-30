@@ -4,12 +4,7 @@
 
 ```@contents
 Pages = ["functions.md"]
-```
-
-## Index
-
-```@index
-Pages = ["functions.md"]
+Depth = 3
 ```
 
 ## Physical units
