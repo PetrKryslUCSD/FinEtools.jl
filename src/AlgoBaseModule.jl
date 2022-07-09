@@ -84,6 +84,9 @@ function richextrapol(solns::T, params::T; lower_conv_rate = 0.001, upper_conv_r
     nsolns = solns./solnn # Normalize data for robust calculation
     nhs1, nhs2, nhs3 = params ./ maximum(params) # Normalize the parameter values
     napproxerror1, napproxerror2 = diff(nsolns) # Normalized approximate errors
+    if abs(napproxerror1) <= abs(napproxerror2)
+        error("Approximate errors increase in magnitude: no solution")
+    end 
     napperr1, napperr2 = (napproxerror1, napproxerror2) ./ max(abs(napproxerror1), abs(napproxerror2)) 
     maxfun = -Inf; minfun = Inf
     for y in lower:lower:upper  
