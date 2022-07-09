@@ -44,57 +44,81 @@ Richardson extrapolation.
 
 # Arguments
 - `solns` =  array of three solution values
-- `params` = array of values of three parameters for which the `solns` have been obtained
+- `params` = array of values of three parameters for which the `solns` have been obtained. 
 
-This function is applicable to any sequence of the mesh sizes
-(monotonically increasing, or decreasing).
-  
+The assumption is that the error of the solution is expanded in a Taylor series,
+and only the first term in the Taylor series is kept.
+    ```
+        qex - qapprox ~ C param^beta
+    ```
+Here `qex` is the true solution, `qapprox` is an approximate solution, `param`
+is the element size, or the relative element size, in other words the parameter
+of the extrapolation, and `beta` is the convergence rate. The constant `C` is 
+the third unknown quantity in this expansion. If we obtain three successive 
+approximations, we can solve for the three unknown quantities, `qex`, `beta`, 
+and `C`.
+
+It is assumed that the first solution is obtained for the largest value of the
+extrapolation parameter, while the last solution in the list is obtained for
+the smallest value of the extrapolation parameter: 
+    ```
+        params[1] > params[2] > params[3]
+    ```
+
 # Output
 - `solnestim`= estimate of the asymptotic solution from the data points in the
   `solns` array
 - `beta`= convergence rate
 - `c` = constant in the estimate `error=c*h^beta`
-- `residual` = residual after equations from which the above quantities were
+- `maxresidual` = maximum residual after equations from which the above quantities were
   solved (this is a measure of how accurately was the system solved).
 """
 function richextrapol(solns::T, params::T; lower_conv_rate = 0.001, upper_conv_rate = 10.0) where {T<:AbstractArray{Tn} where {Tn}}
-    # These two constants may needs to be tweaked in special cases. They are the
-    # lower and upper bound on the convergence rate.
+# These two constants may needs to be tweaked in special cases. They are the
+# lower and upper bound on the convergence rate.
     lower, upper = lower_conv_rate, upper_conv_rate
+    if !((params[1] > params[2]) && (params[2] > params[3]))
+        error("Extrapolation parameter in the wrong order: must be largest to smallest")
+    end 
     solnn = maximum(abs.(solns));
-   	nsolns = solns./solnn # Normalize data for robust calculation
-   	nhs1, nhs2, nhs3 = params ./ maximum(params) # Normalize the parameter values
+    nsolns = solns./solnn # Normalize data for robust calculation
+    nhs1, nhs2, nhs3 = params ./ maximum(params) # Normalize the parameter values
     napproxerror1, napproxerror2 = diff(nsolns) # Normalized approximate errors
     napperr1, napperr2 = (napproxerror1, napproxerror2) ./ max(abs(napproxerror1), abs(napproxerror2)) 
-    maxfun = 0.0
-    for y =  range(lower, stop=upper, length=100)                
-       maxfun = max(maxfun, napperr1 * (nhs2^y - nhs3^y) - napperr2 * (nhs1^y - nhs2^y))
-   end
-   	napperrs1, napperr2 = (napperr1, napperr2) ./ maxfun  # Normalize the function values
-   	fun = y ->  napperrs1 * (nhs2^y - nhs3^y) - napperr2 * (nhs1^y - nhs2^y)
-   	# x = collect(lower:lower:upper)
-   	# y = fun.(x)
-   	# p = plot(x=x, y = y, Geom.line);
-   	# draw(PDF("File.pdf", 16cm, 9cm), p)
-   	tolx, tolf = 1.0e-6 * lower, 1.0e-12  # Note: the function value is normalized to 1.0
-   	fl = fun(lower);
+    maxfun = -Inf; minfun = Inf
+    for y in lower:lower:upper  
+        a = napperr1 * (nhs2^y - nhs3^y) - napperr2 * (nhs1^y - nhs2^y)
+        maxfun = max(maxfun, a)
+        minfun = min(minfun, a)
+    end
+    if minfun*maxfun > 0.0
+        error("Convergence rate function does not cross zero value: no solution")
+    end
+    napperr1, napperr2 = (napperr1, napperr2) ./ (maxfun - minfun)  # Normalize 
+    fun = y ->  napperr1 * (nhs2^y - nhs3^y) - napperr2 * (nhs1^y - nhs2^y)
+    # x = collect(lower:lower:upper)
+    # y = fun.(x)
+    # p = plot(x=x, y = y, Geom.line);
+    # draw(PDF("File.pdf", 16cm, 9cm), p)
+    tolx, tolf = 1.0e-6 * lower, 1.0e-12  # Note: the function value is normalized to 1.0
+    fl = fun(lower);
     fu = fun(upper);
     if fl*fu > 0.0
-        error("richextrapol: Data does not allow for extrapolation, no bracket found")
+        error("Convergence rate couldn't be solved, no bracket found")
     end
     beta = bisect(fun, lower, upper, fl, fu, tolx, tolf)
     beta = (beta[1] + beta[2]) / 2.0
     c = napproxerror1 / (params[1]^beta - params[2]^beta)
     nestimtrueerror = c * params[3]^beta
     solnestim = (nsolns[3] + nestimtrueerror) * solnn
-   	c = c * solnn # adjust for not-normalized data
-   	# just to check things, calculate the residual
-   	residual = fill(zero(solns[1]),3)
-   	for I =1:3
-   		residual[I] = (solnestim-solns[I])-c*params[I]^beta; # this should be close to zero
-   	end
-   	return solnestim, beta, c, residual
-   end
+    c = c * solnn # adjust for not-normalized data
+    # just to check things, calculate the residual
+    maxresidual = 0.0
+    for I =1:3
+        maxresidual = max(maxresidual, abs((solnestim-solns[I])-c*params[I]^beta)); # this should be close to zero
+    end
+    return solnestim, beta, c, maxresidual
+end
 
 """
     richextrapoluniform(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn}}
