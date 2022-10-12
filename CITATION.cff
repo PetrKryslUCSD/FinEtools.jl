@@ -4,8 +4,8 @@ authors:
 - family-names: "Krysl"
   given-names: "Petr"
   orcid: "https://orcid.org/0000-0003-1761-5047"
-title: "FinEtools.jl"
-version: 5.3.9
-doi: 10.5281/zenodo.1234
+title: "FinEtools.jl: Finite Element Tools in Julia"
+version: 5.4.7
+doi: 10.5281/zenodo.7187507
 date-released: 2021-12-23
 url: "https://github.com/PetrKryslUCSD/FinEtools.jl"
