@@ -60,17 +60,8 @@ end
 """
     SurfaceNormal(ndimensions::FInt)
 
-Construct surface normal evaluator when the default calculation of the normal vector based
-on the columns of the Jacobian matrix should be used. This function needs to have a signature of
-```
-function computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    Calculate the normal and copy it into the buffer....
-    return normalout # return the buffer
-end
-```
-and it needs to  fill in the buffer `normalout` with the current vector at the
-location `XYZ`, using if appropriate the information supplied in the Jacobian
-matrix `tangents`, and the label of the finite element, `fe_label`.
+Construct surface normal evaluator when the default calculation of the normal
+vector based on the columns of the Jacobian matrix should be used. 
 
 The normal vector has `ndimensions` entries.
 """
