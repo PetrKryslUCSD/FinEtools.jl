@@ -22,6 +22,12 @@ using SparseArrays
     interior2boundary(interiorconn::Array{Int, 2}, extractb::Array{Int, 2})
 
 Extract the boundary connectivity from the connectivity of the interior.
+
+`extractb` = array that defines in which order the bounding faces are traversed. For
+    example, for tetrahedra this array is
+    ```
+    extractb = [1 3 2; 1 2 4; 2 3 4; 1 4 3]
+    ```
 """
 function interior2boundary(interiorconn::Array{Int, 2}, extractb::Array{Int, 2})
     hypf = interiorconn[:, extractb[1, :]]
