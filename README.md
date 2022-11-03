@@ -21,6 +21,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 11/03/2022: Added extraction of outer surface of solid.
 - 06/29/2022: Reconfigured documentation.
 - 06/15/2022: Added point partitioning.
 - 06/15/2022: Added dual connection matrix implementation.
@@ -28,21 +29,6 @@ The package supports application packages, for instance:
 - 01/26/2022: Added assembler for sparse diagonal matrices (such as the mass
   matrix for explicit finite element methods).
 - 01/25/2022: Added export of a ParaView collection of a time sequence of data.
-- 12/03/2021: Added a utility to generate a random-looking triangular mesh.
-- 11/17/2021: Added utility to distort a block of mesh.
-- 09/21/2021: Fixed import problems for Abaqus files.
-- 08/29/2021: Mesh export/import in the HDF5 format using DataDrop.
-- 08/12/2021: Added quadrilateral mesh generation by extrusion of a wire.
-- 08/12/2021: Added triangle mesh generation for circular segments.
-- 07/14/2021: Implemented the mechanism of the "delegate of"  to facilitate creation of user-defined finite elements.
-- 04/08/2021: Implemented export of VTK binary files using WriteVTK.
-- 02/20/2021: Implemented extrusion of triangular meshes into tetrahedra.
-- 02/07/2021: Tests clean with Julia 1.6 release candidate.
-- 12/07/2020: Export of meshes in the .mesh format with the labels enabled.
-- 08/02/2020: Enabled permuting of nodes in the field.
-- 02/29/2020: Many new tests added. Code coverage enabled.
-- 01/23/2020: Dependencies have been updated to work with Julia 1.3.1.
-- 01/02/2020: Matrix multiplication code improved with the help of the `LoopVectorization` package.
 
 
 [Past news](oldnews.md)
