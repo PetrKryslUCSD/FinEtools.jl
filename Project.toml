@@ -1,7 +1,7 @@
 name = "FinEtools"
 uuid = "91bb5406-6c9a-523d-811d-0644c4229550"
 authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
-version = "5.4.7"
+version = "5.4.8"
 
 [deps]
 DataDrop = "aa547a04-dd37-49ab-8e73-656744f8a8fc"
