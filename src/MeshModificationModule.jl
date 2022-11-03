@@ -8,14 +8,16 @@ module MeshModificationModule
 __precompile__(true)
 
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import ..FESetModule: AbstractFESet, count, boundaryconn, boundaryfe, updateconn!, connasarray, fromarray!
+import ..FESetModule: AbstractFESet, count, boundaryconn, boundaryfe, updateconn!, connasarray, fromarray!, centroidparametric, bfun, bfundpar, subset
 import ..FENodeSetModule: FENodeSet
 import ..BoxModule: boundingbox, inflatebox!, intersectboxes, inbox
-import ..MeshSelectionModule: connectednodes
+import ..MeshSelectionModule: connectednodes, selectelem
+import ..SurfaceNormalModule: SurfaceNormal, updatenormal!
 using Base.Sort
 using Base.Order
 import LinearAlgebra: norm, svd, dot, eigen
 import Random: randperm
+using Statistics: mean
 using SparseArrays
 
 """
@@ -1043,5 +1045,104 @@ function distortblock(B::F, Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, xdisp
     nfens.xyz[:, 2] .*= Width
     return nfens, fes
 end
+
+
+function __all_behind(xyz, centroid, c, n, conn, tol)
+    v = deepcopy(c)
+    #     Check the centroid first
+    @. v = centroid-c;
+    vn = norm(v);
+    if (vn>0)
+        d = dot(n,v)/vn;
+        if (d>tol)
+            return false
+        end
+    end
+        # Now check all the vertices
+        # except for the nodes which are  connected by the tested cell
+    list = setdiff(1:size(xyz,1), conn);
+    for kl in 1:length(list)
+        k = list[kl];
+        v .= vec(view(xyz, k, :)) - c
+        vn = norm(v);
+        if (vn>0)
+            d = dot(n,v)/vn;
+            if (d>tol)
+                return false
+            end
+        end
+    end 
+    return true
+end
+
+"""
+    outer_surface_of_solid(fens, bdry_fes)
+
+Find the finite elements that form the outer boundary surface.
+
+!!! note:
+
+The code will currently not work correctly for 2D axially symmetric geometries.
+
+# Return
+
+Set of boundary finite elements that enclose the solid. Now cavities 
+are included.
+"""
+function outer_surface_of_solid(fens, bdry_fes)
+    sn = SurfaceNormal(size(fens.xyz, 2))
+    parametric_centroid = centroidparametric(bdry_fes)
+    N = bfun(bdry_fes, parametric_centroid);
+    gradNpar = bfundpar(bdry_fes, parametric_centroid);
+    # This is the centroid of the cloud of nodes
+    centroid = vec(mean(fens.xyz, dims=1));
+    angtol = 0.001;
+    
+    # # for axially symmetric geometry place the centroid on the axis
+    # if (get(bdry_fes,'axisymm'))
+    #     centroid(1)=0;
+    # end
+
+
+    # If we have 2-D axial symmetry: eliminate  boundary cells that are on the
+    # axis of symmetry
+    # onaxisl  = [];
+    # if (get(bdry_fes,'axisymm'))
+    #     onaxisl = fe_select(fens,bdry_fes,struct ('box',[0,0,-inf,inf],'inflate',norm(max(xyz)-min(xyz))/10000));
+    #     # Prune the  list of cells to include by flooding below
+    #     bdry_fes=subset(bdry_fes,setdiff(1:count(bdry_fes),onaxisl));;
+    # end
+
+    # Now we will try to find  one  boundary cell  so that  all the nodes lie in
+    # the half space  behind it (that is in the other half space from the one
+    # into which  its  normal is pointing), and the half space also includes
+    # the centroid.
+    conns = connasarray(bdry_fes)
+    start = 0;
+    for j in 1:count(bdry_fes)
+        c = N' * view(fens.xyz, conns[j, :], :);
+        J = view(fens.xyz, conns[j, :], :)' * gradNpar;
+        n = updatenormal!(sn, c, J, 0)
+        n ./= norm(n);
+        if __all_behind(fens.xyz, centroid, vec(c), n, conns[j,:], angtol)
+            start = j;
+            break;
+        end
+    end 
+
+    # Could not find a single  surface cell  so that all nodes are behind it:
+    # failure.
+    if start == 0
+        return nothing
+    end
+
+    startfen = conns[start, 1];
+
+    # Select all cells connected together
+    osfesl = selectelem(fens, bdry_fes, flood = true, startnode = startfen)
+    
+    return subset(bdry_fes, osfesl);
+end
+
 
 end

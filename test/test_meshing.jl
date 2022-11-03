@@ -5548,3 +5548,41 @@ end
 end
 using .mmAbaqusimport7
 mmAbaqusimport7.test()
+
+module mouter001
+using FinEtools
+using FinEtools.MeshImportModule
+using FinEtools.MeshExportModule: VTK
+using Statistics
+using LinearAlgebra
+using Test
+
+function test()
+    output = MeshImportModule.import_ABAQUS("./sphere_with_cavity.inp")
+    fens, fes = output["fens"], output["fesets"][1]
+    bdry_fes = meshboundary(fes)
+    outerfes = outer_surface_of_solid(fens, bdry_fes)
+        # File = "mesh.vtk"
+        # result =  VTK.vtkexportmesh(File, fens, outerfes)
+    @test count(outerfes) == 670
+
+    output = MeshImportModule.import_ABAQUS("./cones_with_cavities.inp")
+    fens, fes = output["fens"], output["fesets"][1]
+    bdry_fes = meshboundary(fes)
+    outerfes = outer_surface_of_solid(fens, bdry_fes)
+    # File = "mesh.vtk"
+    # result =  VTK.vtkexportmesh(File, fens, outerfes)
+    @test count(outerfes) == 914
+
+    output = MeshImportModule.import_ABAQUS("./nonconvex_with_cavities.inp")
+    fens, fes = output["fens"], output["fesets"][1]
+    bdry_fes = meshboundary(fes)
+    outerfes = outer_surface_of_solid(fens, bdry_fes)
+    # File = "mesh.vtk"
+    # result =  VTK.vtkexportmesh(File, fens, outerfes)
+    @test count(outerfes) == 852
+    true
+end
+test()
+
+end

@@ -106,9 +106,13 @@ export MESH
 using .MeshExportModule.H5MESH
 export H5MESH
 
-using .MeshModificationModule: meshboundary,  fusenodes,  compactnodes,  mergemeshes, mergenmeshes, mergenodes,  renumberconn!,  meshsmoothing, mirrormesh, nodepartitioning, pointpartitioning, interior2boundary, distortblock
+using .SurfaceNormalModule: SurfaceNormal, updatenormal!
+# Exported: surface-normal evaluator type and methods to invoke the update callback
+export SurfaceNormal, updatenormal!
+
+using .MeshModificationModule: meshboundary,  fusenodes,  compactnodes,  mergemeshes, mergenmeshes, mergenodes,  renumberconn!,  meshsmoothing, mirrormesh, nodepartitioning, pointpartitioning, interior2boundary, distortblock, outer_surface_of_solid
 # Exported: extraction of boundary, fusing of nodes  and merging of meshes, mesh smoothing,  node partitioning
-export  meshboundary,  fusenodes,  compactnodes,  mergemeshes, mergenmeshes, mergenodes,  renumberconn!,  meshsmoothing, mirrormesh, nodepartitioning, pointpartitioning, interior2boundary, distortblock
+export  meshboundary,  fusenodes,  compactnodes,  mergemeshes, mergenmeshes, mergenodes,  renumberconn!,  meshsmoothing, mirrormesh, nodepartitioning, pointpartitioning, interior2boundary, distortblock, outer_surface_of_solid
 
 using .MeshImportModule: import_NASTRAN, import_ABAQUS, import_MESH
 # Exported: mesh import functions
@@ -121,10 +125,6 @@ export VectorCache, updateretrieve!, settime!
 using .ForceIntensityModule: ForceIntensity, updateforce!, settime!
 # Exported: force-intensity type and methods to invoke the update callback
 export ForceIntensity, updateforce!, settime!
-
-using .SurfaceNormalModule: SurfaceNormal, updatenormal!
-# Exported: surface-normal evaluator type and methods to invoke the update callback
-export SurfaceNormal, updatenormal!
 
 using .AssemblyModule: AbstractSysmatAssembler, SysmatAssemblerSparse, SysmatAssemblerSparseSymm, SysmatAssemblerSparseDiag, SysmatAssemblerSparseHRZLumpingSymm, startassembly!, assemble!, makematrix!, AbstractSysvecAssembler, SysvecAssembler, startassembly!, assemble!, makevector!, SysmatAssemblerReduced
 # Exported: types and methods for  sparse matrix assembly  and vector assembly
