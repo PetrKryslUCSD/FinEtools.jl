@@ -5586,3 +5586,28 @@ end
 test()
 
 end
+
+
+module mAbaqusmelset1
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using FinEtools.MeshImportModule
+using Test
+function test()
+
+  output = MeshImportModule.import_ABAQUS("./cyl-w-voids-two-mats.inp";
+    allocationchunk = 11)
+  fens, fes = output["fens"], output["fesets"][1]
+@test length(output["elsets"]["SET-1"]) == 266
+@test length(output["elsets"]["SET-2"])  == 260
+  File = "cyl-w-voids-two-mats-elset-1.vtk"
+  VTK.vtkexportmesh(File, fens, subset(fes, output["elsets"]["SET-1"]))
+  File = "cyl-w-voids-two-mats-elset-2.vtk"
+  VTK.vtkexportmesh(File, fens, subset(fes, output["elsets"]["SET-2"]))
+  # @async run(`"paraview.exe" $File`)
+  # try rm(File) catch end
+
+end
+end
+using .mAbaqusmelset1
+mAbaqusmelset1.test()

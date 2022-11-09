@@ -201,6 +201,13 @@ mutable struct _AbaqusNSetSection
     nodes::Vector{FInt}
 end
 
+mutable struct _AbaqusElSetSection
+    ESetLine::AbstractString
+    esetname::AbstractString
+    generate::Bool
+    elements::Vector{FInt}
+end
+
 """
     import_ABAQUS(filename)
 
@@ -359,6 +366,58 @@ function import_ABAQUS(filename; allocationchunk=chunk)
         end
     end # while
 
+    elsetsarr = _AbaqusElSetSection[]
+    Reading_elsetsarr = false
+    next_line = 1
+    while true
+        if next_line > length(lines)
+            break
+        end
+        temp = uppercase(strip(lines[next_line]))
+        next_line = next_line + 1
+        if (length(temp) >= 6) && (temp[1:6] == "*ELSET")
+            Reading_elsetsarr = true
+            # *ELSET, ELSET=THE-REGION, GENERATE
+            l = split(temp, ",")
+            sn = ""
+            generate = false
+            for t in l
+                t = rstrip(lstrip(t))
+                ts = split(t, "=")
+                if ts[1] == "ELSET"
+                    sn = ts[2]
+                end
+                if ts[1] == "GENERATE"
+                    generate = true
+                end
+            end
+            a = _AbaqusElSetSection(temp, sn, generate, FInt[])
+            push!(elsetsarr, a)
+            temp = uppercase(strip(lines[next_line]))
+            next_line = next_line + 1
+        end
+        if Reading_elsetsarr
+            if temp[1:1] == "*" # another section started
+                Reading_elsetsarr = false
+            else
+                A = split(temp, ",")
+                if elsetsarr[end].generate
+                    fn = parse(FInt, A[1])
+                    ln = parse(FInt, A[2])
+                    st = parse(FInt, A[3])
+                    elsetsarr[end].elements = collect(fn:st:ln)
+                else
+                    for ixxxx = 1:length(A)
+                        if !isempty(A[ixxxx])
+                            en = parse(FInt, A[ixxxx])
+                            push!(elsetsarr[end].elements,  en)
+                        end
+                    end
+                end
+            end
+        end
+    end # while
+
     # Process output arguments
     # Nodes
     xyz = node[:,2:4]
@@ -420,7 +479,12 @@ function import_ABAQUS(filename; allocationchunk=chunk)
         nsets[nsetsarr[ixxxx].nsetname] = newnodes
     end
 
-    output = FDataDict("fens"=>fens, "fesets"=>fesets, "nsets"=>nsets, "warnings"=>warnings)
+    elsets = Dict()
+    for ixxxx = 1:length(elsetsarr)
+        elsets[elsetsarr[ixxxx].esetname] = elsetsarr[ixxxx].elements
+    end
+
+    output = FDataDict("fens"=>fens, "fesets"=>fesets, "nsets"=>nsets, "elsets"=>elsets, "warnings"=>warnings)
     return output
 end
 
