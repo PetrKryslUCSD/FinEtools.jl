@@ -21,6 +21,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 12/27/2022: Added T10 cylinder meshing routine.
 - 11/03/2022: Added extraction of outer surface of solid.
 - 06/29/2022: Reconfigured documentation.
 - 06/15/2022: Added point partitioning.
