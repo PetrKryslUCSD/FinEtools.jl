@@ -715,15 +715,22 @@ function T4refine20(fens::FENodeSet, fes::FESetT4)
 end
 
 """
-    T4quartercyln(Radius, Length, nperradius, nL)
+    T4quartercyln(Radius, Length, nperradius, nL; orientation = :b)
 
-    Four-node tetrahedron mesh of one quarter of solid  cylinder with given number of edges per radius.
+Four-node tetrahedron mesh of one quarter of solid  cylinder with given number
+of edges per radius.
+
+The axis of the cylinder is along the Z axis. The mesh may be mirrored to
+create half a cylinder or a full cylinder.
+
+Even though the orientation is controllable, for some orientations the mesh is
+highly distorted (`:a`, `:ca`, `:cb`). So a decent mesh can only be expected
+for the orientation `:b` (default).
 """
-function T4quartercyln(Radius, Length, nperradius, nL)
+function T4quartercyln(Radius, Length, nperradius, nL; orientation = :b)
 	tol = min(Length/nL,Radius/2/nperradius)/100;
 	xyz = [0 0 0; Radius 0 0; Radius/sqrt(2) Radius/sqrt(2) 0; 0 Radius 0; 0 0 Length; Radius 0 Length; Radius/sqrt(2) Radius/sqrt(2) Length; 0 Radius Length];
 	fens, fes = H8hexahedron(xyz, nperradius, nperradius, nL);
-	orientation = :b;
 	if orientation == :a
 		t4ia = [1 8 5 6; 3 4 2 7; 7 2 6 8; 4 7 8 2; 2 1 6 8; 4 8 1 2];
 		t4ib = [1 8 5 6; 3 4 2 7; 7 2 6 8; 4 7 8 2; 2 1 6 8; 4 8 1 2];
@@ -769,6 +776,29 @@ function T4quartercyln(Radius, Length, nperradius, nL)
 		fens.xyz[cn[j],1:2] .*= Radius/norm(fens.xyz[cn[j],1:2])
 	end
 	return fens, fes
+end
+
+
+"""
+    T10quartercyln(Radius, Length, nperradius, nL; orientation = :b)
+
+Ten-node tetrahedron mesh of one quarter of solid  cylinder with given number
+of edges per radius.
+
+See: T4quartercyln
+"""
+function T10quartercyln(Radius, Length, nperradius, nL; orientation = :b)
+    fens, fes = T4quartercyln(Radius, Length, nperradius, nL; orientation)
+    fens, fes = T4toT10(fens, fes)
+    bfes = meshboundary(fes)
+    el = selectelem(fens, bfes, facing = true, direction = [1.0, 1.0, 0.0])
+    cbfes = subset(bfes, el)
+    for i in 1:count(cbfes)
+        for k in cbfes.conn[i]
+            fens.xyz[k, 1:2] = fens.xyz[k, 1:2] * Radius / norm(fens.xyz[k, 1:2])
+        end
+    end
+    return fens, fes
 end
 
 

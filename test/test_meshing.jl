@@ -3739,15 +3739,15 @@ function test()
 	Radius, Length, nperradius, nL = 3.0, 5.0, 3, 5
 	fens,fes = T4quartercyln(Radius, Length, nperradius, nL)
 	@test  count(fes) == 270
-	File = "mesh.vtk"
+	File = "t4cyl-mesh.vtk"
 	VTK.vtkexportmesh(File, fens, fes)
-	rm(File)
+	# rm(File)
 	# @async run(`"paraview.exe" $File`)
 	bfes = meshboundary(fes)
 	@test  count(bfes) == 156
-	File = "bmesh.vtk"
+	File = "t4cyl-bmesh.vtk"
 	VTK.vtkexportmesh(File, fens, fes)
-	rm(File)
+	# rm(File)
 	# @async run(`"paraview.exe" $File`)
 end
 end
@@ -5611,3 +5611,279 @@ end
 end
 using .mAbaqusmelset1
 mAbaqusmelset1.test()
+
+
+module mT4quartercylnm1
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+    Radius, Length, nperradius, nL = 3.0, 5.0, 3, 5
+    fens,fes = T4quartercyln(Radius, Length, nperradius, nL)
+    @test  count(fes) == 270
+    File = "mT4quartercylnm1-mesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+    bfes = meshboundary(fes)
+    @test  count(bfes) == 156
+    File = "mT4quartercylnm1-bmesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+end
+test()
+end
+
+
+module mT4cylinderm1
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+    Radius, Length, nperradius, nL = 3.0, 5.0, 3, 5
+    fens, fes = T4quartercyln(Radius, Length, nperradius, nL)
+    fens1, fes1 = mirrormesh(fens, fes, [0.0, -1.0, 0.0], [0.0, 0.0, 0.0], renumb = (c) -> c[[1, 3, 2, 4]])
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    push!(meshes, (fens1, fes1))
+    fens, fesa = mergenmeshes(meshes, 0.0001)
+    fes = cat(fesa[1], fesa[2])
+    fens1, fes1 = mirrormesh(fens, fes, [-1.0, 0.0, 0.0], [0.0, 0.0, 0.0], renumb = (c) -> c[[1, 3, 2, 4]])
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    push!(meshes, (fens1, fes1))
+    fens, fesa = mergenmeshes(meshes, 0.0001)
+    fes = cat(fesa[1], fesa[2])
+    @test  count(fes) == 270*4
+    File = "mT4cylinderm1-mesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+    bfes = meshboundary(fes)
+    
+    File = "mT4cylinderm1-bmesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+end
+test()
+end
+
+
+
+module mT4cylinderm2a
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function __volume(fens, fes)
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegDomain(fes, TetRule(1)))
+    return integratefunction(femm, geom, (x) ->  1.0)
+end
+function test()
+    Radius, Length, nperradius, nL = 3.0, 5.0, 3, 5
+    fens, fes = T4quartercyln(Radius, Length, nperradius, nL; orientation = :a)
+    fens1, fes1 = mirrormesh(fens, fes, [0.0, -1.0, 0.0], [0.0, 0.0, 0.0], renumb = (c) -> c[[1, 3, 2, 4]])
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    push!(meshes, (fens1, fes1))
+    fens, fesa = mergenmeshes(meshes, 0.0001)
+    fes = cat(fesa[1], fesa[2])
+    fens1, fes1 = mirrormesh(fens, fes, [-1.0, 0.0, 0.0], [0.0, 0.0, 0.0], renumb = (c) -> c[[1, 3, 2, 4]])
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    push!(meshes, (fens1, fes1))
+    fens, fesa = mergenmeshes(meshes, 0.0001)
+    fes = cat(fesa[1], fesa[2])
+    @test  count(fes) == 270*4
+    File = "mT4cylinderm2a-mesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+    bfes = meshboundary(fes)
+    
+    File = "mT4cylinderm2a-bmesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+    V = pi*Radius^2*Length
+        @test (V - __volume(fens, fes)) / V < 0.02
+end
+test()
+end
+
+module mT4cylinderm2b
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function __volume(fens, fes)
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegDomain(fes, TetRule(1)))
+    return integratefunction(femm, geom, (x) ->  1.0)
+end
+function test()
+    Radius, Length, nperradius, nL = 3.0, 5.0, 3, 5
+    fens, fes = T4quartercyln(Radius, Length, nperradius, nL; orientation = :b)
+    fens1, fes1 = mirrormesh(fens, fes, [0.0, -1.0, 0.0], [0.0, 0.0, 0.0], renumb = (c) -> c[[1, 3, 2, 4]])
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    push!(meshes, (fens1, fes1))
+    fens, fesa = mergenmeshes(meshes, 0.0001)
+    fes = cat(fesa[1], fesa[2])
+    fens1, fes1 = mirrormesh(fens, fes, [-1.0, 0.0, 0.0], [0.0, 0.0, 0.0], renumb = (c) -> c[[1, 3, 2, 4]])
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    push!(meshes, (fens1, fes1))
+    fens, fesa = mergenmeshes(meshes, 0.0001)
+    fes = cat(fesa[1], fesa[2])
+    @test  count(fes) == 270*4
+    File = "mT4cylinderm2b-mesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+    bfes = meshboundary(fes)
+    
+    File = "mT4cylinderm2b-bmesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+    V = pi*Radius^2*Length
+        @test (V - __volume(fens, fes)) / V < 0.02
+end
+test()
+end
+
+module mT4cylinderm2ca
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function __volume(fens, fes)
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegDomain(fes, TetRule(1)))
+    return integratefunction(femm, geom, (x) ->  1.0)
+end
+function test()
+    Radius, Length, nperradius, nL = 3.0, 5.0, 3, 5
+    fens, fes = T4quartercyln(Radius, Length, nperradius, nL; orientation = :ca)
+    fens1, fes1 = mirrormesh(fens, fes, [0.0, -1.0, 0.0], [0.0, 0.0, 0.0], renumb = (c) -> c[[1, 3, 2, 4]])
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    push!(meshes, (fens1, fes1))
+    fens, fesa = mergenmeshes(meshes, 0.0001)
+    fes = cat(fesa[1], fesa[2])
+    fens1, fes1 = mirrormesh(fens, fes, [-1.0, 0.0, 0.0], [0.0, 0.0, 0.0], renumb = (c) -> c[[1, 3, 2, 4]])
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    push!(meshes, (fens1, fes1))
+    fens, fesa = mergenmeshes(meshes, 0.0001)
+    fes = cat(fesa[1], fesa[2])
+    @test  count(fes) == 900
+    File = "mT4cylinderm2ca-mesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+    bfes = meshboundary(fes)
+    
+    File = "mT4cylinderm2ca-bmesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+    V = pi*Radius^2*Length
+        @test (V - __volume(fens, fes)) / V < 0.02
+end
+test()
+end
+
+module mT4cylinderm2cb
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using Test
+function __volume(fens, fes)
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegDomain(fes, TetRule(1)))
+    return integratefunction(femm, geom, (x) ->  1.0)
+end
+function test()
+    Radius, Length, nperradius, nL = 3.0, 5.0, 3, 5
+    fens, fes = T4quartercyln(Radius, Length, nperradius, nL; orientation = :cb)
+    fens1, fes1 = mirrormesh(fens, fes, [0.0, -1.0, 0.0], [0.0, 0.0, 0.0], renumb = (c) -> c[[1, 3, 2, 4]])
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    push!(meshes, (fens1, fes1))
+    fens, fesa = mergenmeshes(meshes, 0.0001)
+    fes = cat(fesa[1], fesa[2])
+    fens1, fes1 = mirrormesh(fens, fes, [-1.0, 0.0, 0.0], [0.0, 0.0, 0.0], renumb = (c) -> c[[1, 3, 2, 4]])
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    push!(meshes, (fens1, fes1))
+    fens, fesa = mergenmeshes(meshes, 0.0001)
+    fes = cat(fesa[1], fesa[2])
+    @test  count(fes) == 900
+    File = "mT4cylinderm2cb-mesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+    bfes = meshboundary(fes)
+    
+    File = "mT4cylinderm2cb-bmesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+    V = pi*Radius^2*Length
+    @test (V - __volume(fens, fes)) / V < 0.02
+end
+test()
+end
+
+
+module mT10cylinderm2b
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using LinearAlgebra
+using Test
+function __volume(fens, fes)
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegDomain(fes, TetRule(4)))
+    return integratefunction(femm, geom, (x) ->  1.0)
+end
+function test()
+    Radius, Length, nperradius, nL = 3.0, 5.0, 3, 5
+    fens, fes = T4quartercyln(Radius, Length, nperradius, nL)
+    fens, fes = T4toT10(fens, fes)
+    bfes = meshboundary(fes)
+    el = selectelem(fens, bfes, facing = true, direction = [1.0, 1.0, 0.0])
+    cbfes = subset(bfes, el)
+    for i in 1:count(cbfes)
+        for k in cbfes.conn[i]
+            fens.xyz[k, 1:2] = fens.xyz[k, 1:2] * Radius / norm(fens.xyz[k, 1:2])
+        end
+    end
+    fens1, fes1 = mirrormesh(fens, fes, [0.0, -1.0, 0.0], [0.0, 0.0, 0.0], renumb = (c) -> c[[1, 3, 2, 4, 7, 6, 5, 8, 10, 9]])
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    push!(meshes, (fens1, fes1))
+    fens, fesa = mergenmeshes(meshes, 0.0001)
+    fes = cat(fesa[1], fesa[2])
+    fens1, fes1 = mirrormesh(fens, fes, [-1.0, 0.0, 0.0], [0.0, 0.0, 0.0], renumb = (c) -> c[[1, 3, 2, 4, 7, 6, 5, 8, 10, 9]])
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    push!(meshes, (fens1, fes1))
+    fens, fesa = mergenmeshes(meshes, 0.0001)
+    fes = cat(fesa[1], fesa[2])
+    @test  count(fes) == 270*4
+    File = "mT10cylinderm2b-mesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+    bfes = meshboundary(fes)
+    
+    File = "mT10cylinderm2b-bmesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    rm(File)
+    # @async run(`"paraview.exe" $File`)
+    V = pi*Radius^2*Length
+        @test (V - __volume(fens, fes)) / V < 0.002
+end
+test()
+end
