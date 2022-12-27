@@ -558,7 +558,7 @@ the first call to the method assemble.
 
 `ndofs_row`= Total number of degrees of freedom.
 """
-function startassembly!(self::SV,  ndofs_row::FInt) where {SV<:AbstractSysvecAssembler, T<:Number}
+function startassembly!(self::SV,  ndofs_row::FInt) where {SV<:AbstractSysvecAssembler}
 end
 
 """
