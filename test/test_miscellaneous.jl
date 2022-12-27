@@ -2282,7 +2282,7 @@ th = 7.0
 f(x) = cos(0.93 * pi * x[1]/Lx) + sin(1.7 * pi * x[2]/Ly)
 g(x) = -cos(0.93 * pi * x[1]/Lx) + 2*sin(1.7 * pi * x[2]/Ly)
 
-function inspectintegpoints(self::FEMM, geom::NodalField{FFlt}, u::NodalField{FFlt}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {FEMM<:FEMMBase, T<:Number, F<:Function}
+function inspectintegpoints(self::FEMM, geom::NodalField{FFlt}, u::NodalField{FFlt}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {FEMM<:FEMMBase, F<:Function}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     nne = nodesperelem(fes); 
@@ -2348,7 +2348,7 @@ th = 7.0
 f(x) = cos(0.93 * pi * x[1]/Lx) + sin(1.7 * pi * x[2]/Ly)
 g(x) = -cos(0.93 * pi * x[1]/Lx) + 2*sin(1.7 * pi * x[2]/Ly)
 
-function inspectintegpoints(self::FEMM, geom::NodalField{FFlt}, u::NodalField{FFlt}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {FEMM<:FEMMBase, T<:Number, F<:Function}
+function inspectintegpoints(self::FEMM, geom::NodalField{FFlt}, u::NodalField{FFlt}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {FEMM<:FEMMBase, F<:Function}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     nne = nodesperelem(fes); 
@@ -2438,7 +2438,7 @@ th = 7.0
 f(x) = cos(0.93 * pi * x[1]/Lx) + sin(1.7 * pi * x[2]/Ly)
 g(x) = -cos(0.93 * pi * x[1]/Lx) + 2*sin(1.7 * pi * x[2]/Ly)
 
-function inspectintegpoints(self::FEMM, geom::NodalField{FFlt}, u::NodalField{FFlt}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {FEMM<:FEMMBase, T<:Number, F<:Function}
+function inspectintegpoints(self::FEMM, geom::NodalField{FFlt}, u::NodalField{FFlt}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F, idat, quantity=:Cauchy; context...) where {FEMM<:FEMMBase, F<:Function}
     fes = self.integdomain.fes
     npts,  Ns,  gradNparams,  w,  pc = integrationdata(self.integdomain);
     nne = nodesperelem(fes); 

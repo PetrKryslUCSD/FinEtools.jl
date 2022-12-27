@@ -77,7 +77,7 @@ end
 
 Inspect integration points.
 """
-function inspectintegpoints(self::FEMM, geom::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {FEMM<:AbstractFEMM, T<:Number, F<:Function}
+function inspectintegpoints(self::FEMM, geom::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {FEMM<:AbstractFEMM, F<:Function}
     return idat # default is no-op
 end
 
