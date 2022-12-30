@@ -8,11 +8,11 @@ module MeshTetrahedronModule
 __precompile__(true)
 
 using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import ..FESetModule: count, FESetT4, FESetT10, FESetT3, setlabel!, connasarray, subset, updateconn!
+import ..FESetModule: count, FESetT4, FESetT10, FESetT3, setlabel!, connasarray, subset, updateconn!, AbstractFESet
 import ..FENodeSetModule: FENodeSet
 import ..MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
 import ..MeshSelectionModule: findunconnnodes, selectelem, connectednodes
-import ..MeshModificationModule: compactnodes, renumberconn!, meshboundary
+import ..MeshModificationModule: compactnodes, renumberconn!, meshboundary, mirrormesh, mergenmeshes
 import ..MeshHexahedronModule: H8hexahedron
 
 using LinearAlgebra: norm
@@ -715,7 +715,7 @@ function T4refine20(fens::FENodeSet, fes::FESetT4)
 end
 
 """
-    T4quartercyln(Radius, Length, nperradius, nL; orientation = :b)
+    T4quartercyln(R, L, nR, nL; orientation = :b)
 
 Four-node tetrahedron mesh of one quarter of solid  cylinder with given number
 of edges per radius.
@@ -727,10 +727,10 @@ Even though the orientation is controllable, for some orientations the mesh is
 highly distorted (`:a`, `:ca`, `:cb`). So a decent mesh can only be expected
 for the orientation `:b` (default).
 """
-function T4quartercyln(Radius, Length, nperradius, nL; orientation = :b)
-	tol = min(Length/nL,Radius/2/nperradius)/100;
-	xyz = [0 0 0; Radius 0 0; Radius/sqrt(2) Radius/sqrt(2) 0; 0 Radius 0; 0 0 Length; Radius 0 Length; Radius/sqrt(2) Radius/sqrt(2) Length; 0 Radius Length];
-	fens, fes = H8hexahedron(xyz, nperradius, nperradius, nL);
+function T4quartercyln(R, L, nR, nL; orientation = :b)
+	tol = min(L/nL,R/2/nR)/100;
+	xyz = [0 0 0; R 0 0; R/sqrt(2) R/sqrt(2) 0; 0 R 0; 0 0 L; R 0 L; R/sqrt(2) R/sqrt(2) L; 0 R L];
+	fens, fes = H8hexahedron(xyz, nR, nR, nL);
 	if orientation == :a
 		t4ia = [1 8 5 6; 3 4 2 7; 7 2 6 8; 4 7 8 2; 2 1 6 8; 4 8 1 2];
 		t4ib = [1 8 5 6; 3 4 2 7; 7 2 6 8; 4 7 8 2; 2 1 6 8; 4 8 1 2];
@@ -746,8 +746,8 @@ function T4quartercyln(Radius, Length, nperradius, nL; orientation = :b)
 	end
 	conns = fill(0, 6*count(fes), 4);
 	gc=1; ix=1;
-	for i in 1:nperradius
-		for j in 1:nperradius
+	for i in 1:nR
+		for j in 1:nR
 			for k in 1:nL
 				nn = collect(fes.conn[ix]);
 				if (mod(sum([i,j,k]),2)==0)
@@ -773,29 +773,29 @@ function T4quartercyln(Radius, Length, nperradius, nL; orientation = :b)
 	round1 = setdiff(1:count(bfes),vcat(x1,y1,z1,z2));
 	cn = connectednodes(subset(bfes,round1));
 	for  j in 1:length(cn)
-		fens.xyz[cn[j],1:2] .*= Radius/norm(fens.xyz[cn[j],1:2])
+		fens.xyz[cn[j],1:2] .*= R/norm(fens.xyz[cn[j],1:2])
 	end
 	return fens, fes
 end
 
 
 """
-    T10quartercyln(Radius, Length, nperradius, nL; orientation = :b)
+    T10quartercyln(R, L, nR, nL; orientation = :b)
 
 Ten-node tetrahedron mesh of one quarter of solid  cylinder with given number
 of edges per radius.
 
 See: T4quartercyln
 """
-function T10quartercyln(Radius, Length, nperradius, nL; orientation = :b)
-    fens, fes = T4quartercyln(Radius, Length, nperradius, nL; orientation)
+function T10quartercyln(R, L, nR, nL; orientation = :b)
+    fens, fes = T4quartercyln(R, L, nR, nL; orientation)
     fens, fes = T4toT10(fens, fes)
     bfes = meshboundary(fes)
     el = selectelem(fens, bfes, facing = true, direction = [1.0, 1.0, 0.0])
     cbfes = subset(bfes, el)
     for i in 1:count(cbfes)
         for k in cbfes.conn[i]
-            fens.xyz[k, 1:2] = fens.xyz[k, 1:2] * Radius / norm(fens.xyz[k, 1:2])
+            fens.xyz[k, 1:2] = fens.xyz[k, 1:2] * R / norm(fens.xyz[k, 1:2])
         end
     end
     return fens, fes
@@ -867,6 +867,73 @@ function T4extrudeT3(fens::FENodeSet,  fes::FESetT3, nLayers::FInt, extrusionh::
     updateconn!(surfes, id);
     surfens = FENodeSet(fens.xyz[cn[:], :]);
     return doextrude(surfens, surfes, nLayers, extrusionh);
+end
+
+function __complete_cylinder(fens, fes, renumb, tol)
+    fens1, fes1 = mirrormesh(fens, fes, [0.0, -1.0, 0.0], [0.0, 0.0, 0.0], renumb = renumb)
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    push!(meshes, (fens1, fes1))
+    fens, fesa = mergenmeshes(meshes, tol)
+    fes = cat(fesa[1], fesa[2])
+    fens1, fes1 = mirrormesh(fens, fes, [-1.0, 0.0, 0.0], [0.0, 0.0, 0.0], renumb = renumb)
+    meshes = Array{Tuple{FENodeSet, AbstractFESet},1}()
+    push!(meshes, (fens, fes))
+    push!(meshes, (fens1, fes1))
+    fens, fesa = mergenmeshes(meshes, tol)
+    fes = cat(fesa[1], fesa[2])
+    return    fens, fes
+end 
+
+"""
+    T4cylindern(R, L, nR, nL; orientation = :b)
+
+Four-node tetrahedron mesh of solid  cylinder with given number of edges per
+radius.
+
+The axis of the cylinder is along the Z axis. 
+
+Even though the orientation is controllable, for some orientations the mesh is
+highly distorted (`:a`, `:ca`, `:cb`). So a decent mesh can only be expected
+for the orientation `:b` (default).
+"""
+function T4cylindern(R, L, nR, nL; orientation = :b)
+    nR = Int(round(nR))
+    nL = Int(round(nL))
+    fens, fes = T4quartercyln(R, L, nR, nL)
+    renumb = (c) -> c[[1, 3, 2, 4]]
+    tol = min(R/nR, L/nL) / 100
+    return __complete_cylinder(fens, fes, renumb, tol)
+end
+
+"""
+    T10cylindern(R, L, nR, nL; orientation = :b)
+
+Ten-node tetrahedron mesh of solid  cylinder with given number of edges per
+radius.
+
+The axis of the cylinder is along the Z axis. 
+
+Even though the orientation is controllable, for some orientations the mesh is
+highly distorted (`:a`, `:ca`, `:cb`). So a decent mesh can only be expected
+for the orientation `:b` (default).
+"""
+function T10cylindern(R, L, nR, nL; orientation = :b)
+    nR = Int(round(nR))
+    nL = Int(round(nL))
+    fens, fes = T4quartercyln(R, L, nR, nL)
+    renumb = (c) -> c[[1, 3, 2, 4, 7, 6, 5, 8, 10, 9]]
+    fens, fes = T4toT10(fens, fes)
+    bfes = meshboundary(fes)
+    el = selectelem(fens, bfes, facing = true, direction = [1.0, 1.0, 0.0])
+    cbfes = subset(bfes, el)
+    for i in 1:count(cbfes)
+        for k in cbfes.conn[i]
+            fens.xyz[k, 1:2] = fens.xyz[k, 1:2] * R / norm(fens.xyz[k, 1:2])
+        end
+    end
+    tol = min(R/nR, L/nL) / 100
+    return __complete_cylinder(fens, fes, renumb, tol)
 end
 
 end 

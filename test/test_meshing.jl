@@ -5887,3 +5887,65 @@ function test()
 end
 test()
 end
+
+
+module mT4cylinderm4
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using LinearAlgebra
+using Test
+function __volume(fens, fes)
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegDomain(fes, TetRule(4)))
+    return integratefunction(femm, geom, (x) ->  1.0)
+end
+function test()
+    Radius, Length, nperradius, nL = 3.0, 5.0, 3, 5
+    fens, fes = T4cylindern(Radius, Length, nperradius, nL)
+    @test  count(fes) == 270*4
+    File = "mT4cylinderm4-mesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    # rm(File)
+    # @async run(`"paraview.exe" $File`)
+    bfes = meshboundary(fes)
+    
+    File = "mT4cylinderm4-bmesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    # rm(File)
+    # @async run(`"paraview.exe" $File`)
+    V = pi*Radius^2*Length
+    @test (V - __volume(fens, fes)) / V < 0.02
+end
+test()
+end
+
+module mT10cylinderm4
+using FinEtools
+using FinEtools.MeshExportModule: VTK
+using LinearAlgebra
+using Test
+function __volume(fens, fes)
+    geom  =  NodalField(fens.xyz)
+    femm  =  FEMMBase(IntegDomain(fes, TetRule(4)))
+    return integratefunction(femm, geom, (x) ->  1.0)
+end
+function test()
+    Radius, Length, nperradius, nL = 3.0, 5.0, 3, 5
+    fens, fes = T10cylindern(Radius, Length, nperradius, nL)
+    @test  count(fes) == 270*4
+    File = "mT10cylinderm4-mesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    # rm(File)
+    # @async run(`"paraview.exe" $File`)
+    bfes = meshboundary(fes)
+    
+    File = "mT10cylinderm4-bmesh.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    # rm(File)
+    # @async run(`"paraview.exe" $File`)
+    V = pi*Radius^2*Length
+    @test (V - __volume(fens, fes)) / V < 0.002
+end
+test()
+end
+
