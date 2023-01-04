@@ -4,7 +4,6 @@ authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
 version = "5.4.12"
 
 [deps]
-AbbreviatedStackTraces = "ac637c84-cc71-43bf-9c33-c1b4316be3d4"
 DataDrop = "aa547a04-dd37-49ab-8e73-656744f8a8fc"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
