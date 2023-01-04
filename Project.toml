@@ -1,7 +1,7 @@
 name = "FinEtools"
 uuid = "91bb5406-6c9a-523d-811d-0644c4229550"
 authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
-version = "5.4.11"
+version = "5.4.12"
 
 [deps]
 DataDrop = "aa547a04-dd37-49ab-8e73-656744f8a8fc"
@@ -11,7 +11,6 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LoopVectorization = "bdcacae8-1622-11e9-2a5c-532679323890"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
-Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
@@ -21,13 +20,14 @@ Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 WriteVTK = "64499a7a-5c06-52f2-abe2-ccb03c286192"
 
 [compat]
+DelimitedFiles = "^1.9"
 DataDrop = "^0.1"
 HDF5 = "^0.15"
 LoopVectorization = "^0.12"
 StatsBase = "^0.33"
+Statistics = "^1.9"
 SymRCM = "^0.2"
 WriteVTK = "^1"
-Revise = "^3"
 julia = "^1.7"
 
 [extras]
