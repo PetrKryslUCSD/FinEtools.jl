@@ -197,6 +197,9 @@ end
     T10toT4(fens::FENodeSet,  fes::FESetT4)
 
 Convert a mesh of tetrahedra of type T10 (quadratic 10-node) to tetrahedra T4.
+
+If desired, the array of nodes may be compacted so that unconnected nodes are
+deleted.
 """
 function  T10toT4(fens::FENodeSet,  fes::FESetT10; compact = true)
     nconn = connasarray(fes)
@@ -205,9 +208,10 @@ function  T10toT4(fens::FENodeSet,  fes::FESetT10; compact = true)
     fes = setlabel!(fes, labels)
     if compact
     # Some nodes are now unconnected, we have to remove them and renumber the elements
-    connected = findunconnnodes(fens, fes);
-    fens, new_numbering = compactnodes(fens, connected);
-    fes = renumberconn!(fes, new_numbering);
+        connected = findunconnnodes(fens, fes);
+        fens, new_numbering = compactnodes(fens, connected);
+        fes = renumberconn!(fes, new_numbering);
+    end
     return fens, fes;
 end
 
