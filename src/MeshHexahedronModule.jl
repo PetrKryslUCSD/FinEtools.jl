@@ -389,7 +389,7 @@ end
 
 Create a solid mesh of 1/8 of sphere.
 
-Create a solid mesh of 1/8 of the sphere of "radius",  with nperradius
+Create a solid mesh of 1/8 of the sphere of `radius`,  with `nperradius`
 elements per radius.
 
 """
