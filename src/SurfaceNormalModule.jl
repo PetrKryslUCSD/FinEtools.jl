@@ -71,13 +71,17 @@ function SurfaceNormal(ndimensions::FInt)
         # Produce a default normal
         if (size(tangents,1) == 3) && (size(tangents,2) == 2)# surface in three dimensions
             normalout[:] .= cross(vec(tangents[:,1]),vec(tangents[:,2]));# outer normal to the surface
-            normalout[:] = normalout./norm(normalout);
         elseif (size(tangents,1)==2)  && (size(tangents,2)==1)# curve in two dimensions
             normalout[1] = +tangents[2,1];
             normalout[2] = -tangents[1,1];# outer normal to the contour
-            normalout[:] = normalout./norm(normalout);
         else
             error("No definition of normal vector");
+        end
+        nn = norm(normalout);
+        if  nn == 0.0 
+            @warn("Zero-length normal")
+        else
+            normalout ./= nn
         end
         return normalout
     end
