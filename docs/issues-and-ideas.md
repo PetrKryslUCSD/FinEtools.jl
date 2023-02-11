@@ -799,3 +799,30 @@ using DocumenterTools
 DocumenterTools.genkeys(user="PetrKryslUCSD", repo="git@github.com:PetrKryslUCSD/FinEtools.jl.git")                                                  
 using Pkg; Pkg.rm("DocumenterTools");  
 ```
+
+-- Go-to-error regex
+
+Examples of err messages:
+
+     @ Main.sphere_mode_examples C:\Users\pkonl\Documents\00WIP\FinEtoolsAcoustics.jl\examples\modal\sphere_mode_examples.jl:72 
+   [2] allrun()        
+   @ Main.sphere_mode_examples C:\Users\pkonl\sphere_mode_examples.jl:72                                                                                                          
+     @ Main.sphere_mode_examples C:\Users\pkonl\Documents\00WIP\FinEtoolsAcoustics.jl\examples\modal\sphere_mode_examples.jl:156                                                                                                                                
+
+
+{ // This build system simply opens a new interactive Julia REPL 
+    // 2023 Petr Krysl
+    // Depends on AbbreviatedStackTraces
+    "title": "Julia REPL",
+
+    "target": "terminus_open",
+
+    "auto_close": false,
+    "shell_cmd": "julia -t4", // Assume that PATH is set before invoking the editor
+    "cwd": "${file_path:${folder}}",
+    // "selector": "source.julia",
+    "focus": false,
+   
+    "file_regex": "(?:[@][\\s][\\s\\S.*]*|in expression starting at)\\s(\\S.+[.jl]):([0-9]+)\\s*"
+}
+
