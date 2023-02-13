@@ -64,9 +64,14 @@ Construct surface normal evaluator when the default calculation of the normal
 vector based on the columns of the Jacobian matrix should be used. 
 
 The normal vector has `ndimensions` entries.
+
+When the columns of the `tangents` array are parallel (or one of them is a zero
+vector), the normal cannot be normalized to unit length (it is a zero vector).
+In that case a zero vector is returned, and a warning is printed.
 """
 function SurfaceNormal(ndimensions::FInt)
     function defaultcomputenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+        @assert !any(x->isnan(x), tangents[:])
         fill!(normalout, 0.0)
         # Produce a default normal
         if (size(tangents,1) == 3) && (size(tangents,2) == 2)# surface in three dimensions
@@ -77,6 +82,7 @@ function SurfaceNormal(ndimensions::FInt)
         else
             error("No definition of normal vector");
         end
+        @assert !any(x->isnan(x), normalout)
         nn = norm(normalout);
         if  nn == 0.0 
             @warn("Zero-length normal")
