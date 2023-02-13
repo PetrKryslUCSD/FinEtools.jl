@@ -71,7 +71,6 @@ In that case a zero vector is returned, and a warning is printed.
 """
 function SurfaceNormal(ndimensions::FInt)
     function defaultcomputenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-        @assert !any(x->isnan(x), tangents[:])
         fill!(normalout, 0.0)
         # Produce a default normal
         if (size(tangents,1) == 3) && (size(tangents,2) == 2)# surface in three dimensions
@@ -82,7 +81,6 @@ function SurfaceNormal(ndimensions::FInt)
         else
             error("No definition of normal vector");
         end
-        @assert !any(x->isnan(x), normalout)
         nn = norm(normalout);
         if  nn == 0.0 
             @warn("Zero-length normal")
