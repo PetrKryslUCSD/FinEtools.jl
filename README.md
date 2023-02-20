@@ -2,8 +2,8 @@
 [![Build status](https://github.com/PetrKryslUCSD/FinEtools.jl/workflows/CI/badge.svg)](https://github.com/PetrKryslUCSD/FinEtools.jl/actions)
 [![Code Coverage](https://codecov.io/gh/PetrKryslUCSD/FinEtools.jl/branch/main/graph/badge.svg)](https://app.codecov.io/gh/PetrKryslUCSD/FinEtools.jl)
 [![Documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://petrkryslucsd.github.io/FinEtools.jl/dev)
-[Codebase Graph](diagram.svg)] <--! (https://github.com/githubocto/repo-visualizer) -->
-
+[Codebase Graph](diagram.svg)] <!--(https://github.com/githubocto/repo-visualizer) -->
+ 
 # FinEtools: Finite Element tools in Julia
 
 `FinEtools` is a package for basic operations on finite element meshes: Construction, modification, selection, and evaluation of quantities defined on a mesh. Utilities are provided for maintaining mesh-based data (fields), for defining normals and loads, for working with physical units and coordinate systems, and for integrating over finite element meshes. ![Alt Visualization of acoustic pressure](http://hogwarts.ucsd.edu/~pkrysl/site.images/baffled-piston-aa.png "FinEtools.jl")
