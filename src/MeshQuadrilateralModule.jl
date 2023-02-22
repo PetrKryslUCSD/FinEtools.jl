@@ -9,7 +9,7 @@ __precompile__(true)
 
 using ..FTypesModule:
     FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import ..FESetModule: AbstractFESet, FESetQ4, FESetQ8, bfun, cat, connasarray, FESetL2
+import ..FESetModule: AbstractFESet, FESetQ4, FESetQ8, FESetQ9, bfun, cat, connasarray, FESetL2
 import ..FENodeSetModule: FENodeSet, count
 import ..MeshModificationModule: mergemeshes, updateconn!
 import ..MeshSelectionModule: connectednodes
@@ -346,6 +346,64 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
     fens = FENodeSet(xyz)
     nfes = FESetQ4(nconn)
     return fens, nfes            # I think I should not be overwriting the input!
+end
+
+"""
+    Q9blockx(xs::FFltVec, ys::FFltVec)
+
+Create a block of the quadratic Lagrangean Q9 nine-node quadrilaterals.
+"""
+function Q9blockx(xs::FFltVec, ys::FFltVec)
+    fens, fes = Q4blockx(xs, ys)
+    nedges = 4
+    ec = [1 2; 2 3; 3 4; 4 1]
+    # make a search structure for edges
+    # Additional node numbers are numbered from here
+    newn = count(fens) + 1
+    # make a search structure for edges
+    edges = makecontainer()
+    for i in eachindex(fes.conn)
+        for J in 1:nedges
+            ev = fes.conn[i][ec[J, :]]
+            newn = addhyperface!(edges, ev, newn)
+        end
+    end
+    newn = newn + length(fes.conn) # add the interior nodes to the total
+    xyz1 = fens.xyz             # Pre-existing nodes
+    # Allocate for vertex nodes plus edge nodes plus face nodes
+    xyz = zeros(FFlt, newn - 1, size(xyz1, 2))
+    xyz[1:size(xyz1, 1), :] = xyz1 # existing nodes are copied over
+    # calculate the locations of the new nodes
+    # and construct the new nodes
+    for i in keys(edges)
+        C = edges[i]
+        for J in eachindex(C)
+            ix = vec([item for item in C[J].o])
+            push!(ix, i)
+            xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1)
+        end
+    end
+    # construct new geometry cells: for new elements out of one old one
+    nconn = zeros(FInt, length(fes.conn), 9)
+    nc = 1
+    for i in eachindex(fes.conn)
+        econn = zeros(FInt, 1, nedges)
+        for J in 1:nedges
+            ev = fes.conn[i][ec[J, :]]
+            h, n = findhyperface!(edges, ev)
+            econn[J] = n
+        end
+
+        inn = size(xyz, 1) - length(fes.conn) + i
+
+        xyz[inn, :] = mean(xyz[[k for k in fes.conn[i]], :], dims = 1) # interior node
+
+        nconn[nc, :] = hcat(fes.conn[i]..., econn..., inn)
+        nc = nc + 1
+    end
+    fens = FENodeSet(xyz)
+    nfes = FESetQ9(nconn)
+    return fens, nfes
 end
 
 """

@@ -424,6 +424,7 @@ using .MeshQuadrilateralModule:
     Q4toQ8,
     Q8annulus,
     Q8blockx,
+    Q9blockx,
     Q4spheren,
     Q4circlen,
     Q4extrudeL2
@@ -438,6 +439,7 @@ export Q4annulus,
     Q4toQ8,
     Q8annulus,
     Q8blockx,
+    Q9blockx,
     Q4spheren,
     Q4circlen,
     Q4extrudeL2

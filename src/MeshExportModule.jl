@@ -24,6 +24,7 @@ import ...FESetModule:
     FESetT4,
     FESetH8,
     FESetQ8,
+    FESetQ9,
     FESetL3,
     FESetT6,
     FESetT10,
@@ -44,6 +45,7 @@ const H8 = 12
 const L3 = 21
 const T6 = 22
 const Q8 = 23
+const Q9 = 28
 const T10 = 24
 const H20 = 25
 
@@ -55,6 +57,7 @@ VTKtypemap = Dict{DataType,Int}(
     FESetT4 => T4,
     FESetH8 => H8,
     FESetQ8 => Q8,
+    FESetQ9 => Q9,
     FESetL3 => L3,
     FESetT6 => T6,
     FESetT10 => T10,
@@ -69,6 +72,7 @@ numnodesmap = Dict{Int,Int}(
     T4 => 4,
     H8 => 8,
     Q8 => 8,
+    Q9 => 9,
     L3 => 3,
     T6 => 6,
     T10 => 10,

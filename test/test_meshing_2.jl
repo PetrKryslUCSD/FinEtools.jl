@@ -1463,3 +1463,94 @@ end
 end
 using .mvtkcollection1
 mvtkcollection1.test()
+
+
+module mtq8_integrate1
+using FinEtools
+using FinEtools.MeshExportModule
+using FinEtools.MeshExportModule: VTKWrite
+using Test
+function test()
+    xs = collect(linearspace(0.0, pi / 2, 5))
+    ys = collect(linearspace(0.0, 10.0, 6) .^ 2)
+    fens, fes = Q8blockx(xs, ys,)
+
+
+    geom = NodalField(fens.xyz)
+    femm = FEMMBase(IntegDomain(fes, GaussRule(2, 4)))
+    V = integratefunction(femm, geom, (x) -> 1.0)
+    @test V ≈ pi / 2 * 10.0
+    nothing
+end
+test()
+end
+
+
+module mtq8_integrate1
+using FinEtools
+using FinEtools.MeshExportModule
+using FinEtools.MeshExportModule: VTKWrite
+using Test
+function test()
+    xs = collect(linearspace(0.0, pi / 2, 5))
+    ys = collect(linearspace(0.0, 10.0, 6))
+    fens, fes = Q8blockx(xs, ys,)
+
+
+    geom = NodalField(fens.xyz)
+    femm = FEMMBase(IntegDomain(fes, GaussRule(2, 4)))
+    V = integratefunction(femm, geom, (x) -> 1.0)
+    @test V ≈ pi / 2 * 10.0
+    nothing
+end
+test()
+end
+
+module mtq8_integrate2
+using FinEtools
+using FinEtools.MeshExportModule
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+    xs = collect(linearspace(0.0, 5 * pi / 2, 6))
+    ys = collect(linearspace(0.0, 10.0, 7))
+    fens, fes = Q8blockx(xs, ys,)
+    @test count(fens) == (5 + 1) * (6 + 1) + 5 * (6 + 1) + 6 * (5 + 1)
+    @test count(fes) == 5 * 6
+
+    geom = NodalField(fens.xyz)
+    femm = FEMMBase(IntegDomain(fes, GaussRule(2, 4)))
+    V = integratefunction(femm, geom, (x) -> 1.0)
+    @test V ≈ 5 * pi / 2 * 10.0
+    File = "mesh_d.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    nothing
+end
+test()
+end
+
+
+module mtq9_integrate2
+using FinEtools
+using FinEtools.MeshExportModule
+using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+    xs = collect(linearspace(0.0, 5 * pi / 2, 6))
+    ys = collect(linearspace(0.0, 10.0, 7))
+    fens, fes = Q9blockx(xs, ys,)
+    @test count(fens) == (5 + 1) * (6 + 1) + 5 * (6 + 1) + 6 * (5 + 1) + 5 * 6
+    @test count(fes) == 5 * 6
+
+    geom = NodalField(fens.xyz)
+    femm = FEMMBase(IntegDomain(fes, GaussRule(2, 4)))
+    V = integratefunction(femm, geom, (x) -> 1.0)
+    @test V ≈ 5 * pi / 2 * 10.0
+    File = "mesh_d.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    nothing
+end
+test()
+end
+
+
