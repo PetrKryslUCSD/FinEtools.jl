@@ -1479,7 +1479,7 @@ function test()
     geom = NodalField(fens.xyz)
     femm = FEMMBase(IntegDomain(fes, GaussRule(2, 4)))
     V = integratefunction(femm, geom, (x) -> 1.0)
-    @test V ≈ pi / 2 * 10.0
+    @test V ≈ pi / 2 * 10.0^2
     nothing
 end
 test()
