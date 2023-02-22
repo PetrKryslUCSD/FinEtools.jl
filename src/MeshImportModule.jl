@@ -7,7 +7,8 @@ module MeshImportModule
 
 __precompile__(true)
 
-using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using ..FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FENodeSetModule: FENodeSet
 import ..FESetModule: setlabel!, nodesperelem
 import ..FESetModule: AbstractFESet, FESetL2, FESetL3, FESetP1
@@ -35,7 +36,7 @@ const chunk = 1000
 # Fix up an old style floating-point number without the exponent letter.  
 function _fixupdecimal(s)
     os = ""
-    for i = length(s):-1:1
+    for i in length(s):-1:1
         os = s[i] * os
         if (s[i] == '-') && (i > 1) && (uppercase(s[i-1]) != "E") && isdigit(s[i-1])
             os = "E" * os
@@ -45,7 +46,7 @@ function _fixupdecimal(s)
         end
     end
     return os
-end 
+end
 
 """
     import_NASTRAN(filename)
@@ -65,7 +66,7 @@ Data dictionary, with keys
 - "`property_ids`": array of property ids (integers) associated with the finite element sets.
 
 """
-function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = false)
+function import_NASTRAN(filename; allocationchunk = chunk, expectfixedformat = false)
     lines = readlines(filename)
 
     nnode = 0
@@ -79,13 +80,14 @@ function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = fal
         if current_line >= length(lines)
             break
         end
-        temp  = lines[current_line]
+        temp = lines[current_line]
         current_line = current_line + 1
         if (length(temp) >= 4) && (uppercase(temp[1:4]) == "GRID")
             fixedformat = expectfixedformat
             largefield = false
             if (length(temp) >= 5) && (uppercase(temp[1:5]) == "GRID*")
-                largefield = true; fixedformat = true
+                largefield = true
+                fixedformat = true
             end
             @assert (!fixedformat) || (fixedformat && largefield) "Can handle either free format or large-field fixed format"
             nnode = nnode + 1
@@ -99,14 +101,14 @@ function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = fal
                 node[nnode, 1] = parse(Float64, _fixupdecimal(temp[9:24]))
                 node[nnode, 2] = parse(Float64, _fixupdecimal(temp[41:56]))
                 node[nnode, 3] = parse(Float64, _fixupdecimal(temp[57:72]))
-                temp  = lines[current_line]
+                temp = lines[current_line]
                 current_line = current_line + 1
                 node[nnode, 4] = parse(Float64, _fixupdecimal(temp[9:24]))
-            else  
+            else
                 # Template:
                 #   GRID,1,,-1.32846E-017,3.25378E-033,0.216954
                 A = split(replace(temp, "," => " "))
-                for  six = 1:4
+                for six in 1:4
                     node[nnode, six] = parse(Float64, A[six+1])
                 end
             end
@@ -132,7 +134,7 @@ function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = fal
             else
                 nperel = 10
                 if length(A) < 13 # the line is continued: read the next line
-                    temp  = lines[current_line]
+                    temp = lines[current_line]
                     current_line = current_line + 1
                     if fixedformat
                         temp = temp[length(continuation)+1:min(length(temp), 72)]
@@ -143,7 +145,7 @@ function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = fal
                 end
             end
             elem[nelem, 3] = nperel
-            for  six = 1:nperel
+            for six in 1:nperel
                 elem[nelem, six+3] = parse(FInt, A[six+3])
             end
         end # CTETRA
@@ -151,23 +153,23 @@ function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = fal
     end # while
 
     # Trim the arrays
-    node = node[1:nnode,:]
-    elem = elem[1:nelem,:]
+    node = node[1:nnode, :]
+    elem = elem[1:nelem, :]
 
     # The nodes need to be in serial order:  if they are not,  the element
     # connectivities  will not point at the right nodes
-    @assert  norm(collect(1:nnode)-node[:,1]) == 0 "Nodes are not in serial order"
+    @assert norm(collect(1:nnode) - node[:, 1]) == 0 "Nodes are not in serial order"
 
     # Process output arguments
     # Extract coordinates
-    xyz=node[:,2:4]
+    xyz = node[:, 2:4]
     # Cleanup element connectivities
-    ennod = unique(elem[:,3])
+    ennod = unique(elem[:, 3])
     @assert length(ennod) == 1 "Cannot handle mixture of element types"
 
     @assert ((ennod[1] == 4) || (ennod[1] == 10)) "Unknown element type"
-    conn = elem[:,4:3+convert(FInt, ennod[1])]
-    pids = elem[:,2] # property identifier: different identifiers, different materials
+    conn = elem[:, 4:3+convert(FInt, ennod[1])]
+    pids = elem[:, 2] # property identifier: different identifiers, different materials
     upids = unique(pids)
 
     # Create output arguments. First the nodes
@@ -176,7 +178,7 @@ function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = fal
     # Now for each distinct property identifier, create one finite element set
     fesets = AbstractFESet[]
     for pid in upids
-        ix = [i for i in 1:length(pids) if pids[i] == pid] 
+        ix = [i for i in eachindex(pids) if pids[i] == pid]
         C = conn[ix, :]
         if ennod[1] == 4
             fes = FESetT4(C)
@@ -185,8 +187,8 @@ function import_NASTRAN(filename; allocationchunk=chunk, expectfixedformat = fal
         end
         push!(fesets, fes)
     end
-    
-    output = FDataDict("fens"=>fens, "fesets"=>fesets, "property_ids"=>upids)
+
+    output = FDataDict("fens" => fens, "fesets" => fesets, "property_ids" => upids)
     return output
 end
 
@@ -226,7 +228,7 @@ Data dictionary, with keys
 - "`fesets`" = array of finite element sets.
 - "`nsets`" = dictionary of "node sets", the keys are the names of the sets.
 """
-function import_ABAQUS(filename; allocationchunk=chunk)
+function import_ABAQUS(filename; allocationchunk = chunk)
     lines = readlines(filename)
 
     maxelnodes = 20
@@ -259,7 +261,7 @@ function import_ABAQUS(filename; allocationchunk=chunk)
                 node = vcat(node, zeros(allocationchunk, 4))
             end
             A = split(replace(temp, "," => " "))
-            for  six = 1:length(A)
+            for six in eachindex(A)
                 node[nnode, six] = parse(Float64, A[six])
             end
         end
@@ -279,7 +281,11 @@ function import_ABAQUS(filename; allocationchunk=chunk)
             Reading_elements = true
             nelemset = nelemset + 1
             nelem = 0
-            a = _AbaqusElementSection(temp, nelem, zeros(FInt, allocationchunk, maxelnodes+1))
+            a = _AbaqusElementSection(
+                temp,
+                nelem,
+                zeros(FInt, allocationchunk, maxelnodes + 1),
+            )
             push!(elemset, a)
             temp = uppercase(strip(lines[next_line]))
             next_line = next_line + 1
@@ -291,8 +297,10 @@ function import_ABAQUS(filename; allocationchunk=chunk)
             end
             elemset[nelemset].nelem = elemset[nelemset].nelem + 1
             if size(elemset[nelemset].elem, 1) < elemset[nelemset].nelem
-                elemset[nelemset].elem = vcat(elemset[nelemset].elem,
-                zeros(FInt, allocationchunk, maxelnodes+1))
+                elemset[nelemset].elem = vcat(
+                    elemset[nelemset].elem,
+                    zeros(FInt, allocationchunk, maxelnodes + 1),
+                )
             end
             A = split(temp, ",")
             if (A[end] == "") # the present line is continued on the next one
@@ -301,8 +309,9 @@ function import_ABAQUS(filename; allocationchunk=chunk)
                 Acont = split(temp, ",")
                 A = vcat(A[1:end-1], Acont)
             end
-            for ixxxx = 1:length(A)
-                elemset[nelemset].elem[elemset[nelemset].nelem, ixxxx] = parse(FInt, A[ixxxx])
+            for ixxxx in eachindex(A)
+                elemset[nelemset].elem[elemset[nelemset].nelem, ixxxx] =
+                    parse(FInt, A[ixxxx])
             end
         end
     end # while
@@ -310,11 +319,11 @@ function import_ABAQUS(filename; allocationchunk=chunk)
     # The nodes may not be in serial order. We need to renumber the nodes and adjust the connectivities.
     nodenumbers = FInt.(node[1:nnode, 1])
     newnumbering = fill(0, maximum(nodenumbers))
-    newnumbering[nodenumbers] = 1:length(nodenumbers) 
+    newnumbering[nodenumbers] = 1:length(nodenumbers)
 
     # truncate the array to just the lines read
-    node = node[1:nnode, :] 
-    
+    node = node[1:nnode, :]
+
 
     nsetsarr = _AbaqusNSetSection[]
     Reading_nsetsarr = false
@@ -357,10 +366,10 @@ function import_ABAQUS(filename; allocationchunk=chunk)
                     st = parse(FInt, A[3])
                     nsetsarr[end].nodes = collect(fn:st:ln)
                 else
-                    for ixxxx = 1:length(A)
+                    for ixxxx in eachindex(A)
                         if !isempty(A[ixxxx])
                             nn = parse(FInt, A[ixxxx])
-                            push!(nsetsarr[end].nodes,  nn)
+                            push!(nsetsarr[end].nodes, nn)
                         end
                     end
                 end
@@ -409,10 +418,10 @@ function import_ABAQUS(filename; allocationchunk=chunk)
                     st = parse(FInt, A[3])
                     elsetsarr[end].elements = collect(fn:st:ln)
                 else
-                    for ixxxx = 1:length(A)
+                    for ixxxx in eachindex(A)
                         if !isempty(A[ixxxx])
                             en = parse(FInt, A[ixxxx])
-                            push!(elsetsarr[end].elements,  en)
+                            push!(elsetsarr[end].elements, en)
                         end
                     end
                 end
@@ -422,7 +431,7 @@ function import_ABAQUS(filename; allocationchunk=chunk)
 
     # Process output arguments
     # Nodes
-    xyz = node[:,2:4]
+    xyz = node[:, 2:4]
     fens = FENodeSet(xyz)
 
     # Element sets
@@ -430,8 +439,8 @@ function import_ABAQUS(filename; allocationchunk=chunk)
 
     function feset_construct(elemset1)
         temp = uppercase(strip(elemset1.ElementLine))
-        b  = split(temp, ",")
-        for ixxx = 1:length(b)
+        b = split(temp, ",")
+        for ixxx in eachindex(b)
             c = split(b[ixxx], "=")
             if (uppercase(strip(c[1])) == "TYPE") && (length(c) > 1)
                 TYPE = uppercase(strip(c[2]))
@@ -439,23 +448,23 @@ function import_ABAQUS(filename; allocationchunk=chunk)
                     return FESetH8(elemset1.elem[:, 2:9])
                 elseif (length(TYPE) >= 5) && (TYPE[1:5] == "C3D20")
                     return FESetH20(elemset1.elem[:, 2:21])
-                elseif ((length(TYPE) >= 4) && (TYPE[1:4] == "C3D4")) || 
-                    ((length(TYPE) >= 5) && (TYPE[1:5] == "DC3D4"))
+                elseif ((length(TYPE) >= 4) && (TYPE[1:4] == "C3D4")) ||
+                       ((length(TYPE) >= 5) && (TYPE[1:5] == "DC3D4"))
                     return FESetT4(elemset1.elem[:, 2:5])
                 elseif (length(TYPE) >= 5) && (TYPE[1:5] == "C3D10")
                     return FESetT10(elemset1.elem[:, 2:11])
                 elseif ((length(TYPE) >= 2) && (TYPE[1:2] == "S3")) ||
-                    ((length(TYPE) >= 3) && (TYPE[1:3] == "S3R"))  || 
-                    ((length(TYPE) >= 5) && (TYPE[1:5] == "STRI3"))  || 
-                    ((length(TYPE) >= 4) && (TYPE[1:4] == "CPS3")) || 
-                    ((length(TYPE) >= 5) && (TYPE[1:5] == "DC2D3"))
+                       ((length(TYPE) >= 3) && (TYPE[1:3] == "S3R")) ||
+                       ((length(TYPE) >= 5) && (TYPE[1:5] == "STRI3")) ||
+                       ((length(TYPE) >= 4) && (TYPE[1:4] == "CPS3")) ||
+                       ((length(TYPE) >= 5) && (TYPE[1:5] == "DC2D3"))
                     return FESetT3(elemset1.elem[:, 2:4])
                 elseif ((length(TYPE) >= 5) && (TYPE[1:5] == "DC2D4")) ||
-                    ((length(TYPE) >= 4) && (TYPE[1:4] == "CPS4")) ||
-                    ((length(TYPE) >= 2) && (TYPE[1:2] == "S4")) ||
-                    ((length(TYPE) >= 3) && (TYPE[1:3] == "S4R"))
+                       ((length(TYPE) >= 4) && (TYPE[1:4] == "CPS4")) ||
+                       ((length(TYPE) >= 2) && (TYPE[1:2] == "S4")) ||
+                       ((length(TYPE) >= 3) && (TYPE[1:3] == "S4R"))
                     return FESetQ4(elemset1.elem[:, 2:5])
-                elseif (length(TYPE) >= 4) && (TYPE[1:4] == "CPS6") 
+                elseif (length(TYPE) >= 4) && (TYPE[1:4] == "CPS6")
                     return FESetT6(elemset1.elem[:, 2:7])
                 else
                     return nothing
@@ -464,10 +473,10 @@ function import_ABAQUS(filename; allocationchunk=chunk)
         end
     end
 
-    for ixxxx = 1:length(elemset)
+    for ixxxx in eachindex(elemset)
         elemset[ixxxx].elem = elemset[ixxxx].elem[1:elemset[ixxxx].nelem, :]
         fes = feset_construct(elemset[ixxxx])
-        if (fes == nothing)
+        if (fes === nothing)
             push!(warnings, "Don't know how to handle " * elemset[ixxxx].ElementLine)
         else
             fes = renumberconn!(fes, newnumbering)
@@ -476,17 +485,23 @@ function import_ABAQUS(filename; allocationchunk=chunk)
     end
 
     nsets = Dict()
-    for ixxxx = 1:length(nsetsarr)
+    for ixxxx in eachindex(nsetsarr)
         newnodes = newnumbering[nsetsarr[ixxxx].nodes]
         nsets[nsetsarr[ixxxx].nsetname] = newnodes
     end
 
     elsets = Dict()
-    for ixxxx = 1:length(elsetsarr)
+    for ixxxx in eachindex(elsetsarr)
         elsets[elsetsarr[ixxxx].esetname] = elsetsarr[ixxxx].elements
     end
 
-    output = FDataDict("fens"=>fens, "fesets"=>fesets, "nsets"=>nsets, "elsets"=>elsets, "warnings"=>warnings)
+    output = FDataDict(
+        "fens" => fens,
+        "fesets" => fesets,
+        "nsets" => nsets,
+        "elsets" => elsets,
+        "warnings" => warnings,
+    )
     return output
 end
 
@@ -526,7 +541,7 @@ function import_MESH(filename)
 
     fens = FENodeSet(X)
 
-    if     etype == "H8"
+    if etype == "H8"
         fes = FESetH8(C)
     elseif etype == "H20"
         fes = FESetH20(C)
@@ -555,8 +570,8 @@ function import_MESH(filename)
         end
         setlabel!(fes, vec(lab))
     end
-  
-    output = FDataDict("fens"=>fens, "fesets"=>[fes], "warnings"=>warnings)
+
+    output = FDataDict("fens" => fens, "fesets" => [fes], "warnings" => warnings)
     return output
 end
 
@@ -578,8 +593,8 @@ function import_H5MESH(meshfile)
     if ext == ""
         ext = ".h5mesh"
     end
-    fname = DataDrop.with_extension(meshfile, ext) 
-    
+    fname = DataDrop.with_extension(meshfile, ext)
+
     X = DataDrop.retrieve_matrix(fname, "xyz")
     fens = FENodeSet(X)
 
@@ -589,7 +604,7 @@ function import_H5MESH(meshfile)
     if eltype(C) != FInt
         C = FInt.(C)
     end
-    if     etype == VTK.H8
+    if etype == VTK.H8
         fes = FESetH8(C)
     elseif etype == VTK.H20
         fes = FESetH20(C)
@@ -612,9 +627,9 @@ function import_H5MESH(meshfile)
 
     lab = DataDrop.retrieve_matrix(fname, "label")
     setlabel!(fes, vec(lab))
-    
-  
-    output = FDataDict("fens"=>fens, "fesets"=>[fes], "warnings"=>warnings)
+
+
+    output = FDataDict("fens" => fens, "fesets" => [fes], "warnings" => warnings)
     return output
 end
 

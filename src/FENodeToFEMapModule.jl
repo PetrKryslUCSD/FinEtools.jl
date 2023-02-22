@@ -7,7 +7,8 @@ module FENodeToFEMapModule
 
 __precompile__(true)
 
-using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using ..FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 """
     FENodeToFEMap
@@ -37,9 +38,9 @@ and 3, so that `fes.conn(map[5],:) `includes all the nodes that are connected to
 node 5 (including node 5 itself).
 """
 struct FENodeToFEMap
-	"""
-	Map as a vector of vectors.
-	"""
+    """
+    Map as a vector of vectors.
+    """
     map::Vector{Vector{FInt}}
 end
 
@@ -57,15 +58,16 @@ Example:
 m = FENodeToFEMap(fes.conn, count(fens))
 ```
 """
-function FENodeToFEMap(conn::Vector{NTuple{N, IT}}, nmax::FInt) where {N, IT<:Integer}
-    map = FIntVec[]; sizehint!(map, nmax)
-    for i = 1:nmax
+function FENodeToFEMap(conn::Vector{NTuple{N,IT}}, nmax::FInt) where {N,IT<:Integer}
+    map = FIntVec[]
+    sizehint!(map, nmax)
+    for i in 1:nmax
         push!(map, [])  # initially empty arrays
     end
-    for j = 1:length(conn)
-        for i = 1:length(conn[j])
-            ni = conn[j][i];
-            push!(map[ni],j)
+    for j in eachindex(conn)
+        for i in eachindex(conn[j])
+            ni = conn[j][i]
+            push!(map[ni], j)
         end
     end
     return FENodeToFEMap(map)
@@ -80,14 +82,15 @@ Map from finite element nodes to the finite elements connecting them.
 - `nmax` = largest possible node number
 """
 function FENodeToFEMap(conns::FIntMat, nmax::FInt)
-    map = FIntVec[]; sizehint!(map, nmax)
-    for i = 1:nmax
+    map = FIntVec[]
+    sizehint!(map, nmax)
+    for i in 1:nmax
         push!(map, [])  # initially empty arrays
     end
-    for j = 1:size(conns,1)
-        for i = 1:size(conns,2)
-            ni = conns[j,i];
-            push!(map[ni],j)
+    for j in axes(conns, 1)
+        for i in axes(conns, 2)
+            ni = conns[j, i]
+            push!(map[ni], j)
         end
     end
     return FENodeToFEMap(map)

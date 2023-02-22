@@ -16,7 +16,7 @@ inputcsv = "LE1NAFEMS_MSH8_convergence.CSV"
 
 @pyimport matplotlib.pyplot as plt
 plt.style[:use]("seaborn-whitegrid")
-fig = plt.figure() 
+fig = plt.figure()
 ax = plt.axes()
 x = coldata(inputcsv, 1)
 y = coldata(inputcsv, 2)

@@ -13,33 +13,67 @@ module VTK
 ################################################################################
 # VTK export
 ################################################################################
-using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
+using ...FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ...FESetModule:
+    AbstractFESet,
+    FESetP1,
+    FESetL2,
+    FESetT3,
+    FESetQ4,
+    FESetT4,
+    FESetH8,
+    FESetQ8,
+    FESetL3,
+    FESetT6,
+    FESetT10,
+    FESetH20,
+    connasarray
 import ...FENodeSetModule: FENodeSet
 import Base.close
 
 using Printf
 import LinearAlgebra: norm, cross
 
-const P1=1
-const L2=3
-const T3=5
-const Q4=9
-const T4=10
-const H8=12
-const L3=21
-const T6=22
-const Q8=23
-const T10=24
-const H20=25
+const P1 = 1
+const L2 = 3
+const T3 = 5
+const Q4 = 9
+const T4 = 10
+const H8 = 12
+const L3 = 21
+const T6 = 22
+const Q8 = 23
+const T10 = 24
+const H20 = 25
 
-VTKtypemap = Dict{DataType, Int}(FESetP1=>P1, FESetL2=>L2, FESetT3=>T3,
-    FESetQ4=>Q4, FESetT4=>T4, FESetH8=>H8, FESetQ8=>Q8, FESetL3=>L3, FESetT6=>T6,
-    FESetT10=>T10, FESetH20=>H20)
+VTKtypemap = Dict{DataType,Int}(
+    FESetP1 => P1,
+    FESetL2 => L2,
+    FESetT3 => T3,
+    FESetQ4 => Q4,
+    FESetT4 => T4,
+    FESetH8 => H8,
+    FESetQ8 => Q8,
+    FESetL3 => L3,
+    FESetT6 => T6,
+    FESetT10 => T10,
+    FESetH20 => H20,
+)
 
-numnodesmap = Dict{Int, Int}(P1=>1, L2=>2, T3=>3,
-    Q4=>4, T4=>4, H8=>8, Q8=>8, L3=>3, T6=>6,
-    T10=>10, H20=>20)
+numnodesmap = Dict{Int,Int}(
+    P1 => 1,
+    L2 => 2,
+    T3 => 3,
+    Q4 => 4,
+    T4 => 4,
+    H8 => 8,
+    Q8 => 8,
+    L3 => 3,
+    T6 => 6,
+    T10 => 10,
+    H20 => 20,
+)
 
 """
     vtkexportmesh(theFile::String, fens::FENodeSet, fes::T; opts...) where {T<:AbstractFESet}
@@ -58,9 +92,13 @@ For the `scalars`: If `data` is a vector, that data is exported as a single fiel
 On the other hand, if it is an 2d array, each column is exported  as a separate field.
 
 """
-function vtkexportmesh(theFile::String, fens::FENodeSet, fes::T;
-    opts...) where {T<:AbstractFESet}
-    Cell_type = get(()->error("Unknown VTK type!"), VTKtypemap, typeof(fes));
+function vtkexportmesh(
+    theFile::String,
+    fens::FENodeSet,
+    fes::T;
+    opts...,
+) where {T<:AbstractFESet}
+    Cell_type = get(() -> error("Unknown VTK type!"), VTKtypemap, typeof(fes))
     return vtkexportmesh(theFile, connasarray(fes), fens.xyz, Cell_type; opts...)
 end
 
@@ -81,162 +119,175 @@ Arguments:
 For the `scalars`: If `data` is a vector, that data is exported as a single field.
 On the other hand, if it is an 2d array, each column is exported  as a separate field.
 """
-function vtkexportmesh(theFile::String, Connectivity, Points, Cell_type;
-    vectors=nothing, scalars=nothing)
+function vtkexportmesh(
+    theFile::String,
+    Connectivity,
+    Points,
+    Cell_type;
+    vectors = nothing,
+    scalars = nothing,
+)
     X = Points
     if size(Points, 2) < 3
-        X = zeros(size(Points,1),3)
-        for j  = 1:size(Points,1)
-            X[j,1:size(Points,2)] =  Points[j,:]
+        X = zeros(size(Points, 1), 3)
+        for j in axes(Points, 1)
+            X[j, 1:size(Points, 2)] = Points[j, :]
         end
     end
-    numnodes = get(()->error("Wrong number of connected nodes!"), numnodesmap, Cell_type);
+    numnodes = get(() -> error("Wrong number of connected nodes!"), numnodesmap, Cell_type)
     if typeof(Connectivity[1]) <: Tuple # Vector of connectivity tuples: convert to an array
         c = fill(0, length(Connectivity), length(Connectivity[1]))
-        for i = 1:length(Connectivity)
+        for i in eachindex(Connectivity)
             c[i, :] = [Connectivity[i]...]
         end
         Connectivity = c
     end
-    @assert numnodes == size(Connectivity,2)
+    @assert numnodes == size(Connectivity, 2)
 
-    fid=open(theFile,"w");
+    fid = open(theFile, "w")
     if (fid == -1)
         error(["Could not open " * theFile])
         return nothing
     end
-    print(fid,"# vtk DataFile Version 1.0\n");
-    print(fid,"FinEtools Export\n");
-    print(fid,"ASCII\n");
-    print(fid,"\n");
-    print(fid,"DATASET UNSTRUCTURED_GRID\n");
-    print(fid,"POINTS ", size(X,1), " double\n");
-    for i= 1:size(X, 1)
-        for j= 1:size(X,2)-1
-            print(fid,X[i,j]," ");
+    print(fid, "# vtk DataFile Version 1.0\n")
+    print(fid, "FinEtools Export\n")
+    print(fid, "ASCII\n")
+    print(fid, "\n")
+    print(fid, "DATASET UNSTRUCTURED_GRID\n")
+    print(fid, "POINTS ", size(X, 1), " double\n")
+    for i in axes(X, 1)
+        for j in 1:size(X, 2)-1
+            print(fid, X[i, j], " ")
         end
-        print(fid,X[i,end],"\n");
+        print(fid, X[i, end], "\n")
     end
-    print(fid,"\n");
-    print(fid,"\n");
+    print(fid, "\n")
+    print(fid, "\n")
 
-    print(fid,"CELLS ",size(Connectivity,1)," ",(size(Connectivity,1)*(size(Connectivity,2)+1)),"\n");
-    for i= 1:size(Connectivity, 1)
-        print(fid,size(Connectivity,2)," ");
-        for j= 1:size(Connectivity,2)-1
-            print(fid,Connectivity[i,j]-1," ");
+    print(
+        fid,
+        "CELLS ",
+        size(Connectivity, 1),
+        " ",
+        (size(Connectivity, 1) * (size(Connectivity, 2) + 1)),
+        "\n",
+    )
+    for i in axes(Connectivity, 1)
+        print(fid, size(Connectivity, 2), " ")
+        for j in 1:size(Connectivity, 2)-1
+            print(fid, Connectivity[i, j] - 1, " ")
         end
-        print(fid,Connectivity[i,end]-1,"\n");
+        print(fid, Connectivity[i, end] - 1, "\n")
     end
-    print(fid,"\n");
-    print(fid,"\n");
-    print(fid,"CELL_TYPES ",size(Connectivity,1),"\n");
-    for i= 1:size(Connectivity,1)
-        print(fid,Cell_type,"\n");
+    print(fid, "\n")
+    print(fid, "\n")
+    print(fid, "CELL_TYPES ", size(Connectivity, 1), "\n")
+    for i in axes(Connectivity, 1)
+        print(fid, Cell_type, "\n")
     end
-    print(fid,"\n");
-    print(fid,"\n");
+    print(fid, "\n")
+    print(fid, "\n")
 
 
     did_point_data = false
 
     # First try to write point data
-    if (scalars != nothing)
+    if (scalars !== nothing)
         did_point_data = false
-        for  sx = 1:length(scalars)
+        for sx in eachindex(scalars)
             name, data = scalars[sx]
             if (size(data, 1) == size(Points, 1)) # point data
                 if (!did_point_data)
-                    print(fid,"POINT_DATA ",size(data, 1),"\n");
+                    print(fid, "POINT_DATA ", size(data, 1), "\n")
                     did_point_data = true
                 end
                 if size(data, 2) > 1 # there are multiple scalar fields here
-                    for i = 1:size(data, 2)
-                        print(fid,"SCALARS ", name * "$(i)"," double\n");
-                        print(fid,"LOOKUP_TABLE default\n");
-                        for j= 1:size(data,  1)
-                            print(fid,data[j, i],"\n");
+                    for i in axes(data, 2)
+                        print(fid, "SCALARS ", name * "$(i)", " double\n")
+                        print(fid, "LOOKUP_TABLE default\n")
+                        for j in axes(data, 1)
+                            print(fid, data[j, i], "\n")
                         end
                     end
                 else  # there's just one scalar field here
-                    print(fid,"SCALARS ", name," double\n");
-                    print(fid,"LOOKUP_TABLE default\n");
-                    for j= 1:size(data,  1)
-                        print(fid,data[j],"\n");
+                    print(fid, "SCALARS ", name, " double\n")
+                    print(fid, "LOOKUP_TABLE default\n")
+                    for j in axes(data, 1)
+                        print(fid, data[j], "\n")
                     end
                 end
-                print(fid,"\n");
+                print(fid, "\n")
             elseif (size(data, 1) == size(Connectivity, 1)) # cell data
                 # Handled below, in the section for cell data
             end
         end
     end
 
-    print(fid,"\n");
+    print(fid, "\n")
 
-    if vectors != nothing
-        for  vx = 1:length(vectors)
+    if vectors !== nothing
+        for vx in eachindex(vectors)
             name, data = vectors[vx]
             if (!did_point_data)
-                print(fid,"POINT_DATA ",size(data, 1),"\n");
+                print(fid, "POINT_DATA ", size(data, 1), "\n")
                 did_point_data = true
             end
-            print(fid,"VECTORS ", name," double\n");
+            print(fid, "VECTORS ", name, " double\n")
             #print(fid,"LOOKUP_TABLE default\n");
             if size(data, 2) < 3
-                X = zeros(size(data,1),3)
-                for j  = 1:size(data,1)
-                    X[j, 1:size(data,2)] =  data[j,:]
+                X = zeros(size(data, 1), 3)
+                for j in axes(data, 1)
+                    X[j, 1:size(data, 2)] = data[j, :]
                 end
             else
                 X = data
             end
-            for j= 1:size(X,1)
-                k=1;
-                print(fid,X[j,k]);
-                for k = 2:size(X,2)
-                    print(fid," ", X[j,k]);
+            for j in axes(X, 1)
+                k = 1
+                print(fid, X[j, k])
+                for k in 2:lastindex(X, 2)
+                    print(fid, " ", X[j, k])
                 end
-                print(fid,"\n");
+                print(fid, "\n")
             end
-            print(fid,"\n");
+            print(fid, "\n")
         end
     end
-    print(fid,"\n");
+    print(fid, "\n")
 
     # Are there any cell data?  If so, write out.
-    if (scalars != nothing)
+    if (scalars !== nothing)
         did_cell_data = false
-        for  sx = 1:length(scalars)
+        for sx in eachindex(scalars)
             name, data = scalars[sx]
             if (size(data, 1) == size(Points, 1)) # point data
-                # Handled above for the case of point data
+            # Handled above for the case of point data
             elseif (size(data, 1) == size(Connectivity, 1)) # cell data
                 if (!did_cell_data)
-                    print(fid,"CELL_DATA ",size(data, 1),"\n");
+                    print(fid, "CELL_DATA ", size(data, 1), "\n")
                     did_cell_data = true
                 end
                 if size(data, 2) > 1 # there are multiple scalar fields here
-                    for i = 1:size(data, 2)
-                        print(fid,"SCALARS ", name * "$(i)"," double\n");
-                        print(fid,"LOOKUP_TABLE default\n");
-                        for j= 1:size(data,  1)
-                            print(fid,data[j, i],"\n");
+                    for i in axes(data, 2)
+                        print(fid, "SCALARS ", name * "$(i)", " double\n")
+                        print(fid, "LOOKUP_TABLE default\n")
+                        for j in axes(data, 1)
+                            print(fid, data[j, i], "\n")
                         end
                     end
                 else  # there's just one scalar field here
-                    print(fid,"SCALARS ", name," double\n");
-                    print(fid,"LOOKUP_TABLE default\n");
-                    for j= 1:size(data,  1)
-                        print(fid,data[j],"\n");
+                    print(fid, "SCALARS ", name, " double\n")
+                    print(fid, "LOOKUP_TABLE default\n")
+                    for j in axes(data, 1)
+                        print(fid, data[j], "\n")
                     end
                 end
-                print(fid,"\n");
+                print(fid, "\n")
             end
         end
     end
 
-    fid=close(fid);
+    fid = close(fid)
     return true
 end
 
@@ -280,56 +331,56 @@ VECTORS v double
     menu "Glyph mode" select "all points".
 """
 function vtkexportvectors(theFile::String, Points, vectors)
-    fid=open(theFile,"w");
+    fid = open(theFile, "w")
     if (fid == -1)
         error(["Could not open " * theFile])
         return nothing
     end
-    print(fid,"# vtk DataFile Version 1.0\n");
-    print(fid,"FinEtools Export\n");
-    print(fid,"ASCII\n");
-    print(fid,"\n");
-    print(fid,"DATASET UNSTRUCTURED_GRID\n");
-    print(fid,"POINTS ", length(Points), " double\n");
+    print(fid, "# vtk DataFile Version 1.0\n")
+    print(fid, "FinEtools Export\n")
+    print(fid, "ASCII\n")
+    print(fid, "\n")
+    print(fid, "DATASET UNSTRUCTURED_GRID\n")
+    print(fid, "POINTS ", length(Points), " double\n")
     pt = fill(0.0, 3)
-    for i = 1:length(Points)
-        for k = 1:length(Points[i])
+    for i in eachindex(Points)
+        for k in eachindex(Points[i])
             pt[k] = Points[i][k]
         end
-        for j= 1:length(pt)-1
-            print(fid, pt[j]," ");
+        for j in 1:length(pt)-1
+            print(fid, pt[j], " ")
         end
-        print(fid,pt[end],"\n");
+        print(fid, pt[end], "\n")
     end
-    print(fid,"\n");
-    print(fid,"\n");
+    print(fid, "\n")
+    print(fid, "\n")
 
     did_point_data = false
 
-    if vectors != nothing
-        for  vx = 1:length(vectors)
+    if vectors !== nothing
+        for vx in eachindex(vectors)
             name, data = vectors[vx]
             if (!did_point_data)
-                print(fid,"POINT_DATA ",length(data),"\n");
+                print(fid, "POINT_DATA ", length(data), "\n")
                 did_point_data = true
             end
-            print(fid,"VECTORS ", name," double\n");
+            print(fid, "VECTORS ", name, " double\n")
             #print(fid,"LOOKUP_TABLE default\n");
-            for i= 1:length(data)
-                for k = 1:length(data[i])
+            for i in eachindex(data)
+                for k in eachindex(data[i])
                     pt[k] = data[i][k]
                 end
-                for j= 1:length(pt)-1
-                   print(fid, pt[j]," ");
+                for j in 1:length(pt)-1
+                    print(fid, pt[j], " ")
                 end
-                print(fid,pt[end],"\n");
+                print(fid, pt[end], "\n")
             end
-            print(fid,"\n");
+            print(fid, "\n")
         end
     end
-    print(fid,"\n");
+    print(fid, "\n")
 
-    fid=close(fid);
+    fid = close(fid)
     return true
 end
 
@@ -339,8 +390,22 @@ module Abaqus
 ################################################################################
 # Abaqus export
 ################################################################################
-using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
+using ...FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ...FESetModule:
+    AbstractFESet,
+    FESetP1,
+    FESetL2,
+    FESetT3,
+    FESetQ4,
+    FESetT4,
+    FESetH8,
+    FESetQ8,
+    FESetL3,
+    FESetT6,
+    FESetT10,
+    FESetH20,
+    connasarray
 import ...FENodeSetModule: FENodeSet
 import Base.close
 using LinearAlgebra
@@ -351,16 +416,16 @@ using LinearAlgebra
 Export mesh to Abaqus.
 """
 mutable struct AbaqusExporter
-  filename::AbstractString
-  ios::IO
-  element_range::Tuple{Int64, Int64}
-  function AbaqusExporter(filename::AbstractString)
-    if match(r".*\.inp$", filename) == nothing
-      filename = filename * ".inp"
+    filename::AbstractString
+    ios::IO
+    element_range::Tuple{Int64,Int64}
+    function AbaqusExporter(filename::AbstractString)
+        if match(r".*\.inp$", filename) === nothing
+            filename = filename * ".inp"
+        end
+        ios = open(filename, "w+")
+        return new(deepcopy(filename), ios, (typemax(Int64), 0))
     end
-    ios = open(filename,"w+")
-    return new(deepcopy(filename), ios, (typemax(Int64), 0))
-  end
 end
 
 """
@@ -369,7 +434,7 @@ end
 Write out the `**` comment option.
 """
 function COMMENT(self::AbaqusExporter, Text::AbstractString)
-  println(self.ios, "**" * Text)
+    println(self.ios, "**" * Text)
 end
 
 """
@@ -378,8 +443,8 @@ end
 Write out the `*HEADING` option.
 """
 function HEADING(self::AbaqusExporter, Text::AbstractString)
-  println(self.ios, "*HEADING");
-  println(self.ios, Text)
+    println(self.ios, "*HEADING")
+    println(self.ios, Text)
 end
 
 """
@@ -388,7 +453,7 @@ end
 Write out the `*PART` option.
 """
 function PART(self::AbaqusExporter, NAME::AbstractString)
-  println(self.ios, "*PART, NAME=" * NAME)
+    println(self.ios, "*PART, NAME=" * NAME)
 end
 
 """
@@ -397,7 +462,7 @@ end
 Write out the `*END PART` option.
 """
 function END_PART(self::AbaqusExporter)
-  println(self.ios, "*END PART")
+    println(self.ios, "*END PART")
 end
 
 """
@@ -406,7 +471,7 @@ end
 Write out the `*ASSEMBLY` option.
 """
 function ASSEMBLY(self::AbaqusExporter, NAME::AbstractString)
-  println(self.ios, "*ASSEMBLY, NAME=" * NAME)
+    println(self.ios, "*ASSEMBLY, NAME=" * NAME)
 end
 
 """
@@ -415,7 +480,7 @@ end
 Write out the `*END ASSEMBLY` option.
 """
 function END_ASSEMBLY(self::AbaqusExporter)
-  println(self.ios, "*END ASSEMBLY")
+    println(self.ios, "*END ASSEMBLY")
 end
 
 """
@@ -424,7 +489,7 @@ end
 Write out the `*INSTANCE` option.
 """
 function INSTANCE(self::AbaqusExporter, NAME::AbstractString, PART::AbstractString)
-  println(self.ios, "*INSTANCE, NAME=" * NAME * ", PART=" * PART)
+    println(self.ios, "*INSTANCE, NAME=" * NAME * ", PART=" * PART)
 end
 
 """
@@ -433,7 +498,7 @@ end
 Write out the `*END INSTANCE` option.
 """
 function END_INSTANCE(self::AbaqusExporter)
-  println(self.ios, "*END INSTANCE")
+    println(self.ios, "*END INSTANCE")
 end
 
 """
@@ -443,15 +508,15 @@ Write out the `*NODE` option.
 
 `xyz`=array of node coordinates
 """
-function NODE(self::AbaqusExporter, xyz::AbstractArray{T, 2}) where {T}
-  println(self.ios, "*NODE")
-  for j = 1:size(xyz,1)
-    print(self.ios, "$j,$(xyz[j, 1])")
-    for ixxxx = 2:1:size(xyz,2)
-      print(self.ios, ",$(xyz[j, ixxxx])")
+function NODE(self::AbaqusExporter, xyz::AbstractArray{T,2}) where {T}
+    println(self.ios, "*NODE")
+    for j in axes(xyz, 1)
+        print(self.ios, "$j,$(xyz[j, 1])")
+        for ixxxx in 2:1:size(xyz, 2)
+            print(self.ios, ",$(xyz[j, ixxxx])")
+        end
+        print(self.ios, "\n")
     end
-    print(self.ios, "\n")
-  end
 end
 
 """
@@ -465,48 +530,68 @@ Write out the `*ELEMENT` option.
 `start`= start the element numbering at this integer,
 `conn`= connectivity array for the elements, one row per element
 """
-function ELEMENT(self::AbaqusExporter, TYPE::AbstractString, ELSET::AbstractString,
-    start::Integer, conn::AbstractArray{T, 2}) where {T<:Integer}
+function ELEMENT(
+    self::AbaqusExporter,
+    TYPE::AbstractString,
+    ELSET::AbstractString,
+    start::Integer,
+    conn::AbstractArray{T,2},
+) where {T<:Integer}
     # Check that start is valid
     @assert start > 0 "The  starting element number must be > 0"
     # Check that the current element number range is disjoint from the
     # range of the elements on input: they must not overlap
     @assert (self.element_range[2] < start) ||
-            (self.element_range[1] > start+size(conn, 1)-1) "Elements  must be given unique numbers"
+            (self.element_range[1] > start + size(conn, 1) - 1) "Elements  must be given unique numbers"
     # Update the element range
-    self.element_range = (min(self.element_range[1], start),
-                            max(self.element_range[2], start+size(conn, 1)-1))
+    self.element_range = (
+        min(self.element_range[1], start),
+        max(self.element_range[2], start + size(conn, 1) - 1),
+    )
     println(self.ios, "*ELEMENT, TYPE =" * TYPE * ", ELSET=" * ELSET)
-    for j=1:size(conn,1)
+    for j in axes(conn, 1)
         print(self.ios, "$(j+start-1),")
-        for ixxxx = 1:size(conn,2)-1
-        if ixxxx>15
-            print(self.ios, "\n")
-        end
-        print(self.ios, "$(conn[j,ixxxx]),")
+        for ixxxx in 1:size(conn, 2)-1
+            if ixxxx > 15
+                print(self.ios, "\n")
+            end
+            print(self.ios, "$(conn[j,ixxxx]),")
         end
         print(self.ios, "$(conn[j,size(conn,2)])\n")
     end
 end
 
-function ELEMENT(self::AbaqusExporter, TYPE::AbstractString, ELSET::AbstractString,
-    conn::AbstractArray{T, 2}) where {T<:Integer}
+function ELEMENT(
+    self::AbaqusExporter,
+    TYPE::AbstractString,
+    ELSET::AbstractString,
+    conn::AbstractArray{T,2},
+) where {T<:Integer}
     start = self.element_range[2] + 1
     ELEMENT(self, TYPE, ELSET, start, conn)
 end
 
-function ELEMENT(self::AbaqusExporter, TYPE::AbstractString, ELSET::AbstractString,
-    start::Integer, conn::C) where {C}
-    @assert typeof(conn[1])<:Tuple
+function ELEMENT(
+    self::AbaqusExporter,
+    TYPE::AbstractString,
+    ELSET::AbstractString,
+    start::Integer,
+    conn::C,
+) where {C}
+    @assert typeof(conn[1]) <: Tuple
     c = fill(0, length(conn), length(conn[1]))
-    for i = 1:length(conn)
+    for i in eachindex(conn)
         c[i, :] = [conn[i]...]
     end
     ELEMENT(self, TYPE, ELSET, start, c)
 end
 
-function ELEMENT(self::AbaqusExporter, TYPE::AbstractString, ELSET::AbstractString,
-    conn::C) where {C}
+function ELEMENT(
+    self::AbaqusExporter,
+    TYPE::AbstractString,
+    ELSET::AbstractString,
+    conn::C,
+) where {C}
     start = self.element_range[2] + 1
     ELEMENT(self, TYPE, ELSET, start, c)
 end
@@ -520,12 +605,16 @@ Write out the `*NSET` option.
 `NSET` = name of the set,
 `n` = array of the node numbers
 """
-function NSET_NSET(self::AbaqusExporter, NSET::AbstractString, n::AbstractVector{T}) where {T<:Integer}
-  println(self.ios, "*NSET, NSET=" * NSET)
-  for j=1:length(n)-1
-    println(self.ios, "$(n[j]),")
-  end
-  println(self.ios, "$(n[length(n)])")
+function NSET_NSET(
+    self::AbaqusExporter,
+    NSET::AbstractString,
+    n::AbstractVector{T},
+) where {T<:Integer}
+    println(self.ios, "*NSET, NSET=" * NSET)
+    for j in 1:length(n)-1
+        println(self.ios, "$(n[j]),")
+    end
+    println(self.ios, "$(n[length(n)])")
 end
 
 """
@@ -536,12 +625,16 @@ Write out the `*ELSET` option.
 `ELSET` = name of the set,
 `n` = array of the node numbers
 """
-function ELSET_ELSET(self::AbaqusExporter, ELSET::AbstractString, n::AbstractArray{T, 1}) where {T<:Integer}
-  println(self.ios, "*ELSET, ELSET=" * ELSET)
-  for j=1:length(n)-1
-    println(self.ios, "$(n[j]),")
-  end
-  println(self.ios, "$(n[length(n)])")
+function ELSET_ELSET(
+    self::AbaqusExporter,
+    ELSET::AbstractString,
+    n::AbstractArray{T,1},
+) where {T<:Integer}
+    println(self.ios, "*ELSET, ELSET=" * ELSET)
+    for j in 1:length(n)-1
+        println(self.ios, "$(n[j]),")
+    end
+    println(self.ios, "$(n[length(n)])")
 end
 
 """
@@ -552,11 +645,15 @@ Write out the `*ORIENTATION` option.
 
 Invoke at level: Part,  Part instance,  Assembly
 """
-function ORIENTATION(self::AbaqusExporter, ORIENTATION::AbstractString,
-  a::AbstractArray{T,1}, b::AbstractArray{T,1}) where {T<:Real}
-  println(self.ios, "*ORIENTATION,NAME=" * ORIENTATION)
-  println(self.ios, "$(a[1]),$(a[2]),$(a[3]),$(b[1]),$(b[2]),$(b[3])")
-  println(self.ios, "1,0.0")
+function ORIENTATION(
+    self::AbaqusExporter,
+    ORIENTATION::AbstractString,
+    a::AbstractArray{T,1},
+    b::AbstractArray{T,1},
+) where {T<:Real}
+    println(self.ios, "*ORIENTATION,NAME=" * ORIENTATION)
+    println(self.ios, "$(a[1]),$(a[2]),$(a[3]),$(b[1]),$(b[2]),$(b[3])")
+    println(self.ios, "1,0.0")
 end
 
 """
@@ -565,7 +662,7 @@ end
 Write out the `*MATERIAL` option.
 """
 function MATERIAL(self::AbaqusExporter, MATERIAL::AbstractString)
-  println(self.ios, "*MATERIAL,NAME=" * MATERIAL);
+    println(self.ios, "*MATERIAL,NAME=" * MATERIAL)
 end
 
 """
@@ -574,11 +671,21 @@ end
 
 Write out the `*ELASTIC,TYPE=ENGINEERING CONSTANTS` option.
 """
-function ELASTIC(self::AbaqusExporter, E1::F, E2::F, E3::F, nu12::F, nu13::F, nu23::F,
-  G12::F, G13::F, G23::F) where {F}
-  println(self.ios, "*ELASTIC,TYPE=ENGINEERING CONSTANTS");
-  println(self.ios, "$E1,$E2,$E3,$nu12,$nu13,$nu23,$G12,$G13,");
-  println(self.ios, "$G23");
+function ELASTIC(
+    self::AbaqusExporter,
+    E1::F,
+    E2::F,
+    E3::F,
+    nu12::F,
+    nu13::F,
+    nu23::F,
+    G12::F,
+    G13::F,
+    G23::F,
+) where {F}
+    println(self.ios, "*ELASTIC,TYPE=ENGINEERING CONSTANTS")
+    println(self.ios, "$E1,$E2,$E3,$nu12,$nu13,$nu23,$G12,$G13,")
+    println(self.ios, "$G23")
 end
 
 """
@@ -587,8 +694,8 @@ end
 Write out the `*ELASTIC,TYPE=ISOTROPIC` option.
 """
 function ELASTIC(self::AbaqusExporter, E::F, nu::F) where {F}
-  println(self.ios, "*ELASTIC,TYPE=ISOTROPIC ");
-  println(self.ios, "$E,$nu");
+    println(self.ios, "*ELASTIC,TYPE=ISOTROPIC ")
+    println(self.ios, "$E,$nu")
 end
 
 """
@@ -597,8 +704,8 @@ end
 Write out the `*EXPANSION` option.
 """
 function EXPANSION(self::AbaqusExporter, CTE::F) where {F}
-  println(self.ios, "*EXPANSION");
-  println(self.ios, "$CTE,");
+    println(self.ios, "*EXPANSION")
+    println(self.ios, "$CTE,")
 end
 
 """
@@ -607,8 +714,8 @@ end
 Write out the `*DENSITY` option.
 """
 function DENSITY(self::AbaqusExporter, rho)
-  println(self.ios, "*DENSITY ");
-  println(self.ios, "$rho");
+    println(self.ios, "*DENSITY ")
+    println(self.ios, "$rho")
 end
 
 """
@@ -620,9 +727,12 @@ Write out the `*SECTION CONTROLS` option.
 `OPTIONAL` = string, for instance
                      HOURGLASS=ENHANCED
 """
-function SECTION_CONTROLS(self::AbaqusExporter, NAME::AbstractString,
-  OPTIONAL::AbstractString)
-  println(self.ios, "*SECTION CONTROLS, NAME=" * NAME * "," * OPTIONAL);
+function SECTION_CONTROLS(
+    self::AbaqusExporter,
+    NAME::AbstractString,
+    OPTIONAL::AbstractString,
+)
+    println(self.ios, "*SECTION CONTROLS, NAME=" * NAME * "," * OPTIONAL)
 end
 
 """
@@ -635,12 +745,24 @@ Write out the `*SOLID SECTION` option.
 Level: Part,  Part instance
 
 """
-function SOLID_SECTION(self::AbaqusExporter, MATERIAL::AbstractString,
-  ORIENTATION::AbstractString, ELSET::AbstractString,
-  CONTROLS::AbstractString)
-  println(self.ios, "*SOLID SECTION,MATERIAL=" * MATERIAL *
-      ",ORIENTATION =" * ORIENTATION * ",ELSET=" * ELSET *
-      ", CONTROLS  =" * CONTROLS);
+function SOLID_SECTION(
+    self::AbaqusExporter,
+    MATERIAL::AbstractString,
+    ORIENTATION::AbstractString,
+    ELSET::AbstractString,
+    CONTROLS::AbstractString,
+)
+    println(
+        self.ios,
+        "*SOLID SECTION,MATERIAL=" *
+        MATERIAL *
+        ",ORIENTATION =" *
+        ORIENTATION *
+        ",ELSET=" *
+        ELSET *
+        ", CONTROLS  =" *
+        CONTROLS,
+    )
 end
 
 """
@@ -652,10 +774,21 @@ Write out the `*SOLID SECTION` option.
 Level: Part,  Part instance
 
 """
-function SOLID_SECTION(self::AbaqusExporter, MATERIAL::AbstractString,
-  ORIENTATION::AbstractString, ELSET::AbstractString)
-  println(self.ios, "*SOLID SECTION,MATERIAL=" * MATERIAL *
-      ",ORIENTATION =" * ORIENTATION * ",ELSET=" * ELSET);
+function SOLID_SECTION(
+    self::AbaqusExporter,
+    MATERIAL::AbstractString,
+    ORIENTATION::AbstractString,
+    ELSET::AbstractString,
+)
+    println(
+        self.ios,
+        "*SOLID SECTION,MATERIAL=" *
+        MATERIAL *
+        ",ORIENTATION =" *
+        ORIENTATION *
+        ",ELSET=" *
+        ELSET,
+    )
 end
 
 """
@@ -667,10 +800,15 @@ Write out the `*SOLID SECTION` option.
 Level: Part,  Part instance
 
 """
-function SOLID_SECTION(self::AbaqusExporter, MATERIAL::AbstractString,
-  ORIENTATION::AbstractString, ELSET::AbstractString, thickness::F) where {F}
-  SOLID_SECTION(self, MATERIAL, ORIENTATION, ELSET)
-  println(self.ios, "$(thickness),");
+function SOLID_SECTION(
+    self::AbaqusExporter,
+    MATERIAL::AbstractString,
+    ORIENTATION::AbstractString,
+    ELSET::AbstractString,
+    thickness::F,
+) where {F}
+    SOLID_SECTION(self, MATERIAL, ORIENTATION, ELSET)
+    println(self.ios, "$(thickness),")
 end
 
 # """
@@ -696,7 +834,7 @@ end
 Write out the `*SURFACE SECTION` option.
 """
 function SURFACE_SECTION(self::AbaqusExporter, ELSET::AbstractString)
-  println(self.ios, "*SURFACE SECTION, ELSET=" * ELSET);
+    println(self.ios, "*SURFACE SECTION, ELSET=" * ELSET)
 end
 
 """
@@ -705,8 +843,8 @@ end
 Write out the `*STEP,PERTURBATION` option for linear static analysis.
 """
 function STEP_PERTURBATION_STATIC(self::AbaqusExporter)
-  println(self.ios, "*STEP,PERTURBATION");
-  println(self.ios, "*STATIC");
+    println(self.ios, "*STEP,PERTURBATION")
+    println(self.ios, "*STATIC")
 end
 
 """
@@ -715,9 +853,9 @@ end
 Write out the `*STEP,PERTURBATION` option for linear buckling analysis.
 """
 function STEP_PERTURBATION_BUCKLE(self::AbaqusExporter, neigv::Integer)
-  println(self.ios, "*STEP, name=Buckling, nlgeom=NO, perturbation");
-  println(self.ios, "*BUCKLE");
-  println(self.ios, "$(neigv), , , , ");
+    println(self.ios, "*STEP, name=Buckling, nlgeom=NO, perturbation")
+    println(self.ios, "*BUCKLE")
+    println(self.ios, "$(neigv), , , , ")
 end
 
 """
@@ -726,9 +864,9 @@ end
 Write out the `*STEP,FREQUENCY` option.
 """
 function STEP_FREQUENCY(self::AbaqusExporter, Nmodes::Integer)
-  println(self.ios, "*STEP");
-  println(self.ios, "*FREQUENCY, EIGENSOLVER=LANCZOS");
-  println(self.ios, "$(Nmodes), , ,-1.E6 \n");
+    println(self.ios, "*STEP")
+    println(self.ios, "*FREQUENCY, EIGENSOLVER=LANCZOS")
+    println(self.ios, "$(Nmodes), , ,-1.E6 \n")
 end
 
 """
@@ -750,25 +888,41 @@ the array `nodes`, in the mesh (or node set) `meshornset`.
 BOUNDARY(AE, "ASSEM1.INSTNC1", 1:4, fill(true, 4, 1), reshape([uy(fens.xyz[i, :]...) for i in 1:4], 4, 1))
 ```
 """
-function BOUNDARY(self::AbaqusExporter, meshornset, nodes, is_fixed::AbstractArray{B,2}, fixed_value::AbstractArray{F,2}) where {B, F}
-	println(self.ios, "*BOUNDARY");
-	if meshornset == ""
-		meshlabel = ""
-	else
-		meshlabel = meshornset * "."
-	end
-	for j in nodes
-		for k=1:size(is_fixed,2)
-			#<node number>, <first dof>, <last dof>, <magnitude of displacement>
-			if is_fixed[j,k]
-				println(self.ios, "$(meshlabel)$(j),$k,$k,$(fixed_value[j,k])");
-			end
-		end
-	end
+function BOUNDARY(
+    self::AbaqusExporter,
+    meshornset,
+    nodes,
+    is_fixed::AbstractArray{B,2},
+    fixed_value::AbstractArray{F,2},
+) where {B,F}
+    println(self.ios, "*BOUNDARY")
+    if meshornset == ""
+        meshlabel = ""
+    else
+        meshlabel = meshornset * "."
+    end
+    for j in nodes
+        for k in axes(is_fixed, 2)
+            #<node number>, <first dof>, <last dof>, <magnitude of displacement>
+            if is_fixed[j, k]
+                println(self.ios, "$(meshlabel)$(j),$k,$k,$(fixed_value[j,k])")
+            end
+        end
+    end
 end
 
-function BOUNDARY(self::AbaqusExporter, nodes, is_fixed::AbstractVector{B},  fixed_value::AbstractVector{F}) where {B, F}
-	BOUNDARY(self, nodes, reshape(is_fixed, length(is_fixed), 1), reshape(fixed_value, length(fixed_value), 1))
+function BOUNDARY(
+    self::AbaqusExporter,
+    nodes,
+    is_fixed::AbstractVector{B},
+    fixed_value::AbstractVector{F},
+) where {B,F}
+    BOUNDARY(
+        self,
+        nodes,
+        reshape(is_fixed, length(is_fixed), 1),
+        reshape(fixed_value, length(fixed_value), 1),
+    )
 end
 
 """
@@ -780,8 +934,13 @@ Write out the `*BOUNDARY` option.
 `is_fixed`= array of Boolean flags (true means fixed, or prescribed),  one row per node, as many columns as there are degrees of freedom per node,
 `fixed_value`=array of displacements to which the corresponding displacement components is fixed, as many columns as there are degrees of freedom per node
 """
-function BOUNDARY(self::AbaqusExporter, meshornset, is_fixed::AbstractArray{B,2}, fixed_value::AbstractArray{F,2}) where {B, F}
-	BOUNDARY(self, meshornset, 1:size(is_fixed, 1), is_fixed, fixed_value)
+function BOUNDARY(
+    self::AbaqusExporter,
+    meshornset,
+    is_fixed::AbstractArray{B,2},
+    fixed_value::AbstractArray{F,2},
+) where {B,F}
+    BOUNDARY(self, meshornset, 1:size(is_fixed, 1), is_fixed, fixed_value)
 end
 
 """
@@ -793,9 +952,14 @@ Write out the `*BOUNDARY` option.
 `is_fixed`= array of Boolean flags (true means fixed, or prescribed),  one row per node,
 `fixed_value`=array of displacements to which the corresponding displacement components is fixed
 """
-function BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer,  fixed_value::FFlt)
-	println(self.ios, "*BOUNDARY");
-	println(self.ios, NSET * ",$dof,$dof,$(fixed_value)");
+function BOUNDARY(
+    self::AbaqusExporter,
+    NSET::AbstractString,
+    dof::Integer,
+    fixed_value::FFlt,
+)
+    println(self.ios, "*BOUNDARY")
+    println(self.ios, NSET * ",$dof,$dof,$(fixed_value)")
 end
 
 """
@@ -809,7 +973,7 @@ Invoke at Level: Model,  Step
 `dof`=Degree of freedom, 1, 2, 3
 """
 function BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer)
-	BOUNDARY(self, NSET, dof,  0.0)
+    BOUNDARY(self, NSET, dof, 0.0)
 end
 
 """
@@ -822,9 +986,14 @@ node set.
 `NSET`= node set,
 `dof`=Degree of freedom, 1, 2, 3
 """
-function BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer, value::F) where {F}
-	println(self.ios, "*BOUNDARY,TYPE=DISPLACEMENT");
-	println(self.ios, NSET * ",$dof,$dof,$value");
+function BOUNDARY(
+    self::AbaqusExporter,
+    NSET::AbstractString,
+    dof::Integer,
+    value::F,
+) where {F}
+    println(self.ios, "*BOUNDARY,TYPE=DISPLACEMENT")
+    println(self.ios, NSET * ",$dof,$dof,$value")
 end
 
 """
@@ -833,11 +1002,15 @@ end
 
 Write out the `*DLOAD` option.
 """
-function DLOAD(self::AbaqusExporter, ELSET::AbstractString, traction::AbstractVector{F}) where {F}
-	println(self.ios, "*DLOAD, follower=NO");
-	nt = norm(traction)
-	print(self.ios, ELSET * ",TRVEC," * "$(nt),")
-	println(self.ios, "$(traction[1]/nt),$(traction[2]/nt),$(traction[3]/nt)");
+function DLOAD(
+    self::AbaqusExporter,
+    ELSET::AbstractString,
+    traction::AbstractVector{F},
+) where {F}
+    println(self.ios, "*DLOAD, follower=NO")
+    nt = norm(traction)
+    print(self.ios, ELSET * ",TRVEC," * "$(nt),")
+    println(self.ios, "$(traction[1]/nt),$(traction[2]/nt),$(traction[3]/nt)")
 end
 
 """
@@ -850,10 +1023,14 @@ NSET=Node set
 dof= 1, 2, 3,
 magnitude= signed multiplier
 """
-function CLOAD(self::AbaqusExporter, NSET::AbstractString, dof::Integer,
-  magnitude::F) where {F}
-  println(self.ios, "*CLOAD");
-  println(self.ios, NSET * ",$dof,$magnitude");
+function CLOAD(
+    self::AbaqusExporter,
+    NSET::AbstractString,
+    dof::Integer,
+    magnitude::F,
+) where {F}
+    println(self.ios, "*CLOAD")
+    println(self.ios, NSET * ",$dof,$magnitude")
 end
 
 """
@@ -866,10 +1043,14 @@ nodenumber=Number of node
 dof= 1, 2, 3,
 magnitude= signed multiplier
 """
-function CLOAD(self::AbaqusExporter, nodenumber::Integer, dof::Integer,
-  magnitude::F) where {F}
-  println(self.ios, "*CLOAD");
-  println(self.ios, "$(nodenumber),$dof,$magnitude");
+function CLOAD(
+    self::AbaqusExporter,
+    nodenumber::Integer,
+    dof::Integer,
+    magnitude::F,
+) where {F}
+    println(self.ios, "*CLOAD")
+    println(self.ios, "$(nodenumber),$dof,$magnitude")
 end
 
 """
@@ -878,14 +1059,17 @@ end
 
 Write out the `*TEMPERATURE` option.
 """
-function TEMPERATURE(self::AbaqusExporter, Classifier::AbstractString,
-  nlist::AbstractArray{I, 1},
-  tlist::AbstractArray{F, 1}) where {I, F}
-  @assert length(nlist) == length(tlist)
-  println(self.ios, "*TEMPERATURE");
-  for ixxxx = 1:length(nlist)
-    println(self.ios, Classifier * "$(nlist[ixxxx]),$(tlist[ixxxx])");
-  end
+function TEMPERATURE(
+    self::AbaqusExporter,
+    Classifier::AbstractString,
+    nlist::AbstractArray{I,1},
+    tlist::AbstractArray{F,1},
+) where {I,F}
+    @assert length(nlist) == length(tlist)
+    println(self.ios, "*TEMPERATURE")
+    for ixxxx in eachindex(nlist)
+        println(self.ios, Classifier * "$(nlist[ixxxx]),$(tlist[ixxxx])")
+    end
 end
 
 """
@@ -894,8 +1078,8 @@ end
 Write out the `*NODE PRINT` option.
 """
 function NODE_PRINT(self::AbaqusExporter, NSET::AbstractString; KEYS = "U")
-  println(self.ios, "*NODE PRINT, NSET=" * NSET);
-  println(self.ios, KEYS);
+    println(self.ios, "*NODE PRINT, NSET=" * NSET)
+    println(self.ios, KEYS)
 end
 
 """
@@ -904,9 +1088,12 @@ end
 Write out the `*EL PRINT` option.
 """
 function EL_PRINT(self::AbaqusExporter, ELSET::AbstractString, KEYS::AbstractString)
-  println(self.ios, "*EL PRINT, ELSET=" * ELSET * ", POSITION=INTEGRATION POINTS, SUMMARY= YES");
-  println(self.ios, "");
-  println(self.ios, KEYS);
+    println(
+        self.ios,
+        "*EL PRINT, ELSET=" * ELSET * ", POSITION=INTEGRATION POINTS, SUMMARY= YES",
+    )
+    println(self.ios, "")
+    println(self.ios, KEYS)
 end
 
 """
@@ -915,7 +1102,7 @@ end
 Write out the `*ENERGY PRINT` option.
 """
 function ENERGY_PRINT(self::AbaqusExporter)
-  println(self.ios, "*ENERGY PRINT");
+    println(self.ios, "*ENERGY PRINT")
 end
 
 """
@@ -924,7 +1111,7 @@ end
 Write out the `*END STEP` option.
 """
 function END_STEP(self::AbaqusExporter)
-  println(self.ios, "*END STEP");
+    println(self.ios, "*END STEP")
 end
 
 """
@@ -933,7 +1120,7 @@ end
 Close  the stream opened by the exporter.
 """
 function close(self::AbaqusExporter)
-  close(self.ios)
+    close(self.ios)
 end
 
 end # Abaqus
@@ -965,7 +1152,7 @@ function savecsv(name::String; kwargs...)
     end
     ncol = length(colnames)
     nrow = length(columns[1])
-    for j = 1:ncol
+    for j in 1:ncol
         @assert length(columns[j]) == nrow "Columns must have the same number of rows"
     end
     if DataDrop.file_extension(name) == ""
@@ -977,8 +1164,8 @@ function savecsv(name::String; kwargs...)
             j < ncol && print(fid, ",")
         end
         print(fid, "\n")
-        for r = 1:nrow
-            for j = 1:ncol
+        for r in 1:nrow
+            for j in 1:ncol
                 print(fid, columns[j][r])
                 j < ncol && print(fid, ",")
             end
@@ -995,8 +1182,22 @@ module NASTRAN
 ################################################################################
 # NASTRAN export
 ################################################################################
-using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
+using ...FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ...FESetModule:
+    AbstractFESet,
+    FESetP1,
+    FESetL2,
+    FESetT3,
+    FESetQ4,
+    FESetT4,
+    FESetH8,
+    FESetQ8,
+    FESetL3,
+    FESetT6,
+    FESetT10,
+    FESetH20,
+    connasarray
 import ...FENodeSetModule: FENodeSet
 import Base.close
 using Printf
@@ -1009,17 +1210,17 @@ Exporter of the mesh to NASTRAN.
 mutable struct NASTRANExporter
     filename::AbstractString
     ios::IO
-    element_range::Tuple{Int64, Int64}
+    element_range::Tuple{Int64,Int64}
     function NASTRANExporter(filename::AbstractString)
-        if match(r".*\.nas$", filename) == nothing
+        if match(r".*\.nas$", filename) === nothing
             filename = filename * ".nas"
         end
-        ios = open(filename,"w+")
+        ios = open(filename, "w+")
         return new(deepcopy(filename), ios, (typemax(Int64), 0))
     end
 end
 
-NASTRANtypemap = Dict{DataType, AbstractString}(FESetT4=>"CTETRA", FESetT10=>"CTETRA")
+NASTRANtypemap = Dict{DataType,AbstractString}(FESetT4 => "CTETRA", FESetT10 => "CTETRA")
 
 """
     CEND(self::NASTRANExporter)
@@ -1071,7 +1272,17 @@ end
 
 Write a statement for an isotropic elastic material.
 """
-function MAT1(self::NASTRANExporter, mid::Int, E::FFlt, G::FFlt, nu::FFlt, rho::FFlt, A::FFlt, TREF::FFlt, GE::FFlt)
+function MAT1(
+    self::NASTRANExporter,
+    mid::Int,
+    E::FFlt,
+    G::FFlt,
+    nu::FFlt,
+    rho::FFlt,
+    A::FFlt,
+    TREF::FFlt,
+    GE::FFlt,
+)
     @printf self.ios "MAT1,%d,%g,%g,%g,%g,%g,%g,%g\n" mid E G nu rho A TREF GE
 end
 
@@ -1080,7 +1291,16 @@ end
 
 Write a statement for an isotropic elastic material.
 """
-function MAT1(self::NASTRANExporter, mid::Int, E::FFlt, nu::FFlt, rho::FFlt = 0.0, A::FFlt = 0.0, TREF::FFlt = 0.0, GE::FFlt = 0.0)
+function MAT1(
+    self::NASTRANExporter,
+    mid::Int,
+    E::FFlt,
+    nu::FFlt,
+    rho::FFlt = 0.0,
+    A::FFlt = 0.0,
+    TREF::FFlt = 0.0,
+    GE::FFlt = 0.0,
+)
     @printf self.ios "MAT1,%d,%g,,%g,%g,%g,%g,%g\n" mid E nu rho A TREF GE
 end
 
@@ -1092,7 +1312,7 @@ Write a statement for a single tetrahedron element.
 function CTETRA(self::NASTRANExporter, eid::Int, pid::Int, conn::Vector{Int})
     nc = length(conn)
     @printf self.ios "CTETRA,%d,%d" eid pid
-    for k = 1:nc
+    for k in 1:nc
         @printf self.ios ",%d" conn[k]
         if k == 6
             @printf self.ios "\n"
@@ -1116,7 +1336,8 @@ module STL
 ################################################################################
 # STL export
 ################################################################################
-using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using ...FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 using Printf
 import LinearAlgebra: norm, cross
 import Base.close
@@ -1129,12 +1350,12 @@ Exporter of a surface mesh as an STL file.
 mutable struct STLExporter
     filename::AbstractString
     ios::IO
-    element_range::Tuple{Int64, Int64}
+    element_range::Tuple{Int64,Int64}
     function STLExporter(filename::AbstractString)
-        if match(r".*\.stl$", filename) == nothing
+        if match(r".*\.stl$", filename) === nothing
             filename = filename * ".stl"
         end
-        ios = open(filename,"w+")
+        ios = open(filename, "w+")
         return new(deepcopy(filename), ios, (typemax(Int64), 0))
     end
 end
@@ -1203,17 +1424,18 @@ end
 
 mutable struct _HypFaceContainer
     nv::Int # total number of vertices per hyperface
-    d::Dict{Int, Array{_HypFace}} # dictionary
+    d::Dict{Int,Array{_HypFace}} # dictionary
     n::Int # total number of hyperfaces in the container
 end
 
-makehypfacedict(nv) = _HypFaceContainer(nv, Dict{Int, Array{_HypFace}}(), 0);
+makehypfacedict(nv) = _HypFaceContainer(nv, Dict{Int,Array{_HypFace}}(), 0)
 
 function hypfacen(container, hypf)
     h = sort([i for i in hypf])
-    anchor = h[1]; other = BitSet(h[2:end]);
-    ca = get(container.d, anchor, _HypFace[]);
-    for k = 1:length(ca)
+    anchor = h[1]
+    other = BitSet(h[2:end])
+    ca = get(container.d, anchor, _HypFace[])
+    for k in eachindex(ca)
         if (ca[k].a == anchor) && (ca[k].o == other)
             return ca[k].n # do have this hyper face: here is its serial number
         end
@@ -1225,10 +1447,11 @@ function inserthypface!(container, hypf)
     if hypfacen(container, hypf) == 0
         @assert length(hypf) == container.nv "Hyperface does not have the right number of vertices"
         h = sort([i for i in hypf])
-        anchor = h[1]; other = BitSet(h[2:end]);
-        ca = get(container.d, anchor, _HypFace[]);
+        anchor = h[1]
+        other = BitSet(h[2:end])
+        ca = get(container.d, anchor, _HypFace[])
         container.n = container.n + 1
-        push!(ca, _HypFace(container.n, hypf, anchor, other));
+        push!(ca, _HypFace(container.n, hypf, anchor, other))
         container.d[anchor] = ca
     end
     return container
@@ -1237,7 +1460,7 @@ end
 function hypfacedicttoarray(container)
     a = fill(0, container.n, container.nv)
     for ca in values(container.d)
-        for i = 1:length(ca)
+        for i in eachindex(ca)
             a[ca[i].n, :] = ca[i].hf
         end
     end
@@ -1254,47 +1477,51 @@ function h2libexporttri(theFile::String, Connectivity, Points)
     adjust = 1 # the library is C-based and expects indexes to be zero-based
 
     ed = makehypfacedict(2)
-    for i = 1:size(Connectivity, 1)
+    for i in axes(Connectivity, 1)
         inserthypface!(ed, Connectivity[i, [1, 2]])
         inserthypface!(ed, Connectivity[i, [2, 3]])
         inserthypface!(ed, Connectivity[i, [3, 1]])
     end
     ea = hypfacedicttoarray(ed)
 
-    fid=open(theFile,"w");
+    fid = open(theFile, "w")
     if (fid == -1)
         error(["Could not open " * theFile])
         return nothing
     end
 
-    print(fid, size(Points, 1), " ", size(ea, 1), " ", size(Connectivity, 1), "\n");
+    print(fid, size(Points, 1), " ", size(ea, 1), " ", size(Connectivity, 1), "\n")
 
-    for i= 1:size(Points, 1)
-        for j= 1:size(Points,2)-1
-            print(fid,Points[i,j]," ");
+    for i in axes(Points, 1)
+        for j in 1:size(Points, 2)-1
+            print(fid, Points[i, j], " ")
         end
-        print(fid,Points[i,end],"\n");
+        print(fid, Points[i, end], "\n")
     end
 
-    for i= 1:size(ea, 1)
-        for j= 1:size(ea,2)-1
-            print(fid, ea[i,j]-adjust, " ");
+    for i in axes(ea, 1)
+        for j in 1:size(ea, 2)-1
+            print(fid, ea[i, j] - adjust, " ")
         end
-        print(fid, ea[i,end]-adjust, "\n");
+        print(fid, ea[i, end] - adjust, "\n")
     end
 
-    for i= 1:size(Connectivity, 1)
-        s = [hypfacen(ed, Connectivity[i, [2, 3]]) hypfacen(ed, Connectivity[i, [3, 1]]) hypfacen(ed, Connectivity[i, [1, 2]])]
-        for j= 1:size(Connectivity,2)
-            print(fid, Connectivity[i,j]-adjust, " ");
+    for i in axes(Connectivity, 1)
+        s =
+            [hypfacen(ed, Connectivity[i, [2, 3]]) hypfacen(ed, Connectivity[i, [3, 1]]) hypfacen(
+                ed,
+                Connectivity[i, [1, 2]],
+            )]
+        for j in axes(Connectivity, 2)
+            print(fid, Connectivity[i, j] - adjust, " ")
         end
-        for j= 1:length(s)-1
-            print(fid, s[j]-adjust, " ");
+        for j in 1:length(s)-1
+            print(fid, s[j] - adjust, " ")
         end
-        print(fid, s[end]-adjust, "\n");
+        print(fid, s[end] - adjust, "\n")
     end
 
-    fid=close(fid);
+    fid = close(fid)
     return true
 end
 
@@ -1305,26 +1532,47 @@ module MESH
 # MESH export
 ################################################################################
 using DelimitedFiles
-using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
+using ...FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ...FESetModule:
+    AbstractFESet,
+    FESetP1,
+    FESetL2,
+    FESetT3,
+    FESetQ4,
+    FESetT4,
+    FESetH8,
+    FESetQ8,
+    FESetL3,
+    FESetT6,
+    FESetT10,
+    FESetH20,
+    connasarray
 import ...FENodeSetModule: FENodeSet
 
-MESHtypemap = Dict{DataType, String}(FESetP1=>"P1", FESetL2=>"L2", FESetT3=>"T3",
-    FESetQ4=>"Q4", FESetT4=>"T4", FESetH8=>"H8", FESetQ8=>"Q8", FESetL3=>"L3", FESetT6=>"T6",
-    FESetT10=>"T10", FESetH20=>"H20")
+MESHtypemap = Dict{DataType,String}(
+    FESetP1 => "P1",
+    FESetL2 => "L2",
+    FESetT3 => "T3",
+    FESetQ4 => "Q4",
+    FESetT4 => "T4",
+    FESetH8 => "H8",
+    FESetQ8 => "Q8",
+    FESetL3 => "L3",
+    FESetT6 => "T6",
+    FESetT10 => "T10",
+    FESetH20 => "H20",
+)
 
 """
     write_MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:AbstractFESet}
 
 Write the mesh in the MESH format.
 """
-    function write_MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:AbstractFESet}
+function write_MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:AbstractFESet}
     meshfilebase, ext = splitext(meshfile)
-    dinfo = [
-        meshfilebase * "-xyz.dat", 
-        MESHtypemap[typeof(fes)], 
-        meshfilebase * "-conn.dat",
-    ]
+    dinfo =
+        [meshfilebase * "-xyz.dat", MESHtypemap[typeof(fes)], meshfilebase * "-conn.dat"]
     # write out a file with the coordinates of the nodes
     open(dinfo[1], "w") do file
         writedlm(file, fens.xyz, ' ')
@@ -1341,7 +1589,7 @@ Write the mesh in the MESH format.
             writedlm(file, fes.label, ' ')
         end
     end
-    
+
     # write out a file with the metadata
     open(meshfilebase * ".mesh", "w") do file
         writedlm(file, dinfo)
@@ -1358,8 +1606,22 @@ module H5MESH
 ################################################################################
 using HDF5
 using DataDrop
-using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
+using ...FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ...FESetModule:
+    AbstractFESet,
+    FESetP1,
+    FESetL2,
+    FESetT3,
+    FESetQ4,
+    FESetT4,
+    FESetH8,
+    FESetQ8,
+    FESetL3,
+    FESetT6,
+    FESetT10,
+    FESetH20,
+    connasarray
 import ...FENodeSetModule: FENodeSet
 import ..VTK: VTKtypemap
 
@@ -1375,8 +1637,8 @@ function write_H5MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:Abstr
     if ext == ""
         ext = ".h5mesh"
     end
-    fname = DataDrop.with_extension(meshfile, ext) 
-    etype = get(()->error("Unknown VTK type!"), VTKtypemap, typeof(fes));
+    fname = DataDrop.with_extension(meshfile, ext)
+    etype = get(() -> error("Unknown VTK type!"), VTKtypemap, typeof(fes))
     # If the file exists, delete all contents
     h5open(fname, "w") do fid
     end
@@ -1402,27 +1664,53 @@ module VTKWrite
 
 using WriteVTK
 using DataDrop
-using ...FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import ...FESetModule: AbstractFESet, FESetP1, FESetL2, FESetT3, FESetQ4, FESetT4, FESetH8, FESetQ8, FESetL3, FESetT6, FESetT10, FESetH20, connasarray
+using ...FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ...FESetModule:
+    AbstractFESet,
+    FESetP1,
+    FESetL2,
+    FESetT3,
+    FESetQ4,
+    FESetT4,
+    FESetH8,
+    FESetQ8,
+    FESetL3,
+    FESetT6,
+    FESetT10,
+    FESetH20,
+    connasarray
 import ...FENodeSetModule: FENodeSet
 
 using Printf
 import LinearAlgebra: norm, cross
 
-const _VTK_TYPE_MAP = Dict{DataType, Int}(FESetP1=>1, FESetL2=>3, FESetT3=>5,    FESetQ4=>9, FESetT4=>10, FESetH8=>12, FESetQ8=>23, FESetL3=>21, FESetT6=>22, FESetT10=>24, FESetH20=>25)
+const _VTK_TYPE_MAP = Dict{DataType,Int}(
+    FESetP1 => 1,
+    FESetL2 => 3,
+    FESetT3 => 5,
+    FESetQ4 => 9,
+    FESetT4 => 10,
+    FESetH8 => 12,
+    FESetQ8 => 23,
+    FESetL3 => 21,
+    FESetT6 => 22,
+    FESetT10 => 24,
+    FESetH20 => 25,
+)
 
 
-const P1=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetP1])
-const L2=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetL2])
-const T3=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetT3])
-const Q4=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetQ4])
-const T4=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetT4])
-const H8=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetH8])
-const L3=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetL3])
-const T6=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetT6])
-const Q8=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetQ8])
-const T10=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetT10])
-const H20=WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetH20])
+const P1 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetP1])
+const L2 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetL2])
+const T3 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetT3])
+const Q4 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetQ4])
+const T4 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetT4])
+const H8 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetH8])
+const L3 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetL3])
+const T6 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetT6])
+const Q8 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetQ8])
+const T10 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetT10])
+const H20 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetH20])
 
 """
     vtkwrite(theFile::String, fens::FENodeSet, fes::T; opts...) where {T<:AbstractFESet}
@@ -1441,7 +1729,12 @@ field. On the other hand, if it is an 2d array, each column is exported  as a
 separate field.
 
 """
-function vtkwrite(theFile::String, fens::FENodeSet, fes::T; opts...) where {T<:AbstractFESet}
+function vtkwrite(
+    theFile::String,
+    fens::FENodeSet,
+    fes::T;
+    opts...,
+) where {T<:AbstractFESet}
     celltype = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[typeof(fes)])
     return vtkwrite(theFile, connasarray(fes), fens.xyz, celltype; opts...)
 end
@@ -1466,31 +1759,39 @@ separate field.
 
 Return the `vtk` file.
 """
-function vtkwrite(theFile::String, Connectivity, Points, celltype; vectors=nothing, scalars=nothing)
+function vtkwrite(
+    theFile::String,
+    Connectivity,
+    Points,
+    celltype;
+    vectors = nothing,
+    scalars = nothing,
+)
     # The array `Points` has number of rows equal to the number of points,
     # whereas `points` expect this to be the transpose
     points = fill(zero(eltype(Points)), size(Points, 2), size(Points, 1))
     # Copy
-    for i in 1:size(Points, 1)
+    for i in axes(Points, 1)
         points[:, i] .= Points[i, :]
-    end 
+    end
     if typeof(Connectivity[1]) <: Tuple # Vector of connectivity tuples: convert to an array
         c = fill(0, length(Connectivity), length(Connectivity[1]))
-        for i = 1:length(Connectivity)
+        for i in eachindex(Connectivity)
             c[i, :] = [Connectivity[i]...]
         end
         Connectivity = c
     end
     # Prepare an array of the cells
-    cells = [MeshCell(celltype, view(Connectivity, i, :)) for i in 1:size(Connectivity, 1)]
-    vtkfile = vtk_grid(DataDrop.with_extension(theFile, ".vtu"), points, cells, compress=3)
+    cells = [MeshCell(celltype, view(Connectivity, i, :)) for i in axes(Connectivity, 1)]
+    vtkfile =
+        vtk_grid(DataDrop.with_extension(theFile, ".vtu"), points, cells, compress = 3)
     if scalars !== nothing
         for nt in scalars
             an = nt[1] # name of the shape collection
             d = nt[2]
             pdata = fill(0.0, size(d, 2), size(d, 1))
-            for j in 1:size(pdata, 1)
-                for i in 1:size(pdata, 2)
+            for j in axes(pdata, 1)
+                for i in axes(pdata, 2)
                     pdata[j, i] = d[i, j]
                 end
             end
@@ -1502,8 +1803,8 @@ function vtkwrite(theFile::String, Connectivity, Points, celltype; vectors=nothi
             an = nt[1] # name of the shape collection
             d = nt[2]
             pdata = fill(0.0, size(d, 2), size(d, 1))
-            for j in 1:size(pdata, 1)
-                for i in 1:size(pdata, 2)
+            for j in axes(pdata, 1)
+                for i in axes(pdata, 2)
                     pdata[j, i] = d[i, j]
                 end
             end
@@ -1526,7 +1827,13 @@ All the other arguments are the same as for `vtkwrite`. If `scalars` or
 
 See the `vtkwritecollection` methods.
 """
-function vtkwritecollection(theFile::String, fens::FENodeSet, fes::T, times; opts...) where {T<:AbstractFESet}
+function vtkwritecollection(
+    theFile::String,
+    fens::FENodeSet,
+    fes::T,
+    times;
+    opts...,
+) where {T<:AbstractFESet}
     celltype = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[typeof(fes)])
     return vtkwritecollection(theFile, connasarray(fes), fens.xyz, celltype, times; opts...)
 end
@@ -1543,14 +1850,28 @@ All the other arguments are the same as for `vtkwrite`. If `scalars` or
 
 See the `vtkwritecollection` methods.
 """
-function vtkwritecollection(theFile::String, Connectivity, Points, celltype, times; vectors=nothing, scalars=nothing)
+function vtkwritecollection(
+    theFile::String,
+    Connectivity,
+    Points,
+    celltype,
+    times;
+    vectors = nothing,
+    scalars = nothing,
+)
     pvd = paraview_collection(DataDrop.with_extension(theFile, "pvd"))
     if scalars !== nothing
         @assert length(times) == length(scalars)
         for (i, t, nt) in zip(1:length(times), times, scalars)
             an = nt[1] # name of the shape collection
             d = nt[2]
-            pvd[t] = vtkwrite(DataDrop.with_extension(theFile * "-$i", ".vtu"), Connectivity, Points, celltype; scalars=[(an, d)])
+            pvd[t] = vtkwrite(
+                DataDrop.with_extension(theFile * "-$i", ".vtu"),
+                Connectivity,
+                Points,
+                celltype;
+                scalars = [(an, d)],
+            )
         end
     end
     if vectors !== nothing
@@ -1558,13 +1879,19 @@ function vtkwritecollection(theFile::String, Connectivity, Points, celltype, tim
         for (i, t, nt) in zip(1:length(times), times, vectors)
             an = nt[1] # name of the shape collection
             d = nt[2]
-            pvd[t] = vtkwrite(DataDrop.with_extension(theFile * "-$i", ".vtu"), Connectivity, Points, celltype; vectors=[(an, d)])
+            pvd[t] = vtkwrite(
+                DataDrop.with_extension(theFile * "-$i", ".vtu"),
+                Connectivity,
+                Points,
+                celltype;
+                vectors = [(an, d)],
+            )
         end
     end
     vtk_save(pvd)
     return pvd
 end
-    
+
 end # VTKWrite
 
 

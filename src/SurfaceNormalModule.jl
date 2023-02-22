@@ -9,7 +9,8 @@ module SurfaceNormalModule
 
 __precompile__(true)
 
-using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using ..FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..VectorCacheModule: VectorCache, updateretrieve!
 using LinearAlgebra: cross, norm
 
@@ -31,10 +32,10 @@ computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FI
 The buffer `normalout` is filled with the value  of the normal vector.
 """
 struct SurfaceNormal{F<:Function}
-	"""
-	    Cache of the current value of the normal
-	"""
-    cache::VectorCache{FFlt, F}
+    """
+        Cache of the current value of the normal
+    """
+    cache::VectorCache{FFlt,F}
 end
 
 """
@@ -54,7 +55,7 @@ matrix `tangents`, and the label of the finite element, `fe_label`.
 """
 function SurfaceNormal(ndimensions::FInt, computenormal!::F) where {F<:Function}
     # Allocate the buffer to be ready for the first call
-    return SurfaceNormal(VectorCache(FFlt, ndimensions, computenormal!));
+    return SurfaceNormal(VectorCache(FFlt, ndimensions, computenormal!))
 end
 
 """
@@ -70,26 +71,31 @@ vector), the normal cannot be normalized to unit length (it is a zero vector).
 In that case a zero vector is returned, and a warning is printed.
 """
 function SurfaceNormal(ndimensions::FInt)
-    function defaultcomputenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    function defaultcomputenormal!(
+        normalout::FFltVec,
+        XYZ::FFltMat,
+        tangents::FFltMat,
+        fe_label::FInt,
+    )
         fill!(normalout, 0.0)
         # Produce a default normal
-        if (size(tangents,1) == 3) && (size(tangents,2) == 2)# surface in three dimensions
-            normalout[:] .= cross(vec(tangents[:,1]),vec(tangents[:,2]));# outer normal to the surface
-        elseif (size(tangents,1)==2)  && (size(tangents,2)==1)# curve in two dimensions
-            normalout[1] = +tangents[2,1];
-            normalout[2] = -tangents[1,1];# outer normal to the contour
+        if (size(tangents, 1) == 3) && (size(tangents, 2) == 2)# surface in three dimensions
+            normalout[:] .= cross(vec(tangents[:, 1]), vec(tangents[:, 2]))# outer normal to the surface
+        elseif (size(tangents, 1) == 2) && (size(tangents, 2) == 1)# curve in two dimensions
+            normalout[1] = +tangents[2, 1]
+            normalout[2] = -tangents[1, 1]# outer normal to the contour
         else
-            error("No definition of normal vector");
+            error("No definition of normal vector")
         end
-        nn = norm(normalout);
-        if  nn == 0.0 
+        nn = norm(normalout)
+        if nn == 0.0
             @warn("Zero-length normal")
         else
             normalout ./= nn
         end
         return normalout
     end
-    return SurfaceNormal(VectorCache(FFlt, ndimensions, defaultcomputenormal!));
+    return SurfaceNormal(VectorCache(FFlt, ndimensions, defaultcomputenormal!))
 end
 
 """
@@ -98,7 +104,7 @@ end
 Construct surface normal vector when the *constant* normal vector is given.
 """
 function SurfaceNormal(vector::FVec{T}) where {T<:Number}
-    return SurfaceNormal(VectorCache(deepcopy(vector)));
+    return SurfaceNormal(VectorCache(deepcopy(vector)))
 end
 
 """

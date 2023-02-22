@@ -7,12 +7,14 @@ module MeshQuadrilateralModule
 
 __precompile__(true)
 
-using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using ..FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FESetModule: AbstractFESet, FESetQ4, FESetQ8, bfun, cat, connasarray, FESetL2
 import ..FENodeSetModule: FENodeSet, count
 import ..MeshModificationModule: mergemeshes, updateconn!
 import ..MeshSelectionModule: connectednodes
-import ..MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace, linearspace
+import ..MeshUtilModule:
+    makecontainer, addhyperface!, findhyperface!, linearspace, linearspace
 import LinearAlgebra: norm
 import Statistics: mean
 
@@ -26,16 +28,17 @@ and  external radius `rex`, and  development angle `Angl` (in radians). Divided
 into elements: nr, nc in the radial and circumferential direction respectively.
 """
 function Q4annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
-    trin=min(rin,rex);
-    trex=max(rin,rex);
-    fens,fes =Q4block(trex-trin,Angl,nr,nc);
-    xy=fens.xyz;
-    for i=1:count(fens)
-        r=trin+xy[i,1]; a=xy[i,2];
-        xy[i,:]=[r*cos(a) r*sin(a)];
+    trin = min(rin, rex)
+    trex = max(rin, rex)
+    fens, fes = Q4block(trex - trin, Angl, nr, nc)
+    xy = fens.xyz
+    for i in 1:count(fens)
+        r = trin + xy[i, 1]
+        a = xy[i, 2]
+        xy[i, :] = [r * cos(a) r * sin(a)]
     end
-    fens.xyz=xy;
-    return fens,fes
+    fens.xyz = xy
+    return fens, fes
 end
 
 """
@@ -44,35 +47,37 @@ end
 Mesh of a general quadrilateral given by the location of the vertices.
 """
 function Q4quadrilateral(xyz::FFltMat, nL::FInt, nW::FInt)
-    npts=size(xyz,1);
-    if npts==2 # In this case the quadrilateral must be defined in two dimensions
-        lo=minimum(xyz, dims = 1);
-        hi=maximum(xyz, dims = 1);
-        xyz=[[lo[1] lo[2]];
-            [hi[1] lo[2]];
-            [hi[1] hi[2]];
-            [lo[1] hi[2]]];
-    elseif npts!=4
-        error("Need 2 or 4 points");
+    npts = size(xyz, 1)
+    if npts == 2 # In this case the quadrilateral must be defined in two dimensions
+        lo = minimum(xyz, dims = 1)
+        hi = maximum(xyz, dims = 1)
+        xyz = [
+            [lo[1] lo[2]]
+            [hi[1] lo[2]]
+            [hi[1] hi[2]]
+            [lo[1] hi[2]]
+        ]
+    elseif npts != 4
+        error("Need 2 or 4 points")
     end
 
-    fens,fes = Q4block(2.,2.,nL,nW);
+    fens, fes = Q4block(2.0, 2.0, nL, nW)
 
-    xyz1=fens.xyz;
-    if (size(xyz1,2)<size(xyz,2))
-        nxyz1=zeros(FFlt,size(xyz1,1),size(xyz,2));
-        nxyz1[:,1:size(xyz1,2)]=xyz1;
-        xyz1=nxyz1;
+    xyz1 = fens.xyz
+    if (size(xyz1, 2) < size(xyz, 2))
+        nxyz1 = zeros(FFlt, size(xyz1, 1), size(xyz, 2))
+        nxyz1[:, 1:size(xyz1, 2)] = xyz1
+        xyz1 = nxyz1
     end
 
-    dummy = FESetQ4(reshape(collect(1:4),1,4))
-    pxyz = xyz1;
-    for i = 1:count(fens)
-        N = bfun(dummy, broadcast(-, pxyz[i,:], 1.0));# shift coordinates by -1
-        pxyz[i,:] = N'*xyz;
+    dummy = FESetQ4(reshape(collect(1:4), 1, 4))
+    pxyz = xyz1
+    for i in 1:count(fens)
+        N = bfun(dummy, broadcast(-, pxyz[i, :], 1.0))# shift coordinates by -1
+        pxyz[i, :] = N' * xyz
     end
-    fens.xyz = deepcopy(pxyz);
-    return fens,fes
+    fens.xyz = deepcopy(pxyz)
+    return fens, fes
 end
 
 """
@@ -89,34 +94,47 @@ Mesh of one quarter of a rectangular plate with an elliptical hole.
     nW= number of edges along the remaining straight edge (from the hole
       in the direction of the length),
 """
-function Q4elliphole(xradius::FFlt, yradius::FFlt, L::FFlt, H::FFlt,
-    nL::FInt, nH::FInt, nW::FInt)
-    dA =pi/2/(nL +nH);
-    tolerance = (xradius+yradius)/(nL*nH)/100;
-    fens= nothing; fes= nothing;
-    for i= 1:nH
-        xy = [xradius*cos((i-1)*dA) yradius*sin((i-1)*dA);
-        L (i-1)/nH*H;
-        L (i)/nH*H;
-        xradius*cos((i)*dA) yradius*sin((i)*dA)];
-        fens1,fes1 = Q4quadrilateral(xy,nW,1);
+function Q4elliphole(
+    xradius::FFlt,
+    yradius::FFlt,
+    L::FFlt,
+    H::FFlt,
+    nL::FInt,
+    nH::FInt,
+    nW::FInt,
+)
+    dA = pi / 2 / (nL + nH)
+    tolerance = (xradius + yradius) / (nL * nH) / 100
+    fens = nothing
+    fes = nothing
+    for i in 1:nH
+        xy = [
+            xradius*cos((i - 1) * dA) yradius*sin((i - 1) * dA)
+            L (i-1)/nH*H
+            L (i)/nH*H
+            xradius*cos((i) * dA) yradius*sin((i) * dA)
+        ]
+        fens1, fes1 = Q4quadrilateral(xy, nW, 1)
         if (fens == nothing)
-            fens = fens1; fes = fes1;
+            fens = fens1
+            fes = fes1
         else
-            fens,fes1,fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance);
-            fes = cat(fes1,fes2);
+            fens, fes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance)
+            fes = cat(fes1, fes2)
         end
     end
-    for i= 1:nL
-        xy = [xradius*cos((nH+i-1)*dA)   yradius*sin((nH+i-1)*dA);
-        (nL-i+1)/nL*L   H;
-        (nL-i)/nL*L  H;
-        xradius*cos((nH+i)*dA)   yradius*sin((nH+i)*dA)];
-        fens1,fes1 = Q4quadrilateral(xy,nW,1);
-        fens,fes1,fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance);
-        fes = cat(fes1, fes2);
+    for i in 1:nL
+        xy = [
+            xradius*cos((nH + i - 1) * dA) yradius*sin((nH + i - 1) * dA)
+            (nL-i+1)/nL*L H
+            (nL-i)/nL*L H
+            xradius*cos((nH + i) * dA) yradius*sin((nH + i) * dA)
+        ]
+        fens1, fes1 = Q4quadrilateral(xy, nW, 1)
+        fens, fes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance)
+        fes = cat(fes1, fes2)
     end
-    return fens,fes
+    return fens, fes
 end
 
 """
@@ -127,7 +145,10 @@ Mesh of a rectangle, Q4 elements.
 Divided into elements: nL, nW in the first, second (x,y).
 """
 function Q4block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt)
-    return Q4blockx(collect(linearspace(0.0,Length,nL+1)), collect(linearspace(0.0,Width,nW+1)));
+    return Q4blockx(
+        collect(linearspace(0.0, Length, nL + 1)),
+        collect(linearspace(0.0, Width, nW + 1)),
+    )
 end
 
 """
@@ -142,27 +163,27 @@ Graded mesh  of a rectangle, Q4 finite elements.
     xs,ys - Locations of the individual planes of nodes.
 """
 function Q4blockx(xs::FFltVec, ys::FFltVec)
-    nL = length(xs) - 1;
-    nW = length(ys) - 1;
+    nL = length(xs) - 1
+    nW = length(ys) - 1
 
-    nnodes = (nL+1) * (nW+1);
-    ncells = nL * nW;
+    nnodes = (nL + 1) * (nW + 1)
+    ncells = nL * nW
 
     # preallocate node locations
-    xyz = zeros(FFlt, nnodes, 2);
-    k = 1;
-    for j = 1:(nW+1)
-        for i = 1:(nL+1)
+    xyz = zeros(FFlt, nnodes, 2)
+    k = 1
+    for j in 1:(nW+1)
+        for i in 1:(nL+1)
             xyz[k, 1] = xs[i]
             xyz[k, 2] = ys[j]
-            k = k + 1;
+            k = k + 1
         end
     end
     # create the nodes
-    fens = FENodeSet(xyz);
+    fens = FENodeSet(xyz)
 
     #preallocate connectivity matrix
-    conn = zeros(FInt, ncells, 4);
+    conn = zeros(FInt, ncells, 4)
 
     # function  nodenumbers(i,j,nL,nW)
     #     f = (j-1) * (nL+1) + i;
@@ -170,21 +191,21 @@ function Q4blockx(xs::FFltVec, ys::FFltVec)
     #     return nn
     # end
 
-    k = 1;
-    for i = 1:nL
-        for j = 1:nW
-            f = (j-1) * (nL+1) + i;
+    k = 1
+    for i in 1:nL
+        for j in 1:nW
+            f = (j - 1) * (nL + 1) + i
             conn[k, 1] = f
-            conn[k, 2] = (f+1)
-            conn[k, 3] = f+(nL+1)+1
-            conn[k, 4] = f+(nL+1)
-            k = k + 1;
+            conn[k, 2] = (f + 1)
+            conn[k, 3] = f + (nL + 1) + 1
+            conn[k, 4] = f + (nL + 1)
+            k = k + 1
         end
     end
     # create the cells
-    fes = FESetQ4(conn);
+    fes = FESetQ4(conn)
 
-    return fens,fes;
+    return fens, fes
 end
 
 function Q4blockx(xs::AbstractVector, ys::AbstractVector)
@@ -197,8 +218,8 @@ end
 Mesh of a rectangle of Q8 elements.
 """
 function Q8block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt)
-    fens,fes  = Q4block(Length, Width, nL, nW);
-    fens,fes = Q4toQ8(fens, fes);
+    fens, fes = Q4block(Length, Width, nL, nW)
+    fens, fes = Q4toQ8(fens, fes)
 end
 
 """
@@ -207,50 +228,50 @@ end
 Convert a mesh of quadrilateral Q4 to quadrilateral Q8.
 """
 function Q4toQ8(fens::FENodeSet, fes::FESetQ4)
-    nedges=4;
-    ec = [1  2; 2  3; 3  4; 4  1];
-    conns = connasarray(fes);
+    nedges = 4
+    ec = [1 2; 2 3; 3 4; 4 1]
+    conns = connasarray(fes)
     # Additional node numbers are numbered from here
-    newn = count(fens)+1;
+    newn = count(fens) + 1
     # make a search structure for edges
-    edges = makecontainer();
-    for i= 1:size(conns,1)
-        conn = conns[i,:];
-        for J = 1:nedges
-            ev = conn[ec[J,:]];
-            newn = addhyperface!(edges, ev, newn);
+    edges = makecontainer()
+    for i in axes(conns, 1)
+        conn = conns[i, :]
+        for J in 1:nedges
+            ev = conn[ec[J, :]]
+            newn = addhyperface!(edges, ev, newn)
         end
     end
-    xyz1 =fens.xyz;             # Pre-existing nodes
+    xyz1 = fens.xyz             # Pre-existing nodes
     # Allocate for vertex nodes plus edge nodes plus face nodes
-    xyz =zeros(FFlt,newn-1,size(xyz1,2));
-    xyz[1:size(xyz1,1),:] = xyz1; # existing nodes are copied over
+    xyz = zeros(FFlt, newn - 1, size(xyz1, 2))
+    xyz[1:size(xyz1, 1), :] = xyz1 # existing nodes are copied over
     # calculate the locations of the new nodes
     # and construct the new nodes
     for i in keys(edges)
-        C=edges[i];
-        for J = 1:length(C)
+        C = edges[i]
+        for J in eachindex(C)
             ix = vec([item for item in C[J].o])
-            push!(ix,  i) # Add the anchor point as well
-            xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1);
+            push!(ix, i) # Add the anchor point as well
+            xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1)
         end
     end
     # construct new geometry cells
-    nconns =zeros(FInt,size(conns,1),8);
-    nc=1;
-    for i= 1:size(conns,1)
-        conn = conns[i,:];
-        econn=zeros(FInt,1,nedges);
-        for J = 1:nedges
-            ev=conn[ec[J,:]];
-            h,n = findhyperface!(edges, ev);
-            econn[J]=n;
+    nconns = zeros(FInt, size(conns, 1), 8)
+    nc = 1
+    for i in axes(conns, 1)
+        conn = conns[i, :]
+        econn = zeros(FInt, 1, nedges)
+        for J in 1:nedges
+            ev = conn[ec[J, :]]
+            h, n = findhyperface!(edges, ev)
+            econn[J] = n
         end
-        nconns[nc,:] =vcat(vec(conn), vec(econn));
-        nc= nc+ 1;
+        nconns[nc, :] = vcat(vec(conn), vec(econn))
+        nc = nc + 1
     end
-    fens = FENodeSet(xyz);
-    fes = FESetQ8(nconns);
+    fens = FENodeSet(xyz)
+    fes = FESetQ8(nconns)
     return fens, fes
 end
 
@@ -260,8 +281,8 @@ end
 Graded mesh of a 2-D block of Q8 finite elements.
 """
 function Q8blockx(xs::FFltVec, ys::FFltVec)
-    fens, fes = Q4blockx(xs, ys);
-    fens, fes = Q4toQ8(fens, fes);
+    fens, fes = Q4blockx(xs, ys)
+    fens, fes = Q4toQ8(fens, fes)
 end
 
 """
@@ -270,61 +291,61 @@ end
 Refine a mesh of quadrilaterals by bisection.
 """
 function Q4refine(fens::FENodeSet, fes::FESetQ4)
-    nedges=4;
-    ec = [1  2; 2  3; 3  4; 4  1];
+    nedges = 4
+    ec = [1 2; 2 3; 3 4; 4 1]
     # make a search structure for edges
     # Additional node numbers are numbered from here
-    newn=count(fens)+1;
+    newn = count(fens) + 1
     # make a search structure for edges
-    edges=makecontainer();
-    for i= 1:length(fes.conn)
-        for J = 1:nedges
-            ev=fes.conn[i][ec[J,:]];
-            newn = addhyperface!(edges, ev, newn);
+    edges = makecontainer()
+    for i in eachindex(fes.conn)
+        for J in 1:nedges
+            ev = fes.conn[i][ec[J, :]]
+            newn = addhyperface!(edges, ev, newn)
         end
     end
-    newn=  newn+length(fes.conn) # add the interior nodes to the total
-    xyz1 =fens.xyz;             # Pre-existing nodes
+    newn = newn + length(fes.conn) # add the interior nodes to the total
+    xyz1 = fens.xyz             # Pre-existing nodes
     # Allocate for vertex nodes plus edge nodes plus face nodes
-    xyz =zeros(FFlt,newn-1,size(xyz1,2));
-    xyz[1:size(xyz1,1),:] = xyz1; # existing nodes are copied over
+    xyz = zeros(FFlt, newn - 1, size(xyz1, 2))
+    xyz[1:size(xyz1, 1), :] = xyz1 # existing nodes are copied over
     # calculate the locations of the new nodes
     # and construct the new nodes
     for i in keys(edges)
-        C=edges[i];
-        for J = 1:length(C)
+        C = edges[i]
+        for J in eachindex(C)
             ix = vec([item for item in C[J].o])
             push!(ix, i)
-            xyz[C[J].n,:] = mean(xyz[ix,:], dims = 1);
+            xyz[C[J].n, :] = mean(xyz[ix, :], dims = 1)
         end
     end
     # construct new geometry cells: for new elements out of one old one
-    nconn =zeros(FInt,4*length(fes.conn),4);
-    nc=1;
-    for i= 1:length(fes.conn)
-        econn=zeros(FInt,1,nedges);
-        for J = 1:nedges
-            ev=fes.conn[i][ec[J,:]];
-            h,n=findhyperface!(edges, ev);
-            econn[J]=n;
+    nconn = zeros(FInt, 4 * length(fes.conn), 4)
+    nc = 1
+    for i in eachindex(fes.conn)
+        econn = zeros(FInt, 1, nedges)
+        for J in 1:nedges
+            ev = fes.conn[i][ec[J, :]]
+            h, n = findhyperface!(edges, ev)
+            econn[J] = n
         end
 
-        inn=size(xyz,1)-length(fes.conn)+i
+        inn = size(xyz, 1) - length(fes.conn) + i
 
-        xyz[inn,:]=mean(xyz[[k for k in fes.conn[i]],:], dims = 1); # interior node
+        xyz[inn, :] = mean(xyz[[k for k in fes.conn[i]], :], dims = 1) # interior node
         #h,inn=findhyperface!(faces, conn);
-        nconn[nc,:] =[fes.conn[i][1] econn[1] inn econn[4]];
-        nc= nc+ 1;
-        nconn[nc,:] =[fes.conn[i][2] econn[2] inn econn[1]];
-        nc= nc+ 1;
-        nconn[nc,:] =[fes.conn[i][3] econn[3] inn econn[2]];
-        nc= nc+ 1;
-        nconn[nc,:] =[fes.conn[i][4] econn[4] inn econn[3]];
-        nc= nc+ 1;
+        nconn[nc, :] = [fes.conn[i][1] econn[1] inn econn[4]]
+        nc = nc + 1
+        nconn[nc, :] = [fes.conn[i][2] econn[2] inn econn[1]]
+        nc = nc + 1
+        nconn[nc, :] = [fes.conn[i][3] econn[3] inn econn[2]]
+        nc = nc + 1
+        nconn[nc, :] = [fes.conn[i][4] econn[4] inn econn[3]]
+        nc = nc + 1
     end
-    fens =FENodeSet(xyz);
-    nfes = FESetQ4(nconn);
-    return fens,nfes            # I think I should not be overwriting the input!
+    fens = FENodeSet(xyz)
+    nfes = FESetQ4(nconn)
+    return fens, nfes            # I think I should not be overwriting the input!
 end
 
 """
@@ -338,21 +359,22 @@ elements: nr, nc in the radial and circumferential direction
 respectively.
 """
 function Q8annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
-    trin=min(rin,rex);
-    trex=max(rin,rex);
-    fens,fes = Q8block(trex-trin,Angl,nr,nc);
-    xy=fens.xyz;
-    for i=1:count(fens)
-        r=trin+xy[i,1]; a=xy[i,2];
-        xy[i,:]=[r*cos(a) r*sin(a)];
+    trin = min(rin, rex)
+    trex = max(rin, rex)
+    fens, fes = Q8block(trex - trin, Angl, nr, nc)
+    xy = fens.xyz
+    for i in 1:count(fens)
+        r = trin + xy[i, 1]
+        a = xy[i, 2]
+        xy[i, :] = [r * cos(a) r * sin(a)]
     end
-    fens.xyz=xy;
-    return fens,fes
+    fens.xyz = xy
+    return fens, fes
 end
 
 function _ontosphere!(xyz, radius)
-    for j = 1:size(xyz, 1)
-        xyz[j,:] = xyz[j,:]*radius/norm(xyz[j,:]);
+    for j in axes(xyz, 1)
+        xyz[j, :] = xyz[j, :] * radius / norm(xyz[j, :])
     end
 end
 
@@ -362,26 +384,27 @@ end
 Generate mesh of a spherical surface (1/8th of the sphere).
 """
 function Q4spheren(radius::FFlt, nperradius)
-    if (mod(nperradius,2) != 0)
-        nperradius = nperradius+1;
+    if (mod(nperradius, 2) != 0)
+        nperradius = nperradius + 1
     end
-    nL = Int(nperradius/2); nW = Int(nperradius/2); 
-    tolerance = radius / nperradius / 100;
-    a = sqrt(2.0)/2;
-    b = 1/sqrt(3.0);
-    c = 0.6*a;
-    d = 0.6*b;
-    xyz = [1 0 0; 0 1 0; 0 0 1; a a 0; 0 a a; a 0 a; b b b];
-    conn = [1 4 7 6; 4 2 5 7; 3 6 7 5];
-    fens,fes = Q4quadrilateral(xyz[conn[1,:],:], nL, nW)
-    fens1,fes1 = Q4quadrilateral(xyz[conn[2,:],:], nL, nW)
-    fens,fes1,fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance);
-    fes = cat(fes1, fes2);
-    fens1,fes1 = Q4quadrilateral(xyz[conn[3,:],:], nL, nW)
-    fens,fes1,fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance);
-    fes = cat(fes1, fes2);
-    _ontosphere!(fens.xyz, radius);
-    return  fens,fes 
+    nL = Int(nperradius / 2)
+    nW = Int(nperradius / 2)
+    tolerance = radius / nperradius / 100
+    a = sqrt(2.0) / 2
+    b = 1 / sqrt(3.0)
+    c = 0.6 * a
+    d = 0.6 * b
+    xyz = [1 0 0; 0 1 0; 0 0 1; a a 0; 0 a a; a 0 a; b b b]
+    conn = [1 4 7 6; 4 2 5 7; 3 6 7 5]
+    fens, fes = Q4quadrilateral(xyz[conn[1, :], :], nL, nW)
+    fens1, fes1 = Q4quadrilateral(xyz[conn[2, :], :], nL, nW)
+    fens, fes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance)
+    fes = cat(fes1, fes2)
+    fens1, fes1 = Q4quadrilateral(xyz[conn[3, :], :], nL, nW)
+    fens, fes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance)
+    fes = cat(fes1, fes2)
+    _ontosphere!(fens.xyz, radius)
+    return fens, fes
 end
 
 
@@ -394,53 +417,53 @@ The parameter `nperradius` should be an even
 number; if that isn't so is adjusted to by adding one. 
 """
 function Q4circlen(radius::FFlt, nperradius)
-    fens,fes = Q4spheren(radius, nperradius);
+    fens, fes = Q4spheren(radius, nperradius)
     # % apply transformation to project the locations of the nodes into the
     # % plane x-y
-    for j=1:count(fens)
-    	r = norm(fens.xyz[j,3])
-        fens.xyz[j,1:2] = fens.xyz[j,1:2]*((radius-r)+r/2)/radius;
+    for j in 1:count(fens)
+        r = norm(fens.xyz[j, 3])
+        fens.xyz[j, 1:2] = fens.xyz[j, 1:2] * ((radius - r) + r / 2) / radius
         fens.xyz[j, 3] = 0.0
     end
-    return fens,fes
+    return fens, fes
 end
 
 
 function doextrude(fens, fes::FESetL2, nLayers, extrusionh)
-    nn1 = count(fens);
-    nnt = nn1*nLayers;
-    ngc = count(fes)*nLayers;
-    qconn = zeros(FInt, ngc, 4);
+    nn1 = count(fens)
+    nnt = nn1 * nLayers
+    ngc = count(fes) * nLayers
+    qconn = zeros(FInt, ngc, 4)
     conn = connasarray(fes)
     nnpe = size(conn, 2)
-    xyz = zeros(FFlt, nn1*(nLayers+1), size(fens.xyz, 2));
+    xyz = zeros(FFlt, nn1 * (nLayers + 1), size(fens.xyz, 2))
     x1 = fill(0.0, size(fens.xyz, 2))
-    for j=1:nn1
+    for j in 1:nn1
         x1[:] .= fens.xyz[j, :]
-        xyz[j, :] .= extrusionh(x1, 0);
+        xyz[j, :] .= extrusionh(x1, 0)
     end
-    for k = 1:nLayers
-        for j = 1:nn1
+    for k in 1:nLayers
+        for j in 1:nn1
             x1[:] .= fens.xyz[j, :]
-            f = j+k*nn1;
-            xyz[f, :] .= extrusionh(x1, k);
+            f = j + k * nn1
+            xyz[f, :] .= extrusionh(x1, k)
         end
     end
 
-    gc = 1;
-    for k = 1:nLayers
-        for i = 1:count(fes)
+    gc = 1
+    for k in 1:nLayers
+        for i in 1:count(fes)
             for n in 1:nnpe
-                qconn[gc, n] = conn[i, n] + (k-1)*nn1
+                qconn[gc, n] = conn[i, n] + (k - 1) * nn1
             end
             for n in 1:nnpe
-                qconn[gc, n+nnpe] = conn[i, nnpe+1-n] + (k)*nn1
+                qconn[gc, n+nnpe] = conn[i, nnpe+1-n] + (k) * nn1
             end
-            gc = gc+1;
+            gc = gc + 1
         end
     end
-    efes = FESetQ4(qconn);
-    efens = FENodeSet(xyz);
+    efes = FESetQ4(qconn)
+    efens = FENodeSet(xyz)
     return efens, efes
 end
 
@@ -450,13 +473,18 @@ end
 
 Extrude a mesh of linear segments into a mesh of quadrilaterals (Q4).
 """
-function Q4extrudeL2(fens::FENodeSet,  fes::FESetL2, nLayers::FInt, extrusionh::F) where {F<:Function}
+function Q4extrudeL2(
+    fens::FENodeSet,
+    fes::FESetL2,
+    nLayers::FInt,
+    extrusionh::F,
+) where {F<:Function}
     id = vec([i for i in 1:count(fens)])
-    cn = connectednodes(fes);
-    id[cn[:]] = vec([i for i in 1:length(cn)]);
-    l2fes= deepcopy(fes);
-    updateconn!(l2fes, id);
-    l2fens = FENodeSet(fens.xyz[cn[:], :]);
+    cn = connectednodes(fes)
+    id[cn[:]] = vec([i for i in eachindex(cn)])
+    l2fes = deepcopy(fes)
+    updateconn!(l2fes, id)
+    l2fens = FENodeSet(fens.xyz[cn[:], :])
     return doextrude(l2fens, l2fes, nLayers, extrusionh)
 end
 

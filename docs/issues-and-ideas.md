@@ -731,14 +731,14 @@ function f2!(v)
 end
 
 function f5!(v)
-    for i in 1:size(v, 1)
+    for i in axes((v, 1)
         x, y, z = v[i, 1], v[i, 2], v[i, 3]
         v[i, 1], v[i, 2], v[i, 3] = 2x, x*y, x*z
     end
 end
 
 function f6!(v)
-    for i in 1:size(v, 2)
+    for i in axes((v, 2)
         x, y, z = v[1, i], v[2, i], v[3, i]
         v[1, i], v[2, i], v[3, i] = 2x, x*y, x*z
     end

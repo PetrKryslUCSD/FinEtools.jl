@@ -7,7 +7,8 @@ module MeshSelectionModule
 
 __precompile__(true)
 
-using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using ..FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FESetModule: AbstractFESet, bfundpar, nodesperelem, manifdim, connasarray
 import ..FENodeSetModule: FENodeSet, spacedim
 import ..BoxModule: inflatebox!, initbox!, updatebox!, boxesoverlap
@@ -26,7 +27,7 @@ FEs are of the same type (the same number of connected nodes by each
 cell).
 """
 function connectednodes(fes::AbstractFESet)
-    return unique(connasarray(fes)[:]);
+    return unique(connasarray(fes)[:])
 end
 
 """
@@ -37,9 +38,9 @@ nodes.
 """
 function connectedelems(fes::AbstractFESet, node_list::FIntVec, nmax::FInt)
     f2fm = FENodeToFEMap(fes.conn, nmax)
-    cg = zeros(FInt, count(fes)); # No elements are part of the group to begin with
-    for j = node_list # for all nodes in the list
-        for i = 1:length(f2fm.map[j])
+    cg = zeros(FInt, count(fes)) # No elements are part of the group to begin with
+    for j in node_list # for all nodes in the list
+        for i in eachindex(f2fm.map[j])
             cg[f2fm.map[j][i]] = 1   # Mark element as being part of the group
         end
     end
@@ -97,7 +98,7 @@ nh = selectnode(fens, farthestfroms = [R+Ro/2, 0.0, 0.0] )
 """
 function selectnode(fens::FENodeSet; kwargs...)
     nodelist = vselect(fens.xyz; kwargs...)
-    nodelist = dropdims(reshape(nodelist,1,length(nodelist)), dims=1);
+    nodelist = dropdims(reshape(nodelist, 1, length(nodelist)), dims = 1)
     return nodelist
 end
 
@@ -206,9 +207,16 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
     # product of its normal and the direction vector is greater than tolerance.
 
     # Extract arguments
-    allin = nothing; flood = nothing; facing = nothing; label = nothing; withnodes = nothing
-    inflate = 0.0; nearestto = nothing; farthestfrom = nothing; # smoothpatch = nothing;
-    startnode = 0; dotmin = 0.01
+    allin = nothing
+    flood = nothing
+    facing = nothing
+    label = nothing
+    withnodes = nothing
+    inflate = 0.0
+    nearestto = nothing
+    farthestfrom = nothing # smoothpatch = nothing;
+    startnode = 0
+    dotmin = 0.01
     overlappingbox = nothing
     for apair in pairs(kwargs)
         sy, val = apair
@@ -242,10 +250,10 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
         end
     end
 
-    if facing != nothing
-        facing = true;
+    if facing !== nothing
+        facing = true
         direction = nothing
-        dotmin = 0.01;
+        dotmin = 0.01
         for apair in pairs(kwargs)
             sy, val = apair
             if sy == :direction
@@ -273,39 +281,39 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
     # The  elements of this array are flipped from zero  when the element satisfies
     # the search condition.. This list is  eventually purged of the zero elements and
     # returned.
-    felist = zeros(FInt,length(fes.conn));
+    felist = zeros(FInt, length(fes.conn))
 
     #     Select based on fe label
-    if label!= nothing
+    if label != nothing
         @assert length(fes.label) == length(fes.conn)
-        for i=1:length(fes.conn)
-            if label==fes.label[i]
-                felist[i] =i;   # matched this element
+        for i in eachindex(fes.conn)
+            if label == fes.label[i]
+                felist[i] = i   # matched this element
             end
         end
-        return  felist[findall(x->x!=0, felist)]; # return the nonzero element numbers
+        return felist[findall(x -> x != 0, felist)] # return the nonzero element numbers
     end
 
     # Select by flooding
-    if flood != nothing && (flood)
+    if flood !== nothing && (flood)
         @assert startnode > 0
         fen2fe = FENodeToFEMap(connasarray(fes), count(fens))
-        felist = zeros(FInt, count(fes));
-        pfelist = zeros(FInt, count(fes));
-        felist[fen2fe.map[startnode]] .= 1;
+        felist = zeros(FInt, count(fes))
+        pfelist = zeros(FInt, count(fes))
+        felist[fen2fe.map[startnode]] .= 1
         while true
-            copyto!(pfelist, felist);
+            copyto!(pfelist, felist)
             markedl = findall(x -> x != 0, felist)
-            for j = markedl
-                for k = fes.conn[j]
-                    felist[fen2fe.map[k]] .= 1;
+            for j in markedl
+                for k in fes.conn[j]
+                    felist[fen2fe.map[k]] .= 1
                 end
             end
-            if sum(pfelist-felist) == 0 # If there are no more changes in this pass, we are done
-                break;
+            if sum(pfelist - felist) == 0 # If there are no more changes in this pass, we are done
+                break
             end
         end
-        return findall(x -> x != 0, felist); # return the nonzero element numbers;
+        return findall(x -> x != 0, felist) # return the nonzero element numbers;
     end
 
     # Helper Function: are all nodes of an element in the list?
@@ -320,52 +328,52 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
 
     # Select all elements whose nodes are in a given list
     if withnodes != nothing
-        for i=1:length(fes.conn)
+        for i in eachindex(fes.conn)
             if nodesin(fes.conn[i], withnodes)
-                felist[i] =i;   # matched this element
+                felist[i] = i   # matched this element
             end
         end
-        return  felist[findall(x->x!=0, felist)]; # return the nonzero element numbers
+        return felist[findall(x -> x != 0, felist)] # return the nonzero element numbers
     end
 
     # Helper function: calculate the normal to a boundary finite element
     function normal(Tangents)
-        sdim, mdim = size(Tangents);
-        @assert (mdim==1) || (mdim==2)
-        if     mdim==1 # 1-D fe
-            N = [Tangents[2,1],-Tangents[1,1]];
-            return N/norm(N);
-        elseif mdim==2 # 2-D fe
-            N= cross(Tangents[:,1],Tangents[:,2])
-            return N/norm(N);
+        sdim, mdim = size(Tangents)
+        @assert (mdim == 1) || (mdim == 2)
+        if mdim == 1 # 1-D fe
+            N = [Tangents[2, 1], -Tangents[1, 1]]
+            return N / norm(N)
+        elseif mdim == 2 # 2-D fe
+            N = cross(Tangents[:, 1], Tangents[:, 2])
+            return N / norm(N)
         end
     end
 
     # Select by in which direction the normal of the fes face
-    if (facing != nothing) && (facing)
-        xs =fens.xyz;
-        sd =spacedim(fens);
-        md =manifdim(fes);
-        @assert (md == sd-1) "'Facing': only for Manifold dim. == Space dim.-1"
-        param_coords =zeros(FFlt,1,md);
-        Need_Evaluation = (typeof(direction) <: Function);
-        if ( !Need_Evaluation)
-            d = reshape(direction,1,sd)/norm(direction);
+    if (facing !== nothing) && (facing)
+        xs = fens.xyz
+        sd = spacedim(fens)
+        md = manifdim(fes)
+        @assert (md == sd - 1) "'Facing': only for Manifold dim. == Space dim.-1"
+        param_coords = zeros(FFlt, 1, md)
+        Need_Evaluation = (typeof(direction) <: Function)
+        if (!Need_Evaluation)
+            d = reshape(direction, 1, sd) / norm(direction)
         end
-        Nder = bfundpar(fes, vec(param_coords));
-        for i=1:length(fes.conn)
-            xyz =xs[[j for j in fes.conn[i]],:];
-            Tangents =xyz'*Nder;
-            N = normal(Tangents);
+        Nder = bfundpar(fes, vec(param_coords))
+        for i in eachindex(fes.conn)
+            xyz = xs[[j for j in fes.conn[i]], :]
+            Tangents = xyz' * Nder
+            N = normal(Tangents)
             if (Need_Evaluation)
-                d = direction(mean(xyz, dims = 1));
-                d = reshape(d,1,sd)/norm(d);
+                d = direction(mean(xyz, dims = 1))
+                d = reshape(d, 1, sd) / norm(d)
             end
-            if (dot(vec(N),vec(d)) > dotmin)
-                felist[i]=i;
+            if (dot(vec(N), vec(d)) > dotmin)
+                felist[i] = i
             end
         end
-        return  felist[findall(x->x!=0, felist)]; # return the nonzero element numbers
+        return felist[findall(x -> x != 0, felist)] # return the nonzero element numbers
     end
 
 
@@ -415,16 +423,16 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
         obox = deepcopy(overlappingbox) # do not mess with the array on input
         inflatebox!(obox, inflate)
         bbox = zeros(2 * size(fens.xyz, 2))
-        for i in 1:length(fes.conn)
+        for i in eachindex(fes.conn)
             bbox = initbox!(bbox, vec(fens.xyz[fes.conn[i][1], :]))
             for k in 2:length(fes.conn[i])
                 bbox = updatebox!(bbox, fens.xyz[fes.conn[i][k], :])
             end
             if boxesoverlap(obox, bbox)
-                felist[i]=i; # this element overlaps the box
+                felist[i] = i # this element overlaps the box
             end
         end
-        return  felist[findall(x->x!=0, felist)]; # return the nonzero element numbers
+        return felist[findall(x -> x != 0, felist)] # return the nonzero element numbers
     end
 
 
@@ -500,11 +508,11 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
 
     #  Default:   Select based on location of nodes
     #   Should we consider the element only if all its nodes are in?
-    allinvalue = (allin == nothing) || ((allin != nothing) && (allin))
+    allinvalue = (allin === nothing) || ((allin !== nothing) && (allin))
     # Select elements whose nodes are in the selected node list
-    nodelist = selectnode(fens; kwargs...);
+    nodelist = selectnode(fens; kwargs...)
     nper = nodesperelem(fes)
-    for i = 1:length(fes.conn)
+    for i in eachindex(fes.conn)
         found = 0
         for nd in fes.conn[i]
             if nd in nodelist
@@ -513,31 +521,33 @@ function selectelem(fens::FENodeSet, fes::T; kwargs...) where {T<:AbstractFESet}
         end
         if allinvalue
             if found == nper
-                felist[i] =i;
+                felist[i] = i
             end
         else
             if found >= 1
-                felist[i] =i;
+                felist[i] = i
             end
         end
     end
-    return felist[findall(x->x!=0, felist)]; # return the nonzero element numbers
+    return felist[findall(x -> x != 0, felist)] # return the nonzero element numbers
 
 end
 
 function _compute_vlist!(vlist::Vector{FInt}, abox::T, sdim::FInt, v::FFltMat) where {T}
     # Helper functions
-    @inline inrange(rangelo,rangehi,x) = (rangelo <= x <= rangehi)
+    @inline inrange(rangelo, rangehi, x) = (rangelo <= x <= rangehi)
     nn = 0
-    for j in 1:size(v,1)
+    for j in axes(v, 1)
         matches = true
         for i in 1:sdim
             if !inrange(abox[2*i-1], abox[2*i], v[j, i])
-                matches = false; break
+                matches = false
+                break
             end
         end
         if matches
-            nn = nn + 1; vlist[nn] = j;
+            nn = nn + 1
+            vlist[nn] = j
         end
     end
     return vlist, nn
@@ -553,8 +563,14 @@ used to search vertices.
 """
 function vselect(v::FFltMat; kwargs...)
     # Extract arguments
-    box = nothing; distance = nothing; from = nothing; plane  =  nothing;
-    thickness = nothing; nearestto = nothing; farthestfrom = nothing; inflate = 0.0;
+    box = nothing
+    distance = nothing
+    from = nothing
+    plane = nothing
+    thickness = nothing
+    nearestto = nothing
+    farthestfrom = nothing
+    inflate = 0.0
     for apair in pairs(kwargs)
         sy, val = apair
         if sy == :box
@@ -577,73 +593,76 @@ function vselect(v::FFltMat; kwargs...)
     end
 
     # Did we get an inflate value
-    inflatevalue = 0.0;
+    inflatevalue = 0.0
     if inflate != nothing
-        inflatevalue = FFlt(inflate);
+        inflatevalue = FFlt(inflate)
     end
 
     # Initialize the output list
-    vlist = zeros(FInt, size(v,1)); nn = 0;
+    vlist = zeros(FInt, size(v, 1))
+    nn = 0
 
 
     # Process the different options
-    if box != nothing
-        sdim = size(v,2)
-        dim = Int(round(length(box)/2.))::FInt;
+    if box !== nothing
+        sdim = size(v, 2)
+        dim = Int(round(length(box) / 2.0))::FInt
         @assert dim == sdim "Dimension of box not matched to dimension of array of vertices"
         abox = vec(box)::FFltVec
         inflatebox!(abox, inflatevalue)
         vlist, nn = _compute_vlist!(vlist, abox, sdim, v)
     elseif distance != nothing
-        fromvalue =fill!(deepcopy(v[1,:]), 0.0);
-        if from!=nothing
-            fromvalue = from;
+        fromvalue = fill!(deepcopy(v[1, :]), 0.0)
+        if from !== nothing
+            fromvalue = from
         end
-        fromvalue = reshape(fromvalue, (size(v[1,:])))
-        d=distance+inflatevalue;
-        for i=1:size(v,1)
-            if norm(fromvalue-v[i,:])<d
-                nn =nn +1; vlist[nn] =i;
+        fromvalue = reshape(fromvalue, (size(v[1, :])))
+        d = distance + inflatevalue
+        for i in axes(v, 1)
+            if norm(fromvalue - v[i, :]) < d
+                nn = nn + 1
+                vlist[nn] = i
             end
         end
     elseif plane != nothing
-        normal = plane[1:end-1];
-        normal = vec(normal/norm(normal));
-        thicknessvalue = 0.0;
+        normal = plane[1:end-1]
+        normal = vec(normal / norm(normal))
+        thicknessvalue = 0.0
         if thickness != nothing
-            thicknessvalue = thickness;
+            thicknessvalue = thickness
         end
-        t = thicknessvalue+inflatevalue;
-        distance = plane[end];
-        for i = 1:size(v,1)
-            ad = dot(v[i,:], normal);
-            if abs(distance-ad)<t
-                nn = nn +1; vlist[nn] =i;
+        t = thicknessvalue + inflatevalue
+        distance = plane[end]
+        for i in axes(v, 1)
+            ad = dot(v[i, :], normal)
+            if abs(distance - ad) < t
+                nn = nn + 1
+                vlist[nn] = i
             end
         end
     elseif nearestto != nothing
-        location = vec(nearestto);
-        distance =  zeros(size(v,1));
-        for i=1:size(v,1)
-            distance[i] = norm(location-vec(v[i,:]))
+        location = vec(nearestto)
+        distance = zeros(size(v, 1))
+        for i in axes(v, 1)
+            distance[i] = norm(location - vec(v[i, :]))
         end
-        Mv,j = findmin(distance)
-        vlist[1] = j;
-        nn=1;
+        Mv, j = findmin(distance)
+        vlist[1] = j
+        nn = 1
     elseif farthestfrom != nothing
-        location = vec(farthestfrom);
-        distance =  zeros(size(v,1));
-        for i=1:size(v,1)
-            distance[i] = norm(location-vec(v[i,:]))
+        location = vec(farthestfrom)
+        distance = zeros(size(v, 1))
+        for i in axes(v, 1)
+            distance[i] = norm(location - vec(v[i, :]))
         end
-        Mv,j = findmax(distance)
-        vlist[1] = j;
-        nn=1;
+        Mv, j = findmax(distance)
+        vlist[1] = j
+        nn = 1
     end
-    if (nn==0)
-        vlist = FInt[];# nothing matched
+    if (nn == 0)
+        vlist = FInt[]# nothing matched
     else
-        vlist = vlist[1:nn];
+        vlist = vlist[1:nn]
     end
     return vlist
 end
@@ -661,10 +680,9 @@ would like to remove from the mesh: here is how that would be
 accomplished.
 """
 function findunconnnodes(fens::FENodeSet, fes::AbstractFESet)
-    connected = trues(count(fens));
+    connected = trues(count(fens))
     fen2fem = FENodeToFEMap(connasarray(fes), count(fens))
-    for i=1:length(fen2fem.map),
-        connected[i] = (!isempty(fen2fem.map[i]));
+    for i in eachindex(fen2fem.map), connected[i] in (!isempty(fen2fem.map[i]))
     end
     return connected
 end

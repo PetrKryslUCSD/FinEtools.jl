@@ -7,7 +7,8 @@ module CSysModule
 
 __precompile__(true)
 
-using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using ..FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import LinearAlgebra: norm, cross
 
 """
@@ -21,7 +22,7 @@ struct CSys{F<:Function}
     isidentity::Bool
     updatebuffer!::F # function to update the coordinate system matrix.
     # `updatebuffer!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)`
-    csmat::Array{FFlt, 2} # the coordinate system matrix (buffer); see
+    csmat::Array{FFlt,2} # the coordinate system matrix (buffer); see
 end
 
 
@@ -41,8 +42,8 @@ where
 - `fe_label`= finite element label.
 """
 function CSys(sdim::FInt, mdim::FInt, computecsmat::F) where {F<:Function}
-    csmat = fill(zero(FFlt), sdim, mdim); # Allocate buffer, in preparation for the first call
-    return CSys(false, false, computecsmat, csmat);
+    csmat = fill(zero(FFlt), sdim, mdim) # Allocate buffer, in preparation for the first call
+    return CSys(false, false, computecsmat, csmat)
 end
 
 """
@@ -51,10 +52,15 @@ end
 Construct coordinate system when the rotation matrix is given.
 """
 function CSys(csmat::FFltMat)
-    function updatebuffer!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    function updatebuffer!(
+        csmatout::FFltMat,
+        XYZ::FFltMat,
+        tangents::FFltMat,
+        fe_label::FInt,
+    )
         return csmatout # nothing to be done here, the matrix is already in the buffer
     end
-    return CSys(true, false, updatebuffer!, deepcopy(csmat));# fill the buffer with the given matrix
+    return CSys(true, false, updatebuffer!, deepcopy(csmat))# fill the buffer with the given matrix
 end
 
 """
@@ -65,7 +71,7 @@ Construct coordinate system when the rotation matrix is the identity.
 `dim` = is the space dimension.
 """
 function CSys(dim::FInt)
-    return CSys([i==j ? one(FFlt) : zero(FFlt) for i=1:dim, j=1:dim]);
+    return CSys([i == j ? one(FFlt) : zero(FFlt) for i in 1:dim, j in 1:dim])
 end
 
 """
@@ -86,12 +92,17 @@ finite elements.
 `gen_iso_csmat`
 """
 function CSys(sdim::FInt, mdim::FInt)
-	csmat = fill(zero(FFlt), sdim, mdim); # Allocate buffer, prepare for the first call
-	function updatebuffer!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-		gen_iso_csmat!(csmatout, XYZ, tangents, fe_label)
-		return  csmatout
-	end
-	return CSys(false, false, updatebuffer!, csmat);
+    csmat = fill(zero(FFlt), sdim, mdim) # Allocate buffer, prepare for the first call
+    function updatebuffer!(
+        csmatout::FFltMat,
+        XYZ::FFltMat,
+        tangents::FFltMat,
+        fe_label::FInt,
+    )
+        gen_iso_csmat!(csmatout, XYZ, tangents, fe_label)
+        return csmatout
+    end
+    return CSys(false, false, updatebuffer!, csmat)
 end
 
 """
@@ -143,20 +154,20 @@ quadrature point gets a local coordinate system which depends on the
 orientation of the element.
 """
 function gen_iso_csmat!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    sdim, mdim = size(tangents);
+    sdim, mdim = size(tangents)
     if sdim == mdim # finite element embedded in space of the same dimension
-        copyto!(csmatout, [i==j ? one(FFlt) : zero(FFlt) for i=1:sdim, j=1:sdim]);
+        copyto!(csmatout, [i == j ? one(FFlt) : zero(FFlt) for i in 1:sdim, j in 1:sdim])
     else # lower-dimensional finite element embedded in space of higher dimension
         @assert 0 < mdim < 3
-        e1 = tangents[:,1]/norm(tangents[:,1]);
+        e1 = tangents[:, 1] / norm(tangents[:, 1])
         if mdim == 1 # curve-like finite element
-            copyto!(csmatout, e1);
+            copyto!(csmatout, e1)
         elseif mdim == 2 # surface-like finite element
-            n = cross(e1, vec(tangents[:,2]/norm(tangents[:,2])));
-            e2 = cross(n, e1);
-            e2 = e2/norm(e2);
-            csmatout[:,1] = e1
-            csmatout[:,2] = e2
+            n = cross(e1, vec(tangents[:, 2] / norm(tangents[:, 2])))
+            e2 = cross(n, e1)
+            e2 = e2 / norm(e2)
+            csmatout[:, 1] = e1
+            csmatout[:, 2] = e2
         end
     end
     return csmatout

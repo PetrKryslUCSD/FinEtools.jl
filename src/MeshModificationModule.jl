@@ -7,8 +7,20 @@ module MeshModificationModule
 
 __precompile__(true)
 
-using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import ..FESetModule: AbstractFESet, count, boundaryconn, boundaryfe, updateconn!, connasarray, fromarray!, centroidparametric, bfun, bfundpar, subset
+using ..FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+import ..FESetModule:
+    AbstractFESet,
+    count,
+    boundaryconn,
+    boundaryfe,
+    updateconn!,
+    connasarray,
+    fromarray!,
+    centroidparametric,
+    bfun,
+    bfundpar,
+    subset
 import ..FENodeSetModule: FENodeSet
 import ..BoxModule: boundingbox, inflatebox!, intersectboxes, inbox
 import ..MeshSelectionModule: connectednodes, selectelem
@@ -31,12 +43,12 @@ Extract the boundary connectivity from the connectivity of the interior.
     extractb = [1 3 2; 1 2 4; 2 3 4; 1 4 3]
     ```
 """
-function interior2boundary(interiorconn::Array{Int, 2}, extractb::Array{Int, 2})
+function interior2boundary(interiorconn::Array{Int,2}, extractb::Array{Int,2})
     hypf = interiorconn[:, extractb[1, :]]
-    for i = 2:size(extractb, 1)
+    for i in 2:size(extractb, 1)
         hypf = vcat(hypf, interiorconn[:, extractb[i, :]])
     end
-    return _myunique2(hypf);
+    return _myunique2(hypf)
 end
 
 """
@@ -49,111 +61,112 @@ supplied finite element set of manifold dimension (n).
 """
 function meshboundary(fes::T) where {T<:AbstractFESet}
     # Form all hyperfaces, non-duplicates are boundary cells
-    hypf = boundaryconn(fes);    # get the connectivity of the boundary elements
-    bdryconn = _myunique2(hypf);
-    make = boundaryfe(fes);     # get the function that can make a boundary element
-    return make(bdryconn);
+    hypf = boundaryconn(fes)    # get the connectivity of the boundary elements
+    bdryconn = _myunique2(hypf)
+    make = boundaryfe(fes)     # get the function that can make a boundary element
+    return make(bdryconn)
 end
 
 function _mysortrows(A::FIntMat)
     # Sort the rows of A by sorting each column from back to front.
 
-    m,n = size(A);
+    m, n = size(A)
 
-    indx =  zeros(FInt,m); sindx = zeros(FInt,m)
-    for i=1:m
-        indx[i]=i
+    indx = zeros(FInt, m)
+    sindx = zeros(FInt, m)
+    for i in 1:m
+        indx[i] = i
     end
-    nindx =  zeros(FInt,m);
-    col = zeros(FInt,m)
-    for c = n:-1:1
-        for i=1:m
-            col[i]=A[indx[i],c]
+    nindx = zeros(FInt, m)
+    col = zeros(FInt, m)
+    for c in n:-1:1
+        for i in 1:m
+            col[i] = A[indx[i], c]
         end
         #Sorting a column vector is much faster than sorting a column matrix
-        sindx=sortperm(col,alg=QuickSort);
+        sindx = sortperm(col, alg = QuickSort)
         #sortperm!(sindx,col,alg=QuickSort); # available for 0.4, slightly faster
         #indx=indx[sindx] # saving allocations by using the below loops
-        for i=1:m
-            nindx[i]=indx[sindx[i]]
+        for i in 1:m
+            nindx[i] = indx[sindx[i]]
         end
-        for i=1:m
-            indx[i]=nindx[i]
+        for i in 1:m
+            indx[i] = nindx[i]
         end
     end
 
-    return A[indx,:]
+    return A[indx, :]
 end
 
 function _mysortdim2!(A::FIntMat)
     # Sort each row  of A in ascending order.
 
-    m,n = size(A);
-    r = zeros(FInt,n)
-   @inbounds for k = 1:m
-        for i=1:n
-            r[i]=A[k,i]
+    m, n = size(A)
+    r = zeros(FInt, n)
+    @inbounds for k in 1:m
+        for i in 1:n
+            r[i] = A[k, i]
         end
-        sort!(r);
-        for i=1:n
-            A[k,i]=r[i]
+        sort!(r)
+        for i in 1:n
+            A[k, i] = r[i]
         end
     end
     return A
 end
 
-function  _myunique2(A::FIntVec)
+function _myunique2(A::FIntVec)
     return _myunique2(reshape(A, length(A), 1))
 end
 
-function  _myunique2(A::FIntMat) # speeded up; now the bottleneck is _mysortrows
-    Out = A[_myunique2index(A),:];
+function _myunique2(A::FIntMat) # speeded up; now the bottleneck is _mysortrows
+    Out = A[_myunique2index(A), :]
 end
 
-function  _myunique2index(A::FIntMat) # speeded up; now the bottleneck is _mysortrows
+function _myunique2index(A::FIntMat) # speeded up; now the bottleneck is _mysortrows
     #println("size(A)=$(size(A))")
-    maxA=maximum(A[:])::FInt
-    sA=deepcopy(A)
+    maxA = maximum(A[:])::FInt
+    sA = deepcopy(A)
     #@time
-    sA=_mysortdim2!(sA)::FIntMat;#this is fast
+    sA = _mysortdim2!(sA)::FIntMat#this is fast
     #@time sA=sort(A,2,alg=QuickSort)::FIntMat;#this is slow
-    sA= [sA broadcast(+, 1:size(A,1), maxA)]::FIntMat
+    sA = [sA broadcast(+, 1:size(A, 1), maxA)]::FIntMat
     #@time
-    sA =_mysortrows(sA); # this now takes the majority of time, but much less than the function below
+    sA = _mysortrows(sA) # this now takes the majority of time, but much less than the function below
     #@time sA  = sortrows(sA,alg=QuickSort);;#this is slow
-    rix=sA[:,end];
+    rix = sA[:, end]
     broadcast!(-, rix, rix, maxA)
-    sA=sA[:,1:end-1];
-    d=falses(size(sA,1)-1)
-    for k=1:length(d)
-        for m=1:size(sA,2)
-            if sA[k,m]!=sA[k+1,m]
-                d[k]=true;
-                break;
+    sA = sA[:, 1:end-1]
+    d = falses(size(sA, 1) - 1)
+    for k in eachindex(d)
+        for m in axes(sA, 2)
+            if sA[k, m] != sA[k+1, m]
+                d[k] = true
+                break
             end
         end
     end
     #d=(sA[1:end-1,:].!=sA[2:end,:]); # element-wise comparison!
-    ad=zeros(FInt,size(d,1)+1)
-    ad[1]=1;
-    for k=2:length(ad)
-        for m=1:size(d,2)
-            if d[k-1,m]!=0
-                ad[k]=1;
-                break;
+    ad = zeros(FInt, size(d, 1) + 1)
+    ad[1] = 1
+    for k in 2:lastindex(ad)
+        for m in axes(d, 2)
+            if d[k-1, m] != 0
+                ad[k] = 1
+                break
             end
         end
     end
     #ad=map((x) -> (x?1:0),[true; any(d,2)]);
-    iu=trues(length(ad))
-    for k=1:(length(ad)-1)
-        ad[k]=ad[k]+ad[k+1]
-        iu[k]=(ad[k]>1)
+    iu = trues(length(ad))
+    for k in 1:(lastindex(ad)-1)
+        ad[k] = ad[k] + ad[k+1]
+        iu[k] = (ad[k] > 1)
     end
-    ad[end]=ad[end]+1;
-    iu[end]=(ad[end]>1)
+    ad[end] = ad[end] + 1
+    iu[end] = (ad[end] > 1)
     #iu =map((x) -> (x>1? true: false),(ad + [ad[2:end];1]));
-    return rix[iu];
+    return rix[iu]
 end
 
 # ### This code is correct, but very slow.
@@ -194,43 +207,49 @@ The finite element set connectivity that used to refer to `fens1`
 needs to be updated to refer to the same nodes in  the set `fens` as
      `updateconn!(fes, new_indexes_of_fens1_nodes);`
 """
-function fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance:: FFlt)
+function fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance::FFlt)
     @assert size(fens1.xyz, 2) == size(fens2.xyz, 2)
-    dim::FInt = size(fens1.xyz,2);
+    dim::FInt = size(fens1.xyz, 2)
     nn1::FInt = count(fens1)
     nn2::FInt = count(fens2)
-    xyz1 = zeros(FFlt,nn1,dim); copyto!(xyz1, fens1.xyz)#::FFltMat = copy(fens1.xyz::FFltMat)
-    id1 = collect(1:nn1);
-    xyz2 = zeros(FFlt,nn2,dim); copyto!(xyz2, fens2.xyz)#xyz2::FFltMat = copy(fens2.xyz::FFltMat)
-    id2 = collect(1:nn2);
+    xyz1 = zeros(FFlt, nn1, dim)
+    copyto!(xyz1, fens1.xyz)#::FFltMat = copy(fens1.xyz::FFltMat)
+    id1 = collect(1:nn1)
+    xyz2 = zeros(FFlt, nn2, dim)
+    copyto!(xyz2, fens2.xyz)#xyz2::FFltMat = copy(fens2.xyz::FFltMat)
+    id2 = collect(1:nn2)
     # Decide which nodes should be checked for proximity
-    ib::FFltVec = intersectboxes(inflatebox!(boundingbox(xyz1), tolerance), inflatebox!(boundingbox(xyz2), tolerance))
-    node1in = fill(false, nn1);
-    node2in = fill(false, nn2);
+    ib::FFltVec = intersectboxes(
+        inflatebox!(boundingbox(xyz1), tolerance),
+        inflatebox!(boundingbox(xyz2), tolerance),
+    )
+    node1in = fill(false, nn1)
+    node2in = fill(false, nn2)
     if length(ib) > 0
-        for i=1:nn1
+        for i in 1:nn1
             node1in[i] = inbox(ib, @view xyz1[i, :])
         end
-        for i=1:nn2
+        for i in 1:nn2
             node2in[i] = inbox(ib, @view xyz2[i, :])
         end
     end
     # Mark nodes from the first array that are duplicated in the second
     if (tolerance > 0.0) # should we attempt to merge nodes?
-        for i=1:nn1
+        for i in 1:nn1
             if node1in[i]
                 breakoff = false
-                for rx=1:nn2
+                for rx in 1:nn2
                     if node2in[rx]
-                        distance::FFlt= 0.0
-                        for cx=1:dim
-                            distance = distance + abs(xyz2[rx,cx]-xyz1[i,cx]);
+                        distance::FFlt = 0.0
+                        for cx in 1:dim
+                            distance = distance + abs(xyz2[rx, cx] - xyz1[i, cx])
                             if (distance >= tolerance) # shortcut: if the distance is already too large, stop checking
                                 break
                             end
                         end
                         if (distance < tolerance)
-                            id1[i] = -rx; breakoff = true;
+                            id1[i] = -rx
+                            breakoff = true
                         end
                     end
                     if breakoff
@@ -241,37 +260,37 @@ function fusenodes(fens1::FENodeSet, fens2::FENodeSet, tolerance:: FFlt)
         end
     end
     # Generate  fused arrays of the nodes. First copy in the nodes from the second set...
-    xyzm = zeros(FFlt,nn1+nn2,dim);
-    for rx = 1:nn2
-        for cx = 1:dim
-            xyzm[rx,cx] = xyz2[rx,cx];
+    xyzm = zeros(FFlt, nn1 + nn2, dim)
+    for rx in 1:nn2
+        for cx in 1:dim
+            xyzm[rx, cx] = xyz2[rx, cx]
         end
     end
-    idm = zeros(FInt,nn1+nn2);
-    for rx = 1:nn2
-        idm[rx] = rx;
+    idm = zeros(FInt, nn1 + nn2)
+    for rx in 1:nn2
+        idm[rx] = rx
     end
-    mid=nn2+1;
+    mid = nn2 + 1
     # ...and then we add in only non-duplicated nodes from the first set
-    for i=1:nn1
-        if id1[i]>0
-            id1[i] = mid;
-            idm[mid] = mid;
-            for cx = 1:dim
-                xyzm[mid,cx] = xyz1[i,cx];
+    for i in 1:nn1
+        if id1[i] > 0
+            id1[i] = mid
+            idm[mid] = mid
+            for cx in 1:dim
+                xyzm[mid, cx] = xyz1[i, cx]
             end
-            mid = mid+1;
+            mid = mid + 1
         else
-            id1[i] = id2[-id1[i]];
+            id1[i] = id2[-id1[i]]
         end
     end
-    nnodes = mid-1;
-    xyzm = xyzm[1:nnodes,:];
+    nnodes = mid - 1
+    xyzm = xyzm[1:nnodes, :]
 
     # Create the fused Node set
-    fens = FENodeSet(xyzm);
+    fens = FENodeSet(xyzm)
     # The Node set 1 numbering will change
-    new_indexes_of_fens1_nodes = id1[:];
+    new_indexes_of_fens1_nodes = id1[:]
     # The node set 2 numbering stays the same
     return fens, new_indexes_of_fens1_nodes
 end
@@ -309,18 +328,18 @@ validate_mesh(fens, fes);
 """
 function compactnodes(fens::FENodeSet, connected::BitArray{1})
     @assert length(connected) == count(fens)
-    new_numbering = zeros(FInt,count(fens),1);
-    nxyz = deepcopy(fens.xyz);
-    id=1;
-    for i=1:length(connected)
+    new_numbering = zeros(FInt, count(fens), 1)
+    nxyz = deepcopy(fens.xyz)
+    id = 1
+    for i in eachindex(connected)
         if (connected[i])
-            new_numbering[i] = id;
-            nxyz[id,:] = fens.xyz[i,:];
-            id=id+1;
+            new_numbering[i] = id
+            nxyz[id, :] = fens.xyz[i, :]
+            id = id + 1
         end
     end
     #new_numbering = new_numbering[1:id-1];
-    fens = FENodeSet(nxyz[1:id-1,:]);
+    fens = FENodeSet(nxyz[1:id-1, :])
     return fens, vec(new_numbering)
 end
 
@@ -347,14 +366,19 @@ this function returns the connectivity of both `fes1` and `fes2` point into
 `fens2` is are guaranteed to be the same. Therefore, the connectivity of
 `fes2` will in fact remain the same.
 """
-function mergemeshes(fens1::FENodeSet, fes1::T1,
-    fens2::FENodeSet, fes2::T2, tolerance::FFlt) where {T1<:AbstractFESet,T2<:AbstractFESet}
+function mergemeshes(
+    fens1::FENodeSet,
+    fes1::T1,
+    fens2::FENodeSet,
+    fes2::T2,
+    tolerance::FFlt,
+) where {T1<:AbstractFESet,T2<:AbstractFESet}
     # Fuse the nodes
     # @code_warntype fusenodes(fens1, fens2, tolerance);
-    fens, new_indexes_of_fens1_nodes = fusenodes(fens1, fens2, tolerance);
+    fens, new_indexes_of_fens1_nodes = fusenodes(fens1, fens2, tolerance)
     # Renumber the finite elements
     newfes1 = deepcopy(fes1)
-    updateconn!(newfes1, new_indexes_of_fens1_nodes);
+    updateconn!(newfes1, new_indexes_of_fens1_nodes)
     # Note that now the connectivity of both fes1 and fes2 point into
     # fens.
     return fens, newfes1, fes2
@@ -373,20 +397,20 @@ nodes is performed; the nodes from the meshes are simply concatenated together.
 The merged node set, `fens`, and an array of finite element sets with
 renumbered  connectivities are returned.
 """
-function mergenmeshes(meshes::Array{Tuple{FENodeSet, AbstractFESet}}, tolerance::FFlt)
+function mergenmeshes(meshes::Array{Tuple{FENodeSet,AbstractFESet}}, tolerance::FFlt)
     outputfes = Array{AbstractFESet,1}()
     if (length(meshes)) == 1 # A single mesh, package output and return
-        fens, fes = meshes[1];
+        fens, fes = meshes[1]
         push!(outputfes, fes)
         return fens, outputfes
     end
     # Multiple meshes: process
-    fens, fes = meshes[1];
+    fens, fes = meshes[1]
     push!(outputfes, fes)
-    for j=2:length(meshes)
-        fens1, fes1 = meshes[j];
-        fens, new_indexes_of_fens1_nodes = fusenodes(fens1, fens, tolerance);
-        updateconn!(fes1,new_indexes_of_fens1_nodes);
+    for j in 2:length(meshes)
+        fens1, fes1 = meshes[j]
+        fens, new_indexes_of_fens1_nodes = fusenodes(fens1, fens, tolerance)
+        updateconn!(fes1, new_indexes_of_fens1_nodes)
         push!(outputfes, fes1)
     end
     return fens, outputfes
@@ -407,49 +431,49 @@ Warning: This tends to be an expensive operation!
 """
 function mergenodes(fens::FENodeSet, fes::AbstractFESet, tolerance::FFlt)
     maxnn = count(fens) + 1
-    xyz1 = fens.xyz;
-    dim  = size(xyz1,2);
-    id1 = collect(1:count(fens));
-    d = zeros(size(xyz1,1));
+    xyz1 = fens.xyz
+    dim = size(xyz1, 2)
+    id1 = collect(1:count(fens))
+    d = zeros(size(xyz1, 1))
     # Mark nodes from the array that are duplicated
-    for i = 1:count(fens)
+    for i in 1:count(fens)
         if (id1[i] > 0) # This node has not yet been marked for merging
-            XYZ = reshape(xyz1[i,:], 1, dim);
-            copyto!(d, sum(abs.(xyz1 .- XYZ), dims = 2)); #find the distances along  coordinate directions
+            XYZ = reshape(xyz1[i, :], 1, dim)
+            copyto!(d, sum(abs.(xyz1 .- XYZ), dims = 2)) #find the distances along  coordinate directions
             minn = maxnn
-            @inbounds for jx = 1:length(d)
+            @inbounds for jx in eachindex(d)
                 if d[jx] < tolerance
-                    minn = min(jx, minn);
-                    id1[jx] = -minn;
-                    id1[minn] = minn;
+                    minn = min(jx, minn)
+                    id1[jx] = -minn
+                    id1[minn] = minn
                 end
             end
         end
     end
     # Generate  merged arrays of the nodes
-    xyzm = zeros(FFlt,count(fens),dim);
-    mid = 1;
-    for i = 1:count(fens) # and then we pick only non-duplicated fens1
+    xyzm = zeros(FFlt, count(fens), dim)
+    mid = 1
+    for i in 1:count(fens) # and then we pick only non-duplicated fens1
         if id1[i] > 0 # this node is the master
-            id1[i] = mid;
-            xyzm[mid,:] = xyz1[i,:];
-            mid = mid+1;
+            id1[i] = mid
+            xyzm[mid, :] = xyz1[i, :]
+            mid = mid + 1
         else # this node is the slave
-            id1[i] = id1[-id1[i]];
+            id1[i] = id1[-id1[i]]
         end
     end
-    nnodes = mid-1;
-    xyzm = xyzm[1:nnodes,:];
+    nnodes = mid - 1
+    xyzm = xyzm[1:nnodes, :]
     # Renumber the cells
-    conns = connasarray(fes);
-    for i = 1:size(conns,1)
-        conns[i,:] = id1[conns[i,:]];
+    conns = connasarray(fes)
+    for i in axes(conns, 1)
+        conns[i, :] = id1[conns[i, :]]
     end
     fes = fromarray!(fes, conns)
 
-    fens = FENodeSet(xyzm[1:nnodes,:]);
+    fens = FENodeSet(xyzm[1:nnodes, :])
 
-    return fens,fes
+    return fens, fes
 end
 
 """
@@ -461,55 +485,60 @@ Similar to `mergenodes(fens::FENodeSet, fes::AbstractFESet, tolerance::FFlt)`,
 but only the candidate nodes are considered for merging. This can potentially
 speed up the operation by orders of magnitude.
 """
-function mergenodes(fens::FENodeSet, fes::AbstractFESet, tolerance::FFlt, candidates::FIntVec)
+function mergenodes(
+    fens::FENodeSet,
+    fes::AbstractFESet,
+    tolerance::FFlt,
+    candidates::FIntVec,
+)
     maxnn = count(fens) + 1
-    xyz1 = fens.xyz;
-    dim  = size(xyz1,2);
-    id1 = collect(1:count(fens));
-    d = fill(100.0*tolerance, size(xyz1, 1))
+    xyz1 = fens.xyz
+    dim = size(xyz1, 2)
+    id1 = collect(1:count(fens))
+    d = fill(100.0 * tolerance, size(xyz1, 1))
     # Mark nodes from the array that are duplicated
-    for ic = 1:length(candidates)
+    for ic in eachindex(candidates)
         i = candidates[ic]
         if (id1[i] > 0) # This node has not yet been marked for merging
-            XYZ = xyz1[i,:];
+            XYZ = xyz1[i, :]
             minn = maxnn
-            for kx = candidates
-                d[kx] = sum(abs.(xyz1[kx,:] .- XYZ))
+            for kx in candidates
+                d[kx] = sum(abs.(xyz1[kx, :] .- XYZ))
             end
-            @inbounds for jx = candidates
+            @inbounds for jx in candidates
                 if d[jx] < tolerance
-                    minn = min(jx, minn);
-                    id1[jx] = -minn;
-                    id1[minn] = minn;
+                    minn = min(jx, minn)
+                    id1[jx] = -minn
+                    id1[minn] = minn
                 end
             end
         end
     end
     # Generate  merged arrays of the nodes
-    xyzm = zeros(FFlt,count(fens),dim);
-    mid = 1;
-    for i = 1:count(fens) # and then we pick only non-duplicated fens1
+    xyzm = zeros(FFlt, count(fens), dim)
+    mid = 1
+    for i in 1:count(fens) # and then we pick only non-duplicated fens1
         if id1[i] > 0 # this node is the master
-            id1[i] = mid;
-            xyzm[mid,:] = xyz1[i,:];
-            mid = mid+1;
+            id1[i] = mid
+            xyzm[mid, :] = xyz1[i, :]
+            mid = mid + 1
         else # this node is the slave
-            id1[i] = id1[-id1[i]];
+            id1[i] = id1[-id1[i]]
         end
     end
-    nnodes = mid-1;
-    xyzm = xyzm[1:nnodes,:];
+    nnodes = mid - 1
+    xyzm = xyzm[1:nnodes, :]
     # Renumber the cells
-    conns = connasarray(fes);
-    for i = 1:count(fes)
-        conn = conns[i,:];
-        conns[i,:] = id1[conn];
+    conns = connasarray(fes)
+    for i in 1:count(fes)
+        conn = conns[i, :]
+        conns[i, :] = id1[conn]
     end
-    fes = fromarray!(fes, conns);
+    fes = fromarray!(fes, conns)
 
-    fens = FENodeSet(xyzm[1:nnodes,:]);
+    fens = FENodeSet(xyzm[1:nnodes, :])
 
-    return fens,fes
+    return fens, fes
 end
 
 """
@@ -536,9 +565,9 @@ validate_mesh(fens, fes);
 """
 function renumberconn!(fes::AbstractFESet, new_numbering::FIntVec)
     conn = connasarray(fes)
-    for i=1:size(conn,1)
-        c = conn[i,:];
-        conn[i,:] = new_numbering[c];
+    for i in axes(conn, 1)
+        c = conn[i, :]
+        conn[i, :] = new_numbering[c]
     end
     return fromarray!(fes, conn)
 end
@@ -555,28 +584,28 @@ Keyword options:
 `npass` = number of passes (default 2)
 """
 function vsmoothing(v::FFltMat, t::FIntMat; kwargs...)
-    fixedv = falses(size(v,1))
-    npass = 2;
-    method =:taubin;
+    fixedv = falses(size(v, 1))
+    npass = 2
+    method = :taubin
     for apair in pairs(kwargs)
         sy, val = apair
-        if sy==:method
+        if sy == :method
             method = val
-        elseif sy==:fixedv
+        elseif sy == :fixedv
             fixedv .= val
-        elseif sy==:npass
+        elseif sy == :npass
             npass = val
         end
     end
 
     nv = deepcopy(v)
     # find neighbors for the given connections
-    vneigh =  vertexneighbors(t,size(v,1));
+    vneigh = vertexneighbors(t, size(v, 1))
     # Smoothing considering all connections through the volume
     if (method == :taubin)
-        nv =  smoothertaubin(v,vneigh,fixedv,npass,0.5,-0.5);
+        nv = smoothertaubin(v, vneigh, fixedv, npass, 0.5, -0.5)
     elseif (method == :laplace)
-        nv =  smootherlaplace(v,vneigh,fixedv,npass,0.5,-0.5);
+        nv = smootherlaplace(v, vneigh, fixedv, npass, 0.5, -0.5)
     end
     # return new vertex locations
     return nv
@@ -603,50 +632,70 @@ function meshsmoothing(fens::FENodeSet, fes::T; options...) where {T<:AbstractFE
     return fens
 end
 
-function  smoothertaubin(vinp::FFltMat, vneigh::Array{FIntVec,1}, fixedv::T, npass::FInt, lambda::FFlt, mu::FFlt) where {T}
-    v=deepcopy(vinp);
-    nv=deepcopy(vinp);
-    for I= 1:npass
-        o=randperm(length(vneigh));
-        damping_factor=lambda;
-        for k= 1:length(vneigh)
-            r=o[k];
-            n=vneigh[r];
-            if (length(n)>1) && (!fixedv[r])
-                ln1 = (length(n)-1)
-                nv[r,:] .= (1-damping_factor)*vec(v[r,:]) + damping_factor*(vec(sum(v[n,:], dims = 1)) - vec(v[r,:]))/ln1;
+function smoothertaubin(
+    vinp::FFltMat,
+    vneigh::Array{FIntVec,1},
+    fixedv::T,
+    npass::FInt,
+    lambda::FFlt,
+    mu::FFlt,
+) where {T}
+    v = deepcopy(vinp)
+    nv = deepcopy(vinp)
+    for I in 1:npass
+        o = randperm(length(vneigh))
+        damping_factor = lambda
+        for k in eachindex(vneigh)
+            r = o[k]
+            n = vneigh[r]
+            if (length(n) > 1) && (!fixedv[r])
+                ln1 = (length(n) - 1)
+                nv[r, :] .=
+                    (1 - damping_factor) * vec(v[r, :]) +
+                    damping_factor * (vec(sum(v[n, :], dims = 1)) - vec(v[r, :])) / ln1
             end
         end
-        v=deepcopy(nv);
-        damping_factor=mu;
-        for k= 1:length(vneigh)
-            r=o[k];
-            n=vneigh[r];
-            if (length(n)>1) && (!fixedv[r])
-                ln1 = (length(n)-1)
-                nv[r,:] .= (1-damping_factor)*vec(v[r,:]) + damping_factor*(vec(sum(v[n,:], dims = 1)) - vec(v[r,:]))/ln1;
+        v = deepcopy(nv)
+        damping_factor = mu
+        for k in eachindex(vneigh)
+            r = o[k]
+            n = vneigh[r]
+            if (length(n) > 1) && (!fixedv[r])
+                ln1 = (length(n) - 1)
+                nv[r, :] .=
+                    (1 - damping_factor) * vec(v[r, :]) +
+                    damping_factor * (vec(sum(v[n, :], dims = 1)) - vec(v[r, :])) / ln1
             end
         end
-        v=deepcopy(nv);
+        v = deepcopy(nv)
     end
     return nv
 end
 
-function   smootherlaplace(vinp::FFltMat, vneigh::Array{FIntVec,1}, fixedv::T, npass::FInt, lambda::FFlt,mu::FFlt) where {T}
-    v=deepcopy(vinp);
-    nv=deepcopy(vinp);
-    damping_factor=lambda;
-    for I= 1:npass
-        o=randperm(length(vneigh));
-        for k= 1:length(vneigh)
-            r=o[k];
-            n=vneigh[r];
-            if (length(n)>1) && (!fixedv[r])
-                ln1 = (length(n)-1)
-                nv[r,:] = (1-damping_factor)*vec(v[r,:]) + damping_factor*(vec(sum(v[n,:], dims = 1))-vec(v[r,:]))/ln1;
+function smootherlaplace(
+    vinp::FFltMat,
+    vneigh::Array{FIntVec,1},
+    fixedv::T,
+    npass::FInt,
+    lambda::FFlt,
+    mu::FFlt,
+) where {T}
+    v = deepcopy(vinp)
+    nv = deepcopy(vinp)
+    damping_factor = lambda
+    for I in 1:npass
+        o = randperm(length(vneigh))
+        for k in eachindex(vneigh)
+            r = o[k]
+            n = vneigh[r]
+            if (length(n) > 1) && (!fixedv[r])
+                ln1 = (length(n) - 1)
+                nv[r, :] =
+                    (1 - damping_factor) * vec(v[r, :]) +
+                    damping_factor * (vec(sum(v[n, :], dims = 1)) - vec(v[r, :])) / ln1
             end
         end
-        v=deepcopy(nv);
+        v = deepcopy(nv)
     end
     return nv
 end
@@ -660,17 +709,18 @@ Return an array of integer vectors, element I holds an array of numbers of nodes
 which are connected to node I (including node I).
 """
 function vertexneighbors(conn::FIntMat, nvertices::FInt)
-    vn = FIntVec[]; sizehint!(vn, nvertices)
-    for I= 1:nvertices
-        push!(vn, FInt[]);          # preallocate
+    vn = FIntVec[]
+    sizehint!(vn, nvertices)
+    for I in 1:nvertices
+        push!(vn, FInt[])          # preallocate
     end
-    for I= 1:size(conn,1)
-        for r= 1:size(conn,2)
-            append!(vn[conn[I,r]],vec(conn[I,:]));
+    for I in axes(conn, 1)
+        for r in axes(conn, 2)
+            append!(vn[conn[I, r]], vec(conn[I, :]))
         end
     end
-    for I= 1:length(vn)
-        vn[I]=unique(vn[I]);
+    for I in eachindex(vn)
+        vn[I] = unique(vn[I])
     end
     return vn
 end
@@ -696,11 +746,16 @@ For instance: H8 elements require the renumbering function to be supplied as
 renumb = (c) -> c[[1, 4, 3, 2, 5, 8, 7, 6]]
 ```
 """
-function mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
-    Point::FFltVec; kwargs...) where {T<:AbstractFESet}
+function mirrormesh(
+    fens::FENodeSet,
+    fes::T,
+    Normal::FFltVec,
+    Point::FFltVec;
+    kwargs...,
+) where {T<:AbstractFESet}
     # Default renumbering function.
     # Simply switch the order of nodes.  Works for simplexes...
-    renumb(conn) = conn[end:-1:1];
+    renumb(conn) = conn[end:-1:1]
     for apair in pairs(kwargs)
         sy, val = apair
         if sy == :renumb
@@ -708,22 +763,22 @@ function mirrormesh(fens::FENodeSet, fes::T, Normal::FFltVec,
         end
     end
     # Make sure we're using a unit normal
-    Normal = Normal/norm(Normal);
+    Normal = Normal / norm(Normal)
     Normal = vec(Normal)
     # The point needs to be a row  matrix
     Point = vec(Point)
 
-    fens1 = deepcopy(fens); # the mirrored mesh nodes
-    for i = 1:count(fens1)
-        a = fens1.xyz[i,:]
-        d = dot(vec(a-Point), Normal);
-        fens1.xyz[i,:] = a-2*d*Normal;
+    fens1 = deepcopy(fens) # the mirrored mesh nodes
+    for i in 1:count(fens1)
+        a = fens1.xyz[i, :]
+        d = dot(vec(a - Point), Normal)
+        fens1.xyz[i, :] = a - 2 * d * Normal
     end
     # Reconnect the cells
-    fes1=deepcopy(fes);
+    fes1 = deepcopy(fes)
     conn = connasarray(fes1)
-    for i=1:size(conn, 1)
-        conn[i,:]=renumb(conn[i,:]);
+    for i in axes(conn, 1)
+        conn[i, :] = renumb(conn[i, :])
     end
     return fens1, fromarray!(fes1, conn)
 end
@@ -731,10 +786,10 @@ end
 function _nodepartitioning3(xyz, nincluded::Vector{Bool}, npartitions::Int = 2)
     function inertialcutpartitioning!(partitioning, parts, X)
         nspdim = 3
-        StaticMoments = fill(zero(FFlt), nspdim, length(parts));
+        StaticMoments = fill(zero(FFlt), nspdim, length(parts))
         npart = fill(0, length(parts))
-        for spdim = 1:nspdim
-            @inbounds for j = 1:size(X, 1)
+        for spdim in 1:nspdim
+            @inbounds for j in axes(X, 1)
                 if nincluded[j] # Is the node to be included in the partitioning?
                     jp = partitioning[j]
                     StaticMoments[spdim, jp] += X[j, spdim]
@@ -742,13 +797,13 @@ function _nodepartitioning3(xyz, nincluded::Vector{Bool}, npartitions::Int = 2)
                 end
             end
         end
-        CG = fill(zero(FFlt), nspdim, length(parts));
-        for p = parts
+        CG = fill(zero(FFlt), nspdim, length(parts))
+        for p in parts
             npart[p] = Int(npart[p] / nspdim)
             CG[:, p] = StaticMoments[:, p] / npart[p] # center of gravity of each partition
         end
         MatrixMomentOfInertia = fill(zero(FFlt), nspdim, nspdim, length(parts))
-        @inbounds for j = 1:size(X, 1)
+        @inbounds for j in axes(X, 1)
             if nincluded[j] # Is the node to be included in the partitioning?
                 jp = partitioning[j]
                 xj, yj, zj = X[j, 1] - CG[1, jp], X[j, 2] - CG[2, jp], X[j, 3] - CG[3, jp]
@@ -760,19 +815,19 @@ function _nodepartitioning3(xyz, nincluded::Vector{Bool}, npartitions::Int = 2)
                 MatrixMomentOfInertia[2, 3, jp] -= yj * zj
             end
         end
-        for p = parts
+        for p in parts
             MatrixMomentOfInertia[2, 1, p] = MatrixMomentOfInertia[1, 2, p]
             MatrixMomentOfInertia[3, 1, p] = MatrixMomentOfInertia[3, 1, p]
             MatrixMomentOfInertia[3, 2, p] = MatrixMomentOfInertia[3, 2, p]
         end
         longdir = fill(zero(FFlt), nspdim, length(parts))
-        for p = parts
+        for p in parts
             F = eigen(MatrixMomentOfInertia[:, :, p])
             six = sortperm(F.values)
             longdir[:, p] = F.vectors[:, six[1]]
         end
-        toggle = fill(one(FFlt), length(parts));
-        @inbounds for j = 1:size(X, 1)
+        toggle = fill(one(FFlt), length(parts))
+        @inbounds for j in axes(X, 1)
             if nincluded[j] # Is the node to be included in the partitioning?
                 jp = partitioning[j]
                 vx, vy, vz = longdir[:, jp]
@@ -792,9 +847,9 @@ function _nodepartitioning3(xyz, nincluded::Vector{Bool}, npartitions::Int = 2)
         end
     end
 
-    nlevels = Int(round(ceil(log(npartitions)/log(2))))
+    nlevels = Int(round(ceil(log(npartitions) / log(2))))
     partitioning = fill(1, size(xyz, 1))  # start with nodes assigned to partition 1
-    for level = 0:1:(nlevels - 1)
+    for level in 0:1:(nlevels-1)
         inertialcutpartitioning!(partitioning, collect(1:2^level), xyz)
     end
     return partitioning
@@ -803,10 +858,10 @@ end
 function _nodepartitioning2(xy, nincluded::Vector{Bool}, npartitions::Int = 2)
     function inertialcutpartitioning!(partitions, parts, X)
         nspdim = 2
-        StaticMoments = fill(zero(FFlt), nspdim, length(parts));
+        StaticMoments = fill(zero(FFlt), nspdim, length(parts))
         npart = fill(0, length(parts))
-        for spdim = 1:nspdim
-            @inbounds for j = 1:size(X, 1)
+        for spdim in 1:nspdim
+            @inbounds for j in axes(X, 1)
                 if nincluded[j] # Is the node to be included in the partitioning?
                     jp = partitions[j]
                     StaticMoments[spdim, jp] += X[j, spdim]
@@ -814,13 +869,13 @@ function _nodepartitioning2(xy, nincluded::Vector{Bool}, npartitions::Int = 2)
                 end
             end
         end
-        CG = fill(zero(FFlt), nspdim, length(parts));
-        for p = parts
+        CG = fill(zero(FFlt), nspdim, length(parts))
+        for p in parts
             npart[p] = Int(npart[p] / nspdim)
             CG[:, p] = StaticMoments[:, p] / npart[p] # center of gravity of each partition
         end
         MatrixMomentOfInertia = fill(zero(FFlt), nspdim, nspdim, length(parts))
-        @inbounds for j = 1:size(X, 1)
+        @inbounds for j in axes(X, 1)
             if nincluded[j] # Is the node to be included in the partitioning?
                 jp = partitions[j]
                 xj, yj = X[j, 1] - CG[1, jp], X[j, 2] - CG[2, jp]
@@ -829,17 +884,17 @@ function _nodepartitioning2(xy, nincluded::Vector{Bool}, npartitions::Int = 2)
                 MatrixMomentOfInertia[1, 2, jp] -= xj * yj
             end
         end
-        for p = parts
+        for p in parts
             MatrixMomentOfInertia[2, 1, p] = MatrixMomentOfInertia[1, 2, p]
         end
         longdir = fill(zero(FFlt), nspdim, length(parts))
-        for p = parts
+        for p in parts
             F = eigen(MatrixMomentOfInertia[:, :, p])
             six = sortperm(F.values)
             longdir[:, p] = F.vectors[:, six[1]]
         end
-        toggle = fill(one(FFlt), length(parts));
-        @inbounds for j = 1:size(X, 1)
+        toggle = fill(one(FFlt), length(parts))
+        @inbounds for j in axes(X, 1)
             if nincluded[j] # Is the node to be included in the partitioning?
                 jp = partitions[j]
                 vx, vy = longdir[:, jp]
@@ -859,9 +914,9 @@ function _nodepartitioning2(xy, nincluded::Vector{Bool}, npartitions::Int = 2)
         end
     end
 
-    nlevels = Int(round(ceil(log(npartitions)/log(2))))
+    nlevels = Int(round(ceil(log(npartitions) / log(2))))
     partitions = fill(1, size(xy, 1))  # start with nodes assigned to partition 1
-    for level = 0:1:(nlevels - 1)
+    for level in 0:1:(nlevels-1)
         inertialcutpartitioning!(partitions, collect(1:2^level), xy)
     end
     return partitions
@@ -976,17 +1031,17 @@ function nodepartitioning(fens::FENodeSet, fesarr, npartitions::Vector{Int})
     partitioning = fill(0, count(fens))
     # Find the partitioning of the nodes in FESet 1
     nincludedp = fill(false, count(fens))
-    for i = connectednodes(fesarr[1]) # For nodes connected by region 1
+    for i in connectednodes(fesarr[1]) # For nodes connected by region 1
         nincludedp[i] = true
     end
     partitioning1 = nodepartitioning(fens, nincludedp, npartitions[1])
     totnpartitions = maximum(partitioning1)
     # Transfer the partitioning of region 1 into the overall partitioning
     partitioning[nincludedp] = partitioning1[nincludedp]
-    for i = 2:length(npartitions)
+    for i in 2:length(npartitions)
         # Find the partitioning of the nodes in FESet i, but not in the preceding sets
         nincluded = fill(false, count(fens))
-        for j = connectednodes(fesarr[i]) # For nodes connected by region i
+        for j in connectednodes(fesarr[i]) # For nodes connected by region i
             nincluded[j] = !nincludedp[j] # Not included previously
         end
         partitioning1 = nodepartitioning(fens, nincluded, npartitions[i])
@@ -1008,16 +1063,16 @@ distort the horizontal and vertical mesh lines into slanted lines.
 function distortblock(ofens::FENodeSet, xdispmul::FFlt, ydispmul::FFlt)
     Lx = maximum(ofens.xyz[:, 1])
     Ly = maximum(ofens.xyz[:, 2])
-    xic(x) = (2*x - Lx) / Lx
-    etac(y) = (2*y - Ly) / Ly
+    xic(x) = (2 * x - Lx) / Lx
+    etac(y) = (2 * y - Ly) / Ly
 
     fens = deepcopy(ofens)
 
     for k in 1:count(fens)
         x, y = fens.xyz[k, :]
-        xi, eta  = xic(x), etac(y)  
-        u = xdispmul*(1+xi)*(1-xi)*eta
-        v = ydispmul*xi*(1+eta)*(1-eta)
+        xi, eta = xic(x), etac(y)
+        u = xdispmul * (1 + xi) * (1 - xi) * eta
+        v = ydispmul * xi * (1 + eta) * (1 - eta)
 
         fens.xyz[k, 1] = x + u
         fens.xyz[k, 2] = y + v
@@ -1033,7 +1088,15 @@ Distort a block mesh by shifting around the nodes. The goal is to distort the
 horizontal and vertical mesh lines into slanted lines. This is useful when
 testing finite elements where special directions must be avoided.
 """
-function distortblock(B::F, Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, xdispmul::FFlt, ydispmul::FFlt) where {F <: Function}
+function distortblock(
+    B::F,
+    Length::FFlt,
+    Width::FFlt,
+    nL::FInt,
+    nW::FInt,
+    xdispmul::FFlt,
+    ydispmul::FFlt,
+) where {F<:Function}
     @assert 1.0 >= abs(xdispmul) >= 0.0
     @assert 1.0 >= abs(ydispmul) >= 0.0
     fens, fes = B(1.0, 1.0, nL, nW)
@@ -1050,28 +1113,28 @@ end
 function __all_behind(xyz, centroid, c, n, conn, tol)
     v = deepcopy(c)
     #     Check the centroid first
-    @. v = centroid-c;
-    vn = norm(v);
-    if (vn>0)
-        d = dot(n,v)/vn;
-        if (d>tol)
+    @. v = centroid - c
+    vn = norm(v)
+    if (vn > 0)
+        d = dot(n, v) / vn
+        if (d > tol)
             return false
         end
     end
-        # Now check all the vertices
-        # except for the nodes which are  connected by the tested cell
-    list = setdiff(1:size(xyz,1), conn);
-    for kl in 1:length(list)
-        k = list[kl];
+    # Now check all the vertices
+    # except for the nodes which are  connected by the tested cell
+    list = setdiff(1:size(xyz, 1), conn)
+    for kl in eachindex(list)
+        k = list[kl]
         v .= vec(view(xyz, k, :)) - c
-        vn = norm(v);
-        if (vn>0)
-            d = dot(n,v)/vn;
-            if (d>tol)
+        vn = norm(v)
+        if (vn > 0)
+            d = dot(n, v) / vn
+            if (d > tol)
                 return false
             end
         end
-    end 
+    end
     return true
 end
 
@@ -1092,12 +1155,12 @@ are included.
 function outer_surface_of_solid(fens, bdry_fes)
     sn = SurfaceNormal(size(fens.xyz, 2))
     parametric_centroid = centroidparametric(bdry_fes)
-    N = bfun(bdry_fes, parametric_centroid);
-    gradNpar = bfundpar(bdry_fes, parametric_centroid);
+    N = bfun(bdry_fes, parametric_centroid)
+    gradNpar = bfundpar(bdry_fes, parametric_centroid)
     # This is the centroid of the cloud of nodes
-    centroid = vec(mean(fens.xyz, dims=1));
-    angtol = 0.001;
-    
+    centroid = vec(mean(fens.xyz, dims = 1))
+    angtol = 0.001
+
     # # for axially symmetric geometry place the centroid on the axis
     # if (get(bdry_fes,'axisymm'))
     #     centroid(1)=0;
@@ -1118,17 +1181,17 @@ function outer_surface_of_solid(fens, bdry_fes)
     # into which  its  normal is pointing), and the half space also includes
     # the centroid.
     conns = connasarray(bdry_fes)
-    start = 0;
+    start = 0
     for j in 1:count(bdry_fes)
-        c = N' * view(fens.xyz, conns[j, :], :);
-        J = view(fens.xyz, conns[j, :], :)' * gradNpar;
+        c = N' * view(fens.xyz, conns[j, :], :)
+        J = view(fens.xyz, conns[j, :], :)' * gradNpar
         n = updatenormal!(sn, c, J, 0)
-        n ./= norm(n);
-        if __all_behind(fens.xyz, centroid, vec(c), n, conns[j,:], angtol)
-            start = j;
-            break;
+        n ./= norm(n)
+        if __all_behind(fens.xyz, centroid, vec(c), n, conns[j, :], angtol)
+            start = j
+            break
         end
-    end 
+    end
 
     # Could not find a single  surface cell  so that all nodes are behind it:
     # failure.
@@ -1136,12 +1199,12 @@ function outer_surface_of_solid(fens, bdry_fes)
         return nothing
     end
 
-    startfen = conns[start, 1];
+    startfen = conns[start, 1]
 
     # Select all cells connected together
     osfesl = selectelem(fens, bdry_fes, flood = true, startnode = startfen)
-    
-    return subset(bdry_fes, osfesl);
+
+    return subset(bdry_fes, osfesl)
 end
 
 

@@ -12,7 +12,7 @@ import Base.Complex
 const FInt = Int
 const FFlt = Float64
 const FCplxFlt = Complex{FFlt}
-FMat{T<:Number} = Array{T, 2}
+FMat{T<:Number} = Array{T,2}
 FVec{T<:Number} = Vector{T}
 const FFltVec = FVec{FFlt}
 const FIntVec = FVec{FInt}
@@ -24,6 +24,6 @@ const FIntMat = FMat{FInt}
 
 Type for the model-data packaging system (used by all FinEtools algorithms).  
 """
-const FDataDict = Dict{String, Any}
+const FDataDict = Dict{String,Any}
 
 end

@@ -7,16 +7,17 @@ module AssemblyModule
 
 __precompile__(true)
 
-using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-using  SparseArrays: sparse, spzeros
-using  LinearAlgebra: diag
+using ..FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using SparseArrays: sparse, spzeros
+using LinearAlgebra: diag
 
 """
     AbstractSysmatAssembler
 
 Abstract type of system-matrix assembler.
 """
-abstract type AbstractSysmatAssembler end;
+abstract type AbstractSysmatAssembler end
 
 """
     SysmatAssemblerSparse{T<:Number} <: AbstractSysmatAssembler
@@ -28,12 +29,13 @@ Type for assembling a sparse global matrix from elementwise matrices.
     All fields of the datatype are private. No need to access them directly.
 """
 mutable struct SysmatAssemblerSparse{T<:Number} <: AbstractSysmatAssembler
-    buffer_length::FInt;
-    matbuffer::Vector{T};
-    rowbuffer::Vector{FInt};
-    colbuffer::Vector{FInt};
-    buffer_pointer::FInt;
-    ndofs_row::FInt; ndofs_col::FInt;
+    buffer_length::FInt
+    matbuffer::Vector{T}
+    rowbuffer::Vector{FInt}
+    colbuffer::Vector{FInt}
+    buffer_pointer::FInt
+    ndofs_row::FInt
+    ndofs_col::FInt
     nomatrixresult::Bool
 end
 
@@ -94,8 +96,8 @@ At this point all the buffers of the assembler have been cleared, and
 `makematrix!(a) ` is no longer possible.
 
 """
-function SysmatAssemblerSparse(zero::T=0.0, nomatrixresult = false) where {T<:Number}
-    return SysmatAssemblerSparse{T}(0,[zero],[0],[0],0,0,0,nomatrixresult)
+function SysmatAssemblerSparse(zero::T = 0.0, nomatrixresult = false) where {T<:Number}
+    return SysmatAssemblerSparse{T}(0, [zero], [0], [0], 0, 0, 0, nomatrixresult)
 end
 
 """
@@ -115,14 +117,21 @@ the first call to the method `assemble!`.
 
 The values stored in the buffers are initially undefined!
 """
-function startassembly!(self::SysmatAssemblerSparse{T}, elem_mat_nrows::FInt, elem_mat_ncols::FInt, elem_mat_nmatrices::FInt, ndofs_row::FInt, ndofs_col::FInt) where {T<:Number}
-    self.buffer_length = elem_mat_nmatrices*elem_mat_nrows*elem_mat_ncols;
-    self.rowbuffer = Array{FInt, 1}(undef, self.buffer_length);
-    self.colbuffer = Array{FInt, 1}(undef, self.buffer_length);
-    self.matbuffer = Array{T, 1}(undef, self.buffer_length);
-    self.buffer_pointer = 1;
-    self.ndofs_row = ndofs_row;
-    self.ndofs_col = ndofs_col;
+function startassembly!(
+    self::SysmatAssemblerSparse{T},
+    elem_mat_nrows::FInt,
+    elem_mat_ncols::FInt,
+    elem_mat_nmatrices::FInt,
+    ndofs_row::FInt,
+    ndofs_col::FInt,
+) where {T<:Number}
+    self.buffer_length = elem_mat_nmatrices * elem_mat_nrows * elem_mat_ncols
+    self.rowbuffer = Array{FInt,1}(undef, self.buffer_length)
+    self.colbuffer = Array{FInt,1}(undef, self.buffer_length)
+    self.matbuffer = Array{T,1}(undef, self.buffer_length)
+    self.buffer_pointer = 1
+    self.ndofs_row = ndofs_row
+    self.ndofs_col = ndofs_col
     return self
 end
 
@@ -131,23 +140,29 @@ end
 
 Assemble a rectangular matrix.
 """
-function assemble!(self::SysmatAssemblerSparse{T}, mat::FMat{T}, dofnums_row::Union{FIntVec, FIntMat}, dofnums_col::Union{FIntVec, FIntMat}) where {T<:Number}
+function assemble!(
+    self::SysmatAssemblerSparse{T},
+    mat::FMat{T},
+    dofnums_row::Union{FIntVec,FIntMat},
+    dofnums_col::Union{FIntVec,FIntMat},
+) where {T<:Number}
     # Assembly of a rectangular matrix.
     # The method assembles a rectangular matrix using the two vectors of
     # equation numbers for the rows and columns.
-    nrows=length(dofnums_row); ncolumns=length(dofnums_col);
+    nrows = length(dofnums_row)
+    ncolumns = length(dofnums_col)
     p = self.buffer_pointer
-    @assert p+ncolumns*nrows <= self.buffer_length+1
+    @assert p + ncolumns * nrows <= self.buffer_length + 1
     @assert size(mat) == (nrows, ncolumns)
-    @inbounds for j=1:ncolumns
-        @inbounds for i=1:nrows
-            self.matbuffer[p] = mat[i,j] # serialized matrix
-            self.rowbuffer[p] = dofnums_row[i];
-            self.colbuffer[p] = dofnums_col[j];
-            p=p+1
+    @inbounds for j in 1:ncolumns
+        @inbounds for i in 1:nrows
+            self.matbuffer[p] = mat[i, j] # serialized matrix
+            self.rowbuffer[p] = dofnums_row[i]
+            self.colbuffer[p] = dofnums_col[j]
+            p = p + 1
         end
     end
-    self.buffer_pointer=p;
+    self.buffer_pointer = p
     return self
 end
 
@@ -159,32 +174,35 @@ Make a sparse matrix.
 function makematrix!(self::SysmatAssemblerSparse)
     # Make a sparse matrix.
     # The method makes a sparse matrix from the assembly buffers.
-    @assert length(self.rowbuffer) >= self.buffer_pointer-1
-    @assert length(self.colbuffer) >= self.buffer_pointer-1
+    @assert length(self.rowbuffer) >= self.buffer_pointer - 1
+    @assert length(self.colbuffer) >= self.buffer_pointer - 1
     # Here we will go through the rows and columns, and whenever the row or
     # the column refer to indexes outside of the limits of the matrix, the
     # corresponding value will be set to 0 and assembled to row and column 1.
-    @inbounds for j=1:self.buffer_pointer-1
+    @inbounds for j in 1:self.buffer_pointer-1
         if (self.rowbuffer[j] > self.ndofs_row) || (self.rowbuffer[j] <= 0)
-            self.rowbuffer[j] = 1;
+            self.rowbuffer[j] = 1
             self.matbuffer[j] = 0.0
         end
         if (self.colbuffer[j] > self.ndofs_col) || (self.colbuffer[j] <= 0)
-            self.colbuffer[j] = 1;
+            self.colbuffer[j] = 1
             self.matbuffer[j] = 0.0
         end
     end
     if self.nomatrixresult
         # No actual sparse matrix is returned. The entire result of the assembly
         # is preserved in the assembler buffers. 
-        return spzeros(self.ndofs_row, self.ndofs_col);
+        return spzeros(self.ndofs_row, self.ndofs_col)
     else
         # The sparse matrix is constructed and returned. The  buffers used for
         # the assembly are cleared.
-        S = sparse(self.rowbuffer[1:self.buffer_pointer-1],
-                     self.colbuffer[1:self.buffer_pointer-1],
-                     self.matbuffer[1:self.buffer_pointer-1],
-                     self.ndofs_row, self.ndofs_col);
+        S = sparse(
+            self.rowbuffer[1:self.buffer_pointer-1],
+            self.colbuffer[1:self.buffer_pointer-1],
+            self.matbuffer[1:self.buffer_pointer-1],
+            self.ndofs_row,
+            self.ndofs_col,
+        )
         self = SysmatAssemblerSparse(zero(eltype(self.matbuffer)))# get rid of the buffers
         return S
     end
@@ -198,12 +216,12 @@ matrices.
 """
 mutable struct SysmatAssemblerSparseSymm{T<:Number} <: AbstractSysmatAssembler
     # Type for assembling of a sparse global matrix from elementwise matrices.
-    buffer_length:: FInt;
-    matbuffer::Vector{T};
-    rowbuffer::Vector{FInt};
-    colbuffer::Vector{FInt};
-    buffer_pointer:: FInt;
-    ndofs:: FInt;
+    buffer_length::FInt
+    matbuffer::Vector{T}
+    rowbuffer::Vector{FInt}
+    colbuffer::Vector{FInt}
+    buffer_pointer::FInt
+    ndofs::FInt
 end
 
 """
@@ -233,8 +251,8 @@ This is how a symmetric sparse matrix is assembled from two square dense matrice
 # See also
 []
 """
-function SysmatAssemblerSparseSymm(zero::T=0.0) where {T<:Number}
-    return SysmatAssemblerSparseSymm{T}(0,[zero],[0],[0],0,0)
+function SysmatAssemblerSparseSymm(zero::T = 0.0) where {T<:Number}
+    return SysmatAssemblerSparseSymm{T}(0, [zero], [0], [0], 0, 0)
 end
 
 """
@@ -254,13 +272,20 @@ the first call to the method `assemble!`.
 
 The values stored in the buffers are initially undefined!
 """
-function startassembly!(self::SysmatAssemblerSparseSymm{T}, elem_mat_dim::FInt, ignore1::FInt, elem_mat_nmatrices::FInt, ndofs::FInt, ignore2::FInt) where {T<:Number}
-    self.buffer_length = elem_mat_nmatrices*elem_mat_dim^2;
-    self.rowbuffer = Array{FInt, 1}(undef, self.buffer_length);
-    self.colbuffer = Array{FInt, 1}(undef, self.buffer_length);
-    self.matbuffer = Array{T, 1}(undef, self.buffer_length);
-    self.buffer_pointer = 1;
-    self.ndofs = ndofs;
+function startassembly!(
+    self::SysmatAssemblerSparseSymm{T},
+    elem_mat_dim::FInt,
+    ignore1::FInt,
+    elem_mat_nmatrices::FInt,
+    ndofs::FInt,
+    ignore2::FInt,
+) where {T<:Number}
+    self.buffer_length = elem_mat_nmatrices * elem_mat_dim^2
+    self.rowbuffer = Array{FInt,1}(undef, self.buffer_length)
+    self.colbuffer = Array{FInt,1}(undef, self.buffer_length)
+    self.matbuffer = Array{T,1}(undef, self.buffer_length)
+    self.buffer_pointer = 1
+    self.ndofs = ndofs
     return self
 end
 
@@ -272,23 +297,29 @@ Assemble a square symmetric matrix.
 `dofnums` are the row degree of freedom numbers, the column degree of freedom
 number input is ignored (the row and column numbers are assumed to be the same).
 """
-function assemble!(self::SysmatAssemblerSparseSymm{T}, mat::FMat{T},  dofnums::Union{FIntVec, FIntMat}, ignore::Union{FIntVec, FIntMat}) where {T<:Number}
+function assemble!(
+    self::SysmatAssemblerSparseSymm{T},
+    mat::FMat{T},
+    dofnums::Union{FIntVec,FIntMat},
+    ignore::Union{FIntVec,FIntMat},
+) where {T<:Number}
     # Assembly of a square symmetric matrix.
     # The method assembles the lower triangle of the square symmetric matrix using the two vectors of
     # equation numbers for the rows and columns.
-    nrows=length(dofnums); ncolumns=nrows;
+    nrows = length(dofnums)
+    ncolumns = nrows
     p = self.buffer_pointer
-    @assert p+ncolumns*nrows <= self.buffer_length+1
+    @assert p + ncolumns * nrows <= self.buffer_length + 1
     @assert size(mat) == (nrows, ncolumns)
-    @inbounds for j=1:ncolumns
-        @inbounds for i=j:nrows
-            self.matbuffer[p] = mat[i,j] # serialized matrix
-            self.rowbuffer[p] = dofnums[i];
-            self.colbuffer[p] = dofnums[j];
-            p=p+1
+    @inbounds for j in 1:ncolumns
+        @inbounds for i in j:nrows
+            self.matbuffer[p] = mat[i, j] # serialized matrix
+            self.rowbuffer[p] = dofnums[i]
+            self.colbuffer[p] = dofnums[j]
+            p = p + 1
         end
     end
-    self.buffer_pointer=p;
+    self.buffer_pointer = p
     return self
 end
 
@@ -300,18 +331,18 @@ Make a sparse symmetric square matrix.
 function makematrix!(self::SysmatAssemblerSparseSymm)
     # Make a sparse matrix.
     # The method makes a sparse matrix from the assembly buffers.
-    @assert length(self.rowbuffer) >= self.buffer_pointer-1
-    @assert length(self.colbuffer) >= self.buffer_pointer-1
+    @assert length(self.rowbuffer) >= self.buffer_pointer - 1
+    @assert length(self.colbuffer) >= self.buffer_pointer - 1
     # Here we will go through the rows and columns, and whenever the row or
     # the column refer to indexes outside of the limits of the matrix, the
     # corresponding value will be set to 0 and assembled to row and column 1.
-    @inbounds for j=1:self.buffer_pointer-1
+    @inbounds for j in 1:self.buffer_pointer-1
         if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
-            self.rowbuffer[j] = 1;
+            self.rowbuffer[j] = 1
             self.matbuffer[j] = 0.0
         end
         if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
-            self.colbuffer[j] = 1;
+            self.colbuffer[j] = 1
             self.matbuffer[j] = 0.0
         end
     end
@@ -322,15 +353,18 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
     # v = view(self.matbuffer, 1:self.buffer_pointer-1)
     # S = sparse(vcat(r, c), vcat(c, r), vcat(v, v), self.ndofs, self.ndofs); 
     # @info "Old"
-    S = sparse(self.rowbuffer[1:self.buffer_pointer-1],
-               self.colbuffer[1:self.buffer_pointer-1],
-               self.matbuffer[1:self.buffer_pointer-1],
-               self.ndofs, self.ndofs); 
+    S = sparse(
+        self.rowbuffer[1:self.buffer_pointer-1],
+        self.colbuffer[1:self.buffer_pointer-1],
+        self.matbuffer[1:self.buffer_pointer-1],
+        self.ndofs,
+        self.ndofs,
+    )
     #  Now we need to construct the other triangle of the matrix. The diagonal
     #  will be duplicated.
-    S = S + transpose(S); 
-    @inbounds for j=1:size(S,1)
-        S[j,j] *= 0.5;      # the diagonal is there twice; fix it;
+    S = S + transpose(S)
+    @inbounds for j in axes(S, 1)
+        S[j, j] *= 0.5      # the diagonal is there twice; fix it;
     end
     self = SysmatAssemblerSparseSymm(zero(eltype(self.matbuffer))) # get rid of the buffers
     return S
@@ -347,12 +381,12 @@ during assembly!
 """
 mutable struct SysmatAssemblerSparseDiag{T<:Number} <: AbstractSysmatAssembler
     # Type for assembling of a sparse global matrix from elementwise matrices.
-    buffer_length:: FInt;
-    matbuffer::Vector{T};
-    rowbuffer::Vector{FInt};
-    colbuffer::Vector{FInt};
-    buffer_pointer:: FInt;
-    ndofs:: FInt;
+    buffer_length::FInt
+    matbuffer::Vector{T}
+    rowbuffer::Vector{FInt}
+    colbuffer::Vector{FInt}
+    buffer_pointer::FInt
+    ndofs::FInt
 end
 
 """
@@ -382,8 +416,8 @@ This is how a symmetric sparse matrix is assembled from two square dense matrice
 # See also
 []
 """
-function SysmatAssemblerSparseDiag(zero::T=0.0) where {T<:Number}
-    return SysmatAssemblerSparseDiag{T}(0,[zero],[0],[0],0,0)
+function SysmatAssemblerSparseDiag(zero::T = 0.0) where {T<:Number}
+    return SysmatAssemblerSparseDiag{T}(0, [zero], [0], [0], 0, 0)
 end
 
 """
@@ -403,13 +437,20 @@ the first call to the method `assemble!`.
 
 The values stored in the buffers are initially undefined!
 """
-function startassembly!(self::SysmatAssemblerSparseDiag{T}, elem_mat_dim::FInt, ignore1::FInt, elem_mat_nmatrices::FInt, ndofs::FInt, ignore2::FInt) where {T<:Number}
-    self.buffer_length = elem_mat_nmatrices*elem_mat_dim+1;
-    self.rowbuffer = Array{FInt, 1}(undef, self.buffer_length);
-    self.colbuffer = Array{FInt, 1}(undef, self.buffer_length);
-    self.matbuffer = Array{T, 1}(undef, self.buffer_length);
-    self.buffer_pointer = 1;
-    self.ndofs = ndofs;
+function startassembly!(
+    self::SysmatAssemblerSparseDiag{T},
+    elem_mat_dim::FInt,
+    ignore1::FInt,
+    elem_mat_nmatrices::FInt,
+    ndofs::FInt,
+    ignore2::FInt,
+) where {T<:Number}
+    self.buffer_length = elem_mat_nmatrices * elem_mat_dim + 1
+    self.rowbuffer = Array{FInt,1}(undef, self.buffer_length)
+    self.colbuffer = Array{FInt,1}(undef, self.buffer_length)
+    self.matbuffer = Array{T,1}(undef, self.buffer_length)
+    self.buffer_pointer = 1
+    self.ndofs = ndofs
     return self
 end
 
@@ -422,21 +463,27 @@ Assemble a square symmetric diagonal matrix.
 number input is ignored (the row and column numbers are assumed to be the same).
 - `mat` = diagonal square matrix
 """
-function assemble!(self::SysmatAssemblerSparseDiag{T}, mat::FMat{T},  dofnums::Union{FIntVec, FIntMat}, ignore::Union{FIntVec, FIntMat}) where {T<:Number}
+function assemble!(
+    self::SysmatAssemblerSparseDiag{T},
+    mat::FMat{T},
+    dofnums::Union{FIntVec,FIntMat},
+    ignore::Union{FIntVec,FIntMat},
+) where {T<:Number}
     # Assembly of a square symmetric matrix.
     # The method assembles the lower triangle of the square symmetric matrix using the two vectors of
     # equation numbers for the rows and columns.
-    nrows=length(dofnums); ncolumns=nrows;
+    nrows = length(dofnums)
+    ncolumns = nrows
     p = self.buffer_pointer
-    @assert p+ncolumns <= self.buffer_length+1
+    @assert p + ncolumns <= self.buffer_length + 1
     @assert size(mat) == (nrows, ncolumns)
-    @inbounds for j=1:ncolumns
-        self.matbuffer[p] = mat[j,j] # serialized matrix
-        self.rowbuffer[p] = dofnums[j];
-        self.colbuffer[p] = dofnums[j];
-        p=p+1
+    @inbounds for j in 1:ncolumns
+        self.matbuffer[p] = mat[j, j] # serialized matrix
+        self.rowbuffer[p] = dofnums[j]
+        self.colbuffer[p] = dofnums[j]
+        p = p + 1
     end
-    self.buffer_pointer=p;
+    self.buffer_pointer = p
     return self
 end
 
@@ -448,25 +495,28 @@ Make a sparse symmetric square diagonal matrix.
 function makematrix!(self::SysmatAssemblerSparseDiag)
     # Make a sparse matrix.
     # The method makes a sparse matrix from the assembly buffers.
-    @assert length(self.rowbuffer) >= self.buffer_pointer-1
-    @assert length(self.colbuffer) >= self.buffer_pointer-1
+    @assert length(self.rowbuffer) >= self.buffer_pointer - 1
+    @assert length(self.colbuffer) >= self.buffer_pointer - 1
     # Here we will go through the rows and columns, and whenever the row or
     # the column refer to indexes outside of the limits of the matrix, the
     # corresponding value will be set to 0 and assembled to row and column 1.
-    @inbounds for j=1:self.buffer_pointer-1
+    @inbounds for j in 1:self.buffer_pointer-1
         if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
-            self.rowbuffer[j] = 1;
+            self.rowbuffer[j] = 1
             self.matbuffer[j] = 0.0
         end
         if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
-            self.colbuffer[j] = 1;
+            self.colbuffer[j] = 1
             self.matbuffer[j] = 0.0
         end
     end
-    S = sparse(self.rowbuffer[1:self.buffer_pointer-1],
-               self.colbuffer[1:self.buffer_pointer-1],
-               self.matbuffer[1:self.buffer_pointer-1],
-               self.ndofs, self.ndofs); 
+    S = sparse(
+        self.rowbuffer[1:self.buffer_pointer-1],
+        self.colbuffer[1:self.buffer_pointer-1],
+        self.matbuffer[1:self.buffer_pointer-1],
+        self.ndofs,
+        self.ndofs,
+    )
     self = SysmatAssemblerSparseDiag(zero(eltype(self.matbuffer))) # get rid of the buffers
     return S
 end
@@ -482,8 +532,10 @@ Type for assembling a sparse global matrix from elementwise matrices.
 """
 mutable struct SysmatAssemblerReduced{T<:Number} <: AbstractSysmatAssembler
     m::Matrix{T} # reduced system matrix
-    ndofs_row::FInt; ndofs_col::FInt;
-    red_ndofs_row::FInt; red_ndofs_col::FInt;
+    ndofs_row::FInt
+    ndofs_col::FInt
+    red_ndofs_row::FInt
+    red_ndofs_col::FInt
     t::Matrix{T} # transformation matrix
 end
 
@@ -491,18 +543,37 @@ function SysmatAssemblerReduced(t::Matrix{T}) where {T<:Number}
     ndofs_row = ndofs_col = size(t, 1)
     red_ndofs_row = red_ndofs_col = size(t, 2)
     m = fill(zero(T), red_ndofs_row, red_ndofs_col)
-    return SysmatAssemblerReduced{T}(m, ndofs_row, ndofs_col, red_ndofs_row, red_ndofs_col, t)
+    return SysmatAssemblerReduced{T}(
+        m,
+        ndofs_row,
+        ndofs_col,
+        red_ndofs_row,
+        red_ndofs_col,
+        t,
+    )
 end
 
 
-function startassembly!(self::SysmatAssemblerReduced{T}, elem_mat_nrows::FInt, elem_mat_ncols::FInt, elem_mat_nmatrices::FInt, ndofs_row::FInt, ndofs_col::FInt) where {T<:Number}
+function startassembly!(
+    self::SysmatAssemblerReduced{T},
+    elem_mat_nrows::FInt,
+    elem_mat_ncols::FInt,
+    elem_mat_nmatrices::FInt,
+    ndofs_row::FInt,
+    ndofs_col::FInt,
+) where {T<:Number}
     @assert self.ndofs_row == ndofs_row
     @assert self.ndofs_col == ndofs_col
     self.m[:] .= zero(T)
     return self
 end
 
-function assemble!(self::SysmatAssemblerReduced{T}, mat::FMat{T}, dofnums_row::Union{FIntVec, FIntMat}, dofnums_col::Union{FIntVec, FIntMat}) where {T<:Number}
+function assemble!(
+    self::SysmatAssemblerReduced{T},
+    mat::FMat{T},
+    dofnums_row::Union{FIntVec,FIntMat},
+    dofnums_col::Union{FIntVec,FIntMat},
+) where {T<:Number}
     R, C = size(mat)
     @assert R == C "The matrix must be square"
     @assert dofnums_row == dofnums_col "The degree of freedom numbers must be the same for rows and columns"
@@ -545,7 +616,7 @@ end
 
 Abstract type of system vector assembler.
 """
-abstract type AbstractSysvecAssembler end;
+abstract type AbstractSysvecAssembler end
 
 """
     startassembly!(self::SysvecAssembler{T},
@@ -558,8 +629,7 @@ the first call to the method assemble.
 
 `ndofs_row`= Total number of degrees of freedom.
 """
-function startassembly!(self::SV,  ndofs_row::FInt) where {SV<:AbstractSysvecAssembler}
-end
+function startassembly!(self::SV, ndofs_row::FInt) where {SV<:AbstractSysvecAssembler} end
 
 """
     assemble!(self::SysvecAssembler{T}, vec::MV,
@@ -570,16 +640,18 @@ Assemble an elementwise vector.
 The method assembles a column element vector using the vector of degree of
 freedom numbers for the rows.
 """
-function assemble!(self::SV, vec::MV, dofnums::D) where {SV<:AbstractSysvecAssembler, T<:Number, MV<:AbstractArray{T}, D<:AbstractArray{FInt}}
-end
+function assemble!(
+    self::SV,
+    vec::MV,
+    dofnums::D,
+) where {SV<:AbstractSysvecAssembler,T<:Number,MV<:AbstractArray{T},D<:AbstractArray{FInt}} end
 
 """
     makevector!(self::SysvecAssembler)
 
 Make the global vector.
 """
-function makevector!(self::SV) where {SV<:AbstractSysvecAssembler}
-end
+function makevector!(self::SV) where {SV<:AbstractSysvecAssembler} end
 
 """
     SysvecAssembler
@@ -587,7 +659,7 @@ end
 Assembler for the system vector.
 """
 mutable struct SysvecAssembler{T<:Number} <: AbstractSysvecAssembler
-    F_buffer::Vector{T};
+    F_buffer::Vector{T}
     ndofs::FInt
 end
 
@@ -596,7 +668,7 @@ end
 
 Construct blank system vector assembler. The vector entries are of type `T`.
 """
-function SysvecAssembler(zero::T=0.0) where {T<:Number}
+function SysvecAssembler(zero::T = 0.0) where {T<:Number}
     return SysvecAssembler([zero], 1)
 end
 
@@ -611,9 +683,9 @@ the first call to the method assemble.
 
 `ndofs_row`= Total number of degrees of freedom.
 """
-function startassembly!(self::SysvecAssembler{T},  ndofs_row::FInt) where {T<:Number}
+function startassembly!(self::SysvecAssembler{T}, ndofs_row::FInt) where {T<:Number}
     self.ndofs = ndofs_row
-    self.F_buffer = zeros(T,self.ndofs);
+    self.F_buffer = zeros(T, self.ndofs)
 end
 
 """
@@ -625,12 +697,15 @@ Assemble an elementwise vector.
 The method assembles a column element vector using the vector of degree of
 freedom numbers for the rows.
 """
-function assemble!(self::SysvecAssembler{T}, vec::MV,
-  dofnums::D) where {T<:Number, MV<:AbstractArray{T}, D<:AbstractArray{FInt}}
-    for i = 1:length(dofnums)
-        gi = dofnums[i];
+function assemble!(
+    self::SysvecAssembler{T},
+    vec::MV,
+    dofnums::D,
+) where {T<:Number,MV<:AbstractArray{T},D<:AbstractArray{FInt}}
+    for i in eachindex(dofnums)
+        gi = dofnums[i]
         if (0 < gi <= self.ndofs)
-            self.F_buffer[gi] += vec[i];
+            self.F_buffer[gi] += vec[i]
         end
     end
 end
@@ -641,7 +716,7 @@ end
 Make the global vector.
 """
 function makevector!(self::SysvecAssembler)
-  return deepcopy(self.F_buffer);
+    return deepcopy(self.F_buffer)
 end
 
 
@@ -667,12 +742,12 @@ volume 4, number 3, 245--249, 1976.
 """
 mutable struct SysmatAssemblerSparseHRZLumpingSymm{T<:Number} <: AbstractSysmatAssembler
     # Type for assembling of a sparse global matrix from elementwise matrices.
-    buffer_length:: FInt;
-    matbuffer::Vector{T};
-    rowbuffer::Vector{FInt};
-    colbuffer::Vector{FInt};
-    buffer_pointer:: FInt;
-    ndofs:: FInt;
+    buffer_length::FInt
+    matbuffer::Vector{T}
+    rowbuffer::Vector{FInt}
+    colbuffer::Vector{FInt}
+    buffer_pointer::FInt
+    ndofs::FInt
 end
 
 """
@@ -681,8 +756,8 @@ end
 Construct blank system matrix assembler. The matrix entries are of type `T`.
 
 """
-function SysmatAssemblerSparseHRZLumpingSymm(zer::T=0.0) where {T<:Number}
-    return SysmatAssemblerSparseHRZLumpingSymm{T}(0,[zer],[0],[0],0,0)
+function SysmatAssemblerSparseHRZLumpingSymm(zer::T = 0.0) where {T<:Number}
+    return SysmatAssemblerSparseHRZLumpingSymm{T}(0, [zer], [0], [0], 0, 0)
 end
 
 """
@@ -702,13 +777,20 @@ the first call to the method `assemble!`.
 
 The values stored in the buffers are initially undefined!
 """
-function startassembly!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, elem_mat_dim::FInt, ignore1::FInt, elem_mat_nmatrices::FInt, ndofs::FInt,ignore2::FInt) where {T<:Number}
-    self.buffer_length = elem_mat_nmatrices*elem_mat_dim^2;
-    self.rowbuffer = Array{FInt, 1}(undef, self.buffer_length);
-    self.colbuffer = Array{FInt, 1}(undef, self.buffer_length);
-    self.matbuffer = Array{T, 1}(undef, self.buffer_length);
-    self.buffer_pointer = 1;
-    self.ndofs = ndofs;
+function startassembly!(
+    self::SysmatAssemblerSparseHRZLumpingSymm{T},
+    elem_mat_dim::FInt,
+    ignore1::FInt,
+    elem_mat_nmatrices::FInt,
+    ndofs::FInt,
+    ignore2::FInt,
+) where {T<:Number}
+    self.buffer_length = elem_mat_nmatrices * elem_mat_dim^2
+    self.rowbuffer = Array{FInt,1}(undef, self.buffer_length)
+    self.colbuffer = Array{FInt,1}(undef, self.buffer_length)
+    self.matbuffer = Array{T,1}(undef, self.buffer_length)
+    self.buffer_pointer = 1
+    self.ndofs = ndofs
     return self
 end
 
@@ -722,31 +804,37 @@ Assembly of a HRZ-lumped square symmetric matrix. The method assembles the
 scaled diagonal of the square symmetric matrix using the two vectors of
 equation numbers for the rows and columns.
 """
-function assemble!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, mat::FMat{T},  dofnums::FIntVec, ignore::FIntVec) where {T<:Number}
-    
-    nrows=length(dofnums); ncolumns=nrows;
+function assemble!(
+    self::SysmatAssemblerSparseHRZLumpingSymm{T},
+    mat::FMat{T},
+    dofnums::FIntVec,
+    ignore::FIntVec,
+) where {T<:Number}
+
+    nrows = length(dofnums)
+    ncolumns = nrows
     p = self.buffer_pointer
-    @assert p+ncolumns*nrows <= self.buffer_length+1
+    @assert p + ncolumns * nrows <= self.buffer_length + 1
     @assert size(mat) == (nrows, ncolumns)
     @assert nrows == ncolumns # only square matrices allowed
     # Now comes the lumping procedure
-    em2 = sum(sum(mat, dims = 1)); # total mass times the number of space dimensions
-    dem2 = zero(eltype(mat)); # total mass on the diagonal times the number of space dimensions
+    em2 = sum(sum(mat, dims = 1)) # total mass times the number of space dimensions
+    dem2 = zero(eltype(mat)) # total mass on the diagonal times the number of space dimensions
     for i in 1:nrows
         dem2 += mat[i, i]
     end
-    ffactor = em2/dem2 # total-element-mass compensation factor
-    @inbounds for j=1:ncolumns
-        @inbounds for i=j:nrows
+    ffactor = em2 / dem2 # total-element-mass compensation factor
+    @inbounds for j in 1:ncolumns
+        @inbounds for i in j:nrows
             if i == j # only the diagonal elements are assembled
-                self.matbuffer[p] = mat[i,j]*ffactor # serialized matrix
-                self.rowbuffer[p] = dofnums[i];
-                self.colbuffer[p] = dofnums[j];
-                p=p+1
+                self.matbuffer[p] = mat[i, j] * ffactor # serialized matrix
+                self.rowbuffer[p] = dofnums[i]
+                self.colbuffer[p] = dofnums[j]
+                p = p + 1
             end
         end
     end
-    self.buffer_pointer=p;
+    self.buffer_pointer = p
     return self
 end
 
@@ -756,7 +844,12 @@ end
 
 Assemble an HRZ-lumped square symmetric matrix.
 """
-function assemble!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, mat::FMat{T}, dofnums::FIntMat, ignore::FIntMat) where {T<:Number}
+function assemble!(
+    self::SysmatAssemblerSparseHRZLumpingSymm{T},
+    mat::FMat{T},
+    dofnums::FIntMat,
+    ignore::FIntMat,
+) where {T<:Number}
     return assemble!(self, mat, vec(dofnums), vec(ignore))
 end
 
@@ -768,31 +861,34 @@ Make a sparse HRZ-lumped **symmetric square**  matrix.
 function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
     # Make a sparse matrix.
     # The method makes a sparse matrix from the assembly buffers.
-    @assert length(self.rowbuffer) >= self.buffer_pointer-1
-    @assert length(self.colbuffer) >= self.buffer_pointer-1
+    @assert length(self.rowbuffer) >= self.buffer_pointer - 1
+    @assert length(self.colbuffer) >= self.buffer_pointer - 1
     # Here we will go through the rows and columns, and whenever the row or
     # the column refer to indexes outside of the limits of the matrix, the
     # corresponding value will be set to 0 and assembled to row and column 1.
-    @inbounds for j=1:self.buffer_pointer-1
+    @inbounds for j in 1:self.buffer_pointer-1
         if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
-            self.rowbuffer[j] = 1;
+            self.rowbuffer[j] = 1
             self.matbuffer[j] = 0.0
         end
         if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
-            self.colbuffer[j] = 1;
+            self.colbuffer[j] = 1
             self.matbuffer[j] = 0.0
         end
     end
-    S = sparse(self.rowbuffer[1:self.buffer_pointer-1],
-               self.colbuffer[1:self.buffer_pointer-1],
-               self.matbuffer[1:self.buffer_pointer-1],
-               self.ndofs, self.ndofs);  
+    S = sparse(
+        self.rowbuffer[1:self.buffer_pointer-1],
+        self.colbuffer[1:self.buffer_pointer-1],
+        self.matbuffer[1:self.buffer_pointer-1],
+        self.ndofs,
+        self.ndofs,
+    )
     # Construct the other half of the matrix. (Even though this one really should be diagonal!)
-    S = S + transpose(S);    # construct the other triangle
-    @inbounds for j=1:size(S,1)
-        S[j,j]=S[j,j]/2.0;      # the diagonal is there twice; fix it;
+    S = S + transpose(S)    # construct the other triangle
+    @inbounds for j in axes(S, 1)
+        S[j, j] /= 2.0      # the diagonal is there twice; fix it;
     end
-    self=SysmatAssemblerSparse(0.0*self.matbuffer[1])# get rid of the buffers
+    self = SysmatAssemblerSparse(0.0 * self.matbuffer[1])# get rid of the buffers
     return S
 end
 

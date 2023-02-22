@@ -7,14 +7,15 @@ module MatModule
 
 __precompile__(true)
 
-using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using ..FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 """
     AbstractMat
 
 Abstract type of material.
 """
-abstract type AbstractMat; end
+abstract type AbstractMat end
 
 """
     massdensity(self::AbstractMat)
@@ -22,7 +23,7 @@ abstract type AbstractMat; end
 Return mass density.
 """
 function massdensity(self::AbstractMat)
-	return self.mass_density
+    return self.mass_density
 end
 
 end

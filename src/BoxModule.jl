@@ -7,7 +7,8 @@ module BoxModule
 
 __precompile__(true)
 
-using ..FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using ..FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 """
     inbox(box::AbstractVector, x::AbstractVector)
@@ -20,13 +21,13 @@ Is the given location inside the box?
 Note: point on the boundary of the box is counted as being inside.
 """
 function inbox(box::AbstractVector, x::AbstractVector)
-    inrange(rangelo,rangehi,r) = ((r>=rangelo) && (r<=rangehi));
-    sdim=length(x);
-    @assert 2*sdim == length(box)
+    inrange(rangelo, rangehi, r) = ((r >= rangelo) && (r <= rangehi))
+    sdim = length(x)
+    @assert 2 * sdim == length(box)
     if !inrange(box[1], box[2], x[1])
         return false # short-circuit
     end
-    for i=2:sdim
+    for i in 2:sdim
         if !inrange(box[2*i-1], box[2*i], x[i])
             return false # short-circuit
         end
@@ -45,11 +46,11 @@ Initialize a bounding box with a single point.
 """
 function initbox!(box::AbstractVector, x::AbstractVector)
     sdim = length(x)
-    if length(box) < 2*sdim
-        box = fill(zero(FFlt), 2*sdim)
+    if length(box) < 2 * sdim
+        box = fill(zero(FFlt), 2 * sdim)
     end
-    for i = 1:sdim
-        box[2*i-1] = box[2*i] = x[i];
+    for i in 1:sdim
+        box[2*i-1] = box[2*i] = x[i]
     end
     return box
 end
@@ -69,18 +70,18 @@ If the  `box` does not have  the correct dimensions,  it is correctly sized.
     supplied location `x`.   The variable `x`  can hold multiple points in rows.
 """
 function updatebox!(box::AbstractVector, x::AbstractArray)
-    sdim = size(x,2)
-    if length(box) < 2*sdim
-        box = fill(zero(FFlt), 2*sdim)
-        for i = 1:size(x,2)
-            box[2*i-1] = Inf;
-            box[2*i]   = -Inf;
+    sdim = size(x, 2)
+    if length(box) < 2 * sdim
+        box = fill(zero(FFlt), 2 * sdim)
+        for i in axes(x, 2)
+            box[2*i-1] = Inf
+            box[2*i] = -Inf
         end
     end
-    for j = 1:size(x,1)
-        for i = 1:sdim
-            box[2*i-1] = min(box[2*i-1],x[j,i]);
-            box[2*i]   = max(box[2*i],x[j,i]);
+    for j in axes(x, 1)
+        for i in 1:sdim
+            box[2*i-1] = min(box[2*i-1], x[j, i])
+            box[2*i] = max(box[2*i], x[j, i])
         end
     end
     return box
@@ -113,10 +114,10 @@ Inflate the box by the value supplied.
 """
 function inflatebox!(box::AbstractVector, inflatevalue::Number)
     abox = deepcopy(box)
-    sdim = Int(length(box)/2);
-    for i=1:sdim
-        box[2*i-1] = min(abox[2*i-1],abox[2*i]) - inflatevalue;
-        box[2*i]   = max(abox[2*i-1],abox[2*i]) + inflatevalue;
+    sdim = Int(length(box) / 2)
+    for i in 1:sdim
+        box[2*i-1] = min(abox[2*i-1], abox[2*i]) - inflatevalue
+        box[2*i] = max(abox[2*i-1], abox[2*i]) + inflatevalue
     end
     return box
 end
@@ -127,17 +128,17 @@ end
 Do the given boxes overlap?
 """
 function boxesoverlap(box1::AbstractVector, box2::AbstractVector)
-    dim=Int(length(box1)/2);
-    @assert 2*dim == length(box2) "Mismatched boxes"
-    for i=1:dim
-        if box1[2*i-1]>box2[2*i]
-            return false;
+    dim = Int(length(box1) / 2)
+    @assert 2 * dim == length(box2) "Mismatched boxes"
+    for i in 1:dim
+        if box1[2*i-1] > box2[2*i]
+            return false
         end
-        if box1[2*i]<box2[2*i-1]
-            return false;
+        if box1[2*i] < box2[2*i-1]
+            return false
         end
     end
-    return  true;
+    return true
 end
 
 """
@@ -151,18 +152,18 @@ empty; otherwise a box is returned.
 function intersectboxes(box1::AbstractVector, box2::AbstractVector)
     @assert length(box1) == length(box2) "Mismatched boxes"
     b = copy(box1)
-    dim=Int(length(box1)/2);
-    @assert 2*dim == length(box2) "Wrong box data"
-    for i=1:dim
+    dim = Int(length(box1) / 2)
+    @assert 2 * dim == length(box2) "Wrong box data"
+    for i in 1:dim
         lb = max(box1[2*i-1], box2[2*i-1])
         ub = min(box1[2*i], box2[2*i])
         if (ub <= lb) # intersection is empty
             return eltype(box1)[] # box of length zero signifies empty intersection
         end
         b[2*i-1] = lb
-        b[2*i]   = ub
+        b[2*i] = ub
     end
-    return  b;
+    return b
 end
 
 end

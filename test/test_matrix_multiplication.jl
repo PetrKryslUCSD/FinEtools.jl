@@ -6,12 +6,13 @@ using LinearAlgebra
 using FinEtools.MatrixUtilityModule: mulCAB!
 
 function gemmavx!(C, A, B)
-	M, N = size(C); K = size(B,1)
-	C .= 0
-    @avx for n ∈ 1:N, k ∈ 1:K
-    	Bkn = B[k,n]
-        for m ∈ 1:M
-            C[m,n] += A[m,k] * Bkn
+    M, N = size(C)
+    K = size(B, 1)
+    C .= 0
+    @avx for n in 1:N, k in 1:K
+        Bkn = B[k, n]
+        for m in 1:M
+            C[m, n] += A[m, k] * Bkn
         end
     end
     return C
@@ -23,22 +24,22 @@ function gemmblas!(C, A, B)
 end
 
 function test(n)
-	# println("n = ", n)
-	C, A, B = rand(n, n), rand(n, n), rand(n, n)
-	@test norm(mulCAB!(C, A, B) - A * B) / norm(C) <= 1.0e-9
-	@test norm(gemmblas!(C, A, B) - A * B) / norm(C) <= 1.0e-9
-	@test norm(gemmavx!(C, A, B) - A * B) / norm(C) <= 1.0e-9
+    # println("n = ", n)
+    C, A, B = rand(n, n), rand(n, n), rand(n, n)
+    @test norm(mulCAB!(C, A, B) - A * B) / norm(C) <= 1.0e-9
+    @test norm(gemmblas!(C, A, B) - A * B) / norm(C) <= 1.0e-9
+    @test norm(gemmavx!(C, A, B) - A * B) / norm(C) <= 1.0e-9
 
-	BLAS.set_num_threads(1)
-	# println("mulCAB!")
-	
-# @btime mulCAB!($C, $A, $B)
-	# println("gemmblas!")
-	
-# @btime gemmblas!($C, $A, $B)
-	# println("gemmavx!")
-	
-# @btime gemmavx!($C, $A, $B)
+    BLAS.set_num_threads(1)
+    # println("mulCAB!")
+
+    # @btime mulCAB!($C, $A, $B)
+    # println("gemmblas!")
+
+    # @btime gemmblas!($C, $A, $B)
+    # println("gemmavx!")
+
+    # @btime gemmavx!($C, $A, $B)
 end
 end
 using .mmmultest1
@@ -61,12 +62,13 @@ using LinearAlgebra
 using FinEtools.MatrixUtilityModule: mulCAB!
 
 function gemmavx!(C, A, B)
-	M, N = size(C); K = size(B,1)
-	C .= 0
-    @avx  for n ∈ 1:N, k ∈ 1:K # for k ∈ 1:K, n ∈ 1:N #
-    	Bkn = B[k,n]
-        for m ∈ 1:M
-            C[m,n] += A[m,k] * Bkn
+    M, N = size(C)
+    K = size(B, 1)
+    C .= 0
+    @avx for n in 1:N, k in 1:K # for k ∈ 1:K, n ∈ 1:N #
+        Bkn = B[k, n]
+        for m in 1:M
+            C[m, n] += A[m, k] * Bkn
         end
     end
     return C
@@ -80,22 +82,22 @@ end
 
 
 function test(n)
-	# println("n = ", n)
-	C, A, B = rand(n, n), rand(n, n), rand(n, n)
-	@test norm(mulCAB!(C, A, B) - A * B) / norm(C) <= 1.0e-9
-	@test norm(gemmblas!(C, A, B) - A * B) / norm(C) <= 1.0e-9
-	@test norm(gemmavx!(C, A, B) - A * B) / norm(C) <= 1.0e-9
+    # println("n = ", n)
+    C, A, B = rand(n, n), rand(n, n), rand(n, n)
+    @test norm(mulCAB!(C, A, B) - A * B) / norm(C) <= 1.0e-9
+    @test norm(gemmblas!(C, A, B) - A * B) / norm(C) <= 1.0e-9
+    @test norm(gemmavx!(C, A, B) - A * B) / norm(C) <= 1.0e-9
 
-	BLAS.set_num_threads(1)
-	# println("mulCAB!")
-	
-# @btime mulCAB!($C, $A, $B)
-	# println("gemmblas!")
-	
-# @btime gemmblas!($C, $A, $B)
-	# println("gemmavx!")
-	
-# @btime gemmavx!($C, $A, $B)
+    BLAS.set_num_threads(1)
+    # println("mulCAB!")
+
+    # @btime mulCAB!($C, $A, $B)
+    # println("gemmblas!")
+
+    # @btime gemmblas!($C, $A, $B)
+    # println("gemmavx!")
+
+    # @btime gemmavx!($C, $A, $B)
 end
 end
 using .mmmultest2
@@ -122,18 +124,18 @@ end
 
 
 function test(n)
-	# println("n = ", n)
-	C, A, B = rand(n, n), rand(n, n), rand(n, n)
-	mulCAtB!(C, A, B)
-	@test norm(mulCAtB!(C, A, B) - A' * B) / norm(C) <= 1.0e-9
-	@test norm(gemmblas!(C, A, B) - A' * B) / norm(C) <= 1.0e-9
+    # println("n = ", n)
+    C, A, B = rand(n, n), rand(n, n), rand(n, n)
+    mulCAtB!(C, A, B)
+    @test norm(mulCAtB!(C, A, B) - A' * B) / norm(C) <= 1.0e-9
+    @test norm(gemmblas!(C, A, B) - A' * B) / norm(C) <= 1.0e-9
 
-	# println("mulCAtB!")
-	
-# @btime mulCAtB!($C, $A, $B)
-	# println("gemmblas!")
-	
-# @btime gemmblas!($C, $A, $B)
+    # println("mulCAtB!")
+
+    # @btime mulCAtB!($C, $A, $B)
+    # println("gemmblas!")
+
+    # @btime gemmblas!($C, $A, $B)
 end
 end
 using .mmmultest3
@@ -161,18 +163,18 @@ end
 
 
 function test(M, N, K)
-	# println("M, N, K = ", (M, N, K))
-	C, A, B = rand(M, N), rand(K, M), rand(K, N)
-	mulCAtB!(C, A, B)
-	@test norm(mulCAtB!(C, A, B) - A' * B) / norm(C) <= 1.0e-9
-	@test norm(gemmblas!(C, A, B) - A' * B) / norm(C) <= 1.0e-9
+    # println("M, N, K = ", (M, N, K))
+    C, A, B = rand(M, N), rand(K, M), rand(K, N)
+    mulCAtB!(C, A, B)
+    @test norm(mulCAtB!(C, A, B) - A' * B) / norm(C) <= 1.0e-9
+    @test norm(gemmblas!(C, A, B) - A' * B) / norm(C) <= 1.0e-9
 
-	# println("mulCAtB!")
-	
-# @btime mulCAtB!($C, $A, $B)
-	# println("gemmblas!")
-	
-# @btime gemmblas!($C, $A, $B)
+    # println("mulCAtB!")
+
+    # @btime mulCAtB!($C, $A, $B)
+    # println("gemmblas!")
+
+    # @btime gemmblas!($C, $A, $B)
 end
 end
 using .mmmultest4
@@ -207,17 +209,17 @@ end
 
 
 function test(M, N, K)
-	# println("M, N, K = ", (M, N, K))
-	C, A, B = rand(M, N), rand(M, K), rand(N, K)
-	@test norm(mulCABt!(C, A, B) - A * B') / norm(C) <= 1.0e-9
-	@test norm(gemmblas!(C, A, B) - A * B') / norm(C) <= 1.0e-9
+    # println("M, N, K = ", (M, N, K))
+    C, A, B = rand(M, N), rand(M, K), rand(N, K)
+    @test norm(mulCABt!(C, A, B) - A * B') / norm(C) <= 1.0e-9
+    @test norm(gemmblas!(C, A, B) - A * B') / norm(C) <= 1.0e-9
 
-	# println("mulCABt!")
-	
-# @btime mulCABt!($C, $A, $B)
-	# println("gemmblas!")
-	
-# @btime gemmblas!($C, $A, $B)
+    # println("mulCABt!")
+
+    # @btime mulCABt!($C, $A, $B)
+    # println("gemmblas!")
+
+    # @btime gemmblas!($C, $A, $B)
 end
 end
 using .mmmultest6
@@ -256,13 +258,13 @@ using FinEtools.MatrixUtilityModule: mulCAB!
 using LinearAlgebra
 using Test
 function test()
-	M, N = 7, 9
-	C, A, B = rand(M), rand(M, N), rand(N)
-	@test norm(mulCAB!(C, A, B) - A * B) / norm(C) <= 1.0e-9
-	C, A, B = rand(M), rand(M, N), rand(N)
-	@test norm(mulCAB!(C, A, B) - A * B) / norm(C) <= 1.0e-9
-	C, A, B = rand(M), rand(M, N), rand(N)
-	@test norm(mulCAB!(C, A, B) - A * B) / norm(C) <= 1.0e-9
+    M, N = 7, 9
+    C, A, B = rand(M), rand(M, N), rand(N)
+    @test norm(mulCAB!(C, A, B) - A * B) / norm(C) <= 1.0e-9
+    C, A, B = rand(M), rand(M, N), rand(N)
+    @test norm(mulCAB!(C, A, B) - A * B) / norm(C) <= 1.0e-9
+    C, A, B = rand(M), rand(M, N), rand(N)
+    @test norm(mulCAB!(C, A, B) - A * B) / norm(C) <= 1.0e-9
 end
 end
 using .mmvtest1
@@ -283,7 +285,7 @@ function test()
     DB2 = fill(0.0, P, N)
     Jac_w = 0.331
     add_b1tdb2!(Ke, B1, B2, Jac_w, D, DB2)
-    @test norm(Ke - B1'*D*B2*Jac_w) < 1.0e-9 * norm(Ke)
+    @test norm(Ke - B1' * D * B2 * Jac_w) < 1.0e-9 * norm(Ke)
     true
 end
 end
