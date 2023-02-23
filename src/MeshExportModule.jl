@@ -1621,6 +1621,7 @@ import ...FESetModule:
     FESetT4,
     FESetH8,
     FESetQ8,
+    FESetQ9,
     FESetL3,
     FESetT6,
     FESetT10,

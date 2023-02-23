@@ -1671,3 +1671,60 @@ function test()
 end
 test()
 end
+
+
+module misc_importexport_1
+using FinEtools
+using FinEtools.MeshExportModule.H5MESH: write_H5MESH
+using FinEtools.MeshImportModule: import_H5MESH
+using FinEtools.MeshExportModule: VTKWrite
+using Test
+function test()
+    xs = collect(linearspace(0.0, 5 * pi / 2, 6))
+    ys = collect(linearspace(0.0, 10.0, 7))
+
+    for f in (T3blockx, Q4blockx, T6blockx, Q8blockx, Q9blockx)
+        fens, fes = f(xs, ys,)
+        fens.xyz = xyz3(fens)
+        write_H5MESH("file", fens, fes)
+        output = import_H5MESH("file")
+        @test fens.xyz ≈ output["fens"].xyz
+        @test connasarray(fes) ≈ connasarray(output["fesets"][1])
+        File = "mesh_vec_1.vtk"
+        v = deepcopy(fens.xyz)
+        t = v[:, 1]; v[:, 1] = -v[:, 2]; v[:, 2] = t
+        VTKWrite.vtkwrite(File, fens, fes; vectors = [("v", v), ])
+    end
+    nothing
+end
+test()
+end
+
+
+module misc_importexport_2
+using FinEtools
+using FinEtools.MeshExportModule.H5MESH: write_H5MESH
+using FinEtools.MeshImportModule: import_H5MESH
+using FinEtools.MeshExportModule: VTKWrite
+using Test
+function test()
+    xs = collect(linearspace(0.0, 5 * pi / 2, 6))
+    ys = collect(linearspace(0.0, 10.0, 7))
+    zs = collect(linearspace(0.0, 10.0, 7))
+
+    for f in (H8blockx, T4blockx, H20blockx, T10blockx)
+        fens, fes = f(xs, ys, zs)
+        fens.xyz = xyz3(fens)
+        write_H5MESH("file", fens, fes)
+        output = import_H5MESH("file")
+        @test fens.xyz ≈ output["fens"].xyz
+        @test connasarray(fes) ≈ connasarray(output["fesets"][1])
+        File = "mesh_vec_1.vtk"
+        v = deepcopy(fens.xyz)
+        t = v[:, 1]; v[:, 1] = -v[:, 2]; v[:, 2] = t
+        VTKWrite.vtkwrite(File, fens, fes; vectors = [("v", v), ])
+    end
+    nothing
+end
+test()
+end

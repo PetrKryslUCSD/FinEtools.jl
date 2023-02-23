@@ -63,7 +63,7 @@ function T4block(
 end
 
 """
-    T4blockx(xs::FFltMat, ys::FFltMat, zs::FFltMat, orientation::Symbol)
+    T4blockx(xs::FFltMat, ys::FFltMat, zs::FFltMat, orientation::Symbol = :a)
 
 Generate a graded tetrahedral mesh  of a 3D block.
 
@@ -73,12 +73,12 @@ between the nodes, with a given orientation of the diagonals.
 The mesh is produced by splitting each logical  rectangular cell into five or
 six tetrahedra: refer to `T4block`.
 """
-function T4blockx(xs::FFltMat, ys::FFltMat, zs::FFltMat, orientation::Symbol)
+function T4blockx(xs::FFltMat, ys::FFltMat, zs::FFltMat, orientation::Symbol = :a)
     return T4blockx(vec(xs), vec(ys), vec(zs), orientation)
 end
 
 """
-    T4blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec, orientation::Symbol)
+    T4blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec, orientation::Symbol = :a)
 
 Generate a graded tetrahedral mesh  of a 3D block.
 
@@ -88,7 +88,7 @@ between the nodes, with a given orientation of the diagonals.
 The mesh is produced by splitting each logical  rectangular cell into five or
 six tetrahedra: refer to `T4block`.
 """
-function T4blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec, orientation::Symbol)
+function T4blockx(xs::FFltVec, ys::FFltVec, zs::FFltVec, orientation::Symbol = :a)
     nL = length(xs) - 1
     nW = length(ys) - 1
     nH = length(zs) - 1

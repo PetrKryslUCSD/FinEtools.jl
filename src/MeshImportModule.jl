@@ -616,6 +616,8 @@ function import_H5MESH(meshfile)
         fes = FESetQ4(C)
     elseif etype == VTK.Q8
         fes = FESetQ8(C)
+    elseif etype == VTK.Q9
+        fes = FESetQ9(C)
     elseif etype == VTK.T3
         fes = FESetT3(C)
     elseif etype == VTK.T6
