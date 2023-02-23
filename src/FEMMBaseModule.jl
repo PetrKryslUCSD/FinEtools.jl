@@ -113,7 +113,7 @@ end
 
 Integrate a nodal-field function over the discrete manifold.
 
-`afield` = NODAL field to be supply the values
+`afield` = NODAL field to supply the values
 `fh` = function taking position and the field value as arguments, returning value of type `R`.
 
 Returns value of type `R`, which is initialized by `initial`.
@@ -166,7 +166,7 @@ end
 
 Integrate a elemental-field function over the discrete manifold.
 
-`afield` = ELEMENTAL field to be supply the values
+`afield` = ELEMENTAL field to supply the values
 `fh` = function taking position and the field value as arguments, returning value of type `R`.
 
 Returns value of type `R`, which is initialized by `initial`.
