@@ -441,6 +441,64 @@ function test()
         rm(AE.filename)
     catch
     end
+
+    AE = AbaqusExporter("LE11NAFEMS_H8")
+    HEADING(AE, "LE11NAFEMS: Linear bricks.")
+    PART(AE, "part1")
+    END_PART(AE)
+    ASSEMBLY(AE, "ASSEM1")
+    INSTANCE(AE, "INSTNC1", "PART1")
+    NODE(AE, fens.xyz)
+    ELEMENT(AE, "c3d8rh", "AllElements", 1, fes.conn)
+    END_INSTANCE(AE)
+    END_ASSEMBLY(AE)
+    close(AE)
+
+
+    output = MeshImportModule.import_ABAQUS("./LE11NAFEMS_H8.inp"; allocationchunk = 11)
+    fens, fes = output["fens"], output["fesets"][1]
+
+    File = "LE11NAFEMS_H8.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    # @async run(`"paraview.exe" $File`)
+    try
+        rm(File)
+    catch
+    end
+
+    try
+        rm(AE.filename)
+    catch
+    end
+
+    AE = AbaqusExporter("LE11NAFEMS_H8")
+    HEADING(AE, "LE11NAFEMS: Linear bricks.")
+    PART(AE, "part1")
+    END_PART(AE)
+    ASSEMBLY(AE, "ASSEM1")
+    INSTANCE(AE, "INSTNC1", "PART1")
+    NODE(AE, fens.xyz)
+    ELEMENT(AE, "c3d8rh", "AllElements", fes.conn)
+    END_INSTANCE(AE)
+    END_ASSEMBLY(AE)
+    close(AE)
+
+
+    output = MeshImportModule.import_ABAQUS("./LE11NAFEMS_H8.inp"; allocationchunk = 11)
+    fens, fes = output["fens"], output["fesets"][1]
+
+    File = "LE11NAFEMS_H8.vtk"
+    VTK.vtkexportmesh(File, fens, fes)
+    # @async run(`"paraview.exe" $File`)
+    try
+        rm(File)
+    catch
+    end
+
+    try
+        rm(AE.filename)
+    catch
+    end
 end
 end
 using .mAbaqusmmiimportmmm

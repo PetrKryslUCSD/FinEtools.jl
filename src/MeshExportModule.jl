@@ -580,9 +580,8 @@ function ELEMENT(
     TYPE::AbstractString,
     ELSET::AbstractString,
     start::Integer,
-    conn::C,
-) where {C}
-    @assert typeof(conn[1]) <: Tuple
+    conn::Vector{C},
+) where {C <: Tuple}
     c = fill(0, length(conn), length(conn[1]))
     for i in eachindex(conn)
         c[i, :] = [conn[i]...]
@@ -594,10 +593,10 @@ function ELEMENT(
     self::AbaqusExporter,
     TYPE::AbstractString,
     ELSET::AbstractString,
-    conn::C,
-) where {C}
+    conn::Vector{C},
+) where {C <: Tuple}
     start = self.element_range[2] + 1
-    ELEMENT(self, TYPE, ELSET, start, c)
+    ELEMENT(self, TYPE, ELSET, start, conn)
 end
 
 """
