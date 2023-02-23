@@ -553,6 +553,8 @@ function import_MESH(filename)
         fes = FESetQ4(C)
     elseif etype == "Q8"
         fes = FESetQ8(C)
+    elseif etype == "Q9"
+        fes = FESetQ9(C)
     elseif etype == "T3"
         fes = FESetT3(C)
     elseif etype == "T6"
