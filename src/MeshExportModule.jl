@@ -1679,6 +1679,7 @@ import ...FESetModule:
     FESetT4,
     FESetH8,
     FESetQ8,
+    FESetQ9,
     FESetL3,
     FESetT6,
     FESetT10,
@@ -1697,6 +1698,7 @@ const _VTK_TYPE_MAP = Dict{DataType,Int}(
     FESetT4 => 10,
     FESetH8 => 12,
     FESetQ8 => 23,
+    FESetQ9 => 28,
     FESetL3 => 21,
     FESetT6 => 22,
     FESetT10 => 24,
@@ -1713,6 +1715,7 @@ const H8 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetH8])
 const L3 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetL3])
 const T6 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetT6])
 const Q8 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetQ8])
+const Q9 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetQ9])
 const T10 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetT10])
 const H20 = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[FESetH20])
 

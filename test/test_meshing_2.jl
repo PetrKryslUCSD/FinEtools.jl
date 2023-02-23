@@ -1611,3 +1611,32 @@ end
 test()
 end
 
+
+
+module mtq9_integrate5
+using FinEtools
+using FinEtools.MeshExportModule
+using FinEtools.MeshExportModule: VTKWrite
+using Test
+function test()
+    xs = collect(linearspace(0.0, 5 * pi / 2, 6))
+    ys = collect(linearspace(0.0, 10.0, 7))
+    fens, fes = Q9blockx(xs, ys,)
+    fens.xyz = xyz3(fens)
+    @test count(fens) == (5 + 1) * (6 + 1) + 5 * (6 + 1) + 6 * (5 + 1) + 5 * 6
+    @test count(fes) == 5 * 6
+
+    bfes  = meshboundary(fes)
+
+    geom = NodalField(fens.xyz)
+    femm = FEMMBase(IntegDomain(bfes, GaussRule(1, 4)))
+    L = integratefunction(femm, geom, (x) -> 1.0)
+    @test L ≈ 2 * (5 * pi / 2 + 10.0)
+    File = "mesh_vec.vtk"
+    v = deepcopy(fens.xyz)
+    t = v[:, 1]; v[:, 1] = -v[:, 2]; v[:, 2] = t
+    VTKWrite.vtkwrite(File, fens, fes; vectors = [("v", v), ])
+    nothing
+end
+test()
+end
