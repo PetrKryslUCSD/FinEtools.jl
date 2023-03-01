@@ -1,6 +1,6 @@
 module mexpmeshx1ba3
 using FinEtools
-using FinEtools.MeshExportModule: MESH, MESH.write_MESH
+using FinEtools.MeshExportModule.MESH: write_MESH
 using FinEtools.MeshImportModule
 using LinearAlgebra: norm
 using Test
@@ -45,7 +45,7 @@ mexpmeshx1ba3.test()
 
 module mexpmeshx1bb1
 using FinEtools
-using FinEtools.MeshExportModule: MESH, MESH.write_MESH
+using FinEtools.MeshExportModule.MESH: write_MESH
 using FinEtools.MeshImportModule
 using LinearAlgebra: norm
 using Test
@@ -4516,7 +4516,7 @@ mexpstl1.test()
 
 module mexpvecv1
 using FinEtools
-using FinEtools.MeshExportModule: VTK, VTK.vtkexportvectors
+using FinEtools.MeshExportModule: VTK
 using Test
 function test()
     rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol =
@@ -4542,7 +4542,7 @@ mexpvecv1.test()
 
 module mexpvecv2
 using FinEtools
-using FinEtools.MeshExportModule: VTK, VTK.vtkexportvectors
+using FinEtools.MeshExportModule: VTK
 using Test
 function test()
     rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol =
@@ -4929,7 +4929,7 @@ mh8sphere1x2.test()
 
 module mq8ann1
 using FinEtools
-using FinEtools.MeshExportModule: VTK, VTK.vtkexportvectors
+using FinEtools.MeshExportModule: VTK
 using Test
 function test()
     rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol =
@@ -4954,7 +4954,7 @@ mq8ann1.test()
 
 module mexpmeshx1a2
 using FinEtools
-using FinEtools.MeshExportModule: MESH, MESH.write_MESH
+using FinEtools.MeshExportModule.MESH: write_MESH
 using Test
 function test()
     rho = 1.21 * 1e-9# mass density

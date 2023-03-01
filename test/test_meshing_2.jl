@@ -74,6 +74,65 @@ end
 using .momap2para3_2
 momap2para3_2.test()
 
+module momap2para3_3
+using FinEtools
+using FinEtools.MeshSelectionModule: vselect
+using FinEtools.MeshExportModule
+using FinEtools.MeshExportModule: VTKWrite
+using Test
+import LinearAlgebra: norm
+function test()
+    A = 50.0 * phun("m") # length  of loaded rectangle
+    B = 200.0 * phun("m") # length  of loaded rectangle
+    C = 100.0 * phun("m") # span of the plate
+
+    # Select how find the mesh should be
+    Refinement = 2
+    nA, nB, nC = Refinement * 1, Refinement * 2, Refinement * 4
+    xs = reshape(collect(linearspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linearspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
+    fensc, fesc = T10blockx(xs, ys, zs, :b)
+    fc = NodalField(zeros(count(fensc), 1))
+    for i in 1:count(fensc)
+        x, y, z = fensc.xyz[i, :]
+        fc.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B) * sin(3 * z / C - 1.0)
+    end
+    File = "momap2para3_3-coarse.vtu"
+    VTKWrite.vtkwrite(File, fensc, fesc; scalars = [("fc", fc.values)])
+    # @async run(`"paraview.exe" $File`)
+    try
+        rm(File)
+    catch
+    end
+
+    Refinement = Refinement + 1
+    nA, nB, nC = Refinement * 1, Refinement * 2, Refinement * 4
+    xs = reshape(collect(linearspace(0.0, A, nA + 1)), nA + 1, 1)
+    ys = reshape(collect(linearspace(0.0, B, nB + 1)), nB + 1, 1)
+    zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
+    fensf, fesf = T10blockx(xs, ys, zs, :b)
+    ff = NodalField(zeros(count(fensf), 1))
+    tolerance = min(A / nA, B / nB, C / nC) / 1000.0
+
+    referenceff = NodalField(zeros(count(fensf), 1))
+    for i in 1:count(fensf)
+        x, y, z = fensf.xyz[i, :]
+        referenceff.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B) * sin(3 * z / C - 1.0)
+    end
+    File = "momap2para3_3-reference.vtu"
+    VTKWrite.vtkwrite(File, fensf, fesf; vectors = [("geometry", deepcopy(fensf.xyz)),], scalars = [("referenceff", referenceff.values)])
+    # @async run(`"paraview.exe" $File`)
+    try
+        # rm(File)
+    catch
+    end
+
+end
+end
+using .momap2para3_3
+momap2para3_3.test()
+
 module mmmQ4blockneous2mm_2
 using FinEtools
 using FinEtools.MeshExportModule: VTKWrite
