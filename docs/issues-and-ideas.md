@@ -810,6 +810,17 @@ Examples of err messages:
      @ Main.sphere_mode_examples C:\Users\pkonl\Documents\00WIP\FinEtoolsAcoustics.jl\examples\modal\sphere_mode_examples.jl:156                                                                                                                                
 
 
+     julia> include("C:\\Users\\pkonl\\Documents\\00WIP\\FinEtools.jl\\play.jl")
+     ERROR: LoadError: UndefVarError: drdrdd not defined
+     Stacktrace:                                                                                                                                                                        
+        [1] top-level scope                                                                                                                                                             
+          @ C:\Users\pkonl\Documents\00WIP\FinEtools.jl\play.jl:1                                                                                                                       
+        [2] include(fname::String)                                                                                                                                                      
+          @ Base.MainInclude .\client.jl:476                                                                                                                                            
+     in expression starting at C:\Users\pkonl\Documents\00WIP\FinEtools.jl\play.jl:1                                                                                                    
+                                                                                                                                                                                        
+     julia> 
+     
 { // This build system simply opens a new interactive Julia REPL 
     // 2023 Petr Krysl
     // Depends on AbbreviatedStackTraces
@@ -823,6 +834,8 @@ Examples of err messages:
     // "selector": "source.julia",
     "focus": false,
    
-    "file_regex": "(?:[@][\\s][\\s\\S.*]*|in expression starting at)\\s(\\S.+[.jl]):([0-9]+)\\s*"
+    "file_regex": "(?:[@](?:\\s\\S[\\w.]*[^@])??|in expression starting at)\\s(\\S+[.]jl):([0-9]+)\\s.*"
 }
+
+"file_regex": "(?:[@][\s][\s\S.*]*|in expression starting at)\s(\S.+[.jl]):([0-9]+)\s*"  
 
