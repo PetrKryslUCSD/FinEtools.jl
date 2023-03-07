@@ -1001,32 +1001,34 @@ function makematrix!(self::SysmatAssemblerSparseThr{T}) where {T<:Number}
     # Here we will go through the rows and columns, and whenever the row or
     # the column refer to indexes outside of the limits of the matrix, the
     # corresponding value will be set to 0 and assembled to row and column 1.
-    nth = Base.Threads.nthreads()
+
     th = Base.Threads.threadid()
-    @inbounds for j in 1:length(self.rowbuffer[th])
-        if (self.rowbuffer[th][j] > self.ndofs_row) || (self.rowbuffer[th][j] <= 0)
-            self.rowbuffer[th][j] = 1
-            self.matbuffer[th][j] = 0.0
-        end
-        if (self.colbuffer[th][j] > self.ndofs_col) || (self.colbuffer[th][j] <= 0)
-            self.colbuffer[th][j] = 1
-            self.matbuffer[th][j] = 0.0
-        end
-    end
-    self.thread_done[th] = true
     all_done = true
     for k in eachindex(self.thread_done)
-        @assert length(self.matbuffer[k]) == length(self.rowbuffer[k])
-        @assert length(self.matbuffer[k]) == length(self.colbuffer[k])
         all_done = all_done && (
-            self.thread_done[k] || (
-        isempty(self.rowbuffer[k]) && isempty(self.colbuffer[k]) && isempty(self.matbuffer[k])))
+            (self.thread_done[k] || (
+                isempty(self.rowbuffer[k]) &&
+                isempty(self.colbuffer[k]) &&
+                isempty(self.matbuffer[k]))
+            )
+            )
     end
     if self.nomatrixresult || (!all_done)
         # No actual sparse matrix is returned. The entire result of the assembly
         # is preserved in the assembler buffers.
+        # @inbounds for j in 1:length(self.rowbuffer[th])
+        #     if (self.rowbuffer[th][j] > self.ndofs_row) || (self.rowbuffer[th][j] <= 0)
+        #         self.rowbuffer[th][j] = 1
+        #         self.matbuffer[th][j] = 0.0
+        #     end
+        #     if (self.colbuffer[th][j] > self.ndofs_col) || (self.colbuffer[th][j] <= 0)
+        #         self.colbuffer[th][j] = 1
+        #         self.matbuffer[th][j] = 0.0
+        #     end
+        # end
+        self.thread_done[th] = true
         return spzeros(self.ndofs_row, self.ndofs_col)
-    else
+    elseif all_done && th == 1
         # The sparse matrix is constructed and returned. The  buffers used for
         # the assembly are cleared.
         S = sparse(
