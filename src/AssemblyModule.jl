@@ -892,4 +892,153 @@ function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
     return S
 end
 
+
+"""
+    SysmatAssemblerSparseThr{T<:Number} <: AbstractSysmatAssembler
+
+Type for multithreaded assembling of a sparse global matrix from elementwise matrices.
+
+!!! note
+
+    All fields of the datatype are private. No need to access them directly.
+"""
+mutable struct SysmatAssemblerSparseThr{T<:Number} <: AbstractSysmatAssembler
+    matbuffer::Vector{Vector{T}}
+    rowbuffer::Vector{Vector{FInt}}
+    colbuffer::Vector{Vector{FInt}}
+    thread_done::Vector{Bool}
+    ndofs_row::FInt
+    ndofs_col::FInt
+    nomatrixresult::Bool
+end
+
+"""
+    SysmatAssemblerSparseThr(zero::T=0.0, nomatrixresult = false) where {T<:Number}
+
+Construct blank system matrix assembler.
+
+This assembler is like `SysmatAssemblerSparse`, except it can be used with
+multiple threads.
+"""
+function SysmatAssemblerSparseThr(zero::T = 0.0, nomatrixresult = false) where {T<:Number}
+    return SysmatAssemblerSparseThr{T}(Vector{Vector{T}}[], Vector{Vector{FInt}}[], Vector{Vector{FInt}}[], Vector{Bool}[], 0, 0, nomatrixresult)
+end
+
+"""
+    startassembly!(self::SysmatAssemblerSparseThr{T},
+      elem_mat_nrows::FInt, elem_mat_ncols::FInt, elem_mat_nmatrices::FInt,
+      ndofs_row::FInt, ndofs_col::FInt) where {T<:Number}
+
+Start the assembly of a global matrix.
+
+This assembler is like `SysmatAssemblerSparse`, except it can be used with
+multiple threads.
+"""
+function startassembly!(
+    self::SysmatAssemblerSparseThr{T},
+    elem_mat_nrows::FInt,
+    elem_mat_ncols::FInt,
+    elem_mat_nmatrices::FInt,
+    ndofs_row::FInt,
+    ndofs_col::FInt,
+) where {T<:Number}
+    nth = Base.Threads.nthreads()
+    n = Int(ceil(round(elem_mat_nmatrices * elem_mat_nrows * elem_mat_ncols / nth)))
+    self.rowbuffer = Vector{Vector{FInt}}[]
+    self.colbuffer = Vector{Vector{FInt}}[]
+    self.matbuffer = Vector{Vector{T}}[]
+    self.thread_done = fill(false, nth)
+    for th in 1:nth
+        push!(self.rowbuffer, Vector{FInt}[])
+        sizehint!(self.rowbuffer[th], n)
+        push!(self.colbuffer, Vector{FInt}[])
+        sizehint!(self.colbuffer[th], n)
+        push!(self.matbuffer, Vector{T}[])
+        sizehint!(self.matbuffer[th], n)
+    end
+    self.ndofs_row = ndofs_row
+    self.ndofs_col = ndofs_col
+    return self
+end
+
+"""
+    assemble!(self::SysmatAssemblerSparseThr{T}, mat::FMat{T}, dofnums_row::Union{FIntVec, FIntMat}, dofnums_col::Union{FIntVec, FIntMat}) where {T<:Number}
+
+Assemble a rectangular matrix.
+
+This assembler is like `SysmatAssemblerSparse`, except it can be used with
+multiple threads.
+"""
+function assemble!(
+    self::SysmatAssemblerSparseThr{T},
+    mat::FMat{T},
+    dofnums_row::Union{FIntVec,FIntMat},
+    dofnums_col::Union{FIntVec,FIntMat},
+) where {T<:Number}
+    nth = Base.Threads.nthreads()
+    th = Base.Threads.threadid()
+    nrows = length(dofnums_row)
+    ncolumns = length(dofnums_col)
+    @inbounds for j in 1:ncolumns, i in 1:nrows
+        push!(self.matbuffer[th], mat[i, j]) # serialized matrix
+        push!(self.rowbuffer[th], dofnums_row[i])
+        push!(self.colbuffer[th], dofnums_col[j])
+    end
+    @assert length(self.matbuffer[th]) == length(self.rowbuffer[th])
+    @assert length(self.matbuffer[th]) == length(self.colbuffer[th])
+    return self
+end
+
+"""
+    makematrix!(self::SysmatAssemblerSparseThr)
+
+Make a sparse matrix.
+
+This assembler is like `SysmatAssemblerSparse`, except it can be used with
+multiple threads.
+"""
+function makematrix!(self::SysmatAssemblerSparseThr{T}) where {T<:Number}
+    # Here we will go through the rows and columns, and whenever the row or
+    # the column refer to indexes outside of the limits of the matrix, the
+    # corresponding value will be set to 0 and assembled to row and column 1.
+    nth = Base.Threads.nthreads()
+    th = Base.Threads.threadid()
+    @inbounds for j in 1:length(self.rowbuffer[th])
+        if (self.rowbuffer[th][j] > self.ndofs_row) || (self.rowbuffer[th][j] <= 0)
+            self.rowbuffer[th][j] = 1
+            self.matbuffer[th][j] = 0.0
+        end
+        if (self.colbuffer[th][j] > self.ndofs_col) || (self.colbuffer[th][j] <= 0)
+            self.colbuffer[th][j] = 1
+            self.matbuffer[th][j] = 0.0
+        end
+    end
+    self.thread_done[th] = true
+    all_done = true
+    for k in eachindex(self.thread_done)
+        @assert length(self.matbuffer[k]) == length(self.rowbuffer[k])
+        @assert length(self.matbuffer[k]) == length(self.colbuffer[k])
+        all_done = all_done && (
+            self.thread_done[k] || (
+        isempty(self.rowbuffer[k]) && isempty(self.colbuffer[k]) && isempty(self.matbuffer[k])))
+    end
+    if self.nomatrixresult || (!all_done)
+        # No actual sparse matrix is returned. The entire result of the assembly
+        # is preserved in the assembler buffers.
+        return spzeros(self.ndofs_row, self.ndofs_col)
+    else
+        # The sparse matrix is constructed and returned. The  buffers used for
+        # the assembly are cleared.
+        S = sparse(
+            cat(self.rowbuffer..., dims=1),
+            cat(self.colbuffer..., dims=1),
+            cat(self.matbuffer..., dims=1),
+            self.ndofs_row,
+            self.ndofs_col,
+        )
+        self = SysmatAssemblerSparseThr(zero(T)) # get rid of the buffers
+        return S
+    end
+end
+
 end
