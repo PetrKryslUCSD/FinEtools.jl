@@ -9,7 +9,7 @@ __precompile__(true)
 
 using ..FTypesModule:
     FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-using SparseArrays: sparse, spzeros
+using SparseArrays: sparse, spzeros, SparseMatrixCSC
 using LinearAlgebra: diag
 
 """
@@ -907,9 +907,12 @@ mutable struct SysmatAssemblerSparseThr{T<:Number} <: AbstractSysmatAssembler
     rowbuffer::Vector{Vector{FInt}}
     colbuffer::Vector{Vector{FInt}}
     thread_done::Vector{Bool}
+    buffer_length::Vector{FInt}
+    buffer_pointer::Vector{FInt}
     ndofs_row::FInt
     ndofs_col::FInt
     nomatrixresult::Bool
+    matrices::Vector{Union{SparseMatrixCSC{T, Int64}, Nothing}}
 end
 
 """
@@ -921,7 +924,19 @@ This assembler is like `SysmatAssemblerSparse`, except it can be used with
 multiple threads.
 """
 function SysmatAssemblerSparseThr(zero::T = 0.0, nomatrixresult = false) where {T<:Number}
-    return SysmatAssemblerSparseThr{T}(Vector{Vector{T}}[], Vector{Vector{FInt}}[], Vector{Vector{FInt}}[], Vector{Bool}[], 0, 0, nomatrixresult)
+    nth = Base.Threads.nthreads()
+    return SysmatAssemblerSparseThr{T}(
+        [Vector{T}[] for _  in 1:nth],
+        [Vector{FInt}[] for _  in 1:nth],
+        [Vector{FInt}[] for _  in 1:nth],
+        [false for _  in 1:nth],
+        [0 for _  in 1:nth],
+        [0 for _  in 1:nth],
+        0,
+        0,
+        nomatrixresult,
+        [nothing for _  in 1:nth],
+        )
 end
 
 """
@@ -943,19 +958,12 @@ function startassembly!(
     ndofs_col::FInt,
 ) where {T<:Number}
     nth = Base.Threads.nthreads()
-    n = Int(ceil(round(elem_mat_nmatrices * elem_mat_nrows * elem_mat_ncols / nth)))
-    self.rowbuffer = Vector{Vector{FInt}}[]
-    self.colbuffer = Vector{Vector{FInt}}[]
-    self.matbuffer = Vector{Vector{T}}[]
-    self.thread_done = fill(false, nth)
-    for th in 1:nth
-        push!(self.rowbuffer, Vector{FInt}[])
-        sizehint!(self.rowbuffer[th], n)
-        push!(self.colbuffer, Vector{FInt}[])
-        sizehint!(self.colbuffer[th], n)
-        push!(self.matbuffer, Vector{T}[])
-        sizehint!(self.matbuffer[th], n)
-    end
+    th = Base.Threads.threadid()
+    self.buffer_length[th] = elem_mat_nmatrices * elem_mat_nrows * elem_mat_ncols
+    self.rowbuffer[th] = Array{FInt,1}(undef, self.buffer_length[th])
+    self.colbuffer[th] = Array{FInt,1}(undef, self.buffer_length[th])
+    self.matbuffer[th] = Array{T,1}(undef, self.buffer_length[th])
+    self.buffer_pointer[th] = 1
     self.ndofs_row = ndofs_row
     self.ndofs_col = ndofs_col
     return self
@@ -979,13 +987,16 @@ function assemble!(
     th = Base.Threads.threadid()
     nrows = length(dofnums_row)
     ncolumns = length(dofnums_col)
-    @inbounds for j in 1:ncolumns, i in 1:nrows
-        push!(self.matbuffer[th], mat[i, j]) # serialized matrix
-        push!(self.rowbuffer[th], dofnums_row[i])
-        push!(self.colbuffer[th], dofnums_col[j])
+    p = self.buffer_pointer[th]
+    @assert p + ncolumns * nrows <= self.buffer_length[th] + 1
+    @assert size(mat) == (nrows, ncolumns)
+    @inbounds for j in 1:ncolumns,  i in 1:nrows
+        self.matbuffer[th][p] = mat[i, j] # serialized matrix
+        self.rowbuffer[th][p] = dofnums_row[i]
+        self.colbuffer[th][p] = dofnums_col[j]
+        p = p + 1
     end
-    @assert length(self.matbuffer[th]) == length(self.rowbuffer[th])
-    @assert length(self.matbuffer[th]) == length(self.colbuffer[th])
+    self.buffer_pointer[th] = p
     return self
 end
 
@@ -997,12 +1008,70 @@ Make a sparse matrix.
 This assembler is like `SysmatAssemblerSparse`, except it can be used with
 multiple threads.
 """
+# function makematrix!(self::SysmatAssemblerSparseThr{T}) where {T<:Number}
+#     # Here we will go through the rows and columns, and whenever the row or
+#     # the column refer to indexes outside of the limits of the matrix, the
+#     # corresponding value will be set to 0 and assembled to row and column 1.
+
+#     th = Base.Threads.threadid()
+#     all_done = true
+#     for k in eachindex(self.thread_done)
+#         all_done = all_done && (
+#             (self.thread_done[k] || (
+#                 isempty(self.rowbuffer[k]) &&
+#                 isempty(self.colbuffer[k]) &&
+#                 isempty(self.matbuffer[k]))
+#             )
+#             )
+#     end
+#     if self.nomatrixresult || (!all_done)
+#         # No actual sparse matrix is returned. The entire result of the assembly
+#         # is preserved in the assembler buffers.
+#         # @inbounds for j in 1:length(self.rowbuffer[th])
+#         #     if (self.rowbuffer[th][j] > self.ndofs_row) || (self.rowbuffer[th][j] <= 0)
+#         #         self.rowbuffer[th][j] = 1
+#         #         self.matbuffer[th][j] = 0.0
+#         #     end
+#         #     if (self.colbuffer[th][j] > self.ndofs_col) || (self.colbuffer[th][j] <= 0)
+#         #         self.colbuffer[th][j] = 1
+#         #         self.matbuffer[th][j] = 0.0
+#         #     end
+#         # end
+#         self.thread_done[th] = true
+#         return spzeros(self.ndofs_row, self.ndofs_col)
+#     elseif all_done && th == 1
+#         # The sparse matrix is constructed and returned. The  buffers used for
+#         # the assembly are cleared.
+#         S = sparse(
+#             cat(self.rowbuffer..., dims=1),
+#             cat(self.colbuffer..., dims=1),
+#             cat(self.matbuffer..., dims=1),
+#             self.ndofs_row,
+#             self.ndofs_col,
+#         )
+#         self = SysmatAssemblerSparseThr(zero(T)) # get rid of the buffers
+#         return S
+#     end
+# end
+
 function makematrix!(self::SysmatAssemblerSparseThr{T}) where {T<:Number}
     # Here we will go through the rows and columns, and whenever the row or
     # the column refer to indexes outside of the limits of the matrix, the
     # corresponding value will be set to 0 and assembled to row and column 1.
 
-    th = Base.Threads.threadid()
+    # TO DO: implement this operation
+    # @inbounds for j in 1:self.buffer_pointer-1
+    #     if (self.rowbuffer[j] > self.ndofs_row) || (self.rowbuffer[j] <= 0)
+    #         self.rowbuffer[j] = 1
+    #         self.matbuffer[j] = 0.0
+    #     end
+    #     if (self.colbuffer[j] > self.ndofs_col) || (self.colbuffer[j] <= 0)
+    #         self.colbuffer[j] = 1
+    #         self.matbuffer[j] = 0.0
+    #     end
+    # end
+
+    @show th = Base.Threads.threadid()
     all_done = true
     for k in eachindex(self.thread_done)
         all_done = all_done && (
@@ -1013,34 +1082,53 @@ function makematrix!(self::SysmatAssemblerSparseThr{T}) where {T<:Number}
             )
             )
     end
-    if self.nomatrixresult || (!all_done)
-        # No actual sparse matrix is returned. The entire result of the assembly
-        # is preserved in the assembler buffers.
-        # @inbounds for j in 1:length(self.rowbuffer[th])
-        #     if (self.rowbuffer[th][j] > self.ndofs_row) || (self.rowbuffer[th][j] <= 0)
-        #         self.rowbuffer[th][j] = 1
-        #         self.matbuffer[th][j] = 0.0
-        #     end
-        #     if (self.colbuffer[th][j] > self.ndofs_col) || (self.colbuffer[th][j] <= 0)
-        #         self.colbuffer[th][j] = 1
-        #         self.matbuffer[th][j] = 0.0
-        #     end
-        # end
-        self.thread_done[th] = true
-        return spzeros(self.ndofs_row, self.ndofs_col)
-    elseif all_done && th == 1
-        # The sparse matrix is constructed and returned. The  buffers used for
-        # the assembly are cleared.
-        S = sparse(
-            cat(self.rowbuffer..., dims=1),
-            cat(self.colbuffer..., dims=1),
-            cat(self.matbuffer..., dims=1),
+
+    # Here we will go through the rows and columns, and whenever the row or
+    # the column refer to indexes outside of the limits of the matrix, the
+    # corresponding value will be set to 0 and assembled to row and column 1.
+    if !isempty(self.rowbuffer[th]) && !isempty(self.colbuffer[th]) && !isempty(self.matbuffer[th])
+        @inbounds for j in 1:self.buffer_pointer[th]-1
+            if (self.rowbuffer[th][j] > self.ndofs_row) || (self.rowbuffer[th][j] <= 0)
+                self.rowbuffer[th][j] = 1
+                self.matbuffer[th][j] = 0.0
+            end
+            if (self.colbuffer[th][j] > self.ndofs_col) || (self.colbuffer[th][j] <= 0)
+                self.colbuffer[th][j] = 1
+                self.matbuffer[th][j] = 0.0
+            end
+        end
+    end
+    self.thread_done[th] = true
+
+    if (!all_done)
+        # The sparse matrix is constructed and stored for each thread.
+        self.matrices[th] = sparse(
+            self.rowbuffer[th][1:self.buffer_pointer[th]-1],
+            self.colbuffer[th][1:self.buffer_pointer[th]-1],
+            self.matbuffer[th][1:self.buffer_pointer[th]-1],
             self.ndofs_row,
             self.ndofs_col,
-        )
-        self = SysmatAssemblerSparseThr(zero(T)) # get rid of the buffers
+            )
+        # The buffers are cleared
+        self.rowbuffer[th] = []
+        self.colbuffer[th] = []
+        self.matbuffer[th] = []
+    else
+        @assert th == 1 # This is supposed to happen only in serial mode
+        if self.nomatrixresult
+            # No actual sparse matrix is returned. The entire result of the assembly
+            # is preserved in the assembler buffers.
+            return spzeros(self.ndofs_row, self.ndofs_col)
+        else
+            S = self.matrices[1]
+            for i in 2:length(self.matrices)
+                if self.matrices[i] !== nothing
+                    S += self.matrices[i]
+                end
+            end
+        end
         return S
     end
 end
 
-end
+end # end of module
