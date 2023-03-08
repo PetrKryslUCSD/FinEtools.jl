@@ -481,8 +481,8 @@ function distribloads(
     loc = fill(zero(FFlt), (1, sdim)) # quadrature point location -- used as a buffer
     J = fill(zero(FFlt), (sdim, mdim)) # Jac. matrix -- used as a buffer
     Fe = fill(zero(T), (Cedim,))
-    startassembly!(assembler, P.nfreedofs)
-    for i in 1:nfes # Loop over elements
+    assembler, fesrange = startassembly!(assembler, nfes, P.nfreedofs)
+    for i in fesrange # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(Fe, 0.0)
         for j in 1:npts
