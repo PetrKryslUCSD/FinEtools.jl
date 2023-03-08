@@ -1055,22 +1055,6 @@ multiple threads.
 # end
 
 function makematrix!(self::SysmatAssemblerSparseThr{T}) where {T<:Number}
-    # Here we will go through the rows and columns, and whenever the row or
-    # the column refer to indexes outside of the limits of the matrix, the
-    # corresponding value will be set to 0 and assembled to row and column 1.
-
-    # TO DO: implement this operation
-    # @inbounds for j in 1:self.buffer_pointer-1
-    #     if (self.rowbuffer[j] > self.ndofs_row) || (self.rowbuffer[j] <= 0)
-    #         self.rowbuffer[j] = 1
-    #         self.matbuffer[j] = 0.0
-    #     end
-    #     if (self.colbuffer[j] > self.ndofs_col) || (self.colbuffer[j] <= 0)
-    #         self.colbuffer[j] = 1
-    #         self.matbuffer[j] = 0.0
-    #     end
-    # end
-
     @show th = Base.Threads.threadid()
     all_done = true
     for k in eachindex(self.thread_done)
@@ -1097,36 +1081,34 @@ function makematrix!(self::SysmatAssemblerSparseThr{T}) where {T<:Number}
                 self.matbuffer[th][j] = 0.0
             end
         end
+        self.rowbuffer[th] = self.rowbuffer[th][1:self.buffer_pointer[th]-1]
+        self.colbuffer[th] = self.colbuffer[th][1:self.buffer_pointer[th]-1]
+        self.matbuffer[th] = self.matbuffer[th][1:self.buffer_pointer[th]-1]
     end
     self.thread_done[th] = true
 
     if (!all_done)
-        # The sparse matrix is constructed and stored for each thread.
-        self.matrices[th] = sparse(
-            self.rowbuffer[th][1:self.buffer_pointer[th]-1],
-            self.colbuffer[th][1:self.buffer_pointer[th]-1],
-            self.matbuffer[th][1:self.buffer_pointer[th]-1],
-            self.ndofs_row,
-            self.ndofs_col,
-            )
-        # The buffers are cleared
-        self.rowbuffer[th] = []
-        self.colbuffer[th] = []
-        self.matbuffer[th] = []
+        # No actual sparse matrix is returned. The entire result of the assembly
+        # is preserved in the assembler buffers.
+        return spzeros(self.ndofs_row, self.ndofs_col)
     else
         @assert th == 1 # This is supposed to happen only in serial mode
         if self.nomatrixresult
             # No actual sparse matrix is returned. The entire result of the assembly
             # is preserved in the assembler buffers.
             return spzeros(self.ndofs_row, self.ndofs_col)
-        else
-            S = self.matrices[1]
-            for i in 2:length(self.matrices)
-                if self.matrices[i] !== nothing
-                    S += self.matrices[i]
-                end
-            end
         end
+        S = sparse(
+            cat(self.rowbuffer..., dims=1),
+            cat(self.colbuffer..., dims=1),
+            cat(self.matbuffer..., dims=1),
+            self.ndofs_row,
+            self.ndofs_col,
+            )
+        # The buffers are cleared
+        self.rowbuffer = []
+        self.colbuffer = []
+        self.matbuffer = []
         return S
     end
 end
