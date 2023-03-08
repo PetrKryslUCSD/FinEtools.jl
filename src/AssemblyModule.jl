@@ -116,6 +116,10 @@ the first call to the method `assemble!`.
 - `ndofs_col`= Total number of equations in the column direction.
 
 The values stored in the buffers are initially undefined!
+
+# Returns
+- `self`: the modified assembler,
+- `element_range`: range of the elements that should be looped over.
 """
 function startassembly!(
     self::SysmatAssemblerSparse{T},
@@ -132,7 +136,7 @@ function startassembly!(
     self.buffer_pointer = 1
     self.ndofs_row = ndofs_row
     self.ndofs_col = ndofs_col
-    return self
+    return self, 1:elem_mat_nmatrices
 end
 
 """
@@ -271,6 +275,10 @@ the first call to the method `assemble!`.
 - `ndofs_col`= Total number of equations in the column direction.
 
 The values stored in the buffers are initially undefined!
+
+# Returns
+- `self`: the modified assembler,
+- `element_range`: range of the elements that should be looped over.
 """
 function startassembly!(
     self::SysmatAssemblerSparseSymm{T},
@@ -286,7 +294,7 @@ function startassembly!(
     self.matbuffer = Array{T,1}(undef, self.buffer_length)
     self.buffer_pointer = 1
     self.ndofs = ndofs
-    return self
+    return self, 1:elem_mat_nmatrices
 end
 
 """
@@ -436,6 +444,10 @@ the first call to the method `assemble!`.
 - `ndofs_col`= Total number of equations in the column direction.
 
 The values stored in the buffers are initially undefined!
+
+# Returns
+- `self`: the modified assembler,
+- `element_range`: range of the elements that should be looped over.
 """
 function startassembly!(
     self::SysmatAssemblerSparseDiag{T},
@@ -451,7 +463,7 @@ function startassembly!(
     self.matbuffer = Array{T,1}(undef, self.buffer_length)
     self.buffer_pointer = 1
     self.ndofs = ndofs
-    return self
+    return self, 1:elem_mat_nmatrices
 end
 
 """
@@ -565,7 +577,7 @@ function startassembly!(
     @assert self.ndofs_row == ndofs_row
     @assert self.ndofs_col == ndofs_col
     self.m[:] .= zero(T)
-    return self
+    return self, 1:elem_mat_nmatrices
 end
 
 function assemble!(
@@ -619,17 +631,22 @@ Abstract type of system vector assembler.
 abstract type AbstractSysvecAssembler end
 
 """
-    startassembly!(self::SysvecAssembler{T},
-      ndofs_row::FInt) where {T<:Number}
+    startassembly!(self::SysvecAssembler{T}, elem_mat_nmatrices::FInt, ndofs_row::FInt) where {T<:Number}
 
 Start assembly.
 
 The method makes the buffer for the vector assembly. It must be called before
 the first call to the method assemble.
 
-`ndofs_row`= Total number of degrees of freedom.
+- `elem_mat_nmatrices` = number of element matrices expected to be processed
+  during the assembly.
+- `ndofs_row`= Total number of degrees of freedom.
+
+# Returns
+- `self`: the modified assembler,
+- `element_range`: range of the elements that should be looped over.
 """
-function startassembly!(self::SV, ndofs_row::FInt) where {SV<:AbstractSysvecAssembler} end
+function startassembly!(self::SV, elem_mat_nmatrices::FInt, ndofs_row::FInt) where {SV<:AbstractSysvecAssembler} end
 
 """
     assemble!(self::SysvecAssembler{T}, vec::MV,
@@ -673,8 +690,7 @@ function SysvecAssembler(zero::T = 0.0) where {T<:Number}
 end
 
 """
-    startassembly!(self::SysvecAssembler{T},
-      ndofs_row::FInt) where {T<:Number}
+    startassembly!(self::SysvecAssembler{T}, elem_mat_nmatrices::FInt, ndofs_row::FInt) where {T<:Number}
 
 Start assembly.
 
@@ -682,10 +698,15 @@ The method makes the buffer for the vector assembly. It must be called before
 the first call to the method assemble.
 
 `ndofs_row`= Total number of degrees of freedom.
+
+# Returns
+- `self`: the modified assembler,
+- `element_range`: range of the elements that should be looped over.
 """
-function startassembly!(self::SysvecAssembler{T}, ndofs_row::FInt) where {T<:Number}
+function startassembly!(self::SysvecAssembler{T}, elem_mat_nmatrices::FInt, ndofs_row::FInt) where {T<:Number}
     self.ndofs = ndofs_row
     self.F_buffer = zeros(T, self.ndofs)
+    return self, 1:elem_mat_nmatrices
 end
 
 """
@@ -776,6 +797,10 @@ the first call to the method `assemble!`.
 - `ignore2`= Total number of equations in the column direction: equal to `ndofs_row`.
 
 The values stored in the buffers are initially undefined!
+
+# Returns
+- `self`: the modified assembler,
+- `element_range`: range of the elements that should be looped over.
 """
 function startassembly!(
     self::SysmatAssemblerSparseHRZLumpingSymm{T},
@@ -791,7 +816,7 @@ function startassembly!(
     self.matbuffer = Array{T,1}(undef, self.buffer_length)
     self.buffer_pointer = 1
     self.ndofs = ndofs
-    return self
+    return self, 1:elem_mat_nmatrices
 end
 
 """
@@ -953,6 +978,10 @@ multiple threads.
 
 The first call is expected to occur *before* the threaded loop.
 Therefore, the data on input indicates the total load.
+
+# Returns
+- `self`: the modified assembler,
+- `element_range`: range of the elements that should be looped over.
 """
 function startassembly!(
     self::SysmatAssemblerSparseThr{T},
@@ -966,6 +995,7 @@ function startassembly!(
     # The first call is carried out by thread 1, and the buffer is empty at that
     # point.
     th = Base.Threads.threadid()
+    elem_per_thread = Int(ceil(elem_mat_nmatrices / nth))
     first_call = (th == 1) && (self.buffer_length == 0)
     if first_call # the assembly buffer has not been initialized yet
         # Increase the allocated length a little bit to allow for irregularities
@@ -981,17 +1011,16 @@ function startassembly!(
     else
         # Now in this case the function is called from each individual thread.
         chunk = Int64(round(self.buffer_length / nth)) + 1 # Number of elements per thread
-        @show chunk, elem_mat_nmatrices * elem_mat_nrows * elem_mat_ncols
-        @assert chunk >= elem_mat_nmatrices * elem_mat_nrows * elem_mat_ncols
         self.thread_begin[th] = chunk*(th-1)+1
         self.thread_end[th] = chunk*(th)+1-1
+        @assert chunk >= elem_per_thread * elem_mat_nrows * elem_mat_ncols
         if self.thread_end[th] > self.buffer_length
             self.thread_end[th] = self.buffer_length
         end
         self.thread_pointer[th] = self.thread_begin[th]
     end
 
-    return self
+    return self, elem_per_thread*(th-1)+1:elem_per_thread*(th)
 end
 
 """
@@ -1081,7 +1110,6 @@ multiple threads.
 function makematrix!(self::SysmatAssemblerSparseThr{T}) where {T<:Number}
     th = Base.Threads.threadid()
     all_done = !any(x -> !x, self.thread_done)
-    @show th, self.thread_done, all_done
     self.thread_done[th] = true
 
     # Here we will go through the rows and columns, and whenever the row or
