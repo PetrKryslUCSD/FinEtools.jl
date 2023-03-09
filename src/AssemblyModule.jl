@@ -926,6 +926,33 @@ Type for multithreaded assembling of a sparse global matrix from elementwise mat
 !!! note
 
     All fields of the datatype are private. No need to access them directly.
+
+# Example
+
+```
+
+nth = Base.Threads.nthreads()
+
+function ass(a, assembly_line, r)
+    for i in r
+        AM.assemble!(a, assembly_line[i]...)
+    end
+    return a
+end
+
+AM.startassembly!(a, 5, 5, length(assembly_line), N, N)
+Base.Threads.@threads :static for th in 1:Base.Threads.nthreads()
+    a, r = AM.startassembly!(a, 5, 5, length(assembly_line), N, N)
+    a = ass(a, assembly_line, r)
+    A = makematrix!(a)
+end
+A = makematrix!(a)
+```
+The assembler `a` contains a thread-private storage. Notice the `:static`
+argument of the macro `@threads`: this will guarantee that each call of
+`AM.assemble!(a, assembly_line[i]...)` will be executed by a fixed thread
+(i.e. calls to `threadid()` will yield the same value within the `assemble!`
+function).
 """
 mutable struct SysmatAssemblerSparseThr{T<:Number} <: AbstractSysmatAssembler
     matbuffer::Vector{T}

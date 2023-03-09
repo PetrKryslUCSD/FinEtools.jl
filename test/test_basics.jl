@@ -1613,7 +1613,7 @@ function _test()
     nth = Base.Threads.nthreads()
 
     SM.startassembly!(a, 5, 5, length(assembly_line), 7, 7)
-    Base.Threads.@threads for th in 1:Base.Threads.nthreads()
+    Base.Threads.@threads :static for th in 1:Base.Threads.nthreads()
         a, r = SM.startassembly!(a, 5, 5, length(assembly_line), 7, 7)
         for i in r
             SM.assemble!(a, assembly_line[i]...)
@@ -1638,7 +1638,7 @@ using LinearAlgebra
 using FinEtools
 import FinEtools.AssemblyModule as AM
 using Random
-using UnicodePlots
+
 
 function _test()
     Random.seed!(1234);
@@ -1706,7 +1706,7 @@ function _test()
 
     start = time()
     AM.startassembly!(a, 5, 5, length(assembly_line), N, N)
-    Base.Threads.@threads for th in 1:Base.Threads.nthreads()
+    Base.Threads.@threads :static for th in 1:Base.Threads.nthreads()
         a, r = AM.startassembly!(a, 5, 5, length(assembly_line), N, N)
         a = ass(a, assembly_line, r)
         A = makematrix!(a)
