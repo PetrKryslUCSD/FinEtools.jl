@@ -71,6 +71,20 @@ function FEMMBase(integdomain::IntegDomain{S,F}) where {S<:AbstractFESet,F<:Func
 end
 
 """
+    entity_range(self::AbstractFEMM)
+
+Return range for the entity used for integration.
+
+The entity may be finite elements (usually), or nodes (for nodally integrated
+methods).
+
+This function needs to be overwritten by the concrete implementation of the
+FEMM. That default would be go through all the entities; for task-based
+parallelism, the range of entities could be set for each task separately.
+"""
+function entity_range(self::AbstractFEMM) return (0, 0); end
+
+"""
     associategeometry!(self::AbstractFEMM,  geom::NodalField{FFlt})
 
 Associate geometry field with the FEMM.
@@ -114,7 +128,8 @@ end
 Integrate a nodal-field function over the discrete manifold.
 
 `afield` = NODAL field to supply the values
-`fh` = function taking position and the field value as arguments, returning value of type `R`.
+`fh` = function taking position and the field value as arguments, returning
+    value of type `R`.
 
 Returns value of type `R`, which is initialized by `initial`.
 """
@@ -481,8 +496,8 @@ function distribloads(
     loc = fill(zero(FFlt), (1, sdim)) # quadrature point location -- used as a buffer
     J = fill(zero(FFlt), (sdim, mdim)) # Jac. matrix -- used as a buffer
     Fe = fill(zero(T), (Cedim,))
-    assembler, fesrange = startassembly!(assembler, nfes, P.nfreedofs)
-    for i in fesrange # Loop over elements
+    startassembly!(assembler, P.nfreedofs)
+    for i in 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(Fe, 0.0)
         for j in 1:npts
@@ -537,7 +552,7 @@ function connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:AbstractFEMM}
     sizehint!(cb, N)
     vb = ones(FInt, N)
     for j in 1:nfes
-        @inbounds for k in 1:nconns
+        for k in 1:nconns
             append!(rb, fes.conn[j])
             @inbounds for m in 1:nconns
                 push!(cb, fes.conn[j][k])
