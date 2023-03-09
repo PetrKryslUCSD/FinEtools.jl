@@ -71,18 +71,13 @@ function FEMMBase(integdomain::IntegDomain{S,F}) where {S<:AbstractFESet,F<:Func
 end
 
 """
-    entity_range(self::AbstractFEMM)
+    finite_elements(self::AbstractFEMM)
 
-Return range for the entity used for integration.
-
-The entity may be finite elements (usually), or nodes (for nodally integrated
-methods).
-
-This function needs to be overwritten by the concrete implementation of the
-FEMM. That default would be go through all the entities; for task-based
-parallelism, the range of entities could be set for each task separately.
+Retrieve the finite element set for this FEMM to work on.
 """
-function entity_range(self::AbstractFEMM) return (0, 0); end
+function finite_elements(self::AbstractFEMM)
+    self.integdomain.fes
+end
 
 """
     associategeometry!(self::AbstractFEMM,  geom::NodalField{FFlt})
@@ -141,7 +136,7 @@ function integratefieldfunction(
     initial::R;
     m::FInt = -1,
 ) where {T<:Number,FL<:NodalField{T},R,F<:Function}
-    fes = self.integdomain.fes  # finite elements
+    fes = finite_elements(self)  # finite elements
     # Constants
     nfes = count(fes) # number of finite elements in the set
     ndn = ndofs(afield) # number of degrees of freedom per node
@@ -194,7 +189,7 @@ function integratefieldfunction(
     initial::R;
     m::FInt = -1,
 ) where {T<:Number,FL<:ElementalField{T},R,F<:Function}
-    fes = self.integdomain.fes  # finite elements
+    fes = finite_elements(self)  # finite elements
     # Constants
     nfes = count(fes) # number of finite elements in the set
     ndn = ndofs(afield) # number of degrees of freedom per node
@@ -260,7 +255,7 @@ function integratefunction(
     fh::F,
     m::FInt = -1,
 ) where {F<:Function}
-    fes = self.integdomain.fes
+    fes = finite_elements(self)
     if m < 0
         m = manifdim(fes)  # native  manifold dimension
     end
@@ -480,7 +475,7 @@ function distribloads(
     fi::ForceIntensity,
     m::FInt,
 ) where {FEMM<:AbstractFEMM,T<:Number,A<:AbstractSysvecAssembler}
-    fes = self.integdomain.fes
+    fes = finite_elements(self)
     # Constants
     nfes = count(fes) # number of finite elements in the set
     ndn = ndofs(P) # number of degrees of freedom per node
@@ -542,7 +537,7 @@ The matrix has a nonzero in all the rows and columns which correspond to nodes
 connected by some finite element.
 """
 function connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:AbstractFEMM}
-    fes = self.integdomain.fes
+    fes = finite_elements(self)
     nfes = length(fes.conn)
     nconns = nodesperelem(fes)
     N = nfes * nconns * nconns
@@ -578,7 +573,7 @@ function dualconnectionmatrix(
     fens::FENodeSet,
     minnodes = 1,
 ) where {FEMM<:AbstractFEMM}
-    fes = self.integdomain.fes
+    fes = finite_elements(self)
     nfes = length(fes.conn)
     nconns = nodesperelem(fes)
     N = nfes * nconns * nconns
@@ -695,7 +690,7 @@ function fieldfromintegpoints(
     component::FIntVec;
     context...,
 ) where {FEMM<:AbstractFEMM,T<:Number}
-    fes = self.integdomain.fes
+    fes = finite_elements(self)
     # Constants
     nne = nodesperelem(fes) # number of nodes for element
     sdim = ndofs(geom)            # number of space dimensions
@@ -847,7 +842,7 @@ function elemfieldfromintegpoints(
     component::FIntVec;
     context...,
 ) where {FEMM<:AbstractFEMM,T<:Number}
-    fes = self.integdomain.fes
+    fes = finite_elements(self)
     # Constants
     nne = nodesperelem(fes) # number of nodes for element
     sdim = ndofs(geom)            # number of space dimensions
@@ -935,7 +930,7 @@ function buffers(
     afield::NodalField{T},
 ) where {FEMM<:AbstractFEMM,T}
     # Constants
-    fes = self.integdomain.fes
+    fes = finite_elements(self)
     nfes = count(fes) # number of finite elements in the set
     ndn = ndofs(afield) # number of degrees of freedom per node
     nne = nodesperelem(fes) # number of nodes for element
@@ -964,7 +959,7 @@ function innerproduct(
     geom::NodalField{FFlt},
     afield::NodalField{T},
 ) where {FEMM<:AbstractFEMM,A<:AbstractSysmatAssembler,T}
-    fes = self.integdomain.fes
+    fes = finite_elements(self)
     ecoords, dofnums, loc, J, gradN, elmat = buffers(self, geom, afield)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     NexpTNexp = FFltMat[]# basis f. matrix -- buffer
@@ -1041,7 +1036,7 @@ function field_elem_to_nodal_weighted_average!(
     ef::EFL,
     nf::NFL,
 ) where {T<:Number,EFL<:ElementalField{T},NFL<:NodalField{T}}
-    fes = self.integdomain.fes  # finite elements
+    fes = finite_elements(self)  # finite elements
     # Dimensions
     nfes = count(fes) # number of finite elements in the set
     ndn = ndofs(nf) # number of degrees of freedom per node
@@ -1082,7 +1077,7 @@ function field_elem_to_nodal_max!(
     ef::EFL,
     nf::NFL,
 ) where {T<:Number,EFL<:ElementalField{T},NFL<:NodalField{T}}
-    fes = self.integdomain.fes  # finite elements
+    fes = finite_elements(self)  # finite elements
     nf.values .= zero(T) - Inf
     for i in 1:count(fes) #Now loop over all fes in the block
         ev = ef.values[i, :]
@@ -1125,7 +1120,7 @@ function field_nodal_to_elem_weighted_average!(
     nf::NFL,
     ef::EFL,
 ) where {T<:Number,EFL<:ElementalField{T},NFL<:NodalField{T}}
-    fes = self.integdomain.fes  # finite elements
+    fes = finite_elements(self)  # finite elements
     # Dimensions
     nfes = count(fes) # number of finite elements in the set
     ndn = ndofs(ef) # number of degrees of freedom per element
@@ -1173,7 +1168,7 @@ function field_nodal_to_elem_max!(
     nf::NFL,
     ef::EFL,
 ) where {T<:Number,EFL<:ElementalField{T},NFL<:NodalField{T}}
-    fes = self.integdomain.fes  # finite elements
+    fes = finite_elements(self)  # finite elements
     # Dimensions
     nfes = count(fes) # number of finite elements in the set
     ndn = ndofs(ef) # number of degrees of freedom per element
