@@ -839,3 +839,476 @@ Examples of err messages:
 
 "file_regex": "(?:[@][\s][\s\S.*]*|in expression starting at)\s(\S.+[.jl]):([0-9]+)\s*"  
 
+
+
+
+"""
+    SysmatAssemblerSparseThr{T<:Number} <: AbstractSysmatAssembler
+
+Type for multithreaded assembling of a sparse global matrix from elementwise matrices.
+
+!!! note
+
+    All fields of the datatype are private. No need to access them directly.
+
+# Example
+
+```
+
+nth = Base.Threads.nthreads()
+
+function ass(a, assembly_line, r)
+    for i in r
+        AM.assemble!(a, assembly_line[i]...)
+    end
+    return a
+end
+
+AM.startassembly!(a, 5, 5, length(assembly_line), N, N)
+Base.Threads.@threads :static for th in 1:Base.Threads.nthreads()
+    a, r = AM.startassembly!(a, 5, 5, length(assembly_line), N, N)
+    a = ass(a, assembly_line, r)
+    A = makematrix!(a)
+end
+A = makematrix!(a)
+```
+The assembler `a` contains a thread-private storage. Notice the `:static`
+argument of the macro `@threads`: this will guarantee that each call of
+`AM.assemble!(a, assembly_line[i]...)` will be executed by a fixed thread
+(i.e. calls to `threadid()` will yield the same value within the `assemble!`
+function).
+"""
+mutable struct SysmatAssemblerSparseThr{T<:Number} <: AbstractSysmatAssembler
+    matbuffer::Vector{T}
+    rowbuffer::Vector{FInt}
+    colbuffer::Vector{FInt}
+    buffer_length::FInt
+    thread_done::Vector{Bool}
+    thread_begin::Vector{FInt}
+    thread_end::Vector{FInt}
+    thread_pointer::Vector{FInt}
+    ndofs_row::FInt
+    ndofs_col::FInt
+    nomatrixresult::Bool
+end
+
+"""
+    SysmatAssemblerSparseThr(zero::T=0.0, nomatrixresult = false) where {T<:Number}
+
+Construct blank system matrix assembler.
+
+This assembler is like `SysmatAssemblerSparse`, except it can be used with
+multiple threads.
+"""
+function SysmatAssemblerSparseThr(zero::T = 0.0, nomatrixresult = false) where {T<:Number}
+    nth = Base.Threads.nthreads()
+    return SysmatAssemblerSparseThr{T}(
+        Vector{T}[],
+        Vector{FInt}[],
+        Vector{FInt}[],
+        0,
+        [false for _  in 1:nth],
+        [0 for _  in 1:nth],
+        [0 for _  in 1:nth],
+        [0 for _  in 1:nth],
+        0,
+        0,
+        nomatrixresult,
+        )
+end
+
+"""
+    startassembly!(self::SysmatAssemblerSparseThr{T},
+      elem_mat_nrows::FInt, elem_mat_ncols::FInt, elem_mat_nmatrices::FInt,
+      ndofs_row::FInt, ndofs_col::FInt) where {T<:Number}
+
+Start the assembly of a global matrix.
+
+This assembler is like `SysmatAssemblerSparse`, except it can be used with
+multiple threads.
+
+The first call is expected to occur *before* the threaded loop.
+Therefore, the data on input indicates the total load.
+
+# Returns
+- `self`: the modified assembler.
+"""
+function startassembly!(
+    self::SysmatAssemblerSparseThr{T},
+    elem_mat_nrows::FInt,
+    elem_mat_ncols::FInt,
+    elem_mat_nmatrices::FInt,
+    ndofs_row::FInt,
+    ndofs_col::FInt,
+) where {T<:Number}
+    nth = Base.Threads.nthreads()
+    # The first call is carried out by thread 1, and the buffer is empty at that
+    # point.
+    th = Base.Threads.threadid()
+    elem_per_thread = Int(ceil(elem_mat_nmatrices / nth))
+    first_call = (th == 1) && (self.buffer_length == 0)
+    if first_call # the assembly buffer has not been initialized yet
+        # Increase the allocated length a little bit to allow for irregularities
+        self.buffer_length = Int(round(1.1 * elem_mat_nmatrices * elem_mat_nrows * elem_mat_ncols))
+        # Initialize the rows and columns to 1, and the coefficients to 0.0.
+        # This will make it possible to assemble even entries not set by
+        # the threads.
+        self.rowbuffer = fill(1, self.buffer_length)
+        self.colbuffer = fill(1, self.buffer_length)
+        self.matbuffer = fill(zero(T), self.buffer_length)
+        self.ndofs_row = ndofs_row
+        self.ndofs_col = ndofs_col
+    else
+        # Now in this case the function is called from each individual thread.
+        chunk = Int64(round(self.buffer_length / nth)) + 1 # Number of elements per thread
+        self.thread_begin[th] = chunk*(th-1)+1
+        self.thread_end[th] = chunk*(th)+1-1
+        @assert chunk >= elem_per_thread * elem_mat_nrows * elem_mat_ncols
+        if self.thread_end[th] > self.buffer_length
+            self.thread_end[th] = self.buffer_length
+        end
+        self.thread_pointer[th] = self.thread_begin[th]
+    end
+
+    return self
+end
+
+"""
+    assemble!(self::SysmatAssemblerSparseThr{T}, mat::FMat{T}, dofnums_row::Union{FIntVec, FIntMat}, dofnums_col::Union{FIntVec, FIntMat}) where {T<:Number}
+
+Assemble a rectangular matrix.
+
+This assembler is like `SysmatAssemblerSparse`, except it can be used with
+multiple threads.
+"""
+function assemble!(
+    self::SysmatAssemblerSparseThr{T},
+    mat::FMat{T},
+    dofnums_row::Union{FIntVec,FIntMat},
+    dofnums_col::Union{FIntVec,FIntMat},
+) where {T<:Number}
+    th = Base.Threads.threadid()
+    nrows = length(dofnums_row)
+    ncolumns = length(dofnums_col)
+    p = self.thread_pointer[th]
+    @assert p + ncolumns * nrows <= self.thread_end[th] + 1
+    @assert size(mat) == (nrows, ncolumns)
+    @inbounds for j in 1:ncolumns,  i in 1:nrows
+        self.matbuffer[p] = mat[i, j] # serialized matrix
+        self.rowbuffer[p] = dofnums_row[i]
+        self.colbuffer[p] = dofnums_col[j]
+        p = p + 1
+    end
+    self.thread_pointer[th] = p
+    return self
+end
+
+"""
+    makematrix!(self::SysmatAssemblerSparseThr)
+
+Make a sparse matrix.
+
+This assembler is like `SysmatAssemblerSparse`, except it can be used with
+multiple threads.
+"""
+# function makematrix!(self::SysmatAssemblerSparseThr{T}) where {T<:Number}
+#     # Here we will go through the rows and columns, and whenever the row or
+#     # the column refer to indexes outside of the limits of the matrix, the
+#     # corresponding value will be set to 0 and assembled to row and column 1.
+
+#     th = Base.Threads.threadid()
+#     all_done = true
+#     for k in eachindex(self.thread_done)
+#         all_done = all_done && (
+#             (self.thread_done[k] || (
+#                 isempty(self.rowbuffer[k]) &&
+#                 isempty(self.colbuffer[k]) &&
+#                 isempty(self.matbuffer[k]))
+#             )
+#             )
+#     end
+#     if self.nomatrixresult || (!all_done)
+#         # No actual sparse matrix is returned. The entire result of the assembly
+#         # is preserved in the assembler buffers.
+#         # @inbounds for j in 1:length(self.rowbuffer[th])
+#         #     if (self.rowbuffer[th][j] > self.ndofs_row) || (self.rowbuffer[th][j] <= 0)
+#         #         self.rowbuffer[th][j] = 1
+#         #         self.matbuffer[th][j] = 0.0
+#         #     end
+#         #     if (self.colbuffer[th][j] > self.ndofs_col) || (self.colbuffer[th][j] <= 0)
+#         #         self.colbuffer[th][j] = 1
+#         #         self.matbuffer[th][j] = 0.0
+#         #     end
+#         # end
+#         self.thread_done[th] = true
+#         return spzeros(self.ndofs_row, self.ndofs_col)
+#     elseif all_done && th == 1
+#         # The sparse matrix is constructed and returned. The  buffers used for
+#         # the assembly are cleared.
+#         S = sparse(
+#             cat(self.rowbuffer..., dims=1),
+#             cat(self.colbuffer..., dims=1),
+#             cat(self.matbuffer..., dims=1),
+#             self.ndofs_row,
+#             self.ndofs_col,
+#         )
+#         self = SysmatAssemblerSparseThr(zero(T)) # get rid of the buffers
+#         return S
+#     end
+# end
+
+function makematrix!(self::SysmatAssemblerSparseThr{T}) where {T<:Number}
+    th = Base.Threads.threadid()
+    all_done = !any(x -> !x, self.thread_done)
+    self.thread_done[th] = true
+
+    # Here we will go through the rows and columns, and whenever the row or
+    # the column refer to indexes outside of the limits of the matrix, the
+    # corresponding value will be set to 0 and assembled to row and column 1.
+    if all_done && th == 1
+        #@inbounds
+        for j in eachindex(self.rowbuffer)
+            if (self.rowbuffer[j] > self.ndofs_row) || (self.rowbuffer[j] <= 0)
+                self.rowbuffer[j] = 1
+                self.matbuffer[j] = 0.0
+            end
+            if (self.colbuffer[j] > self.ndofs_col) || (self.colbuffer[j] <= 0)
+                self.colbuffer[j] = 1
+                self.matbuffer[j] = 0.0
+            end
+        end
+        @assert th == 1 # This is supposed to happen only in serial mode
+        if self.nomatrixresult
+            # No actual sparse matrix is returned. The entire result of the assembly
+            # is preserved in the assembler buffers.
+            return spzeros(self.ndofs_row, self.ndofs_col)
+        end
+        S = sparse(
+            self.rowbuffer,
+            self.colbuffer,
+            self.matbuffer,
+            self.ndofs_row,
+            self.ndofs_col,
+            )
+        # The buffers are cleared
+        self.rowbuffer = []
+        self.colbuffer = []
+        self.matbuffer = []
+        self.buffer_length = 0
+
+        return S
+    else
+        return spzeros(self.ndofs_row, self.ndofs_col)
+    end
+end
+
+
+module mutil_th001
+
+using Test
+using LinearAlgebra
+using FinEtools
+import FinEtools.AssemblyModule as SM
+
+function _test()
+    # @show Base.Threads.nthreads()
+    m = [
+    0.24406   0.599773    0.833404  0.0420141
+    0.786024  0.00206713  0.995379  0.780298
+    0.845816  0.198459    0.355149  0.224996
+    ]
+    m1 = m'*m; r1 = [5 2 1 4]; c1 = r1
+    m = [
+    0.146618  0.53471   0.614342    0.737833
+    0.479719  0.41354   0.00760941  0.836455
+    0.254868  0.476189  0.460794    0.00919633
+    0.159064  0.261821  0.317078    0.77646
+    0.643538  0.429817  0.59788     0.958909
+    ]
+    m2 = m'*m; r2 = [2 3 1 5]; c2 = r2
+    m = [
+    -0.146618  0.53471   0.614342    0.737833
+    0.479719  0.41354   0.00760941  -0.836455
+    0.254868  -0.476189  0.460794    0.00919633
+    0.159064  0.261821  0.317078    0.77646
+    ]
+    m3 = m; r3 = [2 3 1 5]; c3 = [7 6 2 4]
+    m4 = Matrix(m'); r4 = [7 6 2 4]; c4 = [2 3 1 5];
+    assembly_line = [
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m3, r3, c3),
+    (m4, r4, c4),
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m4, r4, c4),
+    (m3, r3, c3),
+    (m3, r3, c3),
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m3, r3, c3),
+    (m4, r4, c4),
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m4, r4, c4),
+    (m3, r3, c3),
+    (m3, r3, c3),
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m3, r3, c3),
+    (m4, r4, c4),
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m4, r4, c4),
+    (m3, r3, c3),
+    (m3, r3, c3),
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m3, r3, c3),
+    (m4, r4, c4),
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m4, r4, c4),
+    (m3, r3, c3),
+    (m3, r3, c3),
+    ]
+    a = SM.SysmatAssemblerSparse(0.0)
+    SM.startassembly!(a, 5, 5, length(assembly_line), 7, 7)
+    for i in eachindex(assembly_line)
+        SM.assemble!(a, assembly_line[i]...)
+    end
+    refA = SM.makematrix!(a)
+
+    # @show a
+
+    a = SM.SysmatAssemblerSparseThr(0.0)
+
+    nth = Base.Threads.nthreads()
+
+    SM.startassembly!(a, 5, 5, length(assembly_line), 7, 7)
+    Base.Threads.@threads :static for th in 1:Base.Threads.nthreads()
+        a, r = SM.startassembly!(a, 5, 5, length(assembly_line), 7, 7)
+        for i in r
+            SM.assemble!(a, assembly_line[i]...)
+        end
+        A = makematrix!(a)
+    end
+    # @info "Final"
+    A = makematrix!(a)
+    @test norm(A - refA) / norm(refA) < 1.0e-9
+    return true
+end
+
+_test()
+
+end # module
+
+
+module mutil_th002
+
+using Test
+using LinearAlgebra
+using FinEtools
+import FinEtools.AssemblyModule as AM
+using Random
+
+
+function _test()
+    Random.seed!(1234);
+    # @show Base.Threads.nthreads()
+    m = [
+    0.24406   0.599773    0.833404  0.0420141
+    0.786024  0.00206713  0.995379  0.780298
+    0.845816  0.198459    0.355149  0.224996
+    ]
+    m1 = m'*m;
+    m = [
+    0.146618  -0.53471   0.614342    0.737833
+    0.479719  0.41354   -0.00760941  0.836455
+    0.254868  0.476189  0.460794    0.00919633
+    0.159064  0.261821  0.317078    0.77646
+    -0.643538  0.429817  0.59788     0.958909
+    ]
+    m2 = m'*m;
+    m = [
+    -0.146618  0.53471   0.614342    0.737833
+    0.479719  0.41354   0.00760941  -0.836455
+    0.254868  -0.476189  0.460794    0.00919633
+    0.159064  0.261821  0.317078    0.77646
+    ]
+    m3 = m;
+    m4 = Matrix(m');
+    ms = [m1, m2, m3, m4, ]
+    N = 16000
+    p = randperm(N)
+    assembly_line = []
+    for i in 1:N
+        for k in eachindex(ms)
+            if length(p) < sum(size(m))
+                p = randperm(N)
+            end
+            m = ms[k]
+            r = [popfirst!(p) for _ in 1:size(m, 1)]
+            c = [popfirst!(p) for _ in 1:size(m, 2)]
+            push!(assembly_line, (m, r, c))
+        end
+    end
+
+    start = time()
+    a = AM.SysmatAssemblerSparse(0.0)
+    AM.startassembly!(a, 5, 5, length(assembly_line), N, N)
+    for i in eachindex(assembly_line)
+        AM.assemble!(a, assembly_line[i]...)
+    end
+    refA = AM.makematrix!(a)
+    # @show time() - start
+
+    # display(spy(refA))
+    # @show a
+
+    a = AM.SysmatAssemblerSparseThr(0.0)
+
+    nth = Base.Threads.nthreads()
+
+    function ass(a, assembly_line, r)
+        for i in r
+            AM.assemble!(a, assembly_line[i]...)
+        end
+        return a
+    end
+
+    start = time()
+    AM.startassembly!(a, 5, 5, length(assembly_line), N, N)
+    Base.Threads.@threads :static for th in 1:Base.Threads.nthreads()
+        a, r = AM.startassembly!(a, 5, 5, length(assembly_line), N, N)
+        a = ass(a, assembly_line, r)
+        A = makematrix!(a)
+    end
+    # @info "Final"
+    A = makematrix!(a)
+    # @show time() - start
+
+    @test norm(A - refA) / norm(refA) < 1.0e-9
+    return true
+end
+
+_test()
+
+end # module
+
