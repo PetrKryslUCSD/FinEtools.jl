@@ -1513,3 +1513,457 @@ end
 using .mwithnodes4
 mwithnodes4.test()
 
+module mutil_th001
+
+using Test
+using LinearAlgebra
+using FinEtools
+using FinEtools.AssemblyModule
+using ChunkSplitters
+
+function _test()
+    # @show Base.Threads.nthreads()
+    m = [
+    0.24406   0.599773    0.833404  0.0420141
+    0.786024  0.00206713  0.995379  0.780298
+    0.845816  0.198459    0.355149  0.224996
+    ]
+    m1 = m'*m; r1 = [5 2 1 4]; c1 = r1
+    m = [
+    0.146618  0.53471   0.614342    0.737833
+    0.479719  0.41354   0.00760941  0.836455
+    0.254868  0.476189  0.460794    0.00919633
+    0.159064  0.261821  0.317078    0.77646
+    0.643538  0.429817  0.59788     0.958909
+    ]
+    m2 = m'*m; r2 = [2 3 1 5]; c2 = r2
+    m = [
+    -0.146618  0.53471   0.614342    0.737833
+    0.479719  0.41354   0.00760941  -0.836455
+    0.254868  -0.476189  0.460794    0.00919633
+    0.159064  0.261821  0.317078    0.77646
+    ]
+    m3 = m; r3 = [2 3 1 5]; c3 = [7 6 2 4]
+    m4 = Matrix(m'); r4 = [7 6 2 4]; c4 = [2 3 1 5];
+    assembly_line = [
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m3, r3, c3),
+    (m4, r4, c4),
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m4, r4, c4),
+    (m3, r3, c3),
+    (m3, r3, c3),
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m3, r3, c3),
+    (m4, r4, c4),
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m4, r4, c4),
+    (m3, r3, c3),
+    (m3, r3, c3),
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m3, r3, c3),
+    (m4, r4, c4),
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m4, r4, c4),
+    (m3, r3, c3),
+    (m3, r3, c3),
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m3, r3, c3),
+    (m4, r4, c4),
+    (m1, r1, c1),
+    (m1, r1, c1),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m4, r4, c4),
+    (m3, r3, c3),
+    (m3, r3, c3),
+    ]
+    elem_mat_nrows = 5
+    elem_mat_ncols = 5
+    elem_mat_nmatrices = length(assembly_line)
+    ndofs_row = 7
+    ndofs_col = 7
+    a = SysmatAssemblerSparse(0.0)
+    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    for i in eachindex(assembly_line)
+        assemble!(a, assembly_line[i]...)
+    end
+    refA = makematrix!(a)
+
+    # @show a
+
+    nth = Base.Threads.nthreads()
+
+    # Serial execution
+    a = SysmatAssemblerSparse(0.0)
+    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    ntasks = Base.Threads.nthreads()
+    istart = 1; iend = 0;
+    for ch in chunks(1:length(assembly_line), ntasks)
+        # @show ch[2], ch[1]
+        buffer_length = 5 * 5 * length(ch[1])
+        iend = iend + buffer_length
+        matbuffer = view(a.matbuffer, istart:iend)
+        rowbuffer = view(a.rowbuffer, istart:iend)
+        colbuffer = view(a.colbuffer, istart:iend)
+        buffer_pointer = 1
+        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, false)
+        for i in ch[1]
+            assemble!(a1, assembly_line[i]...)
+        end
+        istart = iend + 1
+    end
+    a.buffer_pointer = iend
+    A = makematrix!(a)
+    @test norm(A - refA) / norm(refA) < 1.0e-9
+
+    # Parallel execution
+    a = SysmatAssemblerSparse(0.0)
+    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    ntasks = Base.Threads.nthreads()
+    istart = 1; iend = 0;
+    Threads.@sync begin
+        for ch in chunks(1:length(assembly_line), ntasks)
+            # @show ch[2], ch[1]
+            buffer_length = 5 * 5 * length(ch[1])
+            iend = iend + buffer_length
+            matbuffer = view(a.matbuffer, istart:iend)
+            rowbuffer = view(a.rowbuffer, istart:iend)
+            colbuffer = view(a.colbuffer, istart:iend)
+            matbuffer .= 0.0
+            rowbuffer .= 1
+            colbuffer .= 1
+            buffer_pointer = 1
+            a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, false)
+            Threads.@spawn let r =  $ch[1]
+                for i in r
+                    assemble!(a1, assembly_line[i]...)
+                end
+            end
+            istart = iend + 1
+        end
+    end
+    a.buffer_pointer = iend
+    A = makematrix!(a)
+    @test norm(A - refA) / norm(refA) < 1.0e-9
+    return true
+end
+
+_test()
+
+end # module
+
+module mutil_th002
+
+using Test
+using LinearAlgebra
+using FinEtools
+using FinEtools.AssemblyModule
+using ChunkSplitters
+using Random
+
+function _test()
+    Random.seed!(1234);
+        # @show Base.Threads.nthreads()
+    m = [
+    0.24406   0.599773    0.833404  0.0420141
+    0.786024  0.00206713  0.995379  0.780298
+    0.845816  0.198459    0.355149  0.224996
+    ]
+    m1 = m'*m;
+    m = [
+    0.146618  -0.53471   0.614342    0.737833
+    0.479719  0.41354   -0.00760941  0.836455
+    0.254868  0.476189  0.460794    0.00919633
+    0.159064  0.261821  0.317078    0.77646
+    -0.643538  0.429817  0.59788     0.958909
+    ]
+    m2 = m'*m;
+    m = [
+    -0.146618  0.53471   0.614342    0.737833
+    0.479719  0.41354   0.00760941  -0.836455
+    0.479719  0.41354   0.00760941  -0.836455
+    0.254868  -0.476189  0.460794    0.00919633
+    0.159064  0.261821  0.317078    0.77646
+    0.159064  0.261821  0.317078    0.77646
+    ]
+    m3 = m;
+    m4 = Matrix(m');
+    ms = [m1, m2, m3, m4, ]
+    elem_mat_nrows = maximum(size.(ms, 1))
+    elem_mat_ncols = maximum(size.(ms, 2))
+    N = 56567
+    p = randperm(N)
+    assembly_line = []
+    for i in 1:N
+        for k in eachindex(ms)
+            if length(p) < sum(size(m))
+                p = randperm(N)
+            end
+            m = ms[k]
+            r = [popfirst!(p) for _ in 1:size(m, 1)]
+            c = [popfirst!(p) for _ in 1:size(m, 2)]
+            push!(assembly_line, (m, r, c))
+        end
+    end
+
+    elem_mat_nmatrices = length(assembly_line)
+    ndofs_row = N
+    ndofs_col = N
+    # @info "Serial execution"
+    start = time()
+    a = SysmatAssemblerSparse(0.0)
+    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    for i in eachindex(assembly_line)
+        assemble!(a, assembly_line[i]...)
+    end
+    refA = makematrix!(a)
+    # @show time() - start
+
+    # @show a
+
+    nth = Base.Threads.nthreads()
+
+    # Serial execution
+    # @info "Serial chunked execution"
+    start = time()
+    a = SysmatAssemblerSparse(0.0)
+    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    ntasks = Base.Threads.nthreads()
+    istart = 1; iend = 0;
+    for ch in chunks(1:length(assembly_line), ntasks)
+        # @show ch[2], ch[1]
+        buffer_length = elem_mat_nrows * elem_mat_ncols * length(ch[1])
+        iend = iend + buffer_length
+        matbuffer = view(a.matbuffer, istart:iend)
+        rowbuffer = view(a.rowbuffer, istart:iend)
+        colbuffer = view(a.colbuffer, istart:iend)
+        matbuffer .= 0.0
+        rowbuffer .= 1
+        colbuffer .= 1
+        buffer_pointer = 1
+        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, false)
+        for i in ch[1]
+            assemble!(a1, assembly_line[i]...)
+        end
+        # @show "done $(ch[2])"
+        istart = iend + 1
+    end
+    a.buffer_pointer = iend
+    A = makematrix!(a)
+    # @show time() - start
+    @test norm(A - refA) / norm(refA) < 1.0e-9
+
+    # Parallel execution
+    # @info "Parallel execution"
+    start = time()
+    a = SysmatAssemblerSparse(0.0)
+    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    ntasks = Base.Threads.nthreads()
+    istart = 1; iend = 0;
+    Threads.@sync begin
+        for ch in chunks(1:length(assembly_line), ntasks)
+            # @show ch[2], ch[1]
+            buffer_length = elem_mat_nrows * elem_mat_ncols * length(ch[1])
+            iend = iend + buffer_length
+            matbuffer = view(a.matbuffer, istart:iend)
+            rowbuffer = view(a.rowbuffer, istart:iend)
+            colbuffer = view(a.colbuffer, istart:iend)
+            buffer_pointer = 1
+            Threads.@spawn let r =  $ch[1]
+                matbuffer .= 0.0
+                rowbuffer .= 1
+                colbuffer .= 1
+                a1 = SysmatAssemblerSparse(buffer_length, $matbuffer, $rowbuffer, $colbuffer, $buffer_pointer, ndofs_row, ndofs_col, false)
+                # @show ch[2], r
+                for i in r
+                    assemble!(a1, assembly_line[i]...)
+                end
+            end
+            # @show "done $(ch[2])"
+            istart = iend + 1
+        end
+    end
+    a.buffer_pointer = iend
+    A = makematrix!(a)
+    # @show time() - start
+    @test norm(A - refA) / norm(refA) < 1.0e-9
+    return true
+end
+
+_test()
+
+end # module
+
+module mutil_th003
+
+using Test
+using LinearAlgebra
+using FinEtools
+using FinEtools.AssemblyModule
+using ChunkSplitters
+using Random
+
+function _test()
+    Random.seed!(1234);
+        # @show Base.Threads.nthreads()
+    m = [
+    0.24406   0.599773    0.833404  0.0420141
+    0.786024  0.00206713  0.995379  0.780298
+    0.845816  0.198459    0.355149  0.224996
+    ]
+    m1 = m'*m;
+    m = [
+    0.146618  -0.53471   0.614342    0.737833
+    0.479719  0.41354   -0.00760941  0.836455
+    0.254868  0.476189  0.460794    0.00919633
+    0.159064  0.261821  0.317078    0.77646
+    -0.643538  0.429817  0.59788     0.958909
+    ]
+    m2 = m'*m;
+    m = [
+    -0.146618  0.53471   0.614342    0.737833
+    0.479719  0.41354   0.00760941  -0.836455
+    0.479719  0.41354   0.00760941  -0.836455
+    0.254868  -0.476189  0.460794    0.00919633
+    0.159064  0.261821  0.317078    0.77646
+    0.159064  0.261821  0.317078    0.77646
+    ]
+    m3 = m;
+    m4 = Matrix(m');
+    ms = [m1, m2, m3, m4, ]
+    elem_mat_nrows = maximum(size.(ms, 1))
+    elem_mat_ncols = maximum(size.(ms, 2))
+    N = 56567
+    p = randperm(N)
+    assembly_line = []
+    for i in 1:N
+        for k in eachindex(ms)
+            if length(p) < sum(size(m))
+                p = randperm(N)
+            end
+            m = ms[k]
+            r = [popfirst!(p) for _ in 1:size(m, 1)]
+            c = [popfirst!(p) for _ in 1:size(m, 2)]
+            push!(assembly_line, (m, r, c))
+        end
+    end
+
+    elem_mat_nmatrices = length(assembly_line)
+    ndofs_row = N
+    ndofs_col = N
+    # @info "Serial execution"
+    start = time()
+    a = SysmatAssemblerSparse(0.0)
+    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    for i in eachindex(assembly_line)
+        assemble!(a, assembly_line[i]...)
+    end
+    refA = makematrix!(a)
+    # @show time() - start
+
+    # @show a
+
+    nth = Base.Threads.nthreads()
+
+    # Serial execution
+    # @info "Serial chunked execution"
+    start = time()
+    a = SysmatAssemblerSparse(0.0)
+    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    ntasks = Base.Threads.nthreads()
+    istart = 1; iend = 0;
+    for ch in chunks(1:length(assembly_line), ntasks)
+        # @show ch[2], ch[1]
+        buffer_length = elem_mat_nrows * elem_mat_ncols * length(ch[1])
+        iend = iend + buffer_length
+        matbuffer = view(a.matbuffer, istart:iend)
+        rowbuffer = view(a.rowbuffer, istart:iend)
+        colbuffer = view(a.colbuffer, istart:iend)
+        matbuffer .= 0.0
+        rowbuffer .= 1
+        colbuffer .= 1
+        buffer_pointer = 1
+        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, false)
+        for i in ch[1]
+            assemble!(a1, assembly_line[i]...)
+        end
+        # @show "done $(ch[2]), $(istart), $(iend)"
+        istart = iend + 1
+    end
+    a.buffer_pointer = iend
+    A = makematrix!(a)
+    # @show time() - start
+    @test norm(A - refA) / norm(refA) < 1.0e-9
+
+    function _update_buffer_range(elem_mat_nrows, elem_mat_ncols, range, iend)
+        buffer_length = elem_mat_nrows * elem_mat_ncols * length(range)
+        istart = iend + 1
+        iend = iend + buffer_length
+        buffer_range = istart:iend
+        return buffer_range, iend
+    end
+
+    function _task_local_assembler(a, buffer_range)
+        buffer_length = maximum(buffer_range) - minimum(buffer_range) + 1
+        matbuffer = view(a.matbuffer, buffer_range)
+        rowbuffer = view(a.rowbuffer, buffer_range)
+        colbuffer = view(a.colbuffer, buffer_range)
+        buffer_pointer = 1
+        matbuffer .= 0.0
+        rowbuffer .= 1
+        colbuffer .= 1
+        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, false)
+    end
+
+    # Parallel execution
+    # @info "Parallel execution"
+    start = time()
+    a = SysmatAssemblerSparse(0.0)
+    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    ntasks = Base.Threads.nthreads()
+    iend = 0;
+    Threads.@sync begin
+        for ch in chunks(1:length(assembly_line), ntasks)
+            # @show ch[2], ch[1]
+            buffer_range, iend = _update_buffer_range(elem_mat_nrows, elem_mat_ncols, ch[1], iend)
+            Threads.@spawn let r =  $ch[1]
+                a1 = _task_local_assembler(a, $buffer_range)
+                for i in r
+                    assemble!(a1, assembly_line[i]...)
+                end
+            end
+            # @show "done $(ch[2]), $(iend)"
+        end
+    end
+    a.buffer_pointer = iend
+    A = makematrix!(a)
+    # @show time() - start
+    @test norm(A - refA) / norm(refA) < 1.0e-9
+    return true
+end
+
+_test()
+
+end # module
