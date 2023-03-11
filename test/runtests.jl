@@ -18,7 +18,7 @@ end
     include("test_miscellaneous2.jl")
 end
 
-@testset "Matrix multiplication" begin
+@testset "Matrix ops" begin
     include("test_matrix_multiplication.jl")
 end
 
