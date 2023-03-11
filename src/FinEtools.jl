@@ -369,7 +369,7 @@ using .IntegDomainModule:
     Jacobianvolume,
     Jacobianmdim,
     integrationdata
-# Exported: type to handle  integration data for various manifold dimensions
+# Exported: type to handle numerical integration for various manifold dimensions
 export IntegDomain,
     otherdimensionunity,
     Jacobianpoint,
@@ -382,6 +382,7 @@ export IntegDomain,
 using .FEMMBaseModule:
     AbstractFEMM,
     FEMMBase,
+    finite_elements,
     associategeometry!,
     integratefieldfunction,
     integratefunction,
@@ -397,6 +398,7 @@ using .FEMMBaseModule:
 # Exported: type base discretization methods
 export AbstractFEMM,
     FEMMBase,
+    finite_elements,
     associategeometry!,
     integratefieldfunction,
     integratefunction,
