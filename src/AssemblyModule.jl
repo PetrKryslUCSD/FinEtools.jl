@@ -11,7 +11,6 @@ using ..FTypesModule:
     FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 using SparseArrays: sparse, spzeros, SparseMatrixCSC
 using LinearAlgebra: diag
-using LoopVectorization
 
 """
     AbstractSysmatAssembler
@@ -150,11 +149,9 @@ function startassembly!(
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
-        @tturbo for j in eachindex(self.rowbuffer)
-            self.rowbuffer[j] = 1
-            self.colbuffer[j] = 1
-            self.matbuffer[j] = 0
-        end
+        self.rowbuffer .= 1
+        self.colbuffer .= 1
+        self.matbuffer .= 0
         self.buffer_pointer = 1
         self.ndofs_row = ndofs_row
         self.ndofs_col = ndofs_col
@@ -214,17 +211,15 @@ function makematrix!(self::SysmatAssemblerSparse)
     # Here we will go through the rows and columns, and whenever the row or
     # the column refer to indexes outside of the limits of the matrix, the
     # corresponding value will be set to 0 and assembled to row and column 1.
-    Threads.@threads for j in 1:self.buffer_pointer-1
-        v = self.matbuffer[j]
-        d = self.rowbuffer[j]
-        d, v = ifelse(d > self.ndofs_row, (1, 0.0), (d, v))
-        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
-        self.rowbuffer[j] = d
-        d = self.colbuffer[j]
-        d, v = ifelse(d > self.ndofs_col, (1, 0.0), (d, v))
-        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
-        self.colbuffer[j] = d
-        self.matbuffer[j] = v
+    @inbounds for j in 1:self.buffer_pointer-1
+        if (self.rowbuffer[j] > self.ndofs_row) || (self.rowbuffer[j] <= 0)
+            self.rowbuffer[j] = 1
+            self.matbuffer[j] = 0.0
+        end
+        if (self.colbuffer[j] > self.ndofs_col) || (self.colbuffer[j] <= 0)
+            self.colbuffer[j] = 1
+            self.matbuffer[j] = 0.0
+        end
     end
     # The sparse matrix is constructed and returned. The  buffers used for
     # the assembly are cleared.
@@ -339,11 +334,9 @@ function startassembly!(
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
-        @tturbo for j in eachindex(self.rowbuffer)
-            self.rowbuffer[j] = 1
-            self.colbuffer[j] = 1
-            self.matbuffer[j] = 0
-        end
+        self.rowbuffer .= 1
+        self.colbuffer .= 1
+        self.matbuffer .= 0
         self.buffer_pointer = 1
         self.ndofs = ndofs
     end
@@ -405,17 +398,15 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
     # Here we will go through the rows and columns, and whenever the row or
     # the column refer to indexes outside of the limits of the matrix, the
     # corresponding value will be set to 0 and assembled to row and column 1.
-    Threads.@threads for j in 1:self.buffer_pointer-1
-        v = self.matbuffer[j]
-        d = self.rowbuffer[j]
-        d, v = ifelse(d > self.ndofs, (1, 0.0), (d, v))
-        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
-        self.rowbuffer[j] = d
-        d = self.colbuffer[j]
-        d, v = ifelse(d > self.ndofs, (1, 0.0), (d, v))
-        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
-        self.colbuffer[j] = d
-        self.matbuffer[j] = v
+    @inbounds for j in 1:self.buffer_pointer-1
+        if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
+            self.rowbuffer[j] = 1
+            self.matbuffer[j] = 0.0
+        end
+        if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
+            self.colbuffer[j] = 1
+            self.matbuffer[j] = 0.0
+        end
     end
     S = sparse(
         self.rowbuffer[1:self.buffer_pointer-1],
@@ -505,11 +496,9 @@ function startassembly!(
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
-        @tturbo for j in eachindex(self.rowbuffer)
-            self.rowbuffer[j] = 1
-            self.colbuffer[j] = 1
-            self.matbuffer[j] = 0
-        end
+        self.rowbuffer .= 1
+        self.colbuffer .= 1
+        self.matbuffer .= 0
         self.buffer_pointer = 1
         self.ndofs = ndofs
     end
@@ -572,17 +561,15 @@ function makematrix!(self::SysmatAssemblerSparseDiag)
     # Here we will go through the rows and columns, and whenever the row or
     # the column refer to indexes outside of the limits of the matrix, the
     # corresponding value will be set to 0 and assembled to row and column 1.
-    Threads.@threads for j in 1:self.buffer_pointer-1
-        v = self.matbuffer[j]
-        d = self.rowbuffer[j]
-        d, v = ifelse(d > self.ndofs, (1, 0.0), (d, v))
-        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
-        self.rowbuffer[j] = d
-        d = self.colbuffer[j]
-        d, v = ifelse(d > self.ndofs, (1, 0.0), (d, v))
-        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
-        self.colbuffer[j] = d
-        self.matbuffer[j] = v
+    @inbounds for j in 1:self.buffer_pointer-1
+        if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
+            self.rowbuffer[j] = 1
+            self.matbuffer[j] = 0.0
+        end
+        if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
+            self.colbuffer[j] = 1
+            self.matbuffer[j] = 0.0
+        end
     end
     S = sparse(
         self.rowbuffer[1:self.buffer_pointer-1],
@@ -798,11 +785,9 @@ function startassembly!(
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
-        @tturbo for j in eachindex(self.rowbuffer)
-            self.rowbuffer[j] = 1
-            self.colbuffer[j] = 1
-            self.matbuffer[j] = 0
-        end
+        self.rowbuffer .= 1
+        self.colbuffer .= 1
+        self.matbuffer .= 0
         self.buffer_pointer = 1
         self.ndofs = ndofs
     end
@@ -887,17 +872,15 @@ function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
     # Here we will go through the rows and columns, and whenever the row or
     # the column refer to indexes outside of the limits of the matrix, the
     # corresponding value will be set to 0 and assembled to row and column 1.
-    Threads.@threads for j in 1:self.buffer_pointer-1
-        v = self.matbuffer[j]
-        d = self.rowbuffer[j]
-        d, v = ifelse(d > self.ndofs, (1, 0.0), (d, v))
-        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
-        self.rowbuffer[j] = d
-        d = self.colbuffer[j]
-        d, v = ifelse(d > self.ndofs, (1, 0.0), (d, v))
-        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
-        self.colbuffer[j] = d
-        self.matbuffer[j] = v
+    @inbounds for j in 1:self.buffer_pointer-1
+        if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
+            self.rowbuffer[j] = 1
+            self.matbuffer[j] = 0.0
+        end
+        if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
+            self.colbuffer[j] = 1
+            self.matbuffer[j] = 0.0
+        end
     end
     S = sparse(
         self.rowbuffer[1:self.buffer_pointer-1],
