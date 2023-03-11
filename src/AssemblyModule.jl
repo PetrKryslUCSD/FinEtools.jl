@@ -11,6 +11,7 @@ using ..FTypesModule:
     FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 using SparseArrays: sparse, spzeros, SparseMatrixCSC
 using LinearAlgebra: diag
+using LoopVectorization
 
 """
     AbstractSysmatAssembler
@@ -27,7 +28,7 @@ Type for assembling a sparse global matrix from elementwise matrices.
 !!! note
 
     All fields of the datatype are private. The type is manipulated by the
-    functions `startassembly!`, `assemble!`, and `makematrix`.
+    functions `startassembly!`, `assemble!`, and `makematrix!`.
 """
 mutable struct SysmatAssemblerSparse{IT, MBT, IBT} <: AbstractSysmatAssembler
     buffer_length::IT
@@ -149,9 +150,11 @@ function startassembly!(
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
-        self.rowbuffer .= 1
-        self.colbuffer .= 1
-        self.matbuffer .= 0
+        @tturbo for j in eachindex(self.rowbuffer)
+            self.rowbuffer[j] = 1
+            self.colbuffer[j] = 1
+            self.matbuffer[j] = 0
+        end
         self.buffer_pointer = 1
         self.ndofs_row = ndofs_row
         self.ndofs_col = ndofs_col
@@ -211,15 +214,17 @@ function makematrix!(self::SysmatAssemblerSparse)
     # Here we will go through the rows and columns, and whenever the row or
     # the column refer to indexes outside of the limits of the matrix, the
     # corresponding value will be set to 0 and assembled to row and column 1.
-    @inbounds for j in 1:self.buffer_pointer-1
-        if (self.rowbuffer[j] > self.ndofs_row) || (self.rowbuffer[j] <= 0)
-            self.rowbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
-        if (self.colbuffer[j] > self.ndofs_col) || (self.colbuffer[j] <= 0)
-            self.colbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
+    Threads.@threads for j in 1:self.buffer_pointer-1
+        v = self.matbuffer[j]
+        d = self.rowbuffer[j]
+        d, v = ifelse(d > self.ndofs_row, (1, 0.0), (d, v))
+        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
+        self.rowbuffer[j] = d
+        d = self.colbuffer[j]
+        d, v = ifelse(d > self.ndofs_col, (1, 0.0), (d, v))
+        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
+        self.colbuffer[j] = d
+        self.matbuffer[j] = v
     end
     # The sparse matrix is constructed and returned. The  buffers used for
     # the assembly are cleared.
@@ -239,6 +244,11 @@ end
 
 Assembler for a **symmetric square** matrix  assembled from symmetric square
 matrices.
+
+!!! note
+
+    All fields of the datatype are private. The type is manipulated by the
+    functions `startassembly!`, `assemble!`, and `makematrix!`.
 """
 mutable struct SysmatAssemblerSparseSymm{IT, MBT, IBT} <: AbstractSysmatAssembler
     buffer_length::IT
@@ -329,9 +339,11 @@ function startassembly!(
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
-        self.rowbuffer .= 1
-        self.colbuffer .= 1
-        self.matbuffer .= 0
+        @tturbo for j in eachindex(self.rowbuffer)
+            self.rowbuffer[j] = 1
+            self.colbuffer[j] = 1
+            self.matbuffer[j] = 0
+        end
         self.buffer_pointer = 1
         self.ndofs = ndofs
     end
@@ -393,15 +405,17 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
     # Here we will go through the rows and columns, and whenever the row or
     # the column refer to indexes outside of the limits of the matrix, the
     # corresponding value will be set to 0 and assembled to row and column 1.
-    @inbounds for j in 1:self.buffer_pointer-1
-        if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
-            self.rowbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
-        if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
-            self.colbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
+    Threads.@threads for j in 1:self.buffer_pointer-1
+        v = self.matbuffer[j]
+        d = self.rowbuffer[j]
+        d, v = ifelse(d > self.ndofs, (1, 0.0), (d, v))
+        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
+        self.rowbuffer[j] = d
+        d = self.colbuffer[j]
+        d, v = ifelse(d > self.ndofs, (1, 0.0), (d, v))
+        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
+        self.colbuffer[j] = d
+        self.matbuffer[j] = v
     end
     S = sparse(
         self.rowbuffer[1:self.buffer_pointer-1],
@@ -428,6 +442,11 @@ square diagonal matrices.
 
 Warning: off-diagonal elements of the elementwise matrices will be ignored
 during assembly!
+
+!!! note
+
+    All fields of the datatype are private. The type is manipulated by the
+    functions `startassembly!`, `assemble!`, and `makematrix!`.
 """
 mutable struct SysmatAssemblerSparseDiag{IT, MBT, IBT} <: AbstractSysmatAssembler
     # Type for assembling of a sparse global matrix from elementwise matrices.
@@ -486,9 +505,11 @@ function startassembly!(
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
-        self.rowbuffer .= 1
-        self.colbuffer .= 1
-        self.matbuffer .= 0
+        @tturbo for j in eachindex(self.rowbuffer)
+            self.rowbuffer[j] = 1
+            self.colbuffer[j] = 1
+            self.matbuffer[j] = 0
+        end
         self.buffer_pointer = 1
         self.ndofs = ndofs
     end
@@ -551,15 +572,17 @@ function makematrix!(self::SysmatAssemblerSparseDiag)
     # Here we will go through the rows and columns, and whenever the row or
     # the column refer to indexes outside of the limits of the matrix, the
     # corresponding value will be set to 0 and assembled to row and column 1.
-    @inbounds for j in 1:self.buffer_pointer-1
-        if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
-            self.rowbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
-        if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
-            self.colbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
+    Threads.@threads for j in 1:self.buffer_pointer-1
+        v = self.matbuffer[j]
+        d = self.rowbuffer[j]
+        d, v = ifelse(d > self.ndofs, (1, 0.0), (d, v))
+        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
+        self.rowbuffer[j] = d
+        d = self.colbuffer[j]
+        d, v = ifelse(d > self.ndofs, (1, 0.0), (d, v))
+        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
+        self.colbuffer[j] = d
+        self.matbuffer[j] = v
     end
     S = sparse(
         self.rowbuffer[1:self.buffer_pointer-1],
@@ -707,6 +730,11 @@ E. Hinton, T. Rock, O. C. Zienkiewicz, Earthquake Engineering & Structural Dynam
 volume 4, number 3, 245--249, 1976.
 
 
+!!! note
+
+    All fields of the datatype are private. The type is manipulated by the
+    functions `startassembly!`, `assemble!`, and `makematrix!`.
+
 !!! note 
     
     This assembler can compute and assemble diagonalized mass matrices.
@@ -770,9 +798,11 @@ function startassembly!(
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
-        self.rowbuffer .= 1
-        self.colbuffer .= 1
-        self.matbuffer .= 0
+        @tturbo for j in eachindex(self.rowbuffer)
+            self.rowbuffer[j] = 1
+            self.colbuffer[j] = 1
+            self.matbuffer[j] = 0
+        end
         self.buffer_pointer = 1
         self.ndofs = ndofs
     end
@@ -857,15 +887,17 @@ function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
     # Here we will go through the rows and columns, and whenever the row or
     # the column refer to indexes outside of the limits of the matrix, the
     # corresponding value will be set to 0 and assembled to row and column 1.
-    @inbounds for j in 1:self.buffer_pointer-1
-        if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
-            self.rowbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
-        if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
-            self.colbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
+    Threads.@threads for j in 1:self.buffer_pointer-1
+        v = self.matbuffer[j]
+        d = self.rowbuffer[j]
+        d, v = ifelse(d > self.ndofs, (1, 0.0), (d, v))
+        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
+        self.rowbuffer[j] = d
+        d = self.colbuffer[j]
+        d, v = ifelse(d > self.ndofs, (1, 0.0), (d, v))
+        d, v = ifelse(d <= 0, (1, 0.0), (d, v))
+        self.colbuffer[j] = d
+        self.matbuffer[j] = v
     end
     S = sparse(
         self.rowbuffer[1:self.buffer_pointer-1],
@@ -879,7 +911,7 @@ function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
     @inbounds for j in axes(S, 1)
         S[j, j] /= 2.0      # the diagonal is there twice; fix it;
     end
-    self = SysmatAssemblerSparse(zero(eltype(self.matbuffer)))# get rid of the buffers
+    self = SysmatAssemblerSparseHRZLumpingSymm(zero(eltype(self.matbuffer)))# get rid of the buffers
     return S
 end
 
@@ -892,7 +924,7 @@ Type for assembling a sparse global matrix from elementwise matrices.
 !!! note
 
     All fields of the datatype are private. The type is manipulated by the
-    functions `startassembly!`, `assemble!`, and `makematrix`.
+    functions `startassembly!`, `assemble!`, and `makematrix!`.
 """
 mutable struct SysmatAssemblerReduced{MT, TMT, IT} <: AbstractSysmatAssembler
     m::MT # reduced system matrix
