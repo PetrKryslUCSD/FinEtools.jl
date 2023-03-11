@@ -199,8 +199,13 @@ end
 Make a sparse matrix.
 """
 function makematrix!(self::SysmatAssemblerSparse)
-    # Make a sparse matrix.
-    # The method makes a sparse matrix from the assembly buffers.
+    if self.nomatrixresult
+        # No actual sparse matrix is returned. The entire result of the assembly
+        # is preserved in the assembler buffers.
+        return spzeros(self.ndofs_row, self.ndofs_col)
+    end
+    # Otherwise, we will accumulate the sparse matrix from the records in the
+    # buffers.
     @assert length(self.rowbuffer) >= self.buffer_pointer - 1
     @assert length(self.colbuffer) >= self.buffer_pointer - 1
     # Here we will go through the rows and columns, and whenever the row or
@@ -216,23 +221,17 @@ function makematrix!(self::SysmatAssemblerSparse)
             self.matbuffer[j] = 0.0
         end
     end
-    if self.nomatrixresult
-        # No actual sparse matrix is returned. The entire result of the assembly
-        # is preserved in the assembler buffers. 
-        return spzeros(self.ndofs_row, self.ndofs_col)
-    else
-        # The sparse matrix is constructed and returned. The  buffers used for
-        # the assembly are cleared.
-        S = sparse(
-            self.rowbuffer[1:self.buffer_pointer-1],
-            self.colbuffer[1:self.buffer_pointer-1],
-            self.matbuffer[1:self.buffer_pointer-1],
-            self.ndofs_row,
-            self.ndofs_col,
+    # The sparse matrix is constructed and returned. The  buffers used for
+    # the assembly are cleared.
+    S = sparse(
+        self.rowbuffer[1:self.buffer_pointer-1],
+        self.colbuffer[1:self.buffer_pointer-1],
+        self.matbuffer[1:self.buffer_pointer-1],
+        self.ndofs_row,
+        self.ndofs_col,
         )
-        self = SysmatAssemblerSparse(zero(eltype(self.matbuffer)))# get rid of the buffers
-        return S
-    end
+    self = SysmatAssemblerSparse(zero(eltype(self.matbuffer)))# get rid of the buffers
+    return S
 end
 
 """
@@ -248,6 +247,7 @@ mutable struct SysmatAssemblerSparseSymm{IT, MBT, IBT} <: AbstractSysmatAssemble
     colbuffer::IBT
     buffer_pointer::IT
     ndofs::IT
+    nomatrixresult::Bool
 end
 
 """
@@ -277,8 +277,8 @@ This is how a symmetric sparse matrix is assembled from two square dense matrice
 # See also
 SysmatAssemblerSparse
 """
-function SysmatAssemblerSparseSymm(z= zero(FFlt))
-    return SysmatAssemblerSparseSymm(0, FFlt[z], FInt[0], FInt[0], 0, 0)
+function SysmatAssemblerSparseSymm(z= zero(FFlt), nomatrixresult = false)
+    return SysmatAssemblerSparseSymm(0, FFlt[z], FInt[0], FInt[0], 0, 0, nomatrixresult)
 end
 
 """
@@ -381,8 +381,13 @@ end
 Make a sparse symmetric square matrix.
 """
 function makematrix!(self::SysmatAssemblerSparseSymm)
-    # Make a sparse matrix.
-    # The method makes a sparse matrix from the assembly buffers.
+    if self.nomatrixresult
+        # No actual sparse matrix is returned. The entire result of the assembly
+        # is preserved in the assembler buffers.
+        return spzeros(self.ndofs, self.ndofs)
+    end
+    # Otherwise, we will accumulate the sparse matrix from the records in the
+    # buffers.
     @assert length(self.rowbuffer) >= self.buffer_pointer - 1
     @assert length(self.colbuffer) >= self.buffer_pointer - 1
     # Here we will go through the rows and columns, and whenever the row or
@@ -398,13 +403,6 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
             self.matbuffer[j] = 0.0
         end
     end
-    # We are making sure it is truly symmetric
-    # @info "New"
-    # r = view(self.rowbuffer, 1:self.buffer_pointer-1)
-    # c = view(self.colbuffer, 1:self.buffer_pointer-1)
-    # v = view(self.matbuffer, 1:self.buffer_pointer-1)
-    # S = sparse(vcat(r, c), vcat(c, r), vcat(v, v), self.ndofs, self.ndofs); 
-    # @info "Old"
     S = sparse(
         self.rowbuffer[1:self.buffer_pointer-1],
         self.colbuffer[1:self.buffer_pointer-1],
@@ -439,6 +437,7 @@ mutable struct SysmatAssemblerSparseDiag{IT, MBT, IBT} <: AbstractSysmatAssemble
     colbuffer::IBT
     buffer_pointer::IT
     ndofs::IT
+    nomatrixresult::Bool
 end
 
 """
@@ -448,8 +447,8 @@ Construct blank system matrix assembler for square diagonal matrices. The matrix
 entries are of type `T`.
 
 """
-function SysmatAssemblerSparseDiag(z= zero(FFlt))
-    return SysmatAssemblerSparseDiag(0, FFlt[z], FInt[0], FInt[0], 0, 0)
+function SysmatAssemblerSparseDiag(z= zero(FFlt), nomatrixresult = false)
+    return SysmatAssemblerSparseDiag(0, FFlt[z], FInt[0], FInt[0], 0, 0, nomatrixresult)
 end
 
 
@@ -540,8 +539,13 @@ end
 Make a sparse symmetric square diagonal matrix.
 """
 function makematrix!(self::SysmatAssemblerSparseDiag)
-    # Make a sparse matrix.
-    # The method makes a sparse matrix from the assembly buffers.
+    if self.nomatrixresult
+            # No actual sparse matrix is returned. The entire result of the assembly
+            # is preserved in the assembler buffers.
+        return spzeros(self.ndofs, self.ndofs)
+    end
+    # Otherwise, we will accumulate the sparse matrix from the records in the
+    # buffers.
     @assert length(self.rowbuffer) >= self.buffer_pointer - 1
     @assert length(self.colbuffer) >= self.buffer_pointer - 1
     # Here we will go through the rows and columns, and whenever the row or
@@ -719,6 +723,7 @@ mutable struct SysmatAssemblerSparseHRZLumpingSymm{IT, MBT, IBT} <: AbstractSysm
     colbuffer::IBT
     buffer_pointer::IT
     ndofs::IT
+    nomatrixresult::Bool
 end
 
 """
@@ -727,8 +732,8 @@ end
 Construct blank system matrix assembler. The matrix entries are of type `T`.
 
 """
-function SysmatAssemblerSparseHRZLumpingSymm(z= zero(FFlt))
-    return SysmatAssemblerSparseHRZLumpingSymm(0, [z], Int[0], Int[0], 0, 0)
+function SysmatAssemblerSparseHRZLumpingSymm(z= zero(FFlt), nomatrixresult = false)
+    return SysmatAssemblerSparseHRZLumpingSymm(0, [z], Int[0], Int[0], 0, 0, nomatrixresult)
 end
 
 """
@@ -840,8 +845,13 @@ end
 Make a sparse HRZ-lumped **symmetric square**  matrix.
 """
 function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
-    # Make a sparse matrix.
-    # The method makes a sparse matrix from the assembly buffers.
+    if self.nomatrixresult
+            # No actual sparse matrix is returned. The entire result of the assembly
+            # is preserved in the assembler buffers.
+        return spzeros(self.ndofs, self.ndofs)
+    end
+    # Otherwise, we will accumulate the sparse matrix from the records in the
+    # buffers.
     @assert length(self.rowbuffer) >= self.buffer_pointer - 1
     @assert length(self.colbuffer) >= self.buffer_pointer - 1
     # Here we will go through the rows and columns, and whenever the row or
@@ -891,9 +901,10 @@ mutable struct SysmatAssemblerReduced{MT, TMT, IT} <: AbstractSysmatAssembler
     red_ndofs_row::IT
     red_ndofs_col::IT
     t::Matrix{TMT} # transformation matrix
+    nomatrixresult::Bool
 end
 
-function SysmatAssemblerReduced(t::TMT, z = zero(FFlt)) where {TMT}
+function SysmatAssemblerReduced(t::TMT, z = zero(FFlt), nomatrixresult = false) where {TMT}
     ndofs_row = ndofs_col = size(t, 1)
     red_ndofs_row = red_ndofs_col = size(t, 2)
     m = fill(z, red_ndofs_row, red_ndofs_col)
@@ -904,6 +915,7 @@ function SysmatAssemblerReduced(t::TMT, z = zero(FFlt)) where {TMT}
         red_ndofs_row,
         red_ndofs_col,
         t,
+        nomatrixresult
     )
 end
 
