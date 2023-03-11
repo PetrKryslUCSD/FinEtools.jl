@@ -26,7 +26,8 @@ Type for assembling a sparse global matrix from elementwise matrices.
 
 !!! note
 
-    All fields of the datatype are private. No need to access them directly.
+    All fields of the datatype are private. The type is manipulated by the
+    functions `startassembly!`, `assemble!`, and `makematrix`.
 """
 mutable struct SysmatAssemblerSparse{IT, MBT, IBT} <: AbstractSysmatAssembler
     buffer_length::IT
@@ -148,6 +149,9 @@ function startassembly!(
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
+        self.rowbuffer .= 1
+        self.colbuffer .= 1
+        self.matbuffer .= 0
         self.buffer_pointer = 1
         self.ndofs_row = ndofs_row
         self.ndofs_col = ndofs_col
@@ -325,6 +329,9 @@ function startassembly!(
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
+        self.rowbuffer .= 1
+        self.colbuffer .= 1
+        self.matbuffer .= 0
         self.buffer_pointer = 1
         self.ndofs = ndofs
     end
@@ -480,6 +487,9 @@ function startassembly!(
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
+        self.rowbuffer .= 1
+        self.colbuffer .= 1
+        self.matbuffer .= 0
         self.buffer_pointer = 1
         self.ndofs = ndofs
     end
@@ -646,7 +656,7 @@ the first call to the method assemble.
 function startassembly!(self::SysvecAssembler, ndofs_row)
     self.ndofs = ndofs_row
     resize!(self.F_buffer, self.ndofs)
-    self.F_buffer .= zero(eltype(self.F_buffer))
+    self.F_buffer .= 0
     return self
 end
 
@@ -755,6 +765,9 @@ function startassembly!(
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
+        self.rowbuffer .= 1
+        self.colbuffer .= 1
+        self.matbuffer .= 0
         self.buffer_pointer = 1
         self.ndofs = ndofs
     end
@@ -868,7 +881,8 @@ Type for assembling a sparse global matrix from elementwise matrices.
 
 !!! note
 
-    All fields of the datatype are private. No need to access them directly.
+    All fields of the datatype are private. The type is manipulated by the
+    functions `startassembly!`, `assemble!`, and `makematrix`.
 """
 mutable struct SysmatAssemblerReduced{MT, TMT, IT} <: AbstractSysmatAssembler
     m::MT # reduced system matrix
