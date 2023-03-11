@@ -646,6 +646,7 @@ the first call to the method assemble.
 function startassembly!(self::SysvecAssembler, ndofs_row)
     self.ndofs = ndofs_row
     resize!(self.F_buffer, self.ndofs)
+    self.F_buffer .= zero(eltype(self.F_buffer))
     return self
 end
 
