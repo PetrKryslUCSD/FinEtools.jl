@@ -143,7 +143,7 @@ function startassembly!(
     ndofs_row,
     ndofs_col,
 )
-    # Only reset the buffers if the pointer is 0.10
+    # Only reset the buffers if the pointer is less than 1
     if self.buffer_pointer < 1
         self.buffer_length = elem_mat_nmatrices * elem_mat_nrows * elem_mat_ncols
         resize!(self.rowbuffer, self.buffer_length)
@@ -323,7 +323,7 @@ function startassembly!(
     ndofs,
     ignore2,
 )
-    # Only reset the buffers if the pointer is 0.10
+    # Only reset the buffers if the pointer is less than 1
     if self.buffer_pointer < 1
         self.buffer_length = elem_mat_nmatrices * elem_mat_dim^2
         resize!(self.rowbuffer, self.buffer_length)
@@ -481,7 +481,7 @@ function startassembly!(
     ndofs,
     ignore2,
 )
-    # Only reset the buffers if the pointer is 0.10
+    # Only reset the buffers if the pointer is less than 1
     if self.buffer_pointer < 1
         self.buffer_length = elem_mat_nmatrices * elem_mat_dim + 1
         resize!(self.rowbuffer, self.buffer_length)
@@ -759,7 +759,7 @@ function startassembly!(
     ndofs,
     ignore2,
 )
-    # Only reset the buffers if the pointer is 0.10
+    # Only reset the buffers if the pointer is less than 1
     if self.buffer_pointer < 1
         self.buffer_length = elem_mat_nmatrices * elem_mat_dim^2
         resize!(self.rowbuffer, self.buffer_length)
@@ -869,7 +869,7 @@ function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
     @inbounds for j in axes(S, 1)
         S[j, j] /= 2.0      # the diagonal is there twice; fix it;
     end
-    self = SysmatAssemblerSparse(0.0 * self.matbuffer[1])# get rid of the buffers
+    self = SysmatAssemblerSparse(zero(eltype(self.matbuffer)))# get rid of the buffers
     return S
 end
 
