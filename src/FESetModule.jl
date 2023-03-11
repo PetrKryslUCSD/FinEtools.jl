@@ -228,11 +228,13 @@ function setlabel!(self::T, val::FIntVec) where {T<:AbstractFESet}
 end
 
 """
-    subset(self::T, L::FIntVec) where {T<:AbstractFESet}
+    subset(self::T, L) where {T<:AbstractFESet}
 
 Extract a subset of the finite elements from the given finite element set.
+
+- `L`: an integer vector, tuple, or a range.
 """
-function subset(self::T, L::FIntVec) where {T<:AbstractFESet}
+function subset(self::T, L) where {T<:AbstractFESet}
     result = deepcopy(self)
     result.conn = deepcopy(self.conn[L])
     result.label = deepcopy(self.label[L])
