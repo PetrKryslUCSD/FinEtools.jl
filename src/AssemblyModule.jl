@@ -141,21 +141,26 @@ function startassembly!(
     elem_mat_ncols,
     elem_mat_nmatrices,
     ndofs_row,
-    ndofs_col,
+    ndofs_col;
+    force_init = false
 )
-    # Only reset the buffers if the pointer is less than 1
+    # Only resize the buffers if the pointer is less than 1
     if self.buffer_pointer < 1
         self.buffer_length = elem_mat_nmatrices * elem_mat_nrows * elem_mat_ncols
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
-        self.rowbuffer .= 1
-        self.colbuffer .= 1
-        self.matbuffer .= 0
         self.buffer_pointer = 1
         self.ndofs_row = ndofs_row
         self.ndofs_col = ndofs_col
     end
+    # Leave the buffers uninitialized, unless the user requests otherwise
+    if force_init
+        self.rowbuffer .= 1
+        self.colbuffer .= 1
+        self.matbuffer .= 0
+    end
+
     return self
 end
 
@@ -326,19 +331,23 @@ function startassembly!(
     ignore1,
     elem_mat_nmatrices,
     ndofs,
-    ignore2,
+    ignore2;
+    force_init = false
 )
-    # Only reset the buffers if the pointer is less than 1
+    # Only resize the buffers if the pointer is less than 1
     if self.buffer_pointer < 1
         self.buffer_length = elem_mat_nmatrices * elem_mat_dim^2
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
+        self.buffer_pointer = 1
+        self.ndofs = ndofs
+    end
+    # Leave the buffers uninitialized, unless the user requests otherwise
+    if force_init
         self.rowbuffer .= 1
         self.colbuffer .= 1
         self.matbuffer .= 0
-        self.buffer_pointer = 1
-        self.ndofs = ndofs
     end
     return self
 end
@@ -488,19 +497,23 @@ function startassembly!(
     ignore1,
     elem_mat_nmatrices,
     ndofs,
-    ignore2,
+    ignore2;
+    force_init = false
 )
-    # Only reset the buffers if the pointer is less than 1
+    # Only resize the buffers if the pointer is less than 1
     if self.buffer_pointer < 1
         self.buffer_length = elem_mat_nmatrices * elem_mat_dim + 1
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
+        self.buffer_pointer = 1
+        self.ndofs = ndofs
+    end
+    # Leave the buffers uninitialized, unless the user requests otherwise
+    if force_init
         self.rowbuffer .= 1
         self.colbuffer .= 1
         self.matbuffer .= 0
-        self.buffer_pointer = 1
-        self.ndofs = ndofs
     end
     return self
 end
@@ -777,19 +790,23 @@ function startassembly!(
     ignore1,
     elem_mat_nmatrices,
     ndofs,
-    ignore2,
+    ignore2;
+    force_init = false
 )
-    # Only reset the buffers if the pointer is less than 1
+    # Only resize the buffers if the pointer is less than 1
     if self.buffer_pointer < 1
         self.buffer_length = elem_mat_nmatrices * elem_mat_dim^2
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
+        self.buffer_pointer = 1
+        self.ndofs = ndofs
+    end
+    # Leave the buffers uninitialized, unless the user requests otherwise
+    if force_init
         self.rowbuffer .= 1
         self.colbuffer .= 1
         self.matbuffer .= 0
-        self.buffer_pointer = 1
-        self.ndofs = ndofs
     end
     return self
 end
