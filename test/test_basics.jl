@@ -1513,6 +1513,7 @@ end
 using .mwithnodes4
 mwithnodes4.test()
 
+
 module mutil_th001
 
 using Test
@@ -1550,54 +1551,35 @@ function _test()
     (m1, r1, c1),
     (m2, r2, c2),
     (m2, r2, c2),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m2, r2, c2),
+    (m2, r2, c2),
     (m3, r3, c3),
+    (m3, r3, c3),
+    (m3, r3, c3),
+    (m3, r3, c3),
+    (m3, r3, c3),
+    (m3, r3, c3),
+    (m4, r4, c4),
+    (m4, r4, c4),
+    (m4, r4, c4),
+    (m4, r4, c4),
+    (m4, r4, c4),
     (m4, r4, c4),
     (m1, r1, c1),
     (m1, r1, c1),
-    (m2, r2, c2),
-    (m2, r2, c2),
-    (m4, r4, c4),
-    (m3, r3, c3),
-    (m3, r3, c3),
+    (m1, r1, c1),
+    (m1, r1, c1),
     (m1, r1, c1),
     (m1, r1, c1),
     (m2, r2, c2),
-    (m2, r2, c2),
-    (m3, r3, c3),
-    (m4, r4, c4),
-    (m1, r1, c1),
-    (m1, r1, c1),
-    (m2, r2, c2),
-    (m2, r2, c2),
-    (m4, r4, c4),
-    (m3, r3, c3),
-    (m3, r3, c3),
-    (m1, r1, c1),
-    (m1, r1, c1),
-    (m2, r2, c2),
-    (m2, r2, c2),
-    (m3, r3, c3),
-    (m4, r4, c4),
-    (m1, r1, c1),
-    (m1, r1, c1),
-    (m2, r2, c2),
-    (m2, r2, c2),
-    (m4, r4, c4),
-    (m3, r3, c3),
-    (m3, r3, c3),
-    (m1, r1, c1),
-    (m1, r1, c1),
-    (m2, r2, c2),
-    (m2, r2, c2),
-    (m3, r3, c3),
-    (m4, r4, c4),
-    (m1, r1, c1),
-    (m1, r1, c1),
-    (m2, r2, c2),
-    (m2, r2, c2),
-    (m4, r4, c4),
-    (m3, r3, c3),
-    (m3, r3, c3),
     ]
     elem_mat_nrows = 5
     elem_mat_ncols = 5
@@ -1621,17 +1603,19 @@ function _test()
     ntasks = Base.Threads.nthreads()
     istart = 1; iend = 0;
     for ch in chunks(1:length(assembly_line), ntasks)
-        # @show ch[2], ch[1]
+        # @show ch
         buffer_length = 5 * 5 * length(ch[1])
         iend = iend + buffer_length
         matbuffer = view(a.matbuffer, istart:iend)
         rowbuffer = view(a.rowbuffer, istart:iend)
         colbuffer = view(a.colbuffer, istart:iend)
+        # @show length(colbuffer), istart, iend, buffer_length
         buffer_pointer = 1
-        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, false)
+        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, true)
         for i in ch[1]
             assemble!(a1, assembly_line[i]...)
         end
+        makematrix!(a1)
         istart = iend + 1
     end
     a.buffer_pointer = iend
@@ -1655,11 +1639,12 @@ function _test()
             rowbuffer .= 1
             colbuffer .= 1
             buffer_pointer = 1
-            a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, false)
+            a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, true)
             Threads.@spawn let r =  $ch[1]
                 for i in r
                     assemble!(a1, assembly_line[i]...)
                 end
+                makematrix!(a1)
             end
             istart = iend + 1
         end
@@ -1759,14 +1744,12 @@ function _test()
         matbuffer = view(a.matbuffer, istart:iend)
         rowbuffer = view(a.rowbuffer, istart:iend)
         colbuffer = view(a.colbuffer, istart:iend)
-        matbuffer .= 0.0
-        rowbuffer .= 1
-        colbuffer .= 1
         buffer_pointer = 1
-        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, false)
+        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, true)
         for i in ch[1]
             assemble!(a1, assembly_line[i]...)
         end
+        makematrix!(a1)
         # @show "done $(ch[2])"
         istart = iend + 1
     end
@@ -1792,14 +1775,12 @@ function _test()
             colbuffer = view(a.colbuffer, istart:iend)
             buffer_pointer = 1
             Threads.@spawn let r =  $ch[1]
-                matbuffer .= 0.0
-                rowbuffer .= 1
-                colbuffer .= 1
-                a1 = SysmatAssemblerSparse(buffer_length, $matbuffer, $rowbuffer, $colbuffer, $buffer_pointer, ndofs_row, ndofs_col, false)
+                a1 = SysmatAssemblerSparse(buffer_length, $matbuffer, $rowbuffer, $colbuffer, $buffer_pointer, ndofs_row, ndofs_col, true)
                 # @show ch[2], r
                 for i in r
                     assemble!(a1, assembly_line[i]...)
                 end
+                makematrix!(a1)
             end
             # @show "done $(ch[2])"
             istart = iend + 1
@@ -1905,7 +1886,7 @@ function _test()
         rowbuffer .= 1
         colbuffer .= 1
         buffer_pointer = 1
-        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, false)
+        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, true)
         for i in ch[1]
             assemble!(a1, assembly_line[i]...)
         end
@@ -1934,7 +1915,7 @@ function _test()
         matbuffer .= 0.0
         rowbuffer .= 1
         colbuffer .= 1
-        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, false)
+        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, true)
     end
 
     # Parallel execution

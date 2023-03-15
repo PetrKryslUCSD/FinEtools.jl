@@ -188,11 +188,17 @@ function assemble!(
     p = self.buffer_pointer
     @assert p + ncolumns * nrows <= self.buffer_length + 1
     @assert size(mat) == (nrows, ncolumns)
-    @inbounds for j in 1:ncolumns, i in 1:nrows
-        self.matbuffer[p] = mat[i, j] # serialized matrix
-        self.rowbuffer[p] = dofnums_row[i]
-        self.colbuffer[p] = dofnums_col[j]
-        p = p + 1
+    @inbounds for j in 1:ncolumns
+        if 0 < dofnums_col[j] <= self.ndofs_col
+            for i in 1:nrows
+                if 0 < dofnums_row[i] <= self.ndofs_row
+                    self.matbuffer[p] = mat[i, j] # serialized matrix
+                    self.rowbuffer[p] = dofnums_row[i]
+                    self.colbuffer[p] = dofnums_col[j]
+                    p = p + 1
+                end
+            end
+        end
     end
     self.buffer_pointer = p
     return self
@@ -204,27 +210,19 @@ end
 Make a sparse matrix.
 """
 function makematrix!(self::SysmatAssemblerSparse)
-    if self.nomatrixresult
-        # No actual sparse matrix is returned. The entire result of the assembly
-        # is preserved in the assembler buffers.
-        return spzeros(self.ndofs_row, self.ndofs_col)
-    end
-    # Otherwise, we will accumulate the sparse matrix from the records in the
-    # buffers.
     @assert length(self.rowbuffer) >= self.buffer_pointer - 1
     @assert length(self.colbuffer) >= self.buffer_pointer - 1
-    # Here we will go through the rows and columns, and whenever the row or
-    # the column refer to indexes outside of the limits of the matrix, the
-    # corresponding value will be set to 0 and assembled to row and column 1.
-    @inbounds for j in 1:self.buffer_pointer-1
-        if (self.rowbuffer[j] > self.ndofs_row) || (self.rowbuffer[j] <= 0)
-            self.rowbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
-        if (self.colbuffer[j] > self.ndofs_col) || (self.colbuffer[j] <= 0)
-            self.colbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
+    # We have the option of retaining the assembled results, but not
+    # constructing the sparse matrix.
+    if self.nomatrixresult
+        # No actual sparse matrix is returned. The entire result of the assembly
+        # is preserved in the assembler buffers. The ends of the buffers are
+        # filled with reasonable values, just in case someone wants to look at
+        # them.
+        self.rowbuffer[self.buffer_pointer:end] .= 1
+        self.colbuffer[self.buffer_pointer:end] .= 1
+        self.matbuffer[self.buffer_pointer:end] .= 0.0
+        return spzeros(self.ndofs_row, self.ndofs_col)
     end
     # The sparse matrix is constructed and returned. The  buffers used for
     # the assembly are cleared.
@@ -379,11 +377,17 @@ function assemble!(
     p = self.buffer_pointer
     @assert p + ncolumns * nrows <= self.buffer_length + 1
     @assert size(mat) == (nrows, ncolumns)
-    @inbounds for j in 1:ncolumns, i in j:nrows
-        self.matbuffer[p] = mat[i, j] # serialized matrix
-        self.rowbuffer[p] = dofnums[i]
-        self.colbuffer[p] = dofnums[j]
-        p = p + 1
+    @inbounds for j in 1:ncolumns
+        if 0 < dofnums[j] <= self.ndofs
+            for i in j:nrows
+                if 0 < dofnums[i] <= self.ndofs
+                    self.matbuffer[p] = mat[i, j] # serialized matrix
+                    self.rowbuffer[p] = dofnums[i]
+                    self.colbuffer[p] = dofnums[j]
+                    p = p + 1
+                end
+            end
+        end
     end
     self.buffer_pointer = p
     return self
@@ -395,28 +399,22 @@ end
 Make a sparse symmetric square matrix.
 """
 function makematrix!(self::SysmatAssemblerSparseSymm)
-    if self.nomatrixresult
-        # No actual sparse matrix is returned. The entire result of the assembly
-        # is preserved in the assembler buffers.
-        return spzeros(self.ndofs, self.ndofs)
-    end
-    # Otherwise, we will accumulate the sparse matrix from the records in the
-    # buffers.
     @assert length(self.rowbuffer) >= self.buffer_pointer - 1
     @assert length(self.colbuffer) >= self.buffer_pointer - 1
-    # Here we will go through the rows and columns, and whenever the row or
-    # the column refer to indexes outside of the limits of the matrix, the
-    # corresponding value will be set to 0 and assembled to row and column 1.
-    @inbounds for j in 1:self.buffer_pointer-1
-        if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
-            self.rowbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
-        if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
-            self.colbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
+    # We have the option of retaining the assembled results, but not
+    # constructing the sparse matrix.
+    if self.nomatrixresult
+        # No actual sparse matrix is returned. The entire result of the assembly
+        # is preserved in the assembler buffers. The ends of the buffers are
+        # filled with reasonable values, just in case someone wants to look at
+        # them.
+        self.rowbuffer[self.buffer_pointer:end] .= 1
+        self.colbuffer[self.buffer_pointer:end] .= 1
+        self.matbuffer[self.buffer_pointer:end] .= 0.0
+        return spzeros(self.ndofs_row, self.ndofs_col)
     end
+    # The sparse matrix is constructed and returned. The  buffers used for
+    # the assembly are cleared.
     S = sparse(
         self.rowbuffer[1:self.buffer_pointer-1],
         self.colbuffer[1:self.buffer_pointer-1],
@@ -547,10 +545,12 @@ function assemble!(
     @assert p + ncolumns <= self.buffer_length + 1
     @assert size(mat) == (nrows, ncolumns)
     @inbounds for j in 1:ncolumns
-        self.matbuffer[p] = mat[j, j] # serialized matrix
-        self.rowbuffer[p] = dofnums[j]
-        self.colbuffer[p] = dofnums[j]
-        p = p + 1
+        if 0 < dofnums[j] <= self.ndofs
+            self.matbuffer[p] = mat[j, j] # serialized matrix
+            self.rowbuffer[p] = dofnums[j]
+            self.colbuffer[p] = dofnums[j]
+            p = p + 1
+        end
     end
     self.buffer_pointer = p
     return self
@@ -562,28 +562,22 @@ end
 Make a sparse symmetric square diagonal matrix.
 """
 function makematrix!(self::SysmatAssemblerSparseDiag)
-    if self.nomatrixresult
-            # No actual sparse matrix is returned. The entire result of the assembly
-            # is preserved in the assembler buffers.
-        return spzeros(self.ndofs, self.ndofs)
-    end
-    # Otherwise, we will accumulate the sparse matrix from the records in the
-    # buffers.
     @assert length(self.rowbuffer) >= self.buffer_pointer - 1
     @assert length(self.colbuffer) >= self.buffer_pointer - 1
-    # Here we will go through the rows and columns, and whenever the row or
-    # the column refer to indexes outside of the limits of the matrix, the
-    # corresponding value will be set to 0 and assembled to row and column 1.
-    @inbounds for j in 1:self.buffer_pointer-1
-        if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
-            self.rowbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
-        if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
-            self.colbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
+    # We have the option of retaining the assembled results, but not
+    # constructing the sparse matrix.
+    if self.nomatrixresult
+        # No actual sparse matrix is returned. The entire result of the assembly
+        # is preserved in the assembler buffers. The ends of the buffers are
+        # filled with reasonable values, just in case someone wants to look at
+        # them.
+        self.rowbuffer[self.buffer_pointer:end] .= 1
+        self.colbuffer[self.buffer_pointer:end] .= 1
+        self.matbuffer[self.buffer_pointer:end] .= 0.0
+        return spzeros(self.ndofs_row, self.ndofs_col)
     end
+    # The sparse matrix is constructed and returned. The  buffers used for
+    # the assembly are cleared.
     S = sparse(
         self.rowbuffer[1:self.buffer_pointer-1],
         self.colbuffer[1:self.buffer_pointer-1],
@@ -840,16 +834,22 @@ function assemble!(
     # Now comes the lumping procedure
     em2 = sum(sum(mat, dims = 1)) # total mass times the number of space dimensions
     dem2 = zero(eltype(mat)) # total mass on the diagonal times the number of space dimensions
-    for i in 1:nrows
+    @inbounds for i in 1:nrows
         dem2 += mat[i, i]
     end
     ffactor = em2 / dem2 # total-element-mass compensation factor
-    @inbounds for j in 1:ncolumns,  i in j:nrows
-        if i == j # only the diagonal elements are assembled
-            self.matbuffer[p] = mat[i, j] * ffactor # serialized matrix
-            self.rowbuffer[p] = dofnums[i]
-            self.colbuffer[p] = dofnums[j]
-            p = p + 1
+    @inbounds for j in 1:ncolumns
+        if 0 < dofnums[j] <= self.ndofs
+            for i in j:nrows
+                if i == j # only the diagonal elements are assembled
+                    if 0 < dofnums[i] <= self.ndofs
+                        self.matbuffer[p] = mat[i, j] * ffactor # serialized matrix
+                        self.rowbuffer[p] = dofnums[i]
+                        self.colbuffer[p] = dofnums[j]
+                        p = p + 1
+                    end
+                end
+            end
         end
     end
     self.buffer_pointer = p
@@ -877,28 +877,22 @@ end
 Make a sparse HRZ-lumped **symmetric square**  matrix.
 """
 function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
-    if self.nomatrixresult
-            # No actual sparse matrix is returned. The entire result of the assembly
-            # is preserved in the assembler buffers.
-        return spzeros(self.ndofs, self.ndofs)
-    end
-    # Otherwise, we will accumulate the sparse matrix from the records in the
-    # buffers.
     @assert length(self.rowbuffer) >= self.buffer_pointer - 1
     @assert length(self.colbuffer) >= self.buffer_pointer - 1
-    # Here we will go through the rows and columns, and whenever the row or
-    # the column refer to indexes outside of the limits of the matrix, the
-    # corresponding value will be set to 0 and assembled to row and column 1.
-    @inbounds for j in 1:self.buffer_pointer-1
-        if (self.rowbuffer[j] > self.ndofs) || (self.rowbuffer[j] <= 0)
-            self.rowbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
-        if (self.colbuffer[j] > self.ndofs) || (self.colbuffer[j] <= 0)
-            self.colbuffer[j] = 1
-            self.matbuffer[j] = 0.0
-        end
+    # We have the option of retaining the assembled results, but not
+    # constructing the sparse matrix.
+    if self.nomatrixresult
+        # No actual sparse matrix is returned. The entire result of the assembly
+        # is preserved in the assembler buffers. The ends of the buffers are
+        # filled with reasonable values, just in case someone wants to look at
+        # them.
+        self.rowbuffer[self.buffer_pointer:end] .= 1
+        self.colbuffer[self.buffer_pointer:end] .= 1
+        self.matbuffer[self.buffer_pointer:end] .= 0.0
+        return spzeros(self.ndofs_row, self.ndofs_col)
     end
+    # The sparse matrix is constructed and returned. The  buffers used for
+    # the assembly are cleared.
     S = sparse(
         self.rowbuffer[1:self.buffer_pointer-1],
         self.colbuffer[1:self.buffer_pointer-1],
