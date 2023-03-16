@@ -21,6 +21,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 03/15/2023: Changed strategy when assembling into the COO format.
 - 03/10/2023: Genericity of arguments enabled in the assembly module.
 - 12/27/2022: Added T4 and T10 cylinder meshing routines.
 - 11/03/2022: Added extraction of outer surface of solid.
