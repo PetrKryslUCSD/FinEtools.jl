@@ -215,21 +215,31 @@ function makematrix!(self::SysmatAssemblerSparse)
     # We have the option of retaining the assembled results, but not
     # constructing the sparse matrix.
     if self.nomatrixresult
-        # No actual sparse matrix is returned. The entire result of the assembly
-        # is preserved in the assembler buffers. The ends of the buffers are
-        # filled with reasonable values, just in case someone wants to look at
-        # them.
-        self.rowbuffer[self.buffer_pointer:end] .= 1
-        self.colbuffer[self.buffer_pointer:end] .= 1
+        # Dummy (zero) sparse matrix is returned. The entire result of the
+        # assembly is preserved in the assembler buffers. The ends of the
+        # buffers are filled with illegal (ignorable) values.
+        self.rowbuffer[self.buffer_pointer:end] .= 0
+        self.colbuffer[self.buffer_pointer:end] .= 0
         self.matbuffer[self.buffer_pointer:end] .= 0.0
         return spzeros(self.ndofs_row, self.ndofs_col)
     end
+    # Compact the buffers by deleting ignorable rows and columns.
+    p = 1
+    for j in 1:self.buffer_pointer-1
+        if self.rowbuffer[j] > 0 && self.colbuffer[j] > 0
+            self.rowbuffer[p] = self.rowbuffer[j]
+            self.colbuffer[p] = self.colbuffer[j]
+            self.matbuffer[p] = self.matbuffer[j]
+            p += 1
+        end
+    end
+    self.buffer_pointer = p
     # The sparse matrix is constructed and returned. The  buffers used for
     # the assembly are cleared.
     S = sparse(
-        self.rowbuffer[1:self.buffer_pointer-1],
-        self.colbuffer[1:self.buffer_pointer-1],
-        self.matbuffer[1:self.buffer_pointer-1],
+        view(self.rowbuffer, 1:self.buffer_pointer-1),
+        view(self.colbuffer, 1:self.buffer_pointer-1),
+        view(self.matbuffer, 1:self.buffer_pointer-1),
         self.ndofs_row,
         self.ndofs_col,
         )
@@ -404,21 +414,31 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
     # We have the option of retaining the assembled results, but not
     # constructing the sparse matrix.
     if self.nomatrixresult
-        # No actual sparse matrix is returned. The entire result of the assembly
-        # is preserved in the assembler buffers. The ends of the buffers are
-        # filled with reasonable values, just in case someone wants to look at
-        # them.
-        self.rowbuffer[self.buffer_pointer:end] .= 1
-        self.colbuffer[self.buffer_pointer:end] .= 1
+        # Dummy (zero) sparse matrix is returned. The entire result of the
+        # assembly is preserved in the assembler buffers. The ends of the
+        # buffers are filled with illegal (ignorable) values.
+        self.rowbuffer[self.buffer_pointer:end] .= 0
+        self.colbuffer[self.buffer_pointer:end] .= 0
         self.matbuffer[self.buffer_pointer:end] .= 0.0
         return spzeros(self.ndofs_row, self.ndofs_col)
     end
+    # Compact the buffers by deleting ignorable rows and columns.
+    p = 1
+    for j in 1:self.buffer_pointer-1
+        if self.rowbuffer[j] > 0 && self.colbuffer[j] > 0
+            self.rowbuffer[p] = self.rowbuffer[j]
+            self.colbuffer[p] = self.colbuffer[j]
+            self.matbuffer[p] = self.matbuffer[j]
+            p += 1
+        end
+    end
+    self.buffer_pointer = p
     # The sparse matrix is constructed and returned. The  buffers used for
     # the assembly are cleared.
     S = sparse(
-        self.rowbuffer[1:self.buffer_pointer-1],
-        self.colbuffer[1:self.buffer_pointer-1],
-        self.matbuffer[1:self.buffer_pointer-1],
+        view(self.rowbuffer, 1:self.buffer_pointer-1),
+        view(self.colbuffer, 1:self.buffer_pointer-1),
+        view(self.matbuffer, 1:self.buffer_pointer-1),
         self.ndofs,
         self.ndofs,
     )
@@ -567,21 +587,31 @@ function makematrix!(self::SysmatAssemblerSparseDiag)
     # We have the option of retaining the assembled results, but not
     # constructing the sparse matrix.
     if self.nomatrixresult
-        # No actual sparse matrix is returned. The entire result of the assembly
-        # is preserved in the assembler buffers. The ends of the buffers are
-        # filled with reasonable values, just in case someone wants to look at
-        # them.
-        self.rowbuffer[self.buffer_pointer:end] .= 1
-        self.colbuffer[self.buffer_pointer:end] .= 1
+        # Dummy (zero) sparse matrix is returned. The entire result of the
+        # assembly is preserved in the assembler buffers. The ends of the
+        # buffers are filled with illegal (ignorable) values.
+        self.rowbuffer[self.buffer_pointer:end] .= 0
+        self.colbuffer[self.buffer_pointer:end] .= 0
         self.matbuffer[self.buffer_pointer:end] .= 0.0
         return spzeros(self.ndofs_row, self.ndofs_col)
     end
+    # Compact the buffers by deleting ignorable rows and columns.
+    p = 1
+    for j in 1:self.buffer_pointer-1
+        if self.rowbuffer[j] > 0 && self.colbuffer[j] > 0
+            self.rowbuffer[p] = self.rowbuffer[j]
+            self.colbuffer[p] = self.colbuffer[j]
+            self.matbuffer[p] = self.matbuffer[j]
+            p += 1
+        end
+    end
+    self.buffer_pointer = p
     # The sparse matrix is constructed and returned. The  buffers used for
     # the assembly are cleared.
     S = sparse(
-        self.rowbuffer[1:self.buffer_pointer-1],
-        self.colbuffer[1:self.buffer_pointer-1],
-        self.matbuffer[1:self.buffer_pointer-1],
+        view(self.rowbuffer, 1:self.buffer_pointer-1),
+        view(self.colbuffer, 1:self.buffer_pointer-1),
+        view(self.matbuffer, 1:self.buffer_pointer-1),
         self.ndofs,
         self.ndofs,
     )
@@ -882,21 +912,31 @@ function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
     # We have the option of retaining the assembled results, but not
     # constructing the sparse matrix.
     if self.nomatrixresult
-        # No actual sparse matrix is returned. The entire result of the assembly
-        # is preserved in the assembler buffers. The ends of the buffers are
-        # filled with reasonable values, just in case someone wants to look at
-        # them.
-        self.rowbuffer[self.buffer_pointer:end] .= 1
-        self.colbuffer[self.buffer_pointer:end] .= 1
+        # Dummy (zero) sparse matrix is returned. The entire result of the
+        # assembly is preserved in the assembler buffers. The ends of the
+        # buffers are filled with illegal (ignorable) values.
+        self.rowbuffer[self.buffer_pointer:end] .= 0
+        self.colbuffer[self.buffer_pointer:end] .= 0
         self.matbuffer[self.buffer_pointer:end] .= 0.0
         return spzeros(self.ndofs_row, self.ndofs_col)
     end
+    # Compact the buffers by deleting ignorable rows and columns.
+    p = 1
+    for j in 1:self.buffer_pointer-1
+        if self.rowbuffer[j] > 0 && self.colbuffer[j] > 0
+            self.rowbuffer[p] = self.rowbuffer[j]
+            self.colbuffer[p] = self.colbuffer[j]
+            self.matbuffer[p] = self.matbuffer[j]
+            p += 1
+        end
+    end
+    self.buffer_pointer = p
     # The sparse matrix is constructed and returned. The  buffers used for
     # the assembly are cleared.
     S = sparse(
-        self.rowbuffer[1:self.buffer_pointer-1],
-        self.colbuffer[1:self.buffer_pointer-1],
-        self.matbuffer[1:self.buffer_pointer-1],
+        view(self.rowbuffer, 1:self.buffer_pointer-1),
+        view(self.colbuffer, 1:self.buffer_pointer-1),
+        view(self.matbuffer, 1:self.buffer_pointer-1),
         self.ndofs,
         self.ndofs,
     )
