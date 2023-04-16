@@ -70,7 +70,7 @@ Define the concrete type for a finite element set.
 macro define_FESet(NAME, MANIFOLD, NODESPERELEM)
     return esc(:(mutable struct $NAME <: $MANIFOLD{$NODESPERELEM}
         @add_FESet_fields $NODESPERELEM
-        function $NAME(conn::FIntMat)
+        function $NAME(conn::AbstractArray)
             self = new(NTuple{$NODESPERELEM,FInt}[], FInt[], nothing)
             self = fromarray!(self, conn)
             setlabel!(self, 0)
@@ -131,7 +131,7 @@ accepttodelegate(self::T, delegateof) where {T<:AbstractFESet} =
 
 Set  the connectivity from an integer array.
 """
-function fromarray!(self::AbstractFESet{NODESPERELEM}, conn::FIntMat) where {NODESPERELEM}
+function fromarray!(self::AbstractFESet{NODESPERELEM}, conn::AbstractArray) where {NODESPERELEM}
     @assert size(conn, 2) == NODESPERELEM
     self.conn = fill(tuple(fill(0, NODESPERELEM)...), size(conn, 1))
     for i in eachindex(self.conn)
