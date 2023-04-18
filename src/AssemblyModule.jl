@@ -38,6 +38,7 @@ mutable struct SysmatAssemblerSparse{IT, MBT, IBT} <: AbstractSysmatAssembler
     ndofs_row::IT
     ndofs_col::IT
     nomatrixresult::Bool
+    force_init::Bool
 end
 
 """
@@ -97,8 +98,8 @@ At this point all the buffers of the assembler have been cleared, and
 `makematrix!(a) ` is no longer possible.
 
 """
-function SysmatAssemblerSparse(z= zero(FFlt), nomatrixresult = false)
-    return SysmatAssemblerSparse(0, FFlt[z], FInt[0], FInt[0], 0, 0, 0, nomatrixresult)
+function SysmatAssemblerSparse(z = zero(FFlt), nomatrixresult = false)
+    return SysmatAssemblerSparse(0, FFlt[z], FInt[0], FInt[0], 0, 0, 0, nomatrixresult, false)
 end
 
 """
@@ -156,6 +157,7 @@ function startassembly!(
     end
     # Leave the buffers uninitialized, unless the user requests otherwise
     if force_init
+        self.force_init = force_init
         self.rowbuffer .= 1
         self.colbuffer .= 1
         self.matbuffer .= 0
@@ -186,7 +188,18 @@ function assemble!(
     nrows = length(dofnums_row)
     ncolumns = length(dofnums_col)
     p = self.buffer_pointer
-    @assert p + ncolumns * nrows <= self.buffer_length + 1
+    if p + ncolumns * nrows >= self.buffer_length
+        new_buffer_length = self.buffer_length + ncolumns * nrows * 1000
+        resize!(self.rowbuffer, new_buffer_length)
+        resize!(self.colbuffer, new_buffer_length)
+        resize!(self.matbuffer, new_buffer_length)
+        if self.force_init
+            self.rowbuffer[self.buffer_length+1:end] .= 1
+            self.colbuffer[self.buffer_length+1:end] .= 1
+            self.matbuffer[self.buffer_length+1:end] .= 0
+        end
+        self.buffer_length = new_buffer_length
+    end
     @assert size(mat) == (nrows, ncolumns)
     @inbounds for j in 1:ncolumns
         if 0 < dofnums_col[j] <= self.ndofs_col
@@ -243,7 +256,8 @@ function makematrix!(self::SysmatAssemblerSparse)
         self.ndofs_row,
         self.ndofs_col,
         )
-    self = SysmatAssemblerSparse(zero(eltype(self.matbuffer)))# get rid of the buffers
+    # Get ready for more assembling
+    self.buffer_pointer = 1
     return S
 end
 
@@ -266,6 +280,7 @@ mutable struct SysmatAssemblerSparseSymm{IT, MBT, IBT} <: AbstractSysmatAssemble
     buffer_pointer::IT
     ndofs::IT
     nomatrixresult::Bool
+    force_init::Bool
 end
 
 """
@@ -296,7 +311,7 @@ This is how a symmetric sparse matrix is assembled from two square dense matrice
 SysmatAssemblerSparse
 """
 function SysmatAssemblerSparseSymm(z= zero(FFlt), nomatrixresult = false)
-    return SysmatAssemblerSparseSymm(0, FFlt[z], FInt[0], FInt[0], 0, 0, nomatrixresult)
+    return SysmatAssemblerSparseSymm(0, FFlt[z], FInt[0], FInt[0], 0, 0, nomatrixresult, false)
 end
 
 """
@@ -356,6 +371,7 @@ function startassembly!(
         self.rowbuffer .= 1
         self.colbuffer .= 1
         self.matbuffer .= 0
+        self.force_init = force_init
     end
     return self
 end
@@ -385,7 +401,18 @@ function assemble!(
     nrows = length(dofnums)
     ncolumns = nrows
     p = self.buffer_pointer
-    @assert p + ncolumns * nrows <= self.buffer_length + 1
+    if p + ncolumns * nrows >= self.buffer_length
+        new_buffer_length = self.buffer_length + ncolumns * nrows * 1000
+        resize!(self.rowbuffer, new_buffer_length)
+        resize!(self.colbuffer, new_buffer_length)
+        resize!(self.matbuffer, new_buffer_length)
+        if self.force_init
+            self.rowbuffer[self.buffer_length+1:end] .= 1
+            self.colbuffer[self.buffer_length+1:end] .= 1
+            self.matbuffer[self.buffer_length+1:end] .= 0
+        end
+        self.buffer_length = new_buffer_length
+    end
     @assert size(mat) == (nrows, ncolumns)
     @inbounds for j in 1:ncolumns
         if 0 < dofnums[j] <= self.ndofs
@@ -448,7 +475,8 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
     @inbounds for j in axes(S, 1)
         S[j, j] *= 0.5      # the diagonal is there twice; fix it;
     end
-    self = SysmatAssemblerSparseSymm(zero(eltype(self.matbuffer))) # get rid of the buffers
+    # Get ready for more assembling
+    self.buffer_pointer = 1
     return S
 end
 
@@ -615,7 +643,8 @@ function makematrix!(self::SysmatAssemblerSparseDiag)
         self.ndofs,
         self.ndofs,
     )
-    self = SysmatAssemblerSparseDiag(zero(eltype(self.matbuffer))) # get rid of the buffers
+    # Get ready for more assembling
+    self.buffer_pointer = 1
     return S
 end
 
@@ -945,7 +974,8 @@ function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
     @inbounds for j in axes(S, 1)
         S[j, j] /= 2.0      # the diagonal is there twice; fix it;
     end
-    self = SysmatAssemblerSparseHRZLumpingSymm(zero(eltype(self.matbuffer)))# get rid of the buffers
+    # Get ready for more assembling
+        self.buffer_pointer = 1
     return S
 end
 
