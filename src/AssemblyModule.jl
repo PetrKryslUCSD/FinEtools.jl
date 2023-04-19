@@ -52,7 +52,6 @@ false`). When the assembler does not produce the sparse matrix when
 `makematrix!` is called, it still can be constructed from the buffers stored in
 the assembler.
 
-
 # Example
 
 This is how a sparse matrix is assembled from two rectangular dense matrices.
@@ -93,9 +92,9 @@ possible, for instance like this:
 ```
     a.nomatrixresult = false
     A = makematrix!(a) 
-```
-At this point all the buffers of the assembler have been cleared, and 
-`makematrix!(a) ` is no longer possible.
+```:1
+At this point all the buffers of the assembler have potentially been cleared,
+and `makematrix!(a) ` is no longer possible.
 
 """
 function SysmatAssemblerSparse(z = zero(FFlt), nomatrixresult = false)
@@ -124,7 +123,8 @@ the first call to the method `assemble!`.
 
 If the `buffer_pointer` field of the assembler is 0, which is the case after
 that assembler was created, the buffers are resized appropriately given the
-dimensions on input. Otherwise, the buffers are left completely untouched.
+dimensions on input. Otherwise, the buffers are left completely untouched. The
+`buffer_pointer` is set to the beginning$   of the buffer, namely 1.
 
 # Returns
 - `self`: the modified assembler.
@@ -135,6 +135,12 @@ dimensions on input. Otherwise, the buffers are left completely untouched.
     The buffers are initially not filled with anything meaningful.
     After the assembly, only the `(self.buffer_pointer - 1)` entries
     are meaningful numbers. Beware!
+
+!!! note
+
+    The buffers may be automatically resized if more numbers are assembled
+    then initially intended. However, this operation will not necessarily
+    be efficient and fast.
 """
 function startassembly!(
     self::SysmatAssemblerSparse,
@@ -156,8 +162,8 @@ function startassembly!(
         self.ndofs_col = ndofs_col
     end
     # Leave the buffers uninitialized, unless the user requests otherwise
-    if force_init
-        self.force_init = force_init
+    self.force_init = force_init
+    if self.force_init
         self.rowbuffer .= 1
         self.colbuffer .= 1
         self.matbuffer .= 0
@@ -221,6 +227,17 @@ end
     makematrix!(self::SysmatAssemblerSparse)
 
 Make a sparse matrix.
+
+!!! note
+
+    If `nomatrixresult` is set to true, dummy (zero) sparse matrix is returned. The entire result of the assembly is preserved in the assembler buffers.
+    The ends of the buffers are filled with illegal (ignorable) values.
+
+!!! note
+
+    When the matrix is constructed (`nomatrixresult` is false), the buffers
+    are not deallocated, and the `buffer_pointer` is set to 1. It is then
+    possible to immediately start assembling another matrix.
 """
 function makematrix!(self::SysmatAssemblerSparse)
     @assert length(self.rowbuffer) >= self.buffer_pointer - 1
@@ -341,6 +358,11 @@ dimensions on input. Otherwise, the buffers are left completely untouched.
 # Returns
 - `self`: the modified assembler.
 
+!!! note
+
+    The buffers may be automatically resized if more numbers are assembled
+    then initially intended. However, this operation will not necessarily
+    be efficient and fast.
 
 !!! note
 
@@ -434,6 +456,17 @@ end
     makematrix!(self::SysmatAssemblerSparseSymm)
 
 Make a sparse symmetric square matrix.
+
+!!! note
+
+    If `nomatrixresult` is set to true, dummy (zero) sparse matrix is returned. The entire result of the assembly is preserved in the assembler buffers.
+    The ends of the buffers are filled with illegal (ignorable) values.
+
+!!! note
+
+    When the matrix is constructed (`nomatrixresult` is false), the buffers
+    are not deallocated, and the `buffer_pointer` is set to 1. It is then
+    possible to immediately start assembling another matrix.
 """
 function makematrix!(self::SysmatAssemblerSparseSymm)
     @assert length(self.rowbuffer) >= self.buffer_pointer - 1
@@ -608,6 +641,17 @@ end
     makematrix!(self::SysmatAssemblerSparseDiag)
 
 Make a sparse symmetric square diagonal matrix.
+
+!!! note
+
+    If `nomatrixresult` is set to true, dummy (zero) sparse matrix is returned. The entire result of the assembly is preserved in the assembler buffers.
+    The ends of the buffers are filled with illegal (ignorable) values.
+
+!!! note
+
+    When the matrix is constructed (`nomatrixresult` is false), the buffers
+    are not deallocated, and the `buffer_pointer` is set to 1. It is then
+    possible to immediately start assembling another matrix.
 """
 function makematrix!(self::SysmatAssemblerSparseDiag)
     @assert length(self.rowbuffer) >= self.buffer_pointer - 1
@@ -934,6 +978,17 @@ end
     makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
 
 Make a sparse HRZ-lumped **symmetric square**  matrix.
+
+!!! note
+
+    If `nomatrixresult` is set to true, dummy (zero) sparse matrix is returned. The entire result of the assembly is preserved in the assembler buffers.
+    The ends of the buffers are filled with illegal (ignorable) values.
+
+!!! note
+
+    When the matrix is constructed (`nomatrixresult` is false), the buffers
+    are not deallocated, and the `buffer_pointer` is set to 1. It is then
+    possible to immediately start assembling another matrix.
 """
 function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
     @assert length(self.rowbuffer) >= self.buffer_pointer - 1
@@ -975,7 +1030,7 @@ function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
         S[j, j] /= 2.0      # the diagonal is there twice; fix it;
     end
     # Get ready for more assembling
-        self.buffer_pointer = 1
+    self.buffer_pointer = 1
     return S
 end
 
