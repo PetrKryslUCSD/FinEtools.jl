@@ -124,7 +124,7 @@ the first call to the method `assemble!`.
 If the `buffer_pointer` field of the assembler is 0, which is the case after
 that assembler was created, the buffers are resized appropriately given the
 dimensions on input. Otherwise, the buffers are left completely untouched. The
-`buffer_pointer` is set to the beginning$   of the buffer, namely 1.
+`buffer_pointer` is set to the beginning of the buffer, namely 1.
 
 # Returns
 - `self`: the modified assembler.
@@ -353,7 +353,8 @@ the first call to the method `assemble!`.
 
 If the `buffer_pointer` field of the assembler is 0, which is the case after
 that assembler was created, the buffers are resized appropriately given the
-dimensions on input. Otherwise, the buffers are left completely untouched.
+dimensions on input. Otherwise, the buffers are left completely untouched. The
+`buffer_pointer` is set to the beginning of the buffer, namely 1.
 
 # Returns
 - `self`: the modified assembler.
