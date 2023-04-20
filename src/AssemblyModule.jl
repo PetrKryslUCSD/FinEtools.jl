@@ -7,8 +7,6 @@ module AssemblyModule
 
 __precompile__(true)
 
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 using SparseArrays: sparse, spzeros, SparseMatrixCSC
 using LinearAlgebra: diag
 
@@ -42,9 +40,9 @@ mutable struct SysmatAssemblerSparse{IT, MBT, IBT} <: AbstractSysmatAssembler
 end
 
 """
-    SysmatAssemblerSparse(z= zero(FFlt), nomatrixresult = false)
+    SysmatAssemblerSparse(z = zero(T), nomatrixresult = false) where {T}
 
-Construct blank system matrix assembler. 
+Construct blank system matrix assembler.
 
 The matrix entries are of type `T`. The assembler either produces a sparse
 matrix (when `nomatrixresult = true`), or does not (when `nomatrixresult =
@@ -56,49 +54,53 @@ the assembler.
 
 This is how a sparse matrix is assembled from two rectangular dense matrices.
 ```
-    a = SysmatAssemblerSparse(0.0)                                                        
-    startassembly!(a, 5, 5, 3, 7, 7)    
-    m = [0.24406   0.599773    0.833404  0.0420141                                             
-        0.786024  0.00206713  0.995379  0.780298                                              
-        0.845816  0.198459    0.355149  0.224996]                                     
-    assemble!(a, m, [1 7 5], [5 2 1 4])        
-    m = [0.146618  0.53471   0.614342    0.737833                                              
-         0.479719  0.41354   0.00760941  0.836455                                              
-         0.254868  0.476189  0.460794    0.00919633                                            
-         0.159064  0.261821  0.317078    0.77646                                               
-         0.643538  0.429817  0.59788     0.958909]                                   
-    assemble!(a, m, [2 3 1 7 5], [6 7 3 4])                                        
-    A = makematrix!(a) 
+    a = SysmatAssemblerSparse(0.0)
+    startassembly!(a, 5, 5, 3, 7, 7)
+    m = [0.24406   0.599773    0.833404  0.0420141
+        0.786024  0.00206713  0.995379  0.780298
+        0.845816  0.198459    0.355149  0.224996]
+    assemble!(a, m, [1 7 5], [5 2 1 4])
+    m = [0.146618  0.53471   0.614342    0.737833
+         0.479719  0.41354   0.00760941  0.836455
+         0.254868  0.476189  0.460794    0.00919633
+         0.159064  0.261821  0.317078    0.77646
+         0.643538  0.429817  0.59788     0.958909]
+    assemble!(a, m, [2 3 1 7 5], [6 7 3 4])
+    A = makematrix!(a)
 ```
 
 When the `nomatrixresult` is set as true, no matrix is produced.
 ```
-    a = SysmatAssemblerSparse(0.0, true)                                                        
-    startassembly!(a, 5, 5, 3, 7, 7)    
-    m = [0.24406   0.599773    0.833404  0.0420141                                             
-        0.786024  0.00206713  0.995379  0.780298                                              
-        0.845816  0.198459    0.355149  0.224996]                                     
-    assemble!(a, m, [1 7 5], [5 2 1 4])        
-    m = [0.146618  0.53471   0.614342    0.737833                                              
-         0.479719  0.41354   0.00760941  0.836455                                              
-         0.254868  0.476189  0.460794    0.00919633                                            
-         0.159064  0.261821  0.317078    0.77646                                               
-         0.643538  0.429817  0.59788     0.958909]                                   
-    assemble!(a, m, [2 3 1 7 5], [6 7 3 4])                                        
-    A = makematrix!(a) 
+    a = SysmatAssemblerSparse(0.0, true)
+    startassembly!(a, 5, 5, 3, 7, 7)
+    m = [0.24406   0.599773    0.833404  0.0420141
+        0.786024  0.00206713  0.995379  0.780298
+        0.845816  0.198459    0.355149  0.224996]
+    assemble!(a, m, [1 7 5], [5 2 1 4])
+    m = [0.146618  0.53471   0.614342    0.737833
+         0.479719  0.41354   0.00760941  0.836455
+         0.254868  0.476189  0.460794    0.00919633
+         0.159064  0.261821  0.317078    0.77646
+         0.643538  0.429817  0.59788     0.958909]
+    assemble!(a, m, [2 3 1 7 5], [6 7 3 4])
+    A = makematrix!(a)
 ```
-Here `A` is a sparse zero matrix. To construct the correct matrix is still 
+Here `A` is a sparse zero matrix. To construct the correct matrix is still
 possible, for instance like this:
 ```
     a.nomatrixresult = false
-    A = makematrix!(a) 
+    A = makematrix!(a)
 ```:1
 At this point all the buffers of the assembler have potentially been cleared,
 and `makematrix!(a) ` is no longer possible.
 
 """
-function SysmatAssemblerSparse(z = zero(FFlt), nomatrixresult = false)
-    return SysmatAssemblerSparse(0, FFlt[z], FInt[0], FInt[0], 0, 0, 0, nomatrixresult, false)
+function SysmatAssemblerSparse(z::T, nomatrixresult = false) where {T}
+    return SysmatAssemblerSparse(0, T[z], Int[0], Int[0], 0, 0, 0, nomatrixresult, false)
+end
+
+function SysmatAssemblerSparse()
+    return SysmatAssemblerSparse(zero(Float64))
 end
 
 """
@@ -301,7 +303,7 @@ mutable struct SysmatAssemblerSparseSymm{IT, MBT, IBT} <: AbstractSysmatAssemble
 end
 
 """
-    SysmatAssemblerSparseSymm(zero::T=0.0) where {T<:Number}
+    SysmatAssemblerSparseSymm(z::T, nomatrixresult = false) where {T}
 
 Construct blank system matrix assembler for symmetric matrices. The matrix
 entries are of type `T`.
@@ -310,25 +312,29 @@ entries are of type `T`.
 
 This is how a symmetric sparse matrix is assembled from two square dense matrices.
 ```
-	a = SysmatAssemblerSparseSymm(0.0)                                                        
-	startassembly!(a, 5, 5, 3, 7, 7)    
-	m = [0.24406   0.599773    0.833404  0.0420141                                             
-		0.786024  0.00206713  0.995379  0.780298                                              
-		0.845816  0.198459    0.355149  0.224996]                                     
-	assemble!(a, m'*m, [5 2 1 4], [5 2 1 4])        
-	m = [0.146618  0.53471   0.614342    0.737833                                              
-		 0.479719  0.41354   0.00760941  0.836455                                              
-		 0.254868  0.476189  0.460794    0.00919633                                            
-		 0.159064  0.261821  0.317078    0.77646                                               
-		 0.643538  0.429817  0.59788     0.958909]                                   
-	assemble!(a, m'*m, [2 3 1 5], [2 3 1 5])                                        
-	A = makematrix!(a) 
+    a = SysmatAssemblerSparseSymm(0.0)
+    startassembly!(a, 5, 5, 3, 7, 7)
+    m = [0.24406   0.599773    0.833404  0.0420141
+        0.786024  0.00206713  0.995379  0.780298
+        0.845816  0.198459    0.355149  0.224996]
+    assemble!(a, m'*m, [5 2 1 4], [5 2 1 4])
+    m = [0.146618  0.53471   0.614342    0.737833
+         0.479719  0.41354   0.00760941  0.836455
+         0.254868  0.476189  0.460794    0.00919633
+         0.159064  0.261821  0.317078    0.77646
+         0.643538  0.429817  0.59788     0.958909]
+    assemble!(a, m'*m, [2 3 1 5], [2 3 1 5])
+    A = makematrix!(a)
 ```
 # See also
 SysmatAssemblerSparse
 """
-function SysmatAssemblerSparseSymm(z= zero(FFlt), nomatrixresult = false)
-    return SysmatAssemblerSparseSymm(0, FFlt[z], FInt[0], FInt[0], 0, 0, nomatrixresult, false)
+function SysmatAssemblerSparseSymm(z::T, nomatrixresult = false) where {T}
+    return SysmatAssemblerSparseSymm(0, T[z], Int[0], Int[0], 0, 0, nomatrixresult, false)
+end
+
+function SysmatAssemblerSparseSymm()
+    return SysmatAssemblerSparseSymm(zero(Float64))
 end
 
 """
@@ -540,16 +546,19 @@ mutable struct SysmatAssemblerSparseDiag{IT, MBT, IBT} <: AbstractSysmatAssemble
 end
 
 """
-    SysmatAssemblerSparseDiag(zero::T=0.0) where {T<:Number}
+    SysmatAssemblerSparseDiag(z::T, nomatrixresult = false) where {T}
 
 Construct blank system matrix assembler for square diagonal matrices. The matrix
 entries are of type `T`.
 
 """
-function SysmatAssemblerSparseDiag(z= zero(FFlt), nomatrixresult = false)
-    return SysmatAssemblerSparseDiag(0, FFlt[z], FInt[0], FInt[0], 0, 0, nomatrixresult)
+function SysmatAssemblerSparseDiag(z::T, nomatrixresult = false) where {T}
+    return SysmatAssemblerSparseDiag(0, T[z], Int[0], Int[0], 0, 0, nomatrixresult)
 end
 
+function SysmatAssemblerSparseDiag()
+    return SysmatAssemblerSparseDiag(zero(T))
+end
 
 """
     startassembly!(self::SysmatAssemblerSparseDiag{T},
@@ -756,17 +765,21 @@ mutable struct SysvecAssembler{VBT, IT} <: AbstractSysvecAssembler
 end
 
 """
-    SysvecAssembler(z= zero(FFlt))
+    SysvecAssembler(z::T) where {T}
 
 Construct blank system vector assembler. The vector entries are of type `T`
 determined by the zero value.
 """
-function SysvecAssembler(z= zero(FFlt))
-    return SysvecAssembler([z], 1)
+function SysvecAssembler(z::T) where {T}
+    return SysvecAssembler(T[z], 1)
+end
+
+function SysvecAssembler()
+    return SysvecAssembler(zero(Float64))
 end
 
 """
-    startassembly!(self::SysvecAssembler, ndofs_row::FInt) where {T<:Number}
+    startassembly!(self::SysvecAssembler, ndofs_row)
 
 Start assembly.
 
@@ -821,7 +834,7 @@ end
     SysmatAssemblerSparseHRZLumpingSymm{IT, MBT, IBT} <: AbstractSysmatAssembler
 
 Assembler for a **symmetric lumped square** matrix  assembled from  **symmetric square**
-matrices. 
+matrices.
 
 Reference: A note on mass lumping and related processes in the finite element method,
 E. Hinton, T. Rock, O. C. Zienkiewicz, Earthquake Engineering & Structural Dynamics,
@@ -833,13 +846,13 @@ volume 4, number 3, 245--249, 1976.
     All fields of the datatype are private. The type is manipulated by the
     functions `startassembly!`, `assemble!`, and `makematrix!`.
 
-!!! note 
-    
+!!! note
+
     This assembler can compute and assemble diagonalized mass matrices.
     However, if the meaning of the entries of the mass matrix  differs
     (translation versus rotation), the mass matrices will not be computed
     correctly. Put bluntly: it can only be used for homogeneous mass matrices,
-    all translation degrees of freedom, for instance. 
+    all translation degrees of freedom, for instance.
 """
 mutable struct SysmatAssemblerSparseHRZLumpingSymm{IT, MBT, IBT} <: AbstractSysmatAssembler
     # Type for assembling of a sparse global matrix from elementwise matrices.
@@ -853,13 +866,17 @@ mutable struct SysmatAssemblerSparseHRZLumpingSymm{IT, MBT, IBT} <: AbstractSysm
 end
 
 """
-    SysmatAssemblerSparseHRZLumpingSymm(zer::T=0.0) where {T<:Number}
+    SysmatAssemblerSparseHRZLumpingSymm(z::T, nomatrixresult = false) where {T}
 
 Construct blank system matrix assembler. The matrix entries are of type `T`.
 
 """
-function SysmatAssemblerSparseHRZLumpingSymm(z= zero(FFlt), nomatrixresult = false)
-    return SysmatAssemblerSparseHRZLumpingSymm(0, [z], Int[0], Int[0], 0, 0, nomatrixresult)
+function SysmatAssemblerSparseHRZLumpingSymm(z::T, nomatrixresult = false) where {T}
+    return SysmatAssemblerSparseHRZLumpingSymm(0, T[z], Int[0], Int[0], 0, 0, nomatrixresult)
+end
+
+function SysmatAssemblerSparseHRZLumpingSymm()
+    return SysmatAssemblerSparseHRZLumpingSymm(zero(Float64))
 end
 
 """
@@ -958,21 +975,6 @@ function assemble!(
     end
     self.buffer_pointer = p
     return self
-end
-
-"""
-    assemble!(self::SysmatAssemblerSparseHRZLumpingSymm{T}, mat::FMat{T},
-        dofnums::FIntMat, ignore::FIntMat) where {T<:Number}
-
-Assemble an HRZ-lumped square symmetric matrix.
-"""
-function assemble!(
-    self::SysmatAssemblerSparseHRZLumpingSymm,
-    mat::FMat{T},
-    dofnums::FIntMat,
-    ignore::FIntMat,
-) where {T<:Number}
-    return assemble!(self, mat, vec(dofnums), vec(ignore))
 end
 
 """
@@ -1087,12 +1089,13 @@ function startassembly!(
 end
 
 function assemble!(
-    self::SysmatAssemblerReduced{T},
-    mat::FMat{T},
-    dofnums_row::Union{FIntVec,FIntMat},
-    dofnums_col::Union{FIntVec,FIntMat},
-) where {T<:Number}
+    self::SysmatAssemblerReduced,
+    mat::MT,
+    dofnums_row::IV,
+    dofnums_col::IV,
+)  where {MT, IV}
     R, C = size(mat)
+    T = eltype(mat)
     @assert R == C "The matrix must be square"
     @assert dofnums_row == dofnums_col "The degree of freedom numbers must be the same for rows and columns"
     for i in 1:R
