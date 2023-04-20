@@ -603,7 +603,7 @@ using LinearAlgebra
 using Test
 
 cleandchi() = deepcopy(
-    FinEtools.NodalFieldModule.NodalField{Float64}(
+    FinEtools.NodalFieldModule.NodalField{Float64, Int}(
         [
             0.0 0.0 0.0 -0.002084946198827584 0.0 0.0
             6.938893903907228e-18 1.0842021724855044e-19 -0.14078343955580946 -0.001474279595600101 -2.710505431213761e-20 1.0842021724855044e-19
