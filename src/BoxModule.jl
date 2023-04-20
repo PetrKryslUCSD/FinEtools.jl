@@ -7,9 +7,6 @@ module BoxModule
 
 __precompile__(true)
 
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-
 """
     inbox(box::AbstractVector, x::AbstractVector)
 
@@ -47,7 +44,7 @@ Initialize a bounding box with a single point.
 function initbox!(box::AbstractVector, x::AbstractVector)
     sdim = length(x)
     if length(box) < 2 * sdim
-        box = fill(zero(FFlt), 2 * sdim)
+        box = fill(zero(eltype(x)), 2 * sdim)
     end
     for i in 1:sdim
         box[2*i-1] = box[2*i] = x[i]
@@ -72,7 +69,7 @@ If the  `box` does not have  the correct dimensions,  it is correctly sized.
 function updatebox!(box::AbstractVector, x::AbstractArray)
     sdim = size(x, 2)
     if length(box) < 2 * sdim
-        box = fill(zero(FFlt), 2 * sdim)
+        box = fill(zero(eltype(x)), 2 * sdim)
         for i in axes(x, 2)
             box[2*i-1] = Inf
             box[2*i] = -Inf
@@ -104,15 +101,15 @@ Returns `box` = bounding box
     for 3-D `box=[minx,maxx,miny,maxy,minz,maxz]`
 """
 function boundingbox(x::AbstractArray)
-    return updatebox!(FFlt[], x)
+    return updatebox!(eltype(x)[], x)
 end
 
 """
-    inflatebox!(box::AbstractVector, inflatevalue::Number)
+    inflatebox!(box::AbstractVector, inflatevalue::T) where {T}
 
 Inflate the box by the value supplied.
 """
-function inflatebox!(box::AbstractVector, inflatevalue::Number)
+function inflatebox!(box::AbstractVector, inflatevalue::T) where {T}
     abox = deepcopy(box)
     sdim = Int(length(box) / 2)
     for i in 1:sdim
