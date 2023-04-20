@@ -9,8 +9,6 @@ module SurfaceNormalModule
 
 __precompile__(true)
 
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..VectorCacheModule: VectorCache, updateretrieve!
 using LinearAlgebra: cross, norm
 
@@ -26,25 +24,23 @@ at any given point `XYZ`, using the columns of the Jacobian matrix
 of the element, `tangents`, and if necessary  also the finite element label, `fe_label`:
 
 ```
-computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+computenormal!(normalout::Vector{T}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label<:Integer) where {T}
 ```
 
 The buffer `normalout` is filled with the value  of the normal vector.
 """
-struct SurfaceNormal{F<:Function}
-    """
-        Cache of the current value of the normal
-    """
-    cache::VectorCache{FFlt,F}
+struct SurfaceNormal{T<:Number, F<:Function}
+    # Cache of the current value of the normal
+    _cache::VectorCache{T, F}
 end
 
 """
-    SurfaceNormal(ndimensions::FInt, computenormal!::F) where {F<:Function}
+    SurfaceNormal(ndimensions, computenormal!::F) where {F<:Function}
 
 Construct surface normal evaluator when the function to compute the normal vector is
 given. This function needs to have a signature of
 ```
-function computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+function computenormal!(normalout::Vector{T}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label<:Integer) where {T}
     Calculate the normal and copy it into the buffer....
     return normalout # return the buffer
 end
@@ -53,9 +49,30 @@ and it needs to  fill in the buffer `normalout` with the current vector at the
 location `XYZ`, using if appropriate the information supplied in the Jacobian
 matrix `tangents`, and the label of the finite element, `fe_label`.
 """
-function SurfaceNormal(ndimensions::FInt, computenormal!::F) where {F<:Function}
+function SurfaceNormal(ndimensions, computenormal!::F) where {F<:Function}
     # Allocate the buffer to be ready for the first call
-    return SurfaceNormal(VectorCache(FFlt, ndimensions, computenormal!))
+    return SurfaceNormal(VectorCache(Float64, ndimensions, computenormal!))
+end
+
+"""
+    SurfaceNormal(ndimensions, z::T, computenormal!::F) where {T<:Number, F<:Function}
+
+Construct surface normal evaluator when the function to compute the normal vector is
+given. This function needs to have a signature of
+```
+function computenormal!(normalout::Vector{T}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label<:Integer) where {T}
+    Calculate the normal and copy it into the buffer....
+    return normalout # return the buffer
+end
+```
+and it needs to  fill in the buffer `normalout` with the current vector at the
+location `XYZ`, using if appropriate the information supplied in the Jacobian
+matrix `tangents`, and the label of the finite element, `fe_label`.
+The type of the entries of the normal are `T`.
+"""
+function SurfaceNormal(ndimensions, z::T, computenormal!::F) where {T<:Number, F<:Function}
+    # Allocate the buffer to be ready for the first call
+    return SurfaceNormal(VectorCache(T, ndimensions, computenormal!))
 end
 
 """
@@ -70,14 +87,14 @@ When the columns of the `tangents` array are parallel (or one of them is a zero
 vector), the normal cannot be normalized to unit length (it is a zero vector).
 In that case a zero vector is returned, and a warning is printed.
 """
-function SurfaceNormal(ndimensions::FInt)
+function SurfaceNormal(ndimensions)
     function defaultcomputenormal!(
-        normalout::FFltVec,
-        XYZ::FFltMat,
-        tangents::FFltMat,
-        fe_label::FInt,
-    )
-        fill!(normalout, 0.0)
+        normalout::Vector{T},
+        XYZ::Matrix{T},
+        tangents::Matrix{T},
+        fe_label,
+    ) where {T}
+        fill!(normalout, zero(T))
         # Produce a default normal
         if (size(tangents, 1) == 3) && (size(tangents, 2) == 2)# surface in three dimensions
             normalout[:] .= cross(vec(tangents[:, 1]), vec(tangents[:, 2]))# outer normal to the surface
@@ -95,27 +112,27 @@ function SurfaceNormal(ndimensions::FInt)
         end
         return normalout
     end
-    return SurfaceNormal(VectorCache(FFlt, ndimensions, defaultcomputenormal!))
+    return SurfaceNormal(VectorCache(Float64, ndimensions, defaultcomputenormal!))
 end
 
 """
-    SurfaceNormal(vector::FVec{T}) where {T<:Number}
+    SurfaceNormal(vector::Vector{T}) where {T<:Number}
 
 Construct surface normal vector when the *constant* normal vector is given.
 """
-function SurfaceNormal(vector::FVec{T}) where {T<:Number}
+function SurfaceNormal(vector::Vector{T}) where {T<:Number}
     return SurfaceNormal(VectorCache(deepcopy(vector)))
 end
 
 """
-    updatenormal!(self::SurfaceNormal, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    updatenormal!(self::SurfaceNormal, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T}
 
 Update the surface normal vector.
 
 Returns a vector (stored in the cache).
 """
-function updatenormal!(self::SurfaceNormal, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    return updateretrieve!(self.cache, XYZ, tangents, fe_label)
+function updatenormal!(self::SurfaceNormal, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T}
+    return updateretrieve!(self._cache, XYZ, tangents, fe_label)
 end
 
 end
