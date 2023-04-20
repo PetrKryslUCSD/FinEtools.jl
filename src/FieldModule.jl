@@ -7,8 +7,6 @@ module FieldModule
 
 __precompile__(true)
 
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import Base.copyto!
 
 """
@@ -35,14 +33,14 @@ the abstract type depend on these attributes to be present.
 """
 macro add_Field_fields()
     return esc(:(values::Array{T,2};
-    dofnums::Array{FInt,2};
+    dofnums::Array{IT,2};
     is_fixed::Matrix{Bool};
     fixed_values::Array{T,2};
-    nfreedofs::FInt))
+    nfreedofs::IT))
 end
 
 """
-    ndofs{F<:AbstractField}(self::T)
+    ndofs(self::AbstractField)
 
 Dimension of the degree of freedom parameters (i. e. how many degrees of
 freedom per entity).
@@ -50,7 +48,7 @@ freedom per entity).
 ndofs(self::AbstractField) = size(self.values, 2)
 
 """
-    nents{F<:AbstractField}(self::F)
+    nents(self::AbstractField)
 
 Number of nodes associated with the field.
 """
@@ -109,11 +107,11 @@ function gathersysvec(self::F) where {F<:AbstractField}
 end
 
 """
-    gathersysvec!(self::F, vec::FVec{T}) where {F<:AbstractField, T}
+    gathersysvec!(self::F, vec::Vector{T}) where {F<:AbstractField, T}
 
 Gather values from the field for the whole system vector.
 """
-function gathersysvec!(self::F, vec::FVec{T}) where {F<:AbstractField,T}
+function gathersysvec!(self::F, vec::Vector{T}) where {F<:AbstractField,T}
     nents, dim = size(self.values)
     @assert length(vec) == self.nfreedofs
     for i in 1:nents
@@ -145,7 +143,7 @@ function gathervalues_asvec!(
     conn::CC,
 ) where {CC,T}
     # The order of the loops matters, first i, then j
-    en::FInt = 1
+    en = 1
     for i in eachindex(conn)
         for j in axes(self.values, 2)
             dest[en] = self.values[conn[i], j]
@@ -200,7 +198,7 @@ function gatherfixedvalues_asvec!(
     conn::CC,
 ) where {CC,T}
     # The order of the loops matters here! It must be i, j
-    en::FInt = 1
+    en = 1
     for i in eachindex(conn)
         for j in axes(self.fixed_values, 2)
             if self.is_fixed[conn[i], j] # free degree of freedom
@@ -245,6 +243,11 @@ function gatherfixedvalues_asmat!(
     return dest
 end
 
+"""
+    anyfixedvaluenz(self::AbstractField, conn::CC) where {CC}
+
+Is any fixed (prescribed)
+"""
 function anyfixedvaluenz(self::AbstractField, conn::CC) where {CC}
     for i in eachindex(conn)
         for j in axes(self.fixed_values, 2)
@@ -267,7 +270,7 @@ The order is: for each node  in the connectivity, copy into the buffer all the d
 freedom for that node,  then the next node  and so on.
 """
 function gatherdofnums!(self::AbstractField, dest::A, conn::CC) where {A,CC}
-    en::FInt = 1
+    en = 1
     for i in eachindex(conn)
         for j in axes(self.dofnums, 2)
             dest[en] = self.dofnums[conn[i], j]
@@ -300,9 +303,9 @@ The free components in the field are numbered consecutively. The sequence of the
 entities is given by the `entperm` permutation (array or range). 
 """
 function numberdofs!(self::AbstractField, entperm)
-    fixed_dofnum::FInt = 0
+    fixed_dofnum = zero(typeof(self.nfreedofs))
     nents, dim = size(self.values)
-    self.nfreedofs::FInt = 0
+    self.nfreedofs = 0
     for i in entperm
         for j in 1:dim
             if !self.is_fixed[i, j] # free degree of freedom
@@ -318,11 +321,11 @@ end
 
 function _setebc!(
     self::AbstractField,
-    fenid::FInt,
+    fenid::IT,
     is_fixed::Bool,
-    comp::FInt,
+    comp::IT,
     val::T,
-) where {T<:Number}
+) where {T<:Number, IT<:Integer}
     self.is_fixed[fenid, comp] = is_fixed
     if self.is_fixed[fenid, comp]
         self.fixed_values[fenid, comp] = val
@@ -333,7 +336,13 @@ function _setebc!(
 end
 
 """
-    setebc!(self::AbstractField, fenid::FInt, is_fixed::Bool, comp::FInt, val::T) where {T<:Number}
+    setebc!(
+        self::AbstractField,
+        fenid::IT,
+        is_fixed::Bool,
+        comp::IT,
+        val::T,
+    ) where {T<:Number, IT<:Integer}
 
 Set the EBCs (essential boundary conditions).
 
@@ -350,11 +359,11 @@ this method sets `nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(
     self::AbstractField,
-    fenid::FInt,
+    fenid::IT,
     is_fixed::Bool,
-    comp::FInt,
+    comp::IT,
     val::T,
-) where {T<:Number}
+) where {T<:Number, IT<:Integer}
     @assert 1 <= comp <= size(self.values, 2) "Requested  nonexistent  degree of freedom"
     @assert 1 <= fenid <= size(self.values, 1) "Requested nonexistent node"
     _setebc!(self, fenid, is_fixed, comp, val)
@@ -364,8 +373,13 @@ function setebc!(
 end
 
 """
-    setebc!(self::AbstractField, fenids::FIntVec, is_fixed::Bool, comp::FInt,
-      val::FVec{T}) where {T<:Number}
+    setebc!(
+        self::AbstractField,
+        fenids::AbstractVector{IT},
+        is_fixed::Bool,
+        comp::IT,
+        val::AbstractVector{T},
+    ) where {T<:Number, IT<:Integer}
 
 Set the EBCs (essential boundary conditions).
 
@@ -382,11 +396,11 @@ this method sets `nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(
     self::AbstractField,
-    fenids::FIntVec,
+    fenids::AbstractVector{IT},
     is_fixed::Bool,
-    comp::FInt,
-    val::FVec{T},
-) where {T<:Number}
+    comp::IT,
+    val::AbstractVector{T},
+) where {T<:Number, IT<:Integer}
     @assert comp <= size(self.values, 2) "Requested  nonexistent  degree of freedom"
     @assert maximum(fenids) <= size(self.values, 1) "Requested nonexistent node"
     @assert size(fenids) == size(val) "Arrays of mismatched sizes"
@@ -399,7 +413,13 @@ function setebc!(
 end
 
 """
-    setebc!(self::AbstractField, fenids::FIntVec, is_fixed::Bool, comp::FInt, val::T = 0.0) where {T<:Number}
+    setebc!(
+        self::AbstractField,
+        fenids::AbstractVector{IT},
+        is_fixed::Bool,
+        comp::IT,
+        val::T = 0.0,
+    ) where {T<:Number, IT<:Integer}
 
 Set the EBCs (essential boundary conditions).
 
@@ -416,11 +436,11 @@ this method sets `nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(
     self::AbstractField,
-    fenids::FIntVec,
+    fenids::AbstractVector{IT},
     is_fixed::Bool,
-    comp::FInt,
+    comp::IT,
     val::T = 0.0,
-) where {T<:Number}
+) where {T<:Number, IT<:Integer}
     @assert (comp >= 1 && comp <= size(self.values, 2)) "Requested  nonexistent  degree of freedom"
     @assert maximum(fenids) <= size(self.values, 1) "Requested nonexistent node"
     @assert minimum(fenids) >= 1 "Requested nonexistent node"
@@ -433,8 +453,12 @@ function setebc!(
 end
 
 """
-    setebc!(self::AbstractField, fenids::FIntVec, comp::FInt,
-      val::FVec{T}) where {T<:Number}
+    setebc!(
+        self::AbstractField,
+        fenids::AbstractVector{IT},
+        comp::IT,
+        val::AbstractVector{T},
+    ) where {T<:Number, IT<:Integer}
 
 Set the EBCs (essential boundary conditions).
 
@@ -449,16 +473,21 @@ this method sets `nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(
     self::AbstractField,
-    fenids::FIntVec,
-    comp::FInt,
-    val::FVec{T},
-) where {T<:Number}
+    fenids::AbstractVector{IT},
+    comp::IT,
+    val::AbstractVector{T},
+) where {T<:Number, IT<:Integer}
     return setebc!(self, fenids, true, comp, val)
 end
 
 
 """
-    setebc!(self::AbstractField, fenids::FIntVec, comp::FInt, val::T=0.0) where {T<:Number}
+    setebc!(
+        self::AbstractField,
+        fenids::AbstractVector{IT},
+        comp::IT,
+        val::T = 0.0,
+    ) where {T<:Number, IT<:Integer}
 
 Set the EBCs (essential boundary conditions).
 
@@ -473,15 +502,21 @@ this method sets `nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(
     self::AbstractField,
-    fenids::FIntVec,
-    comp::FInt,
+    fenids::AbstractVector{IT},
+    comp::IT,
     val::T = 0.0,
-) where {T<:Number}
+) where {T<:Number, IT<:Integer}
     return setebc!(self, fenids, true, comp, val)
 end
 
 """
-    setebc!(self::AbstractField, fenids::FIntVec, is_fixed::Bool, comp::FIntVec, val::T=0.0) where {T<:Number}
+    setebc!(
+        self::AbstractField,
+        fenids::AbstractVector{IT},
+        is_fixed::Bool,
+        comp::AbstractVector{IT},
+        val::T = 0.0,
+    ) where {T<:Number, IT<:Integer}
 
 Set the EBCs (essential boundary conditions).
 
@@ -496,11 +531,11 @@ sets `nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(
     self::AbstractField,
-    fenids::FIntVec,
+    fenids::AbstractVector{IT},
     is_fixed::Bool,
-    comp::FIntVec,
+    comp::AbstractVector{IT},
     val::T = 0.0,
-) where {T<:Number}
+) where {T<:Number, IT<:Integer}
     for j in comp
         setebc!(self, fenids, is_fixed, j, val)
     end
@@ -508,7 +543,7 @@ function setebc!(
 end
 
 """
-    setebc!(self::AbstractField, fenids::FIntVec)
+    setebc!(self::AbstractField, fenids::AbstractVector{IT})  where {IT<:Integer}
 
 Set the EBCs (essential boundary conditions).
 
@@ -521,7 +556,7 @@ which degrees of freedom are free and which are fixed and therefore is
 presumed to invalidate the current degree-of-freedom numbering. In such a case
 this method sets `nfreedofs = 0`; and  `dofnums=0`.
 """
-function setebc!(self::AbstractField, fenids::FIntVec)
+function setebc!(self::AbstractField, fenids::AbstractVector{IT})  where {IT<:Integer}
     zer = zero(eltype(self.fixed_values[1]))
     for comp in axes(self.values, 2)
         setebc!(self, fenids, true, comp, zer)
@@ -530,7 +565,7 @@ function setebc!(self::AbstractField, fenids::FIntVec)
 end
 
 """
-    setebc!(self::AbstractField, fenid::FInt)
+    setebc!(self::AbstractField, fenid::IT) where {IT<:Integer}
 
 Set the EBCs (essential boundary conditions).
 
@@ -544,7 +579,7 @@ and therefore is presumed to invalidate the
 current degree-of-freedom numbering. In such a case this method sets
 `nfreedofs = 0`; and  `dofnums=0`.
 """
-function setebc!(self::AbstractField, fenid::FInt)
+function setebc!(self::AbstractField, fenid::IT) where {IT<:Integer}
     return setebc!(self, [fenid])
 end
 
@@ -587,11 +622,11 @@ function applyebc!(self::AbstractField)
 end
 
 """
-    scattersysvec!(self::AbstractField, vec::FVec{T}) where {T<:Number}
+    scattersysvec!(self::AbstractField, vec::AbstractVector{T}) where {T<:Number}
 
 Scatter values to the field from a system vector.
 """
-function scattersysvec!(self::AbstractField, vec::FVec{T}) where {T<:Number}
+function scattersysvec!(self::AbstractField, vec::AbstractVector{T}) where {T<:Number}
     nents, dim = size(self.values)
     for i in 1:nents
         for j in 1:dim
@@ -605,11 +640,11 @@ function scattersysvec!(self::AbstractField, vec::FVec{T}) where {T<:Number}
 end
 
 """
-    incrscattersysvec!(self::AbstractField, vec::FVec{T}) where {T<:Number}
+    incrscattersysvec!(self::AbstractField, vec::AbstractVector{T}) where {T<:Number}
 
 Increment values of the field by scattering a system vector.
 """
-function incrscattersysvec!(self::AbstractField, vec::FVec{T}) where {T<:Number}
+function incrscattersysvec!(self::AbstractField, vec::AbstractVector{T}) where {T<:Number}
     nents, dim = size(self.values)
     for i in 1:nents
         for j in 1:dim
@@ -623,16 +658,16 @@ function incrscattersysvec!(self::AbstractField, vec::FVec{T}) where {T<:Number}
 end
 
 """
-    prescribeddofs(uebc, u)
+    prescribeddofs(uebc::AbstractField, u::AbstractField)
 
 Find which degrees of freedom are prescribed.
 `uebc` = field which defines the constraints (is the dof fixed and to which value),
-`u` = field which does not have the constraints applied, and serves as the source of equation numbers,
+`u` = field which does not have the constraints applied, and serves as the source of equation numbers;
 `uebc` and `u` may be one and the same field.
 
 """
 function prescribeddofs(uebc::AbstractField, u::AbstractField)
-    dofnums = FInt[]
+    dofnums = eltype(u.dofnums)[]
     prescribedvalues = eltype(uebc.values)[]
     nents, dim = size(uebc.values)
     @assert size(uebc.values) == size(u.values)
