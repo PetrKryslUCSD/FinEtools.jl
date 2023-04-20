@@ -7,25 +7,27 @@ module FENodeSetModule
 
 __precompile__(true)
 
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import Base.count
+import Base.eachindex
 
 """
+    mutable struct FENodeSet{T}
+
 Finite element node set type.
-"""
-mutable struct FENodeSet
-    """
-    Array of node locations. Indexed with the node number.
-    The location of node `j` is given by `xyz[j,:]`.
-    Clearly, the nodes needs to be numbered between `1` and `size(xyz, 1)`.
-    The constructor makes a *copy* of the input `xyz` array for safety.
-    """
-    xyz::Array{FFlt,2}
 
-    function FENodeSet(xyz::FFltMat)
-        self = new(deepcopy(xyz)) # Need to make a COPY of the input array!
-        return self
+The only field is `xyz`, as the array of node locations. Indexed with the node
+number. The location of node `j` is given by `xyz[j,:]`. Clearly, the nodes
+needs to be numbered between `1` and `size(xyz, 1)`.
+
+!!! note
+
+    The constructor makes a *copy* of the input `xyz` array for safety.
+"""
+mutable struct FENodeSet{T}
+    xyz::Array{T,2}
+
+    function FENodeSet(xyz::Matrix{T}) where {T}
+        return new{T}(deepcopy(xyz)) # Need to make a COPY of the input array!
     end
 end
 
@@ -60,8 +62,7 @@ end
 Get the number of finite element nodes in the node set.
 """
 function count(self::FENodeSet)
-    return size(self.xyz, 1)::FInt
+    return size(self.xyz, 1)
 end
-
 
 end
