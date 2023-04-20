@@ -136,7 +136,7 @@ time, the vector cache time first needs to be set as
 settime!(c, t)
 ```
 """
-function updateretrieve!(self::VectorCache, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T<:Number, IT}
+function updateretrieve!(self::VectorCache, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T<:Number}
     self._fillcache!(self._cache, XYZ, tangents, fe_label; time = self._time[])
     return self._cache
 end
