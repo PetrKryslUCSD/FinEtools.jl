@@ -7,20 +7,18 @@ module RotationUtilModule
 
 __precompile__(true)
 
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import LinearAlgebra: norm
 
-_I3 = [i == j ? one(FFlt) : zero(FFlt) for i in 1:3, j in 1:3]
+_I3() where {T}  = [i == j ? one(T) : zero(T) for i in 1:3, j in 1:3]
 
 """
-    rotmat3!(Rmout::FFltMat, a::T) where {T}
+    rotmat3!(Rmout::Matrix{T}, a::VT) where {T, VT}
 
 Compute a 3D rotation matrix in-place.
 
 `a` = array, vector, or tuple with three floating-point numbers
 """
-function rotmat3!(Rmout::FFltMat, a::T) where {T}
+function rotmat3!(Rmout::Matrix{T}, a::VT) where {T, VT}
     m, n = size(Rmout)
     @assert (m == n) && (m == 3) && (length(a) == m)
     na = norm(a)
@@ -58,21 +56,21 @@ end
 
 
 """
-    rotmat3(a::T) where {T}
+    rotmat3(a::VT) where {VT}
 
 Prepare a rotation matrix from a rotation vector
 """
-function rotmat3(a::T) where {T}
-    Rmout = fill(0.0, 3, 3)
+function rotmat3(a::VT) where {VT}
+    Rmout = fill(zero(eltype(a)), 3, 3)
     return rotmat3!(Rmout, a)
 end
 
 """
-    skewmat!(S, theta)
+    skewmat!(S::Matrix{T}, theta::VT) where {T, VT}
 
 Compute skew-symmetric matrix.
 """
-function skewmat!(S, theta)
+function skewmat!(S::Matrix{T}, theta::VT) where {T, VT}
     @assert length(theta) == 3 "Input must be a 3-vector"
     # S[:,:].=[0.0     -theta[3]  theta[2];
     #          theta[3]   0.0    -theta[1];
@@ -87,14 +85,15 @@ function skewmat!(S, theta)
     return S
 end
 
+"""
+    cross3!(
+        result::AbstractVector{T},
+        theta::AbstractVector{T},
+        v::AbstractVector{T},
+    ) where {T}
 
-# function cross3(theta::AbstractVector{T}, v::AbstractVector{T}) where T
-#     @assert (length(theta)== 3) && (length(v)== 3) "Inputs must be 3-vectors"
-#     return [ 0.0-theta[3]*v[2]+theta[2]*v[3];
-#             theta[3]*v[1]+0.0-theta[1]*v[3];
-#             -theta[2]*v[1]+theta[1]*v[2]+0.0];
-# end
-
+Compute the cross product of two vectors in three-space in place.
+"""
 function cross3!(
     result::AbstractVector{T},
     theta::AbstractVector{T},
@@ -108,6 +107,11 @@ function cross3!(
 end
 
 
+"""
+    cross2(theta::AbstractVector{T}, v::AbstractVector{T}) where {T}
+
+Compute the cross product of two vectors in two-space.
+"""
 function cross2(theta::AbstractVector{T}, v::AbstractVector{T}) where {T}
     @assert (length(theta) == 2) && (length(v) == 2) "Inputs must be 2-vectors"
     return -theta[2] * v[1] + theta[1] * v[2]
