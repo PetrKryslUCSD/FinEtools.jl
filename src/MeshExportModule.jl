@@ -5,9 +5,16 @@ Module for export of meshes and data defined on meshes.
 """
 module MeshExportModule
 
-
-
 __precompile__(true)
+
+function _match_type(d, t)
+    for k  in keys(d)
+        if t <: k
+            return d[k]
+        end
+    end
+    return nothing
+end
 
 module VTK
 ################################################################################
@@ -32,6 +39,7 @@ import ...FESetModule:
     connasarray
 import ...FENodeSetModule: FENodeSet
 import Base.close
+using ..MeshExportModule: _match_type
 
 using Printf
 import LinearAlgebra: norm, cross
@@ -49,7 +57,7 @@ const Q9 = 28
 const T10 = 24
 const H20 = 25
 
-VTKtypemap = Dict{DataType,Int}(
+VTKtypemap = Dict{UnionAll,Int}(
     FESetP1 => P1,
     FESetL2 => L2,
     FESetT3 => T3,
@@ -102,7 +110,8 @@ function vtkexportmesh(
     fes::T;
     opts...,
 ) where {T<:AbstractFESet}
-    Cell_type = get(() -> error("Unknown VTK type!"), VTKtypemap, typeof(fes))
+    Cell_type = _match_type(VTKtypemap, typeof(fes))
+    Cell_type == nothing  && error("Unknown type $(typeof(fes))")
     return vtkexportmesh(theFile, connasarray(fes), fens.xyz, Cell_type; opts...)
 end
 
@@ -1223,8 +1232,6 @@ mutable struct NASTRANExporter
     end
 end
 
-NASTRANtypemap = Dict{DataType,AbstractString}(FESetT4 => "CTETRA", FESetT10 => "CTETRA")
-
 """
     CEND(self::NASTRANExporter)
 
@@ -1553,8 +1560,9 @@ import ...FESetModule:
     FESetH20,
     connasarray
 import ...FENodeSetModule: FENodeSet
+using ..MeshExportModule: _match_type
 
-MESHtypemap = Dict{DataType,String}(
+MESHtypemap = Dict{UnionAll,String}(
     FESetP1 => "P1",
     FESetL2 => "L2",
     FESetT3 => "T3",
@@ -1576,8 +1584,9 @@ Write the mesh in the MESH format.
 """
 function write_MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:AbstractFESet}
     meshfilebase, ext = splitext(meshfile)
-    dinfo =
-        [meshfilebase * "-xyz.dat", MESHtypemap[typeof(fes)], meshfilebase * "-conn.dat"]
+    t = _match_type(MESHtypemap, typeof(fes))
+    t == nothing && error("Unknown type $(typeof(fes))")
+    dinfo = [meshfilebase * "-xyz.dat", t, meshfilebase * "-conn.dat"]
     # write out a file with the coordinates of the nodes
     open(dinfo[1], "w") do file
         writedlm(file, fens.xyz, ' ')
@@ -1630,6 +1639,7 @@ import ...FESetModule:
     connasarray
 import ...FENodeSetModule: FENodeSet
 import ..VTK: VTKtypemap
+using ..MeshExportModule: _match_type
 
 """
     write_H5MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:AbstractFESet}
@@ -1644,7 +1654,8 @@ function write_H5MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:Abstr
         ext = ".h5mesh"
     end
     fname = DataDrop.with_extension(meshfile, ext)
-    etype = get(() -> error("Unknown VTK type!"), VTKtypemap, typeof(fes))
+    etype = _match_type(VTKtypemap, typeof(fes))
+    etype == nothing && error("Unknown VTK type!")
     # If the file exists, delete all contents
     h5open(fname, "w") do fid
     end
@@ -1688,11 +1699,12 @@ import ...FESetModule:
     FESetH20,
     connasarray
 import ...FENodeSetModule: FENodeSet
+using ..MeshExportModule: _match_type
 
 using Printf
 import LinearAlgebra: norm, cross
 
-const _VTK_TYPE_MAP = Dict{DataType,Int}(
+const _VTK_TYPE_MAP = Dict{UnionAll,Int}(
     FESetP1 => 1,
     FESetL2 => 3,
     FESetT3 => 5,
@@ -1744,7 +1756,9 @@ function vtkwrite(
     fes::T;
     opts...,
 ) where {T<:AbstractFESet}
-    celltype = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[typeof(fes)])
+    t = _match_type(_VTK_TYPE_MAP, typeof(fes))
+    t == nothing && error("Unknown type $(typeof(fes))")
+    celltype = WriteVTK.VTKCellTypes.VTKCellType(t)
     return vtkwrite(theFile, connasarray(fes), fens.xyz, celltype; opts...)
 end
 
@@ -1843,7 +1857,9 @@ function vtkwritecollection(
     times;
     opts...,
 ) where {T<:AbstractFESet}
-    celltype = WriteVTK.VTKCellTypes.VTKCellType(_VTK_TYPE_MAP[typeof(fes)])
+    t = _match_type(_VTK_TYPE_MAP, typeof(fes))
+    t == nothing && error("Unknown type $(typeof(fes))")
+    celltype = WriteVTK.VTKCellTypes.VTKCellType(t)
     return vtkwritecollection(theFile, connasarray(fes), fens.xyz, celltype, times; opts...)
 end
 

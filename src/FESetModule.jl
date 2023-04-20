@@ -12,8 +12,6 @@ import Base.cat
 import LinearAlgebra: mul!, Transpose
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 import LinearAlgebra: norm, cross
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 """
     AbstractFESet{NODESPERELEM}
@@ -56,7 +54,7 @@ abstract type AbstractFESet3Manifold{NODESPERELEM} <: AbstractFESet{NODESPERELEM
 Generate standard fields for the finite element set.
 """
 macro add_FESet_fields(NODESPERELEM)
-    return esc(:(conn::Array{NTuple{$NODESPERELEM,FInt},1};
+    return esc(:(conn::Array{NTuple{$NODESPERELEM,IT},1};
     label::FIntVec;
     delegateof))
 end
@@ -68,17 +66,20 @@ end
 Define the concrete type for a finite element set.
 """
 macro define_FESet(NAME, MANIFOLD, NODESPERELEM)
-    return esc(:(mutable struct $NAME <: $MANIFOLD{$NODESPERELEM}
-        @add_FESet_fields $NODESPERELEM
-        function $NAME(conn::AbstractArray)
-            self = new(NTuple{$NODESPERELEM,FInt}[], FInt[], nothing)
-            self = fromarray!(self, conn)
-            setlabel!(self, 0)
-            return self
-        end
-    end))
+    return esc(:(
+        mutable struct $NAME{IT} <: $MANIFOLD{$NODESPERELEM}
+            conn::Array{NTuple{$NODESPERELEM,IT},1};
+            label::Vector{IT};
+            delegateof
+            function $NAME(conn::AbstractArray{IT}) where {IT}
+                self = new{IT}(NTuple{$NODESPERELEM,IT}[], IT[], nothing)
+                self = fromarray!(self, conn)
+                setlabel!(self, 0)
+                return self
+            end
+        end))
 end
-# show(macroexpand(:(@define_FESet FESetT10 AbstractFESet3Manifold 10)))
+# show(macroexpand(Main, :(@define_FESet FESetT10 AbstractFESet0Manifold 10)))
 
 """
     nodesperelem(fes::AbstractFESet{NODESPERELEM}) where {NODESPERELEM}
@@ -149,7 +150,7 @@ Return the connectivity as an integer array (matrix), where the number of rows
 matches the number of connectivities in the set.
 """
 function connasarray(self::AbstractFESet{NODESPERELEM}) where {NODESPERELEM}
-    conn = fill(zero(FInt), length(self.conn), NODESPERELEM)
+    conn = fill(zero(eltype(self.conn[1])), length(self.conn), NODESPERELEM)
     for i in axes(conn, 1)
         for j in 1:NODESPERELEM
             conn[i, j] = self.conn[i][j]
@@ -177,19 +178,19 @@ function boundaryfe(self::T) where {T<:AbstractFESet}
 end
 
 """
-    bfun(self::T,  param_coords::FFltVec)::FFltMat where {T<:AbstractFESet}
+    bfun(self::ET, param_coords::Vector{T}) where {ET<:AbstractFESet, T}
 
 Compute the values of the basis functions.
 
 Compute the values of the basis functions at a given parametric coordinate.
 One basis function per row.
 """
-function bfun(self::T, param_coords::FFltVec)::FFltMat where {T<:AbstractFESet}
+function bfun(self::ET, param_coords::Vector{T}) where {ET<:AbstractFESet, T}
     return privbfun(self, param_coords)
 end
 
 """
-    bfundpar(self::T,  param_coords::FFltVec)::FFltMat where {T<:AbstractFESet}
+    bfundpar(self::ET, param_coords::Vector{T}) where {ET<:AbstractFESet, T}
 
 Compute the values of the basis function gradients.
 
@@ -197,32 +198,32 @@ Compute the values of the basis function gradients with respect to the
 parametric coordinates at a given parametric coordinate. One basis function
 gradients per row.
 """
-function bfundpar(self::T, param_coords::FFltVec)::FFltMat where {T<:AbstractFESet}
+function bfundpar(self::ET, param_coords::Vector{T}) where {ET<:AbstractFESet, T}
     return privbfundpar(self, param_coords)
 end
 
 """
-    setlabel!(self::T, val::FInt) where {T<:AbstractFESet}
+    setlabel!(self::ET, val::IT) where {ET<:AbstractFESet, IT}
 
 Set the label of the entire finite elements set.
 
 All elements are labeled with this number.
 """
-function setlabel!(self::T, val::FInt) where {T<:AbstractFESet}
-    self.label = zeros(FInt, size(self.conn, 1))
+function setlabel!(self::ET, val::IT) where {ET<:AbstractFESet, IT}
+    self.label = zeros(IT, size(self.conn, 1))
     fill!(self.label, val)
     return self
 end
 
 """
-    setlabel!(self::T, val::FIntVec) where {T<:AbstractFESet}
+    setlabel!(self::ET, val::Vector{IT}) where {ET<:AbstractFESet, IT}
 
 Set the labels of individual elements.
 """
-function setlabel!(self::T, val::FIntVec) where {T<:AbstractFESet}
+function setlabel!(self::ET, val::Vector{IT}) where {ET<:AbstractFESet, IT}
     #    Set the label of this set.
     @assert size(self.conn, 1) == length(val) "Must get one  label per finite element connectivity"
-    self.label = zeros(FInt, size(self.conn, 1))
+    self.label = zeros(IT, size(self.conn, 1))
     copyto!(self.label, val)
     return self
 end
@@ -234,7 +235,7 @@ Extract a subset of the finite elements from the given finite element set.
 
 - `L`: an integer vector, tuple, or a range.
 """
-function subset(self::T, L) where {T<:AbstractFESet}
+function subset(self::ET, L) where {ET<:AbstractFESet}
     result = deepcopy(self)
     result.conn = deepcopy(self.conn[L])
     result.label = deepcopy(self.label[L])
@@ -246,7 +247,7 @@ end
 
 Concatenate the connectivities of two FE sets.
 """
-function cat(self::T, other::T) where {T<:AbstractFESet}
+function cat(self::ET, other::ET) where {ET<:AbstractFESet}
     @assert nodesperelem(self) == nodesperelem(other)
     result = deepcopy(self)
     result.conn = vcat(self.conn, other.conn)
@@ -255,7 +256,7 @@ function cat(self::T, other::T) where {T<:AbstractFESet}
 end
 
 """
-    updateconn!(self::T, newids::FIntVec) where {T<:AbstractFESet}
+    updateconn!(self::ET, newids::Vector{IT}) where {ET<:AbstractFESet, IT}
 
 Update the connectivity after the IDs of nodes changed.
 
@@ -263,7 +264,7 @@ Update the connectivity after the IDs of nodes changed.
 _into_ the  `newids` array. After the connectivity was updated
 this will no longer be true!
 """
-function updateconn!(self::T, newids::FIntVec) where {T<:AbstractFESet}
+function updateconn!(self::ET, newids::Vector{IT}) where {ET<:AbstractFESet, IT}
     conn = connasarray(self)
     for i in axes(conn, 1)
         for j in axes(conn, 2)
@@ -274,23 +275,28 @@ function updateconn!(self::T, newids::FIntVec) where {T<:AbstractFESet}
 end
 
 """
-    inparametric(self::AbstractFESet, param_coords::FFltVec)
+    inparametric(self::AbstractFESet, param_coords)
 
 Are given parametric coordinates inside the element parametric domain?
 
 Return a Boolean: is the point inside, true or false?
 """
 function inparametric(
-    self::T,
-    param_coords::FFltVec;
+    self::ET,
+    param_coords::Vector{FT};
     tolerance = 0.0,
-) where {T<:AbstractFESet}
+) where {ET<:AbstractFESet, FT}
     return privinparametric(self, param_coords, tolerance)
 end
 
 """
-    map2parametric(self::T, x::FFltMat, pt::FFltVec;
-        tolerance = 0.001, maxiter =5) where {T<:AbstractFESet}
+    map2parametric(
+        self::ET,
+        x::Matrix{FT},
+        pt::Vector{FT};
+        tolerance = 0.001,
+        maxiter = 5,
+    ) where {ET<:AbstractFESet, FT}
 
 Map a spatial location to parametric coordinates.
 
@@ -304,18 +310,18 @@ Map a spatial location to parametric coordinates.
   successful, otherwise NaN are returned.
 """
 function map2parametric(
-    self::T,
-    x::FFltMat,
-    pt::FFltVec;
+    self::ET,
+    x::Matrix{FT},
+    pt::Vector{FT};
     tolerance = 0.001,
     maxiter = 5,
-) where {T<:AbstractFESet}
+) where {ET<:AbstractFESet, FT}
     sdim = size(x, 2) # number of space dimensions
     mdim = manifdim(self) # manifold dimension of the element
     ppc = zeros(mdim)
     pc = deepcopy(ppc)
-    J = [i == j ? one(FFlt) : zero(FFlt) for i in 1:sdim, j in 1:mdim] # Jac. matx: "identity"
-    loc = fill(zero(FFlt), (1, sdim)) # point location buffer
+    J = [i == j ? one(FT) : zero(FT) for i in 1:sdim, j in 1:mdim] # Jac. matx: "identity"
+    loc = fill(zero(FT), (1, sdim)) # point location buffer
     success = true
     for i in 1:maxiter
         gradNparams = privbfundpar(self, pc)
@@ -342,32 +348,36 @@ function centroidparametric(self::T) where {T<:AbstractFESet}
 end
 
 """
-    Jacobian(self::T, J::FFltMat)::FFlt where {T<:AbstractFESet0Manifold}
+    Jacobian(self::ET, J::Matrix{FT}) where {ET<:AbstractFESet0Manifold, FT}
 
 Evaluate the point Jacobian.
 
 - `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
-function Jacobian(self::T, J::FFltMat)::FFlt where {T<:AbstractFESet0Manifold}
-    return 1.0::FFlt
+function Jacobian(self::ET, J::Matrix{FT}) where {ET<:AbstractFESet0Manifold, FT}
+    return 1.0
 end
 
 """
-    Jacobian(self::T, J::FFltMat)::FFlt where {T<:AbstractFESet1Manifold}
+    Jacobian(self::ET, J::Matrix{FT}) where {ET<:AbstractFESet1Manifold, FT}
 
 Evaluate the curve Jacobian.
 
 - `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
-function Jacobian(self::T, J::FFltMat)::FFlt where {T<:AbstractFESet1Manifold}
+function Jacobian(self::ET, J::Matrix{FT}) where {ET<:AbstractFESet1Manifold, FT}
     sdim, ntan = size(J)
     @assert ntan == 1 "Expected number of tangent vectors: 1"
-    return norm(J)::FFlt
+    return norm(J)
 end
 
 """
-    gradN!(self::AbstractFESet1Manifold, gradN::FFltMat, gradNparams::FFltMat,
-      redJ::FFltMat)
+    gradN!(
+        self::AbstractFESet1Manifold,
+        gradN::Matrix{FT},
+        gradNparams::Matrix{FT},
+        redJ::Matrix{FT},
+    ) where {FT}
 
 Compute the gradient of the basis functions with the respect to
 the "reduced" spatial coordinates.
@@ -378,36 +388,40 @@ the "reduced" spatial coordinates.
 """
 function gradN!(
     self::AbstractFESet1Manifold,
-    gradN::FFltMat,
-    gradNparams::FFltMat,
-    redJ::FFltMat,
-)
+    gradN::Matrix{FT},
+    gradNparams::Matrix{FT},
+    redJ::Matrix{FT},
+) where {FT}
     for r in axes(gradN, 1)
         gradN[r, 1] = gradNparams[r, 1] / redJ[1, 1]
     end
 end
 
 """
-    Jacobian(self::T, J::FFltMat)::FFlt where {T<:AbstractFESet2Manifold}
+    Jacobian(self::ET, J::Matrix{FT}) where {ET<:AbstractFESet2Manifold, FT}
 
 Evaluate the curve Jacobian.
 
 - `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
-function Jacobian(self::T, J::FFltMat)::FFlt where {T<:AbstractFESet2Manifold}
+function Jacobian(self::ET, J::Matrix{FT}) where {ET<:AbstractFESet2Manifold, FT}
     sdim, ntan = size(J)
     @assert ntan == 2 "Expected number of tangent vectors: 2"
     if sdim == ntan
         @inbounds Jac = (J[1, 1] * J[2, 2] - J[2, 1] * J[1, 2])
-        return Jac::FFlt# is det(J);% Compute the Jacobian
+        return Jac # is det(J);% Compute the Jacobian
     else
-        return norm(cross(J[:, 1], J[:, 2]))::FFlt
+        return norm(cross(J[:, 1], J[:, 2]))
     end
 end
 
 """
-    gradN!(self::AbstractFESet2Manifold, gradN::FFltMat, gradNparams::FFltMat,
-      redJ::FFltMat)
+    gradN!(
+        self::AbstractFESet2Manifold,
+        gradN::Matrix{FT},
+        gradNparams::Matrix{FT},
+        redJ::Matrix{FT},
+    ) where {FT}
 
 Compute the gradient of the basis functions with the respect to
 the "reduced" spatial coordinates.
@@ -419,10 +433,10 @@ the "reduced" spatial coordinates.
 """
 function gradN!(
     self::AbstractFESet2Manifold,
-    gradN::FFltMat,
-    gradNparams::FFltMat,
-    redJ::FFltMat,
-)
+    gradN::Matrix{FT},
+    gradNparams::Matrix{FT},
+    redJ::Matrix{FT},
+) where {FT}
     # This is the unrolled version that avoids allocation of a 3 x 3 matrix
     invdet = 1.0 / (redJ[1, 1] * redJ[2, 2] - redJ[1, 2] * redJ[2, 1])
     invredJ11 = (redJ[2, 2]) * invdet
@@ -437,27 +451,31 @@ function gradN!(
 end
 
 """
-    Jacobian(self::T, J::FFltMat)::FFlt where {T<:AbstractFESet3Manifold}
+    Jacobian(self::ET, J::Matrix{FT}) where {ET<:AbstractFESet3Manifold, FT}
 
 Evaluate the volume Jacobian.
 
 `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
-function Jacobian(self::T, J::FFltMat)::FFlt where {T<:AbstractFESet3Manifold}
+function Jacobian(self::ET, J::Matrix{FT}) where {ET<:AbstractFESet3Manifold, FT}
     sdim, ntan = size(J)
     @assert (ntan == 3) && (sdim == 3) "Expected number of tangent vectors: 3"
     #Jac = det(J);# Compute the Jacobian
     # The unrolled version
     return (
-        +J[1, 1] * (J[2, 2] * J[3, 3] - J[3, 2] * J[2, 3]) -
+        J[1, 1] * (J[2, 2] * J[3, 3] - J[3, 2] * J[2, 3]) -
         J[1, 2] * (J[2, 1] * J[3, 3] - J[2, 3] * J[3, 1]) +
         J[1, 3] * (J[2, 1] * J[3, 2] - J[2, 2] * J[3, 1])
-    )::FFlt
+    )
 end
 
 """
-    gradN!(self::AbstractFESet3Manifold, gradN::FFltMat, gradNparams::FFltMat,
-      redJ::FFltMat)
+    gradN!(
+        self::AbstractFESet3Manifold,
+        gradN::Matrix{FT},
+        gradNparams::Matrix{FT},
+        redJ::Matrix{FT},
+    ) where {FT}
 
 Compute the gradient of the basis functions with the respect to
 the "reduced" spatial coordinates.
@@ -469,10 +487,10 @@ the "reduced" spatial coordinates.
 """
 function gradN!(
     self::AbstractFESet3Manifold,
-    gradN::FFltMat,
-    gradNparams::FFltMat,
-    redJ::FFltMat,
-)
+    gradN::Matrix{FT},
+    gradNparams::Matrix{FT},
+    redJ::Matrix{FT},
+) where {FT}
     invdet =
         1.0 / (
             +redJ[1, 1] * (redJ[2, 2] * redJ[3, 3] - redJ[3, 2] * redJ[2, 3]) -
@@ -518,11 +536,11 @@ Type for sets of point-like of finite elements.
 """
 @define_FESet FESetP1 AbstractFESet0Manifold 1
 
-privbfun(self::FESetP1, param_coords::FFltVec) = reshape([1.0], 1, 1) # make sure this is a matrix
-privbfundpar(self::FESetP1, param_coords::FFltVec) = zeros(1, 0)
+privbfun(self::FESetP1, param_coords) = reshape([1.0], 1, 1) # make sure this is a matrix
+privbfundpar(self::FESetP1, param_coords) = zeros(1, 0)
 
 
-function privinparametric(self::FESetP1, param_coords::FFltVec, tolerance::FFlt)
+function privinparametric(self::FESetP1, param_coords, tolerance)
     return param_coords[1] == 0.0
 end
 
@@ -532,11 +550,11 @@ end
 
 function map2parametric(
     self::FESetP1,
-    x::FFltMat,
-    pt::FFltVec;
+    x::Matrix{FT},
+    pt::Vector{FT};
     tolerance = 0.001,
     maxiter = 5,
-)
+) where {FT}
     success = false
     pc = [0.0]
     if norm(vec(x) - pt) < tolerance
@@ -555,9 +573,9 @@ Type for sets of curve-like finite elements with two nodes.
 """
 @define_FESet FESetL2 AbstractFESet1Manifold 2
 
-privbfun(self::FESetL2, param_coords::FFltVec) =
+privbfun(self::FESetL2, param_coords) =
     reshape([(1.0 - param_coords[1]); (1.0 + param_coords[1])] / 2.0, 2, 1) # make sure this is a matrix
-privbfundpar(self::FESetL2, param_coords::FFltVec) = reshape([-1.0; +1.0] / 2.0, 2, 1)
+privbfundpar(self::FESetL2, param_coords) = reshape([-1.0; +1.0] / 2.0, 2, 1)
 
 function privboundaryconn(self::FESetL2)
     conn = connasarray(self)
@@ -568,7 +586,7 @@ function privboundaryfe(self::FESetL2)
     return FESetP1
 end
 
-function privinparametric(self::FESetL2, param_coords::FFltVec, tolerance::FFlt)
+function privinparametric(self::FESetL2, param_coords, tolerance)
     s = findall(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)), param_coords)
     return (length(s) == length(param_coords))
 end
@@ -587,13 +605,13 @@ Type for sets of curve-like of finite elements with three nodes.
 """
 @define_FESet FESetL3 AbstractFESet1Manifold 3
 
-function privbfun(self::FESetL3, param_coords::FFltVec)
+function privbfun(self::FESetL3, param_coords)
     xi = param_coords[1]
     val = [(xi - 1) * xi / 2; (xi + 1) * xi / 2; -(xi + 1) * (xi - 1)]
     return reshape(val, 3, 1) # make sure this is a matrix
 end
 
-function privbfundpar(self::FESetL3, param_coords::FFltVec)
+function privbfundpar(self::FESetL3, param_coords)
     xi = param_coords[1]
     val = [(xi - 1 / 2); (xi + 1 / 2); -2 * xi]
     return reshape(val, 3, 1) # make sure this is a matrix
@@ -608,7 +626,7 @@ function privboundaryfe(self::FESetL3)
     return FESetP1
 end
 
-function privinparametric(self::FESetL3, param_coords::FFltVec, tolerance::FFlt)
+function privinparametric(self::FESetL3, param_coords, tolerance)
     s = findall(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)), param_coords)
     return (length(s) == length(param_coords))
 end
@@ -627,7 +645,7 @@ Type for sets of surface-like triangular finite elements with three nodes.
 """
 @define_FESet FESetT3 AbstractFESet2Manifold 3
 
-function privbfun(self::FESetT3, param_coords::FFltVec)
+function privbfun(self::FESetT3, param_coords)
     # Evaluate the basis function matrix for an 3-node triangle.
     return reshape(
         [(1 - param_coords[1] - param_coords[2]); param_coords[1]; param_coords[2]],
@@ -636,7 +654,7 @@ function privbfun(self::FESetT3, param_coords::FFltVec)
     ) # Make sure this is a matrix
 end
 
-function privbfundpar(self::FESetT3, param_coords::FFltVec)
+function privbfundpar(self::FESetT3, param_coords)
     # Evaluate the derivatives of the basis function matrix.
     return [-1.0 -1.0; +1.0 0.0; 0.0 +1.0]
 end
@@ -651,7 +669,7 @@ function privboundaryfe(self::FESetT3)
     return FESetL2
 end
 
-function privinparametric(self::FESetT3, param_coords::FFltVec, tolerance::FFlt)
+function privinparametric(self::FESetT3, param_coords, tolerance)
     s = findall(v -> (v >= (-tolerance)) && (v <= (+1.0 + tolerance)), param_coords)
     return (length(s) == length(param_coords)) &&
            (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance)
@@ -671,7 +689,7 @@ Type for sets of surface-like quadrilateral finite elements with four nodes.
 """
 @define_FESet FESetQ4 AbstractFESet2Manifold 4
 
-function privbfun(self::FESetQ4, param_coords::FFltVec)
+function privbfun(self::FESetQ4, param_coords)
     # Evaluate the basis function matrix for an 4-node quadrilateral.
     val = [
         0.25 * (1.0 - param_coords[1]) * (1.0 - param_coords[2])
@@ -682,7 +700,7 @@ function privbfun(self::FESetQ4, param_coords::FFltVec)
     return reshape(val, 4, 1) # Make sure this is a matrix
 end
 
-function privbfundpar(self::FESetQ4, param_coords::FFltVec)
+function privbfundpar(self::FESetQ4, param_coords)
     # Evaluate the derivatives of the basis function matrix.
     val = [
         -(1.0 - param_coords[2])*0.25 -(1.0 - param_coords[1])*0.25
@@ -703,7 +721,7 @@ function privboundaryfe(self::FESetQ4)
     return FESetL2
 end
 
-function privinparametric(self::FESetQ4, param_coords::FFltVec, tolerance::FFlt)
+function privinparametric(self::FESetQ4, param_coords, tolerance)
     s = findall(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)), param_coords)
     return (length(s) == length(param_coords))
 end
@@ -722,7 +740,7 @@ Type for sets of surface-like quadrilateral finite elements with nine nodes.
 """
 @define_FESet FESetQ9 AbstractFESet2Manifold 9
 
-function privbfun(self::FESetQ9, param_coords::FFltVec)
+function privbfun(self::FESetQ9, param_coords)
     # Evaluate the basis function matrix for an 9-node quadrilateral.
     xi = param_coords[1]
     xis = [(xi - 1) * xi / 2; (xi + 1) * xi / 2; -(xi + 1) * (xi - 1)]
@@ -733,7 +751,7 @@ function privbfun(self::FESetQ9, param_coords::FFltVec)
     return reshape(val, 9, 1) # Make sure this is a matrix
 end
 
-function privbfundpar(self::FESetQ9, param_coords::FFltVec)
+function privbfundpar(self::FESetQ9, param_coords)
     # Evaluate the derivatives of the basis function matrix.
     xi = param_coords[1]
     xis = [(xi - 1) * xi / 2; (xi + 1) * xi / 2; -(xi + 1) * (xi - 1)]
@@ -757,7 +775,7 @@ function privboundaryfe(self::FESetQ9)
     return FESetL3
 end
 
-function privinparametric(self::FESetQ9, param_coords::FFltVec, tolerance::FFlt)
+function privinparametric(self::FESetQ9, param_coords, tolerance)
     s = findall(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)), param_coords)
     return (length(s) == length(param_coords))
 end
@@ -776,7 +794,7 @@ Type for sets of surface-like quadrilateral finite elements with eight nodes.
 """
 @define_FESet FESetQ8 AbstractFESet2Manifold 8
 
-function privbfun(self::FESetQ8, param_coords::FFltVec)
+function privbfun(self::FESetQ8, param_coords)
     # Evaluate the basis function matrix for an 4-node quadrilateral.
     xim = (-1 + param_coords[1])
     etam = (-1 + param_coords[2])
@@ -795,11 +813,11 @@ function privbfun(self::FESetQ8, param_coords::FFltVec)
     return reshape(val, 8, 1) # Make sure this is a matrix
 end
 
-function privbfundpar(self::FESetQ8, param_coords::FFltVec)
+function privbfundpar(self::FESetQ8, param_coords)
     # Evaluate the derivatives of the basis function matrix.
     xi = param_coords[1]
     eta = param_coords[2]
-    val = zeros(FFlt, 8, 2)
+    val = zeros(eltype(param_coords), 8, 2)
     val[:, 1] = [
         1.0 / 4 * (1 - eta) * (1 + xi + eta) - 1.0 / 4 * (1 - xi) * (1 - eta)
         -1.0 / 4 * (1 - eta) * (1 - xi + eta) + 1.0 / 4 * (1 + xi) * (1 - eta)
@@ -832,7 +850,7 @@ function privboundaryfe(self::FESetQ8)
     return FESetL3
 end
 
-function privinparametric(self::FESetQ8, param_coords::FFltVec, tolerance::FFlt)
+function privinparametric(self::FESetQ8, param_coords, tolerance)
     s = findall(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)), param_coords)
     return (length(s) == length(param_coords))
 end
@@ -851,7 +869,7 @@ Type for sets of surface-like triangular finite elements with six nodes.
 """
 @define_FESet FESetT6 AbstractFESet2Manifold 6
 
-function privbfun(self::FESetT6, param_coords::FFltVec)
+function privbfun(self::FESetT6, param_coords)
     # Evaluate the basis function matrix for an 4-node quadrilateral.
     r = param_coords[1]
     s = param_coords[2]
@@ -867,7 +885,7 @@ function privbfun(self::FESetT6, param_coords::FFltVec)
     return reshape(val, 6, 1) # Make sure this is a matrix
 end
 
-function privbfundpar(self::FESetT6, param_coords::FFltVec)
+function privbfundpar(self::FESetT6, param_coords)
     # Evaluate the derivatives of the basis function matrix.
     r = param_coords[1]
     s = param_coords[2]
@@ -893,7 +911,7 @@ function privboundaryfe(self::FESetT6)
     return FESetL3
 end
 
-function privinparametric(self::FESetT6, param_coords::FFltVec, tolerance::FFlt)
+function privinparametric(self::FESetT6, param_coords, tolerance)
     s = findall(v -> (v >= (-tolerance)) && (v <= (+1.0 + tolerance)), param_coords)
     return (length(s) == length(param_coords)) &&
            (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance)
@@ -913,7 +931,7 @@ Type for sets of volume-like hexahedral finite elements with eight nodes.
 """
 @define_FESet FESetH8 AbstractFESet3Manifold 8
 
-function privbfun(self::FESetH8, param_coords::FFltVec)
+function privbfun(self::FESetH8, param_coords)
     # Evaluate the basis function matrix for an 8-node hexahedron.
     one_minus_xi = (1.0 - param_coords[1])
     one_minus_eta = (1.0 - param_coords[2])
@@ -935,7 +953,7 @@ function privbfun(self::FESetH8, param_coords::FFltVec)
     return reshape(val, 8, 1) # Make sure this is a matrix
 end
 
-function privbfundpar(self::FESetH8, param_coords::FFltVec)
+function privbfundpar(self::FESetH8, param_coords)
     # Evaluate the derivatives of the basis function matrix.
     omxi = (1.0 - param_coords[1])
     ometa = (1.0 - param_coords[2])
@@ -969,7 +987,7 @@ function privboundaryfe(self::FESetH8)
     return FESetQ4
 end
 
-function privinparametric(self::FESetH8, param_coords::FFltVec, tolerance::FFlt)
+function privinparametric(self::FESetH8, param_coords, tolerance)
     s = findall(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)), param_coords)
     return (length(s) == length(param_coords))
 end
@@ -988,7 +1006,7 @@ Type for sets of volume-like hexahedral finite elements with 20 nodes.
 """
 @define_FESet FESetH20 AbstractFESet3Manifold 20
 
-function privbfun(self::FESetH20, param_coords::FFltVec)
+function privbfun(self::FESetH20, param_coords)
     # Evaluate the basis function matrix for an 20-node hexahedron.
     xim = (-1 + param_coords[1])
     etam = (-1 + param_coords[2])
@@ -1053,7 +1071,7 @@ function privbfun(self::FESetH20, param_coords::FFltVec)
     return reshape(val, 20, 1) # Make sure this is a matrix
 end
 
-function privbfundpar(self::FESetH20, param_coords::FFltVec)
+function privbfundpar(self::FESetH20, param_coords)
     # Evaluate the derivatives of the basis function matrix.
     xim = -(-1 + param_coords[1])
     etam = -(-1 + param_coords[2])
@@ -1069,7 +1087,7 @@ function privbfundpar(self::FESetH20, param_coords::FFltVec)
     twopmm = (2 + param_coords[1] - param_coords[2] - param_coords[3])
     twompm = (2 - param_coords[1] + param_coords[2] - param_coords[3])
     twommm = (2 - param_coords[1] - param_coords[2] - param_coords[3])
-    val = zeros(FFlt, 20, 3)
+    val = zeros(eltype(param_coords), 20, 3)
     val[:, 1] = [
         1.0 / 8 * etam * zetam * twoppp - 1.0 / 8 * xim * etam * zetam
         -1.0 / 8 * etam * zetam * twompp + 1.0 / 8 * xip * etam * zetam
@@ -1156,7 +1174,7 @@ function privboundaryfe(self::FESetH20)
     return FESetQ8
 end
 
-function privinparametric(self::FESetH20, param_coords::FFltVec, tolerance::FFlt)
+function privinparametric(self::FESetH20, param_coords, tolerance)
     s = findall(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)), param_coords)
     return (length(s) == length(param_coords))
 end
@@ -1175,7 +1193,7 @@ Type for sets of volume-like hexahedral finite elements with 27 nodes.
 """
 @define_FESet FESetH27 AbstractFESet3Manifold 27
 
-function privbfun(self::FESetH27, param_coords::FFltVec)
+function privbfun(self::FESetH27, param_coords)
     # Evaluate the basis function matrix for an 8-node hexahedron.
     xi = param_coords[1]
     eta = param_coords[2]
@@ -1218,7 +1236,7 @@ function privbfun(self::FESetH27, param_coords::FFltVec)
     return reshape(val, 27, 1) # Make sure this is a matrix
 end
 
-function privbfundpar(self::FESetH27, param_coords::FFltVec)
+function privbfundpar(self::FESetH27, param_coords)
     # Evaluate the derivatives of the basis function matrix.
     xi = param_coords[1]
     eta = param_coords[2]
@@ -1283,7 +1301,7 @@ function privboundaryfe(self::FESetH27)
     return FESetQ9
 end
 
-function privinparametric(self::FESetH27, param_coords::FFltVec, tolerance::FFlt)
+function privinparametric(self::FESetH27, param_coords, tolerance)
     s = findall(v -> (v >= (-1.0 - tolerance)) && (v <= (+1.0 + tolerance)), param_coords)
     return (length(s) == length(param_coords))
 end
@@ -1302,7 +1320,7 @@ Type for sets of volume-like tetrahedral finite elements with four nodes.
 """
 @define_FESet FESetT4 AbstractFESet3Manifold 4
 
-function privbfun(self::FESetT4, param_coords::FFltVec)
+function privbfun(self::FESetT4, param_coords)
     # Evaluate the basis function matrix for an 3-node triangle.
     val = [
         (1 - param_coords[1] - param_coords[2] - param_coords[3])
@@ -1313,7 +1331,7 @@ function privbfun(self::FESetT4, param_coords::FFltVec)
     return reshape(val, 4, 1)
 end
 
-function privbfundpar(self::FESetT4, param_coords::FFltVec)
+function privbfundpar(self::FESetT4, param_coords)
     # Evaluate the derivatives of the basis function matrix.
     val = [
         -1.0 -1.0 -1.0
@@ -1333,7 +1351,7 @@ function privboundaryfe(self::FESetT4)
     return FESetT3
 end
 
-function privinparametric(self::FESetT4, param_coords::FFltVec, tolerance::FFlt)
+function privinparametric(self::FESetT4, param_coords, tolerance)
     s = findall(v -> (v >= (-tolerance)) && (v <= (+1.0 + tolerance)), param_coords)
     return (length(s) == length(param_coords)) &&
            (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance)
@@ -1353,7 +1371,7 @@ Type for sets of volume-like tetrahedral finite elements with 10 nodes.
 """
 @define_FESet FESetT10 AbstractFESet3Manifold 10
 
-function privbfun(self::FESetT10, param_coords::FFltVec)
+function privbfun(self::FESetT10, param_coords)
     # Evaluate the basis function matrix for an 3-node triangle.
     r = param_coords[1]
     s = param_coords[2]
@@ -1373,7 +1391,7 @@ function privbfun(self::FESetT10, param_coords::FFltVec)
     return reshape(val, 10, 1)
 end
 
-function privbfundpar(self::FESetT10, param_coords::FFltVec)
+function privbfundpar(self::FESetT10, param_coords)
     # Evaluate the derivatives of the basis function matrix.
     r = param_coords[1]
     s = param_coords[2]
@@ -1401,7 +1419,7 @@ function privboundaryfe(self::FESetT10)
     return FESetT6
 end
 
-function privinparametric(self::FESetT10, param_coords::FFltVec, tolerance::FFlt)
+function privinparametric(self::FESetT10, param_coords, tolerance)
     s = findall(v -> (v >= (-tolerance)) && (v <= (+1.0 + tolerance)), param_coords)
     return (length(s) == length(param_coords)) &&
            (-3.0 * tolerance <= sum(param_coords) <= 1.0 + 3.0 * tolerance)
