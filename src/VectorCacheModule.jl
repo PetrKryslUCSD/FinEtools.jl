@@ -7,9 +7,6 @@ module VectorCacheModule
 
 __precompile__(true)
 
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-
 """
     VectorCache{T<:Number, F<:Function}
 
@@ -24,28 +21,32 @@ the element, `tangents`, and, if convenient, also the finite element
 label, `fe_label`. Finally, the value of the vector may also depend on
 the `time` (or the load factor):
 ```
-fillcache!(cacheout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0)
+fillcache!(cacheout::Vector{T},
+        XYZ::Matrix{T}, tangents::Matrix{T},
+        fe_label; time::T = 0.0) where {T}
 ```
 The cache `cacheout` is filled with the value  of the vector.
 """
-struct VectorCache{T<:Number,F<:Function}
+struct VectorCache{T<:Number, F<:Function}
     # Function to update and retrieve the vector
-    fillcache!::F
+    _fillcache!::F
     # Cache where the current value of the vector can be retrieved
-    cache::Vector{T}
+    _cache::Vector{T}
     # Current time (or current load factor). Do not set directly. Use `settime!`
-    _time::Vector{FFlt}
+    _time::Ref{T}
 end
 
 """
-    VectorCache(::Type{T}, nentries::FInt, fillcache!::F) where {T<:Number, F<:Function}
+    VectorCache(::Type{T}, nentries::IT, fillcache!::F) where {T<:Number,F<:Function, IT}
 
 Construct vector cache. The function to fill the vector cache is given.
 
 This constructor is intended for *time-independent* vector caches.
 This function needs to have a signature of
 ```
-fillcache!(cacheout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+fillcache!(cacheout::Vector{T},
+        XYZ::Matrix{T}, tangents::Matrix{T},
+        fe_label; time::T = 0.0) where {T}
     Calculate the vector and copy it into the cache....
     return forceout
 end
@@ -55,34 +56,36 @@ the location `XYZ`, using the information supplied in the Jacobian
 matrix `tangents`, and the label of the finite element, `fe_label`, if
 appropriate.
 """
-function VectorCache(::Type{T}, nentries::FInt, fillcache!::F) where {T<:Number,F<:Function}
+function VectorCache(::Type{T}, nentries::IT, fillcache!::F) where {T<:Number,F<:Function, IT}
     function fillcachenotime!(
-        cacheout::FVec{T},
-        XYZ::FFltMat,
-        tangents::FFltMat,
-        fe_label::FInt;
-        time::FFlt = 0.0,
-    )
-        return fillcache!(
-            cacheout::FVec{T},
-            XYZ::FFltMat,
-            tangents::FFltMat,
-            fe_label::FInt,
-        )
+        cacheout::Vector{T},
+        XYZ::Matrix{T},
+        tangents::Matrix{T},
+        fe_label;
+        time::T = 0.0,
+    ) where {T}
+        return fillcache!(cacheout, XYZ, tangents, fe_label)
     end
     # Allocate the cache to be ready for the first call
-    return VectorCache(fillcachenotime!, zeros(T, nentries), [0.0])
+    return VectorCache(fillcachenotime!, zeros(T, nentries), Ref(0.0))
 end
 
 """
-    VectorCache(::Type{T}, nentries::FInt, fillcache!::F, time::FFlt) where {T<:Number, F<:Function}
+    VectorCache(
+        ::Type{T},
+        nentries::IT,
+        fillcache!::F,
+        time::T,
+    ) where {T<:Number, F<:Function, IT}
 
 Construct vector cache. The function to fill the vector cache is given.
 
 This constructor is intended for *time-dependent* vector caches.
 This function needs to have a signature of
 ```
-fillcache!(cacheout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0)
+fillcache!(cacheout::Vector{T},
+        XYZ::Matrix{T}, tangents::Matrix{T},
+        fe_label; time::T = 0.0) where {T}
     Calculate the vector and copy it into the cache....
     return forceout
 end
@@ -94,35 +97,35 @@ appropriate. The time can also be supplied (keyword argument `time`).
 """
 function VectorCache(
     ::Type{T},
-    nentries::FInt,
+    nentries::IT,
     fillcache!::F,
-    time::FFlt,
-) where {T<:Number,F<:Function}
+    time::T,
+) where {T<:Number, F<:Function, IT}
     # Allocate the cache to be ready for the first call
-    return VectorCache(fillcache!, zeros(T, nentries), [time])
+    return VectorCache(fillcache!, zeros(T, nentries), Ref(time))
 end
 
 """
-    VectorCache(vector::FVec{T}) where {T<:Number}
+    VectorCache(vector::Vector{T}) where {T<:Number}
 
 Construct vector cache. The *constant* vector is given.
 """
-function VectorCache(vector::FVec{T}) where {T<:Number}
+function VectorCache(vector::Vector{T}) where {T<:Number}
     function fillcache!(
-        cacheout::FVec{T},
-        XYZ::FFltMat,
-        tangents::FFltMat,
-        fe_label::FInt;
-        time::FFlt = 0.0,
+        cacheout::Vector{T},
+        XYZ::Matrix{T},
+        tangents::Matrix{T},
+        fe_label;
+        time::T = 0.0,
     )
         # do nothing:  the vector is already in the cache
         return cacheout
     end
-    return VectorCache(fillcache!, deepcopy(vector), [0.0])
+    return VectorCache(fillcache!, deepcopy(vector), Ref(0.0))
 end
 
 """
-    updateretrieve!(self::VectorCache, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    updateretrieve!(self::VectorCache, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T<:Number, IT}
 
 Update the cache and retrieve the vector.
 
@@ -133,18 +136,18 @@ time, the vector cache time first needs to be set as
 settime!(c, t)
 ```
 """
-function updateretrieve!(self::VectorCache, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    self.fillcache!(self.cache, XYZ, tangents, fe_label; time = self._time[1])
-    return self.cache
+function updateretrieve!(self::VectorCache, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T<:Number, IT}
+    self._fillcache!(self._cache, XYZ, tangents, fe_label; time = self._time[])
+    return self._cache
 end
 
 """
-    settime!(self::VectorCache, time::FFlt)
+    settime!(self::VectorCache, time)
 
 Set the current time for the vector cache.
 """
-function settime!(self::VectorCache, time::FFlt)
-    self._time[1] = time
+function settime!(self::VectorCache, time)
+    self._time[] = time
     return self
 end
 
