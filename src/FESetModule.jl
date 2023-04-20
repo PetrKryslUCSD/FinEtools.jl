@@ -49,18 +49,6 @@ Parameterized with the number of of the nodes per element.
 abstract type AbstractFESet3Manifold{NODESPERELEM} <: AbstractFESet{NODESPERELEM} end
 
 """
-    add_FESet_fields(NODESPERELEM)
-
-Generate standard fields for the finite element set.
-"""
-macro add_FESet_fields(NODESPERELEM)
-    return esc(:(conn::Array{NTuple{$NODESPERELEM,IT},1};
-    label::FIntVec;
-    delegateof))
-end
-# show(macroexpand(:(@add_FESet_fields 6)))
-
-"""
     define_FESet(NAME, MANIFOLD, NODESPERELEM)
 
 Define the concrete type for a finite element set.
