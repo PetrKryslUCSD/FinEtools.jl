@@ -7,8 +7,6 @@ module MeshUtilModule
 
 __precompile__(true)
 
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import Base.BitSet
 import LinearAlgebra: norm
 
@@ -17,9 +15,9 @@ import LinearAlgebra: norm
 
 Type of a hyper face data to store a newly generated node.
 """
-mutable struct HyperFaceContainer
+mutable struct HyperFaceContainer{IT<:Integer}
     o::BitSet # numbers of the other nodes on the hyperface
-    n::Int # new node number generated on the hyperface
+    n::IT # new node number generated on the hyperface
 end
 
 """
@@ -30,7 +28,7 @@ Make hyper face container.
 This is a dictionary of hyper faces, indexed with an anchor node. The anchor
 node is the smallest node number within the connectivity of the hyper face.
 """
-makecontainer() = Dict{FInt,Array{HyperFaceContainer}}()
+makecontainer(T = Int) = Dict{T, Array{HyperFaceContainer{T}}}()
 
 """
     addhyperface!(container,hyperface,newn)
@@ -82,11 +80,11 @@ function findhyperface!(container, hyperface)
 end
 
 """
-    ontosphere(xyz::FFltMat, radius::FFlt)
+    ontosphere(xyz::Matrix{T}, radius::T) where {T}
 
 Project nodes onto a sphere of given radius.
 """
-function ontosphere(xyz::FFltMat, radius::FFlt)
+function ontosphere(xyz::Matrix{T}, radius::T) where {T}
     for j in axes(xyz, 1)
         xyz[j, :] = xyz[j, :] * radius / norm(xyz[j, :])
     end
@@ -140,15 +138,6 @@ function gradedspace(start::T, stop::T, N::Int, strength = 2) where {T<:Number}
     x = x / maximum(x)
     out = start .* (1.0 .- x) .+ stop .* x
 end
-
-# function inbox(box::FFltVec,sdim::FInt,x::FFltVec)
-#     for i=1:sdim
-#         if (!inrange(box[2*i-1],box[2*i],x[i]))
-#             return false
-#         end
-#     end
-#     return true
-# end
 
 """
     logspace(start::T, stop::T, N::Int)  where {T<:Number}
