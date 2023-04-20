@@ -11,7 +11,7 @@ import ..FieldModule.AbstractField
 import ..FieldModule.@add_Field_fields
 
 """
-    GeneralField{T<:Number} <: AbstractField
+    GeneralField{T<:Number, IT<:Integer} <: AbstractField
 
 General field, meaning the entities can be anything.
 """
@@ -21,11 +21,14 @@ end
 
 
 """
-    GeneralField(data::FMat{T}=[]) where {T<:Number}
+    GeneralField(data::Matrix{T}, zi::IT) where {T<:Number, IT<:Integer}
 
-Constructor of general field.  The values of the field are given by the array
-on input, `data`. This array needs to have as many rows as there are entities,
-and as many columns as there are degrees of freedom per entities.
+Constructor of general field.  The values of the field are given by the array on
+input, `data`. This array needs to have as many rows as there are entities, and
+as many columns as there are degrees of freedom per entities.
+
+The integer type for the storage of the degree of freedom numbers is set as that
+of the argument `zi`.
 """
 function GeneralField(data::Matrix{T}, zi::IT) where {T<:Number, IT<:Integer}
     values = deepcopy(data)
@@ -42,10 +45,11 @@ function GeneralField(data::Matrix{T}) where {T<:Number}
 end
 
 """
-    GeneralField(data::FVec{T}) where {T<:Number}
+    GeneralField(data::Vector{T}) where {T<:Number}
 
 Constructor of general field.  The values of the field are given by the vector
-on input, `data`. This vector needs to have as many rows as there are entities.
+on input, `data`. This vector needs to have as many rows as there are
+entities.
 """
 function GeneralField(data::Vector{T}) where {T<:Number}
     return GeneralField(reshape(data, length(data), 1))

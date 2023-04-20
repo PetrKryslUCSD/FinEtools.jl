@@ -12,7 +12,7 @@ import ..FieldModule.@add_Field_fields
 
 
 """
-    ElementalField{T<:Number} <: AbstractField
+    ElementalField{T<:Number, IT<:Integer} <: AbstractField
 
 Elemental field, meaning the entities are finite elements.
 
@@ -24,11 +24,14 @@ mutable struct ElementalField{T<:Number, IT<:Integer} <: AbstractField
 end
 
 """
-   ElementalField(data::FMat{T}=[]) where {T<:Number}
+   ElementalField(data::Matrix{T}, zi::IT) where {T<:Number, IT<:Integer}
 
 Constructor of elemental field. The values of the field are given by the array
 on input, `data`. This array needs to have as many rows as there are elements,
 and as many columns as there are degrees of freedom per element.
+
+The integer type for the storage of the degree of freedom numbers is set as that
+of the argument `zi`.
 """
 function ElementalField(data::Matrix{T}, zi::IT) where {T<:Number, IT<:Integer}
     values = deepcopy(data)
@@ -45,7 +48,7 @@ function ElementalField(data::Matrix{T}) where {T<:Number}
 end
 
 """
-    ElementalField(data::FVec{T}) where {T<:Number}
+    ElementalField(data::Vector{T}) where {T<:Number}
 
 Constructor of elemental field. The values of the field are given by the vector
 on input, `data`. This vector needs to have as many entries as there are elements;
@@ -56,7 +59,7 @@ function ElementalField(data::Vector{T}) where {T<:Number}
 end
 
 """
-    nelems(self::ElementalField)::FInt = nents(self)
+    nelems(self::ElementalField)
 
 Provide the number of elements  in the elemental field.
 """
