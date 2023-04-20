@@ -275,7 +275,7 @@ function test()
         0.8320502943378436 0.5547001962252293 0.0
         0.0 0.0 1.0
     ]
-    function compute!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    function compute!(csmatout, XYZ, tangents, fe_label)
         # Cylindrical coordinate system
         xyz = XYZ[:] .- center
         xyz[3] = 0.0
@@ -287,7 +287,12 @@ function test()
     end
     csys = CSys(3, 3, compute!)
     updatecsmat!(csys, XYZ, tangents, 0)
-    @test norm(csys.csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
+    @test norm(csys._csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
+
+    csys = CSys(3, 3, zero(Float32), compute!)
+    updatecsmat!(csys, XYZ, tangents, 0)
+    @test norm(csys._csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
+
     true
 end
 end
@@ -322,7 +327,7 @@ function test()
     # end
     csys = CSys(rfcsmat)
     updatecsmat!(csys, XYZ, tangents, 0)
-    @test norm(csys.csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
+    @test norm(csys._csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
     true
 end
 end
@@ -353,7 +358,8 @@ function test()
     # end
     csys = CSys(3)
     updatecsmat!(csys, XYZ, tangents, 0)
-    @test norm(csys.csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
+    @test norm(csys._csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
+
     true
 end
 end
@@ -371,7 +377,7 @@ function test()
     tangents = rand(3, 3)
     csys = CSys(3, 3)
     updatecsmat!(csys, XYZ, tangents, 0)
-    @test norm(csys.csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
+    @test norm(csys._csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
     true
 end
 end
@@ -389,8 +395,8 @@ function test()
     tangents = reshape([0.2, 0.3, 0.4], 3, 1)
     csys = CSys(3, 1)
     updatecsmat!(csys, XYZ, tangents, 0)
-    # @show csys.csmat
-    @test norm(csys.csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
+    # @show csys._csmat
+    @test norm(csys._csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
     true
 end
 end
@@ -408,11 +414,11 @@ function test()
     tangents = reshape([0.2 0.0; 0.0 0.5; 0.4 0.2], 3, 2)
     csys = CSys(3, 2)
     updatecsmat!(csys, XYZ, tangents, 0)
-    # @show csys.csmat
+    # @show csys._csmat
     n1 = cross(vec(tangents[:, 1]), vec(tangents[:, 2]))
     n1 = n1 / norm(n1)
     # @show n1
-    n2 = cross(vec(csys.csmat[:, 1]), vec(csys.csmat[:, 2]))
+    n2 = cross(vec(csys._csmat[:, 1]), vec(csys._csmat[:, 2]))
     n2 = n2 / norm(n2)
     # @show n2
     @test norm(n1 - n2) / norm(n2) <= 1.0e-6

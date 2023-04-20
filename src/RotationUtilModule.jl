@@ -87,18 +87,18 @@ end
 
 """
     cross3!(
-        result::AbstractVector{T},
-        theta::AbstractVector{T},
-        v::AbstractVector{T},
-    ) where {T}
+        result::AbstractVector{T1},
+        theta::AbstractVector{T2},
+        v::AbstractVector{T3},
+    ) where {T1, T2, T3}
 
 Compute the cross product of two vectors in three-space in place.
 """
 function cross3!(
-    result::AbstractVector{T},
-    theta::AbstractVector{T},
-    v::AbstractVector{T},
-) where {T}
+    result::AbstractVector{T1},
+    theta::AbstractVector{T2},
+    v::AbstractVector{T3},
+) where {T1, T2, T3}
     @assert (length(theta) == 3) && (length(v) == 3) "Inputs must be 3-vectors"
     result[1] = -theta[3] * v[2] + theta[2] * v[3]
     result[2] = theta[3] * v[1] - theta[1] * v[3]
@@ -108,11 +108,11 @@ end
 
 
 """
-    cross2(theta::AbstractVector{T}, v::AbstractVector{T}) where {T}
+    cross2(theta::AbstractVector{T1}, v::AbstractVector{T2}) where {T1, T2}
 
 Compute the cross product of two vectors in two-space.
 """
-function cross2(theta::AbstractVector{T}, v::AbstractVector{T}) where {T}
+function cross2(theta::AbstractVector{T1}, v::AbstractVector{T2}) where {T1, T2}
     @assert (length(theta) == 2) && (length(v) == 2) "Inputs must be 2-vectors"
     return -theta[2] * v[1] + theta[1] * v[2]
 end
