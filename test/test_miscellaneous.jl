@@ -2039,7 +2039,7 @@ function test()
     fe_label = 0
     c = VectorCache([10.0])
     updateretrieve!(c, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    @test c.cache == [10.0]
+    @test c._cache == [10.0]
 end
 end
 using .vectorcachetest1
@@ -2057,7 +2057,7 @@ function test()
     end
     c = VectorCache(FFlt, 1, setvector!)
     updateretrieve!(c, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    @test c.cache == [10.0]
+    @test c._cache == [10.0]
 end
 end
 using .vectorcachetest2
@@ -2080,10 +2080,10 @@ function test()
     end
     c = VectorCache(FFlt, 1, setvector!, 0.0)
     updateretrieve!(c, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    @test c.cache == [10.0]
+    @test c._cache == [10.0]
     settime!(c, 6.0)
     updateretrieve!(c, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    @test c.cache == [0.0]
+    @test c._cache == [0.0]
 end
 end
 using .vectorcachetest3
@@ -2102,7 +2102,7 @@ function test()
     end
     c = VectorCache(FFlt, 1, setvector!)
     updateretrieve!(c, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-    @test c.cache == [10.0]
+    @test c._cache == [10.0]
 end
 end
 using .vectorcachetest4
