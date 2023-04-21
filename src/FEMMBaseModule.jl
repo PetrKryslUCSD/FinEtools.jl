@@ -11,8 +11,6 @@ import LinearAlgebra: mul!, Transpose
 my_At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 import SparseArrays: sparse, findnz
 import LinearAlgebra: norm
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FENodeSetModule: FENodeSet
 import ..FESetModule:
     AbstractFESet,
@@ -56,8 +54,8 @@ abstract type AbstractFEMM end
 
 Class for base finite element modeling machine.
 """
-mutable struct FEMMBase{S<:AbstractFESet,F<:Function} <: AbstractFEMM
-    integdomain::IntegDomain{S,F} # domain data
+mutable struct FEMMBase{ID<:IntegDomain} <: AbstractFEMM
+    integdomain::ID # domain data
     mcsys::CSys # updater of the material orientation matrix
 end
 
@@ -66,7 +64,7 @@ end
 
 Construct with the default orientation matrix (identity).
 """
-function FEMMBase(integdomain::IntegDomain{S,F}) where {S<:AbstractFESet,F<:Function}
+function FEMMBase(integdomain::ID) where {ID<:IntegDomain}
     return FEMMBase(integdomain, CSys(manifdim(integdomain.fes)))
 end
 
@@ -80,7 +78,7 @@ function finite_elements(self::AbstractFEMM)
 end
 
 """
-    associategeometry!(self::AbstractFEMM,  geom::NodalField{FFlt})
+    associategeometry!(self::AbstractFEMM, geom::NodalField{FT}) where {FT}
 
 Associate geometry field with the FEMM.
 
@@ -94,48 +92,63 @@ routine is not consistent with the one for which `associategeometry!()`
 was called before, `associategeometry!()` needs to be called with
 the new geometry field.
 """
-function associategeometry!(self::AbstractFEMM, geom::NodalField{FFlt})
+function associategeometry!(self::AbstractFEMM, geom::NodalField{FT}) where {FT}
     return self # default is no-op
 end
 
 """
-    inspectintegpoints(self::FEMM, geom::NodalField{FFlt},  u::NodalField{T}, dT::NodalField{FFlt}, felist::FIntVec, inspector::F,  idat, quantity=:Cauchy; context...) where {FEMM<:AbstractFEMM, T<:Number, F<:Function}
+    inspectintegpoints(
+        self::FEMM,
+        geom::NodalField{FT},
+        felist::AbstractVector{IT},
+        inspector::F,
+        idat,
+        quantity = :Cauchy;
+        context...,
+    ) where {FEMM<:AbstractFEMM, FT, IT, F<:Function}
 
 Inspect integration points.
 """
 function inspectintegpoints(
     self::FEMM,
-    geom::NodalField{FFlt},
-    felist::FIntVec,
+    geom::NodalField{FT},
+    felist::AbstractVector{IT},
     inspector::F,
     idat,
     quantity = :Cauchy;
     context...,
-) where {FEMM<:AbstractFEMM,F<:Function}
+) where {FEMM<:AbstractFEMM, FT, IT, F<:Function}
     return idat # default is no-op
 end
 
 """
-    integratefieldfunction(self::AbstractFEMM,
-        geom::NodalField{FFlt},  afield::FL, fh::F,  initial::R;
-        m::FInt=-1) where {T<:Number, FL<:NodalField{T}, R, F<:Function}
+    integratefieldfunction(
+        self::AbstractFEMM,
+        geom::NodalField{FT},
+        afield::FL,
+        fh::F,
+        initial::R;
+        m = -1,
+    ) where {FT, FL<:NodalField{T}, T, F<:Function, R}
 
 Integrate a nodal-field function over the discrete manifold.
 
 `afield` = NODAL field to supply the values
 `fh` = function taking position and the field value as arguments, returning
-    value of type `R`.
+    value of type `T`.
+`m` = dimension of the manifold over which to integrate; `m < 0` means that
+    the dimension is controlled by the manifold dimension of the elements.
 
 Returns value of type `R`, which is initialized by `initial`.
 """
 function integratefieldfunction(
     self::AbstractFEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     afield::FL,
     fh::F,
     initial::R;
-    m::FInt = -1,
-) where {T<:Number,FL<:NodalField{T},R,F<:Function}
+    m = -1,
+) where {FT, T, FL<:NodalField{T}, F<:Function, R}
     fes = finite_elements(self)  # finite elements
     # Constants
     nfes = count(fes) # number of finite elements in the set
@@ -146,10 +159,10 @@ function integratefieldfunction(
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     a = fill(zero(T), nne, ndn) # array of field DOFS-- used as a buffer
-    ecoords = fill(zero(FFlt), nne, ndofs(geom)) # array of field DOFS-- used as a buffer
-    loc = fill(zero(FFlt), 1, sdim) # quadrature point location -- used as a buffer
+    ecoords = fill(zero(FT), nne, ndofs(geom)) # array of field DOFS-- used as a buffer
+    loc = fill(zero(FT), 1, sdim) # quadrature point location -- used as a buffer
     val = fill(zero(T), 1, ndn) # field value at the point -- used as a buffer
-    J = fill(zero(FFlt), sdim, mdim) # Jacobian matrix -- used as a buffer
+    J = fill(zero(FT), sdim, mdim) # Jacobian matrix -- used as a buffer
     if m >= 0
         # Either the manifold dimension was supplied
     else
@@ -170,25 +183,35 @@ function integratefieldfunction(
 end
 
 """
-    integratefieldfunction(self::AbstractFEMM,
-        geom::NodalField{FFlt},  afield::FL, fh::F, initial::R;
-        m::FInt=-1) where {T<:Number, FL<:ElementalField{T}, R, F<:Function}
+    integratefieldfunction(
+        self::AbstractFEMM,
+        geom::NodalField{FT},
+        afield::FL,
+        fh::F,
+        initial::R;
+        m = -1,
+    ) where {FT, FL<:ElementalField{T}, T, F<:Function, R}
 
 Integrate a elemental-field function over the discrete manifold.
 
 `afield` = ELEMENTAL field to supply the values
-`fh` = function taking position and the field value as arguments, returning value of type `R`.
+`fh` = function taking position and the field value as arguments,
+    returning value of type `T`.
+`m` = dimension of the manifold over which to integrate; `m < 0` means that
+    the dimension is controlled by the manifold dimension of the elements.
+
+Returns value of type `T`, which is initialized by `initial`.
 
 Returns value of type `R`, which is initialized by `initial`.
 """
 function integratefieldfunction(
     self::AbstractFEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     afield::FL,
     fh::F,
     initial::R;
-    m::FInt = -1,
-) where {T<:Number,FL<:ElementalField{T},R,F<:Function}
+    m = -1,
+) where {FT, T, FL<:ElementalField{T}, F<:Function, R}
     fes = finite_elements(self)  # finite elements
     # Constants
     nfes = count(fes) # number of finite elements in the set
@@ -198,10 +221,10 @@ function integratefieldfunction(
     mdim = manifdim(fes)     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    a = fill(zero(FFlt), nne, ndn) # array of field DOFS-- used as a buffer
-    ecoords = fill(zero(FFlt), nne, ndofs(geom)) # array of field DOFS-- used as a buffer
-    loc = fill(zero(FFlt), 1, sdim) # quadrature point location -- used as a buffer
-    J = fill(zero(FFlt), sdim, mdim) # Jacobian matrix -- used as a buffer
+    a = fill(zero(FT), nne, ndn) # array of field DOFS-- used as a buffer
+    ecoords = fill(zero(FT), nne, ndofs(geom)) # array of field DOFS-- used as a buffer
+    loc = fill(zero(FT), 1, sdim) # quadrature point location -- used as a buffer
+    J = fill(zero(FT), sdim, mdim) # Jacobian matrix -- used as a buffer
     if m >= 0
         # Either the manifold dimension was supplied
     else
@@ -221,8 +244,12 @@ function integratefieldfunction(
 end
 
 """
-    integratefunction(self::AbstractFEMM,
-        geom::NodalField{FFlt}, fh::F, m::FInt = -1) where {F<:Function}
+    integratefunction(
+        self::AbstractFEMM,
+        geom::NodalField{FT},
+        fh::F,
+        m = -1,
+    ) where {FT, F<:Function}
 
 Integrate a function over the discrete manifold.
 
@@ -251,10 +278,10 @@ Ixx = integratefunction(femm, geom, (x) ->  x[2]^2 + x[3]^2)
 """
 function integratefunction(
     self::AbstractFEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     fh::F,
-    m::FInt = -1,
-) where {F<:Function}
+    m = -1,
+) where {FT, F<:Function}
     fes = finite_elements(self)
     if m < 0
         m = manifdim(fes)  # native  manifold dimension
@@ -266,9 +293,9 @@ function integratefunction(
     mdim = manifdim(fes)     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    ecoords = fill(zero(FFlt), nne, ndofs(geom)) # array of field DOFS-- used as a buffer
-    loc = fill(zero(FFlt), 1, sdim) # quadrature point location -- used as a buffer
-    J = fill(zero(FFlt), sdim, mdim) # Jacobian matrix -- used as a buffer
+    ecoords = fill(zero(FT), nne, ndofs(geom)) # array of field DOFS-- used as a buffer
+    loc = fill(zero(FT), 1, sdim) # quadrature point location -- used as a buffer
+    J = fill(zero(FT), sdim, mdim) # Jacobian matrix -- used as a buffer
     result = 0.0# Initialize the result
     for i in 1:count(fes)  # Now loop over all fes in the set
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
@@ -282,9 +309,16 @@ function integratefunction(
 end
 
 """
-    transferfield!(ff::F, fensf::FENodeSet, fesf::AbstractFESet,
-        fc::F, fensc::FENodeSet, fesc::AbstractFESet, tolerance::FFlt
-        )  where {T<:Number, F<:NodalField{T}}
+    transferfield!(
+        ff::F,
+        fensf::FENodeSet{FT},
+        fesf::AbstractFESet,
+        fc::F,
+        fensc::FENodeSet{FT},
+        fesc::AbstractFESet,
+        geometricaltolerance::FT;
+        parametrictolerance::FT = 0.01,
+    ) where {FT<:Number, F<:NodalField{T}, T}
 
 Transfer a nodal field from a coarse mesh to a finer one.
 
@@ -304,14 +338,14 @@ Nodal field `ff` transferred to the fine mesh is output.
 """
 function transferfield!(
     ff::F,
-    fensf::FENodeSet,
+    fensf::FENodeSet{FT},
     fesf::AbstractFESet,
     fc::F,
-    fensc::FENodeSet,
+    fensc::FENodeSet{FT},
     fesc::AbstractFESet,
-    geometricaltolerance::FFlt;
-    parametrictolerance::FFlt = 0.01,
-) where {T<:Number,F<:NodalField{T}}
+    geometricaltolerance::FT;
+    parametrictolerance::FT = 0.01,
+) where {FT<:Number, T, F<:NodalField{T}}
     fill!(ff.values, Inf) # the "infinity" value indicates a missed node
     @assert count(fensf) == nents(ff)
     parametrictol = 0.01
@@ -387,10 +421,16 @@ function transferfield!(
 end
 
 """
-    transferfield!(ff::F, fensf::FENodeSet, fesf::AbstractFESet, fc::F,
-        fensc::FENodeSet, fesc::AbstractFESet, geometricaltolerance::FFlt;
-        parametrictolerance::FFlt = 0.01 )  where {T<:Number,
-        F<:ElementalField{T}}
+    transferfield!(
+        ff::F,
+        fensf::FENodeSet{FT},
+        fesf::AbstractFESet,
+        fc::F,
+        fensc::FENodeSet{FT},
+        fesc::AbstractFESet,
+        geometricaltolerance::FT;
+        parametrictolerance::FT = 0.01,
+    ) where {FT<:Number, F<:ElementalField{T}, T}
 
 Transfer an elemental field from a coarse mesh to a finer one.
 
@@ -407,14 +447,14 @@ Elemental field `ff` transferred to the fine mesh is output.
 """
 function transferfield!(
     ff::F,
-    fensf::FENodeSet,
+    fensf::FENodeSet{FT},
     fesf::AbstractFESet,
     fc::F,
-    fensc::FENodeSet,
+    fensc::FENodeSet{FT},
     fesc::AbstractFESet,
-    geometricaltolerance::FFlt;
-    parametrictolerance::FFlt = 0.01,
-) where {T<:Number,F<:ElementalField{T}}
+    geometricaltolerance::FT;
+    parametrictolerance::FT = 0.01,
+) where {FT<:Number, T, F<:ElementalField{T}}
     @assert count(fesf) == nents(ff)
     nodebox = initbox!([], vec(fensc.xyz[1, :]))
     centroidpc = centroidparametric(fesf)
@@ -456,9 +496,14 @@ function transferfield!(
 end
 
 """
-    distribloads(self::FEMM, assembler::A, geom::NodalField{FFlt}, P::NodalField{T},
-      fi::ForceIntensity,
-      m::FInt) where {FEMM<:AbstractFEMM, T<:Number, A<:AbstractSysvecAssembler}
+    distribloads(
+        self::FEMM,
+        assembler::A,
+        geom::NodalField{FT},
+        P::NodalField{T},
+        fi::ForceIntensity,
+        m,
+    ) where {FEMM<:AbstractFEMM, A<:AbstractSysvecAssembler, FT<:Number, T}
 
 Compute the distributed-load vector.
 
@@ -470,11 +515,11 @@ is set to 3, for tractions on the surface it is set to 2, and so on.
 function distribloads(
     self::FEMM,
     assembler::A,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     P::NodalField{T},
     fi::ForceIntensity,
-    m::FInt,
-) where {FEMM<:AbstractFEMM,T<:Number,A<:AbstractSysvecAssembler}
+    m,
+) where {FEMM<:AbstractFEMM, A<:AbstractSysvecAssembler, FT<:Number, T}
     fes = finite_elements(self)
     # Constants
     nfes = count(fes) # number of finite elements in the set
@@ -486,10 +531,10 @@ function distribloads(
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     # Prepare some buffers:
-    dofnums = fill(zero(FInt), Cedim) # degree of freedom array -- used as a buffer
-    ecoords = fill(zero(FFlt), nne, ndofs(geom)) # array of field DOFS-- used as a buffer
-    loc = fill(zero(FFlt), (1, sdim)) # quadrature point location -- used as a buffer
-    J = fill(zero(FFlt), (sdim, mdim)) # Jac. matrix -- used as a buffer
+    dofnums = fill(zero(eltype(P.dofnums)), Cedim) # dof array -- a buffer
+    ecoords = fill(zero(FT), nne, ndofs(geom)) #  coordinates-- a buffer
+    loc = fill(zero(FT), (1, sdim)) # quadrature point location -- a buffer
+    J = fill(zero(FT), (sdim, mdim)) # Jac. matrix -- used as a buffer
     Fe = fill(zero(T), (Cedim,))
     startassembly!(assembler, P.nfreedofs)
     for i in 1:count(fes) # Loop over elements
@@ -499,9 +544,9 @@ function distribloads(
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i], Ns[j], m)
             force = updateforce!(fi, loc, J, fes.label[i]) # retrieve the applied load
-            Factor::FFlt = (Jac * w[j])
-            NkxF::FFlt = 0.0
-            rx::FInt = 1
+            Factor::FT = (Jac * w[j])
+            NkxF::FT = 0.0
+            rx = 1
             for kx in 1:nne # all the nodes
                 NkxF = Ns[j][kx] * Factor
                 for mx in 1:ndn   # all the degrees of freedom
@@ -517,35 +562,37 @@ function distribloads(
     return F
 end
 
+
 function distribloads(
     self::FEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     P::NodalField{T},
     fi::ForceIntensity,
-    m::FInt,
-) where {FEMM<:AbstractFEMM,T<:Number}
+    m,
+) where {FEMM<:AbstractFEMM, FT<:Number, T}
     assembler = SysvecAssembler(0.0 * P.values[1])#T(0.0))
     return distribloads(self, assembler, geom, P, fi, m)
 end
 
 """
-    connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:AbstractFEMM}
+    connectionmatrix(self::FEMM, nnodes) where {FEMM<:AbstractFEMM}
 
 Compute the connection matrix.
 
 The matrix has a nonzero in all the rows and columns which correspond to nodes
 connected by some finite element.
 """
-function connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:AbstractFEMM}
+function connectionmatrix(self::FEMM, nnodes) where {FEMM<:AbstractFEMM}
     fes = finite_elements(self)
     nfes = length(fes.conn)
     nconns = nodesperelem(fes)
     N = nfes * nconns * nconns
-    rb = FInt[]
+    IT = eltype(fes.conn[1])
+    rb = IT[]
     sizehint!(rb, N)
-    cb = FInt[]
+    cb = IT[]
     sizehint!(cb, N)
-    vb = ones(FInt, N)
+    vb = ones(IT, N)
     for j in 1:nfes
         for k in 1:nconns
             append!(rb, fes.conn[j])
@@ -558,7 +605,11 @@ function connectionmatrix(self::FEMM, nnodes::FInt) where {FEMM<:AbstractFEMM}
 end
 
 """
-    dualconnectionmatrix(self::FEMM, fens::FENodeSet, minnodes = 1) where {FEMM<:AbstractFEMM}
+    dualconnectionmatrix(
+        self::FEMM,
+        fens::FENodeSet,
+        minnodes = 1,
+    ) where {FEMM<:AbstractFEMM}
 
 Compute the dual connection matrix.
 
@@ -577,9 +628,10 @@ function dualconnectionmatrix(
     nfes = length(fes.conn)
     nconns = nodesperelem(fes)
     N = nfes * nconns * nconns
-    rb = FInt[]
+    IT = eltype(fes.conn[1])
+    rb = IT[]
     sizehint!(rb, N)
-    cb = FInt[]
+    cb = IT[]
     sizehint!(cb, N)
     m = FENodeToFEMap(fes.conn, count(fens))
     for j in eachindex(m.map)
@@ -590,7 +642,7 @@ function dualconnectionmatrix(
             end
         end
     end
-    vb = ones(FInt, length(rb))
+    vb = ones(IT, length(rb))
     C = sparse(rb, cb, vb, nfes, nfes)
     I, J, V = findnz(C)
     ix = findall(x -> x >= minnodes, V)
@@ -598,11 +650,11 @@ function dualconnectionmatrix(
 end
 
 
-struct InverseDistanceInspectorData
-    component::Vector{FInt}
-    d::Vector{FFlt} # nodesperelem(integdomain.fes)
-    sum_inv_dist::Vector{FFlt} # nnodes(geom)
-    sum_quant_inv_dist::Array{FFlt,2} # nnodes(geom) x length(component)
+struct InverseDistanceInspectorData{IT, FT}
+    component::Vector{IT}
+    d::Vector{FT} # nodesperelem(integdomain.fes)
+    sum_inv_dist::Vector{FT} # nnodes(geom)
+    sum_quant_inv_dist::Array{FT,2} # nnodes(geom) x length(component)
 end
 
 
@@ -630,11 +682,11 @@ function _idi_inspector(idat, elnum, conn, xe, out, xq)
 end
 
 
-struct AveragingInspectorData
-    component::Vector{FInt}
-    d::Vector{FFlt} # nodesperelem(fes)
-    ncontrib::Vector{FInt} # nnodes(geom)
-    sum_quant::Array{FFlt,2} # nnodes(geom) x length(component)
+struct AveragingInspectorData{IT, FT}
+    component::Vector{IT}
+    d::Vector{FT} # nodesperelem(fes)
+    ncontrib::Vector{IT} # nnodes(geom)
+    sum_quant::Array{FT,2} # nnodes(geom) x length(component)
 end
 
 # This is a simple nodal averaging inspector.
@@ -658,10 +710,15 @@ function _avg_inspector(idat, elnum, conn, xe, out, xq)
 end
 
 """
-    fieldfromintegpoints(self::FEMM,
-      geom::NodalField{FFlt},  u::NodalField{T},
-      dT::NodalField{FFlt},  quantity::Symbol,  component::FInt;
-      context...) where {FEMM<:AbstractFEMM, T<:Number}
+    fieldfromintegpoints(
+        self::FEMM,
+        geom::NodalField{FT},
+        u::NodalField{T},
+        dT::NodalField{FT},
+        quantity::Symbol,
+        component::FIntVec;
+        context...,
+    ) where {FEMM<:AbstractFEMM, FT<:Number, T<:Number}
 
 Construct nodal field from integration points.
 
@@ -683,13 +740,13 @@ Keyword arguments
 """
 function fieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     u::NodalField{T},
-    dT::NodalField{FFlt},
+    dT::NodalField{FT},
     quantity::Symbol,
-    component::FIntVec;
+    component::AbstractVector{IT};
     context...,
-) where {FEMM<:AbstractFEMM,T<:Number}
+) where {FEMM<:AbstractFEMM, FT<:Number, T<:Number, IT<:Integer}
     fes = finite_elements(self)
     # Constants
     nne = nodesperelem(fes) # number of nodes for element
@@ -709,9 +766,9 @@ function fieldfromintegpoints(
         # Container of intermediate results
         idat = AveragingInspectorData(
             component,
-            zeros(FFlt, nne),
+            zeros(FT, nne),
             zeros(Int, nnodes(geom)),
-            zeros(FFlt, nnodes(geom), length(component)),
+            zeros(FT, nnodes(geom), length(component)),
         )
         # Loop over cells to interpolate to nodes
         idat = inspectintegpoints(
@@ -726,7 +783,7 @@ function fieldfromintegpoints(
             context...,
         )
         # The data for the field to be constructed is initialized
-        nvals = zeros(FFlt, nnodes(geom), length(component))
+        nvals = zeros(FT, nnodes(geom), length(component))
         # compute the data array
         for kkk in axes(nvals, 1)
             for j in eachindex(component)
@@ -740,9 +797,9 @@ function fieldfromintegpoints(
         # Container of intermediate results
         idat = InverseDistanceInspectorData(
             component,
-            zeros(FFlt, nne),
-            zeros(FFlt, nnodes(geom)),
-            zeros(FFlt, nnodes(geom), length(component)),
+            zeros(FT, nne),
+            zeros(FT, nnodes(geom)),
+            zeros(FT, nnodes(geom), length(component)),
         )
         # Loop over cells to interpolate to nodes
         idat = inspectintegpoints(
@@ -757,7 +814,7 @@ function fieldfromintegpoints(
             context...,
         )
         # The data for the field to be constructed is initialized
-        nvals = zeros(FFlt, nnodes(geom), length(component))
+        nvals = zeros(FT, nnodes(geom), length(component))
         # compute the data array
         for kkk in axes(nvals, 1)
             for j in eachindex(component)
@@ -773,51 +830,56 @@ end
 
 function fieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     u::NodalField{T},
-    dT::NodalField{FFlt},
+    dT::NodalField{FT},
     quantity::Symbol,
-    component::FInt;
+    component::IT;
     context...,
-) where {FEMM<:AbstractFEMM,T<:Number}
+) where {FEMM<:AbstractFEMM, FT<:Number, T<:Number, IT<:Integer}
     return fieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
 end
 
 function fieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     u::NodalField{T},
     quantity::Symbol,
-    component::FIntVec;
+    component::AbstractVector{IT};
     context...,
-) where {FEMM<:AbstractFEMM,T<:Number}
-    dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
+) where {FEMM<:AbstractFEMM, FT<:Number, T<:Number, IT<:Integer}
+    dT = NodalField(zeros(FT, nnodes(geom), 1)) # zero difference in temperature
     return fieldfromintegpoints(self, geom, u, dT, quantity, component; context...)
 end
 
 function fieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     u::NodalField{T},
     quantity::Symbol,
-    component::FInt;
+    component::IT;
     context...,
-) where {FEMM<:AbstractFEMM,T<:Number}
-    dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
+) where {FEMM<:AbstractFEMM, FT<:Number, T<:Number, IT<:Integer}
+    dT = NodalField(zeros(FT, nnodes(geom), 1)) # zero difference in temperature
     return fieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
 end
 
 
-struct MeanValueInspectorData
-    n_quant::Vector{FInt}
-    sum_quant_value::Array{FFlt,2}
+struct MeanValueInspectorData{IT, FT}
+    n_quant::Vector{IT}
+    sum_quant_value::Array{FT,2}
 end
 
 """
-    elemfieldfromintegpoints(self::FEMM,
-      geom::NodalField{FFlt},  u::NodalField{T},
-      dT::NodalField{FFlt},  quantity::Symbol,  component::FInt;
-      context...) where {FEMM<:AbstractFEMM, T<:Number}
+    elemfieldfromintegpoints(
+        self::FEMM,
+        geom::NodalField{FT},
+        u::NodalField{T},
+        dT::NodalField{FT},
+        quantity::Symbol,
+        component::FIntVec;
+        context...,
+    ) where {FEMM<:AbstractFEMM, FT<:Number, T<:Number}
 
 Construct elemental field from integration points.
 
@@ -835,21 +897,21 @@ Construct elemental field from integration points.
 """
 function elemfieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     u::NodalField{T},
-    dT::NodalField{FFlt},
+    dT::NodalField{FT},
     quantity::Symbol,
-    component::FIntVec;
+    component::AbstractVector{IT};
     context...,
-) where {FEMM<:AbstractFEMM,T<:Number}
+) where {FEMM<:AbstractFEMM, FT<:Number, T<:Number, IT<:Integer}
     fes = finite_elements(self)
     # Constants
     nne = nodesperelem(fes) # number of nodes for element
     sdim = ndofs(geom)            # number of space dimensions
     # Container of intermediate results
     idat = MeanValueInspectorData(
-        zeros(FInt, count(fes)),
-        zeros(FFlt, count(fes), length(component)),
+        zeros(IT, count(fes)),
+        zeros(FT, count(fes), length(component)),
     )
     # This is an mean-value interpolation inspector. The mean of the
     # quadrature-point quantities is reported per element.
@@ -876,7 +938,7 @@ function elemfieldfromintegpoints(
         context...,
     )
     # The data for the field to be constructed is initialized
-    evals = zeros(FFlt, count(fes), length(component))
+    evals = zeros(FT, count(fes), length(component))
     # compute the data array
     for j in axes(evals, 1)
         for kkk in axes(evals, 2)
@@ -889,46 +951,46 @@ end
 
 function elemfieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     u::NodalField{T},
-    dT::NodalField{FFlt},
+    dT::NodalField{FT},
     quantity::Symbol,
-    component::FInt;
+    component::IT;
     context...,
-) where {FEMM<:AbstractFEMM,T<:Number}
+) where {FEMM<:AbstractFEMM, FT<:Number, T<:Number, IT<:Integer}
     return elemfieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
 end
 
 function elemfieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     u::NodalField{T},
     quantity::Symbol,
-    component::FInt;
+    component::IT;
     context...,
-) where {FEMM<:AbstractFEMM,T<:Number}
-    dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
+) where {FEMM<:AbstractFEMM, FT<:Number, T<:Number, IT<:Integer}
+    dT = NodalField(zeros(FT, nnodes(geom), 1)) # zero difference in temperature
     return elemfieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
 end
 
 function elemfieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     u::NodalField{T},
     quantity::Symbol,
-    component::FIntVec;
+    component::AbstractVector{IT};
     context...,
-) where {FEMM<:AbstractFEMM,T<:Number}
-    dT = NodalField(zeros(FFlt, nnodes(geom), 1)) # zero difference in temperature
+) where {FEMM<:AbstractFEMM, FT<:Number, T<:Number, IT<:Integer}
+    dT = NodalField(zeros(FT, nnodes(geom), 1)) # zero difference in temperature
     return elemfieldfromintegpoints(self, geom, u, dT, quantity, component; context...)
 end
 
 
-function buffers(
+function _buffers(
     self::FEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     afield::NodalField{T},
-) where {FEMM<:AbstractFEMM,T}
+) where {FEMM<:AbstractFEMM, FT, T}
     # Constants
     fes = finite_elements(self)
     nfes = count(fes) # number of finite elements in the set
@@ -937,36 +999,39 @@ function buffers(
     sdim = ndofs(geom)   # number of space dimensions
     mdim = manifdim(fes) # manifold dimension of the element
     Kedim = ndn * nne      # dimension of the element matrix
-    elmat = fill(zero(FFlt), Kedim, Kedim) # buffer
-    ecoords = fill(zero(FFlt), nne, ndofs(geom)) # array of Element coordinates
-    dofnums = fill(zero(FInt), Kedim) # buffer
-    loc = fill(zero(FFlt), 1, sdim) # buffer
-    J = fill(zero(FFlt), sdim, mdim) # buffer
-    gradN = fill(zero(FFlt), nne, mdim) # buffer
+    elmat = fill(zero(FT), Kedim, Kedim) # buffer
+    ecoords = fill(zero(FT), nne, ndofs(geom)) # array of Element coordinates
+    dofnums = fill(zero(eltype(afield.dofnums)), Kedim) # buffer
+    loc = fill(zero(FT), 1, sdim) # buffer
+    J = fill(zero(FT), sdim, mdim) # buffer
+    gradN = fill(zero(FT), nne, mdim) # buffer
     return ecoords, dofnums, loc, J, gradN, elmat
 end
 
 """
-    innerproduct(self::FEMMHeatDiff,
-      assembler::A, geom::NodalField{FFlt},
-      temp::NodalField{FFlt}) where {A<:AbstractSysmatAssembler}
+    innerproduct(
+        self::FEMM,
+        assembler::A,
+        geom::NodalField{FT},
+        afield::NodalField{T},
+    ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T}
 
 Compute the inner-product (Gram) matrix.
 """
 function innerproduct(
     self::FEMM,
     assembler::A,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     afield::NodalField{T},
-) where {FEMM<:AbstractFEMM,A<:AbstractSysmatAssembler,T}
+) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T}
     fes = finite_elements(self)
-    ecoords, dofnums, loc, J, gradN, elmat = buffers(self, geom, afield)
+    ecoords, dofnums, loc, J, gradN, elmat = _buffers(self, geom, afield)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    NexpTNexp = FFltMat[]# basis f. matrix -- buffer
+    NexpTNexp = Matrix{eltype(Ns[1])}[]# basis f. matrix -- buffer
     ndn = ndofs(afield)
-    Indn = [i == j ? one(FFlt) : zero(FFlt) for i in 1:ndn, j in 1:ndn] # "identity"
+    Indn = [i == j ? one(FT) : zero(FT) for i in 1:ndn, j in 1:ndn] # "identity"
     for j in 1:npts # This quantity is the same for all quadrature points
-        Nexp = fill(zero(FFlt), ndn, size(elmat, 1))
+        Nexp = fill(zero(FT), ndn, size(elmat, 1))
         for l1 in 1:nodesperelem(fes)
             Nexp[1:ndn, (l1-1)*ndn+1:(l1)*ndn] = Indn * Ns[j][l1]
         end
@@ -986,7 +1051,7 @@ function innerproduct(
         for j in 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j])
-            thefactor::FFlt = (Jac * w[j])
+            thefactor::FT = (Jac * w[j])
             elmat .+= NexpTNexp[j] * thefactor
         end # Loop over quadrature points
         gatherdofnums!(afield, dofnums, fes.conn[i])# retrieve degrees of freedom
@@ -997,45 +1062,51 @@ end
 
 function innerproduct(
     self::FEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     afield::NodalField{T},
-) where {FEMM<:AbstractFEMM,T}
+) where {FEMM<:AbstractFEMM, FT, T}
     assembler = SysmatAssemblerSparseSymm()
     return innerproduct(self, assembler, geom, afield)
 end
 
 
 """
-    field_elem_to_nodal!(self::AbstractFEMM, geom::NodalField{FFlt}, ef::EFL, nf::NFL; kind = :weighted_average) where {T<:Number, EFL<:ElementalField{T}, NFL<:NodalField{T}}
+    field_elem_to_nodal!(
+        self::AbstractFEMM,
+        geom::NodalField{FT},
+        ef::EFL,
+        nf::NFL;
+        kind = :weighted_average,
+    ) where {FT, T<:Number, EFL<:ElementalField{T}, NFL<:NodalField{T}}
 
 Make a nodal field  from an elemental field over the discrete manifold.
 
-`ef` = ELEMENTAL field to be supply the values
-`nf` = NODAL field to be supply the values
+`ef` = ELEMENTAL field to supply the values
+`nf` = NODAL field to receive the values
 `kind` = default is `:weighted_average`; other options: `:max`
 
 Returns `nf`.
 """
 function field_elem_to_nodal!(
     self::AbstractFEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     ef::EFL,
     nf::NFL;
     kind = :weighted_average,
-) where {T<:Number,EFL<:ElementalField{T},NFL<:NodalField{T}}
+) where {FT, T<:Number, EFL<:ElementalField{T}, NFL<:NodalField{T}}
     if kind == :max
-        return field_elem_to_nodal_max!(self, geom, ef, nf)
+        return _field_elem_to_nodal_max!(self, geom, ef, nf)
     else #:weighted_average
-        return field_elem_to_nodal_weighted_average!(self, geom, ef, nf)
+        return _field_elem_to_nodal_weighted_average!(self, geom, ef, nf)
     end
 end
 
-function field_elem_to_nodal_weighted_average!(
+function _field_elem_to_nodal_weighted_average!(
     self::AbstractFEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     ef::EFL,
     nf::NFL,
-) where {T<:Number,EFL<:ElementalField{T},NFL<:NodalField{T}}
+) where {FT, T<:Number, EFL<:ElementalField{T}, NFL<:NodalField{T}}
     fes = finite_elements(self)  # finite elements
     # Dimensions
     nfes = count(fes) # number of finite elements in the set
@@ -1046,10 +1117,10 @@ function field_elem_to_nodal_weighted_average!(
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     a = fill(zero(T), nne, ndn) # array of field DOFS-- used as a buffer
-    ecoords = fill(zero(FFlt), nne, ndofs(geom)) # array of field DOFS-- used as a buffer
-    loc = fill(zero(FFlt), 1, sdim) # quadrature point location -- used as a buffer
-    J = fill(zero(FFlt), sdim, mdim) # Jacobian matrix -- used as a buffer
-    nvolums = fill(zero(FFlt), nents(nf))
+    ecoords = fill(zero(FT), nne, ndofs(geom)) # array of field DOFS-- used as a buffer
+    loc = fill(zero(FT), 1, sdim) # quadrature point location -- used as a buffer
+    J = fill(zero(FT), sdim, mdim) # Jacobian matrix -- used as a buffer
+    nvolums = fill(zero(FT), nents(nf))
     # initial value for the result
     nf.values .= zero(T)
     for i in 1:count(fes) #Now loop over all fes in the block
@@ -1071,12 +1142,12 @@ function field_elem_to_nodal_weighted_average!(
     return nf
 end
 
-function field_elem_to_nodal_max!(
+function _field_elem_to_nodal_max!(
     self::AbstractFEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     ef::EFL,
     nf::NFL,
-) where {T<:Number,EFL<:ElementalField{T},NFL<:NodalField{T}}
+) where {FT, T<:Number, EFL<:ElementalField{T}, NFL<:NodalField{T}}
     fes = finite_elements(self)  # finite elements
     nf.values .= zero(T) - Inf
     for i in 1:count(fes) #Now loop over all fes in the block
@@ -1090,36 +1161,42 @@ function field_elem_to_nodal_max!(
 end
 
 """
-    field_nodal_to_elem!(self::AbstractFEMM, geom::NodalField{FFlt}, nf::NFL, ef::EFL; kind = :weighted_average) where {T<:Number, EFL<:ElementalField{T}, NFL<:NodalField{T}}
+    field_nodal_to_elem!(
+        self::AbstractFEMM,
+        geom::NodalField{FT},
+        nf::NFL,
+        ef::EFL;
+        kind = :weighted_average,
+    ) where {FT<:Number, T, EFL<:ElementalField{T}, NFL<:NodalField{T}}
 
 Make an elemental field  from a nodal field over the discrete manifold.
 
-`nf` = NODAL field to be supply the values
-`ef` = ELEMENTAL field to be supply the values
+`nf` = NODAL field to supply the values
+`ef` = ELEMENTAL field to receive the values
 `kind` = default is `:weighted_average`; other options: `:max`
 
 Returns `ef`.
 """
 function field_nodal_to_elem!(
     self::AbstractFEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     nf::NFL,
     ef::EFL;
     kind = :weighted_average,
-) where {T<:Number,EFL<:ElementalField{T},NFL<:NodalField{T}}
+) where {FT<:Number, T, EFL<:ElementalField{T}, NFL<:NodalField{T}}
     if kind == :max
-        return field_nodal_to_elem_max!(self, geom, nf, ef)
+        return _field_nodal_to_elem_max!(self, geom, nf, ef)
     else #:weighted_average
-        return field_nodal_to_elem_weighted_average!(self, geom, nf, ef)
+        return _field_nodal_to_elem_weighted_average!(self, geom, nf, ef)
     end
 end
 
-function field_nodal_to_elem_weighted_average!(
+function _field_nodal_to_elem_weighted_average!(
     self::AbstractFEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     nf::NFL,
     ef::EFL,
-) where {T<:Number,EFL<:ElementalField{T},NFL<:NodalField{T}}
+) where {FT<:Number, T, EFL<:ElementalField{T}, NFL<:NodalField{T}}
     fes = finite_elements(self)  # finite elements
     # Dimensions
     nfes = count(fes) # number of finite elements in the set
@@ -1131,10 +1208,10 @@ function field_nodal_to_elem_weighted_average!(
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     a = fill(zero(T), nne, ndn) # array of field DOFS-- used as a buffer
     ev = fill(zero(T), ndn) # array of field DOFS-- used as a buffer
-    ecoords = fill(zero(FFlt), nne, ndofs(geom)) # array of field DOFS-- used as a buffer
-    loc = fill(zero(FFlt), 1, sdim) # quadrature point location -- used as a buffer
-    J = fill(zero(FFlt), sdim, mdim) # Jacobian matrix -- used as a buffer
-    nvolums = fill(zero(FFlt), nents(nf))
+    ecoords = fill(zero(FT), nne, ndofs(geom)) # array of field DOFS-- used as a buffer
+    loc = fill(zero(FT), 1, sdim) # quadrature point location -- used as a buffer
+    J = fill(zero(FT), sdim, mdim) # Jacobian matrix -- used as a buffer
+    nvolums = fill(zero(FT), nents(nf))
     # initial value for the result
     ef.values .= zero(T)
     for i in 1:count(fes) #Now loop over all fes in the block
@@ -1162,12 +1239,12 @@ function field_nodal_to_elem_weighted_average!(
     return ef
 end
 
-function field_nodal_to_elem_max!(
+function _field_nodal_to_elem_max!(
     self::AbstractFEMM,
-    geom::NodalField{FFlt},
+    geom::NodalField{FT},
     nf::NFL,
     ef::EFL,
-) where {T<:Number,EFL<:ElementalField{T},NFL<:NodalField{T}}
+) where {FT<:Number, T, EFL<:ElementalField{T}, NFL<:NodalField{T}}
     fes = finite_elements(self)  # finite elements
     # Dimensions
     nfes = count(fes) # number of finite elements in the set
