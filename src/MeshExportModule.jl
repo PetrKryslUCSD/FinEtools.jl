@@ -20,8 +20,6 @@ module VTK
 ################################################################################
 # VTK export
 ################################################################################
-using ...FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ...FESetModule:
     AbstractFESet,
     FESetP1,
@@ -403,8 +401,6 @@ module Abaqus
 ################################################################################
 # Abaqus export
 ################################################################################
-using ...FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ...FESetModule:
     AbstractFESet,
     FESetP1,
@@ -956,7 +952,7 @@ function BOUNDARY(
 end
 
 """
-    BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer,  fixed_value::FFlt)
+    BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer,  fixed_value)
 
 Write out the `*BOUNDARY` option.
 
@@ -968,7 +964,7 @@ function BOUNDARY(
     self::AbaqusExporter,
     NSET::AbstractString,
     dof::Integer,
-    fixed_value::FFlt,
+    fixed_value,
 )
     println(self.ios, "*BOUNDARY")
     println(self.ios, NSET * ",$dof,$dof,$(fixed_value)")
@@ -1194,8 +1190,6 @@ module NASTRAN
 ################################################################################
 # NASTRAN export
 ################################################################################
-using ...FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ...FESetModule:
     AbstractFESet,
     FESetP1,
@@ -1260,11 +1254,11 @@ function ENDDATA(self::NASTRANExporter)
 end
 
 """
-    GRID(self::NASTRANExporter, n::Int, xyz::Vector{FFlt})
+    GRID(self::NASTRANExporter, n::Int, xyz)
 
 Write a grid-point statement.
 """
-function GRID(self::NASTRANExporter, n::Int, xyz::Vector{FFlt})
+function GRID(self::NASTRANExporter, n::Int, xyz)
     @printf self.ios "GRID,%d,,%g,%g,%g\n" n xyz[1] xyz[2] xyz[3]
 end
 
@@ -1278,39 +1272,58 @@ function PSOLID(self::NASTRANExporter, pid::Int, mid::Int)
 end
 
 """
-    MAT1(self::NASTRANExporter, mid::Int, E::FFlt, G::FFlt, nu::FFlt, rho::FFlt, A::FFlt, TREF::FFlt, GE::FFlt)
+    MAT1(
+        self::NASTRANExporter,
+        mid::Int,
+        E::T,
+        G::T,
+        nu::T,
+        rho::T,
+        A::T,
+        TREF::T,
+        GE::T,
+    ) where {T}
 
 Write a statement for an isotropic elastic material.
 """
 function MAT1(
     self::NASTRANExporter,
     mid::Int,
-    E::FFlt,
-    G::FFlt,
-    nu::FFlt,
-    rho::FFlt,
-    A::FFlt,
-    TREF::FFlt,
-    GE::FFlt,
-)
+    E::T,
+    G::T,
+    nu::T,
+    rho::T,
+    A::T,
+    TREF::T,
+    GE::T,
+) where {T}
     @printf self.ios "MAT1,%d,%g,%g,%g,%g,%g,%g,%g\n" mid E G nu rho A TREF GE
 end
 
 """
-    MAT1(self::NASTRANExporter, mid::Int, E::FFlt, nu::FFlt, rho::FFlt = 0.0, A::FFlt = 0.0, TREF::FFlt = 0.0)
+    MAT1(
+        self::NASTRANExporter,
+        mid::Int,
+        E::T,
+        nu::T,
+        rho::T = 0.0,
+        A::T = 0.0,
+        TREF::T = 0.0,
+        GE::T = 0.0,
+    ) where {T}
 
 Write a statement for an isotropic elastic material.
 """
 function MAT1(
     self::NASTRANExporter,
     mid::Int,
-    E::FFlt,
-    nu::FFlt,
-    rho::FFlt = 0.0,
-    A::FFlt = 0.0,
-    TREF::FFlt = 0.0,
-    GE::FFlt = 0.0,
-)
+    E::T,
+    nu::T,
+    rho::T = 0.0,
+    A::T = 0.0,
+    TREF::T = 0.0,
+    GE::T = 0.0,
+) where {T}
     @printf self.ios "MAT1,%d,%g,,%g,%g,%g,%g,%g\n" mid E nu rho A TREF GE
 end
 
@@ -1346,8 +1359,6 @@ module STL
 ################################################################################
 # STL export
 ################################################################################
-using ...FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 using Printf
 import LinearAlgebra: norm, cross
 import Base.close
@@ -1384,7 +1395,7 @@ end
 
 Write a single facet.
 """
-function facet(self::STLExporter, v1::Vector{FFlt}, v2::Vector{FFlt}, v3::Vector{FFlt})
+function facet(self::STLExporter, v1::Vector{T}, v2::Vector{T}, v3::Vector{T}) where {T}
     V = v2 - v1
     W = v3 - v1
     normal = cross(V, W)
@@ -1542,8 +1553,6 @@ module MESH
 # MESH export
 ################################################################################
 using DelimitedFiles
-using ...FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ...FESetModule:
     AbstractFESet,
     FESetP1,
@@ -1620,8 +1629,6 @@ module H5MESH
 ################################################################################
 using HDF5
 using DataDrop
-using ...FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ...FESetModule:
     AbstractFESet,
     FESetP1,
@@ -1681,8 +1688,6 @@ module VTKWrite
 
 using WriteVTK
 using DataDrop
-using ...FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ...FESetModule:
     AbstractFESet,
     FESetP1,
