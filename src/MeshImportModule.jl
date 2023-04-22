@@ -1,3 +1,4 @@
+
 """
     MeshImportModule
 
@@ -7,8 +8,6 @@ module MeshImportModule
 
 __precompile__(true)
 
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FENodeSetModule: FENodeSet
 import ..FESetModule: setlabel!, nodesperelem
 import ..FESetModule: AbstractFESet, FESetL2, FESetL3, FESetP1
@@ -21,6 +20,8 @@ import ..MeshExportModule: VTK
 import Unicode: uppercase, isdigit
 import LinearAlgebra: norm
 using DelimitedFiles
+
+const DataDict = Dict{String,Any}
 
 """
 !!! note
@@ -73,7 +74,7 @@ function import_NASTRAN(filename; allocationchunk = chunk, expectfixedformat = f
     node = zeros(allocationchunk, 4)
     maxnodel = 10
     nelem = 0
-    elem = zeros(FInt, allocationchunk, maxnodel + 3)
+    elem = zeros(Int, allocationchunk, maxnodel + 3)
 
     current_line = 1
     while true
@@ -118,7 +119,7 @@ function import_NASTRAN(filename; allocationchunk = chunk, expectfixedformat = f
             #   CTETRA,1,3,15,14,12,16,8971,4853,8972,4850,8973,4848
             nelem = nelem + 1
             if size(elem, 1) < nelem
-                elem = vcat(elem, zeros(FInt, allocationchunk, maxnodel + 3))
+                elem = vcat(elem, zeros(Int, allocationchunk, maxnodel + 3))
             end
             continuation = ""
             fixedformat = (length(temp) == 72) || expectfixedformat # Is this fixed-format record? This is a guess based on the length of the line.
@@ -127,8 +128,8 @@ function import_NASTRAN(filename; allocationchunk = chunk, expectfixedformat = f
                 temp = temp[1:min(length(temp), 72)]
             end
             A = split(replace(temp, "," => " "))
-            elem[nelem, 1] = parse(FInt, A[2])
-            elem[nelem, 2] = parse(FInt, A[3])
+            elem[nelem, 1] = parse(Int, A[2])
+            elem[nelem, 2] = parse(Int, A[3])
             if length(A) == 7  #  nodes per element  equals  4
                 nperel = 4
             else
@@ -146,7 +147,7 @@ function import_NASTRAN(filename; allocationchunk = chunk, expectfixedformat = f
             end
             elem[nelem, 3] = nperel
             for six in 1:nperel
-                elem[nelem, six+3] = parse(FInt, A[six+3])
+                elem[nelem, six+3] = parse(Int, A[six+3])
             end
         end # CTETRA
 
@@ -168,7 +169,7 @@ function import_NASTRAN(filename; allocationchunk = chunk, expectfixedformat = f
     @assert length(ennod) == 1 "Cannot handle mixture of element types"
 
     @assert ((ennod[1] == 4) || (ennod[1] == 10)) "Unknown element type"
-    conn = elem[:, 4:3+convert(FInt, ennod[1])]
+    conn = elem[:, 4:3+convert(Int, ennod[1])]
     pids = elem[:, 2] # property identifier: different identifiers, different materials
     upids = unique(pids)
 
@@ -188,28 +189,28 @@ function import_NASTRAN(filename; allocationchunk = chunk, expectfixedformat = f
         push!(fesets, fes)
     end
 
-    output = FDataDict("fens" => fens, "fesets" => fesets, "property_ids" => upids)
+    output = DataDict("fens" => fens, "fesets" => fesets, "property_ids" => upids)
     return output
 end
 
 mutable struct _AbaqusElementSection
     ElementLine::AbstractString
-    nelem::FInt
-    elem::Array{FInt,2}
+    nelem::Int
+    elem::Array{Int,2}
 end
 
 mutable struct _AbaqusNSetSection
     NSetLine::AbstractString
     nsetname::AbstractString
     generate::Bool
-    nodes::Vector{FInt}
+    nodes::Vector{Int}
 end
 
 mutable struct _AbaqusElSetSection
     ESetLine::AbstractString
     esetname::AbstractString
     generate::Bool
-    elements::Vector{FInt}
+    elements::Vector{Int}
 end
 
 """
@@ -284,7 +285,7 @@ function import_ABAQUS(filename; allocationchunk = chunk)
             a = _AbaqusElementSection(
                 temp,
                 nelem,
-                zeros(FInt, allocationchunk, maxelnodes + 1),
+                zeros(Int, allocationchunk, maxelnodes + 1),
             )
             push!(elemset, a)
             temp = uppercase(strip(lines[next_line]))
@@ -299,7 +300,7 @@ function import_ABAQUS(filename; allocationchunk = chunk)
             if size(elemset[nelemset].elem, 1) < elemset[nelemset].nelem
                 elemset[nelemset].elem = vcat(
                     elemset[nelemset].elem,
-                    zeros(FInt, allocationchunk, maxelnodes + 1),
+                    zeros(Int, allocationchunk, maxelnodes + 1),
                 )
             end
             A = split(temp, ",")
@@ -311,13 +312,13 @@ function import_ABAQUS(filename; allocationchunk = chunk)
             end
             for ixxxx in eachindex(A)
                 elemset[nelemset].elem[elemset[nelemset].nelem, ixxxx] =
-                    parse(FInt, A[ixxxx])
+                    parse(Int, A[ixxxx])
             end
         end
     end # while
 
     # The nodes may not be in serial order. We need to renumber the nodes and adjust the connectivities.
-    nodenumbers = FInt.(node[1:nnode, 1])
+    nodenumbers = Int.(node[1:nnode, 1])
     newnumbering = fill(0, maximum(nodenumbers))
     newnumbering[nodenumbers] = 1:length(nodenumbers)
 
@@ -350,7 +351,7 @@ function import_ABAQUS(filename; allocationchunk = chunk)
                     generate = true
                 end
             end
-            a = _AbaqusNSetSection(temp, sn, generate, FInt[])
+            a = _AbaqusNSetSection(temp, sn, generate, Int[])
             push!(nsetsarr, a)
             temp = uppercase(strip(lines[next_line]))
             next_line = next_line + 1
@@ -361,14 +362,14 @@ function import_ABAQUS(filename; allocationchunk = chunk)
             else
                 A = split(temp, ",")
                 if nsetsarr[end].generate
-                    fn = parse(FInt, A[1])
-                    ln = parse(FInt, A[2])
-                    st = parse(FInt, A[3])
+                    fn = parse(Int, A[1])
+                    ln = parse(Int, A[2])
+                    st = parse(Int, A[3])
                     nsetsarr[end].nodes = collect(fn:st:ln)
                 else
                     for ixxxx in eachindex(A)
                         if !isempty(A[ixxxx])
-                            nn = parse(FInt, A[ixxxx])
+                            nn = parse(Int, A[ixxxx])
                             push!(nsetsarr[end].nodes, nn)
                         end
                     end
@@ -402,7 +403,7 @@ function import_ABAQUS(filename; allocationchunk = chunk)
                     generate = true
                 end
             end
-            a = _AbaqusElSetSection(temp, sn, generate, FInt[])
+            a = _AbaqusElSetSection(temp, sn, generate, Int[])
             push!(elsetsarr, a)
             temp = uppercase(strip(lines[next_line]))
             next_line = next_line + 1
@@ -413,14 +414,14 @@ function import_ABAQUS(filename; allocationchunk = chunk)
             else
                 A = split(temp, ",")
                 if elsetsarr[end].generate
-                    fn = parse(FInt, A[1])
-                    ln = parse(FInt, A[2])
-                    st = parse(FInt, A[3])
+                    fn = parse(Int, A[1])
+                    ln = parse(Int, A[2])
+                    st = parse(Int, A[3])
                     elsetsarr[end].elements = collect(fn:st:ln)
                 else
                     for ixxxx in eachindex(A)
                         if !isempty(A[ixxxx])
-                            en = parse(FInt, A[ixxxx])
+                            en = parse(Int, A[ixxxx])
                             push!(elsetsarr[end].elements, en)
                         end
                     end
@@ -495,7 +496,7 @@ function import_ABAQUS(filename; allocationchunk = chunk)
         elsets[elsetsarr[ixxxx].esetname] = elsetsarr[ixxxx].elements
     end
 
-    output = FDataDict(
+    output = DataDict(
         "fens" => fens,
         "fesets" => fesets,
         "nsets" => nsets,
@@ -573,7 +574,7 @@ function import_MESH(filename)
         setlabel!(fes, vec(lab))
     end
 
-    output = FDataDict("fens" => fens, "fesets" => [fes], "warnings" => warnings)
+    output = DataDict("fens" => fens, "fesets" => [fes], "warnings" => warnings)
     return output
 end
 
@@ -603,8 +604,8 @@ function import_H5MESH(meshfile)
     etype = DataDrop.retrieve_value(fname, "etype")
 
     C = DataDrop.retrieve_matrix(fname, "conn")
-    if eltype(C) != FInt
-        C = FInt.(C)
+    if eltype(C) != Int
+        C = Int.(C)
     end
     if etype == VTK.H8
         fes = FESetH8(C)
@@ -633,7 +634,7 @@ function import_H5MESH(meshfile)
     setlabel!(fes, vec(lab))
 
 
-    output = FDataDict("fens" => fens, "fesets" => [fes], "warnings" => warnings)
+    output = DataDict("fens" => fens, "fesets" => [fes], "warnings" => warnings)
     return output
 end
 
