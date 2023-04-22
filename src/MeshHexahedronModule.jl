@@ -7,8 +7,6 @@ module MeshHexahedronModule
 
 __precompile__(true)
 
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FESetModule:
     AbstractFESet,
     FESetQ4,
@@ -58,9 +56,9 @@ function H8blockx(xs::Vector{T}, ys::Vector{T}, zs::Vector{T}) where {T<:Number}
     nH = length(zs) - 1
 
     nnodes = (nL + 1) * (nW + 1) * (nH + 1)
-    xyz = zeros(FFlt, nnodes, 3)
+    xyz = zeros(T, nnodes, 3)
     ncells = (nL) * (nW) * (nH)
-    conns = zeros(FInt, ncells, 8)
+    conns = zeros(Int, ncells, 8)
 
 
     # first go along Length,  then Width,  and finally Height
@@ -170,7 +168,7 @@ Refine a mesh of H8 hexahedrals by octasection.
 function H8refine(fens::FENodeSet, fes::FESetH8)
     fens, fes = H8toH27(fens, fes)
     conn = connasarray(fes)
-    nconn = zeros(FInt, 8 * size(conn, 1), 8)
+    nconn = zeros(eltype(conn), 8 * size(conn, 1), 8)
     nc = 1
     for i in axes(conn, 1)
         conn27 = conn[i, :]
@@ -243,7 +241,7 @@ function H8toH27(fens::FENodeSet, fes::FESetH8)
     end
     xyz1 = fens.xyz             # Pre-existing nodes
     # Allocate for vertex nodes plus edge nodes plus face nodes
-    xyz = zeros(FFlt, newn - 1, 3)
+    xyz = zeros(eltype(xyz1), newn - 1, 3)
     xyz[1:size(xyz1, 1), :] = xyz1 # existing nodes are copied over
     # calculate the locations of the new nodes
     # and construct the new nodes
@@ -276,17 +274,17 @@ function H8toH27(fens::FENodeSet, fes::FESetH8)
         end
     end
     # construct new geometry cells
-    nconns = zeros(FInt, size(conns, 1), 27)
+    nconns = zeros(eltype(conns), size(conns, 1), 27)
     nc = 1
     for i in axes(conns, 1)
         conn = conns[i, :]
-        econn = zeros(FInt, 1, nedges)
+        econn = zeros(eltype(conns), 1, nedges)
         for J in 1:nedges
             ev = conn[ec[J, :]]
             h, n = findhyperface!(edges, ev)
             econn[J] = n
         end
-        fconn = zeros(FInt, 1, nfaces)
+        fconn = zeros(eltype(conns), 1, nfaces)
         for J in 1:nfaces
             fv = conn[fc[J, :]]
             h, n = findhyperface!(faces, fv)
@@ -371,13 +369,13 @@ function H27blockx(xs::Vector{T}, ys::Vector{T}, zs::Vector{T}) where {T<:Number
     fens, fes = H8toH27(fens, fes)
 end
 
-function doextrude(fens, fes::FESetQ4, nLayers, extrusionh)
+function _doextrude(fens, fes::FESetQ4, nLayers, extrusionh)
     nn1 = count(fens)
     nnt = nn1 * nLayers
     ngc = count(fes) * nLayers
-    hconn = zeros(FInt, ngc, 8)
     conn = connasarray(fes)
-    xyz = zeros(FFlt, nn1 * (nLayers + 1), 3)
+    hconn = zeros(eltype(conn), ngc, 8)
+    xyz = zeros(eltype(fens.xyz), nn1 * (nLayers + 1), 3)
     for j in 1:nn1
         xyz[j, :] = extrusionh(fens.xyz[j, :], 0)
     end
@@ -423,7 +421,7 @@ function H8extrudeQ4(
     q4fes = deepcopy(fes)
     updateconn!(q4fes, id)
     q4fens = FENodeSet(fens.xyz[cn[:], :])
-    h8fens, h8fes = doextrude(q4fens, q4fes, nLayers, extrusionh)
+    h8fens, h8fes = _doextrude(q4fens, q4fes, nLayers, extrusionh)
     return h8fens, h8fes
 end
 
@@ -440,7 +438,7 @@ function H8spheren(radius::T, nperradius::IT) where {T<:Number, IT<:Integer}
     if (mod(nperradius, 2) != 0)
         nperradiu = nperradius + 1
     end
-    nL = ceil(FInt, nperradius / 2)
+    nL = ceil(IT, nperradius / 2)
     nW = nL
     nH = nL
 
@@ -489,7 +487,7 @@ function H8spheren(radius::T, nperradius::IT) where {T<:Number, IT<:Integer}
     fes = cat(fes1, fes2)
 
     xyz = deepcopy(fens.xyz)
-    layer = broadcast(+, zeros(FFlt, size(xyz, 1), 1), oftype(1.0, Inf))
+    layer = broadcast(+, zeros(T, size(xyz, 1), 1), oftype(1.0, Inf))
     conn = deepcopy(connasarray(fes))
     bg = meshboundary(fes)
     l = selectelem(fens, bg; facing = true, direction = [1.0 1.0 1.0], dotmin = 0.01)
@@ -570,7 +568,7 @@ function H8toH20(fens::FENodeSet, fes::FESetH8)
     end
     xyz1 = fens.xyz             # Pre-existing nodes
     # Allocate for vertex nodes plus edge nodes plus face nodes
-    xyz = zeros(FFlt, newn - 1, 3)
+    xyz = zeros(eltype(xyz1), newn - 1, 3)
     xyz[1:size(xyz1, 1), :] = xyz1 # existing nodes are copied over
     # calculate the locations of the new nodes
     # and construct the new nodes
@@ -583,11 +581,11 @@ function H8toH20(fens::FENodeSet, fes::FESetH8)
         end
     end
     # construct new geometry cells
-    nconns = zeros(FInt, size(conns, 1), 20)
+    nconns = zeros(eltype(conns), size(conns, 1), 20)
     nc = 1
     for i in axes(conns, 1)
         conn = conns[i, :]
-        econn = zeros(FInt, 1, nedges)
+        econn = zeros(eltype(conns), 1, nedges)
         for J in 1:nedges
             ev = conn[ec[J, :]]
             h, n = findhyperface!(edges, ev)
@@ -634,13 +632,13 @@ function H8voximggen(img::Array{DataT,3}, voxval::Array{DataT,1}) where {DataT<:
     Nvoxval = find_nonempty(minvoxval, maxvoxval) # how many "full" voxels are there?
 
     # Allocate output arrays
-    h = zeros(FInt, Nvoxval, 8)
-    v = zeros(FInt, (M + 1) * (N + 1) * (P + 1), 3)
-    hmid = zeros(FInt, Nvoxval)
+    h = zeros(Int, Nvoxval, 8)
+    v = zeros(Int, (M + 1) * (N + 1) * (P + 1), 3)
+    hmid = zeros(Int, Nvoxval)
 
-    Slice = zeros(FInt, 2, N + 1, P + 1) # auxiliary buffer
+    Slice = zeros(Int, 2, N + 1, P + 1) # auxiliary buffer
     function find_vertex(I, IJK)
-        vidx = zeros(FInt, 1, size(IJK, 1))
+        vidx = zeros(Int, 1, size(IJK, 1))
         for r in axes(IJK, 1)
             if (Slice[IJK[r, 1], IJK[r, 2], IJK[r, 3]] == 0)
                 nv = nv + 1
@@ -658,7 +656,7 @@ function H8voximggen(img::Array{DataT,3}, voxval::Array{DataT,1}) where {DataT<:
         vidx = find_vertex(I, locs)
         nh = nh + 1
         h[nh, :] = vidx
-        hmid[nh] = convert(FInt, img[I, J, K])
+        hmid[nh] = convert(Int, img[I, J, K])
     end
 
     nv = 0                      # number of vertices
@@ -697,7 +695,7 @@ function H8voximg(
     voxval::Array{DataT,1},
 ) where {DataT<:Number, T<:Number}
     h, v, hmid = H8voximggen(img, voxval)
-    xyz = zeros(FFlt, size(v, 1), 3)
+    xyz = zeros(T, size(v, 1), 3)
     for k in 1:3
         for j in axes(v, 1)
             xyz[j, k] = v[j, k] * voxdims[k]
@@ -816,6 +814,8 @@ tetrahedron when creating the hexahedra, one for each edge, one for each face,
 and one for the interior.
 """
 function T4toH8(fens::FENodeSet, fes::FESetT4)
+    T = eltype(fens.xyz)
+    IT = eltype(fes.conn[1])
     nedges = 6
     ec = [1 2; 2 3; 3 1; 4 1; 4 2; 4 3]
     nfaces = 4
@@ -846,7 +846,7 @@ function T4toH8(fens::FENodeSet, fes::FESetT4)
     # Allocate new nodes
     xyz1 = fens.xyz             # Pre-existing nodes
     # Allocate for vertex nodes plus edge nodes plus face nodes +volume nodes
-    xyz = zeros(FFlt, newn - 1, 3)
+    xyz = zeros(T, newn - 1, 3)
     xyz[1:size(xyz1, 1), :] = xyz1 # existing nodes are copied over
     # calculate the locations of the new nodes
     # and construct the new nodes
@@ -876,18 +876,18 @@ function T4toH8(fens::FENodeSet, fes::FESetT4)
     end
     fens = FENodeSet(xyz)
     # construct new geometry cells
-    nconn = zeros(FInt, 4 * length(fes.conn), 8)
-    labels = zeros(FInt, 4 * length(fes.conn))
+    nconn = zeros(IT, 4 * length(fes.conn), 8)
+    labels = zeros(IT, 4 * length(fes.conn))
     c = fill(0, 15)
     nc = 1
     for i in eachindex(fes.conn)
-        econn = zeros(FInt, 1, nedges)
+        econn = zeros(IT, 1, nedges)
         for J in 1:nedges
             ev = fes.conn[i][ec[J, :]]
             h, n = findhyperface!(edges, ev)
             econn[J] = n
         end
-        fconn = zeros(FInt, 1, nfaces)
+        fconn = zeros(IT, 1, nfaces)
         for J in 1:nfaces
             fv = fes.conn[i][fc[J, :]]
             h, n = findhyperface!(faces, fv)

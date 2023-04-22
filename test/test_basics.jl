@@ -240,12 +240,12 @@ function test()
     fens, fes = Q8block(1.3, 3.1, 13, 12) # Mesh
     geom = NodalField(fens.xyz)
     femm = FEMMBase(IntegDomain(fes, GaussRule(2, 3)))
-    regions = [FDataDict("femm" => femm)]
+    regions = [Dict{String,Any}("femm" => femm)]
     # x = NodalField(reshape(fens.xyz[:, 1], count(fens), 1))
     # targetfields = [x]
     c = NodalField(fill(1.0, count(fens), 1))
     targetfields = [c]
-    modeldata = FDataDict(
+    modeldata = Dict{String,Any}(
         "fens" => fens,
         "regions" => regions,
         "targetfields" => targetfields,

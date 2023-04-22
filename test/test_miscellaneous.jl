@@ -980,10 +980,10 @@ using .mmquadrature3
 mmquadrature3.test()
 
 module mmmatchingmm
-using FinEtools.AlgoBaseModule: FDataDict, dcheck!
+using FinEtools.AlgoBaseModule: dcheck!
 using Test
 function test()
-    d = FDataDict("postp" => true, "preprocessing" => nothing)
+    d = Dict{String,Any}("postp" => true, "preprocessing" => nothing)
     recognized_keys = ["postprocessing", "something", "else"]
     notmatched = dcheck!(d, recognized_keys)
     # display(notmatched)
@@ -1376,7 +1376,7 @@ using FinEtools
 using Test
 using FinEtools.AlgoBaseModule: qtrap, qcovariance, qvariance
 function test()
-    ps = range(0, stop = 1.0, length = 1000)
+    ps = collect(range(0, stop = 1.0, length = 1000))
     xs = sin.(40.0 * ps)
     ys = sin.(39.0 * ps)
     # println("qcovariance(ps, xs, ys) = $(qcovariance(ps, xs, ys))")
@@ -1392,7 +1392,7 @@ using FinEtools
 using Test
 using FinEtools.AlgoBaseModule: qtrap, qcovariance, qvariance
 function test()
-    ps = range(0, stop = 1.0, length = 1000)
+    ps = collect(range(0, stop = 1.0, length = 1000))
     xs = sin.(40.0 * ps)
     # @show qvariance(ps, xs)
     # @show cov(xs)
@@ -2502,9 +2502,9 @@ function test()
     geom = NodalField(fens.xyz)
     psi = NodalField(fill(1.361, count(fens), 1))
     numberdofs!(psi)
-    modeldatacoarse = FDataDict(
+    modeldatacoarse = Dict{String,Any}(
         "fens" => fens,
-        "regions" => [FDataDict("femm" => femm)],
+        "regions" => [Dict{String,Any}("femm" => femm)],
         "targetfields" => [psi],
         "geom" => geom,
         "elementsize" => Ly / ny,
@@ -2516,9 +2516,9 @@ function test()
     geom = NodalField(fens.xyz)
     psi = NodalField(fill(1.361, count(fens), 1))
     numberdofs!(psi)
-    modeldatafine = FDataDict(
+    modeldatafine = Dict{String,Any}(
         "fens" => fens,
-        "regions" => [FDataDict("femm" => femm)],
+        "regions" => [Dict{String,Any}("femm" => femm)],
         "targetfields" => [psi],
         "geom" => geom,
         "elementsize" => Ly / ny / 2,
@@ -2550,9 +2550,9 @@ function test()
     geom = NodalField(fens.xyz)
     psi = NodalField([f(fens.xyz[idx, :]) for idx in 1:count(fens)])
     numberdofs!(psi)
-    modeldatacoarse = FDataDict(
+    modeldatacoarse = Dict{String,Any}(
         "fens" => fens,
-        "regions" => [FDataDict("femm" => femm)],
+        "regions" => [Dict{String,Any}("femm" => femm)],
         "targetfields" => [psi],
         "geom" => geom,
         "elementsize" => Ly / ny,
@@ -2565,9 +2565,9 @@ function test()
     geom = NodalField(fens.xyz)
     psi = NodalField([f(fens.xyz[idx, :]) for idx in 1:count(fens)])
     numberdofs!(psi)
-    modeldatafine = FDataDict(
+    modeldatafine = Dict{String,Any}(
         "fens" => fens,
-        "regions" => [FDataDict("femm" => femm)],
+        "regions" => [Dict{String,Any}("femm" => femm)],
         "targetfields" => [psi],
         "geom" => geom,
         "elementsize" => Ly / ny / 2,
@@ -2580,9 +2580,9 @@ function test()
     geom = NodalField(fens.xyz)
     psi = NodalField([f(fens.xyz[idx, :]) for idx in 1:count(fens)])
     numberdofs!(psi)
-    modeldatafinest = FDataDict(
+    modeldatafinest = Dict{String,Any}(
         "fens" => fens,
-        "regions" => [FDataDict("femm" => femm)],
+        "regions" => [Dict{String,Any}("femm" => femm)],
         "targetfields" => [psi],
         "geom" => geom,
         "elementsize" => Ly / ny / 2 / 2,

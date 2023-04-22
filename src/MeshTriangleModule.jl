@@ -8,8 +8,6 @@ module MeshTriangleModule
 __precompile__(true)
 
 import LinearAlgebra: norm
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FESetModule: AbstractFESet, FESetT3, FESetT6, FESetQ4, connasarray, subset
 import ..FENodeSetModule: FENodeSet
 import ..MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
@@ -20,11 +18,13 @@ import ..MeshQuadrilateralModule: Q4block
 import Statistics: mean
 
 """
-    T3blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol=:a)
+    T3blockx(xs::VecOrMat{T}, ys::VecOrMat{T}, orientation::Symbol = :a
+        ) where {T<:Number}
 
-T3 Mesh of a rectangle.
+T3 mesh of a rectangle.
 """
-function T3blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol = :a)
+function T3blockx(xs::VecOrMat{T}, ys::VecOrMat{T}, orientation::Symbol = :a
+    ) where {T<:Number}
     if (orientation != :a) && (orientation != :b)
         error("Cannot handle orientation : $orientation")
     end
@@ -32,8 +32,8 @@ function T3blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol = :a)
     nW = length(ys) - 1
     nnodes = (nL + 1) * (nW + 1)
     ncells = 2 * (nL) * (nW)
-    xys = zeros(FFlt, nnodes, 2)
-    conns = zeros(FInt, ncells, 3)
+    xys = zeros(T, nnodes, 2)
+    conns = zeros(Int, ncells, 3)
     f = 1
     for j in 1:(nW+1)
         for i in 1:(nL+1)
@@ -68,19 +68,17 @@ function T3blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol = :a)
     return fens, fes
 end
 
-function T3blockx(xs::FFltMat, ys::FFltMat, orientation::Symbol = :a)
-    return T3blockx(vec(xs), vec(ys), orientation)
-end
-
 """
-    T3block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, orientation::Symbol=:a)
+    T3block(Length::T, Width::T, nL::IT, nW::IT, orientation::Symbol = :a
+        ) where {T<:Number, IT<:Integer}
 
-T3 Mesh of a rectangle.
+T3 mesh of a rectangle.
 """
-function T3block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, orientation::Symbol = :a)
+function T3block(Length::T, Width::T, nL::IT, nW::IT, orientation::Symbol = :a
+    ) where {T<:Number, IT<:Integer}
     return T3blockx(
-        FFltVec(linearspace(0.0, Length, nL + 1)),
-        FFltVec(linearspace(0.0, Width, nW + 1)),
+        collect(linearspace(0.0, Length, nL + 1)),
+        collect(linearspace(0.0, Width, nW + 1)),
         orientation,
     )
 end
@@ -107,7 +105,7 @@ function T3toT6(fens::FENodeSet, fes::FESetT3)
     end
     xyz1 = fens.xyz             # Pre-existing nodes
     # Allocate for vertex nodes plus edge nodes plus face nodes
-    xyz = zeros(FFlt, newn - 1, size(fens.xyz, 2))
+    xyz = zeros(eltype(xyz1), newn - 1, size(fens.xyz, 2))
     xyz[1:size(xyz1, 1), :] = xyz1 # existing nodes are copied over
     # calculate the locations of the new nodes
     # and construct the new nodes
@@ -120,11 +118,11 @@ function T3toT6(fens::FENodeSet, fes::FESetT3)
         end
     end
     # construct new geometry cells
-    nconns = zeros(FInt, size(conns, 1), 6)
+    nconns = zeros(eltype(conns), size(conns, 1), 6)
     nc = 1
     for i in axes(conns, 1)
         conn = conns[i, :]
-        econn = zeros(FInt, 1, nedges)
+        econn = zeros(eltype(nconns), 1, nedges)
         for J in 1:nedges
             ev = conn[ec[J, :]]
             h, n = findhyperface!(edges, ev)
@@ -139,21 +137,25 @@ function T3toT6(fens::FENodeSet, fes::FESetT3)
 end
 
 """
-    T6block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, orientation::Symbol=:a)
+    T6block(Length::T, Width::T, nL::IT, nW::IT, orientation::Symbol = :a
+        ) where {T<:Number, IT<:Integer}
 
 Mesh of a rectangle of T6 elements.
 """
-function T6block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt, orientation::Symbol = :a)
+function T6block(Length::T, Width::T, nL::IT, nW::IT, orientation::Symbol = :a
+    ) where {T<:Number, IT<:Integer}
     fens, fes = T3block(Length, Width, nL, nW, orientation)
     fens, fes = T3toT6(fens, fes)
 end
 
 """
-    T6blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol=:a)
+    T6blockx(xs::VecOrMat{T}, ys::VecOrMat{T}, orientation::Symbol = :a
+        ) where {T<:Number}
 
 Graded mesh of a 2-D block of T6 finite elements.
 """
-function T6blockx(xs::FFltVec, ys::FFltVec, orientation::Symbol = :a)
+function T6blockx(xs::VecOrMat{T}, ys::VecOrMat{T}, orientation::Symbol = :a
+    ) where {T<:Number}
     fens, fes = T3blockx(xs, ys, orientation)
     fens, fes = T3toT6(fens, fes)
 end
@@ -171,7 +173,7 @@ function Q4toT3(fens::FENodeSet, fes::FESetQ4, orientation::Symbol = :default)
         numbering = numbering2
     end
     nedges = 4
-    nconns = zeros(FInt, 2 * count(fes), 3)
+    nconns = zeros(Int, 2 * count(fes), 3)
     conns = connasarray(fes)
     if orientation == :random
         draw = rand(Bool, size(conns, 1))
@@ -211,8 +213,8 @@ Refine a mesh of 3-node triangles by quadrisection.
 """
 function T3refine(fens::FENodeSet, fes::FESetT3)
     fens, fes = T3toT6(fens, fes)
-    nconn = zeros(FInt, 4 * size(fes.conn, 1), 3)
     conns = connasarray(fes)
+    nconn = zeros(eltype(conns), 4 * size(fes.conn, 1), 3)
     nc = 1
     for i in axes(conns, 1)
         c = conns[i, :]
@@ -230,25 +232,25 @@ function T3refine(fens::FENodeSet, fes::FESetT3)
 end
 
 """
-    T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol=:a)
+    T3annulus(rin::T, rex::T, nr::IT, nc::IT, angl::T, orientation::Symbol=:a)
 
 Mesh of an annulus segment.
 
 Mesh of an annulus segment, centered at the origin, with internal radius `rin`,
-and  external radius `rex`, and  development angle `Angl` (in radians). Divided
+and  external radius `rex`, and  development angle `angl` (in radians). Divided
 into elements: nr, nc in the radial and circumferential direction respectively.
 """
 function T3annulus(
-    rin::FFlt,
-    rex::FFlt,
-    nr::FInt,
-    nc::FInt,
-    Angl::FFlt,
+    rin::T,
+    rex::T,
+    nr::IT,
+    nc::IT,
+    angl::T,
     orientation::Symbol = :a,
-)
+) where {T<:Number, IT<:Integer}
     trin = min(rin, rex)
     trex = max(rin, rex)
-    fens, fes = T3block(trex - trin, Angl, nr, nc, orientation)
+    fens, fes = T3block(trex - trin, angl, nr, nc, orientation)
     xy = fens.xyz
     for i in 1:count(fens)
         r = trin + xy[i, 1]
@@ -260,25 +262,32 @@ function T3annulus(
 end
 
 """
-    T6annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol=:a)
+    T6annulus(
+        rin::T,
+        rex::T,
+        nr::IT,
+        nc::IT,
+        angl::T,
+        orientation::Symbol = :a,
+    ) where {T<:Number, IT<:Integer}
 
 Mesh of an annulus segment.
 
 Mesh of an annulus segment, centered at the origin, with internal radius `rin`,
-and  external radius `rex`, and  development angle `Angl` (in radians). Divided
+and  external radius `rex`, and  development angle `angl` (in radians). Divided
 into elements: nr, nc in the radial and circumferential direction respectively.
 """
 function T6annulus(
-    rin::FFlt,
-    rex::FFlt,
-    nr::FInt,
-    nc::FInt,
-    Angl::FFlt,
+    rin::T,
+    rex::T,
+    nr::IT,
+    nc::IT,
+    angl::T,
     orientation::Symbol = :a,
-)
+) where {T<:Number, IT<:Integer}
     trin = min(rin, rex)
     trex = max(rin, rex)
-    fens, fes = T3block(trex - trin, Angl, nr, nc, orientation)
+    fens, fes = T3block(trex - trin, angl, nr, nc, orientation)
     fens, fes = T3toT6(fens, fes)
     xy = fens.xyz
     for i in 1:count(fens)
@@ -292,14 +301,14 @@ end
 
 
 """
-    T3circlen(radius::FFlt, nperradius)
+    T3circlen(radius::T, nperradius::IT) where {T<:Number, IT<:Integer}
 
 Mesh of a quarter circle with a given number of elements per radius.
 
 The parameter `nperradius` should be an even 
 number; if that isn't so is adjusted to by adding one. 
 """
-function T3circlen(radius::FFlt, nperradius)
+function T3circlen(radius::T, nperradius::IT) where {T<:Number, IT<:Integer}
     fens, fes = T3block(1.0, 1.0, 1, 1)
     fens.xyz[1, 1] = 1.0
     fens.xyz[1, 2] = 0.0
@@ -329,19 +338,25 @@ function T3circlen(radius::FFlt, nperradius)
 end
 
 """
-    T3circleseg(angle::FFlt, radius::FFlt, nperradius, ncircumferentially, orientation::Symbol=:a)
+    T3circleseg(
+        angle::T,
+        radius::T,
+        ncircumferentially::IT,
+        nperradius::IT,
+        orientation::Symbol = :a,
+    ) where {T<:Number, IT<:Integer}
 
 Mesh of a segment of a circle.
 
 The subtended angle is `angle` in radians. The orientation: refer to `T3block`.
 """
 function T3circleseg(
-    angle::FFlt,
-    radius::FFlt,
-    ncircumferentially,
-    nperradius,
+    angle::T,
+    radius::T,
+    ncircumferentially::IT,
+    nperradius::IT,
     orientation::Symbol = :a,
-)
+) where {T<:Number, IT<:Integer}
     fens, fes = T3block(angle, radius, ncircumferentially, nperradius, orientation)
     for i in 1:count(fens)
         a = angle - fens.xyz[i, 1]

@@ -7,8 +7,6 @@ module MeshModificationModule
 
 __precompile__(true)
 
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FESetModule:
     AbstractFESet,
     count,
@@ -126,12 +124,12 @@ end
 
 function _myunique2index(A::Matrix{IT}) where {IT<:Integer} # speeded up; now the bottleneck is _mysortrows
     #println("size(A)=$(size(A))")
-    maxA = maximum(A[:])::FInt
+    maxA = maximum(A[:])
     sA = deepcopy(A)
     #@time
-    sA = _mysortdim2!(sA)::FIntMat#this is fast
+    sA = _mysortdim2!(sA) #this is fast
     #@time sA=sort(A,2,alg=QuickSort)::FIntMat;#this is slow
-    sA = [sA broadcast(+, 1:size(A, 1), maxA)]::FIntMat
+    sA = [sA broadcast(+, 1:size(A, 1), maxA)]
     #@time
     sA = _mysortrows(sA) # this now takes the majority of time, but much less than the function below
     #@time sA  = sortrows(sA,alg=QuickSort);;#this is slow
@@ -148,7 +146,7 @@ function _myunique2index(A::Matrix{IT}) where {IT<:Integer} # speeded up; now th
         end
     end
     #d=(sA[1:end-1,:].!=sA[2:end,:]); # element-wise comparison!
-    ad = zeros(FInt, size(d, 1) + 1)
+    ad = zeros(IT, size(d, 1) + 1)
     ad[1] = 1
     for k in 2:lastindex(ad)
         for m in axes(d, 2)
@@ -210,17 +208,17 @@ needs to be updated to refer to the same nodes in  the set `fens` as
 """
 function fusenodes(fens1::FENodeSet{T}, fens2::FENodeSet{T}, tolerance::T) where {T<:Number}
     @assert size(fens1.xyz, 2) == size(fens2.xyz, 2)
-    dim::FInt = size(fens1.xyz, 2)
-    nn1::FInt = count(fens1)
-    nn2::FInt = count(fens2)
-    xyz1 = zeros(FFlt, nn1, dim)
+    dim = size(fens1.xyz, 2)
+    nn1 = count(fens1)
+    nn2 = count(fens2)
+    xyz1 = zeros(T, nn1, dim)
     copyto!(xyz1, fens1.xyz)#::FFltMat = copy(fens1.xyz::FFltMat)
     id1 = collect(1:nn1)
-    xyz2 = zeros(FFlt, nn2, dim)
+    xyz2 = zeros(T, nn2, dim)
     copyto!(xyz2, fens2.xyz)#xyz2::FFltMat = copy(fens2.xyz::FFltMat)
     id2 = collect(1:nn2)
     # Decide which nodes should be checked for proximity
-    ib::FFltVec = intersectboxes(
+    ib = intersectboxes(
         inflatebox!(boundingbox(xyz1), tolerance),
         inflatebox!(boundingbox(xyz2), tolerance),
     )
@@ -241,7 +239,7 @@ function fusenodes(fens1::FENodeSet{T}, fens2::FENodeSet{T}, tolerance::T) where
                 breakoff = false
                 for rx in 1:nn2
                     if node2in[rx]
-                        distance::FFlt = 0.0
+                        distance = T(0.0)
                         for cx in 1:dim
                             distance = distance + abs(xyz2[rx, cx] - xyz1[i, cx])
                             if (distance >= tolerance) # shortcut: if the distance is already too large, stop checking
@@ -261,13 +259,13 @@ function fusenodes(fens1::FENodeSet{T}, fens2::FENodeSet{T}, tolerance::T) where
         end
     end
     # Generate  fused arrays of the nodes. First copy in the nodes from the second set...
-    xyzm = zeros(FFlt, nn1 + nn2, dim)
+    xyzm = zeros(eltype(xyz1), nn1 + nn2, dim)
     for rx in 1:nn2
         for cx in 1:dim
             xyzm[rx, cx] = xyz2[rx, cx]
         end
     end
-    idm = zeros(FInt, nn1 + nn2)
+    idm = zeros(Int, nn1 + nn2)
     for rx in 1:nn2
         idm[rx] = rx
     end
@@ -329,7 +327,7 @@ validate_mesh(fens, fes);
 """
 function compactnodes(fens::FENodeSet, connected::BitArray{1})
     @assert length(connected) == count(fens)
-    new_numbering = zeros(FInt, count(fens), 1)
+    new_numbering = zeros(Int, count(fens), 1)
     nxyz = deepcopy(fens.xyz)
     id = 1
     for i in eachindex(connected)
@@ -339,7 +337,6 @@ function compactnodes(fens::FENodeSet, connected::BitArray{1})
             id = id + 1
         end
     end
-    #new_numbering = new_numbering[1:id-1];
     fens = FENodeSet(nxyz[1:id-1, :])
     return fens, vec(new_numbering)
 end
@@ -457,7 +454,7 @@ function mergenodes(fens::FENodeSet{T}, fes::AbstractFESet, tolerance::T) where 
         end
     end
     # Generate  merged arrays of the nodes
-    xyzm = zeros(FFlt, count(fens), dim)
+    xyzm = zeros(T, count(fens), dim)
     mid = 1
     for i in 1:count(fens) # and then we pick only non-duplicated fens1
         if id1[i] > 0 # this node is the master
@@ -492,7 +489,7 @@ end
 
 Merge together  nodes of a single node set.
 
-Similar to `mergenodes(fens::FENodeSet, fes::AbstractFESet, tolerance::FFlt)`,
+Similar to `mergenodes(fens, fes, tolerance)`,
 but only the candidate nodes are considered for merging. This can potentially
 speed up the operation by orders of magnitude.
 """
@@ -526,7 +523,7 @@ function mergenodes(
         end
     end
     # Generate  merged arrays of the nodes
-    xyzm = zeros(FFlt, count(fens), dim)
+    xyzm = zeros(T, count(fens), dim)
     mid = 1
     for i in 1:count(fens) # and then we pick only non-duplicated fens1
         if id1[i] > 0 # this node is the master
@@ -644,13 +641,13 @@ function meshsmoothing(fens::FENodeSet, fes::T; options...) where {T<:AbstractFE
 end
 
 function smoothertaubin(
-    vinp::FFltMat,
-    vneigh::Array{FIntVec,1},
-    fixedv::T,
-    npass::FInt,
-    lambda::FFlt,
-    mu::FFlt,
-) where {T}
+    vinp::Matrix{T},
+    vneigh::Array{IT,1},
+    fixedv::VF,
+    npass,
+    lambda::T,
+    mu::T,
+) where {T, IT, VF}
     v = deepcopy(vinp)
     nv = deepcopy(vinp)
     for I in 1:npass
@@ -684,13 +681,13 @@ function smoothertaubin(
 end
 
 function smootherlaplace(
-    vinp::FFltMat,
-    vneigh::Array{FIntVec,1},
-    fixedv::T,
-    npass::FInt,
-    lambda::FFlt,
-    mu::FFlt,
-) where {T}
+        vinp::Matrix{T},
+        vneigh::Array{IT,1},
+        fixedv::VF,
+        npass,
+        lambda::T,
+        mu::T,
+    ) where {T, IT, VF}
     v = deepcopy(vinp)
     nv = deepcopy(vinp)
     damping_factor = lambda
@@ -720,7 +717,7 @@ Return an array of integer vectors, element I holds an array of numbers of nodes
 which are connected to node I (including node I).
 """
 function vertexneighbors(conn::Matrix{IT}, nvertices::IT) where {IT<:Integer}
-    vn = FIntVec[]
+    vn = Vector{IT}[]
     sizehint!(vn, nvertices)
     for I in 1:nvertices
         push!(vn, IT[])          # preallocate
@@ -802,7 +799,7 @@ end
 function _nodepartitioning3(xyz, nincluded::Vector{Bool}, npartitions::Int = 2)
     function inertialcutpartitioning!(partitioning, parts, X)
         nspdim = 3
-        StaticMoments = fill(zero(FFlt), nspdim, length(parts))
+        StaticMoments = fill(zero(eltype(xyz)), nspdim, length(parts))
         npart = fill(0, length(parts))
         for spdim in 1:nspdim
             @inbounds for j in axes(X, 1)
@@ -813,12 +810,12 @@ function _nodepartitioning3(xyz, nincluded::Vector{Bool}, npartitions::Int = 2)
                 end
             end
         end
-        CG = fill(zero(FFlt), nspdim, length(parts))
+        CG = fill(zero(eltype(xyz)), nspdim, length(parts))
         for p in parts
             npart[p] = Int(npart[p] / nspdim)
             CG[:, p] = StaticMoments[:, p] / npart[p] # center of gravity of each partition
         end
-        MatrixMomentOfInertia = fill(zero(FFlt), nspdim, nspdim, length(parts))
+        MatrixMomentOfInertia = fill(zero(eltype(xyz)), nspdim, nspdim, length(parts))
         @inbounds for j in axes(X, 1)
             if nincluded[j] # Is the node to be included in the partitioning?
                 jp = partitioning[j]
@@ -836,13 +833,13 @@ function _nodepartitioning3(xyz, nincluded::Vector{Bool}, npartitions::Int = 2)
             MatrixMomentOfInertia[3, 1, p] = MatrixMomentOfInertia[3, 1, p]
             MatrixMomentOfInertia[3, 2, p] = MatrixMomentOfInertia[3, 2, p]
         end
-        longdir = fill(zero(FFlt), nspdim, length(parts))
+        longdir = fill(zero(eltype(xyz)), nspdim, length(parts))
         for p in parts
             F = eigen(MatrixMomentOfInertia[:, :, p])
             six = sortperm(F.values)
             longdir[:, p] = F.vectors[:, six[1]]
         end
-        toggle = fill(one(FFlt), length(parts))
+        toggle = fill(one(eltype(xyz)), length(parts))
         @inbounds for j in axes(X, 1)
             if nincluded[j] # Is the node to be included in the partitioning?
                 jp = partitioning[j]
@@ -874,7 +871,7 @@ end
 function _nodepartitioning2(xy, nincluded::Vector{Bool}, npartitions::Int = 2)
     function inertialcutpartitioning!(partitions, parts, X)
         nspdim = 2
-        StaticMoments = fill(zero(FFlt), nspdim, length(parts))
+        StaticMoments = fill(zero(eltype(xy)), nspdim, length(parts))
         npart = fill(0, length(parts))
         for spdim in 1:nspdim
             @inbounds for j in axes(X, 1)
@@ -885,12 +882,12 @@ function _nodepartitioning2(xy, nincluded::Vector{Bool}, npartitions::Int = 2)
                 end
             end
         end
-        CG = fill(zero(FFlt), nspdim, length(parts))
+        CG = fill(zero(eltype(xy)), nspdim, length(parts))
         for p in parts
             npart[p] = Int(npart[p] / nspdim)
             CG[:, p] = StaticMoments[:, p] / npart[p] # center of gravity of each partition
         end
-        MatrixMomentOfInertia = fill(zero(FFlt), nspdim, nspdim, length(parts))
+        MatrixMomentOfInertia = fill(zero(eltype(xy)), nspdim, nspdim, length(parts))
         @inbounds for j in axes(X, 1)
             if nincluded[j] # Is the node to be included in the partitioning?
                 jp = partitions[j]
@@ -903,13 +900,13 @@ function _nodepartitioning2(xy, nincluded::Vector{Bool}, npartitions::Int = 2)
         for p in parts
             MatrixMomentOfInertia[2, 1, p] = MatrixMomentOfInertia[1, 2, p]
         end
-        longdir = fill(zero(FFlt), nspdim, length(parts))
+        longdir = fill(zero(eltype(xy)), nspdim, length(parts))
         for p in parts
             F = eigen(MatrixMomentOfInertia[:, :, p])
             six = sortperm(F.values)
             longdir[:, p] = F.vectors[:, six[1]]
         end
-        toggle = fill(one(FFlt), length(parts))
+        toggle = fill(one(eltype(xy)), length(parts))
         @inbounds for j in axes(X, 1)
             if nincluded[j] # Is the node to be included in the partitioning?
                 jp = partitions[j]

@@ -5,8 +5,6 @@ Module for base  algorithms.
 """
 module AlgoBaseModule
 
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FEMMBaseModule: integratefieldfunction, transferfield!
 import LinearAlgebra: norm, dot
 import Statistics: mean
@@ -23,7 +21,7 @@ function _keymatch(key::String, allowed_keys::Array{String})
     return matched_key
 end
 
-function dcheck!(d::FDataDict, recognized_keys::Array{String})
+function dcheck!(d::Dict{String,Any}, recognized_keys::Array{String})
     notmatched = fill("", 0)
     for key in keys(d)
         matched_key = _keymatch(key, recognized_keys)
@@ -399,7 +397,7 @@ function evalconvergencestudy(modeldatasequence)
     # The  finest solution will provide the norm used in the normalization of the errors
     finestsolnorm = fieldnorm(modeldatasequence[end])
     # Compute the approximate errors  as the differences of successive solutions
-    diffnorms = FFlt[]
+    diffnorms = Float64[]
     for i in 1:(length(modeldatasequence)-1)
         push!(diffnorms, fielddiffnorm(modeldatasequence[i], modeldatasequence[i+1]))
     end
@@ -415,11 +413,11 @@ function evalconvergencestudy(modeldatasequence)
 end
 
 """
-    conjugategradient(A, b, x0, maxiter)
+    conjugategradient(A::MT, b::Vector{T}, x0::Vector{T}, maxiter) where {MT, T<:Number}
 
 Compute one or more iterations of the conjugate gradient process.  
 """
-function conjugategradient(A::T, b::FFltVec, x0::FFltVec, maxiter::FInt) where {T}
+function conjugategradient(A::MT, b::Vector{T}, x0::Vector{T}, maxiter) where {MT, T<:Number}
     x = deepcopy(x0)
     gt = deepcopy(x0)
     d = deepcopy(x0)
@@ -438,7 +436,7 @@ function conjugategradient(A::T, b::FFltVec, x0::FFltVec, maxiter::FInt) where {
 end
 
 """
-    qtrap(ps, xs)
+    qtrap(ps::VecOrMat{T}, xs::VecOrMat{T}) where {T<:Number}
 
 Compute the area under the curve given by a set of parameters along 
 an interval and the values of the 'function' at those parameter values.  
@@ -447,9 +445,9 @@ The parameter values need not be uniformly distributed.
 Trapezoidal rule is used to evaluate the integral. The 'function' is 
 assumed to vary linearly inbetween the given points.
 """
-function qtrap(ps, xs)
+function qtrap(ps::VecOrMat{T}, xs::VecOrMat{T}) where {T<:Number}
     @assert length(ps) == length(xs)
-    num = 0.0
+    num = T(0.0)
     for i in 1:length(ps)-1
         num += (ps[i+1] - ps[i]) * (xs[i+1] + xs[i]) / 2.0
     end
@@ -457,7 +455,7 @@ function qtrap(ps, xs)
 end
 
 """
-    qcovariance(ps, xs, ys; ws = nothing)
+    qcovariance(ps::VecOrMat{T}, xs::VecOrMat{T}, ys::VecOrMat{T}; ws = nothing) where {T<:Number}
 
 Compute the covariance for two 'functions' given by the arrays `xs` and `ys` 
 at the values of the parameter `ps`. `ws` is the optional weights vector;  
@@ -470,10 +468,10 @@ Notes:
   functions and it allocates arrays instead of overwriting the contents of the
   arguments.
 """
-function qcovariance(ps, xs, ys; ws = nothing)
+function qcovariance(ps::VecOrMat{T}, xs::VecOrMat{T}, ys::VecOrMat{T}; ws = nothing) where {T<:Number}
     @assert length(ps) == length(xs) == length(ys)
     if (ws == nothing)
-        ws = ones(FFlt, length(ps))
+        ws = ones(T, length(ps))
     end
     @assert length(ws) == length(xs)
     ws[:] = ws ./ qtrap(ps, ws) # Make sure the integral of the weight is equal to 1.0
