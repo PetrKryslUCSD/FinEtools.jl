@@ -7,8 +7,6 @@ module MeshQuadrilateralModule
 
 __precompile__(true)
 
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FESetModule: AbstractFESet, FESetQ4, FESetQ8, FESetQ9, bfun, cat, connasarray, FESetL2
 import ..FENodeSetModule: FENodeSet, count
 import ..MeshModificationModule: mergemeshes, updateconn!
@@ -19,7 +17,7 @@ import LinearAlgebra: norm
 import Statistics: mean
 
 """
-    Q4annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
+    Q4annulus(rin::T, rex::T, nr::IT, nc::IT, Angl::T) where {T<:Number, IT<:Integer}
 
 Mesh of an annulus segment.
 
@@ -27,7 +25,7 @@ Mesh of an annulus segment, centered at the origin, with internal radius `rin`,
 and  external radius `rex`, and  development angle `Angl` (in radians). Divided
 into elements: nr, nc in the radial and circumferential direction respectively.
 """
-function Q4annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
+function Q4annulus(rin::T, rex::T, nr::IT, nc::IT, Angl::T) where {T<:Number, IT<:Integer}
     trin = min(rin, rex)
     trex = max(rin, rex)
     fens, fes = Q4block(trex - trin, Angl, nr, nc)
@@ -42,11 +40,11 @@ function Q4annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
 end
 
 """
-    Q4quadrilateral(xyz::FFltMat, nL::FInt, nW::FInt)
+    Q4quadrilateral(xyz::Matrix{T}, nL::IT, nW::IT) where {T<:Number, IT<:Integer}
 
 Mesh of a general quadrilateral given by the location of the vertices.
 """
-function Q4quadrilateral(xyz::FFltMat, nL::FInt, nW::FInt)
+function Q4quadrilateral(xyz::Matrix{T}, nL::IT, nW::IT) where {T<:Number, IT<:Integer}
     npts = size(xyz, 1)
     if npts == 2 # In this case the quadrilateral must be defined in two dimensions
         lo = minimum(xyz, dims = 1)
@@ -65,7 +63,7 @@ function Q4quadrilateral(xyz::FFltMat, nL::FInt, nW::FInt)
 
     xyz1 = fens.xyz
     if (size(xyz1, 2) < size(xyz, 2))
-        nxyz1 = zeros(FFlt, size(xyz1, 1), size(xyz, 2))
+        nxyz1 = zeros(T, size(xyz1, 1), size(xyz, 2))
         nxyz1[:, 1:size(xyz1, 2)] = xyz1
         xyz1 = nxyz1
     end
@@ -81,28 +79,35 @@ function Q4quadrilateral(xyz::FFltMat, nL::FInt, nW::FInt)
 end
 
 """
-    Q4elliphole(xradius::FFlt, yradius::FFlt, L::FFlt, H::FFlt,
-      nL::FInt, nH::FInt, nW::FInt)
+    Q4elliphole(
+        xradius::T,
+        yradius::T,
+        L::T,
+        H::T,
+        nL::IT,
+        nH::IT,
+        nW::IT,
+    ) where {T<:Number, IT<:Integer}
 
 Mesh of one quarter of a rectangular plate with an elliptical hole.
 
-    xradius,yradius = radius of the ellipse,
-    L,H= and dimensions of the plate,
-    nL,nH= numbers of edges along the side of the plate; this also happens
-      to be the number of edges along the circumference of the elliptical
-      hole
-    nW= number of edges along the remaining straight edge (from the hole
-      in the direction of the length),
+`xradius`,`yradius` = radius of the ellipse,
+`L,H`= and dimensions of the plate,
+`nL,nH`= numbers of edges along the side of the plate; this also happens
+    to be the number of edges along the circumference of the elliptical
+    hole
+`nW`= number of edges along the remaining straight edge (from the hole
+    in the direction of the length),
 """
 function Q4elliphole(
-    xradius::FFlt,
-    yradius::FFlt,
-    L::FFlt,
-    H::FFlt,
-    nL::FInt,
-    nH::FInt,
-    nW::FInt,
-)
+    xradius::T,
+    yradius::T,
+    L::T,
+    H::T,
+    nL::IT,
+    nH::IT,
+    nW::IT,
+) where {T<:Number, IT<:Integer}
     dA = pi / 2 / (nL + nH)
     tolerance = (xradius + yradius) / (nL * nH) / 100
     fens = nothing
@@ -138,13 +143,13 @@ function Q4elliphole(
 end
 
 """
-    Q4block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt)
+    Q4block(Length::T, Width::T, nL::IT, nW::IT) where {T<:Number, IT<:Integer}
 
 Mesh of a rectangle, Q4 elements.
 
 Divided into elements: nL, nW in the first, second (x,y).
 """
-function Q4block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt)
+function Q4block(Length::T, Width::T, nL::IT, nW::IT) where {T<:Number, IT<:Integer}
     return Q4blockx(
         collect(linearspace(0.0, Length, nL + 1)),
         collect(linearspace(0.0, Width, nW + 1)),
@@ -152,17 +157,17 @@ function Q4block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt)
 end
 
 """
-    Q4blockx(xs::FFltVec, ys::FFltVec)
+    Q4blockx(xs::Vector{T}, ys::Vector{T})
 
 Graded mesh  of a rectangle, Q4 finite elements.
 
-    Mesh of a 2-D block, Q4 finite elements. The nodes are located at the
-    Cartesian product of the two intervals on the input.  This allows for
-    construction of graded meshes.
+Mesh of a 2-D block, Q4 finite elements. The nodes are located at the
+Cartesian product of the two intervals on the input.  This allows for
+construction of graded meshes.
 
-    xs,ys - Locations of the individual planes of nodes.
+xs,ys - Locations of the individual planes of nodes.
 """
-function Q4blockx(xs::FFltVec, ys::FFltVec)
+function Q4blockx(xs::Vector{T}, ys::Vector{T}) where {T<:Number}
     nL = length(xs) - 1
     nW = length(ys) - 1
 
@@ -170,7 +175,7 @@ function Q4blockx(xs::FFltVec, ys::FFltVec)
     ncells = nL * nW
 
     # preallocate node locations
-    xyz = zeros(FFlt, nnodes, 2)
+    xyz = zeros(T, nnodes, 2)
     k = 1
     for j in 1:(nW+1)
         for i in 1:(nL+1)
@@ -183,7 +188,7 @@ function Q4blockx(xs::FFltVec, ys::FFltVec)
     fens = FENodeSet(xyz)
 
     #preallocate connectivity matrix
-    conn = zeros(FInt, ncells, 4)
+    conn = zeros(Int, ncells, 4)
 
     # function  nodenumbers(i,j,nL,nW)
     #     f = (j-1) * (nL+1) + i;
@@ -208,16 +213,12 @@ function Q4blockx(xs::FFltVec, ys::FFltVec)
     return fens, fes
 end
 
-function Q4blockx(xs::AbstractVector, ys::AbstractVector)
-    return Q4blockx(FFltVec(xs), FFltVec(ys))
-end
-
 """
-    Q8block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt)
+    Q8block(Length::T, Width::T, nL::IT, nW::IT) where {T<:Number, IT<:Integer}
 
 Mesh of a rectangle of Q8 elements.
 """
-function Q8block(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt)
+function Q8block(Length::T, Width::T, nL::IT, nW::IT) where {T<:Number, IT<:Integer}
     fens, fes = Q4block(Length, Width, nL, nW)
     fens, fes = Q4toQ8(fens, fes)
 end
@@ -244,7 +245,7 @@ function Q4toQ8(fens::FENodeSet, fes::FESetQ4)
     end
     xyz1 = fens.xyz             # Pre-existing nodes
     # Allocate for vertex nodes plus edge nodes plus face nodes
-    xyz = zeros(FFlt, newn - 1, size(xyz1, 2))
+    xyz = zeros(eltype(xyz1), newn - 1, size(xyz1, 2))
     xyz[1:size(xyz1, 1), :] = xyz1 # existing nodes are copied over
     # calculate the locations of the new nodes
     # and construct the new nodes
@@ -257,11 +258,11 @@ function Q4toQ8(fens::FENodeSet, fes::FESetQ4)
         end
     end
     # construct new geometry cells
-    nconns = zeros(FInt, size(conns, 1), 8)
+    nconns = zeros(Int, size(conns, 1), 8)
     nc = 1
     for i in axes(conns, 1)
         conn = conns[i, :]
-        econn = zeros(FInt, 1, nedges)
+        econn = zeros(Int, 1, nedges)
         for J in 1:nedges
             ev = conn[ec[J, :]]
             h, n = findhyperface!(edges, ev)
@@ -276,11 +277,11 @@ function Q4toQ8(fens::FENodeSet, fes::FESetQ4)
 end
 
 """
-    Q8blockx(xs::FFltVec, ys::FFltVec)
+    Q8blockx(xs::Vector{T}, ys::Vector{T}) where {T<:Number, IT<:Integer}
 
 Graded mesh of a 2-D block of Q8 finite elements.
 """
-function Q8blockx(xs::FFltVec, ys::FFltVec)
+function Q8blockx(xs::Vector{T}, ys::Vector{T}) where {T<:Number, IT<:Integer}
     fens, fes = Q4blockx(xs, ys)
     fens, fes = Q4toQ8(fens, fes)
 end
@@ -307,7 +308,7 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
     newn = newn + length(fes.conn) # add the interior nodes to the total
     xyz1 = fens.xyz             # Pre-existing nodes
     # Allocate for vertex nodes plus edge nodes plus face nodes
-    xyz = zeros(FFlt, newn - 1, size(xyz1, 2))
+    xyz = zeros(T, newn - 1, size(xyz1, 2))
     xyz[1:size(xyz1, 1), :] = xyz1 # existing nodes are copied over
     # calculate the locations of the new nodes
     # and construct the new nodes
@@ -320,10 +321,10 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
         end
     end
     # construct new geometry cells: for new elements out of one old one
-    nconn = zeros(FInt, 4 * length(fes.conn), 4)
+    nconn = zeros(Int, 4 * length(fes.conn), 4)
     nc = 1
     for i in eachindex(fes.conn)
-        econn = zeros(FInt, 1, nedges)
+        econn = zeros(Int, 1, nedges)
         for J in 1:nedges
             ev = fes.conn[i][ec[J, :]]
             h, n = findhyperface!(edges, ev)
@@ -349,11 +350,11 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
 end
 
 """
-    Q9blockx(xs::FFltVec, ys::FFltVec)
+    Q9blockx(xs::Vector{T}, ys::Vector{T}) where {T<:Number}
 
 Create a block of the quadratic Lagrangean Q9 nine-node quadrilaterals.
 """
-function Q9blockx(xs::FFltVec, ys::FFltVec)
+function Q9blockx(xs::Vector{T}, ys::Vector{T}) where {T<:Number}
     fens, fes = Q4blockx(xs, ys)
     nedges = 4
     ec = [1 2; 2 3; 3 4; 4 1]
@@ -371,7 +372,7 @@ function Q9blockx(xs::FFltVec, ys::FFltVec)
     newn = newn + length(fes.conn) # add the interior nodes to the total
     xyz1 = fens.xyz             # Pre-existing nodes
     # Allocate for vertex nodes plus edge nodes plus face nodes
-    xyz = zeros(FFlt, newn - 1, size(xyz1, 2))
+    xyz = zeros(T, newn - 1, size(xyz1, 2))
     xyz[1:size(xyz1, 1), :] = xyz1 # existing nodes are copied over
     # calculate the locations of the new nodes
     # and construct the new nodes
@@ -384,10 +385,10 @@ function Q9blockx(xs::FFltVec, ys::FFltVec)
         end
     end
     # construct new geometry cells: for new elements out of one old one
-    nconn = zeros(FInt, length(fes.conn), 9)
+    nconn = zeros(Int, length(fes.conn), 9)
     nc = 1
     for i in eachindex(fes.conn)
-        econn = zeros(FInt, 1, nedges)
+        econn = zeros(Int, 1, nedges)
         for J in 1:nedges
             ev = fes.conn[i][ec[J, :]]
             h, n = findhyperface!(edges, ev)
@@ -407,16 +408,16 @@ function Q9blockx(xs::FFltVec, ys::FFltVec)
 end
 
 """
-    Q8annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
+    Q8annulus(rin::T, rex::T, nr::IT, nc::IT, Angl::T) where {T<:Number, IT<:Integer}
 
 Mesh of an annulus segment.
 
 Mesh of an annulus segment, centered at the origin, with internal radius
-rin, and  external radius rex, and  development angle Angl. Divided into
-elements: nr, nc in the radial and circumferential direction
+rin`, and  external radius `rex`, and  development angle Angl. Divided into
+elements: `nr`, `nc` in the radial and circumferential direction
 respectively.
 """
-function Q8annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
+function Q8annulus(rin::T, rex::T, nr::IT, nc::IT, Angl::T) where {T<:Number, IT<:Integer}
     trin = min(rin, rex)
     trex = max(rin, rex)
     fens, fes = Q8block(trex - trin, Angl, nr, nc)
@@ -437,11 +438,11 @@ function _ontosphere!(xyz, radius)
 end
 
 """
-    Q4spheren(radius::FFlt, nperradius)
+    Q4spheren(radius::T, nperradius::IT) where {T<:Number, IT<:Integer}
 
 Generate mesh of a spherical surface (1/8th of the sphere).
 """
-function Q4spheren(radius::FFlt, nperradius)
+function Q4spheren(radius::T, nperradius::IT) where {T<:Number, IT<:Integer}
     if (mod(nperradius, 2) != 0)
         nperradius = nperradius + 1
     end
@@ -467,14 +468,14 @@ end
 
 
 """
-    Q4circlen(radius::FFlt, nperradius)
+    Q4circlen(radius::T, nperradius::IT) where {T<:Number, IT<:Integer}
 
 Mesh of a quarter circle with a given number of elements per radius.
 
 The parameter `nperradius` should be an even 
 number; if that isn't so is adjusted to by adding one. 
 """
-function Q4circlen(radius::FFlt, nperradius)
+function Q4circlen(radius::T, nperradius::IT) where {T<:Number, IT<:Integer}
     fens, fes = Q4spheren(radius, nperradius)
     # % apply transformation to project the locations of the nodes into the
     # % plane x-y
@@ -487,14 +488,14 @@ function Q4circlen(radius::FFlt, nperradius)
 end
 
 
-function doextrude(fens, fes::FESetL2, nLayers, extrusionh)
+function _doextrude(fens, fes::FESetL2, nLayers, extrusionh)
     nn1 = count(fens)
     nnt = nn1 * nLayers
     ngc = count(fes) * nLayers
-    qconn = zeros(FInt, ngc, 4)
+    qconn = zeros(Int, ngc, 4)
     conn = connasarray(fes)
     nnpe = size(conn, 2)
-    xyz = zeros(FFlt, nn1 * (nLayers + 1), size(fens.xyz, 2))
+    xyz = zeros(T, nn1 * (nLayers + 1), size(fens.xyz, 2))
     x1 = fill(0.0, size(fens.xyz, 2))
     for j in 1:nn1
         x1[:] .= fens.xyz[j, :]
@@ -527,23 +528,28 @@ end
 
 
 """
-    Q4extrudeL2(fens::FENodeSet,  fes::FESetL2, nLayers::FInt, extrusionh::F) where {F<:Function}
+    Q4extrudeL2(
+        fens::FENodeSet,
+        fes::FESetL2,
+        nLayers::IT,
+        extrusionh::F,
+    ) where {F<:Function, IT<:Integer}
 
 Extrude a mesh of linear segments into a mesh of quadrilaterals (Q4).
 """
 function Q4extrudeL2(
     fens::FENodeSet,
     fes::FESetL2,
-    nLayers::FInt,
+    nLayers::IT,
     extrusionh::F,
-) where {F<:Function}
+) where {F<:Function, IT<:Integer}
     id = vec([i for i in 1:count(fens)])
     cn = connectednodes(fes)
     id[cn[:]] = vec([i for i in eachindex(cn)])
     l2fes = deepcopy(fes)
     updateconn!(l2fes, id)
     l2fens = FENodeSet(fens.xyz[cn[:], :])
-    return doextrude(l2fens, l2fes, nLayers, extrusionh)
+    return _doextrude(l2fens, l2fes, nLayers, extrusionh)
 end
 
 
