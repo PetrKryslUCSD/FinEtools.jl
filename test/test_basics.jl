@@ -287,11 +287,11 @@ function test()
     end
     csys = CSys(3, 3, compute!)
     updatecsmat!(csys, XYZ, tangents, 0)
-    @test norm(csys._csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
+    @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
 
     csys = CSys(3, 3, zero(Float32), compute!)
     updatecsmat!(csys, XYZ, tangents, 0)
-    @test norm(csys._csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
+    @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
 
     true
 end
@@ -327,7 +327,7 @@ function test()
     # end
     csys = CSys(rfcsmat)
     updatecsmat!(csys, XYZ, tangents, 0)
-    @test norm(csys._csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
+    @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
     true
 end
 end
@@ -358,7 +358,7 @@ function test()
     # end
     csys = CSys(3)
     updatecsmat!(csys, XYZ, tangents, 0)
-    @test norm(csys._csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
+    @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
 
     true
 end
@@ -377,7 +377,7 @@ function test()
     tangents = rand(3, 3)
     csys = CSys(3, 3)
     updatecsmat!(csys, XYZ, tangents, 0)
-    @test norm(csys._csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
+    @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
     true
 end
 end
@@ -395,8 +395,8 @@ function test()
     tangents = reshape([0.2, 0.3, 0.4], 3, 1)
     csys = CSys(3, 1)
     updatecsmat!(csys, XYZ, tangents, 0)
-    # @show csys._csmat
-    @test norm(csys._csmat - rfcsmat) / norm(rfcsmat) <= 1.0e-6
+    # @show csmat(csys)
+    @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
     true
 end
 end
@@ -414,11 +414,11 @@ function test()
     tangents = reshape([0.2 0.0; 0.0 0.5; 0.4 0.2], 3, 2)
     csys = CSys(3, 2)
     updatecsmat!(csys, XYZ, tangents, 0)
-    # @show csys._csmat
+    # @show csmat(csys)
     n1 = cross(vec(tangents[:, 1]), vec(tangents[:, 2]))
     n1 = n1 / norm(n1)
     # @show n1
-    n2 = cross(vec(csys._csmat[:, 1]), vec(csys._csmat[:, 2]))
+    n2 = cross(vec(csmat(csys)[:, 1]), vec(csmat(csys)[:, 2]))
     n2 = n2 / norm(n2)
     # @show n2
     @test norm(n1 - n2) / norm(n2) <= 1.0e-6
