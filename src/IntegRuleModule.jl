@@ -7,9 +7,6 @@ module IntegRuleModule
 
 __precompile__(true)
 
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-
 """
     AbstractIntegRule
 
@@ -23,7 +20,7 @@ abstract type AbstractIntegRule end
 Triangular quadrature rule for integration on the standard triangle.
 """
 struct TriRule <: AbstractIntegRule
-    npts::FInt
+    npts::Int
     param_coords::Array{Float64,2}
     weights::Array{Float64,2}
 end
@@ -177,7 +174,7 @@ function TriRule(npts = 1)
         error("Unknown number of integration points")
     end
     rule = TriRule(
-        FInt(npts),
+        Int(npts),
         reshape(param_coords, size(param_coords, 1), 2),
         reshape(weights, length(weights), 1),
     )
@@ -191,9 +188,9 @@ end
 The Gauss rul, applicable for a tensor product of  intervals -1 <=x<= +1.
 """
 struct GaussRule <: AbstractIntegRule
-    dim::FInt
-    order::FInt
-    npts::FInt
+    dim::Int
+    order::Int
+    npts::Int
     param_coords::Array{Float64,2}
     weights::Array{Float64,2}
 end
@@ -361,8 +358,8 @@ function GaussRule(dim = 1, order = 1)
         pc = param_coords
         w = weights
         npts = order^2
-        param_coords = zeros(FFlt, npts, 2)
-        weights = zeros(FFlt, npts, 1)
+        param_coords = zeros(Float64, npts, 2)
+        weights = zeros(Float64, npts, 1)
         r = 1
         for i in 1:order
             for j in 1:order
@@ -375,8 +372,8 @@ function GaussRule(dim = 1, order = 1)
         pc = param_coords
         w = weights
         npts = order^3
-        param_coords = zeros(FFlt, npts, 3)
-        weights = zeros(FFlt, npts, 1)
+        param_coords = zeros(Float64, npts, 3)
+        weights = zeros(Float64, npts, 1)
         r = 1
         for i in 1:order
             for j in 1:order
@@ -391,7 +388,7 @@ function GaussRule(dim = 1, order = 1)
     return GaussRule(
         order,
         dim,
-        FInt(npts),
+        Int(npts),
         reshape(param_coords, size(param_coords, 1), dim),
         reshape(weights, length(weights), 1),
     )
@@ -404,7 +401,7 @@ end
 Tetrahedral quadrature rule, used for integration on the standard tetrahedron.
 """
 struct TetRule <: AbstractIntegRule
-    npts::FInt
+    npts::Int
     param_coords::Array{Float64,2}
     weights::Array{Float64,2}
 end
@@ -458,7 +455,7 @@ end
 Point quadrature rule, used for integration on the standard "point" shape.
 """
 struct PointRule <: AbstractIntegRule
-    npts::FInt
+    npts::Int
     param_coords::Array{Float64,2}
     weights::Array{Float64,2}
 end
@@ -480,7 +477,7 @@ Simplex quadrature rule.
 Used for integration on the standard triangle or the standard tetrahedron.
 """
 struct SimplexRule <: AbstractIntegRule
-    npts::FInt
+    npts::Int
     param_coords::Array{Float64,2}
     weights::Array{Float64,2}
 end
@@ -517,8 +514,8 @@ The trapezoidal rule.
 The rule is applicable for a tensor product of  intervals -1 <=x<= +1.
 """
 struct TrapezoidalRule <: AbstractIntegRule
-    dim::FInt
-    npts::FInt
+    dim::Int
+    npts::Int
     param_coords::Array{Float64,2}
     weights::Array{Float64,2}
 end
@@ -543,8 +540,8 @@ function TrapezoidalRule(dim = 1)
         pc = param_coords
         w = weights
         npts = order^2
-        param_coords = zeros(FFlt, npts, 2)
-        weights = zeros(FFlt, npts, 1)
+        param_coords = zeros(Float64, npts, 2)
+        weights = zeros(Float64, npts, 1)
         r = 1
         for i in 1:order
             for j in 1:order
@@ -557,8 +554,8 @@ function TrapezoidalRule(dim = 1)
         pc = param_coords
         w = weights
         npts = order^3
-        param_coords = zeros(FFlt, npts, 3)
-        weights = zeros(FFlt, npts, 1)
+        param_coords = zeros(Float64, npts, 3)
+        weights = zeros(Float64, npts, 1)
         r = 1
         for i in 1:order
             for j in 1:order
@@ -586,8 +583,8 @@ The quadrature points for a nodal quadrature rule must be listed in the order
 in which the nodes are used in the definition of the element!
 """
 struct NodalSimplexRule <: AbstractIntegRule
-    dim::FInt
-    npts::FInt
+    dim::Int
+    npts::Int
     param_coords::Array{Float64,2}
     weights::Array{Float64,2}
 end
@@ -604,11 +601,11 @@ function NodalSimplexRule(dim = 1)
         param_coords = reshape([-1.0 1.0]', 2, 1)
         weights = reshape([1.0 1.0], 2, 1)
     elseif (dim == 2)
-        param_coords = FFlt[0 0; 1 0; 0 1]
-        weights = FFlt[1 / 3 1 / 3 1 / 3]' / 2
+        param_coords = Float64[0 0; 1 0; 0 1]
+        weights = Float64[1 / 3 1 / 3 1 / 3]' / 2
     else # (dim==3)
-        param_coords = FFlt[0 0 0; 1 0 0; 0 1 0; 0 0 1]
-        weights = FFlt[1, 1, 1, 1] / 6.0 / 4
+        param_coords = Float64[0 0 0; 1 0 0; 0 1 0; 0 0 1]
+        weights = Float64[1, 1, 1, 1] / 6.0 / 4
     end
     npts = length(weights)
     return NodalSimplexRule(
@@ -632,8 +629,8 @@ The quadrature points for a nodal quadrature rule must be listed in the order
 in which the nodes are used in the definition of the element!
 """
 struct NodalTensorProductRule <: AbstractIntegRule
-    dim::FInt
-    npts::FInt
+    dim::Int
+    npts::Int
     param_coords::Array{Float64,2}
     weights::Array{Float64,2}
 end
@@ -647,13 +644,13 @@ function NodalTensorProductRule(dim = 1)
     @assert 1 <= dim <= 3 "Nodal-quadrature tensor-product rule of dimension $(dim) not available"
     order = 1 # order of the rule
     if (dim == 1)
-        param_coords = FFlt[-1.0 -1.0]
+        param_coords = Float64[-1.0 -1.0]
         weights = fill(1.0, 2)
     elseif (dim == 2)
-        param_coords = FFlt[-1.0 -1.0; 1.0 -1.0; 1.0 1.0; -1.0 1.0]
+        param_coords = Float64[-1.0 -1.0; 1.0 -1.0; 1.0 1.0; -1.0 1.0]
         weights = fill(1.0, 4)
     else # (dim==3)
-        param_coords = FFlt[
+        param_coords = Float64[
             -1.0 -1.0 -1.0
             1.0 -1.0 -1.0
             1.0 1.0 -1.0
