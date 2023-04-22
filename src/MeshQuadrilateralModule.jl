@@ -281,7 +281,7 @@ end
 
 Graded mesh of a 2-D block of Q8 finite elements.
 """
-function Q8blockx(xs::Vector{T}, ys::Vector{T}) where {T<:Number, IT<:Integer}
+function Q8blockx(xs::Vector{T}, ys::Vector{T}) where {T<:Number}
     fens, fes = Q4blockx(xs, ys)
     fens, fes = Q4toQ8(fens, fes)
 end
@@ -308,7 +308,7 @@ function Q4refine(fens::FENodeSet, fes::FESetQ4)
     newn = newn + length(fes.conn) # add the interior nodes to the total
     xyz1 = fens.xyz             # Pre-existing nodes
     # Allocate for vertex nodes plus edge nodes plus face nodes
-    xyz = zeros(T, newn - 1, size(xyz1, 2))
+    xyz = zeros(eltype(xyz1), newn - 1, size(xyz1, 2))
     xyz[1:size(xyz1, 1), :] = xyz1 # existing nodes are copied over
     # calculate the locations of the new nodes
     # and construct the new nodes
@@ -495,7 +495,7 @@ function _doextrude(fens, fes::FESetL2, nLayers, extrusionh)
     qconn = zeros(Int, ngc, 4)
     conn = connasarray(fes)
     nnpe = size(conn, 2)
-    xyz = zeros(T, nn1 * (nLayers + 1), size(fens.xyz, 2))
+    xyz = zeros(eltype(fens.xyz), nn1 * (nLayers + 1), size(fens.xyz, 2))
     x1 = fill(0.0, size(fens.xyz, 2))
     for j in 1:nn1
         x1[:] .= fens.xyz[j, :]
