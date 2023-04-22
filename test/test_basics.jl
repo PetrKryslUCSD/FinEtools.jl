@@ -939,6 +939,17 @@ function test()
     fi = ForceIntensity(11.0)
     F = distribloads(femm, geom, psi, fi, 3)
     @test abs(sum(F) - (*).(L, W, t, 11.0)) / 667 <= 1.0e-5
+
+    psi = NodalField(fill(1.0 + 1.0im, count(fens), 1))
+    numberdofs!(psi)
+
+    femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
+    fi = ForceIntensity([11.0im])
+    F = distribloads(femm, geom, psi, fi, 3)
+    @test abs(sum(F) - (*).(L, W, t, 11.0im)) / 667 <= 1.0e-5
+    fi = ForceIntensity(11.0im)
+    F = distribloads(femm, geom, psi, fi, 3)
+    @test abs(sum(F) - (*).(L, W, t, 11.0im)) / 667 <= 1.0e-5
     true
 end
 end

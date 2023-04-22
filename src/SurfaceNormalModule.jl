@@ -29,9 +29,9 @@ computenormal!(normalout::Vector{T}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_lab
 
 The buffer `normalout` is filled with the value  of the normal vector.
 """
-struct SurfaceNormal{T<:Number, F<:Function}
+struct SurfaceNormal{CT<:Number, T<:Number, F<:Function}
     # Cache of the current value of the normal
-    _cache::VectorCache{T, F}
+    _cache::VectorCache{CT, T, F}
 end
 
 """

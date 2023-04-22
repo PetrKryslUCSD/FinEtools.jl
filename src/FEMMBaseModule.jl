@@ -539,7 +539,7 @@ function distribloads(
     startassembly!(assembler, P.nfreedofs)
     for i in 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
-        fill!(Fe, 0.0)
+        fill!(Fe, T(0.0))
         for j in 1:npts
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i], Ns[j], m)

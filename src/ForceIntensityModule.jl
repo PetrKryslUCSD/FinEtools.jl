@@ -31,8 +31,8 @@ getforce!(forceout::Vector{T}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) wh
 The buffer `forceout` is filled with the value  of the force. The vector
 `forceout` is also returned for convenience.
 """
-struct ForceIntensity{T<:Number, F<:Function}
-    _cache::VectorCache{T, F}   # vector cache  where the current value of the force can be retrieved
+struct ForceIntensity{CT<:Number, T<:Number, F<:Function}
+    _cache::VectorCache{CT, T, F}   # vector cache  where the current value of the force can be retrieved
 end
 
 """
@@ -63,12 +63,12 @@ location `XYZ`, using if appropriate the information supplied in the Jacobian
 matrix `tangents`, and the label of the finite element, `fe_label`.
 """
 function ForceIntensity(
-    ::Type{T},
+    ::Type{CT},
     ndofn,
     computeforce!::F,
-) where {T<:Number, F<:Function}
+) where {CT<:Number, F<:Function}
     # Allocate the buffer to be ready for the first call
-    return ForceIntensity(VectorCache(T, ndofn, computeforce!))
+    return ForceIntensity(VectorCache(CT, ndofn, computeforce!))
 end
 
 """
@@ -120,13 +120,13 @@ v = updateforce!(fi, XYZ, tangents, fe_label)
 ```
 """
 function ForceIntensity(
-    ::Type{T},
+    ::Type{CT},
     ndofn,
     computeforce!::F,
     time::T,
-) where {T<:Number, F<:Function}
+) where {CT<:Number, F<:Function, T}
     # Allocate the buffer to be ready for the first call
-    return ForceIntensity(VectorCache(T, ndofn, computeforce!, time))
+    return ForceIntensity(VectorCache(CT, ndofn, computeforce!, time))
 end
 
 """
@@ -134,7 +134,7 @@ end
 
 Construct force intensity when the constant `force` vector is given.
 """
-function ForceIntensity(force::Vector{T}) where {T<:Number}
+function ForceIntensity(force::Vector{CT}) where {CT<:Number}
     return ForceIntensity(VectorCache(deepcopy(force)))
 end
 
@@ -145,8 +145,8 @@ Construct force intensity when the force is given as a scalar value.
 
 The dimension of the force vector in this case is 1.
 """
-function ForceIntensity(force::T) where {T<:Number}
-    return ForceIntensity(T[force])
+function ForceIntensity(force::CT) where {CT<:Number}
+    return ForceIntensity(CT[force])
 end
 
 """
