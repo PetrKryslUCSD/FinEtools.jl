@@ -21,7 +21,7 @@ The package supports application packages, for instance:
 
 ## News
 
-- 04/20/2023: Make fields generic.
+- 04/20/2023: Make all types in the library generic.
 - 04/18/2023: Implement resizing of assembly buffers. Makematrix! resets pointers.
 - 04/16/2023: Enabled creation of finite element sets from arbitrary arrays.
 - 03/15/2023: Changed strategy when assembling into the COO format.
