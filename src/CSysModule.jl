@@ -158,6 +158,17 @@ function updatecsmat!(self::CSys, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label)
 end
 
 """
+    csmat(self::CSys)
+
+Return coordinate system rotation matrix.
+
+No allocation is involved.
+"""
+function csmat(self::CSys)
+    self._csmat
+end
+
+"""
     gen_iso_csmat(XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
 
 Compute the coordinate system  for an isotropic material using information
