@@ -7,29 +7,27 @@ module MeshLineModule
 
 __precompile__(true)
 
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FENodeSetModule: FENodeSet
 import ..FESetModule: FESetL2, FESetL3
 import ..MeshUtilModule: linearspace
 import Statistics: mean
 
 """
-L2block(Length::FFlt, nL::FInt)
+    L2block(Length::T, nL::IT) where {T<:Number, IT<:Integer}
 
 Mesh of a 1-D block of L2 finite elements.
 """
-function L2block(Length::FFlt, nL::FInt)
+function L2block(Length::T, nL::IT) where {T<:Number, IT<:Integer}
     fens, fes = L2blockx(collect(dropdims(linearspace(0.0, Length, nL + 1)', dims = 1)))
 end
 
 
 """
-L2blockx(xs::FFltVec)
+    L2blockx(xs::Vector{T}) where {T<:Number}
 
 Graded mesh of a 1-D block, L2 finite elements.
 """
-function L2blockx(xs::FFltVec)
+function L2blockx(xs::Vector{T}) where {T<:Number}
     xyz = reshape(sort(xs), length(xs), 1)
     ncells = length(xs) - 1
 
@@ -43,14 +41,14 @@ end
 
 
 """
-    L3blockx(xs::FFltVec)
+    L3blockx(xs::Vector{T}) where {T<:Number}
 
 Graded mesh of a 1-D block, L2 finite elements.
 """
-function L3blockx(xs::FFltVec)
+function L3blockx(xs::Vector{T}) where {T<:Number}
     fens, fes = L2blockx(xs)
     nxyz = zeros(count(fes), size(fens.xyz, 2))
-    nconn = zeros(FInt, count(fes), 3)
+    nconn = zeros(Int, count(fes), 3)
     N = count(fens)
     for i in 1:count(fes)
         N = N + 1
