@@ -8,8 +8,6 @@ module MeshMixinsModule
 __precompile__(true)
 
 import LinearAlgebra: norm
-using ..FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 import ..FESetModule: AbstractFESet, FESetT3, FESetT6, FESetQ4, connasarray, subset
 import ..FENodeSetModule: FENodeSet
 import ..MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
@@ -27,11 +25,11 @@ import ..MeshTriangleModule: Q4toT3, T3toT6
 import Statistics: mean
 
 """
-    T3blockrand(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt)
+    T3blockrand(Length::T, Width::T, nL::IT, nW::IT) where {T<:Number, IT<:Integer}
 
 T3 mesh of a rectangle with random orientation.
 """
-function T3blockrand(Length::FFlt, Width::FFlt, nL::FInt, nW::FInt)
+function T3blockrand(Length::T, Width::T, nL::IT, nW::IT) where {T<:Number, IT<:Integer}
     # nL = Int(round(nL/2))
     # nW = Int(round(nW/2))
     fens, fes = Q4block(Length, Width, nL, nW) # Mesh
@@ -65,8 +63,8 @@ function T3toQ4(fens, fes)
     xyz = zeros(count(fens) + count(fes), 3)
     xyz[1:count(fens), 1:size(xyz1, 2)] = xyz1
     # construct new geometry cells
-    nconns = zeros(FInt, 3 * count(fes), 4)
     conns = connasarray(fes)
+    nconns = zeros(eltype(conns), 3 * count(fes), 4)
     nc = onfens + 1
     gc = 1
     for i in 1:count(fes)
