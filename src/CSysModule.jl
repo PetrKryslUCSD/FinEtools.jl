@@ -140,7 +140,7 @@ function CSys(sdim::IT, mdim::IT) where {IT}
 end
 
 """
-    updatecsmat!(self::CSys, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    updatecsmat!(self::CSys, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T}
 
 Update the coordinate system orientation matrix.
 
@@ -169,7 +169,7 @@ function csmat(self::CSys)
 end
 
 """
-    gen_iso_csmat(XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    gen_iso_csmat!(csmatout::Matrix{T}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T}
 
 Compute the coordinate system  for an isotropic material using information
 available  by looking at the coordinate curves of isoparametric finite
