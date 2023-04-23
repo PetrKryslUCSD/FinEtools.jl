@@ -26,7 +26,7 @@ given point `XYZ`, using the columns of the Jacobian matrix of the
 element, `tangents`, and if necessary  also the finite element label,
 `fe_label`:
 ```
-getforce!(forceout::Vector{T}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T}
+getforce!(forceout::Vector{CT}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {CT, T}
 ```
 The buffer `forceout` is filled with the value  of the force. The vector
 `forceout` is also returned for convenience.
@@ -53,13 +53,13 @@ This constructor is intended for *time-independent* vector caches.
 - `computeforce!` = callback function.
 The function `computeforce!` needs to have a signature of
 ```
-function computeforce!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+function computeforce!(forceout::Vector{CT}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {CT, T}
     Calculate the force  and copy it into the buffer....
     return forceout
 end
 ```
 and it needs to  fill in the buffer `forceout` with the current force at the
-location `XYZ`, using if appropriate the information supplied in the Jacobian
+location `XYZ`, using, if appropriate, the information supplied in the Jacobian
 matrix `tangents`, and the label of the finite element, `fe_label`.
 """
 function ForceIntensity(
@@ -91,7 +91,7 @@ This constructor is intended for time-dependent force intensity caches.
 - `time` = initial time.
 The function `computeforce!` needs to have a signature of
 ```
-function computeforce!(forceout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0)
+function computeforce!(forceout::Vector{CT}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label, time::T) where {CT, T}
 	Calculate the force  and copy it into the buffer....
 	return forceout
 end
