@@ -169,7 +169,7 @@ function integratefieldfunction(
         m = mdim# ...Or it is implied
     end
     result = initial           # initial value for the result
-    for i in 1:count(fes) #Now loop over all fes in the block
+    for i in eachindex(fes) #Now loop over all fes in the block
         gathervalues_asmat!(afield, a, fes.conn[i])# retrieve element dofs
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         for j in 1:npts #Loop over all integration points
@@ -231,7 +231,7 @@ function integratefieldfunction(
         m = mdim# ...Or it is implied
     end
     result = initial           # initial value for the result
-    for i in 1:count(fes) #Now loop over all fes in the block
+    for i in eachindex(fes) #Now loop over all fes in the block
         gathervalues_asmat!(afield, a, [i])# retrieve element dofs
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         for j in 1:npts #Loop over all integration points
@@ -297,7 +297,7 @@ function integratefunction(
     loc = fill(zero(FT), 1, sdim) # quadrature point location -- used as a buffer
     J = fill(zero(FT), sdim, mdim) # Jacobian matrix -- used as a buffer
     result = 0.0# Initialize the result
-    for i in 1:count(fes)  # Now loop over all fes in the set
+    for i in eachindex(fes)  # Now loop over all fes in the set
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         for j in 1:npts #Loop over all integration points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
@@ -460,7 +460,7 @@ function transferfield!(
     centroidpc = centroidparametric(fesf)
     N = bfun(fesf, centroidpc)
     NT = transpose(N)
-    for i in 1:count(fesf) # For all finite elements in the fine mesh
+    for i in eachindex(fesf) # For all finite elements in the fine mesh
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         nodebox = initbox!(nodebox, vec(centroid))
@@ -537,7 +537,7 @@ function distribloads(
     J = fill(zero(FT), (sdim, mdim)) # Jac. matrix -- used as a buffer
     Fe = fill(zero(T), (Cedim,))
     startassembly!(assembler, P.nfreedofs)
-    for i in 1:count(fes) # Loop over elements
+    for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(Fe, T(0.0))
         for j in 1:npts
@@ -776,7 +776,7 @@ function fieldfromintegpoints(
             geom,
             u,
             dT,
-            collect(1:count(fes)),
+            collect(eachindex(fes)),
             _avg_inspector,
             idat,
             quantity;
@@ -807,7 +807,7 @@ function fieldfromintegpoints(
             geom,
             u,
             dT,
-            collect(1:count(fes)),
+            collect(eachindex(fes)),
             _idi_inspector,
             idat,
             quantity;
@@ -931,7 +931,7 @@ function elemfieldfromintegpoints(
         geom,
         u,
         dT,
-        collect(1:count(fes)),
+        collect(eachindex(fes)),
         mv_inspector,
         idat,
         quantity;
@@ -1045,7 +1045,7 @@ function innerproduct(
         afield.nfreedofs,
         afield.nfreedofs,
     )
-    for i in 1:count(fes) # Loop over elements
+    for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(elmat, 0.0) # Initialize element matrix
         for j in 1:npts # Loop over quadrature points
@@ -1123,7 +1123,7 @@ function _field_elem_to_nodal_weighted_average!(
     nvolums = fill(zero(FT), nents(nf))
     # initial value for the result
     nf.values .= zero(T)
-    for i in 1:count(fes) #Now loop over all fes in the block
+    for i in eachindex(fes) #Now loop over all fes in the block
         ev = ef.values[i, :]
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         for j in 1:npts #Loop over all integration points
@@ -1150,7 +1150,7 @@ function _field_elem_to_nodal_max!(
 ) where {FT, T<:Number, EFL<:ElementalField{T}, NFL<:NodalField{T}}
     fes = finite_elements(self)  # finite elements
     nf.values .= zero(T) - Inf
-    for i in 1:count(fes) #Now loop over all fes in the block
+    for i in eachindex(fes) #Now loop over all fes in the block
         ev = ef.values[i, :]
         for k in eachindex(fes.conn[i])
             g = fes.conn[i][k]
@@ -1214,7 +1214,7 @@ function _field_nodal_to_elem_weighted_average!(
     nvolums = fill(zero(FT), nents(nf))
     # initial value for the result
     ef.values .= zero(T)
-    for i in 1:count(fes) #Now loop over all fes in the block
+    for i in eachindex(fes) #Now loop over all fes in the block
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         for j in 1:npts #Loop over all integration points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
@@ -1225,7 +1225,7 @@ function _field_nodal_to_elem_weighted_average!(
             end
         end
     end
-    for i in 1:count(fes) #Now loop over all fes in the block
+    for i in eachindex(fes) #Now loop over all fes in the block
         gathervalues_asmat!(nf, a, fes.conn[i])# retrieve element dofs
         ev .= zero(T)
         evol = 0.0
@@ -1258,7 +1258,7 @@ function _field_nodal_to_elem_max!(
     ev = fill(zero(T), ndn) # array of field DOFS-- used as a buffer
     # initial value for the result
     ef.values .= zero(T) - Inf
-    for i in 1:count(fes) #Now loop over all fes in the block
+    for i in eachindex(fes) #Now loop over all fes in the block
         gathervalues_asmat!(nf, a, fes.conn[i])# retrieve element dofs
         ev .= zero(T) - Inf
         for k in eachindex(fes.conn[i])

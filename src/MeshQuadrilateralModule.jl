@@ -30,7 +30,7 @@ function Q4annulus(rin::T, rex::T, nr::IT, nc::IT, Angl::T) where {T<:Number, IT
     trex = max(rin, rex)
     fens, fes = Q4block(trex - trin, Angl, nr, nc)
     xy = fens.xyz
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         r = trin + xy[i, 1]
         a = xy[i, 2]
         xy[i, :] = [r * cos(a) r * sin(a)]
@@ -70,7 +70,7 @@ function Q4quadrilateral(xyz::Matrix{T}, nL::IT, nW::IT) where {T<:Number, IT<:I
 
     dummy = FESetQ4(reshape(collect(1:4), 1, 4))
     pxyz = xyz1
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         N = bfun(dummy, broadcast(-, pxyz[i, :], 1.0))# shift coordinates by -1
         pxyz[i, :] = N' * xyz
     end
@@ -422,7 +422,7 @@ function Q8annulus(rin::T, rex::T, nr::IT, nc::IT, Angl::T) where {T<:Number, IT
     trex = max(rin, rex)
     fens, fes = Q8block(trex - trin, Angl, nr, nc)
     xy = fens.xyz
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         r = trin + xy[i, 1]
         a = xy[i, 2]
         xy[i, :] = [r * cos(a) r * sin(a)]
@@ -479,7 +479,7 @@ function Q4circlen(radius::T, nperradius::IT) where {T<:Number, IT<:Integer}
     fens, fes = Q4spheren(radius, nperradius)
     # % apply transformation to project the locations of the nodes into the
     # % plane x-y
-    for j in 1:count(fens)
+    for j in eachindex(fens)
         r = norm(fens.xyz[j, 3])
         fens.xyz[j, 1:2] = fens.xyz[j, 1:2] * ((radius - r) + r / 2) / radius
         fens.xyz[j, 3] = 0.0
@@ -511,7 +511,7 @@ function _doextrude(fens, fes::FESetL2, nLayers, extrusionh)
 
     gc = 1
     for k in 1:nLayers
-        for i in 1:count(fes)
+        for i in eachindex(fes)
             for n in 1:nnpe
                 qconn[gc, n] = conn[i, n] + (k - 1) * nn1
             end
@@ -543,7 +543,7 @@ function Q4extrudeL2(
     nLayers::IT,
     extrusionh::F,
 ) where {F<:Function, IT<:Integer}
-    id = vec([i for i in 1:count(fens)])
+    id = vec([i for i in eachindex(fens)])
     cn = connectednodes(fes)
     id[cn[:]] = vec([i for i in eachindex(cn)])
     l2fes = deepcopy(fes)

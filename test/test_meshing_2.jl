@@ -19,7 +19,7 @@ function test()
     zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
     fensc, fesc = T10blockx(xs, ys, zs, :b)
     fc = NodalField(zeros(count(fensc), 1))
-    for i in 1:count(fensc)
+    for i in eachindex(fensc)
         x, y, z = fensc.xyz[i, :]
         fc.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B) * sin(3 * z / C - 1.0)
     end
@@ -41,7 +41,7 @@ function test()
     tolerance = min(A / nA, B / nB, C / nC) / 1000.0
 
     referenceff = NodalField(zeros(count(fensf), 1))
-    for i in 1:count(fensf)
+    for i in eachindex(fensf)
         x, y, z = fensf.xyz[i, :]
         referenceff.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B) * sin(3 * z / C - 1.0)
     end
@@ -94,7 +94,7 @@ function test()
     zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
     fensc, fesc = T10blockx(xs, ys, zs, :b)
     fc = NodalField(zeros(count(fensc), 1))
-    for i in 1:count(fensc)
+    for i in eachindex(fensc)
         x, y, z = fensc.xyz[i, :]
         fc.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B) * sin(3 * z / C - 1.0)
     end
@@ -116,7 +116,7 @@ function test()
     tolerance = min(A / nA, B / nB, C / nC) / 1000.0
 
     referenceff = NodalField(zeros(count(fensf), 1))
-    for i in 1:count(fensf)
+    for i in eachindex(fensf)
         x, y, z = fensf.xyz[i, :]
         referenceff.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B) * sin(3 * z / C - 1.0)
     end
@@ -495,7 +495,7 @@ function test()
     zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
     fensc, fesc = T10blockx(xs, ys, zs, :b)
     fc = NodalField(zeros(count(fensc), 1))
-    for i in 1:count(fensc)
+    for i in eachindex(fensc)
         x, y, z = fensc.xyz[i, :]
         fc.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B) * sin(3 * z / C - 1.0)
     end
@@ -517,7 +517,7 @@ function test()
     tolerance = min(A / nA, B / nB, C / nC) / 1000.0
 
     referenceff = NodalField(zeros(count(fensf), 1))
-    for i in 1:count(fensf)
+    for i in eachindex(fensf)
         x, y, z = fensf.xyz[i, :]
         referenceff.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B) * sin(3 * z / C - 1.0)
     end
@@ -575,7 +575,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
@@ -599,7 +599,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
@@ -660,7 +660,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
@@ -684,7 +684,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
@@ -746,7 +746,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
@@ -770,7 +770,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
@@ -830,7 +830,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y = centroid
@@ -854,7 +854,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y = centroid
@@ -900,7 +900,7 @@ function test()
     ys = collect(linearspace(0.0, 1.0, 6) .^ 2)
     zs = collect(linearspace(0.0, 1.0, 3))
     fens, fes = T4blockx(xs, ys, zs, :a)
-    # for i = 1:count(fens)
+    # for i = eachindex(fens)
     #     a, y, z = fens.xyz[i,:]
     #     fens.xyz[i,1] = sin(a) * (y + 0.5)
     #     fens.xyz[i,2] = cos(a) * (y + 0.5)
@@ -910,7 +910,7 @@ function test()
     bfes = meshboundary(fes)
     @test count(bfes) == 2 * 2 * (4 * 5 + 5 * 2 + 4 * 2)
     fens, fes = T4refine(fens, fes)
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         a, y, z = fens.xyz[i, :]
         fens.xyz[i, 1] = sin(a) * (y + 0.5)
         fens.xyz[i, 2] = cos(a) * (y + 0.5)
@@ -983,7 +983,7 @@ function test()
     zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
     fensc, fesc = T10blockx(xs, ys, zs, :b)
     fc = NodalField(zeros(count(fensc), 1))
-    for i in 1:count(fensc)
+    for i in eachindex(fensc)
         x, y, z = fensc.xyz[i, :]
         fc.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B) * sin(3 * z / C - 1.0)
     end
@@ -1005,7 +1005,7 @@ function test()
     tolerance = min(A / nA, B / nB, C / nC) / 1000.0
 
     referenceff = NodalField(zeros(count(fensf), 1))
-    for i in 1:count(fensf)
+    for i in eachindex(fensf)
         x, y, z = fensf.xyz[i, :]
         referenceff.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B) * sin(3 * z / C - 1.0)
     end
@@ -1068,7 +1068,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
@@ -1092,7 +1092,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
@@ -1156,7 +1156,7 @@ function test()
     r = 1.3
     m, n = 8, 4
     fens, fes = T3block(pi / 2, r, m, n) # Mesh
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         a = pi / 2 - fens.xyz[i, 1]
         r = fens.xyz[i, 2]
         fens.xyz[i, :] .= (r * cos(a), r * sin(a))
@@ -1169,7 +1169,7 @@ function test()
     fes = renumberconn!(fes, newn)
     keep = fill(true, count(fes))
     ca = connasarray(fes)
-    for j in 1:count(fes)
+    for j in eachindex(fes)
         keep[j] = (length(unique(ca[j, :])) == 3)
     end
     l = findall(x -> x == true, keep)
@@ -1503,7 +1503,7 @@ function test()
     scalars = []
     times = []
     for t in 0.0:0.1:1.0
-        for i in 1:count(fensc)
+        for i in eachindex(fensc)
             x, y, z = fensc.xyz[i, :]
             fc.values[i, :] .=
                 sin(5 * t) * sin(2 * x / A) * cos(6.5 * y / B) * sin(3 * z / C - 1.0)

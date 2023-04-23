@@ -714,7 +714,7 @@ function test()
     INSTANCE(AE, "INSTNC1", "PART1")
     NODE(AE, fens.xyz)
     ELEMENT(AE, "c3d8rh", "AllElements", 1, connasarray(fes))
-    ELSET_ELSET(AE, "AllSolids", collect(1:count(fes)))
+    ELSET_ELSET(AE, "AllSolids", collect(eachindex(fes)))
     END_INSTANCE(AE)
     END_ASSEMBLY(AE)
     close(AE)
@@ -760,7 +760,7 @@ function test()
     fens, fes = H8block(h, l, 2.0 * pi, nh, nl, nc)
     # Shape into a cylinder
     R = zeros(3, 3)
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         x, y, z = fens.xyz[i, :]
         rotmat3!(R, [0, z, 0])
         Q = [
@@ -823,7 +823,7 @@ function test()
     fens, fes = H20block(h, l, 2.0 * pi, nh, nl, nc)
     # Shape into a cylinder
     R = zeros(3, 3)
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         x, y, z = fens.xyz[i, :]
         rotmat3!(R, [0, z, 0])
         Q = [
@@ -1087,7 +1087,7 @@ function test()
     fens, fes = H8block(L, W, t, nl * ref, nw * ref, nt * ref)
 
     # Reshape into a twisted beam shape
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         a = fens.xyz[i, 1] / L * (pi / 2)
         y = fens.xyz[i, 2] - (W / 2)
         z = fens.xyz[i, 3] - (t / 2)
@@ -1467,7 +1467,7 @@ function test()
     zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
     fensc, fesc = T10blockx(xs, ys, zs, :b)
     fc = NodalField(zeros(count(fensc), 1))
-    for i in 1:count(fensc)
+    for i in eachindex(fensc)
         x, y, z = fensc.xyz[i, :]
         fc.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B) * sin(3 * z / C - 1.0)
     end
@@ -1489,7 +1489,7 @@ function test()
     tolerance = min(A / nA, B / nB, C / nC) / 1000.0
 
     referenceff = NodalField(zeros(count(fensf), 1))
-    for i in 1:count(fensf)
+    for i in eachindex(fensf)
         x, y, z = fensf.xyz[i, :]
         referenceff.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B) * sin(3 * z / C - 1.0)
     end
@@ -1546,7 +1546,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
@@ -1570,7 +1570,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
@@ -1630,7 +1630,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
@@ -1654,7 +1654,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
@@ -1715,7 +1715,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
@@ -1739,7 +1739,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
@@ -1799,7 +1799,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
@@ -1823,7 +1823,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
@@ -1883,7 +1883,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
@@ -1904,7 +1904,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
@@ -1958,7 +1958,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y = centroid
@@ -1979,7 +1979,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y = centroid
@@ -2033,7 +2033,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y = centroid
@@ -2054,7 +2054,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y = centroid
@@ -2108,7 +2108,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y = centroid
@@ -2132,7 +2132,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y = centroid
@@ -2192,7 +2192,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y = centroid
@@ -2216,7 +2216,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y = centroid
@@ -2275,7 +2275,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x = centroid
@@ -2297,7 +2297,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x = centroid
@@ -2357,7 +2357,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x = centroid
@@ -2379,7 +2379,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x = centroid
@@ -3231,7 +3231,7 @@ function test()
     ys = collect(linearspace(0.0, 1.0, 6) .^ 2)
     zs = collect(linearspace(0.0, 1.0, 3))
     fens, fes = T4blockx(xs, ys, zs, :a)
-    # for i = 1:count(fens)
+    # for i = eachindex(fens)
     #     a, y, z = fens.xyz[i,:]
     #     fens.xyz[i,1] = sin(a) * (y + 0.5)
     #     fens.xyz[i,2] = cos(a) * (y + 0.5)
@@ -3241,7 +3241,7 @@ function test()
     bfes = meshboundary(fes)
     @test count(bfes) == 2 * 2 * (4 * 5 + 5 * 2 + 4 * 2)
     fens, fes = T4refine(fens, fes)
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         a, y, z = fens.xyz[i, :]
         fens.xyz[i, 1] = sin(a) * (y + 0.5)
         fens.xyz[i, 2] = cos(a) * (y + 0.5)
@@ -3275,7 +3275,7 @@ function test()
     zs = collect(linearspace(0.0, 1.0, 3))
     fens, fes = T4blockx(xs, ys, zs, :a)
     fens, fes = T4toT10(fens, fes)
-    # for i = 1:count(fens)
+    # for i = eachindex(fens)
     #     a, y, z = fens.xyz[i,:]
     #     fens.xyz[i,1] = sin(a) * (y + 0.5)
     #     fens.xyz[i,2] = cos(a) * (y + 0.5)
@@ -3285,7 +3285,7 @@ function test()
     bfes = meshboundary(fes)
     @test count(bfes) == 2 * 2 * (4 * 5 + 5 * 2 + 4 * 2)
     fens, fes = T10refine(fens, fes)
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         a, y, z = fens.xyz[i, :]
         fens.xyz[i, 1] = sin(a) * (y + 0.5)
         fens.xyz[i, 2] = cos(a) * (y + 0.5)
@@ -3355,7 +3355,7 @@ function test()
     zs = reshape(collect(linearspace(0.0, C, nC + 1)), nC + 1, 1)
     fensc, fesc = T10blockx(xs, ys, zs, :b)
     fc = NodalField(zeros(count(fensc), 1))
-    for i in 1:count(fensc)
+    for i in eachindex(fensc)
         x, y, z = fensc.xyz[i, :]
         fc.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B) * sin(3 * z / C - 1.0)
     end
@@ -3377,7 +3377,7 @@ function test()
     tolerance = min(A / nA, B / nB, C / nC) / 1000.0
 
     referenceff = NodalField(zeros(count(fensf), 1))
-    for i in 1:count(fensf)
+    for i in eachindex(fensf)
         x, y, z = fensf.xyz[i, :]
         referenceff.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B) * sin(3 * z / C - 1.0)
     end
@@ -3434,7 +3434,7 @@ function test()
     NT = transpose(N)
 
     fc = ElementalField(zeros(count(fesc), 1))
-    for i in 1:count(fesc)
+    for i in eachindex(fesc)
         c = [k for k in fesc.conn[i]]
         centroid = NT * fensc.xyz[c, :]
         x, y, z = centroid
@@ -3458,7 +3458,7 @@ function test()
 
     ff = ElementalField(zeros(count(fesf), 1))
     referenceff = ElementalField(zeros(count(fesf), 1))
-    for i in 1:count(fesf)
+    for i in eachindex(fesf)
         c = [k for k in fesf.conn[i]]
         centroid = NT * fensf.xyz[c, :]
         x, y, z = centroid
@@ -4499,7 +4499,7 @@ function test()
     filename = "mesh.stl"
     e = STLExporter(filename::AbstractString)
     solid(e, "thesolid")
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         c = fes.conn[i]
         facet(e, fens.xyz[c[1], :], fens.xyz[c[2], :], fens.xyz[c[3], :])
     end
@@ -4557,8 +4557,8 @@ function test()
     @test result == true
     rm(File)
 
-    points = [vec(fens.xyz[idx, :]) for idx in 1:count(fens)]
-    vectors = [("grad", [vec(fens.xyz[idx, [2, 1, 3]]) for idx in 1:count(fens)])]
+    points = [vec(fens.xyz[idx, :]) for idx in eachindex(fens)]
+    vectors = [("grad", [vec(fens.xyz[idx, [2, 1, 3]]) for idx in eachindex(fens)])]
     filename = "vectors.vtk"
     result = VTK.vtkexportvectors(filename, points, vectors)
     @test result == true
@@ -4583,7 +4583,7 @@ function test()
     bfes = meshboundary(fes)
     @test count(bfes) == 2 * 2 * (4 * 5 + 5 * 2 + 4 * 2)
     fens, fes = T10refine(fens, fes)
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         a, y, z = fens.xyz[i, :]
         fens.xyz[i, 1] = sin(a) * (y + 0.5)
         fens.xyz[i, 2] = cos(a) * (y + 0.5)
@@ -4605,11 +4605,11 @@ function test()
     # @async run(`"paraview.exe" $File`)
     e = NASTRANExporter("Refine-T10-a.nas")
     BEGIN_BULK(e)
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         GRID(e, i, fens.xyz[i, :])
     end
     conn = connasarray(fes)
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         CTETRA(e, i, 1, conn[i, :])
     end
     ENDDATA(e)
@@ -4645,7 +4645,7 @@ function test()
     fens, fes = Q4block(Lx, Ly, nx, ny) # Mesh
     femm = FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
     geom = NodalField(fens.xyz)
-    psi = NodalField([f(fens.xyz[idx, :]) for idx in 1:count(fens)])
+    psi = NodalField([f(fens.xyz[idx, :]) for idx in eachindex(fens)])
     numberdofs!(psi)
     psie = ElementalField([
         f(
@@ -4655,7 +4655,7 @@ function test()
                 fens.xyz[fes.conn[idx][3], :] +
                 fens.xyz[fes.conn[idx][4], :]
             ) ./ 4,
-        ) for idx in 1:count(fes)
+        ) for idx in eachindex(fes)
     ])
     phie = ElementalField([
         g(
@@ -4665,7 +4665,7 @@ function test()
                 fens.xyz[fes.conn[idx][3], :] +
                 fens.xyz[fes.conn[idx][4], :]
             ) ./ 4,
-        ) for idx in 1:count(fes)
+        ) for idx in eachindex(fes)
     ])
     File = "mesh.vtk"
     # Export of multiple scalar fields
@@ -4701,17 +4701,17 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
     geom = NodalField(fens.xyz)
     psi = NodalField(fill(0.0, count(fens), 2))
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         psi.values[i, 1] = f(fens.xyz[i, :])
         psi.values[i, 2] = g(fens.xyz[i, :])
     end
     numberdofs!(psi)
     # psie  = ElementalField(
     #     [f((fens.xyz[fes.conn[idx][1], :]+fens.xyz[fes.conn[idx][2], :]+fens.xyz[fes.conn[idx][3], :]+fens.xyz[fes.conn[idx][4], :])./4) 
-    #     for idx in 1:count(fes)])
+    #     for idx in eachindex(fes)])
     # phie  = ElementalField(
     #     [g((fens.xyz[fes.conn[idx][1], :]+fens.xyz[fes.conn[idx][2], :]+fens.xyz[fes.conn[idx][3], :]+fens.xyz[fes.conn[idx][4], :])./4) 
-    #     for idx in 1:count(fes)])
+    #     for idx in eachindex(fes)])
     File = "mesh.vtk"
     # Export of multiple scalar fields
     result = VTK.vtkexportmesh(File, fens, fes; scalars = [("psi", psi.values)])
@@ -4741,7 +4741,7 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
     geom = NodalField(fens.xyz)
     psie = ElementalField(fill(0.0, count(fes), 2))
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         psie.values[i, 1] = f(
             (
                 fens.xyz[fes.conn[i][1], :] +
@@ -4803,7 +4803,7 @@ function test()
     zs = collect(linearspace(0.0, 1.0, 7) .^ 2)
     fens, fes = T4blockx(xs, ys, zs, :a)
     match = true
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         X[1, :] = fens.xyz[fes.conn[i][1], :]
         X[2, :] = fens.xyz[fes.conn[i][2], :]
         X[3, :] = fens.xyz[fes.conn[i][3], :]
@@ -5444,7 +5444,7 @@ function test()
     NT = transpose(N)
 
     ef = ElementalField(zeros(count(fes), 1))
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         c = [k for k in fes.conn[i]]
         centroid = NT * fens.xyz[c, :]
         x, y = centroid
@@ -5501,7 +5501,7 @@ function test()
     NT = transpose(N)
 
     nf = NodalField(zeros(count(fens), 1))
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         x, y = fens.xyz[i, :]
         nf.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B)
     end
@@ -5557,7 +5557,7 @@ function test()
     NT = transpose(N)
 
     ef = ElementalField(zeros(count(fes), 1))
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         c = [k for k in fes.conn[i]]
         centroid = NT * fens.xyz[c, :]
         x, y = centroid
@@ -5615,7 +5615,7 @@ function test()
     NT = transpose(N)
 
     nf = NodalField(zeros(count(fens), 1))
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         x, y = fens.xyz[i, :]
         nf.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B)
     end
@@ -5672,7 +5672,7 @@ function test()
     NT = transpose(N)
 
     ef = ElementalField(zeros(count(fes), 1))
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         c = [k for k in fes.conn[i]]
         centroid = NT * fens.xyz[c, :]
         x, y = centroid
@@ -5731,7 +5731,7 @@ function test()
     NT = transpose(N)
 
     nf = NodalField(zeros(count(fens), 1))
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         x, y = fens.xyz[i, :]
         nf.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B)
     end
@@ -5788,7 +5788,7 @@ function test()
     NT = transpose(N)
 
     ef = ElementalField(zeros(count(fes), 1))
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         c = [k for k in fes.conn[i]]
         centroid = NT * fens.xyz[c, :]
         x, y = centroid
@@ -5857,7 +5857,7 @@ function test()
     NT = transpose(N)
 
     ef = ElementalField(zeros(count(fes), 1))
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         c = [k for k in fes.conn[i]]
         centroid = NT * fens.xyz[c, :]
         x, y = centroid
@@ -5914,7 +5914,7 @@ function test()
     NT = transpose(N)
 
     nf = NodalField(zeros(count(fens), 1))
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         x, y = fens.xyz[i, :]
         nf.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B)
     end
@@ -5970,7 +5970,7 @@ function test()
     NT = transpose(N)
 
     ef = ElementalField(zeros(count(fes), 1))
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         c = [k for k in fes.conn[i]]
         centroid = NT * fens.xyz[c, :]
         x, y = centroid
@@ -6028,7 +6028,7 @@ function test()
     NT = transpose(N)
 
     nf = NodalField(zeros(count(fens), 1))
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         x, y = fens.xyz[i, :]
         nf.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B)
     end
@@ -6085,7 +6085,7 @@ function test()
     NT = transpose(N)
 
     ef = ElementalField(zeros(count(fes), 1))
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         c = [k for k in fes.conn[i]]
         centroid = NT * fens.xyz[c, :]
         x, y = centroid
@@ -6144,7 +6144,7 @@ function test()
     NT = transpose(N)
 
     nf = NodalField(zeros(count(fens), 1))
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         x, y = fens.xyz[i, :]
         nf.values[i, :] .= sin(2 * x / A) * cos(6.5 * y / B)
     end
@@ -6201,7 +6201,7 @@ function test()
     NT = transpose(N)
 
     ef = ElementalField(zeros(count(fes), 1))
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         c = [k for k in fes.conn[i]]
         centroid = NT * fens.xyz[c, :]
         x, y = centroid
@@ -6371,7 +6371,7 @@ function test()
     @test count(fes) == 3 * nlayers * count(surfes)
     # @show count(fens)
     goodnodes = true
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         for j in 1:4
             goodnodes = goodnodes && (1 <= fes.conn[i][j] <= count(fens))
         end
@@ -6426,7 +6426,7 @@ function test()
     @test count(fes) == 3 * nlayers * count(surfes)
     # @show count(fens)
     goodnodes = true
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         for j in 1:4
             goodnodes = goodnodes && (1 <= fes.conn[i][j] <= count(fens))
         end
@@ -6937,7 +6937,7 @@ function test()
     bfes = meshboundary(fes)
     el = selectelem(fens, bfes, facing = true, direction = [1.0, 1.0, 0.0])
     cbfes = subset(bfes, el)
-    for i in 1:count(cbfes)
+    for i in eachindex(cbfes)
         for k in cbfes.conn[i]
             fens.xyz[k, 1:2] = fens.xyz[k, 1:2] * Radius / norm(fens.xyz[k, 1:2])
         end

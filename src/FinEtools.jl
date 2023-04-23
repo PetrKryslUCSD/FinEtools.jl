@@ -48,6 +48,7 @@ using .FESetModule:
     manifdim,
     nodesperelem,
     count,
+    eachindex,
     delegateof,
     accepttodelegate,
     fromarray!,
@@ -94,7 +95,7 @@ export AbstractFESet,
     FESetT4,
     FESetT10
 # Exported: methods for accessing dimensions and counts
-export manifdim, nodesperelem, count
+export manifdim, nodesperelem, count, eachindex
 # Exported: methods for accepting delegation and revealing the delegating object
 export delegateof, accepttodelegate
 # Exported: methods for  manipulating connectivity  and labels
@@ -102,9 +103,9 @@ export fromarray!, connasarray, setlabel!, subset, cat, updateconn!
 # Exported: methods for computing basis function values and derivatives of basis functions  with respect to the parametric coordinates, and methods for working with parametric coordinates
 export bfun, bfundpar, map2parametric, inparametric, centroidparametric
 
-using .FENodeSetModule: FENodeSet, spacedim, xyz3, count
+using .FENodeSetModule: FENodeSet, spacedim, xyz3, count, eachindex
 # Exported: type for FE node sets, methods for accessing dimensions  and counts
-export FENodeSet, spacedim, xyz3, count
+export FENodeSet, spacedim, xyz3, count, eachindex
 
 using .FENodeToFEMapModule: FENodeToFEMap
 # Exported: type for maps from nodes to finite elements

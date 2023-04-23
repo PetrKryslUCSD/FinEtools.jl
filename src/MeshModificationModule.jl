@@ -436,10 +436,10 @@ function mergenodes(fens::FENodeSet{T}, fes::AbstractFESet, tolerance::T) where 
     maxnn = count(fens) + 1
     xyz1 = fens.xyz
     dim = size(xyz1, 2)
-    id1 = collect(1:count(fens))
+    id1 = collect(eachindex(fens))
     d = zeros(size(xyz1, 1))
     # Mark nodes from the array that are duplicated
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         if (id1[i] > 0) # This node has not yet been marked for merging
             XYZ = reshape(xyz1[i, :], 1, dim)
             copyto!(d, sum(abs.(xyz1 .- XYZ), dims = 2)) #find the distances along  coordinate directions
@@ -456,7 +456,7 @@ function mergenodes(fens::FENodeSet{T}, fes::AbstractFESet, tolerance::T) where 
     # Generate  merged arrays of the nodes
     xyzm = zeros(T, count(fens), dim)
     mid = 1
-    for i in 1:count(fens) # and then we pick only non-duplicated fens1
+    for i in eachindex(fens) # and then we pick only non-duplicated fens1
         if id1[i] > 0 # this node is the master
             id1[i] = mid
             xyzm[mid, :] = xyz1[i, :]
@@ -502,7 +502,7 @@ function mergenodes(
     maxnn = count(fens) + 1
     xyz1 = fens.xyz
     dim = size(xyz1, 2)
-    id1 = collect(1:count(fens))
+    id1 = collect(eachindex(fens))
     d = fill(100.0 * tolerance, size(xyz1, 1))
     # Mark nodes from the array that are duplicated
     for ic in eachindex(candidates)
@@ -525,7 +525,7 @@ function mergenodes(
     # Generate  merged arrays of the nodes
     xyzm = zeros(T, count(fens), dim)
     mid = 1
-    for i in 1:count(fens) # and then we pick only non-duplicated fens1
+    for i in eachindex(fens) # and then we pick only non-duplicated fens1
         if id1[i] > 0 # this node is the master
             id1[i] = mid
             xyzm[mid, :] = xyz1[i, :]
@@ -538,7 +538,7 @@ function mergenodes(
     xyzm = xyzm[1:nnodes, :]
     # Renumber the cells
     conns = connasarray(fes)
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         conn = conns[i, :]
         conns[i, :] = id1[conn]
     end
@@ -782,7 +782,7 @@ function mirrormesh(
     Point = vec(Point)
 
     fens1 = deepcopy(fens) # the mirrored mesh nodes
-    for i in 1:count(fens1)
+    for i in eachindex(fens1)
         a = fens1.xyz[i, :]
         d = dot(vec(a - Point), Normal)
         fens1.xyz[i, :] = a - 2 * d * Normal
@@ -1081,7 +1081,7 @@ function distortblock(ofens::FENodeSet{T}, xdispmul::T, ydispmul::T) where {T<:N
 
     fens = deepcopy(ofens)
 
-    for k in 1:count(fens)
+    for k in eachindex(fens)
         x, y = fens.xyz[k, :]
         xi, eta = xic(x), etac(y)
         u = xdispmul * (1 + xi) * (1 - xi) * eta
@@ -1196,7 +1196,7 @@ function outer_surface_of_solid(fens::FENodeSet, bdry_fes::ET) where {ET<:Abstra
     # if (get(bdry_fes,'axisymm'))
     #     onaxisl = fe_select(fens,bdry_fes,struct ('box',[0,0,-inf,inf],'inflate',norm(max(xyz)-min(xyz))/10000));
     #     # Prune the  list of cells to include by flooding below
-    #     bdry_fes=subset(bdry_fes,setdiff(1:count(bdry_fes),onaxisl));;
+    #     bdry_fes=subset(bdry_fes,setdiff(eachindex(bdry_fes),onaxisl));;
     # end
 
     # Now we will try to find  one  boundary cell  so that  all the nodes lie in
@@ -1206,7 +1206,7 @@ function outer_surface_of_solid(fens::FENodeSet, bdry_fes::ET) where {ET<:Abstra
     conns = connasarray(bdry_fes)
     mask = fill(true, count(fens))
     start = 0
-    for j in 1:count(bdry_fes)
+    for j in eachindex(bdry_fes)
         c = N' * view(fens.xyz, conns[j, :], :)
         J = view(fens.xyz, conns[j, :], :)' * gradNpar
         n = updatenormal!(sn, c, J, 0)

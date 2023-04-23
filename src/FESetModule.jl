@@ -9,6 +9,7 @@ __precompile__(true)
 
 import Base.count
 import Base.cat
+import Base: eachindex
 import LinearAlgebra: mul!, Transpose
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 import LinearAlgebra: norm, cross
@@ -99,6 +100,13 @@ manifdim(me::AbstractFESet3Manifold{NODESPERELEM}) where {NODESPERELEM} = 3
 Get the number of individual connectivities in the FE set.
 """
 count(self::T) where {T<:AbstractFESet} = length(self.conn)
+
+"""
+    eachindex(fes::AbstractFESet)
+
+Create an iterator for elements.
+"""
+eachindex(fes::AbstractFESet) = 1:count(fes)
 
 """
     delegateof(self::T) where {T<:AbstractFESet} 

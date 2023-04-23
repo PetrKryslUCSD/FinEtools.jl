@@ -59,15 +59,15 @@ function T3toQ4(fens, fes)
     onfens = count(fens)
     xyz1 = deepcopy(fens.xyz)
     id = zeros(count(fens) + count(fes))
-    id[1:count(fens)] = 1:count(fens)
+    id[eachindex(fens)] = eachindex(fens)
     xyz = zeros(count(fens) + count(fes), 3)
-    xyz[1:count(fens), 1:size(xyz1, 2)] = xyz1
+    xyz[eachindex(fens), 1:size(xyz1, 2)] = xyz1
     # construct new geometry cells
     conns = connasarray(fes)
     nconns = zeros(eltype(conns), 3 * count(fes), 4)
     nc = onfens + 1
     gc = 1
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         conn = conns[i, :]
         id[nc] = nc
         xyz[nc, :] = mean(xyz[conn[1:3], :], dims = 1)

@@ -50,7 +50,7 @@ function L3blockx(xs::Vector{T}) where {T<:Number}
     nxyz = zeros(count(fes), size(fens.xyz, 2))
     nconn = zeros(Int, count(fes), 3)
     N = count(fens)
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         N = N + 1
         nxyz[i, :] = mean(fens.xyz[[k for k in fes.conn[i]], :], dims = 1)
         nconn[i, :] = vcat([k for k in fes.conn[i]], [N])

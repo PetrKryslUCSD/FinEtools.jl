@@ -339,7 +339,7 @@ function H8hexahedron(xyz::Matrix{T}, nL::IT, nW::IT, nH::IT; blockfun = nothing
 
     dummy = FESetH8(reshape(collect(1:8), 1, 8))
     pxyz = fens.xyz
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         N = bfun(dummy, broadcast(-, pxyz[i, :], 1.0))# shift coordinates by -1
         pxyz[i, :] = N' * xyz
     end
@@ -388,7 +388,7 @@ function _doextrude(fens, fes::FESetQ4, nLayers, extrusionh)
 
     gc = 1
     for k in 1:nLayers
-        for i in 1:count(fes)
+        for i in eachindex(fes)
             hconn[gc, :] =
                 [broadcast(+, conn[i, :], (k - 1) * nn1) broadcast(+, conn[i, :], k * nn1)]
             gc = gc + 1
@@ -415,7 +415,7 @@ function H8extrudeQ4(
     nLayers::IT,
     extrusionh::F,
 ) where {F<:Function, IT<:Integer}
-    id = vec([i for i in 1:count(fens)])
+    id = vec([i for i in eachindex(fens)])
     cn = connectednodes(fes)
     id[cn[:]] = vec([i for i in eachindex(cn)])
     q4fes = deepcopy(fes)
@@ -789,13 +789,13 @@ function H8cylindern(Radius::T, Length::T, nperradius::IT, nL::IT) where {T<:Num
     tol = min((Length / nL), (Radius / 2 / nperradius)) / 100
     fens, fes = Q4circlen(Radius, nperradius)
     fens2 = deepcopy(fens)
-    for i in 1:count(fens2)
+    for i in eachindex(fens2)
         fens2.xyz[i, 1], fens2.xyz[i, 2] = -fens2.xyz[i, 2], fens2.xyz[i, 1]
     end
     fens, fes, fes2 = mergemeshes(fens, fes, fens2, fes, tol)
     fes = cat(fes, fes2)
     fens2 = deepcopy(fens)
-    for i in 1:count(fens2)
+    for i in eachindex(fens2)
         fens2.xyz[i, 1], fens2.xyz[i, 2] = -fens2.xyz[i, 1], -fens2.xyz[i, 2]
     end
     fens, fes, fes2 = mergemeshes(fens, fes, fens2, fes, tol)

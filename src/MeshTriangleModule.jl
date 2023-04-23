@@ -252,7 +252,7 @@ function T3annulus(
     trex = max(rin, rex)
     fens, fes = T3block(trex - trin, angl, nr, nc, orientation)
     xy = fens.xyz
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         r = trin + xy[i, 1]
         a = xy[i, 2]
         xy[i, :] = [r * cos(a) r * sin(a)]
@@ -290,7 +290,7 @@ function T6annulus(
     fens, fes = T3block(trex - trin, angl, nr, nc, orientation)
     fens, fes = T3toT6(fens, fes)
     xy = fens.xyz
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         r = trin + xy[i, 1]
         a = xy[i, 2]
         xy[i, :] = [r * cos(a) r * sin(a)]
@@ -325,7 +325,7 @@ function T3circlen(radius::T, nperradius::IT) where {T<:Number, IT<:Integer}
         bfes = meshboundary(fes)
         lx = selectelem(fens, bfes; box = Float64[0 0 -Inf Inf], inflate = tolerance)
         ly = selectelem(fens, bfes; box = Float64[-Inf Inf 0 0], inflate = tolerance)
-        lc = setdiff(1:count(bfes), vcat(lx, ly))
+        lc = setdiff(eachindex(bfes), vcat(lx, ly))
         l1 = connectednodes(subset(bfes, lc))
         for j in l1
             d = norm(fens.xyz[j, :])
@@ -358,7 +358,7 @@ function T3circleseg(
     orientation::Symbol = :a,
 ) where {T<:Number, IT<:Integer}
     fens, fes = T3block(angle, radius, ncircumferentially, nperradius, orientation)
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         a = angle - fens.xyz[i, 1]
         r = fens.xyz[i, 2]
         fens.xyz[i, :] .= (r * cos(a), r * sin(a))
@@ -371,7 +371,7 @@ function T3circleseg(
     fes = renumberconn!(fes, newn)
     keep = fill(true, count(fes))
     ca = connasarray(fes)
-    for j in 1:count(fes)
+    for j in eachindex(fes)
         keep[j] = (length(unique(ca[j, :])) == 3)
     end
     l = findall(x -> x == true, keep)

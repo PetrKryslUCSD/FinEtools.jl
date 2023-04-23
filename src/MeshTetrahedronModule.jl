@@ -933,7 +933,7 @@ function T4quartercyln(R::T, L::T, nR::IT, nL::IT; orientation = :b) where {T<:N
     z2 = selectelem(fens, bfes, facing = true, direction = [0, 0, +1.0], tolerance = 0.999)
     x1 = selectelem(fens, bfes, facing = true, direction = [-1.0, 0, 0], tolerance = 0.999)
     y1 = selectelem(fens, bfes, facing = true, direction = [0, -1.0, 0], tolerance = 0.999)
-    round1 = setdiff(1:count(bfes), vcat(x1, y1, z1, z2))
+    round1 = setdiff(eachindex(bfes), vcat(x1, y1, z1, z2))
     cn = connectednodes(subset(bfes, round1))
     for j in eachindex(cn)
         fens.xyz[cn[j], 1:2] .*= R / norm(fens.xyz[cn[j], 1:2])
@@ -956,7 +956,7 @@ function T10quartercyln(R::T, L::T, nR::IT, nL::IT; orientation = :b) where {T<:
     bfes = meshboundary(fes)
     el = selectelem(fens, bfes, facing = true, direction = [1.0, 1.0, 0.0])
     cbfes = subset(bfes, el)
-    for i in 1:count(cbfes)
+    for i in eachindex(cbfes)
         for k in cbfes.conn[i]
             fens.xyz[k, 1:2] = fens.xyz[k, 1:2] * R / norm(fens.xyz[k, 1:2])
         end
@@ -1085,7 +1085,7 @@ function T10cylindern(R::T, L::T, nR::IT, nL::IT; orientation = :b) where {T<:Nu
     bfes = meshboundary(fes)
     el = selectelem(fens, bfes, facing = true, direction = [1.0, 1.0, 0.0])
     cbfes = subset(bfes, el)
-    for i in 1:count(cbfes)
+    for i in eachindex(cbfes)
         for k in cbfes.conn[i]
             fens.xyz[k, 1:2] = fens.xyz[k, 1:2] * R / norm(fens.xyz[k, 1:2])
         end

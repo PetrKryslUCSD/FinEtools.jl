@@ -153,7 +153,7 @@ function test()
     fens, fes = Q4block(L, W, nl, nw)
     geom = NodalField(fens.xyz)
 
-    nfes = FESetP1(reshape(collect(1:count(fens)), count(fens), 1))
+    nfes = FESetP1(reshape(collect(eachindex(fens)), count(fens), 1))
     femm = FEMMBase(IntegDomain(nfes, PointRule()))
     S = integratefunction(femm, geom, (x) -> 1.0)
     @test abs(S - count(fens)) / S < 1.0e-5
@@ -217,7 +217,7 @@ function test()
     fens, fes = H8block(L, W, t, nl, nw, nt)
     geom = NodalField(fens.xyz)
 
-    nfes = FESetP1(reshape(collect(1:count(fens)), count(fens), 1))
+    nfes = FESetP1(reshape(collect(eachindex(fens)), count(fens), 1))
     femm = FEMMBase(IntegDomain(nfes, PointRule()))
     S = integratefunction(femm, geom, (x) -> 1.0)
     @test abs(S - count(fens)) / S < 1.0e-5
@@ -597,7 +597,7 @@ function test()
     nl, nt, nw = 6, 8, 9
 
     fens, fes = H20block(L, W, t, nl, nw, nt)
-    for ixxxx in 1:count(fens)
+    for ixxxx in eachindex(fens)
         x, y, z = fens.xyz[ixxxx, :]
         fens.xyz[ixxxx, :] = [x + a * sin(y) y + a * sin(z) z + a * sin(x)]
     end
@@ -610,7 +610,7 @@ function test()
     S20 = integratefunction(femm, geom, (x) -> 1.0)
 
     fens, fes = H27block(L, W, t, nl, nw, nt)
-    for ixxxx in 1:count(fens)
+    for ixxxx in eachindex(fens)
         x, y, z = fens.xyz[ixxxx, :]
         fens.xyz[ixxxx, :] = [x + a * sin(y) y + a * sin(z) z + a * sin(x)]
     end
@@ -641,7 +641,7 @@ function test()
     nl, nt, nw = 6, 8, 9
 
     fens, fes = H20block(L, W, t, nl, nw, nt)
-    for ixxxx in 1:count(fens)
+    for ixxxx in eachindex(fens)
         x, y, z = fens.xyz[ixxxx, :]
         fens.xyz[ixxxx, :] = [x + a * sin(y) y + a * sin(z) z + a * sin(x)]
     end
@@ -653,7 +653,7 @@ function test()
     V20 = integratefunction(femm, geom, (x) -> 1.0)
 
     fens, fes = H27block(L, W, t, nl, nw, nt)
-    for ixxxx in 1:count(fens)
+    for ixxxx in eachindex(fens)
         x, y, z = fens.xyz[ixxxx, :]
         fens.xyz[ixxxx, :] = [x + a * sin(y) y + a * sin(z) z + a * sin(x)]
     end
@@ -1127,7 +1127,7 @@ function test()
 
     fens, fes = H20block(L, W, t, nl, nw, nt)
     # # println("Mesh: $(count(fes))")
-    for ixxxx in 1:count(fens)
+    for ixxxx in eachindex(fens)
         x, y, z = fens.xyz[ixxxx, :]
         fens.xyz[ixxxx, :] = [x + a * sin(y) y + x / 10 * a * sin(z) z + y * a * sin(x)]
     end
@@ -1141,7 +1141,7 @@ function test()
 
     subregion1list =
         selectelem(fens, fes, box = [0.0 L / 2 -Inf Inf -Inf Inf], inflate = t / 1000)
-    subregion2list = setdiff(1:count(fes), subregion1list)
+    subregion2list = setdiff(eachindex(fes), subregion1list)
     # # println("Sub mesh 1: $(length(subregion1list))")
     # # println("Sub mesh 2: $(length(subregion2list))")
 
@@ -1253,7 +1253,7 @@ function test()
 
     anode = [13, 3, 1961, 61, 43]
     global connectedcount = 0
-    for i in 1:count(fes)
+    for i in eachindex(fes)
         for m in eachindex(anode)
             if in(anode[m], fes.conn[i])
                 global connectedcount = connectedcount + 1
@@ -1764,7 +1764,7 @@ function test()
 
     fens, fes = H8block(L, W, t, nl, nw, nt)
     # # println("Mesh: $(count(fes))")
-    for ixxxx in 1:count(fens)
+    for ixxxx in eachindex(fens)
         x, y, z = fens.xyz[ixxxx, :]
         fens.xyz[ixxxx, :] = [x + a * sin(y) y + x / 10 * a * sin(z) z + y * a * sin(x)]
     end
@@ -1778,7 +1778,7 @@ function test()
 
     subregion1list =
         selectelem(fens, fes, box = [0.0 L / 2 -Inf Inf -Inf Inf], inflate = t / 1000)
-    subregion2list = setdiff(1:count(fes), subregion1list)
+    subregion2list = setdiff(eachindex(fes), subregion1list)
     # # println("Sub mesh 1: $(length(subregion1list))")
     # # println("Sub mesh 2: $(length(subregion2list))")
 
@@ -2548,7 +2548,7 @@ function test()
     fens, fes = Q4block(Lx, Ly, nx, ny) # Mesh
     femm = FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
     geom = NodalField(fens.xyz)
-    psi = NodalField([f(fens.xyz[idx, :]) for idx in 1:count(fens)])
+    psi = NodalField([f(fens.xyz[idx, :]) for idx in eachindex(fens)])
     numberdofs!(psi)
     modeldatacoarse = Dict{String,Any}(
         "fens" => fens,
@@ -2563,7 +2563,7 @@ function test()
     fens, fes = Q4refine(fens, fes)
     femm = FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
     geom = NodalField(fens.xyz)
-    psi = NodalField([f(fens.xyz[idx, :]) for idx in 1:count(fens)])
+    psi = NodalField([f(fens.xyz[idx, :]) for idx in eachindex(fens)])
     numberdofs!(psi)
     modeldatafine = Dict{String,Any}(
         "fens" => fens,
@@ -2578,7 +2578,7 @@ function test()
     fens, fes = Q4refine(fens, fes)
     femm = FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
     geom = NodalField(fens.xyz)
-    psi = NodalField([f(fens.xyz[idx, :]) for idx in 1:count(fens)])
+    psi = NodalField([f(fens.xyz[idx, :]) for idx in eachindex(fens)])
     numberdofs!(psi)
     modeldatafinest = Dict{String,Any}(
         "fens" => fens,
@@ -2659,7 +2659,7 @@ function test()
     u = NodalField(0.0 .* fens.xyz)
     dT = NodalField(fill(0.0, count(fens), 1))
     psi = NodalField(fill(0.0, count(fens), 2))
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         psi.values[i, 1] = f(fens.xyz[i, :])
         psi.values[i, 2] = g(fens.xyz[i, :])
     end
@@ -2740,7 +2740,7 @@ function test()
     u = NodalField(0.0 .* fens.xyz)
     dT = NodalField(fill(0.0, count(fens), 1))
     psi = NodalField(fill(0.0, count(fens), 2))
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         psi.values[i, 1] = f(fens.xyz[i, :])
         psi.values[i, 2] = g(fens.xyz[i, :])
     end
@@ -2845,7 +2845,7 @@ function test()
     u = NodalField(0.0 .* fens.xyz)
     dT = NodalField(fill(0.0, count(fens), 1))
     psi = NodalField(fill(0.0, count(fens), 2))
-    for i in 1:count(fens)
+    for i in eachindex(fens)
         psi.values[i, 1] = f(fens.xyz[i, :])
         psi.values[i, 2] = g(fens.xyz[i, :])
     end

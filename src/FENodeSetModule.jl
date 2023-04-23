@@ -65,4 +65,11 @@ function count(self::FENodeSet)
     return size(self.xyz, 1)
 end
 
+"""
+    eachindex(fens::FENodeSet)
+
+Create the finite element node iterator.
+"""
+eachindex(fens::FENodeSet) = 1:count(fens)
+
 end
