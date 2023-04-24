@@ -65,7 +65,8 @@ julia> mean(B,1)
  0.0  0.0  0.0  0.0
 ```
 
- -- Use return type annotations.
+ -- Use return type annotations. Status: Still not sure if I want to do this in 2023.
+ It might help with understanding the code from the signature?
 
  -- Replace explicit loops with in-place matrix mult functions? A_mult_B! and so on...
  Notes: Tested for  the heat conduction model. Around 20% slower: more
@@ -108,7 +109,7 @@ Implemented 05/1/17: compute only upper triangle in the integration group,
 complete the full matrix underneath the loop. Not completing the triangle
 would not work if the assembler expected the full matrix.
 
--- Test the speed  with the material orientation  matrix Different from identity.
+-- Test the speed  with the material orientation  matrix different from identity.
 
 --
 Other workarounds include "types as tags" (search; NumericFuns.jl is one example
