@@ -571,8 +571,10 @@ function T4voximggen(img::Array{DataT,3}, voxval::Array{DataT,1}) where {DataT<:
     t = zeros(Int, 5 * Nvoxval, 4)
     v = zeros(Int, (M + 1) * (N + 1) * (P + 1), 3)
     tmid = zeros(Int, 5 * Nvoxval)
-
+    nv = 0                      # number of vertices
+    nt = 0                      # number of elements
     Slice = zeros(Int, 2, N + 1, P + 1) # auxiliary buffer
+
     function find_vertex(I, IJK)
         vidx = zeros(Int, 1, size(IJK, 1))
         for r in axes(IJK, 1)
@@ -602,8 +604,7 @@ function T4voximggen(img::Array{DataT,3}, voxval::Array{DataT,1}) where {DataT<:
 
     end
 
-    nv = 0                      # number of vertices
-    nt = 0                      # number of elements
+    
     for I in 1:M
         for J in 1:N
             for K in 1:P
