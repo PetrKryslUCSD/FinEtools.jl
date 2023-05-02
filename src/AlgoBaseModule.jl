@@ -13,7 +13,7 @@ function _keymatch(key::String, allowed_keys::Array{String})
     matched_key = nothing
     for j in eachindex(allowed_keys)
         m = match(Regex("^$key"), allowed_keys[j])
-        if (m != nothing)
+        if (m !== nothing)
             matched_key = allowed_keys[j]
             break
         end
@@ -25,7 +25,7 @@ function dcheck!(d::Dict{String,Any}, recognized_keys::Array{String})
     notmatched = fill("", 0)
     for key in keys(d)
         matched_key = _keymatch(key, recognized_keys)
-        if matched_key == nothing
+        if matched_key === nothing
             push!(notmatched, "Key \"$key\" not matched")
         else
             if key != matched_key
@@ -470,7 +470,7 @@ Notes:
 """
 function qcovariance(ps::VecOrMat{T}, xs::VecOrMat{T}, ys::VecOrMat{T}; ws = nothing) where {T<:Number}
     @assert length(ps) == length(xs) == length(ys)
-    if (ws == nothing)
+    if (ws === nothing)
         ws = ones(T, length(ps))
     end
     @assert length(ws) == length(xs)

@@ -109,7 +109,7 @@ function vtkexportmesh(
     opts...,
 ) where {T<:AbstractFESet}
     Cell_type = _match_type(VTKtypemap, typeof(fes))
-    Cell_type == nothing  && error("Unknown type $(typeof(fes))")
+    Cell_type === nothing  && error("Unknown type $(typeof(fes))")
     return vtkexportmesh(theFile, connasarray(fes), fens.xyz, Cell_type; opts...)
 end
 
@@ -1594,7 +1594,7 @@ Write the mesh in the MESH format.
 function write_MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:AbstractFESet}
     meshfilebase, ext = splitext(meshfile)
     t = _match_type(MESHtypemap, typeof(fes))
-    t == nothing && error("Unknown type $(typeof(fes))")
+    t === nothing && error("Unknown type $(typeof(fes))")
     dinfo = [meshfilebase * "-xyz.dat", t, meshfilebase * "-conn.dat"]
     # write out a file with the coordinates of the nodes
     open(dinfo[1], "w") do file
@@ -1662,7 +1662,7 @@ function write_H5MESH(meshfile::String, fens::FENodeSet, fes::T) where {T<:Abstr
     end
     fname = DataDrop.with_extension(meshfile, ext)
     etype = _match_type(VTKtypemap, typeof(fes))
-    etype == nothing && error("Unknown VTK type!")
+    etype === nothing && error("Unknown VTK type!")
     # If the file exists, delete all contents
     h5open(fname, "w") do fid
     end
@@ -1762,7 +1762,7 @@ function vtkwrite(
     opts...,
 ) where {T<:AbstractFESet}
     t = _match_type(_VTK_TYPE_MAP, typeof(fes))
-    t == nothing && error("Unknown type $(typeof(fes))")
+    t === nothing && error("Unknown type $(typeof(fes))")
     celltype = WriteVTK.VTKCellTypes.VTKCellType(t)
     return vtkwrite(theFile, connasarray(fes), fens.xyz, celltype; opts...)
 end
@@ -1863,7 +1863,7 @@ function vtkwritecollection(
     opts...,
 ) where {T<:AbstractFESet}
     t = _match_type(_VTK_TYPE_MAP, typeof(fes))
-    t == nothing && error("Unknown type $(typeof(fes))")
+    t === nothing && error("Unknown type $(typeof(fes))")
     celltype = WriteVTK.VTKCellTypes.VTKCellType(t)
     return vtkwritecollection(theFile, connasarray(fes), fens.xyz, celltype, times; opts...)
 end

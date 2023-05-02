@@ -120,7 +120,7 @@ function Q4elliphole(
             xradius*cos((i) * dA) yradius*sin((i) * dA)
         ]
         fens1, fes1 = Q4quadrilateral(xy, nW, 1)
-        if (fens == nothing)
+        if (fens === nothing)
             fens = fens1
             fes = fes1
         else

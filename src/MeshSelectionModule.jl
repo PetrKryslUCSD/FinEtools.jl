@@ -284,7 +284,7 @@ function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET<:AbstractFESe
     felist = zeros(IT, length(fes.conn))
 
     #     Select based on fe label
-    if label != nothing
+    if label !== nothing
         @assert length(fes.label) == length(fes.conn)
         for i in eachindex(fes.conn)
             if label == fes.label[i]
@@ -327,7 +327,7 @@ function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET<:AbstractFESe
     end
 
     # Select all elements whose nodes are in a given list
-    if withnodes != nothing
+    if withnodes !== nothing
         for i in eachindex(fes.conn)
             if nodesin(fes.conn[i], withnodes)
                 felist[i] = i   # matched this element
@@ -594,7 +594,7 @@ function vselect(v::Matrix{T}; kwargs...) where {T<:Number}
 
     # Did we get an inflate value
     inflatevalue = 0.0
-    if inflate != nothing
+    if inflate !== nothing
         inflatevalue = T(inflate)
     end
 
@@ -611,7 +611,7 @@ function vselect(v::Matrix{T}; kwargs...) where {T<:Number}
         abox = vec(box)
         inflatebox!(abox, inflatevalue)
         vlist, nn = _compute_vlist!(vlist, abox, sdim, v)
-    elseif distance != nothing
+    elseif distance !== nothing
         fromvalue = fill!(deepcopy(v[1, :]), 0.0)
         if from !== nothing
             fromvalue = from
@@ -624,11 +624,11 @@ function vselect(v::Matrix{T}; kwargs...) where {T<:Number}
                 vlist[nn] = i
             end
         end
-    elseif plane != nothing
+    elseif plane !== nothing
         normal = plane[1:end-1]
         normal = vec(normal / norm(normal))
         thicknessvalue = 0.0
-        if thickness != nothing
+        if thickness !== nothing
             thicknessvalue = thickness
         end
         t = thicknessvalue + inflatevalue
@@ -640,7 +640,7 @@ function vselect(v::Matrix{T}; kwargs...) where {T<:Number}
                 vlist[nn] = i
             end
         end
-    elseif nearestto != nothing
+    elseif nearestto !== nothing
         location = vec(nearestto)
         distance = zeros(size(v, 1))
         for i in axes(v, 1)
@@ -649,7 +649,7 @@ function vselect(v::Matrix{T}; kwargs...) where {T<:Number}
         Mv, j = findmin(distance)
         vlist[1] = j
         nn = 1
-    elseif farthestfrom != nothing
+    elseif farthestfrom !== nothing
         location = vec(farthestfrom)
         distance = zeros(size(v, 1))
         for i in axes(v, 1)
