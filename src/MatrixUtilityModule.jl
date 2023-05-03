@@ -608,7 +608,7 @@ function import_sparse(filnam)
             J[i] = parse(Int64, s[2])
             V[i] = parse(Float64, s[3])
         end
-        B = sparse(I, J, V, m, n)
+        sparse(I, J, V, m, n)
     end
     return B
 end
