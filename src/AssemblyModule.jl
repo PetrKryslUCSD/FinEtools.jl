@@ -487,7 +487,7 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
         self.rowbuffer[self.buffer_pointer:end] .= 0
         self.colbuffer[self.buffer_pointer:end] .= 0
         self.matbuffer[self.buffer_pointer:end] .= 0.0
-        return spzeros(self.ndofs_row, self.ndofs_col)
+        return spzeros(self.ndofs, self.ndofs)
     end
     # Compact the buffers by deleting ignorable rows and columns.
     p = 1
@@ -556,7 +556,7 @@ function SysmatAssemblerSparseDiag(z::T, nomatrixresult = false) where {T}
     return SysmatAssemblerSparseDiag(0, T[z], Int[0], Int[0], 0, 0, nomatrixresult)
 end
 
-function SysmatAssemblerSparseDiag()
+function SysmatAssemblerSparseDiag() where {T}
     return SysmatAssemblerSparseDiag(zero(T))
 end
 
@@ -675,7 +675,7 @@ function makematrix!(self::SysmatAssemblerSparseDiag)
         self.rowbuffer[self.buffer_pointer:end] .= 0
         self.colbuffer[self.buffer_pointer:end] .= 0
         self.matbuffer[self.buffer_pointer:end] .= 0.0
-        return spzeros(self.ndofs_row, self.ndofs_col)
+        return spzeros(self.ndofs, self.ndofs)
     end
     # Compact the buffers by deleting ignorable rows and columns.
     p = 1
@@ -1005,7 +1005,7 @@ function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
         self.rowbuffer[self.buffer_pointer:end] .= 0
         self.colbuffer[self.buffer_pointer:end] .= 0
         self.matbuffer[self.buffer_pointer:end] .= 0.0
-        return spzeros(self.ndofs_row, self.ndofs_col)
+        return spzeros(self.ndofs, self.ndofs)
     end
     # Compact the buffers by deleting ignorable rows and columns.
     p = 1
@@ -1058,7 +1058,7 @@ mutable struct SysmatAssemblerReduced{MT, TMT, IT} <: AbstractSysmatAssembler
     nomatrixresult::Bool
 end
 
-function SysmatAssemblerReduced(t::TMT, z = zero(FFlt), nomatrixresult = false) where {TMT}
+function SysmatAssemblerReduced(t::TMT, z = zero(Float64), nomatrixresult = false) where {TMT}
     ndofs_row = ndofs_col = size(t, 1)
     red_ndofs_row = red_ndofs_col = size(t, 2)
     m = fill(z, red_ndofs_row, red_ndofs_col)
