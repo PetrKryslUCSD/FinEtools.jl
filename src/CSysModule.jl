@@ -52,19 +52,21 @@ end
 Construct coordinate system when the function to compute the
 rotation matrix of type `T` is given.
 
-The function signature:
-```
-update!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
-```
-where
-- `csmatout`= output matrix buffer, of size `(sdim, mdim)`
-- `XYZ`= location  in physical coordinates,
-- `tangents`= tangent vector matrix, tangents to the parametric coordinate
-  curves  in the element,
-- `fe_label`= finite element label.
+
+- `z` = zero value,
+- The `computecsmat` function signature:
+    ```
+    update!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    ```
+    where
+    - `csmatout`= output matrix buffer, of size `(sdim, mdim)`
+    - `XYZ`= location  in physical coordinates,
+    - `tangents`= tangent vector matrix, tangents to the parametric coordinate
+      curves  in the element,
+    - `fe_label`= finite element label.
 """
 function CSys(sdim, mdim, z::T, computecsmat::F) where {T<:Number, F<:Function}
-    csmat = fill(zero(T), sdim, mdim) # Allocate buffer, in preparation for the first call
+    csmat = fill(z, sdim, mdim) # Allocate buffer, in preparation for the first call
     return CSys(false, false, computecsmat, csmat)
 end
 
