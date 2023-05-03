@@ -68,7 +68,7 @@ function VectorCache(::Type{CT}, nentries::IT, fillcache!::F) where {CT<:Number,
         return fillcache!(cacheout, XYZ, tangents, fe_label)
     end
     # Allocate the cache to be ready for the first call
-    return VectorCache(fillcachenotime!, zeros(CT, nentries), Ref(0.0))
+    return VectorCache(fillcachenotime!, zeros(CT, nentries), Ref(time))
 end
 
 """
