@@ -297,7 +297,7 @@ export meshboundary,
     distortblock,
     outer_surface_of_solid
 
-using .MeshImportModule: import_NASTRAN, import_ABAQUS, import_MESH
+using .MeshImportModule: import_NASTRAN, import_ABAQUS, import_MESH, import_H5MESH
 # Exported: mesh import functions
 export import_NASTRAN, import_ABAQUS, import_MESH, import_H5MESH
 
