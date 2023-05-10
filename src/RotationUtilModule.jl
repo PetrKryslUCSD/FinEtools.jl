@@ -9,7 +9,7 @@ __precompile__(true)
 
 import LinearAlgebra: norm
 
-_I3() where {T}  = [i == j ? one(T) : zero(T) for i in 1:3, j in 1:3]
+_I3(one::T = T(1.0), zero::T = T(0.0)) where {T}  = [i == j ? one : zero for i in 1:3, j in 1:3]
 
 """
     rotmat3!(Rmout::Matrix{T}, a::VT) where {T, VT}

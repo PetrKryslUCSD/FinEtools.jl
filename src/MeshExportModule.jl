@@ -938,9 +938,9 @@ end
 
 Write out the `*BOUNDARY` option.
 
-`meshornset` = name of a mesh or a node set,
-`is_fixed`= array of Boolean flags (true means fixed, or prescribed),  one row per node, as many columns as there are degrees of freedom per node,
-`fixed_value`=array of displacements to which the corresponding displacement components is fixed, as many columns as there are degrees of freedom per node
+- `meshornset` = name of a mesh or a node set,
+- `is_fixed`= array of Boolean flags (true means fixed, or prescribed),  one row per node, as many columns as there are degrees of freedom per node,
+- `fixed_value`=array of displacements to which the corresponding displacement components is fixed, as many columns as there are degrees of freedom per node
 """
 function BOUNDARY(
     self::AbaqusExporter,
@@ -956,9 +956,9 @@ end
 
 Write out the `*BOUNDARY` option.
 
-`NSET` = name of a node set,
-`is_fixed`= array of Boolean flags (true means fixed, or prescribed),  one row per node,
-`fixed_value`=array of displacements to which the corresponding displacement components is fixed
+- `NSET` = name of a node set,
+- `is_fixed`= array of Boolean flags (true means fixed, or prescribed),  one row per node,
+- `fixed_value`=array of displacements to which the corresponding displacement components is fixed
 """
 function BOUNDARY(
     self::AbaqusExporter,
@@ -977,8 +977,8 @@ Write out the `*BOUNDARY` option to fix displacements at zero for a node set.
 
 Invoke at Level: Model,  Step
 
-`NSET`= node set,
-`dof`=Degree of freedom, 1, 2, 3
+- `NSET`= node set,
+- `dof`=Degree of freedom, 1, 2, 3
 """
 function BOUNDARY(self::AbaqusExporter, NSET::AbstractString, dof::Integer)
     BOUNDARY(self, NSET, dof, 0.0)
@@ -991,16 +991,18 @@ end
 Write out the `*BOUNDARY` option to fix displacements at nonzero value for a
 node set.
 
-`NSET`= node set,
-`dof`=Degree of freedom, 1, 2, 3
+- `NSET`= node set,
+- `dof`=Degree of freedom, 1, 2, 3
+- `typ` = DISPLACEMENT
 """
 function BOUNDARY(
     self::AbaqusExporter,
     NSET::AbstractString,
     dof::Integer,
     value::F,
+    typ::AbstractString
 ) where {F}
-    println(self.ios, "*BOUNDARY,TYPE=DISPLACEMENT")
+    println(self.ios, "*BOUNDARY,TYPE=$(typ)")
     println(self.ios, NSET * ",$dof,$dof,$value")
 end
 

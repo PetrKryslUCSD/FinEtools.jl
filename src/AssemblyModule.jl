@@ -556,8 +556,8 @@ function SysmatAssemblerSparseDiag(z::T, nomatrixresult = false) where {T}
     return SysmatAssemblerSparseDiag(0, T[z], Int[0], Int[0], 0, 0, nomatrixresult)
 end
 
-function SysmatAssemblerSparseDiag() where {T}
-    return SysmatAssemblerSparseDiag(zero(T))
+function SysmatAssemblerSparseDiag()
+    return SysmatAssemblerSparseDiag(zero(Float64))
 end
 
 """
