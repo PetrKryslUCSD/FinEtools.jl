@@ -495,112 +495,6 @@ function transferfield!(
     return ff
 end
 
-function  _buffers_basic(self, geom::NodalField{FT}, P::NodalField{T}) where {FT<:Number, T<:Number}
-    fes = self.integdomain.fes
-    ndn = ndofs(P); # number of degrees of freedom per node
-    nne =  nodesperelem(fes); # number of nodes per element
-    sdim =  ndofs(geom);            # number of space dimensions
-    mdim = manifdim(fes);     # manifold dimension of the element
-    elmdim = ndn*nne;          # dimension of the element matrix
-    ecoords = fill(zero(FT), nne, ndofs(geom)); # array of element coordinates
-    IT = eltype(P.dofnums)
-    dofnums = fill(zero(IT), elmdim); # degree of freedom array -- used as a buffer
-    loc = fill(zero(FT), 1, sdim); # quadrature point location -- used as a buffer
-    J = fill(zero(FT), sdim, mdim); # Jacobian matrix -- used as a buffer
-    gradN = fill(zero(FT), nne, mdim); # intermediate result -- used as a buffer
-    return nne, ndn, ecoords, dofnums, loc, J, gradN
-end
-
-function _buffers_el(self, geom::NodalField{FT}, P::NodalField{T}) where {FT<:Number, T<:Number}
-    fes = self.integdomain.fes
-    ndn = ndofs(P); # number of degrees of freedom per node
-    nne =  nodesperelem(fes); # number of nodes per element
-    sdim =  ndofs(geom);            # number of space dimensions
-    mdim = manifdim(fes);     # manifold dimension of the element
-    elmdim = ndn*nne;          # dimension of the element matrix
-    elmat = fill(zero(T), elmdim, elmdim);# element matrix -- used as a buffer
-    elvec = fill(zero(T), elmdim); # buffer
-    elvecfix = fill(zero(T), elmdim); # buffer
-    return elmdim, elmat, elvec, elvecfix
-end
-
-"""
-    linform_dot(
-        self::FEMM,
-        assembler::A,
-        geom::NodalField{FT},
-        P::NodalField{T},
-        fi::ForceIntensity,
-        m,
-    ) where {FEMM<:AbstractFEMM, A<:AbstractSysvecAssembler, FT<:Number, T}
-
-Evaluate the linear form "dot".
-
-```math
-\\int_{V}  \\vartheta \\cdot f \\; \\mathrm{d} V
-```
-Here ``\\vartheta`` is the test function, ``f`` is a given function (data).
-Both can be vectors. ``f`` is represented with `ForceIntensity`.
-
-# Arguments
-- `fi`=force intensity object
-- `m`= manifold dimension, 1= curve, 2= surface, 3= volume. For body loads `m`
-is set to 3, for tractions on the surface it is set to 2, and so on.
-"""
-function linform_dot(
-    self::FEMM,
-    assembler::A,
-    geom::NodalField{FT},
-    P::NodalField{T},
-    fi::ForceIntensity,
-    m,
-) where {FEMM<:AbstractFEMM, A<:AbstractSysvecAssembler, FT<:Number, T}
-    fes = finite_elements(self)
-    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    # Prepare some buffers:
-    nne, ndn, ecoords, dofnums, loc, J, gradN = _buffers_basic(self, geom, P)
-    elmdim, elmat, elvec, elvecfix = _buffers_el(self, geom, P)
-    startassembly!(assembler, P.nfreedofs)
-    for i in eachindex(fes) # Loop over elements
-        gathervalues_asmat!(geom, ecoords, fes.conn[i])
-        fill!(elvec, T(0.0))
-        for j in 1:npts
-            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
-            Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i], Ns[j], m)
-            force = updateforce!(fi, loc, J, fes.label[i]) # retrieve the applied load
-            Factor = (Jac * w[j])
-            NkxF = zero(T)
-            rx = 1
-            for kx in 1:nne # all the nodes
-                NkxF = Ns[j][kx] * Factor
-                for mx in 1:ndn   # all the degrees of freedom
-                    elvec[rx] = elvec[rx] + NkxF * force[mx]
-                    rx = rx + 1    # next component of the vector
-                end
-            end
-        end
-        gatherdofnums!(P, dofnums, fes.conn[i])
-        assemble!(assembler, elvec, dofnums)
-    end
-    F = makevector!(assembler)
-    return F
-end
-
-
-function linform_dot(
-    self::FEMM,
-    geom::NodalField{FT},
-    P::NodalField{T},
-    fi::ForceIntensity,
-    m,
-) where {FEMM<:AbstractFEMM, FT<:Number, T}
-    assembler = SysvecAssembler(0.0 * P.values[1])#T(0.0))
-    return distribloads(self, assembler, geom, P, fi, m)
-end
-
-# Alias
-const distribloads  = linform_dot
-
 """
     connectionmatrix(self::FEMM, nnodes) where {FEMM<:AbstractFEMM}
 
@@ -1298,6 +1192,149 @@ function _field_nodal_to_elem_max!(
 end
 
 
+function  _buffers_basic(self, geom::NodalField{FT}, P::NodalField{T}) where {FT<:Number, T<:Number}
+    fes = self.integdomain.fes
+    ndn = ndofs(P); # number of degrees of freedom per node
+    nne =  nodesperelem(fes); # number of nodes per element
+    sdim =  ndofs(geom);            # number of space dimensions
+    mdim = manifdim(fes);     # manifold dimension of the element
+    elmdim = ndn*nne;          # dimension of the element matrix
+    ecoords = fill(zero(FT), nne, ndofs(geom)); # array of element coordinates
+    IT = eltype(P.dofnums)
+    dofnums = fill(zero(IT), elmdim); # degree of freedom array -- used as a buffer
+    loc = fill(zero(FT), 1, sdim); # quadrature point location -- used as a buffer
+    J = fill(zero(FT), sdim, mdim); # Jacobian matrix -- used as a buffer
+    gradN = fill(zero(FT), nne, mdim); # intermediate result -- used as a buffer
+    return nne, ndn, ecoords, dofnums, loc, J, gradN
+end
+
+function _buffers_el(self, geom::NodalField{FT}, P::NodalField{T}) where {FT<:Number, T<:Number}
+    fes = self.integdomain.fes
+    ndn = ndofs(P); # number of degrees of freedom per node
+    nne =  nodesperelem(fes); # number of nodes per element
+    sdim =  ndofs(geom);            # number of space dimensions
+    mdim = manifdim(fes);     # manifold dimension of the element
+    elmdim = ndn*nne;          # dimension of the element matrix
+    elmat = fill(zero(T), elmdim, elmdim);# element matrix -- used as a buffer
+    elvec = fill(zero(T), elmdim); # buffer
+    elvecfix = fill(zero(T), elmdim); # buffer
+    return elmdim, elmat, elvec, elvecfix
+end
+
+"""
+    linform_dot(
+        self::FEMM,
+        assembler::A,
+        geom::NodalField{FT},
+        P::NodalField{T},
+        f::ArrayCache{T, 1},
+        m,
+    ) where {FEMM<:AbstractFEMM, A<:AbstractSysvecAssembler, FT<:Number, T}
+
+Evaluate the linear form "dot".
+
+```math
+\\int_{V}  \\vartheta \\cdot f \\; \\mathrm{d} V
+```
+Here ``\\vartheta`` is the test function, ``f`` is a given function (data).
+Both are assumed to be vectors. ``f`` is represented with `ArrayCache`.
+
+# Arguments
+- `f`= array cache,
+- `m`= manifold dimension, 0= vertex (point), 1= curve, 2= surface, 3= volume.
+  For body loads `m` is set to 3, for tractions on the surface it is set to 2,
+  and so on.
+"""
+function linform_dot(
+    self::FEMM,
+    assembler::A,
+    geom::NodalField{FT},
+    P::NodalField{T},
+    f::ArrayCache{T, 1},
+    m,
+) where {FEMM<:AbstractFEMM, A<:AbstractSysvecAssembler, FT<:Number, T}
+    fes = finite_elements(self)
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
+    # Prepare some buffers:
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buffers_basic(self, geom, P)
+    elmdim, elmat, elvec, elvecfix = _buffers_el(self, geom, P)
+    startassembly!(assembler, P.nfreedofs)
+    for i in eachindex(fes) # Loop over elements
+        gathervalues_asmat!(geom, ecoords, fes.conn[i])
+        fill!(elvec, T(0.0))
+        for j in 1:npts
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
+            Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i], Ns[j], m)
+            force = f(loc, J, fes.label[i]) # retrieve the applied load
+            Factor = (Jac * w[j])
+            NkxF = zero(T)
+            rx = 1
+            for kx in 1:nne # all the nodes
+                NkxF = Ns[j][kx] * Factor
+                for mx in 1:ndn   # all the degrees of freedom
+                    elvec[rx] = elvec[rx] + NkxF * force[mx]
+                    rx = rx + 1    # next component of the vector
+                end
+            end
+        end
+        gatherdofnums!(P, dofnums, fes.conn[i])
+        assemble!(assembler, elvec, dofnums)
+    end
+    F = makevector!(assembler)
+    return F
+end
+
+function linform_dot(
+    self::FEMM,
+    geom::NodalField{FT},
+    P::NodalField{T},
+    f::ArrayCache{T, 1},
+    m,
+) where {FEMM<:AbstractFEMM, FT<:Number, T}
+    assembler = SysvecAssembler(0.0 * P.values[1])#T(0.0))
+    return linform_dot(self, assembler, geom, P, fi, m)
+end
+
+"""
+    distribloads(
+        self::FEMM,
+        assembler::A,
+        geom::NodalField{FT},
+        P::NodalField{T},
+        fi::ForceIntensity,
+        m,
+    ) where {FEMM<:AbstractFEMM, A<:AbstractSysvecAssembler, FT<:Number, T}
+
+Compute distributed loads vector.
+
+# Arguments
+- `fi`=force intensity object
+- `m`= manifold dimension, 0= vertex (point), 1= curve, 2= surface, 3= volume.
+  For body loads `m` is set to 3, for tractions on the surface it is set to 2,
+  and so on.
+"""
+function distribloads(
+    self::FEMM,
+    assembler::A,
+    geom::NodalField{FT},
+    P::NodalField{T},
+    fi::ForceIntensity,
+    m,
+) where {FEMM<:AbstractFEMM, A<:AbstractSysvecAssembler, FT<:Number, T}
+    return linform_dot(self, assembler, geom, P, fi._cache, m)
+end
+
+function distribloads(
+    self::FEMM,
+    geom::NodalField{FT},
+    P::NodalField{T},
+    fi::ForceIntensity,
+    m,
+) where {FEMM<:AbstractFEMM, FT<:Number, T}
+    assembler = SysvecAssembler(zero(eltype(P.values)))
+    return distribloads(self, assembler, geom, P, fi, m)
+end
+
 """
     acousticmass(self::FEMMAcoust, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
 
@@ -1311,7 +1348,7 @@ Compute the acoustic mass matrix.
 
 Return a matrix.
 """
-# function bilinear_diffusion(
+# function bilform_diffusion(
 #     self::FEMM,
 #     assembler::A,
 #     geom::NodalField{FT},

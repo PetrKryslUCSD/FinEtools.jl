@@ -301,13 +301,13 @@ using .MeshImportModule: import_NASTRAN, import_ABAQUS, import_MESH, import_H5ME
 # Exported: mesh import functions
 export import_NASTRAN, import_ABAQUS, import_MESH, import_H5MESH
 
-using .VectorCacheModule: VectorCache, updateretrieve!, settime!
+using .ArrayCacheModule: ArrayCache, updateretrieve!, setcachetime!, getcachetime
 # Exported: vector-cache type and methods to invoke the update callback
-export VectorCache, updateretrieve!, settime!
+export ArrayCache, updateretrieve!, setcachetime!, getcachetime
 
-using .ForceIntensityModule: ForceIntensity, updateforce!, settime!
+using .ForceIntensityModule: ForceIntensity, updateforce!, setcachetime!
 # Exported: force-intensity type and methods to invoke the update callback
-export ForceIntensity, updateforce!, settime!
+export ForceIntensity, updateforce!, setcachetime!, getcachetime
 
 using .AssemblyModule:
     AbstractSysmatAssembler,

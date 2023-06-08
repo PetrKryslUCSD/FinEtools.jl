@@ -9,7 +9,7 @@ module SurfaceNormalModule
 
 __precompile__(true)
 
-import ..VectorCacheModule: VectorCache, updateretrieve!
+import ..ArrayCacheModule: ArrayCache, updateretrieve!
 using LinearAlgebra: cross, norm
 
 """
@@ -31,7 +31,7 @@ The buffer `normalout` is filled with the value  of the normal vector.
 """
 struct SurfaceNormal{CT<:Number, T<:Number, F<:Function}
     # Cache of the current value of the normal
-    _cache::VectorCache{CT, T, F}
+    _cache::ArrayCache{CT, 1, T, F}
 end
 
 """
@@ -51,7 +51,7 @@ matrix `tangents`, and the label of the finite element, `fe_label`.
 """
 function SurfaceNormal(ndimensions, computenormal!::F) where {F<:Function}
     # Allocate the buffer to be ready for the first call
-    return SurfaceNormal(VectorCache(Float64, ndimensions, computenormal!))
+    return SurfaceNormal(ArrayCache(Float64, ndimensions, computenormal!))
 end
 
 """
@@ -72,7 +72,7 @@ The type of the entries of the normal are `T`.
 """
 function SurfaceNormal(ndimensions, z::T, computenormal!::F) where {T<:Number, F<:Function}
     # Allocate the buffer to be ready for the first call
-    return SurfaceNormal(VectorCache(T, ndimensions, computenormal!))
+    return SurfaceNormal(ArrayCache(T, ndimensions, computenormal!))
 end
 
 """
@@ -112,7 +112,7 @@ function SurfaceNormal(ndimensions)
         end
         return normalout
     end
-    return SurfaceNormal(VectorCache(Float64, ndimensions, defaultcomputenormal!))
+    return SurfaceNormal(ArrayCache(Float64, ndimensions, defaultcomputenormal!))
 end
 
 """
@@ -121,7 +121,7 @@ end
 Construct surface normal vector when the *constant* normal vector is given.
 """
 function SurfaceNormal(vector::Vector{T}) where {T<:Number}
-    return SurfaceNormal(VectorCache(deepcopy(vector)))
+    return SurfaceNormal(ArrayCache(deepcopy(vector)))
 end
 
 """
