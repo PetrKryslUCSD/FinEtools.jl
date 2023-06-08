@@ -589,7 +589,7 @@ end
 Calculate the data needed for  numerical quadrature for the integration rule
 stored by the integration domain.
 """
-function integrationdata(self::IntegDomain)
+function integrationdata(self::ID) where {ID<:IntegDomain}
     return integrationdata(self, self.integration_rule)
 end
 
@@ -613,9 +613,9 @@ functions  with respect  to the parametric coordinates, array of weights and
 array of locations of the quadrature points.
 """
 function integrationdata(
-    self::IntegDomain,
+    self::ID,
     integration_rule::IR,
-) where {IR<:AbstractIntegRule}
+) where {ID<:IntegDomain, IR<:AbstractIntegRule}
     T = eltype(integration_rule.param_coords)
     pc::Matrix{T} = integration_rule.param_coords
     w::Matrix{T} = integration_rule.weights
