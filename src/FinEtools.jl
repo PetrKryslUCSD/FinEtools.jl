@@ -301,9 +301,9 @@ using .MeshImportModule: import_NASTRAN, import_ABAQUS, import_MESH, import_H5ME
 # Exported: mesh import functions
 export import_NASTRAN, import_ABAQUS, import_MESH, import_H5MESH
 
-using .ArrayCacheModule: ArrayCache, updateretrieve!, setcachetime!, getcachetime
+using .DataCacheModule: DataCache, updateretrieve!, setcachetime!, getcachetime
 # Exported: vector-cache type and methods to invoke the update callback
-export ArrayCache, updateretrieve!, setcachetime!, getcachetime
+export DataCache, updateretrieve!, setcachetime!, getcachetime
 
 using .ForceIntensityModule: ForceIntensity, updateforce!, setcachetime!
 # Exported: force-intensity type and methods to invoke the update callback
@@ -388,11 +388,13 @@ using .FEMMBaseModule:
     integratefieldfunction,
     integratefunction,
     transferfield!,
+    linform_dot,
     distribloads,
     connectionmatrix,
     dualconnectionmatrix,
     fieldfromintegpoints,
     elemfieldfromintegpoints,
+    bilform_dot,
     innerproduct,
     field_elem_to_nodal!,
     field_nodal_to_elem!
@@ -404,11 +406,13 @@ export AbstractFEMM,
     integratefieldfunction,
     integratefunction,
     transferfield!,
+    linform_dot,
     distribloads,
     connectionmatrix,
     dualconnectionmatrix,
     fieldfromintegpoints,
     elemfieldfromintegpoints,
+    bilform_dot,
     innerproduct,
     field_elem_to_nodal!,
     field_nodal_to_elem!

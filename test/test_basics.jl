@@ -895,6 +895,7 @@ mmhrzass1.test()
 
 module mgram1
 using FinEtools
+using LinearAlgebra
 using Test
 function test()
     W = 1.1
@@ -908,10 +909,12 @@ function test()
     numberdofs!(psi)
 
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
-    G = innerproduct(femm, geom, psi)
     v = gathersysvec(psi)
-
-    @test abs(v' * G * v - 4.224) / 4.224 <= 1.0e-5
+    G = innerproduct(femm, geom, psi)
+    # @show v' * G * v
+    @test abs(v' * G * v - (W*L*t)) / (W*L*t) <= 1.0e-5
+    G = bilform_dot(femm, geom, psi, DataCache(LinearAlgebra.I(1)))
+    @test abs(v' * G * v - (W*L*t)) / (W*L*t) <= 1.0e-5
     true
 end
 end
@@ -2281,6 +2284,7 @@ _test()
 
 end # module
 
+
 module testing_cache_1
 using Test
 using LinearAlgebra
@@ -2294,7 +2298,7 @@ function fillcache!(cacheout::Vector{CT},
     cacheout .= 13
     return cacheout
 end
-c = ArrayCache(Float32, nentries, fillcache!)
+c = DataCache(zeros(nentries), fillcache!)
 v = updateretrieve!(c, XYZ, tangents, fe_label)
 @test v == [13, 13, 13]
 end
@@ -2313,7 +2317,7 @@ function fillcache!(cacheout::Vector{CT},
     cacheout .= 13
     return cacheout
 end
-c = ArrayCache(Float32, nentries, fillcache!, 0.0)
+c = DataCache(zeros(Float32, nentries), fillcache!)
 v = updateretrieve!(c, XYZ, tangents, fe_label)
 @test v == [13, 13, 13]
 end
@@ -2332,7 +2336,7 @@ function fillcache!(cacheout::Array{CT, N},
     return cacheout
 end
 data = rand(3, 3)
-c = ArrayCache(data)
+c = DataCache(data)
 v = updateretrieve!(c, XYZ, tangents, fe_label)
 @test v == data
 end
@@ -2352,7 +2356,7 @@ function fillcache!(cacheout::Array{CT, N},
     return cacheout
 end
 data = rand(3, 3)
-c = ArrayCache(eltype(data), size(data)..., fillcache!)
+c = DataCache(data, fillcache!)
 v = updateretrieve!(c, XYZ, tangents, fe_label)
 data .= 13
 @test v == data
@@ -2372,7 +2376,7 @@ function fillcache!(cacheout::Array{CT, N},
     return cacheout
 end
 data = rand(3, 3)
-c = ArrayCache(eltype(data), size(data)..., fillcache!)
+c = DataCache(data, fillcache!)
 v = c(XYZ, tangents, fe_label)
 data .= 13
 @test v == data
@@ -2393,7 +2397,7 @@ function fillcache!(cacheout::Array{CT, N},
 end
 for t in (Float32, Float64, ComplexF32, ComplexF64)
     data = rand(t, 3, 3)
-    c = ArrayCache(eltype(data), size(data)..., fillcache!)
+    c = DataCache(data, fillcache!)
     v = c(XYZ, tangents, fe_label)
     data .= fe_label
     @test v == data
@@ -2412,7 +2416,7 @@ function fillcache!(cacheout::Array{CT, N},
     cacheout .= LinearAlgebra.I(3)
     return cacheout
 end
-c = ArrayCache(Float32, 3, 3, fillcache!)
+c = DataCache(zeros(Float32, 3, 3), fillcache!)
 function f(c)
     XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
     setcachetime!(c, 2.1)
@@ -2434,7 +2438,7 @@ function fillcache!(cacheout::Array{CT, N},
     cacheout .= LinearAlgebra.I(3)
     return cacheout
 end
-c = ArrayCache(Float32, 3, 3, fillcache!)
+c = DataCache(zeros(Float32, 3, 3), fillcache!)
 function f(c)
     XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
     setcachetime!(c, 2.1)
@@ -2442,4 +2446,56 @@ function f(c)
 end
 @test f(c) == LinearAlgebra.I(3)
 @test getcachetime(c) == 2.1
+end
+
+module testing_cache_9
+using Test
+using LinearAlgebra
+using FinEtools
+
+function fillcache!(cacheout::Array{CT, N},
+        XYZ::VecOrMat{T}, tangents::Matrix{T},
+        fe_label; time::T = 0.0) where {CT, N, T}
+    if time > 1.0
+        cacheout .= LinearAlgebra.I(3)
+    else
+        cacheout .= 0
+    end
+    return cacheout
+end
+c = DataCache(zeros(Float32, 3, 3), fillcache!)
+function f(c)
+    XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+    setcachetime!(c, 0.0)
+    data = c(XYZ, tangents, fe_label)
+    @test data == zeros(Float32, 3, 3)
+    setcachetime!(c, 2.1)
+    data = c(XYZ, tangents, fe_label)
+end
+@test f(c) == LinearAlgebra.I(3)
+@test getcachetime(c) == 2.1
+end
+
+
+module testing_cache_10
+using Test
+using LinearAlgebra
+using FinEtools
+
+XYZ, tangents, _ = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+
+function fillcache!(cacheout::D,
+        XYZ::VecOrMat{T}, tangents::Matrix{T},
+        fe_label; time::T = 0.0) where {D, T}
+    cacheout = D(fe_label)
+    return cacheout
+end
+for t in (Float32, Float64, ComplexF32, ComplexF64)
+    data = t(-42)
+     c = DataCache(data, fillcache!)
+    for fe_label in 1:5
+         v = c(XYZ, tangents, fe_label)
+        @test v == t(fe_label)
+    end
+end
 end

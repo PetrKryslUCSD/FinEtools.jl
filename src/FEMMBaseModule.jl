@@ -7,6 +7,7 @@ module FEMMBaseModule
 
 __precompile__(true)
 
+using LinearAlgebra
 import LinearAlgebra: mul!, Transpose
 my_At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 import SparseArrays: sparse, findnz
@@ -27,7 +28,8 @@ import ..FieldModule: ndofs, nents, gatherdofnums!, gathervalues_asmat!
 import ..NodalFieldModule: NodalField, nnodes
 import ..ElementalFieldModule: ElementalField, nelems
 import ..ForceIntensityModule: ForceIntensity, updateforce!
-import ..MatrixUtilityModule: locjac!
+import ..DataCacheModule: DataCache
+import ..MatrixUtilityModule: locjac!, add_nnt_ut_only!
 import ..BoxModule: initbox!, boundingbox, inflatebox!
 import ..MeshModificationModule: nodepartitioning, compactnodes, renumberconn!
 import ..MeshSelectionModule: selectelem, vselect, findunconnnodes, connectednodes
@@ -133,11 +135,13 @@ end
 
 Integrate a nodal-field function over the discrete manifold.
 
-`afield` = NODAL field to supply the values
-`fh` = function taking position and the field value as arguments, returning
-    value of type `T`.
-`m` = dimension of the manifold over which to integrate; `m < 0` means that
-    the dimension is controlled by the manifold dimension of the elements.
+- `afield` = NODAL field to supply the values
+- `fh` = function taking position and an array of field values for the element
+  as arguments, returning value of type `T`. The rectangular array of field
+  values has as many rows as there are nodes per element, and as many columns
+  as there are degrees of freedom per node.
+- `m` = dimension of the manifold over which to integrate; `m < 0` means that
+  the dimension is controlled by the manifold dimension of the elements.
 
 Returns value of type `R`, which is initialized by `initial`.
 """
@@ -194,13 +198,12 @@ end
 
 Integrate a elemental-field function over the discrete manifold.
 
-`afield` = ELEMENTAL field to supply the values
-`fh` = function taking position and the field value as arguments,
-    returning value of type `T`.
-`m` = dimension of the manifold over which to integrate; `m < 0` means that
-    the dimension is controlled by the manifold dimension of the elements.
-
-Returns value of type `T`, which is initialized by `initial`.
+- `afield` = ELEMENTAL field to supply the values
+- `fh` = function taking position and an array of field values for the element
+  as arguments, returning value of type `T`. The array of field values has one
+  row and as many columns as there are degrees of freedom per element.
+- `m` = dimension of the manifold over which to integrate; `m < 0` means that
+  the dimension is controlled by the manifold dimension of the elements.
 
 Returns value of type `R`, which is initialized by `initial`.
 """
@@ -221,7 +224,7 @@ function integratefieldfunction(
     mdim = manifdim(fes)     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    a = fill(zero(FT), nne, ndn) # array of field DOFS-- used as a buffer
+    a = fill(zero(FT), 1, ndn) # array of field DOFS-- used as a buffer
     ecoords = fill(zero(FT), nne, ndofs(geom)) # array of field DOFS-- used as a buffer
     loc = fill(zero(FT), 1, sdim) # quadrature point location -- used as a buffer
     J = fill(zero(FT), sdim, mdim) # Jacobian matrix -- used as a buffer
@@ -907,89 +910,6 @@ function elemfieldfromintegpoints(
 end
 
 
-function _buffers(
-    self::FEMM,
-    geom::NodalField{FT},
-    afield::NodalField{T},
-) where {FEMM<:AbstractFEMM, FT, T}
-    # Constants
-    fes = finite_elements(self)
-    nfes = count(fes) # number of finite elements in the set
-    ndn = ndofs(afield) # number of degrees of freedom per node
-    nne = nodesperelem(fes) # number of nodes for element
-    sdim = ndofs(geom)   # number of space dimensions
-    mdim = manifdim(fes) # manifold dimension of the element
-    Kedim = ndn * nne      # dimension of the element matrix
-    elmat = fill(zero(FT), Kedim, Kedim) # buffer
-    ecoords = fill(zero(FT), nne, ndofs(geom)) # array of Element coordinates
-    dofnums = fill(zero(eltype(afield.dofnums)), Kedim) # buffer
-    loc = fill(zero(FT), 1, sdim) # buffer
-    J = fill(zero(FT), sdim, mdim) # buffer
-    gradN = fill(zero(FT), nne, mdim) # buffer
-    return ecoords, dofnums, loc, J, gradN, elmat
-end
-
-"""
-    innerproduct(
-        self::FEMM,
-        assembler::A,
-        geom::NodalField{FT},
-        afield::NodalField{T},
-    ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T}
-
-Compute the inner-product (Gram) matrix.
-"""
-function innerproduct(
-    self::FEMM,
-    assembler::A,
-    geom::NodalField{FT},
-    afield::NodalField{T},
-) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T}
-    fes = finite_elements(self)
-    ecoords, dofnums, loc, J, gradN, elmat = _buffers(self, geom, afield)
-    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    NexpTNexp = Matrix{eltype(Ns[1])}[]# basis f. matrix -- buffer
-    ndn = ndofs(afield)
-    Indn = [i == j ? one(FT) : zero(FT) for i in 1:ndn, j in 1:ndn] # "identity"
-    for j in 1:npts # This quantity is the same for all quadrature points
-        Nexp = fill(zero(FT), ndn, size(elmat, 1))
-        for l1 in 1:nodesperelem(fes)
-            Nexp[1:ndn, (l1-1)*ndn+1:(l1)*ndn] = Indn * Ns[j][l1]
-        end
-        push!(NexpTNexp, Nexp' * Nexp)
-    end
-    startassembly!(
-        assembler,
-        size(elmat, 1),
-        size(elmat, 2),
-        count(fes),
-        afield.nfreedofs,
-        afield.nfreedofs,
-    )
-    for i in eachindex(fes) # Loop over elements
-        gathervalues_asmat!(geom, ecoords, fes.conn[i])
-        fill!(elmat, 0.0) # Initialize element matrix
-        for j in 1:npts # Loop over quadrature points
-            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
-            Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j])
-            thefactor::FT = (Jac * w[j])
-            elmat .+= NexpTNexp[j] * thefactor
-        end # Loop over quadrature points
-        gatherdofnums!(afield, dofnums, fes.conn[i])# retrieve degrees of freedom
-        assemble!(assembler, elmat, dofnums, dofnums)# assemble symmetric matrix
-    end # Loop over elements
-    return makematrix!(assembler)
-end
-
-function innerproduct(
-    self::FEMM,
-    geom::NodalField{FT},
-    afield::NodalField{T},
-) where {FEMM<:AbstractFEMM, FT, T}
-    assembler = SysmatAssemblerSparseSymm()
-    return innerproduct(self, assembler, geom, afield)
-end
-
 
 """
     field_elem_to_nodal!(
@@ -1193,7 +1113,7 @@ end
 
 
 function  _buffers_basic(self, geom::NodalField{FT}, P::NodalField{T}) where {FT<:Number, T<:Number}
-    fes = self.integdomain.fes
+    fes = finite_elements(self)
     ndn = ndofs(P); # number of degrees of freedom per node
     nne =  nodesperelem(fes); # number of nodes per element
     sdim =  ndofs(geom);            # number of space dimensions
@@ -1209,7 +1129,7 @@ function  _buffers_basic(self, geom::NodalField{FT}, P::NodalField{T}) where {FT
 end
 
 function _buffers_el(self, geom::NodalField{FT}, P::NodalField{T}) where {FT<:Number, T<:Number}
-    fes = self.integdomain.fes
+    fes = finite_elements(self)
     ndn = ndofs(P); # number of degrees of freedom per node
     nne =  nodesperelem(fes); # number of nodes per element
     sdim =  ndofs(geom);            # number of space dimensions
@@ -1227,9 +1147,9 @@ end
         assembler::A,
         geom::NodalField{FT},
         P::NodalField{T},
-        f::ArrayCache{T, 1},
+        f::DC,
         m,
-    ) where {FEMM<:AbstractFEMM, A<:AbstractSysvecAssembler, FT<:Number, T}
+    ) where {FEMM<:AbstractFEMM, A<:AbstractSysvecAssembler, FT<:Number, T, DC<:DataCache}
 
 Evaluate the linear form "dot".
 
@@ -1237,10 +1157,12 @@ Evaluate the linear form "dot".
 \\int_{V}  \\vartheta \\cdot f \\; \\mathrm{d} V
 ```
 Here ``\\vartheta`` is the test function, ``f`` is a given function (data).
-Both are assumed to be vectors. ``f`` is represented with `ArrayCache`.
+Both are assumed to be vectors. ``f`` is represented with `DataCache`.
 
 # Arguments
-- `f`= array cache,
+- `f`= data cache, which is called to evaluate the location, the Jacobian
+  matrix, and the finite element label to come up with the value to be
+  integrated;
 - `m`= manifold dimension, 0= vertex (point), 1= curve, 2= surface, 3= volume.
   For body loads `m` is set to 3, for tractions on the surface it is set to 2,
   and so on.
@@ -1250,9 +1172,9 @@ function linform_dot(
     assembler::A,
     geom::NodalField{FT},
     P::NodalField{T},
-    f::ArrayCache{T, 1},
+    f::DC,
     m,
-) where {FEMM<:AbstractFEMM, A<:AbstractSysvecAssembler, FT<:Number, T}
+) where {FEMM<:AbstractFEMM, A<:AbstractSysvecAssembler, FT<:Number, T, DC<:DataCache}
     fes = finite_elements(self)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     # Prepare some buffers:
@@ -1288,11 +1210,11 @@ function linform_dot(
     self::FEMM,
     geom::NodalField{FT},
     P::NodalField{T},
-    f::ArrayCache{T, 1},
+    f::DC,
     m,
-) where {FEMM<:AbstractFEMM, FT<:Number, T}
-    assembler = SysvecAssembler(0.0 * P.values[1])#T(0.0))
-    return linform_dot(self, assembler, geom, P, fi, m)
+) where {FEMM<:AbstractFEMM, FT<:Number, T, DC<:DataCache}
+    assembler = SysvecAssembler(zero(eltype(P.values)))
+    return linform_dot(self, assembler, geom, P, f, m)
 end
 
 """
@@ -1336,6 +1258,109 @@ function distribloads(
 end
 
 """
+    bilform_dot(
+        self::FEMM,
+        assembler::A,
+        geom::NodalField{FT},
+        u::NodalField{T},
+        f::DC
+    ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
+
+Compute the bilinear form of the "dot" type.
+
+
+Evaluate the linear form "dot".
+
+```math
+\\int_{V}  \\vartheta \\cdot c \\cdot u \\; \\mathrm{d} V
+```
+
+Here ``\\vartheta`` is the test function, ``u`` is the trial function, ``c`` is
+a square matrix of coefficients; ``c`` is computed by ``f``, which is a given
+function (data). Both functions are assumed to be vectors (even if of length
+1). ``f`` is represented with `DataCache`, and needs to return a square
+matrix.
+
+# Arguments
+- `f`= data cache, which is called to evaluate the location, the Jacobian
+  matrix, and the finite element label to come up with the value to be
+  integrated;
+- `m`= manifold dimension, 0= vertex (point), 1= curve, 2= surface, 3= volume.
+  For body loads `m` is set to 3, for tractions on the surface it is set to 2,
+  and so on.
+"""
+function bilform_dot(
+    self::FEMM,
+    assembler::A,
+    geom::NodalField{FT},
+    u::NodalField{T},
+    f::DC
+) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
+    fes = finite_elements(self)
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buffers_basic(self, geom, u)
+    elmdim, elmat, elvec, elvecfix = _buffers_el(self, geom, u)
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
+    startassembly!(assembler, size(elmat)..., count(fes), u.nfreedofs, u.nfreedofs)
+    for i in eachindex(fes) # Loop over elements
+        gathervalues_asmat!(geom, ecoords, fes.conn[i])
+        fill!(elmat, 0.0) # Initialize element matrix
+        for j in 1:npts # Loop over quadrature points
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
+            Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j])
+            c = f(loc, J, fes.label[i])
+            for k in 1:nne
+                kr = (k-1)*ndn+1:k*ndn
+                for m in 1:nne
+                    mr = (m-1)*ndn+1:m*ndn
+                    elmat[kr, mr] .+= c * (Ns[j][k] * Ns[j][m] * Jac * w[j])
+                end
+            end
+        end # Loop over quadrature points
+        gatherdofnums!(u, dofnums, fes.conn[i])# retrieve degrees of freedom
+        assemble!(assembler, elmat, dofnums, dofnums)# assemble symmetric matrix
+    end # Loop over elements
+    return makematrix!(assembler)
+end
+
+function bilform_dot(
+    self::FEMM,
+    geom::NodalField{FT},
+    u::NodalField{T},
+    f::DC
+) where {FEMM<:AbstractFEMM, FT, T, DC<:DataCache}
+    assembler = SysmatAssemblerSparseSymm()
+    return bilform_dot(self, assembler, geom, u, f)
+end
+
+"""
+    innerproduct(
+        self::FEMM,
+        assembler::A,
+        geom::NodalField{FT},
+        afield::NodalField{T},
+    ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T}
+
+Compute the inner-product (Gram) matrix.
+"""
+function innerproduct(
+    self::FEMM,
+    assembler::A,
+    geom::NodalField{FT},
+    afield::NodalField{T}
+) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T}
+    return bilform_dot(self, assembler, geom, afield, DataCache(LinearAlgebra.I(ndofs(afield))))
+end
+
+function innerproduct(
+    self::FEMM,
+    geom::NodalField{FT},
+    afield::NodalField{T},
+) where {FEMM<:AbstractFEMM, FT, T}
+    assembler = SysmatAssemblerSparseSymm()
+    return innerproduct(self, assembler, geom, afield)
+end
+
+"""
     acousticmass(self::FEMMAcoust, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
 
 Compute the acoustic mass matrix.
@@ -1354,7 +1379,7 @@ Return a matrix.
 #     geom::NodalField{FT},
 #     P::NodalField{TT}
 #     ) where {FEMM<:AbstractFEMM, A<:AbstractSysvecAssembler, FT<:Number, TT<:Number}
-#     fes = self.integdomain.fes
+#     fes = finite_elements(self)
 #     ecoords, dofnums, loc, J, gradN, elmat, elvec, elvecfix =   buffers(self, geom, P)
 #     # Precompute basis f. values + basis f. gradients wrt parametric coor
 #     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
