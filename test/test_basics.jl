@@ -972,7 +972,7 @@ function test()
     bfemm = FEMMBase(IntegDomain(bfes, GaussRule(1, 2), th))
 
     geom = NodalField(fens.xyz)
-    circumarea = integratefunction(bfemm, geom, (x) -> 1.0, 2)
+    circumarea = integratefunction(bfemm, geom, (x) -> 1.0; m = 2)
     @test abs(circumarea - 2 * (Lx + Ly) * th) <= 1.0e-9
     true
 end
@@ -993,7 +993,7 @@ function test()
     bfemm = FEMMBase(IntegDomain(bfes, GaussRule(1, 2)))
 
     geom = NodalField(fens.xyz)
-    circumference = integratefunction(bfemm, geom, (x) -> 1.0, 1)
+    circumference = integratefunction(bfemm, geom, (x) -> 1.0; m = 1)
     @test abs(circumference - 2 * (Lx + Ly)) <= 1.0e-9
     true
 end
@@ -1014,7 +1014,7 @@ function test()
     bfemm = FEMMBase(IntegDomain(bfes, GaussRule(1, 2), 7.0))
 
     geom = NodalField(fens.xyz)
-    circumference = integratefunction(bfemm, geom, (x) -> 1.0, 3)
+    circumference = integratefunction(bfemm, geom, (x) -> 1.0; m = 3)
     @test abs(circumference / 7 - 2 * (Lx + Ly)) <= 1.0e-9
     true
 end
@@ -1035,7 +1035,7 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
 
     geom = NodalField(fens.xyz)
-    volume = integratefunction(femm, geom, (x) -> 1.0, 3)
+    volume = integratefunction(femm, geom, (x) -> 1.0; m = 3)
     @test abs(volume - (Lx * Ly) * th) <= 1.0e-7
     true
 end
@@ -1416,7 +1416,7 @@ function test()
     geom = NodalField(fens.xyz)
     femm = FEMMBase(IntegDomain(fes, GaussRule(2, 3), true))
 
-    V = integratefunction(femm, geom, (x) -> 1.0, 3)
+    V = integratefunction(femm, geom, (x) -> 1.0; m = 3)
     @test abs(V - pi * a^2 * b) / V <= eps(V)
     true
 end
@@ -1436,7 +1436,7 @@ function test()
     bfes = meshboundary(fes)
     femm = FEMMBase(IntegDomain(bfes, GaussRule(1, 3), true))
 
-    S = integratefunction(femm, geom, (x) -> 1.0, 2)
+    S = integratefunction(femm, geom, (x) -> 1.0; m = 2)
     @test abs(S - (2 * pi * a * b + 2 * pi * a^2)) / S <= eps(S)
     true
 end
@@ -1455,7 +1455,7 @@ function test()
     geom = NodalField(fens.xyz)
     femm = FEMMBase(IntegDomain(fes, NodalSimplexRule(2), true))
 
-    V = integratefunction(femm, geom, (x) -> 1.0, 3)
+    V = integratefunction(femm, geom, (x) -> 1.0; m = 3)
     @test abs(V - pi * a^2 * b) / V <= eps(V)
     true
 end
@@ -1473,7 +1473,7 @@ function test()
     bfes = meshboundary(fes)
     femm = FEMMBase(IntegDomain(bfes, NodalSimplexRule(1), true))
 
-    S = integratefunction(femm, geom, (x) -> 1.0, 2)
+    S = integratefunction(femm, geom, (x) -> 1.0; m = 2)
     @test abs(S - (2 * pi * a * b + 2 * pi * a^2)) / S <= eps(S)
     true
 end

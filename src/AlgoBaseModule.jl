@@ -292,8 +292,8 @@ function fieldnorm(modeldata)
             regions[i]["femm"],
             geom,
             targetfields[i],
-            (x, v) -> norm(v)^2,
-            0.0,
+            (x, v) -> norm(v)^2;
+            initial = zero(eltype(targetfields[i].values)),
         )
     end
 
@@ -367,8 +367,8 @@ function fielddiffnorm(modeldatacoarse, modeldatafine)
             regionsfine[i]["femm"],
             geom,
             diffff,
-            (x, v) -> norm(v)^2,
-            0.0,
+            (x, v) -> norm(v)^2;
+            initial = zero(eltype(diffff.values)),
         )
     end
 

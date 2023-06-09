@@ -128,8 +128,8 @@ end
         self::AbstractFEMM,
         geom::NodalField{FT},
         afield::FL,
-        fh::F,
-        initial::R;
+        fh::F;
+        initial::R,
         m = -1,
     ) where {FT, FL<:NodalField{T}, T, F<:Function, R}
 
@@ -149,29 +149,26 @@ function integratefieldfunction(
     self::AbstractFEMM,
     geom::NodalField{FT},
     afield::FL,
-    fh::F,
-    initial::R;
+    fh::F;
+    initial::R,
     m = -1,
 ) where {FT, T, FL<:NodalField{T}, F<:Function, R}
     fes = finite_elements(self)  # finite elements
-    # Constants
-    nfes = count(fes) # number of finite elements in the set
-    ndn = ndofs(afield) # number of degrees of freedom per node
-    nne = nodesperelem(fes) # number of nodes per element
-    sdim = ndofs(geom)            # number of space dimensions
     mdim = manifdim(fes)     # manifold dimension of the element
-    # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    a = fill(zero(T), nne, ndn) # array of field DOFS-- used as a buffer
-    ecoords = fill(zero(FT), nne, ndofs(geom)) # array of field DOFS-- used as a buffer
-    loc = fill(zero(FT), 1, sdim) # quadrature point location -- used as a buffer
-    val = fill(zero(T), 1, ndn) # field value at the point -- used as a buffer
-    J = fill(zero(FT), sdim, mdim) # Jacobian matrix -- used as a buffer
     if m >= 0
         # Either the manifold dimension was supplied
     else
         m = mdim# ...Or it is implied
     end
+    return _integratefieldnodalfunction(self, geom, afield, fh, initial, m)
+end
+
+function _integratefieldnodalfunction(self, geom, afield, fh, initial, m)
+    fes = finite_elements(self)  # finite elements
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buffers_basic(self, geom, afield)
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
+    a = fill(zero(eltype(afield.values)), nne, ndn) # used as a buffer
+    val = fill(zero(eltype(afield.values)), 1, ndn) # used as a buffer
     result = initial           # initial value for the result
     for i in eachindex(fes) #Now loop over all fes in the block
         gathervalues_asmat!(afield, a, fes.conn[i])# retrieve element dofs
@@ -191,10 +188,10 @@ end
         self::AbstractFEMM,
         geom::NodalField{FT},
         afield::FL,
-        fh::F,
-        initial::R;
+        fh::F;
+        initial::R = zero(FT),
         m = -1,
-    ) where {FT, FL<:ElementalField{T}, T, F<:Function, R}
+    ) where {FT, T, FL<:ElementalField{T}, F<:Function, R}
 
 Integrate a elemental-field function over the discrete manifold.
 
@@ -211,28 +208,25 @@ function integratefieldfunction(
     self::AbstractFEMM,
     geom::NodalField{FT},
     afield::FL,
-    fh::F,
-    initial::R;
+    fh::F;
+    initial::R = zero(FT),
     m = -1,
 ) where {FT, T, FL<:ElementalField{T}, F<:Function, R}
     fes = finite_elements(self)  # finite elements
-    # Constants
-    nfes = count(fes) # number of finite elements in the set
-    ndn = ndofs(afield) # number of degrees of freedom per node
-    nne = nodesperelem(fes) # number of nodes per element
-    sdim = ndofs(geom)            # number of space dimensions
     mdim = manifdim(fes)     # manifold dimension of the element
-    # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    a = fill(zero(FT), 1, ndn) # array of field DOFS-- used as a buffer
-    ecoords = fill(zero(FT), nne, ndofs(geom)) # array of field DOFS-- used as a buffer
-    loc = fill(zero(FT), 1, sdim) # quadrature point location -- used as a buffer
-    J = fill(zero(FT), sdim, mdim) # Jacobian matrix -- used as a buffer
     if m >= 0
         # Either the manifold dimension was supplied
     else
         m = mdim# ...Or it is implied
     end
+    return _integrateelementalfieldfunction(self, geom, afield, fh, initial, m)
+end
+
+function _integrateelementalfieldfunction(self, geom, afield, fh, initial, m)
+    fes = finite_elements(self)  # finite elements
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buffers_basic(self, geom, afield)
+    a = fill(zero(eltype(afield.values)), nne, ndn) # used as a buffer
     result = initial           # initial value for the result
     for i in eachindex(fes) #Now loop over all fes in the block
         gathervalues_asmat!(afield, a, [i])# retrieve element dofs
@@ -246,13 +240,15 @@ function integratefieldfunction(
     return result
 end
 
+
 """
     integratefunction(
         self::AbstractFEMM,
         geom::NodalField{FT},
-        fh::F,
+        fh::F;
+        initial::R = zero(FT),
         m = -1,
-    ) where {FT, F<:Function}
+    ) where {FT, F<:Function, R<:Number}
 
 Integrate a function over the discrete manifold.
 
@@ -282,9 +278,10 @@ Ixx = integratefunction(femm, geom, (x) ->  x[2]^2 + x[3]^2)
 function integratefunction(
     self::AbstractFEMM,
     geom::NodalField{FT},
-    fh::F,
+    fh::F;
+    initial::R = zero(FT),
     m = -1,
-) where {FT, F<:Function}
+) where {FT, F<:Function, R<:Number}
     fes = finite_elements(self)
     if m < 0
         m = manifdim(fes)  # native  manifold dimension
@@ -294,12 +291,33 @@ function integratefunction(
     nne = nodesperelem(fes) # number of nodes per element
     sdim = ndofs(geom)            # number of space dimensions
     mdim = manifdim(fes)     # manifold dimension of the element
-    # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    ecoords = fill(zero(FT), nne, ndofs(geom)) # array of field DOFS-- used as a buffer
-    loc = fill(zero(FT), 1, sdim) # quadrature point location -- used as a buffer
-    J = fill(zero(FT), sdim, mdim) # Jacobian matrix -- used as a buffer
-    result = 0.0# Initialize the result
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buffers_basic(self, geom, geom)
+    result = initial # Initialize the result
+    for i in eachindex(fes)  # Now loop over all fes in the set
+        gathervalues_asmat!(geom, ecoords, fes.conn[i])
+        for j in 1:npts #Loop over all integration points
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
+            Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i], Ns[j], m)
+            result = result + fh(vec(loc)) * Jac * w[j]
+        end
+    end
+    return result
+end
+
+function _integratefunction(self, geom, fh, initial, m)
+    fes = finite_elements(self)
+    if m < 0
+        m = manifdim(fes)  # native  manifold dimension
+    end
+    # Constants
+    nfes = count(fes) # number of finite elements in the set
+    nne = nodesperelem(fes) # number of nodes per element
+    sdim = ndofs(geom)            # number of space dimensions
+    mdim = manifdim(fes)     # manifold dimension of the element
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buffers_basic(self, geom, geom)
+    result = initial # Initialize the result
     for i in eachindex(fes)  # Now loop over all fes in the set
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         for j in 1:npts #Loop over all integration points
@@ -1112,13 +1130,14 @@ function _field_nodal_to_elem_max!(
 end
 
 
-function  _buffers_basic(self, geom::NodalField{FT}, P::NodalField{T}) where {FT<:Number, T<:Number}
+function  _buffers_basic(self, geom, P)
     fes = finite_elements(self)
     ndn = ndofs(P); # number of degrees of freedom per node
     nne =  nodesperelem(fes); # number of nodes per element
     sdim =  ndofs(geom);            # number of space dimensions
     mdim = manifdim(fes);     # manifold dimension of the element
     elmdim = ndn*nne;          # dimension of the element matrix
+    FT = eltype(geom.values)
     ecoords = fill(zero(FT), nne, ndofs(geom)); # array of element coordinates
     IT = eltype(P.dofnums)
     dofnums = fill(zero(IT), elmdim); # degree of freedom array -- used as a buffer
@@ -1128,13 +1147,14 @@ function  _buffers_basic(self, geom::NodalField{FT}, P::NodalField{T}) where {FT
     return nne, ndn, ecoords, dofnums, loc, J, gradN
 end
 
-function _buffers_el(self, geom::NodalField{FT}, P::NodalField{T}) where {FT<:Number, T<:Number}
+function _buffers_el(self, geom, P)
     fes = finite_elements(self)
     ndn = ndofs(P); # number of degrees of freedom per node
     nne =  nodesperelem(fes); # number of nodes per element
     sdim =  ndofs(geom);            # number of space dimensions
     mdim = manifdim(fes);     # manifold dimension of the element
     elmdim = ndn*nne;          # dimension of the element matrix
+    T = eltype(P.values)
     elmat = fill(zero(T), elmdim, elmdim);# element matrix -- used as a buffer
     elvec = fill(zero(T), elmdim); # buffer
     elvecfix = fill(zero(T), elmdim); # buffer
@@ -1151,7 +1171,7 @@ end
         m,
     ) where {FEMM<:AbstractFEMM, A<:AbstractSysvecAssembler, FT<:Number, T, DC<:DataCache}
 
-Evaluate the linear form "dot".
+Compute the discrete vector implied by the linear form "dot".
 
 ```math
 \\int_{V}  \\vartheta \\cdot f \\; \\mathrm{d} V
@@ -1266,10 +1286,7 @@ end
         f::DC
     ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
 
-Compute the bilinear form of the "dot" type.
-
-
-Evaluate the linear form "dot".
+Compute the discrete sparse matrix implied by bilinear form of the "dot" type.
 
 ```math
 \\int_{V}  \\vartheta \\cdot c \\cdot u \\; \\mathrm{d} V
@@ -1284,10 +1301,7 @@ matrix.
 # Arguments
 - `f`= data cache, which is called to evaluate the location, the Jacobian
   matrix, and the finite element label to come up with the value to be
-  integrated;
-- `m`= manifold dimension, 0= vertex (point), 1= curve, 2= surface, 3= volume.
-  For body loads `m` is set to 3, for tractions on the surface it is set to 2,
-  and so on.
+  integrated.
 """
 function bilform_dot(
     self::FEMM,

@@ -242,7 +242,7 @@ function test()
     bfes = FESetP1(reshape([nl + 1], 1, 1))
     axisymmetric = true
     femm = FEMMBase(IntegDomain(bfes, PointRule(), axisymmetric))
-    S = integratefunction(femm, geom, (x) -> 1.0, 1)
+    S = integratefunction(femm, geom, (x) -> 1.0; m = 1)
     # # println(" Length  of the circle = $(S)")
     @test abs(S - 2 * pi * L) / S < 1.0e-5
 end
@@ -264,7 +264,7 @@ function test()
     bfes = FESetP1(reshape([nl + 1], 1, 1))
 
     femm = FEMMBase(IntegDomain(bfes, PointRule(), t))
-    S = integratefunction(femm, geom, (x) -> 1.0, 1)
+    S = integratefunction(femm, geom, (x) -> 1.0; m = 1)
     # # println("Length  of the boundary curve = $(S)")
     @test abs(S - t) / S < 1.0e-5
 end
@@ -286,7 +286,7 @@ function test()
     bfes = FESetP1(reshape([nl + 1], 1, 1))
 
     femm = FEMMBase(IntegDomain(bfes, PointRule(), t * W))
-    S = integratefunction(femm, geom, (x) -> 1.0, 2)
+    S = integratefunction(femm, geom, (x) -> 1.0; m = 2)
     # # println("Length  of the boundary curve = $(S)")
     @test abs(S - t * W) / S < 1.0e-5
 end
@@ -308,7 +308,7 @@ function test()
     bfes = FESetP1(reshape([nl + 1], 1, 1))
     axisymmetric = true
     femm = FEMMBase(IntegDomain(bfes, PointRule(), axisymmetric, W))
-    S = integratefunction(femm, geom, (x) -> 1.0, 2)
+    S = integratefunction(femm, geom, (x) -> 1.0; m = 2)
     # # println("Length  of the boundary curve = $(S)")
     @test abs(S - 2 * pi * L * W) / S < 1.0e-5
 end
@@ -330,7 +330,7 @@ function test()
     bfes = FESetP1(reshape([nl + 1], 1, 1))
     axisymmetric = true
     femm = FEMMBase(IntegDomain(bfes, PointRule(), axisymmetric, W * t))
-    S = integratefunction(femm, geom, (x) -> 1.0, 3)
+    S = integratefunction(femm, geom, (x) -> 1.0; m = 3)
     # # println("Length  of the boundary curve = $(S)")
     @test abs(S - 2 * pi * L * W * t) / S < 1.0e-5
 end
@@ -352,7 +352,7 @@ function test()
     bfes = FESetP1(reshape([nl + 1], 1, 1))
     axisymmetric = false
     femm = FEMMBase(IntegDomain(bfes, PointRule(), axisymmetric, L * W * t))
-    S = integratefunction(femm, geom, (x) -> 1.0, 3)
+    S = integratefunction(femm, geom, (x) -> 1.0; m = 3)
     # # println("Length  of the boundary curve = $(S)")
     @test abs(S - L * W * t) / S < 1.0e-5
 end
