@@ -7,7 +7,7 @@ module ForceIntensityModule
 
 __precompile__(true)
 
-import ..VectorCacheModule: VectorCache, updateretrieve!, settime!
+import ..DataCacheModule: DataCache, updateretrieve!, setcachetime!
 
 """
     ForceIntensity{T<:Number, F<:Function}
@@ -31,8 +31,8 @@ getforce!(forceout::Vector{CT}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) w
 The buffer `forceout` is filled with the value  of the force. The vector
 `forceout` is also returned for convenience.
 """
-struct ForceIntensity{CT<:Number, T<:Number, F<:Function}
-    _cache::VectorCache{CT, T, F}   # vector cache  where the current value of the force can be retrieved
+struct ForceIntensity{DC<:DataCache}
+    _cache::DC  # data cache  where the current value of the force can be retrieved
 end
 
 """
@@ -53,8 +53,9 @@ This constructor is intended for *time-independent* vector caches.
 - `computeforce!` = callback function.
 The function `computeforce!` needs to have a signature of
 ```
-function computeforce!(forceout::Vector{CT}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {CT, T}
-    Calculate the force  and copy it into the buffer....
+function computeforce!(forceout::Vector{CT}, XYZ::Matrix{T},
+    tangents::Matrix{T}, fe_label) where {CT, T}
+    # Calculate the force  and copy it into the buffer....
     return forceout
 end
 ```
@@ -68,7 +69,7 @@ function ForceIntensity(
     computeforce!::F,
 ) where {CT<:Number, F<:Function}
     # Allocate the buffer to be ready for the first call
-    return ForceIntensity(VectorCache(CT, ndofn, computeforce!))
+    return ForceIntensity(DataCache(zeros(CT, ndofn), computeforce!))
 end
 
 """
@@ -91,8 +92,9 @@ This constructor is intended for time-dependent force intensity caches.
 - `time` = initial time.
 The function `computeforce!` needs to have a signature of
 ```
-function computeforce!(forceout::Vector{CT}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label, time::T) where {CT, T}
-	Calculate the force  and copy it into the buffer....
+function computeforce!(forceout::Vector{CT}, XYZ::Matrix{T},
+    tangents::Matrix{T}, fe_label, time::T) where {CT, T}
+	# Calculate the force  and copy it into the buffer....
 	return forceout
 end
 ```
@@ -101,7 +103,7 @@ the location `XYZ`, using if appropriate the information supplied in the
 Jacobian matrix `tangents`, and the label of the finite element,
 `fe_label`. The initial `time` is given.
 
-The time needs to be set with `settime!` before calling `updateforce!`
+The time needs to be set with `setcachetime!` before calling `updateforce!`
 as follows:
 ```
 XYZ = reshape([0.0, 0.0], 2, 1)
@@ -114,7 +116,7 @@ vector = [10.0]
 fi = ForceIntensity(FFlt, length(vector), setvector!, 0.0)
 v = updateforce!(fi, XYZ, tangents, fe_label)
 @test v == [10.0]
-settime!(fi, 6.0)
+setcachetime!(fi, 6.0)
 v = updateforce!(fi, XYZ, tangents, fe_label)
 @test v == [0.0]
 ```
@@ -126,7 +128,7 @@ function ForceIntensity(
     time::T,
 ) where {CT<:Number, F<:Function, T}
     # Allocate the buffer to be ready for the first call
-    return ForceIntensity(VectorCache(CT, ndofn, computeforce!, time))
+    return ForceIntensity(setcachetime!(DataCache(zeros(CT, ndofn), computeforce!), time))
 end
 
 """
@@ -135,7 +137,7 @@ end
 Construct force intensity when the constant `force` vector is given.
 """
 function ForceIntensity(force::Vector{CT}) where {CT<:Number}
-    return ForceIntensity(VectorCache(deepcopy(force)))
+    return ForceIntensity(DataCache(deepcopy(force)))
 end
 
 """
@@ -157,17 +159,24 @@ Update the force intensity vector.
 Returns a vector (stored in the cache `self.cache`).
 """
 function updateforce!(self::ForceIntensity, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T}
-    return updateretrieve!(self._cache, XYZ, tangents, fe_label)
+    return self._cache(XYZ, tangents, fe_label)
 end
 
 """
-    settime!(self::ForceIntensity, time)
+    setcachetime!(self::ForceIntensity, time)
 
 Set the current time for the force intensity.
 """
-function settime!(self::ForceIntensity, time)
-    settime!(self._cache, time)
+function setcachetime!(self::ForceIntensity, time)
+    setcachetime!(self._cache, time)
     return self
 end
+
+"""
+    getcachetime(self::ForceIntensity)
+
+Retrieve the current time for the force intensity.
+"""
+getcachetime(self::ForceIntensity) = getcachetime(self._cache)
 
 end

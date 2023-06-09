@@ -9,7 +9,7 @@ module SurfaceNormalModule
 
 __precompile__(true)
 
-import ..VectorCacheModule: VectorCache, updateretrieve!
+import ..DataCacheModule: DataCache, updateretrieve!
 using LinearAlgebra: cross, norm
 
 """
@@ -29,9 +29,9 @@ computenormal!(normalout::Vector{T}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_lab
 
 The buffer `normalout` is filled with the value  of the normal vector.
 """
-struct SurfaceNormal{CT<:Number, T<:Number, F<:Function}
+struct SurfaceNormal{DC<:DataCache}
     # Cache of the current value of the normal
-    _cache::VectorCache{CT, T, F}
+    _cache::DC
 end
 
 """
@@ -51,7 +51,7 @@ matrix `tangents`, and the label of the finite element, `fe_label`.
 """
 function SurfaceNormal(ndimensions, computenormal!::F) where {F<:Function}
     # Allocate the buffer to be ready for the first call
-    return SurfaceNormal(VectorCache(Float64, ndimensions, computenormal!))
+    return SurfaceNormal(DataCache(zeros(Float64, ndimensions), computenormal!))
 end
 
 """
@@ -72,7 +72,7 @@ The type of the entries of the normal are `T`.
 """
 function SurfaceNormal(ndimensions, z::T, computenormal!::F) where {T<:Number, F<:Function}
     # Allocate the buffer to be ready for the first call
-    return SurfaceNormal(VectorCache(T, ndimensions, computenormal!))
+    return SurfaceNormal(DataCache(zeros(T, ndimensions), computenormal!))
 end
 
 """
@@ -92,7 +92,7 @@ function SurfaceNormal(ndimensions)
         normalout::Vector{T},
         XYZ::Matrix{T},
         tangents::Matrix{T},
-        fe_label,
+        fe_label; time=0.0
     ) where {T}
         fill!(normalout, zero(T))
         # Produce a default normal
@@ -112,7 +112,7 @@ function SurfaceNormal(ndimensions)
         end
         return normalout
     end
-    return SurfaceNormal(VectorCache(Float64, ndimensions, defaultcomputenormal!))
+    return SurfaceNormal(DataCache(zeros(Float64, ndimensions), defaultcomputenormal!))
 end
 
 """
@@ -121,7 +121,7 @@ end
 Construct surface normal vector when the *constant* normal vector is given.
 """
 function SurfaceNormal(vector::Vector{T}) where {T<:Number}
-    return SurfaceNormal(VectorCache(deepcopy(vector)))
+    return SurfaceNormal(DataCache(deepcopy(vector)))
 end
 
 """
@@ -132,7 +132,7 @@ Update the surface normal vector.
 Returns a vector (stored in the cache).
 """
 function updatenormal!(self::SurfaceNormal, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T}
-    return updateretrieve!(self._cache, XYZ, tangents, fe_label)
+    return self._cache(XYZ, tangents, fe_label)
 end
 
 end
