@@ -165,7 +165,7 @@ end
 
 function _integratefieldnodalfunction(self, geom, afield, fh, initial, m)
     fes = finite_elements(self)  # finite elements
-    nne, ndn, ecoords, dofnums, loc, J, gradN = _buffers_basic(self, geom, afield)
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, afield)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     a = fill(zero(eltype(afield.values)), nne, ndn) # used as a buffer
     val = fill(zero(eltype(afield.values)), 1, ndn) # used as a buffer
@@ -225,7 +225,7 @@ end
 function _integrateelementalfieldfunction(self, geom, afield, fh, initial, m)
     fes = finite_elements(self)  # finite elements
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    nne, ndn, ecoords, dofnums, loc, J, gradN = _buffers_basic(self, geom, afield)
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, afield)
     a = fill(zero(eltype(afield.values)), nne, ndn) # used as a buffer
     result = initial           # initial value for the result
     for i in eachindex(fes) #Now loop over all fes in the block
@@ -292,7 +292,7 @@ function integratefunction(
     sdim = ndofs(geom)            # number of space dimensions
     mdim = manifdim(fes)     # manifold dimension of the element
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    nne, ndn, ecoords, dofnums, loc, J, gradN = _buffers_basic(self, geom, geom)
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, geom)
     result = initial # Initialize the result
     for i in eachindex(fes)  # Now loop over all fes in the set
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
@@ -316,7 +316,7 @@ function _integratefunction(self, geom, fh, initial, m)
     sdim = ndofs(geom)            # number of space dimensions
     mdim = manifdim(fes)     # manifold dimension of the element
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    nne, ndn, ecoords, dofnums, loc, J, gradN = _buffers_basic(self, geom, geom)
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, geom)
     result = initial # Initialize the result
     for i in eachindex(fes)  # Now loop over all fes in the set
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
@@ -1130,7 +1130,7 @@ function _field_nodal_to_elem_max!(
 end
 
 
-function  _buffers_basic(self, geom, P)
+function  _buff_b(self, geom, P)
     fes = finite_elements(self)
     ndn = ndofs(P); # number of degrees of freedom per node
     nne =  nodesperelem(fes); # number of nodes per element
@@ -1147,7 +1147,7 @@ function  _buffers_basic(self, geom, P)
     return nne, ndn, ecoords, dofnums, loc, J, gradN
 end
 
-function _buffers_el(self, geom, P)
+function _buff_e(self, geom, P)
     fes = finite_elements(self)
     ndn = ndofs(P); # number of degrees of freedom per node
     nne =  nodesperelem(fes); # number of nodes per element
@@ -1198,8 +1198,8 @@ function linform_dot(
     fes = finite_elements(self)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     # Prepare some buffers:
-    nne, ndn, ecoords, dofnums, loc, J, gradN = _buffers_basic(self, geom, P)
-    elmdim, elmat, elvec, elvecfix = _buffers_el(self, geom, P)
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, P)
+    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, P)
     startassembly!(assembler, P.nfreedofs)
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
@@ -1254,6 +1254,8 @@ Compute distributed loads vector.
 - `m`= manifold dimension, 0= vertex (point), 1= curve, 2= surface, 3= volume.
   For body loads `m` is set to 3, for tractions on the surface it is set to 2,
   and so on.
+
+The actual work is done by `linform_dot()`.
 """
 function distribloads(
     self::FEMM,
@@ -1286,7 +1288,7 @@ end
         f::DC
     ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
 
-Compute the discrete sparse matrix implied by bilinear form of the "dot" type.
+Compute the sparse matrix implied by the bilinear form of the "dot" type.
 
 ```math
 \\int_{V}  \\vartheta \\cdot c \\cdot u \\; \\mathrm{d} V
@@ -1311,8 +1313,8 @@ function bilform_dot(
     f::DC
 ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
     fes = finite_elements(self)
-    nne, ndn, ecoords, dofnums, loc, J, gradN = _buffers_basic(self, geom, u)
-    elmdim, elmat, elvec, elvecfix = _buffers_el(self, geom, u)
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
+    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     startassembly!(assembler, size(elmat)..., count(fes), u.nfreedofs, u.nfreedofs)
     for i in eachindex(fes) # Loop over elements
