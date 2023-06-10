@@ -97,7 +97,6 @@ function add_mggt_ut_only!(Ke::Matrix{T}, gradN::Matrix{T}, mult) where {T}
     return true
 end
 
-
 """
     add_gkgt_ut_only!(
         Ke::Matrix{T},
