@@ -21,15 +21,16 @@ import ..FESetModule:
     map2parametric,
     inparametric,
     centroidparametric,
-    bfun
+    bfun, gradN!
 import ..IntegDomainModule: IntegDomain, integrationdata, Jacobianmdim, Jacobianvolume
-import ..CSysModule: CSys
+import ..CSysModule: CSys, updatecsmat!, csmat
 import ..FieldModule: ndofs, nents, gatherdofnums!, gathervalues_asmat!
 import ..NodalFieldModule: NodalField, nnodes
 import ..ElementalFieldModule: ElementalField, nelems
 import ..ForceIntensityModule: ForceIntensity, updateforce!
 import ..DataCacheModule: DataCache
 import ..MatrixUtilityModule: locjac!, add_nnt_ut_only!
+import ..MatrixUtilityModule: add_gkgt_ut_only!, complete_lt!, locjac!, add_nnt_ut_only!, mulCAtB!, mulCAB!
 import ..BoxModule: initbox!, boundingbox, inflatebox!
 import ..MeshModificationModule: nodepartitioning, compactnodes, renumberconn!
 import ..MeshSelectionModule: selectelem, vselect, findunconnnodes, connectednodes
@@ -1376,57 +1377,88 @@ function innerproduct(
     return innerproduct(self, assembler, geom, afield)
 end
 
-"""
-    acousticmass(self::FEMMAcoust, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
+function  _buff_d(self, geom, u)
+    fes = finite_elements(self)
+    nne = nodesperelem(fes); # number of nodes for element
+    mdim = manifdim(fes); # manifold dimension of the element
+    FT = eltype(geom.values)
+    RmTJ = fill(zero(FT), mdim, mdim); # buffer
+    T = eltype(u.values)
+    c_gradNT = fill(zero(T), mdim, nne); # buffer
+    return RmTJ, c_gradNT
+end
 
-Compute the acoustic mass matrix.
+"""
+    bilform_dot(
+        self::FEMM,
+        assembler::A,
+        geom::NodalField{FT},
+        u::NodalField{T},
+        f::DC
+    ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
+
+Compute the sparse matrix implied by the bilinear form of the "diffusion" type.
+
+```math
+\\int_{V}  \\nabla\\vartheta \\cdot c \\cdot \\nabla u \\; \\mathrm{d} V
+```
+
+Here ``\\nabla\\vartheta`` is the gradient of the test function, ``\\nabla u``
+is the gradient of the trial function, ``c`` is a square matrix of
+coefficients; ``c`` is computed by ``f``, which is a given function(data). Both
+functions are assumed to be vectors (even if of length 1). ``f`` is represented
+with `DataCache`, and needs to return a square matrix.
+
+The coefficient matrix ``c`` can be given in the so-called local material
+coordinates: coordinates that are attached to a material point and are
+determined by a local cartesian coordinates system (`mcsys`).
 
 # Arguments
-- `self`   =  acoustics model
-- `assembler`  =  matrix assembler
-- `geom` = geometry field
-- `P` = acoustic (perturbation) pressure field
-
-Return a matrix.
+- `f`= data cache, which is called to evaluate the location, the Jacobian
+  matrix, and the finite element label to come up with the value to be
+  integrated.
 """
-# function bilform_diffusion(
-#     self::FEMM,
-#     assembler::A,
-#     geom::NodalField{FT},
-#     P::NodalField{TT}
-#     ) where {FEMM<:AbstractFEMM, A<:AbstractSysvecAssembler, FT<:Number, TT<:Number}
-#     fes = finite_elements(self)
-#     ecoords, dofnums, loc, J, gradN, elmat, elvec, elvecfix =   buffers(self, geom, P)
-#     # Precompute basis f. values + basis f. gradients wrt parametric coor
-#     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
-#     Jac = 0.0;
-#     afactor = T(0.0);
-#     startassembly!(assembler, size(elmat,1), size(elmat,2), count(fes),
-#         P.nfreedofs, P.nfreedofs);
-#     for i = 1:count(fes) # Loop over elements
-#         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
-#         fill!(elmat, T(0.0)); # Initialize element matrix
-#         for j = 1:npts # Loop over quadrature points
-#             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
-#             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
-#             # gradient WRT global Cartesian coordinates
-#             gradN!(fes, gradN, gradNparams[j], J);
-#             afactor = (Jac*w[j]);
-#             add_mggt_ut_only!(elmat, gradN, afactor)
-#         end # Loop over quadrature points
-#         complete_lt!(elmat)
-#         gatherdofnums!(P, dofnums, fes.conn[i]);# retrieve degrees of freedom
-#         assemble!(assembler, elmat, dofnums, dofnums);# assemble symmetric matrix
-#     end # Loop over elements
-#     return makematrix!(assembler);
-# end
+function bilform_diffusion(
+    self::FEMM,
+    assembler::A,
+    geom::NodalField{FT},
+    u::NodalField{T},
+    f::DC
+) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
+    fes = finite_elements(self)
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
+    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u)
+    RmTJ, c_gradNT = _buff_d(self, geom, u)
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
+    startassembly!(assembler, size(elmat)..., count(fes), u.nfreedofs, u.nfreedofs);
+    for i in eachindex(fes) # Loop over elements
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
+        fill!(elmat,  zero(T)); # Initialize element matrix
+        for j in 1:npts # Loop over quadrature points
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
+            Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
+            updatecsmat!(self.mcsys, loc, J, fes.label[i]);
+            mulCAtB!(RmTJ,  csmat(self.mcsys),  J); # local Jacobian matrix
+            gradN!(fes, gradN, gradNparams[j], RmTJ);
+            c = f(loc, J, fes.label[i])
+            add_gkgt_ut_only!(elmat, gradN, (Jac*w[j]), c, c_gradNT)
+        end # Loop over quadrature points
+        complete_lt!(elmat)
+        gatherdofnums!(u, dofnums, fes.conn[i]);# retrieve degrees of freedom
+        assemble!(assembler, elmat, dofnums, dofnums);# assemble symmetric matrix
+    end # Loop over elements
+    return makematrix!(assembler);
+end
 
-# function bilinear_diffusion(self::FEMMAcoust, geom::NodalField, P::NodalField{T}) where {T<:Number}
-#     # Make the default assembler object.
-#     assembler  =  SysmatAssemblerSparseSymm();
-#     return acousticmass(self, assembler, geom, P);
-# end
-
+function bilform_diffusion(
+    self::FEMM,
+    geom::NodalField{FT},
+    u::NodalField{T},
+    f::DC
+) where {FEMM<:AbstractFEMM, FT, T, DC<:DataCache}
+    assembler = SysmatAssemblerSparseSymm();
+    return bilform_diffusion(self, assembler, geom, u, f);
+end
 
 end # module
 

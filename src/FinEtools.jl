@@ -395,6 +395,7 @@ using .FEMMBaseModule:
     fieldfromintegpoints,
     elemfieldfromintegpoints,
     bilform_dot,
+    bilform_diffusion,
     innerproduct,
     field_elem_to_nodal!,
     field_nodal_to_elem!
@@ -413,6 +414,7 @@ export AbstractFEMM,
     fieldfromintegpoints,
     elemfieldfromintegpoints,
     bilform_dot,
+    bilform_diffusion,
     innerproduct,
     field_elem_to_nodal!,
     field_nodal_to_elem!
