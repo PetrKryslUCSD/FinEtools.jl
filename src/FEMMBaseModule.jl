@@ -1389,7 +1389,7 @@ function  _buff_d(self, geom, u)
 end
 
 """
-    bilform_dot(
+    bilform_diffusion(
         self::FEMM,
         assembler::A,
         geom::NodalField{FT},
