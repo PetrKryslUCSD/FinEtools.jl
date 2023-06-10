@@ -1,7 +1,7 @@
 name = "FinEtools"
 uuid = "91bb5406-6c9a-523d-811d-0644c4229550"
 authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
-version = "7.0.0"
+version = "6.2.0"
 
 [deps]
 ChunkSplitters = "ae650224-84b6-46f8-82ea-d812ca08434e"
