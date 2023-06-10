@@ -22,4 +22,8 @@ end
     include("test_matrix_multiplication.jl")
 end
 
+@testset "Forms" begin
+    include("test_forms.jl")
+end
+
 true
