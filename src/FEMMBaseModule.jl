@@ -30,7 +30,7 @@ import ..ElementalFieldModule: ElementalField, nelems
 import ..ForceIntensityModule: ForceIntensity, updateforce!
 import ..DataCacheModule: DataCache
 import ..MatrixUtilityModule: locjac!, add_nnt_ut_only!
-import ..MatrixUtilityModule: add_gkgt_ut_only!, complete_lt!, locjac!, add_nnt_ut_only!, mulCAtB!, mulCAB!
+import ..MatrixUtilityModule: add_gkgt_ut_only!, complete_lt!, locjac!, add_nnt_ut_only!, mulCAtB!, mulCAB!, add_mggt_ut_only!
 import ..BoxModule: initbox!, boundingbox, inflatebox!
 import ..MeshModificationModule: nodepartitioning, compactnodes, renumberconn!
 import ..MeshSelectionModule: selectelem, vselect, findunconnnodes, connectednodes
@@ -1181,6 +1181,10 @@ Here ``\\vartheta`` is the test function, ``f`` is a given function (data).
 Both are assumed to be vectors. ``f`` is represented with `DataCache`.
 
 # Arguments
+- `self` = finite element machine;
+- `assembler` = assembler of the global object;
+- `geom` = geometry field;
+- `P` = nodal field to define the degree of freedom numbers;
 - `f`= data cache, which is called to evaluate the location, the Jacobian
   matrix, and the finite element label to come up with the value to be
   integrated;
@@ -1302,6 +1306,10 @@ function (data). Both functions are assumed to be vectors (even if of length
 matrix.
 
 # Arguments
+- `self` = finite element machine;
+- `assembler` = assembler of the global object;
+- `geom` = geometry field;
+- `u` = nodal field to define the degree of freedom numbers;
 - `f`= data cache, which is called to evaluate the location, the Jacobian
   matrix, and the finite element label to come up with the value to be
   integrated.
@@ -1407,18 +1415,37 @@ Here ``\\nabla\\vartheta`` is the gradient of the test function, ``\\nabla u``
 is the gradient of the trial function, ``c`` is a square matrix of
 coefficients; ``c`` is computed by ``f``, which is a given function(data). Both
 functions are assumed to be vectors (even if of length 1). ``f`` is represented
-with `DataCache`, and needs to return a square matrix.
+with `DataCache`, and needs to return a symmetric square matrix (to represent
+general anisotropic diffusion) or a scalar (to represent isotropic diffusion).
 
 The coefficient matrix ``c`` can be given in the so-called local material
 coordinates: coordinates that are attached to a material point and are
 determined by a local cartesian coordinates system (`mcsys`).
 
 # Arguments
+- `self` = finite element machine;
+- `assembler` = assembler of the global object;
+- `geom` = geometry field;
+- `u` = nodal field to define the degree of freedom numbers;
 - `f`= data cache, which is called to evaluate the location, the Jacobian
   matrix, and the finite element label to come up with the value to be
   integrated.
 """
 function bilform_diffusion(
+    self::FEMM,
+    assembler::A,
+    geom::NodalField{FT},
+    u::NodalField{T},
+    f::DC
+) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
+    if isempty(size(f)) # scalar
+        return _bilform_diffusion_iso(self, assembler, geom, u, f)
+    else
+        return _bilform_diffusion_general(self, assembler, geom, u, f)
+    end
+end
+
+function _bilform_diffusion_general(
     self::FEMM,
     assembler::A,
     geom::NodalField{FT},
@@ -1442,6 +1469,35 @@ function bilform_diffusion(
             gradN!(fes, gradN, gradNparams[j], RmTJ);
             c = f(loc, J, fes.label[i])
             add_gkgt_ut_only!(elmat, gradN, (Jac*w[j]), c, c_gradNT)
+        end # Loop over quadrature points
+        complete_lt!(elmat)
+        gatherdofnums!(u, dofnums, fes.conn[i]);# retrieve degrees of freedom
+        assemble!(assembler, elmat, dofnums, dofnums);# assemble symmetric matrix
+    end # Loop over elements
+    return makematrix!(assembler);
+end
+
+function _bilform_diffusion_iso(
+    self::FEMM,
+    assembler::A,
+    geom::NodalField{FT},
+    u::NodalField{T},
+    f::DC
+) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
+    fes = finite_elements(self)
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
+    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u)
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
+    startassembly!(assembler, size(elmat)..., count(fes), u.nfreedofs, u.nfreedofs);
+    for i in eachindex(fes) # Loop over elements
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
+        fill!(elmat,  zero(T)); # Initialize element matrix
+        for j in 1:npts # Loop over quadrature points
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
+            Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
+            gradN!(fes, gradN, gradNparams[j], J);
+            c = f(loc, J, fes.label[i])
+            add_mggt_ut_only!(elmat, gradN, (c*Jac*w[j]))
         end # Loop over quadrature points
         complete_lt!(elmat)
         gatherdofnums!(u, dofnums, fes.conn[i]);# retrieve degrees of freedom
