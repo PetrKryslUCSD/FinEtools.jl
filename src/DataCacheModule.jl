@@ -7,6 +7,8 @@ module DataCacheModule
 
 __precompile__(true)
 
+import Base: size
+
 """
     DataCache{D, F<:Function, T<:Number}
 
@@ -167,5 +169,13 @@ end
 Retrieved the current time for the array cache.
 """
 getcachetime(self::DataCache) = self._time[]
+
+
+"""
+    size(self::DataCache)
+
+Size of the data cache value.
+"""
+size(self::DataCache) = size(self._cache)
 
 end # DataCacheModule
