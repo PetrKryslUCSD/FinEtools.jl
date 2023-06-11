@@ -36,21 +36,21 @@ function test()
     # @show norm(M-testA)
 
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, (7, 7), (7, 7))
     assemble!(a, m1, i1, i1)
     assemble!(a, m2, i2, i2)
     Au = makematrix!(a)
-    @test maximum(abs.(testA - Au)) < 1.0e-5
+    @test maximum(abs.(testA - Au.ff)) < 1.0e-5
 
     a = SysmatAssemblerSparseSymm(0.0)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, (7, 7), (7, 7))
     assemble!(a, m1, i1, i1)
     assemble!(a, m2, i2, i2)
     A = makematrix!(a)
-    @test maximum(abs.(A - Au)) < 1.0e-5
+    @test maximum(abs.(A.ff - Au.ff)) < 1.0e-5
 
-    @test maximum(abs.(testA - A)) < 1.0e-5
-    @test abs.(maximum(A - transpose(A))) < 1.0e-5
+    @test maximum(abs.(testA - A.ff)) < 1.0e-5
+    @test abs.(maximum(A.ff - transpose(A.ff))) < 1.0e-5
 end
 end
 using .mmassembly2ya1
@@ -88,13 +88,13 @@ function test()
     ]
 
     a = SysmatAssemblerSparseDiag(0.0)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, (7, 7), (7, 7))
     assemble!(a, m1, i1, i1)
     assemble!(a, m2, i2, i2)
     A = makematrix!(a)
     # @show norm(A-testA)
 
-    @test maximum(abs.(diagm(0 => diag(testA)) - A)) < 1.0e-5
+    @test maximum(abs.(diagm(0 => diag(testA)) - A.ff)) < 1.0e-5
     true
 end
 end
@@ -807,7 +807,7 @@ function test()
     N = 30
     v = fill(0.0, N)
     a = SysvecAssembler()
-    startassembly!(a, N)
+    startassembly!(a, (N, N))
     vec, dofnums = rand(3), [1, 7, 2]
     assemble!(a, vec, dofnums)
     for (i, p) in zip(dofnums, vec)
@@ -819,7 +819,7 @@ function test()
         v[i] += p
     end
     w = makevector!(a)
-    @test norm(v - w) / norm(w) <= 1.0e-9
+    @test norm(v - w.f) / norm(w.f) <= 1.0e-9
 end
 end
 using .mvass1
@@ -833,21 +833,19 @@ function test()
     N = 30
     v = fill(0.0, N)
     a = SysvecAssembler()
-    startassembly!(a, N)
+    startassembly!(a, (N, N))
     vec, dofnums = rand(3), [1, 7, 2]
     assemble!(a, vec, dofnums)
     for (i, p) in zip(dofnums, vec)
         v[i] += p
     end
-    vec, dofnums = rand(7), [29, 0, 1, 7, 3, 0, 2]
+    vec, dofnums = rand(7), [29, 6, 1, 7, 3, 5, 2]
     assemble!(a, vec, dofnums)
     for (i, p) in zip(dofnums, vec)
-        if i > 0
-            v[i] += p
-        end
+        v[i] += p
     end
     w = makevector!(a)
-    @test norm(v - w) / norm(w) <= 1.0e-9
+    @test norm(v - w.f) / norm(w.f) <= 1.0e-9
 end
 end
 using .mvass2
@@ -875,7 +873,7 @@ function test()
         Mref
     end
     a = SysmatAssemblerSparseHRZLumpingSymm()
-    startassembly!(a, elem_mat_dim, 0, elem_mat_nmatrices, N, 0)
+    startassembly!(a, elem_mat_dim * elem_mat_nmatrices, (N, N), (N, N))
     dofnums = [10, 29, 15, 1, 7, 3, 6, 2]
     assemble!(a, elmat, dofnums, dofnums)
     add!(Mref, elmat, dofnums)
@@ -888,7 +886,7 @@ function test()
     M = makematrix!(a)
     s = 0.0
     for i in 1:N
-        s += abs(M[i, i] - diag(Mref)[i])
+        s += abs(M.ff[i, i] - diag(Mref)[i])
     end
     @test s / norm(elmat) <= 1.0e-9
 end
@@ -915,9 +913,9 @@ function test()
     v = gathersysvec(psi)
     G = innerproduct(femm, geom, psi)
     # @show v' * G * v
-    @test abs(v' * G * v - (W*L*t)) / (W*L*t) <= 1.0e-5
+    @test abs(v' * G.ff * v - (W*L*t)) / (W*L*t) <= 1.0e-5
     G = bilform_dot(femm, geom, psi, DataCache(LinearAlgebra.I(1)))
-    @test abs(v' * G * v - (W*L*t)) / (W*L*t) <= 1.0e-5
+    @test abs(v' * G.ff * v - (W*L*t)) / (W*L*t) <= 1.0e-5
     true
 end
 end
@@ -941,10 +939,10 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
     fi = ForceIntensity([11.0])
     F = distribloads(femm, geom, psi, fi, 3)
-    @test abs(sum(F) - (*).(L, W, t, 11.0)) / 667 <= 1.0e-5
+    @test abs(sum(F.f) - (*).(L, W, t, 11.0)) / 667 <= 1.0e-5
     fi = ForceIntensity(11.0)
     F = distribloads(femm, geom, psi, fi, 3)
-    @test abs(sum(F) - (*).(L, W, t, 11.0)) / 667 <= 1.0e-5
+    @test abs(sum(F.f) - (*).(L, W, t, 11.0)) / 667 <= 1.0e-5
 
     psi = NodalField(fill(1.0 + 1.0im, count(fens), 1))
     numberdofs!(psi)
@@ -952,10 +950,10 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
     fi = ForceIntensity([11.0im])
     F = distribloads(femm, geom, psi, fi, 3)
-    @test abs(sum(F) - (*).(L, W, t, 11.0im)) / 667 <= 1.0e-5
+    @test abs(sum(F.f) - (*).(L, W, t, 11.0im)) / 667 <= 1.0e-5
     fi = ForceIntensity(11.0im)
     F = distribloads(femm, geom, psi, fi, 3)
-    @test abs(sum(F) - (*).(L, W, t, 11.0im)) / 667 <= 1.0e-5
+    @test abs(sum(F.f) - (*).(L, W, t, 11.0im)) / 667 <= 1.0e-5
     true
 end
 end
@@ -1142,14 +1140,14 @@ function test()
         psi.values[i, 2] = g(fens.xyz[i, :])
     end
     numberdofs!(psi)
-    @test psi.nfreedofs == 220
+    @test nfreedofs(psi) == 220
 
     psi = GeneralField(fill(0.0, count(fens)))
     for i in eachindex(fens)
         psi.values[i, 1] = f(fens.xyz[i, :])
     end
     numberdofs!(psi)
-    @test psi.nfreedofs == 110
+    @test nfreedofs(psi) == 110
     true
 end
 end
@@ -1371,14 +1369,16 @@ using FinEtools
 using Test
 import LinearAlgebra: norm, cholesky
 function test()
+    refa = zeros(7,7)
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, (7, 7), (7, 7))
     m = [
         0.24406 0.599773 0.833404 0.0420141
         0.786024 0.00206713 0.995379 0.780298
         0.845816 0.198459 0.355149 0.224996
     ]
-    assemble!(a, m, [1 7 5], [5 0 1 4])
+    assemble!(a, m, [1 7 5], [5 2 1 4])
+    refa[vec([1 7 5]), vec([5 2 1 4])] += m
     m = [
         0.146618 0.53471 0.614342 0.737833
         0.479719 0.41354 0.00760941 0.836455
@@ -1386,20 +1386,13 @@ function test()
         0.159064 0.261821 0.317078 0.77646
         0.643538 0.429817 0.59788 0.958909
     ]
-    assemble!(a, m, [2 3 1 0 5], [6 7 3 4])
+    assemble!(a, m, [2 3 1 4 5], [6 7 3 4])
+    refa[vec([2 3 1 4 5]), vec([6 7 3 4])] += m
     A = makematrix!(a)
     # @show Matrix(A)
     @test abs.(
         maximum(
-            [
-                0.833404 0.0 0.460794 0.05121043 0.24406 0.254868 0.476189
-                0.0 0.0 0.614342 0.737833 0.0 0.146618 0.53471
-                0.0 0.0 0.00760941 0.836455 0.0 0.479719 0.41354
-                0.0 0.0 0.0 0.0 0.0 0.0 0.0
-                0.355149 0.0 0.59788 1.183905 0.845816 0.643538 0.429817
-                0.0 0.0 0.0 0.0 0.0 0.0 0.0
-                0.995379 0.0 0.0 0.780298 0.786024 0.0 0.0
-            ] - A,
+            refa - A.ff,
         )
     ) < 1.0e-5
     # @test abs(maximum(T_i)-1380.5883006341187) < 1.0e-3
@@ -1492,7 +1485,7 @@ using FinEtools.MeshExportModule.MESH
 using Test
 function test()
     a = SysmatAssemblerSparse(0.0, true)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, (7, 7), (7, 7))
     m = [
         0.24406 0.599773 0.833404 0.0420141
         0.786024 0.00206713 0.995379 0.780298
@@ -1508,14 +1501,14 @@ function test()
     ]
     assemble!(a, m, [2 3 1 7 5], [6 7 3 4])
     A = makematrix!(a)
-    @test A == spzeros(7, 7)
+    @test A.ff == spzeros(7, 7)
     a.nomatrixresult = false
     A = makematrix!(a)
-    @test A[1, 1] ≈ 0.833404
-    @test A[5, 1] ≈ 0.355149
-    @test A[7, 6] ≈ 0.159064
-    @test A[3, 7] ≈ 0.41354
-    @test A[7, 7] ≈ 0.261821
+    @test A.ff[1, 1] ≈ 0.833404
+    @test A.ff[5, 1] ≈ 0.355149
+    @test A.ff[7, 6] ≈ 0.159064
+    @test A.ff[3, 7] ≈ 0.41354
+    @test A.ff[7, 7] ≈ 0.261821
     true
 end
 end
@@ -1610,7 +1603,7 @@ function _test()
     ndofs_row = 7
     ndofs_col = 7
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
@@ -1622,7 +1615,7 @@ function _test()
 
     # Serial execution
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     ntasks = Base.Threads.nthreads()
     istart = 1; iend = 0;
     for ch in chunks(1:length(assembly_line), ntasks)
@@ -1634,7 +1627,7 @@ function _test()
         colbuffer = view(a.colbuffer, istart:iend)
         # @show length(colbuffer), istart, iend, buffer_length
         buffer_pointer = 1
-        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, true, false)
+        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_row, ndofs_col, ndofs_col, true, false)
         for i in ch[1]
             assemble!(a1, assembly_line[i]...)
         end
@@ -1643,11 +1636,11 @@ function _test()
     end
     a.buffer_pointer = iend
     A = makematrix!(a)
-    @test norm(A - refA) / norm(refA) < 1.0e-9
+    @test norm(A.ff - refA.ff) / norm(refA.ff) < 1.0e-9
 
     # Parallel execution
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     ntasks = Base.Threads.nthreads()
     istart = 1; iend = 0;
     Threads.@sync begin
@@ -1662,7 +1655,7 @@ function _test()
             rowbuffer .= 1
             colbuffer .= 1
             buffer_pointer = 1
-            a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, true, false)
+            a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_row, ndofs_col, ndofs_col, true, false)
             Threads.@spawn let r =  $ch[1]
                 for i in r
                     assemble!(a1, assembly_line[i]...)
@@ -1674,7 +1667,7 @@ function _test()
     end
     a.buffer_pointer = iend
     A = makematrix!(a)
-    @test norm(A - refA) / norm(refA) < 1.0e-9
+    @test norm(A.ff - refA.ff) / norm(refA.ff) < 1.0e-9
     return true
 end
 
@@ -1742,7 +1735,7 @@ function _test()
     # @info "Serial execution"
     start = time()
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
@@ -1757,7 +1750,7 @@ function _test()
     # @info "Serial chunked execution"
     start = time()
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     ntasks = Base.Threads.nthreads()
     istart = 1; iend = 0;
     for ch in chunks(1:length(assembly_line), ntasks)
@@ -1768,7 +1761,7 @@ function _test()
         rowbuffer = view(a.rowbuffer, istart:iend)
         colbuffer = view(a.colbuffer, istart:iend)
         buffer_pointer = 1
-        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, true, false)
+        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_row, ndofs_col, ndofs_col, true, false)
         for i in ch[1]
             assemble!(a1, assembly_line[i]...)
         end
@@ -1779,13 +1772,13 @@ function _test()
     a.buffer_pointer = iend
     A = makematrix!(a)
     # @show time() - start
-    @test norm(A - refA) / norm(refA) < 1.0e-9
+    @test norm(A.ff - refA.ff) / norm(refA.ff) < 1.0e-9
 
     # Parallel execution
     # @info "Parallel execution"
     start = time()
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     ntasks = Base.Threads.nthreads()
     istart = 1; iend = 0;
     Threads.@sync begin
@@ -1798,7 +1791,7 @@ function _test()
             colbuffer = view(a.colbuffer, istart:iend)
             buffer_pointer = 1
             Threads.@spawn let r =  $ch[1]
-                a1 = SysmatAssemblerSparse(buffer_length, $matbuffer, $rowbuffer, $colbuffer, $buffer_pointer, ndofs_row, ndofs_col, true, false)
+                a1 = SysmatAssemblerSparse(buffer_length, $matbuffer, $rowbuffer, $colbuffer, $buffer_pointer, ndofs_row, ndofs_row, ndofs_col, ndofs_col, true, false)
                 # @show ch[2], r
                 for i in r
                     assemble!(a1, assembly_line[i]...)
@@ -1812,7 +1805,7 @@ function _test()
     a.buffer_pointer = iend
     A = makematrix!(a)
     # @show time() - start
-    @test norm(A - refA) / norm(refA) < 1.0e-9
+    @test norm(A.ff - refA.ff) / norm(refA.ff) < 1.0e-9
     return true
 end
 
@@ -1880,7 +1873,7 @@ function _test()
     # @info "Serial execution"
     start = time()
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
@@ -1895,7 +1888,7 @@ function _test()
     # @info "Serial chunked execution"
     start = time()
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     ntasks = Base.Threads.nthreads()
     istart = 1; iend = 0;
     for ch in chunks(1:length(assembly_line), ntasks)
@@ -1909,7 +1902,7 @@ function _test()
         rowbuffer .= 1
         colbuffer .= 1
         buffer_pointer = 1
-        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, true, false)
+        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_row, ndofs_col, ndofs_col, true, false)
         for i in ch[1]
             assemble!(a1, assembly_line[i]...)
         end
@@ -1919,7 +1912,7 @@ function _test()
     a.buffer_pointer = iend
     A = makematrix!(a)
     # @show time() - start
-    @test norm(A - refA) / norm(refA) < 1.0e-9
+    @test norm(A.ff - refA.ff) / norm(refA.ff) < 1.0e-9
 
     function _update_buffer_range(elem_mat_nrows, elem_mat_ncols, range, iend)
         buffer_length = elem_mat_nrows * elem_mat_ncols * length(range)
@@ -1938,14 +1931,14 @@ function _test()
         matbuffer .= 0.0
         rowbuffer .= 1
         colbuffer .= 1
-        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_col, true, false)
+        a1 = SysmatAssemblerSparse(buffer_length, matbuffer, rowbuffer, colbuffer, buffer_pointer, ndofs_row, ndofs_row, ndofs_col, ndofs_col, true, false)
     end
 
     # Parallel execution
     # @info "Parallel execution"
     start = time()
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     ntasks = Base.Threads.nthreads()
     iend = 0;
     Threads.@sync begin
@@ -1964,7 +1957,7 @@ function _test()
     a.buffer_pointer = iend
     A = makematrix!(a)
     # @show time() - start
-    @test norm(A - refA) / norm(refA) < 1.0e-9
+    @test norm(A.ff - refA.ff) / norm(refA.ff) < 1.0e-9
     return true
 end
 
@@ -2046,26 +2039,26 @@ function _test()
     end
 
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
     A = makematrix!(a)
     # @show time() - start
-    @test norm(A - refA) / norm(refA) < 1.0e-9
+    @test norm(A.ff - refA) / norm(refA) < 1.0e-9
 
 
     a = SysmatAssemblerSparseSymm(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
     A = makematrix!(a)
 
     # @show time() - start
-    @test norm(A - refA) / norm(refA) < 1.0e-9
+    @test norm(A.ff - refA) / norm(refA) < 1.0e-9
 
-    return A, refA
+    return true
 end
 
 _test()
@@ -2146,27 +2139,27 @@ function _test()
 
     a = SysmatAssemblerSparse(0.0)
     # We are testing resizing of buffers by under sizing initially
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, 1, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
     A = makematrix!(a)
     # @show time() - start
-    @test norm(A - refA) / norm(refA) < 1.0e-9
+    @test norm(A.ff - refA) / norm(refA) < 1.0e-9
 
 
     a = SysmatAssemblerSparseSymm(0.0)
     # We are testing resizing of buffers by under sizing initially
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, 1, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
     A = makematrix!(a)
 
     # @show time() - start
-    @test norm(A - refA) / norm(refA) < 1.0e-9
+    @test norm(A.ff - refA) / norm(refA) < 1.0e-9
 
-    return A, refA
+    return true
 end
 
 _test()
@@ -2247,40 +2240,40 @@ function _test()
     end
 
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, 110, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*110, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
     A = makematrix!(a)
     # @show time() - start
-    @test norm(A - refA) / norm(refA) < 1.0e-9
+    @test norm(A.ff - refA) / norm(refA) < 1.0e-9
     # Here we test that we can start assembly again
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, 110, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*110, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
     A = makematrix!(a)
     # @show time() - start
-    @test norm(A - refA) / norm(refA) < 1.0e-9
+    @test norm(A.ff - refA) / norm(refA) < 1.0e-9
 
     a = SysmatAssemblerSparseSymm(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, 1, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
     A = makematrix!(a)
     # @show time() - start
-    @test norm(A - refA) / norm(refA) < 1.0e-9
+    @test norm(A.ff - refA) / norm(refA) < 1.0e-9
     # Here we test that we can start assembly again
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, 1, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, (ndofs_row, ndofs_col), (ndofs_row, ndofs_col))
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
     A = makematrix!(a)
     # @show time() - start
-    @test norm(A - refA) / norm(refA) < 1.0e-9
+    @test norm(A.ff - refA) / norm(refA) < 1.0e-9
 
-    return A, refA
+    return true
 end
 
 _test()

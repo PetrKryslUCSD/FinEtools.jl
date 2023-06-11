@@ -1954,7 +1954,7 @@ using Test
 import LinearAlgebra: norm, cholesky
 function test()
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, (7, 7), (7, 7))
     m = [
         0.24406 0.599773 0.833404 0.0420141
         0.786024 0.00206713 0.995379 0.780298
@@ -1980,7 +1980,7 @@ function test()
                 0.355149 0.198459 0.59788 1.1839 0.845816 0.643538 0.429817
                 0.0 0.0 0.0 0.0 0.0 0.0 0.0
                 0.995379 0.00206713 0.317078 1.55676 0.786024 0.159064 0.261821
-            ] - A,
+            ] - A.ff,
         )
     ) < 1.0e-5
     # @test abs(maximum(T_i)-1380.5883006341187) < 1.0e-3
@@ -1995,7 +1995,7 @@ using Test
 import LinearAlgebra: norm, cholesky
 function test()
     a = SysmatAssemblerSparseSymm(0.0)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, (7, 7), (7, 7))
     m = [
         0.24406 0.599773 0.833404 0.0420141
         0.786024 0.00206713 0.995379 0.780298
@@ -2021,10 +2021,10 @@ function test()
                 2.56958 1.56825 1.36026 0.813892 4.15934 0.0 0.0
                 0.0 0.0 0.0 0.0 0.0 0.0 0.0
                 0.0 0.0 0.0 0.0 0.0 0.0 0.0
-            ] - A,
+            ] - A.ff,
         )
     ) < 1.0e-5
-    @test abs.(maximum(A - transpose(A))) < 1.0e-5
+    @test abs.(maximum(A.ff - transpose(A.ff))) < 1.0e-5
 end
 end
 using .mmassembly2

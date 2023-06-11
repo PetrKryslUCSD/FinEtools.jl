@@ -8,12 +8,12 @@ module FEMMBaseModule
 __precompile__(true)
 
 using LinearAlgebra
-import LinearAlgebra: mul!, Transpose
+using LinearAlgebra: mul!, Transpose
 my_At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
-import SparseArrays: sparse, findnz
-import LinearAlgebra: norm
-import ..FENodeSetModule: FENodeSet
-import ..FESetModule:
+using SparseArrays: sparse, findnz
+using LinearAlgebra: norm
+using ..FENodeSetModule: FENodeSet
+using ..FESetModule:
     AbstractFESet,
     manifdim,
     nodesperelem,
@@ -22,19 +22,19 @@ import ..FESetModule:
     inparametric,
     centroidparametric,
     bfun, gradN!
-import ..IntegDomainModule: IntegDomain, integrationdata, Jacobianmdim, Jacobianvolume
-import ..CSysModule: CSys, updatecsmat!, csmat
-import ..FieldModule: ndofs, nents, gatherdofnums!, gathervalues_asmat!
-import ..NodalFieldModule: NodalField, nnodes
-import ..ElementalFieldModule: ElementalField, nelems
-import ..ForceIntensityModule: ForceIntensity, updateforce!
-import ..DataCacheModule: DataCache
-import ..MatrixUtilityModule: locjac!, add_nnt_ut_only!
-import ..MatrixUtilityModule: add_gkgt_ut_only!, complete_lt!, locjac!, add_nnt_ut_only!, mulCAtB!, mulCAB!, add_mggt_ut_only!
-import ..BoxModule: initbox!, boundingbox, inflatebox!
-import ..MeshModificationModule: nodepartitioning, compactnodes, renumberconn!
-import ..MeshSelectionModule: selectelem, vselect, findunconnnodes, connectednodes
-import ..AssemblyModule:
+using ..IntegDomainModule: IntegDomain, integrationdata, Jacobianmdim, Jacobianvolume
+using ..CSysModule: CSys, updatecsmat!, csmat
+using ..FieldModule: ndofs, nents, gatherdofnums!, gathervalues_asmat!, dofinfo, nfreedofs
+using ..NodalFieldModule: NodalField, nnodes
+using ..ElementalFieldModule: ElementalField, nelems
+using ..ForceIntensityModule: ForceIntensity, updateforce!
+using ..DataCacheModule: DataCache
+using ..MatrixUtilityModule: locjac!, add_nnt_ut_only!
+using ..MatrixUtilityModule: add_gkgt_ut_only!, complete_lt!, locjac!, add_nnt_ut_only!, mulCAtB!, mulCAB!, add_mggt_ut_only!
+using ..BoxModule: initbox!, boundingbox, inflatebox!
+using ..MeshModificationModule: nodepartitioning, compactnodes, renumberconn!
+using ..MeshSelectionModule: selectelem, vselect, findunconnnodes, connectednodes
+using ..AssemblyModule:
     AbstractSysvecAssembler,
     AbstractSysmatAssembler,
     SysmatAssemblerSparseSymm,
@@ -43,7 +43,7 @@ import ..AssemblyModule:
     makematrix!,
     makevector!,
     SysvecAssembler
-import ..FENodeToFEMapModule: FENodeToFEMap
+using ..FENodeToFEMapModule: FENodeToFEMap
 
 """
     AbstractFEMM
@@ -1205,7 +1205,7 @@ function linform_dot(
     # Prepare some buffers:
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, P)
     elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, P)
-    startassembly!(assembler, P.nfreedofs)
+    startassembly!(assembler, dofinfo(P))
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(elvec, T(0.0))
@@ -1328,7 +1328,7 @@ function bilform_dot(
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
     elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    startassembly!(assembler, size(elmat)..., count(fes), u.nfreedofs, u.nfreedofs)
+    startassembly!(assembler, prod(size(elmat)) * count(fes), dofinfo(u), dofinfo(u))
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(elmat, 0.0) # Initialize element matrix
@@ -1464,7 +1464,7 @@ function _bilform_diffusion_general(
     elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u)
     RmTJ, c_gradNT = _buff_d(self, geom, u)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    startassembly!(assembler, size(elmat)..., count(fes), u.nfreedofs, u.nfreedofs);
+    startassembly!(assembler, prod(size(elmat)) * count(fes), dofinfo(u), dofinfo(u))
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(elmat,  zero(T)); # Initialize element matrix
@@ -1495,7 +1495,7 @@ function _bilform_diffusion_iso(
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
     elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    startassembly!(assembler, size(elmat)..., count(fes), u.nfreedofs, u.nfreedofs);
+    startassembly!(assembler, prod(size(elmat)) * count(fes), dofinfo(u), dofinfo(u))
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(elmat,  zero(T)); # Initialize element matrix

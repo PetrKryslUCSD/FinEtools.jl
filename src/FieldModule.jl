@@ -15,10 +15,10 @@ import Base.copyto!
 Abstract field.
 
 Expected  attributes:
-  + `values::FMat{T}`: Array of degree of freedom parameters,  indexed by entity number
-  + `dofnums::FIntMat`: Array of degree of freedom numbers, indexed by entity number
+  + `values::Array{T,2}`: Array of degree of freedom parameters,  indexed by entity number
+  + `dofnums::Array{IT,2}`: Array of degree of freedom numbers, indexed by entity number
   + `is_fixed::Matrix{Bool}`: Array of Boolean flags, indexed by entity number
-  + `nfreedofs::FInt`: Total number of free degrees of freedom
+  + `_nfreedofs::IT`: Total number of free degrees of freedom
 
 See also: [`@add_Field_fields()`](@ref) .
 """
@@ -31,10 +31,11 @@ Generate the attributes (i. e. fields) of a `Field`. The methods defined for
 the abstract type depend on these attributes to be present.
 """
 macro add_Field_fields()
-    return esc(:(values::Array{T,2};
-    dofnums::Array{IT,2};
-    is_fixed::Matrix{Bool};
-    nfreedofs::IT))
+    return esc(:(
+        values::Array{T,2};
+        dofnums::Array{IT,2};
+        is_fixed::Matrix{Bool};
+        _nfreedofs::IT))
 end
 
 """
@@ -57,14 +58,26 @@ nents(self::F) where {F<:AbstractField} = size(self.values, 1)
 
 Return to number of FREE degrees of freedom.
 """
-nfreedofs(self::F) where {F<:AbstractField} = self.nfreedofs
+nfreedofs(self::F) where {F<:AbstractField} = self._nfreedofs
 
 """
     nalldofs(self::F)
 
-Return to number of ALL degrees of freedom.
+Return to number of ALL degrees of freedom (total number of degrees of freedom,
+which is equal to the number of degrees of freedom per entity times the number
+of entities).
 """
 nalldofs(self::F) where {F<:AbstractField} = prod(size(self.values))
+
+"""
+    dofinfo(self::F)
+
+Summarize the degree of freedom info.
+
+Returns a tuple of the number of the free degrees of freedom and the total
+number of the degrees of freedom.
+"""
+dofinfo(self::F) where {F<:AbstractField} = (nfreedofs(self), nalldofs(self))
 
 """
     freedofs(self::F) where {F<:AbstractField}
@@ -89,7 +102,7 @@ function copyto!(DEST::F, SRC::F) where {F<:AbstractField}
     copyto!(DEST.values, SRC.values)
     copyto!(DEST.dofnums, SRC.dofnums)
     copyto!(DEST.is_fixed, SRC.is_fixed)
-    DEST.nfreedofs = SRC.nfreedofs
+    DEST._nfreedofs = SRC._nfreedofs
     return DEST
 end
 
@@ -103,7 +116,7 @@ fixed" flags. The number of free degrees of freedom is set to zero.
 """
 function wipe!(self::F) where {F<:AbstractField}
     Zer = zero(eltype(self.values[1]))
-    self.nfreedofs = 0
+    self._nfreedofs = 0
     fill!(self.dofnums, 0)
     fill!(self.is_fixed, false)
     fill!(self.values, Zer)
@@ -348,18 +361,18 @@ range).
 """
 function numberdofs!(self::F, entperm) where {F<:AbstractField}
     nents, dim = size(self.values)
-    self.nfreedofs = 0
+    self._nfreedofs = 0
     # First free
     for i in entperm
         for j in 1:dim
             if !self.is_fixed[i, j] # free degree of freedom
-                self.nfreedofs = self.nfreedofs + 1
-                self.dofnums[i, j] = self.nfreedofs
+                self._nfreedofs = self._nfreedofs + 1
+                self.dofnums[i, j] = self._nfreedofs
             end
         end
     end
     # Then fixed
-    nfixeddofs = self.nfreedofs
+    nfixeddofs = self._nfreedofs
     for i in entperm
         for j in 1:dim
             if self.is_fixed[i, j] # free degree of freedom
@@ -407,7 +420,7 @@ Set the EBCs (essential boundary conditions).
 Note:  Any call to `setebc!()` potentially changes the current assignment
 which degrees of freedom are free and which are fixed and therefore is
 presumed to invalidate the current degree-of-freedom numbering. In such a case
-this method sets `nfreedofs = 0`; and  `dofnums=0`.
+this method sets `_nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(
     self::F,
@@ -419,7 +432,7 @@ function setebc!(
     @assert 1 <= comp <= size(self.values, 2) "Requested  nonexistent  degree of freedom"
     @assert 1 <= fenid <= size(self.values, 1) "Requested nonexistent node"
     _setebc!(self, fenid, is_fixed, comp, val)
-    self.nfreedofs = 0
+    self._nfreedofs = 0
     fill!(self.dofnums, 0)
     return self
 end
@@ -444,7 +457,7 @@ Set the EBCs (essential boundary conditions).
 Note:  Any call to `setebc!()` potentially changes the current assignment
 which degrees of freedom are free and which are fixed and therefore is
 presumed to invalidate the current degree-of-freedom numbering. In such a case
-this method sets `nfreedofs = 0`; and  `dofnums=0`.
+this method sets `_nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(
     self::F,
@@ -459,7 +472,7 @@ function setebc!(
     for j in eachindex(fenids)
         _setebc!(self, fenids[j], is_fixed, comp, val[j])
     end
-    self.nfreedofs = 0
+    self._nfreedofs = 0
     fill!(self.dofnums, 0)
     return self
 end
@@ -484,7 +497,7 @@ Set the EBCs (essential boundary conditions).
 Note:  Any call to `setebc!()` potentially changes the current assignment
 which degrees of freedom are free and which are fixed and therefore is
 presumed to invalidate the current degree-of-freedom numbering. In such a case
-this method sets `nfreedofs = 0`; and  `dofnums=0`.
+this method sets `_nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(
     self::F,
@@ -499,7 +512,7 @@ function setebc!(
     for j in eachindex(fenids)
         _setebc!(self, fenids[j], is_fixed, comp, val)
     end
-    self.nfreedofs = 0
+    self._nfreedofs = 0
     fill!(self.dofnums, 0)
     return self
 end
@@ -521,7 +534,7 @@ Set the EBCs (essential boundary conditions).
 Note:  Any call to `setebc!()` potentially changes the current assignment
 which degrees of freedom are free and which are fixed and therefore is
 presumed to invalidate the current degree-of-freedom numbering. In such a case
-this method sets `nfreedofs = 0`; and  `dofnums=0`.
+this method sets `_nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(
     self::F,
@@ -550,7 +563,7 @@ Set the EBCs (essential boundary conditions).
 Note:  Any call to `setebc!()` potentially changes the current assignment
 which degrees of freedom are free and which are fixed and therefore is
 presumed to invalidate the current degree-of-freedom numbering. In such a case
-this method sets `nfreedofs = 0`; and  `dofnums=0`.
+this method sets `_nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(
     self::F,
@@ -579,7 +592,7 @@ Set the EBCs (essential boundary conditions).
 Note:  Any call to `setebc!()` potentially changes the current assignment which
 degrees of freedom are free and which are fixed and therefore is presumed to
 invalidate the current degree-of-freedom numbering. In such a case this method
-sets `nfreedofs = 0`; and  `dofnums=0`.
+sets `_nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(
     self::F,
@@ -606,7 +619,7 @@ Suppress all degrees of freedom at the given nodes.
 Note:  Any call to `setebc!()` potentially changes the current assignment
 which degrees of freedom are free and which are fixed and therefore is
 presumed to invalidate the current degree-of-freedom numbering. In such a case
-this method sets `nfreedofs = 0`; and  `dofnums=0`.
+this method sets `_nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(self::F, fenids::AbstractVector{IT})  where {F<:AbstractField, IT<:Integer}
     zer = zero(eltype(self.values[1]))
@@ -629,7 +642,7 @@ Note:  Any call to setebc!() potentially changes the current assignment
 which degrees of freedom are free and which are fixed
 and therefore is presumed to invalidate the
 current degree-of-freedom numbering. In such a case this method sets
-`nfreedofs = 0`; and  `dofnums=0`.
+`_nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(self::F, fenid::IT) where {F<:AbstractField, IT<:Integer}
     return setebc!(self, [fenid])
@@ -646,10 +659,10 @@ Note:  Any call to setebc!() potentially changes the current assignment
 which degrees of freedom are free and which are fixed
 and therefore is presumed to invalidate the
 current degree-of-freedom numbering. In such a case this method sets
-`nfreedofs = 0`; and  `dofnums=0`.
+`_nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(self::F) where {F<:AbstractField}
-    self.nfreedofs = 0
+    self._nfreedofs = 0
     fill!(self.dofnums, 0)
     fill!(self.is_fixed, false)
     fill!(self.values, zero(eltype(self.values[1])))
