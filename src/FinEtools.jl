@@ -22,6 +22,10 @@ using .FTypesModule:
 # Exported: basic numerical types, type of data dictionary
 export FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
+using .DataCacheModule: DataCache
+# Exported: vector-cache type and methods to invoke the update callback
+export DataCache
+
 using .BoxModule:
     inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap, intersectboxes
 # Exported: methods for manipulating and testing boxes
@@ -301,13 +305,9 @@ using .MeshImportModule: import_NASTRAN, import_ABAQUS, import_MESH, import_H5ME
 # Exported: mesh import functions
 export import_NASTRAN, import_ABAQUS, import_MESH, import_H5MESH
 
-using .DataCacheModule: DataCache, updateretrieve!, setcachetime!, getcachetime
-# Exported: vector-cache type and methods to invoke the update callback
-export DataCache, updateretrieve!, setcachetime!, getcachetime
-
-using .ForceIntensityModule: ForceIntensity, updateforce!, setcachetime!
+using .ForceIntensityModule: ForceIntensity, updateforce!
 # Exported: force-intensity type and methods to invoke the update callback
-export ForceIntensity, updateforce!, setcachetime!, getcachetime
+export ForceIntensity, updateforce!
 
 using .AssemblyModule:
     AbstractSysmatAssembler,

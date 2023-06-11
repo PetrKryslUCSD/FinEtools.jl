@@ -2297,12 +2297,12 @@ XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Vector{CT},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, T}
+        fe_label, time::T = 0.0) where {CT, T}
     cacheout .= 13
     return cacheout
 end
 c = DataCache(zeros(nentries), fillcache!)
-v = updateretrieve!(c, XYZ, tangents, fe_label)
+v = c(XYZ, tangents, fe_label)
 @test v == [13, 13, 13]
 end
 
@@ -2316,12 +2316,12 @@ XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Vector{CT},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, T}
+        fe_label, time::T = 0.0) where {CT, T}
     cacheout .= 13
     return cacheout
 end
 c = DataCache(zeros(Float32, nentries), fillcache!)
-v = updateretrieve!(c, XYZ, tangents, fe_label)
+v = c(XYZ, tangents, fe_label)
 @test v == [13, 13, 13]
 end
 
@@ -2334,13 +2334,13 @@ XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, N, T}
+        fe_label, time::T = 0.0) where {CT, N, T}
     cacheout .= 13
     return cacheout
 end
 data = rand(3, 3)
 c = DataCache(data)
-v = updateretrieve!(c, XYZ, tangents, fe_label)
+v = c(XYZ, tangents, fe_label)
 @test v == data
 end
 
@@ -2354,13 +2354,13 @@ XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, N, T}
+        fe_label, time::T = 0.0) where {CT, N, T}
     cacheout .= 13
     return cacheout
 end
 data = rand(3, 3)
 c = DataCache(data, fillcache!)
-v = updateretrieve!(c, XYZ, tangents, fe_label)
+v = c(XYZ, tangents, fe_label)
 data .= 13
 @test v == data
 end
@@ -2374,7 +2374,7 @@ XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, N, T}
+        fe_label, time::T = 0.0) where {CT, N, T}
     cacheout .= 13
     return cacheout
 end
@@ -2394,7 +2394,7 @@ XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, N, T}
+        fe_label, time::T = 0.0) where {CT, N, T}
     cacheout .= fe_label
     return cacheout
 end
@@ -2415,18 +2415,16 @@ using FinEtools
 
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, N, T}
+        fe_label, time::T = 0.0) where {CT, N, T}
     cacheout .= LinearAlgebra.I(3)
     return cacheout
 end
 c = DataCache(zeros(Float32, 3, 3), fillcache!)
 function f(c)
     XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
-    setcachetime!(c, 2.1)
-    data = c(XYZ, tangents, fe_label)
+    data = c(XYZ, tangents, fe_label, 2.1)
 end
 @test f(c) == LinearAlgebra.I(3)
-@test getcachetime(c) == 2.1
 end
 
 
@@ -2437,18 +2435,16 @@ using FinEtools
 
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, N, T}
+        fe_label, time::T = 0.0) where {CT, N, T}
     cacheout .= LinearAlgebra.I(3)
     return cacheout
 end
 c = DataCache(zeros(Float32, 3, 3), fillcache!)
 function f(c)
     XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
-    setcachetime!(c, 2.1)
-    data = c(XYZ, tangents, fe_label)
+    data = c(XYZ, tangents, fe_label, 2.1)
 end
 @test f(c) == LinearAlgebra.I(3)
-@test getcachetime(c) == 2.1
 end
 
 module testing_cache_9
@@ -2458,7 +2454,7 @@ using FinEtools
 
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, N, T}
+        fe_label, time::T = 0.0) where {CT, N, T}
     if time > 1.0
         cacheout .= LinearAlgebra.I(3)
     else
@@ -2469,14 +2465,11 @@ end
 c = DataCache(zeros(Float32, 3, 3), fillcache!)
 function f(c)
     XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
-    setcachetime!(c, 0.0)
-    data = c(XYZ, tangents, fe_label)
+    data = c(XYZ, tangents, fe_label, 0.0)
     @test data == zeros(Float32, 3, 3)
-    setcachetime!(c, 2.1)
-    data = c(XYZ, tangents, fe_label)
+    data = c(XYZ, tangents, fe_label, 2.1)
 end
 @test f(c) == LinearAlgebra.I(3)
-@test getcachetime(c) == 2.1
 end
 
 
@@ -2489,7 +2482,7 @@ XYZ, tangents, _ = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 
 function fillcache!(cacheout::D,
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {D, T}
+        fe_label, time::T = 0.0) where {D, T}
     cacheout = D(fe_label)
     return cacheout
 end
@@ -2501,4 +2494,36 @@ for t in (Float32, Float64, ComplexF32, ComplexF64)
         @test v == t(fe_label)
     end
 end
+end
+
+
+module mmacousticcouplingpanelsm1
+using FinEtools
+using FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
+using LinearAlgebra
+using Test
+
+function __computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, time = 0.0)
+    fill!(normalout, 0.0)
+    # We are assuming a surface element here!
+    if (size(tangents,1) == 3) && (size(tangents,2) == 2)# surface in three dimensions
+        normalout[:] .= cross(vec(tangents[:,1]), vec(tangents[:,2]));# outer normal to the surface
+    else
+        error("No definition of normal vector");
+    end
+    nn = norm(normalout);
+    if  nn != 0.0 # otherwise return an unnormalized normal
+        normalout ./= nn
+    end
+    return normalout
+end
+
+function test()
+    n = SurfaceNormal(3, __computenormal!)
+    XYZ, tangents, l = (reshape([0.0, 0.0, 0.0], 1, 3), [1.0 0.0; 0.0 1.0; 0.0 0.0], 1)
+    updatenormal!(n, XYZ, tangents, l)
+    true
+
+end
+test()
 end

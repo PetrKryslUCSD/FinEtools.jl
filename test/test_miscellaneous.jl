@@ -2038,7 +2038,7 @@ function test()
     tangents = reshape([0.0, 1.0], 2, 1)
     fe_label = 0
     c = DataCache([10.0])
-    updateretrieve!(c, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    c(XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     @test c._cache == [10.0]
 end
 end
@@ -2052,11 +2052,11 @@ function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
     fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, time::FFlt = 0.0) = begin
         v .= [10.0]
     end
     c = DataCache(FFlt[1], setvector!)
-    updateretrieve!(c, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    c(XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     @test c._cache == [10.0]
 end
 end
@@ -2070,7 +2070,7 @@ function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
     fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, time::FFlt = 0.0) = begin
         if time < 5.0
             v .= [10.0]
         else
@@ -2079,11 +2079,9 @@ function test()
         return v
     end
     c = DataCache(FFlt[1], setvector!)
-    setcachetime!(c, 0.0)
-    updateretrieve!(c, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    c(XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, 0.0)
     @test c._cache == [10.0]
-    setcachetime!(c, 6.0)
-    updateretrieve!(c, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    c(XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, 6.0)
     @test c._cache == [0.0]
 end
 end
@@ -2097,12 +2095,12 @@ function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
     fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time = 0.0) = begin
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, time = 0.0) = begin
         v .= [10.0]
         return v
     end
     c = DataCache(FFlt[1], setvector!)
-    updateretrieve!(c, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    c(XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     @test c._cache == [10.0]
 end
 end
@@ -2132,7 +2130,7 @@ function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
     fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, time::FFlt = 0.0) = begin
         v .= [10.0]
     end
     vector = [10.0]
@@ -2151,7 +2149,7 @@ function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
     fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, time::FFlt = 0.0) = begin
         if time < 5.0
             v .= [10.0]
         else
@@ -2160,11 +2158,10 @@ function test()
         return v
     end
     vector = [10.0]
-    fi = ForceIntensity(FFlt, length(vector), setvector!, 0.0)
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    fi = ForceIntensity(FFlt, length(vector), setvector!)
+    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, 0.0)
     @test v == [10.0]
-    setcachetime!(fi, 6.0)
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, 6.0)
     @test v == [0.0]
 end
 end
@@ -2178,7 +2175,7 @@ function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
     fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time = 0.0) = begin
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, time = 0.0) = begin
         v .= [10.0]
         return v
     end
@@ -2186,8 +2183,7 @@ function test()
     fi = ForceIntensity(FFlt, length(vector), setvector!)
     v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     @test v == [10.0]
-    setcachetime!(fi, 6.0)
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, 6.0)
     @test v == [10.0]
 end
 end
@@ -2217,7 +2213,7 @@ function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
     fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, time::FFlt = 0.0) = begin
         v .= [10.0, -3.13]
     end
     fi = SurfaceNormal(2, setvector!)
@@ -2250,7 +2246,7 @@ function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
     fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, time::FFlt = 0.0) = begin
         v .= [10.0, -3.13]
     end
     fi = SurfaceNormal(2, zero(FFlt), setvector!)
