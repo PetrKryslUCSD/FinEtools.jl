@@ -617,15 +617,8 @@ cleandchi() = deepcopy(
             2.7755575615628914e-17 1.3552527156068805e-20 -0.14078343955580952 0.001474279595600101 0.0 0.0
             0.0 0.0 0.0 0.0020849461988275853 0.0 0.0
         ],
-        [0 0 0 1 0 0; 2 3 4 5 6 7; 8 9 10 11 12 13; 14 15 16 17 18 19; 0 0 0 20 0 0],
+        [21 22 23 1 24 25; 2 3 4 5 6 7; 8 9 10 11 12 13; 14 15 16 17 18 19; 26 27 28 20 29 30],
         Bool[1 1 1 0 1 1; 0 0 0 0 0 0; 0 0 0 0 0 0; 0 0 0 0 0 0; 1 1 1 0 1 1],
-        [
-            0.0 0.0 0.0 0.0 0.0 0.0
-            0.0 0.0 0.0 0.0 0.0 0.0
-            0.0 0.0 0.0 0.0 0.0 0.0
-            0.0 0.0 0.0 0.0 0.0 0.0
-            0.0 0.0 0.0 0.0 0.0 0.0
-        ],
         20,
     ),
 )
@@ -650,6 +643,16 @@ cleandchiv() = deepcopy([
     0.0,
     0.0,
     0.0020849461988275853,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
 ])
 function test()
     dchi = cleandchi()
@@ -681,7 +684,7 @@ function test()
     @test FinEtools.FieldModule.anyfixedvaluenz(dchi, [1, 2]) == false
     edn = fill(0, 12)
     gatherdofnums!(dchi, edn, [1, 2])
-    @test norm(edn - vec([0 0 0 1 0 0; 2 3 4 5 6 7]')) == 0
+    @test norm(edn - vec([21 22 23 1 24 25; 2 3 4 5 6 7]')) == 0
     dchi = cleandchi()
     numberdofs!(dchi)
     @test norm(dchi.dofnums - cleandchi().dofnums) == 0
@@ -689,79 +692,79 @@ function test()
     dchi = cleandchi()
     setebc!(dchi, 1, true, 1, -0.013)
     @test dchi.is_fixed[1, 1] == true
-    @test dchi.fixed_values[1, 1] == -0.013
+    @test dchi.values[1, 1] == -0.013
     setebc!(dchi, 5, true, 4, 0.61)
     @test dchi.is_fixed[5, 4] == true
-    @test dchi.fixed_values[5, 4] == 0.61
+    @test dchi.values[5, 4] == 0.61
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], true, 2, [-0.013, 2.0])
     @test dchi.is_fixed[1, 2] == true
-    @test dchi.fixed_values[1, 2] == -0.013
+    @test dchi.values[1, 2] == -0.013
     @test dchi.is_fixed[5, 2] == true
-    @test dchi.fixed_values[5, 2] == 2.0
+    @test dchi.values[5, 2] == 2.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], true, 2, -10.0)
     @test dchi.is_fixed[1, 2] == true
-    @test dchi.fixed_values[1, 2] == -10.0
+    @test dchi.values[1, 2] == -10.0
     @test dchi.is_fixed[5, 2] == true
-    @test dchi.fixed_values[5, 2] == -10.0
+    @test dchi.values[5, 2] == -10.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], true, 2)
     @test dchi.is_fixed[1, 2] == true
-    @test dchi.fixed_values[1, 2] == 0.0
+    @test dchi.values[1, 2] == 0.0
     @test dchi.is_fixed[5, 2] == true
-    @test dchi.fixed_values[5, 2] == 0.0
+    @test dchi.values[5, 2] == 0.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], 2, [-10.0, 10.0])
     @test dchi.is_fixed[1, 2] == true
-    @test dchi.fixed_values[1, 2] == -10.0
+    @test dchi.values[1, 2] == -10.0
     @test dchi.is_fixed[5, 2] == true
-    @test dchi.fixed_values[5, 2] == 10.0
+    @test dchi.values[5, 2] == 10.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], 2)
     @test dchi.is_fixed[1, 2] == true
-    @test dchi.fixed_values[1, 2] == 0.0
+    @test dchi.values[1, 2] == 0.0
     @test dchi.is_fixed[5, 2] == true
-    @test dchi.fixed_values[5, 2] == 0.0
+    @test dchi.values[5, 2] == 0.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], true, [2, 3], -10.0)
     @test dchi.is_fixed[1, 2] == true
-    @test dchi.fixed_values[1, 2] == -10.0
+    @test dchi.values[1, 2] == -10.0
     @test dchi.is_fixed[5, 3] == true
-    @test dchi.fixed_values[5, 3] == -10.0
+    @test dchi.values[5, 3] == -10.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], true, [2, 3])
     @test dchi.is_fixed[1, 2] == true
-    @test dchi.fixed_values[1, 2] == 0.0
+    @test dchi.values[1, 2] == 0.0
     @test dchi.is_fixed[5, 3] == true
-    @test dchi.fixed_values[5, 3] == 0.0
+    @test dchi.values[5, 3] == 0.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5])
     for i in [1, 5]
         @test any([!dchi.is_fixed[i, idx] for idx in 1:ndofs(dchi)]) == false
-        @test any([dchi.fixed_values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
+        @test any([dchi.values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
     end
 
     dchi = cleandchi()
     setebc!(dchi, 3)
     for i in [3]
         @test any([!dchi.is_fixed[i, idx] for idx in 1:ndofs(dchi)]) == false
-        @test any([dchi.fixed_values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
+        @test any([dchi.values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
     end
 
     dchi = cleandchi()
     setebc!(dchi)
     for i in 1:nents(dchi)
         @test any([dchi.is_fixed[i, idx] for idx in 1:ndofs(dchi)]) == false
-        @test any([dchi.fixed_values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
+        @test any([dchi.values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
     end
 
     dchi = cleandchi()

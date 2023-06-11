@@ -18,7 +18,6 @@ Expected  attributes:
   + `values::FMat{T}`: Array of degree of freedom parameters,  indexed by entity number
   + `dofnums::FIntMat`: Array of degree of freedom numbers, indexed by entity number
   + `is_fixed::Matrix{Bool}`: Array of Boolean flags, indexed by entity number
-  + `fixed_values::FMat{T}`: Array of fixed values, indexed by entity number
   + `nfreedofs::FInt`: Total number of free degrees of freedom
 
 See also: [`@add_Field_fields()`](@ref) .
@@ -35,7 +34,6 @@ macro add_Field_fields()
     return esc(:(values::Array{T,2};
     dofnums::Array{IT,2};
     is_fixed::Matrix{Bool};
-    fixed_values::Array{T,2};
     nfreedofs::IT))
 end
 
@@ -55,6 +53,34 @@ Number of nodes associated with the field.
 nents(self::F) where {F<:AbstractField} = size(self.values, 1)
 
 """
+    nfreedofs(self::F)
+
+Return to number of FREE degrees of freedom.
+"""
+nfreedofs(self::F) where {F<:AbstractField} = self.nfreedofs
+
+"""
+    nalldofs(self::F)
+
+Return to number of ALL degrees of freedom.
+"""
+nalldofs(self::F) where {F<:AbstractField} = prod(size(self.values))
+
+"""
+    freedofs(self::F) where {F<:AbstractField}
+
+Return range corresponding to the free degrees of freedom.
+"""
+freedofs(self::F) where {F<:AbstractField} = 1:nfreedofs(self)
+
+"""
+    fixeddofs(self::F) where {F<:AbstractField}
+
+Return range corresponding to the fixed degrees of freedom.
+"""
+fixeddofs(self::F) where {F<:AbstractField} = nfreedofs(self)+1:nalldofs(self)
+
+"""
     copyto!(DEST::F,  SRC::F) where {F<:AbstractField}
 
 Copy data from one field to another.
@@ -63,7 +89,6 @@ function copyto!(DEST::F, SRC::F) where {F<:AbstractField}
     copyto!(DEST.values, SRC.values)
     copyto!(DEST.dofnums, SRC.dofnums)
     copyto!(DEST.is_fixed, SRC.is_fixed)
-    copyto!(DEST.fixed_values, SRC.fixed_values)
     DEST.nfreedofs = SRC.nfreedofs
     return DEST
 end
@@ -77,12 +102,11 @@ This includes values, prescribed values, degree of freedom numbers, and "is
 fixed" flags. The number of free degrees of freedom is set to zero.
 """
 function wipe!(self::F) where {F<:AbstractField}
-    Zer = zero(eltype(self.fixed_values[1]))
+    Zer = zero(eltype(self.values[1]))
     self.nfreedofs = 0
     fill!(self.dofnums, 0)
     fill!(self.is_fixed, false)
     fill!(self.values, Zer)
-    fill!(self.fixed_values, Zer)
     return self
 end
 
@@ -90,17 +114,16 @@ end
     gathersysvec(self::F) where {F<:AbstractField}
 
 Gather values from the field for the whole system vector.
-Return a vector.
+
+Return a vector that includes all the degrees of freedom, free and fixed.
 """
 function gathersysvec(self::F) where {F<:AbstractField}
     nents, dim = size(self.values)
-    vec = zeros(typeof(self.values[1, 1]), self.nfreedofs)
+    vec = zeros(typeof(self.values[1, 1]), nalldofs(self))
     for i in 1:nents
         for j in 1:dim
             en = self.dofnums[i, j]
-            if (en > 0) && (en <= self.nfreedofs)
-                vec[en] = self.values[i, j]
-            end
+            vec[en] = self.values[i, j]
         end
     end
     return vec
@@ -110,16 +133,17 @@ end
     gathersysvec!(self::F, vec::Vector{T}) where {F<:AbstractField, T}
 
 Gather values from the field for the whole system vector.
+
+Compile a vector that includes all the degrees of freedom, free and fixed, using
+the supplied buffer `vec`.
 """
 function gathersysvec!(self::F, vec::Vector{T}) where {F<:AbstractField, T}
     nents, dim = size(self.values)
-    @assert length(vec) == self.nfreedofs
+    @assert length(vec) == nalldofs(self)
     for i in 1:nents
         for j in 1:dim
             en = self.dofnums[i, j]
-            if (en > 0) && (en <= self.nfreedofs)
-                vec[en] = self.values[i, j]
-            end
+            vec[en] = self.values[i, j]
         end
     end
     return vec
@@ -206,14 +230,15 @@ function gatherfixedvalues_asvec!(
     dest::AbstractArray{T,1},
     conn::CC,
 ) where {F<:AbstractField, T, CC}
+    Zer = zero(eltype(self.values))
     # The order of the loops matters here! It must be i, j
     en = 1
     for i in eachindex(conn)
-        for j in axes(self.fixed_values, 2)
+        for j in axes(self.values, 2)
             if self.is_fixed[conn[i], j] # free degree of freedom
-                dest[en] = self.fixed_values[conn[i], j]
+                dest[en] = self.values[conn[i], j]
             else
-                dest[en] = 0.0
+                dest[en] = Zer
             end
             en = en + 1
         end
@@ -243,12 +268,13 @@ function gatherfixedvalues_asmat!(
     dest::AbstractArray{T,2},
     conn::CC,
 ) where {F<:AbstractField, T, CC}
-    for j in axes(self.fixed_values, 2)
+    Zer = zero(eltype(self.values))
+    for j in axes(self.values, 2)
         for i in eachindex(conn)
             if self.is_fixed[conn[i], j] # fixed degree of freedom
-                dest[i, j] = self.fixed_values[conn[i], j]
+                dest[i, j] = self.values[conn[i], j]
             else
-                dest[i, j] = 0.0
+                dest[i, j] = Zer
             end
         end
     end
@@ -258,13 +284,14 @@ end
 """
     anyfixedvaluenz(self::F, conn::CC) where {F<:AbstractField, CC}
 
-Is any fixed (prescribed)
+Is any degree of freedom fixed (prescribed) to be non-zero?
 """
 function anyfixedvaluenz(self::F, conn::CC) where {F<:AbstractField, CC}
+    Zer = zero(eltype(self.values))
     for i in eachindex(conn)
-        for j in axes(self.fixed_values, 2)
+        for j in axes(self.values, 2)
             if self.is_fixed[conn[i], j] # free degree of freedom
-                if abs(self.fixed_values[conn[i], j]) > 0.0
+                if abs(self.values[conn[i], j]) > 0.0
                     return true
                 end
             end
@@ -297,9 +324,11 @@ end
 
 Number the degrees of freedom.
 
-The free components in the field are numbered consecutively. No effort is
-made to optimize the numbering in any way. If you'd like to optimize the
-numbering of the degrees of freedom, use a form that sets the
+The free components in the field are numbered consecutively, then all the fixed
+components are numbered, again consecutively.
+
+No effort is made to optimize the numbering in any way. If you'd like to
+optimize the numbering of the degrees of freedom, use a form that sets the
 permutation of the degrees of freedom, or the permutation of the nodes.
 """
 function numberdofs!(self::F) where {F<:AbstractField}
@@ -311,20 +340,31 @@ end
 
 Number the degrees of freedom.
 
-The free components in the field are numbered consecutively. The sequence of the
-entities is given by the `entperm` permutation (array or range). 
+The free components in the field are numbered consecutively, then all the fixed
+components are numbered, again consecutively.
+
+The sequence of the entities is given by the `entperm` permutation (array or
+range).
 """
 function numberdofs!(self::F, entperm) where {F<:AbstractField}
-    fixed_dofnum = zero(typeof(self.nfreedofs))
     nents, dim = size(self.values)
     self.nfreedofs = 0
+    # First free
     for i in entperm
         for j in 1:dim
             if !self.is_fixed[i, j] # free degree of freedom
                 self.nfreedofs = self.nfreedofs + 1
                 self.dofnums[i, j] = self.nfreedofs
-            else # fixed degree of freedom: no equation
-                self.dofnums[i, j] = fixed_dofnum
+            end
+        end
+    end
+    # Then fixed
+    nfixeddofs = self.nfreedofs
+    for i in entperm
+        for j in 1:dim
+            if self.is_fixed[i, j] # free degree of freedom
+                nfixeddofs = nfixeddofs + 1
+                self.dofnums[i, j] = nfixeddofs
             end
         end
     end
@@ -340,9 +380,9 @@ function _setebc!(
 ) where {F<:AbstractField, T<:Number, IT<:Integer}
     self.is_fixed[fenid, comp] = is_fixed
     if self.is_fixed[fenid, comp]
-        self.fixed_values[fenid, comp] = val
+        self.values[fenid, comp] = val
     else
-        self.fixed_values[fenid, comp] = zero(T)
+        self.values[fenid, comp] = zero(T)
     end
     return self
 end
@@ -569,7 +609,7 @@ presumed to invalidate the current degree-of-freedom numbering. In such a case
 this method sets `nfreedofs = 0`; and  `dofnums=0`.
 """
 function setebc!(self::F, fenids::AbstractVector{IT})  where {F<:AbstractField, IT<:Integer}
-    zer = zero(eltype(self.fixed_values[1]))
+    zer = zero(eltype(self.values[1]))
     for comp in axes(self.values, 2)
         setebc!(self, fenids, true, comp, zer)
     end
@@ -612,7 +652,7 @@ function setebc!(self::F) where {F<:AbstractField}
     self.nfreedofs = 0
     fill!(self.dofnums, 0)
     fill!(self.is_fixed, false)
-    fill!(self.fixed_values, zero(eltype(self.fixed_values[1])))
+    fill!(self.values, zero(eltype(self.values[1])))
     return self
 end
 
@@ -622,14 +662,7 @@ end
 Apply EBCs (essential boundary conditions).
 """
 function applyebc!(self::F) where {F<:AbstractField}
-    nents, dim = size(self.values)
-    for i in 1:nents
-        for j in 1:dim
-            if self.is_fixed[i, j]
-                self.values[i, j] = self.fixed_values[i, j]
-            end
-        end
-    end
+    # NO-OP: all has already been done by setebc!
     return self
 end
 
@@ -637,13 +670,17 @@ end
     scattersysvec!(self::F, vec::AbstractVector{T}) where {F<:AbstractField, T<:Number}
 
 Scatter values to the field from a system vector.
+
+The vector may be either for just the free degrees of freedom, or for all the
+degrees of freedom.
 """
 function scattersysvec!(self::F, vec::AbstractVector{T}) where {F<:AbstractField, T<:Number}
     nents, dim = size(self.values)
+    nve = length(vec)
     for i in 1:nents
         for j in 1:dim
             dn = self.dofnums[i, j]
-            if (dn > 0) && (dn <= self.nfreedofs)
+            if (dn > 0) && (dn <= nve)
                 self.values[i, j] = vec[dn]
             end
         end
@@ -655,13 +692,17 @@ end
     incrscattersysvec!(self::F, vec::AbstractVector{T}) where {F<:AbstractField, T<:Number}
 
 Increment values of the field by scattering a system vector.
+
+The vector may be either for just the free degrees of freedom, or for all the
+degrees of freedom.
 """
 function incrscattersysvec!(self::F, vec::AbstractVector{T}) where {F<:AbstractField, T<:Number}
     nents, dim = size(self.values)
+    nve = length(vec)
     for i in 1:nents
         for j in 1:dim
             dn = self.dofnums[i, j]
-            if (dn > 0) && (dn <= self.nfreedofs)
+            if (dn > 0) && (dn <= nve)
                 self.values[i, j] += vec[dn]
             end
         end
@@ -687,7 +728,7 @@ function prescribeddofs(uebc::F1, u::F2) where {F1<:AbstractField,  F2<:Abstract
         for j in 1:dim
             if uebc.is_fixed[i, j]
                 dn = u.dofnums[i, j]
-                push!(prescribedvalues, uebc.fixed_values[i, j])
+                push!(prescribedvalues, uebc.values[i, j])
                 push!(dofnums, dn)
             end
         end

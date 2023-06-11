@@ -38,9 +38,8 @@ function ElementalField(data::Matrix{T}, zi::IT) where {T<:Number, IT<:Integer}
     dofnums = 0 * similar(values, IT)
     is_fixed = similar(values, Bool)
     fill!(is_fixed, false)
-    fixed_values = zeros(T, size(values))
     nfreedofs = zero(IT)
-    return ElementalField(values, dofnums, is_fixed, fixed_values, nfreedofs)
+    return ElementalField(values, dofnums, is_fixed, nfreedofs)
 end
 
 function ElementalField(data::Matrix{T}) where {T<:Number}

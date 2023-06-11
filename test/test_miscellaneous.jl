@@ -763,8 +763,8 @@ function test()
     @test norm(u.dofnums) == 0
     setebc!(u, [1, 3])
     numberdofs!(u)
-    @test norm(u.dofnums[1, :]) == 0
-    @test norm(u.dofnums[3, :]) == 0
+    @test norm(u.is_fixed[1, :]) != 0
+    @test norm(u.is_fixed[3, :]) != 0
     @test norm(u.dofnums[2, :]) > 0.0
 end
 end
@@ -797,8 +797,8 @@ function test()
     @test norm(u.dofnums) == 0
     setebc!(u, [1, 3])
     numberdofs!(u)
-    @test norm(u.dofnums[1, :]) == 0
-    @test norm(u.dofnums[3, :]) == 0
+    @test norm(u.is_fixed[1, :]) != 0
+    @test norm(u.is_fixed[3, :]) != 0
     @test norm(u.dofnums[2, :]) > 0.0
 end
 end

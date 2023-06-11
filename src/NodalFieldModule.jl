@@ -34,9 +34,8 @@ function NodalField(data::Matrix{T}, zi::IT) where {T<:Number, IT<:Integer}
     dofnums = 0 * similar(values, IT)
     is_fixed = similar(values, Bool)
     fill!(is_fixed, false)
-    fixed_values = zeros(T, size(values))
     nfreedofs = zero(IT)
-    return NodalField(values, dofnums, is_fixed, fixed_values, nfreedofs)
+    return NodalField(values, dofnums, is_fixed, nfreedofs)
 end
 
 function NodalField(data::Matrix{T}) where {T<:Number}
