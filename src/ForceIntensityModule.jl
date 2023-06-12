@@ -23,10 +23,10 @@ where volume depends on to which manifold the force is applied:
 
 Signature of the function to compute the value of the force  at any given point
 `XYZ`, using the columns of the Jacobian matrix of the element, `tangents`, the
-finite element label, `fe_label`, and the time `time`:
+finite element label, `fe_label`:
 
 ```
-getforce!(forceout::Vector{CT}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label, time = 0.0) where {CT, T}
+getforce!(forceout::Vector{CT}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label::IT) where {CT, T, IT}
 ```
 
 A `DataCache` is used to store the data.
@@ -52,15 +52,14 @@ vector is given.
   have a signature of
     ```
     function computeforce!(forceout::Vector{CT}, XYZ::Matrix{T},
-        tangents::Matrix{T}, fe_label, time = 0.0) where {CT, T}
+        tangents::Matrix{T}, fe_label::IT) ) where {CT, T<:Number, IT<:Integer}
         # Calculate the force  and copy it into the buffer....
         return forceout
     end
     ```
     and it needs to  fill in the buffer `forceout` with the current force at the
     location `XYZ`, using, if appropriate, the information supplied in the Jacobian
-    matrix `tangents`, the label of the finite element, `fe_label`, and the
-    time `time`.
+    matrix `tangents`, the label of the finite element, `fe_label`.
 """
 function ForceIntensity(
     ::Type{CT},
@@ -92,14 +91,15 @@ function ForceIntensity(force::CT) where {CT<:Number}
 end
 
 """
-    updateforce!(self::ForceIntensity, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T}
+    updateforce!(self::ForceIntensity, XYZ::Matrix{T},
+        tangents::Matrix{T}, fe_label::IT) ) where {T<:Number, IT<:Integer}
 
 Update the force intensity vector.
 
 Returns a vector (stored in the cache `self.cache`).
 """
-function updateforce!(self::ForceIntensity, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label, time::T = 0.0) where {T}
-    return self._cache(XYZ, tangents, fe_label, time)
+function updateforce!(self::ForceIntensity, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label::IT) where {T<:Number, IT<:Integer}
+    return self._cache(XYZ, tangents, fe_label)
 end
 
 end

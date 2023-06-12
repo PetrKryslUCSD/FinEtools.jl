@@ -90,9 +90,8 @@ function SurfaceNormal(ndimensions)
         normalout::Vector{T},
         XYZ::Matrix{T},
         tangents::Matrix{T},
-        fe_label,
-        time=0.0
-    ) where {T}
+        fe_label::IT
+    ) where {T<:Number, IT<:Integer}
         fill!(normalout, zero(T))
         # Produce a default normal
         if (size(tangents, 1) == 3) && (size(tangents, 2) == 2)# surface in three dimensions
@@ -130,8 +129,8 @@ Update the surface normal vector.
 
 Returns a vector (stored in the cache).
 """
-function updatenormal!(self::SurfaceNormal, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label, time = 0.0) where {T}
-    return self._cache(XYZ, tangents, fe_label, time)
+function updatenormal!(self::SurfaceNormal, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T}
+    return self._cache(XYZ, tangents, fe_label)
 end
 
 end

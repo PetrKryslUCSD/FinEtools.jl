@@ -10,26 +10,23 @@ __precompile__(true)
 import Base: size
 
 """
-    DataCache{D, F<:Function, T<:Number}
+    DataCache{D, F<:Function}
 
 Type for caching data, such as vectors, matrices, and numbers.
 
 `D` = type of the data, for instance `Matrix{Float64}` or `Float32`.
 `F` = type of the function to update the entries of the array.
-`T` = type of the time,
 
 Signature of the function to fill the cache with the value of the array is as
 follows: it may use the location `XYZ`, it may use the columns of the Jacobian
 matrix of the element, `tangents`, it may also choose the value given the
-finite element label, `fe_label`. Finally, the value of the array may also
-depend on the `time` (or the load factor). All of these values are chosen by
+finite element label, `fe_label`. All of these values are chosen by
 the code requesting the value of the cache. It must return the modified
 argument `cacheout`.
 
 ```
 function fillcache!(cacheout::D,
-    XYZ::VecOrMat{T}, tangents::Matrix{T}, fe_label,
-    time::T = 0.0) where {D, T}
+    XYZ::VecOrMat{T}, tangents::Matrix{T}, fe_label) where {D, T}
     ... # modify the value of cacheout
     return cacheout
 end
@@ -42,7 +39,7 @@ called, and the output `cacheout` is filled with the value of the cached data.
 ```
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label, time::T = 0.0) where {CT, N, T}
+        fe_label) where {CT, N, T}
     cacheout .= LinearAlgebra.I(3)
     return cacheout
 end
@@ -78,9 +75,8 @@ function DataCache(data::D) where {D}
         cacheout::D,
         XYZ::VecOrMat{T},
         tangents::Matrix{T},
-        fe_label,
-        time::T = 0.0,
-    ) where {D, T}
+        fe_label::IT
+    ) where {D, T<:Number, IT<:Integer}
         # do nothing:  the data is already in the cache
         return cacheout
     end
@@ -88,22 +84,12 @@ function DataCache(data::D) where {D}
 end
 
 """
-    (c::DataCache)(XYZ::VecOrMat{T}, tangents::Matrix{T}, fe_label, time::T) where {T<:Number}
+    (c::DataCache)(XYZ::VecOrMat{T}, tangents::Matrix{T}, fe_label::IT) where {T<:Number, IT<:Integer}
 
 Update the cache and retrieve the array.
 """
-function (c::DataCache)(XYZ::VecOrMat{T}, tangents::Matrix{T}, fe_label, time::T) where {T<:Number}
-    c._cache = c._fillcache!(c._cache, XYZ, tangents, fe_label, time)
-    return c._cache
-end
-
-"""
-    (c::DataCache)(XYZ::VecOrMat{T}, tangents::Matrix{T}, fe_label) where {T<:Number}
-
-Update the cache and retrieve the array.
-"""
-function (c::DataCache)(XYZ::VecOrMat{T}, tangents::Matrix{T}, fe_label) where {T<:Number}
-    c._cache = c._fillcache!(c._cache, XYZ, tangents, fe_label, 0.0)
+function (c::DataCache)(XYZ::VecOrMat{T}, tangents::Matrix{T}, fe_label::IT) where {T<:Number, IT<:Integer}
+    c._cache = c._fillcache!(c._cache, XYZ, tangents, fe_label)
     return c._cache
 end
 

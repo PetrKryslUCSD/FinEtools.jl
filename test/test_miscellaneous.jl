@@ -2078,10 +2078,14 @@ function test()
         end
         return v
     end
-    c = DataCache(FFlt[1], setvector!)
-    c(XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, 0.0)
+
+
+    t = Ref(0.0)
+    c = DataCache(FFlt[1], (cacheout, XYZ, tangents, fe_label) -> setvector!(cacheout, XYZ, tangents, fe_label, t[]))
+    c(XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     @test c._cache == [10.0]
-    c(XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, 6.0)
+    t[] = 6.0
+    c(XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     @test c._cache == [0.0]
 end
 end
@@ -2158,10 +2162,11 @@ function test()
         return v
     end
     vector = [10.0]
-    fi = ForceIntensity(FFlt, length(vector), setvector!)
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, 0.0)
+    fi = ForceIntensity(FFlt, length(vector), (out, XYZ, tangents, fe_label) -> setvector!(out, XYZ, tangents, fe_label, 0.0))
+    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     @test v == [10.0]
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, 6.0)
+    fi = ForceIntensity(FFlt, length(vector), (out, XYZ, tangents, fe_label) -> setvector!(out, XYZ, tangents, fe_label, 6.0))
+    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     @test v == [0.0]
 end
 end
@@ -2183,7 +2188,7 @@ function test()
     fi = ForceIntensity(FFlt, length(vector), setvector!)
     v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     @test v == [10.0]
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, 6.0)
+    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
     @test v == [10.0]
 end
 end

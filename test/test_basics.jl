@@ -2290,7 +2290,7 @@ XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Vector{CT},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label, time::T = 0.0) where {CT, T}
+        fe_label) where {CT, T}
     cacheout .= 13
     return cacheout
 end
@@ -2309,7 +2309,7 @@ XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Vector{CT},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label, time::T = 0.0) where {CT, T}
+        fe_label) where {CT, T}
     cacheout .= 13
     return cacheout
 end
@@ -2327,7 +2327,7 @@ XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label, time::T = 0.0) where {CT, N, T}
+        fe_label) where {CT, N, T}
     cacheout .= 13
     return cacheout
 end
@@ -2347,7 +2347,7 @@ XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label, time::T = 0.0) where {CT, N, T}
+        fe_label) where {CT, N, T}
     cacheout .= 13
     return cacheout
 end
@@ -2367,7 +2367,7 @@ XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label, time::T = 0.0) where {CT, N, T}
+        fe_label) where {CT, N, T}
     cacheout .= 13
     return cacheout
 end
@@ -2387,7 +2387,7 @@ XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label, time::T = 0.0) where {CT, N, T}
+        fe_label) where {CT, N, T}
     cacheout .= fe_label
     return cacheout
 end
@@ -2408,34 +2408,14 @@ using FinEtools
 
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label, time::T = 0.0) where {CT, N, T}
+        fe_label) where {CT, N, T}
     cacheout .= LinearAlgebra.I(3)
     return cacheout
 end
 c = DataCache(zeros(Float32, 3, 3), fillcache!)
 function f(c)
     XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
-    data = c(XYZ, tangents, fe_label, 2.1)
-end
-@test f(c) == LinearAlgebra.I(3)
-end
-
-
-module testing_cache_8
-using Test
-using LinearAlgebra
-using FinEtools
-
-function fillcache!(cacheout::Array{CT, N},
-        XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label, time::T = 0.0) where {CT, N, T}
-    cacheout .= LinearAlgebra.I(3)
-    return cacheout
-end
-c = DataCache(zeros(Float32, 3, 3), fillcache!)
-function f(c)
-    XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
-    data = c(XYZ, tangents, fe_label, 2.1)
+    data = c(XYZ, tangents, fe_label)
 end
 @test f(c) == LinearAlgebra.I(3)
 end
@@ -2447,7 +2427,7 @@ using FinEtools
 
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label, time::T = 0.0) where {CT, N, T}
+        fe_label, time) where {CT, N, T}
     if time > 1.0
         cacheout .= LinearAlgebra.I(3)
     else
@@ -2455,12 +2435,16 @@ function fillcache!(cacheout::Array{CT, N},
     end
     return cacheout
 end
-c = DataCache(zeros(Float32, 3, 3), fillcache!)
+t = Ref(0.0)
+
+c = DataCache(zeros(Float32, 3, 3), (cacheout, XYZ, tangents, fe_label) -> fillcache!(cacheout, XYZ, tangents, fe_label, t[]))
 function f(c)
     XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
-    data = c(XYZ, tangents, fe_label, 0.0)
+    t[] = 0.0
+    data = c(XYZ, tangents, fe_label)
     @test data == zeros(Float32, 3, 3)
-    data = c(XYZ, tangents, fe_label, 2.1)
+    t[] = 2.1
+    data = c(XYZ, tangents, fe_label)
 end
 @test f(c) == LinearAlgebra.I(3)
 end
@@ -2475,7 +2459,7 @@ XYZ, tangents, _ = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 
 function fillcache!(cacheout::D,
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label, time::T = 0.0) where {D, T}
+        fe_label) where {D, T}
     cacheout = D(fe_label)
     return cacheout
 end
