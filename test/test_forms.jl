@@ -17,9 +17,9 @@ function test()
     v = gathersysvec(psi)
     G = innerproduct(femm, geom, psi)
     # @show v' * G * v
-    @test abs(v' * G.ff * v - (W*L*t)) / (W*L*t) <= 1.0e-5
+    @test abs(v' * G * v - (W*L*t)) / (W*L*t) <= 1.0e-5
     G = bilform_dot(femm, geom, psi, DataCache(LinearAlgebra.I(1)))
-    @test abs(v' * G.ff * v - (W*L*t)) / (W*L*t) <= 1.0e-5
+    @test abs(v' * G * v - (W*L*t)) / (W*L*t) <= 1.0e-5
     true
 end
 test()
@@ -44,7 +44,7 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
     v = gathersysvec(psi)
     K = bilform_diffusion(femm, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
-    @test abs(v' * K.ff * v - (0.0)) / (W*L*t) <= 1.0e-5
+    @test abs(v' * K * v - (0.0)) / (W*L*t) <= 1.0e-5
     true
 end
 test()
@@ -70,7 +70,7 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
     v = gathersysvec(psi)
     K = bilform_diffusion(femm, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
-    @test abs(v' * K.ff * v - (b^2 + c^2 + d^2) * (W*L*t)) / (W*L*t) <= 1.0e-5
+    @test abs(v' * K * v - (b^2 + c^2 + d^2) * (W*L*t)) / (W*L*t) <= 1.0e-5
     true
 end
 test()
@@ -96,7 +96,7 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 3)))
     v = gathersysvec(psi)
     K = bilform_diffusion(femm, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
-    @test abs(v' * K.ff * v - (b^2 + c^2 + d^2) * (W*L*t)) / (W*L*t) <= 1.0e-5
+    @test abs(v' * K * v - (b^2 + c^2 + d^2) * (W*L*t)) / (W*L*t) <= 1.0e-5
     true
 end
 test()
@@ -122,7 +122,7 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(2, 3), t))
     v = gathersysvec(psi)
     K = bilform_diffusion(femm, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(2))))
-    @test abs(v' * K.ff * v - (b^2 + c^2) * (W*L*t)) / (W*L*t) <= 1.0e-5
+    @test abs(v' * K * v - (b^2 + c^2) * (W*L*t)) / (W*L*t) <= 1.0e-5
     true
 end
 test()
@@ -148,7 +148,7 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(2, 3), t))
     v = gathersysvec(psi)
     K = bilform_diffusion(femm, geom, psi, DataCache(1.0))
-    @test abs(v' * K.ff * v - (b^2 + c^2) * (W*L*t)) / (W*L*t) <= 1.0e-5
+    @test abs(v' * K * v - (b^2 + c^2) * (W*L*t)) / (W*L*t) <= 1.0e-5
     true
 end
 test()
@@ -172,10 +172,10 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
     fi = ForceIntensity([11.0])
     F = distribloads(femm, geom, psi, fi, 3)
-    @test abs(sum(F.f) - (*).(L, W, t, 11.0)) / 667 <= 1.0e-5
+    @test abs(sum(F) - (*).(L, W, t, 11.0)) / 667 <= 1.0e-5
     fi = ForceIntensity(11.0)
     F = distribloads(femm, geom, psi, fi, 3)
-    @test abs(sum(F.f) - (*).(L, W, t, 11.0)) / 667 <= 1.0e-5
+    @test abs(sum(F) - (*).(L, W, t, 11.0)) / 667 <= 1.0e-5
 
     psi = NodalField(fill(1.0 + 1.0im, count(fens), 1))
     numberdofs!(psi)
@@ -183,10 +183,10 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
     fi = ForceIntensity([11.0im])
     F = distribloads(femm, geom, psi, fi, 3)
-    @test abs(sum(F.f) - (*).(L, W, t, 11.0im)) / 667 <= 1.0e-5
+    @test abs(sum(F) - (*).(L, W, t, 11.0im)) / 667 <= 1.0e-5
     fi = ForceIntensity(11.0im)
     F = distribloads(femm, geom, psi, fi, 3)
-    @test abs(sum(F.f) - (*).(L, W, t, 11.0im)) / 667 <= 1.0e-5
+    @test abs(sum(F) - (*).(L, W, t, 11.0im)) / 667 <= 1.0e-5
     true
 end
 end

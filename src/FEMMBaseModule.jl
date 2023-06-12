@@ -24,7 +24,7 @@ using ..FESetModule:
     bfun, gradN!
 using ..IntegDomainModule: IntegDomain, integrationdata, Jacobianmdim, Jacobianvolume
 using ..CSysModule: CSys, updatecsmat!, csmat
-using ..FieldModule: ndofs, nents, gatherdofnums!, gathervalues_asmat!, dofinfo, nfreedofs
+using ..FieldModule: ndofs, nents, gatherdofnums!, gathervalues_asmat!, nalldofs, nfreedofs
 using ..NodalFieldModule: NodalField, nnodes
 using ..ElementalFieldModule: ElementalField, nelems
 using ..ForceIntensityModule: ForceIntensity, updateforce!
@@ -1205,7 +1205,7 @@ function linform_dot(
     # Prepare some buffers:
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, P)
     elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, P)
-    startassembly!(assembler, dofinfo(P))
+    startassembly!(assembler, nalldofs(P))
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(elvec, T(0.0))
@@ -1328,7 +1328,7 @@ function bilform_dot(
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
     elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    startassembly!(assembler, prod(size(elmat)) * count(fes), dofinfo(u), dofinfo(u))
+    startassembly!(assembler, prod(size(elmat)) * count(fes), nalldofs(u), nalldofs(u))
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(elmat, 0.0) # Initialize element matrix
@@ -1464,7 +1464,7 @@ function _bilform_diffusion_general(
     elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u)
     RmTJ, c_gradNT = _buff_d(self, geom, u)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    startassembly!(assembler, prod(size(elmat)) * count(fes), dofinfo(u), dofinfo(u))
+    startassembly!(assembler, prod(size(elmat)) * count(fes), nalldofs(u), nalldofs(u))
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(elmat,  zero(T)); # Initialize element matrix
@@ -1495,7 +1495,7 @@ function _bilform_diffusion_iso(
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
     elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    startassembly!(assembler, prod(size(elmat)) * count(fes), dofinfo(u), dofinfo(u))
+    startassembly!(assembler, prod(size(elmat)) * count(fes), nalldofs(u), nalldofs(u))
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(elmat,  zero(T)); # Initialize element matrix
