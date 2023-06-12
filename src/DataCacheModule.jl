@@ -18,11 +18,7 @@ Type for caching data, such as vectors, matrices, and numbers.
 `F` = type of the function to update the entries of the array.
 
 Signature of the function to fill the cache with the value of the array is as
-follows: it may use the location `XYZ`, it may use the columns of the Jacobian
-matrix of the element, `tangents`, it may also choose the value given the
-finite element label, `fe_label`. All of these values are chosen by
-the code requesting the value of the cache. It must return the modified
-argument `cacheout`.
+follows:
 
 ```
 function fillcache!(cacheout::D,
@@ -31,6 +27,12 @@ function fillcache!(cacheout::D,
     return cacheout
 end
 ```
+
+It may use the location `XYZ`, it may use the columns of the Jacobian
+matrix of the element, `tangents`, it may also choose the value given the
+finite element label, `fe_label`. All of these values are chosen by
+the code requesting the value of the cache. It must return the modified
+argument `cacheout`.
 
 When the cache is accessed, the callback `fillcache!` is
 called, and the output `cacheout` is filled with the value of the cached data.
