@@ -147,16 +147,22 @@ end
 
 Gather values from the field for the whole system vector.
 
-Compile a vector that includes all the degrees of freedom, free and fixed, using
-the supplied buffer `vec`.
+Compile a vector that includes either all the degrees of freedom, free and
+fixed, or only the free degrees of freedom. This will be determined by the
+length of the supplied buffer `vec`. Namely, if its length is equal to
+`nfreedofs(self)`, only the free degrees of freedom are collected.
 """
 function gathersysvec!(self::F, vec::Vector{T}) where {F<:AbstractField, T}
     nents, dim = size(self.values)
-    @assert length(vec) == nalldofs(self)
+    upto =  length(vec)
+    ((upto == nalldofs(self)) || (upto == nfreedofs(self))) ||
+        error("Vector needs to be of length equal to the number\n of the free or of all degrees of freedom")
     for i in 1:nents
         for j in 1:dim
             en = self.dofnums[i, j]
-            vec[en] = self.values[i, j]
+            if en <= upto
+                vec[en] = self.values[i, j]
+            end
         end
     end
     return vec
