@@ -34,8 +34,8 @@ The size of the `ff` block is `row_nfreedofs, col_nfreedofs`.
 """
 function matrix_blocked(S, row_nfreedofs, col_nfreedofs)
     row_nalldofs, col_nalldofs = size(S)
-    row_nfreedofs < row_nalldofs || error("The ff block has too many rows")
-    col_nfreedofs < col_nalldofs || error("The ff block has too many columns")
+    row_nfreedofs <= row_nalldofs || error("The ff block has too many rows")
+    col_nfreedofs <= col_nalldofs || error("The ff block has too many columns")
     row_f_dim = row_nfreedofs
     row_d_dim = (row_nfreedofs < row_nalldofs ? row_nalldofs - row_nfreedofs - 1 : 0)
     col_f_dim = col_nfreedofs
