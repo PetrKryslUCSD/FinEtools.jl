@@ -70,14 +70,11 @@ of entities).
 nalldofs(self::F) where {F<:AbstractField} = prod(size(self.values))
 
 """
-    dofinfo(self::F)
+    nfixeddofs(self::F)
 
-Summarize the degree of freedom info.
-
-Returns a tuple of the number of the free degrees of freedom and the total
-number of the degrees of freedom.
+Return to number of FIXED degrees of freedom (known, data).
 """
-dofinfo(self::F) where {F<:AbstractField} = (nfreedofs(self), nalldofs(self))
+nfixeddofs(self::F) where {F<:AbstractField} = nalldofs(self) - nfreedofs(self)
 
 """
     freedofs(self::F) where {F<:AbstractField}
@@ -124,44 +121,95 @@ function wipe!(self::F) where {F<:AbstractField}
 end
 
 """
-    gathersysvec(self::F) where {F<:AbstractField}
+    gathersysvec(self::F, which = :f) where {F<:AbstractField}
 
-Gather values from the field for the whole system vector.
+Gather values from the field for the system vector.
 
-Return a vector that includes all the degrees of freedom, free and fixed.
+# Arguments
+- `self`: field;
+- `which`:
+    + `:f` - Collect a vector that includes the free degrees of freedom (default);
+    + `:d` - Collect a vector that includes the fixed (data) degrees of freedom;
+    + `:a` - Collect a vector that includes all the degrees of freedom, free and fixed.
+
+The system vector consists of two parts: the first part, from `1` to `nfreedofs
+(self)` are the free degrees of freedom, the second part from `nfreedofs
+(self)+1` to `nalldofs(self)` are the fixed degrees of freedom.
+
+This function returns either the entire vector, or one of the parts.
 """
-function gathersysvec(self::F) where {F<:AbstractField}
+function gathersysvec(self::F, which = :f) where {F<:AbstractField}
     nents, dim = size(self.values)
-    vec = zeros(typeof(self.values[1, 1]), nalldofs(self))
-    for i in 1:nents
-        for j in 1:dim
-            en = self.dofnums[i, j]
-            vec[en] = self.values[i, j]
+    N = 0
+    if which == :f
+        N = nfreedofs(self)
+    else
+        if which == :a
+            N = nalldofs(self)
+        else
+            N = nfixeddofs(self)
         end
     end
-    return vec
+    vec = zeros(eltype(self.values), N)
+    return gathersysvec!(self, vec, which)
 end
 
 """
-    gathersysvec!(self::F, vec::Vector{T}) where {F<:AbstractField, T}
+    gathersysvec!(self::F,
+        vec::Vector{T}, which = :f) where {F<:AbstractField, T}
 
-Gather values from the field for the whole system vector.
+Gather values from the field for the system vector.
 
-Compile a vector that includes either all the degrees of freedom, free and
-fixed, or only the free degrees of freedom. This will be determined by the
-length of the supplied buffer `vec`. Namely, if its length is equal to
-`nfreedofs(self)`, only the free degrees of freedom are collected.
+# Arguments
+- `self`: field;
+- `which`:
+    + `:f` - Collect a vector that includes the free degrees of freedom (default);
+    + `:d` - Collect a vector that includes the fixed (data) degrees of freedom;
+    + `:a` - Collect a vector that includes all the degrees of freedom, free and fixed.
+
+The system vector consists of two parts: the first part, from `1` to `nfreedofs
+(self)` are the free degrees of freedom, the second part from `nfreedofs
+(self)+1` to `nalldofs(self)` are the fixed degrees of freedom.
+
+This function gathers either the entire vector, or one of the parts. The length
+of the supplied buffer `vec` must be correct, either `nfreedofs
+(self)`, `nalldofs(self)`, or `nfixeddofs(self)`.
 """
-function gathersysvec!(self::F, vec::Vector{T}) where {F<:AbstractField, T}
+function gathersysvec!(self::F,
+    vec::Vector{T}, which = :f) where {F<:AbstractField, T}
     nents, dim = size(self.values)
     upto =  length(vec)
-    ((upto == nalldofs(self)) || (upto == nfreedofs(self))) ||
-        error("Vector needs to be of length equal to the number\n of the free or of all degrees of freedom")
-    for i in 1:nents
+    if which == :f
+        N = nfreedofs(self)
+        (upto == N) || error("Vector needs to be of length equal to $N")
         for j in 1:dim
-            en = self.dofnums[i, j]
-            if en <= upto
-                vec[en] = self.values[i, j]
+        for i in 1:nents
+                en = self.dofnums[i, j]
+                if en <= nfreedofs(self)
+                    vec[en] = self.values[i, j]
+                end
+            end
+        end
+    else
+        if which == :a
+            N = nalldofs(self)
+            (upto == N) || error("Vector needs to be of length equal to $N")
+            for j in 1:dim
+                for i in 1:nents
+                    en = self.dofnums[i, j]
+                    vec[en] = self.values[i, j]
+                end
+            end
+        else
+            N = nfixeddofs(self)
+            (upto == N) || error("Vector needs to be of length equal to $N")
+            for j in 1:dim
+                for i in 1:nents
+                    en = self.dofnums[i, j]
+                    if en > nfreedofs(self)
+                        vec[en - nfreedofs(self)] = self.values[i, j]
+                    end
+                end
             end
         end
     end
