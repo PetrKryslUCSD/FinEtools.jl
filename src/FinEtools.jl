@@ -320,7 +320,7 @@ using .ForceIntensityModule: ForceIntensity, updateforce!
 export ForceIntensity, updateforce!
 
 using .AssemblyModule:
-    AbstractSysmatAssembler,
+    AbstractSysmatAssembler, eltype,
     SysmatAssemblerSparse,
     SysmatAssemblerSparseSymm,
     SysmatAssemblerSparseDiag,
@@ -336,7 +336,7 @@ using .AssemblyModule:
     SysmatAssemblerReduced,
     matrix_blocked, vector_blocked
 # Exported: types and methods for  sparse matrix assembly  and vector assembly
-export AbstractSysmatAssembler,
+export AbstractSysmatAssembler, eltype,
     SysmatAssemblerSparse,
     SysmatAssemblerSparseSymm,
     SysmatAssemblerSparseDiag,
