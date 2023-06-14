@@ -1148,14 +1148,14 @@ function  _buff_b(self, geom, P)
     return nne, ndn, ecoords, dofnums, loc, J, gradN
 end
 
-function _buff_e(self, geom, P)
+function _buff_e(self, geom, P, assembler)
     fes = finite_elements(self)
     ndn = ndofs(P); # number of degrees of freedom per node
     nne =  nodesperelem(fes); # number of nodes per element
     sdim =  ndofs(geom);            # number of space dimensions
     mdim = manifdim(fes);     # manifold dimension of the element
     elmdim = ndn*nne;          # dimension of the element matrix
-    T = eltype(P.values)
+    T = eltype(assembler) # type of the elementwise matrices, and of the global one as well
     elmat = fill(zero(T), elmdim, elmdim);# element matrix -- used as a buffer
     elvec = fill(zero(T), elmdim); # buffer
     elvecfix = fill(zero(T), elmdim); # buffer

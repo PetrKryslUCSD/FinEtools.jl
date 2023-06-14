@@ -9,6 +9,7 @@ __precompile__(true)
 
 using SparseArrays: sparse, spzeros, SparseMatrixCSC
 using LinearAlgebra: diag
+import Base: eltype
 
 """
     AbstractSysmatAssembler
@@ -16,6 +17,8 @@ using LinearAlgebra: diag
 Abstract type of system-matrix assembler.
 """
 abstract type AbstractSysmatAssembler end
+
+eltype(a::A) where {A<:AbstractSysmatAssembler} = eltype(a.matbuffer)
 
 """
     matrix_blocked(S, row_nfreedofs, col_nfreedofs)
@@ -776,6 +779,8 @@ end
 Abstract type of system vector assembler.
 """
 abstract type AbstractSysvecAssembler end
+
+eltype(a::A) where {A<:AbstractSysvecAssembler} = eltype(a.F_buffer)
 
 """
     startassembly!(self::SysvecAssembler{T}, ndofs_row::FInt) where {T<:Number}
