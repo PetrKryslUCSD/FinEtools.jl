@@ -1301,9 +1301,9 @@ Compute the sparse matrix implied by the bilinear form of the "dot" type.
 
 Here ``\\vartheta`` is the test function, ``u`` is the trial function, ``c`` is
 a square matrix of coefficients; ``c`` is computed by ``f``, which is a given
-function (data). Both functions are assumed to be vectors (even if of length
-1). ``f`` is represented with `DataCache`, and needs to return a square
-matrix.
+function (data). Both trial and test functions are assumed to be vectors
+(even if of length 1). ``f`` is represented with `DataCache`, and needs to
+return a square matrix.
 
 The integral is with respect to the volume of the domain ``V`` (i.e. a three
 dimensional integral).
@@ -1313,9 +1313,9 @@ dimensional integral).
 - `assembler` = assembler of the global object;
 - `geom` = geometry field;
 - `u` = nodal field to define the degree of freedom numbers;
-- `f`= data cache, which is called to evaluate the location, the Jacobian
-  matrix, and the finite element label to come up with the value to be
-  integrated.
+- `f`= data cache, which is called to evaluate the coefficient ``c``, given the
+  location of the integration point, the Jacobian matrix, and the finite
+  element label.
 """
 function bilform_dot(
     self::FEMM,
@@ -1431,12 +1431,12 @@ dimensional integral).
 
 # Arguments
 - `self` = finite element machine;
-- `assembler` = assembler of the global object;
+- `assembler` = assembler of the global matrix;
 - `geom` = geometry field;
 - `u` = nodal field to define the degree of freedom numbers;
-- `f`= data cache, which is called to evaluate the location, the Jacobian
-  matrix, and the finite element label to come up with the value to be
-  integrated.
+- `f`= data cache, which is called to evaluate the coefficient ``c``, given the
+  location of the integration point, the Jacobian matrix, and the finite
+  element label.
 """
 function bilform_diffusion(
     self::FEMM,
