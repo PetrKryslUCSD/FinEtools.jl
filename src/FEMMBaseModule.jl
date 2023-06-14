@@ -1204,7 +1204,7 @@ function linform_dot(
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     # Prepare some buffers:
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, P)
-    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, P)
+    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, P, assembler)
     startassembly!(assembler, nalldofs(P))
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
@@ -1326,7 +1326,7 @@ function bilform_dot(
 ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
-    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u)
+    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u, assembler)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     startassembly!(assembler, prod(size(elmat)) * count(fes), nalldofs(u), nalldofs(u))
     for i in eachindex(fes) # Loop over elements
@@ -1461,7 +1461,7 @@ function _bilform_diffusion_general(
 ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
-    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u)
+    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u, assembler)
     RmTJ, c_gradNT = _buff_d(self, geom, u)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     startassembly!(assembler, prod(size(elmat)) * count(fes), nalldofs(u), nalldofs(u))
@@ -1493,7 +1493,7 @@ function _bilform_diffusion_iso(
 ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
-    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u)
+    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u, assembler)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     startassembly!(assembler, prod(size(elmat)) * count(fes), nalldofs(u), nalldofs(u))
     for i in eachindex(fes) # Loop over elements
