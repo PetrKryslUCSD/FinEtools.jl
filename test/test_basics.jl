@@ -912,6 +912,37 @@ end
 using .mgram1
 mgram1.test()
 
+module mgram1a
+using FinEtools
+using LinearAlgebra
+using Test
+function test()
+    W = 1.1
+    L = 12.0
+    t = 0.32
+    nl, nt, nw = 80, 40, 40
+
+
+    fens, fes = H8block(L, W, t, nl, nw, nt)
+    geom = NodalField(fens.xyz)
+    psi = NodalField(fill(1.0, count(fens), 3))
+    numberdofs!(psi)
+
+    @show nl * nt * nw * (nodesperelem(fes) * ndofs(psi))^2
+
+    femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
+    v = gathersysvec(psi)
+
+    @time G1 = bilform_dot(femm, geom, psi, DataCache(LinearAlgebra.I(3)))
+    @show v' * G1 * v, 3 * (W*L*t)
+    @test abs(v' * G1 * v - 3 * (W*L*t)) / (W*L*t) <= 1.0e-5
+    true
+end
+end
+using .mgram1a
+mgram1a.test()
+mgram1a.test()
+
 module mdistributedl1
 using FinEtools
 using Test

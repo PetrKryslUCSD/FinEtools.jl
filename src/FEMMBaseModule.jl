@@ -1335,11 +1335,10 @@ function bilform_dot(
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j])
             c = f(loc, J, fes.label[i])
-            for k in 1:nne
-                kr = (k-1)*ndn+1:k*ndn
-                for m in 1:nne
-                    mr = (m-1)*ndn+1:m*ndn
-                    elmat[kr, mr] .+= c * (Ns[j][k] * Ns[j][m] * Jac * w[j])
+            for k in 1:nne, m in 1:nne
+                factor = (Ns[j][k] * Ns[j][m] * Jac * w[j])
+                for p in 1:ndn,  q in 1:ndn
+                    elmat[(k-1)*ndn+p, (m-1)*ndn+q] += factor * c[p, q]
                 end
             end
         end # Loop over quadrature points
