@@ -121,11 +121,11 @@ Type for assembling a sparse global matrix from elementwise matrices.
     All fields of the datatype are private. The type is manipulated by the
     functions `startassembly!`, `assemble!`, and `makematrix!`.
 """
-mutable struct SysmatAssemblerSparse{IT, MBT, IBT} <: AbstractSysmatAssembler
+mutable struct SysmatAssemblerSparse{IT, T, MBT<:AbstractVector{T}, IJT<:AbstractVector{IT}} <: AbstractSysmatAssembler
     buffer_length::IT
     matbuffer::MBT
-    rowbuffer::IBT
-    colbuffer::IBT
+    rowbuffer::IJT
+    colbuffer::IJT
     buffer_pointer::IT
     row_nalldofs::IT
     col_nalldofs::IT
@@ -370,11 +370,11 @@ matrices.
     All fields of the datatype are private. The type is manipulated by the
     functions `startassembly!`, `assemble!`, and `makematrix!`.
 """
-mutable struct SysmatAssemblerSparseSymm{IT, MBT, IBT} <: AbstractSysmatAssembler
+mutable struct SysmatAssemblerSparseSymm{IT, T, MBT<:AbstractVector{T}, IJT<:AbstractVector{IT}} <: AbstractSysmatAssembler
     buffer_length::IT
     matbuffer::MBT
-    rowbuffer::IBT
-    colbuffer::IBT
+    rowbuffer::IJT
+    colbuffer::IJT
     buffer_pointer::IT
     row_nalldofs::IT
     col_nalldofs::IT
@@ -483,6 +483,7 @@ function startassembly!(self::SysmatAssemblerSparseSymm{T},
     end
     return self
 end
+
 
 """
     assemble!(
@@ -597,12 +598,12 @@ during assembly!
     All fields of the datatype are private. The type is manipulated by the
     functions `startassembly!`, `assemble!`, and `makematrix!`.
 """
-mutable struct SysmatAssemblerSparseDiag{IT, MBT, IBT} <: AbstractSysmatAssembler
+mutable struct SysmatAssemblerSparseDiag{IT, T, MBT<:AbstractVector{T}, IJT<:AbstractVector{IT}} <: AbstractSysmatAssembler
     # Type for assembling of a sparse global matrix from elementwise matrices.
     buffer_length::IT
     matbuffer::MBT
-    rowbuffer::IBT
-    colbuffer::IBT
+    rowbuffer::IJT
+    colbuffer::IJT
     buffer_pointer::IT
     row_nalldofs::IT
     col_nalldofs::IT
@@ -692,10 +693,10 @@ number input is ignored (the row and column numbers are assumed to be the same).
 """
 function assemble!(
     self::SysmatAssemblerSparseDiag,
-    mat::MT,
-    dofnums_row::IV,
-    dofnums_col::IV,
-) where {MT, IV}
+    mat::MBT,
+    dofnums_row::CIT,
+    dofnums_col::CIT,
+) where {MBT, CIT}
     # Assembly of a square symmetric matrix.
     # The method assembles the lower triangle of the square symmetric matrix using the two vectors of
     # equation numbers for the rows and columns.
@@ -703,7 +704,9 @@ function assemble!(
     ncolumns = length(dofnums_col)
     @assert nrows == ncolumns
     p = self.buffer_pointer
-    @assert p + ncolumns <= self.buffer_length + 1
+    if p + ncolumns >= self.buffer_length
+        self = _resize(self, ncolumns * nrows * 1000)
+    end
     @assert size(mat) == (nrows, ncolumns)
     @inbounds for j in 1:ncolumns
         dj = dofnums_col[j]
@@ -917,12 +920,11 @@ volume 4, number 3, 245--249, 1976.
     correctly. Put bluntly: it can only be used for homogeneous mass matrices,
     all translation degrees of freedom, for instance.
 """
-mutable struct SysmatAssemblerSparseHRZLumpingSymm{IT, MBT, IBT} <: AbstractSysmatAssembler
-    # Type for assembling of a sparse global matrix from elementwise matrices.
+mutable struct SysmatAssemblerSparseHRZLumpingSymm{IT, T, MBT<:AbstractVector{T}, IJT<:AbstractVector{IT}} <: AbstractSysmatAssembler
     buffer_length::IT
     matbuffer::MBT
-    rowbuffer::IBT
-    colbuffer::IBT
+    rowbuffer::IJT
+    colbuffer::IJT
     buffer_pointer::IT
     row_nalldofs::IT
     col_nalldofs::IT
