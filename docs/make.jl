@@ -20,4 +20,4 @@ makedocs(
     ],
 )
 
-deploydocs(repo = "github.com/PetrKryslUCSD/FinEtools.jl.git", devbranch = "main")
+deploydocs(repo = "github.com/PetrKryslUCSD/FinEtools.jl.git", devbranch = "experimental")
