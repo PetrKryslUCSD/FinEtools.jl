@@ -1614,6 +1614,91 @@ function bilform_convection(
     return bilform_convection(self, assembler, geom, u, Q, rhof);
 end
 
+"""
+    bilform_div_grad(
+        self::FEMM,
+        assembler::A,
+        geom::NodalField{FT},
+        u::NodalField{T},
+        viscf::DC
+    ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
+
+Compute the sparse matrix implied by the bilinear form of the "convection" type.
+
+```math
+\\int_{V}  \\mu \\nabla \\mathbf{\\vartheta}:  \\nabla\\mathbf{u}   \\; \\mathrm{d} V
+```
+
+Here `` \\mathbf{\\vartheta}`` is the vector test function, ``\\mathbf{u}`` is
+the velocity, ``\\mu`` is the dynamic viscosity (or kinematic viscosity,
+depending on the formulation); ``\\mu`` is computed by `viscf`, which is a
+given function(data). Both test and trial functions are assumed to be from the
+same approximation space. `viscf` is represented with `DataCache`, and needs to
+return a  scalar viscosity.
+
+The integral is with respect to the volume of the domain ``V`` (i.e. a three
+dimensional integral).
+
+# Arguments
+- `self` = finite element machine;
+- `assembler` = assembler of the global matrix;
+- `geom` = geometry field;
+- `u` = velocity field;
+- `viscf`= data cache, which is called to evaluate the coefficient ``\\mu``,
+  given the location of the integration point, the Jacobian matrix, and the
+  finite element label.
+"""
+function bilform_div_grad(
+        self::FEMM,
+        assembler::A,
+        geom::NodalField{FT},
+        u::NodalField{T},
+        viscf::DC
+) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
+    fes = finite_elements(self)
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
+    elmdim, elmat, _ = _buff_e(self, geom, u, assembler)
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
+    startassembly!(assembler, prod(size(elmat)) * count(fes), nalldofs(u), nalldofs(u))
+    for i in eachindex(fes) # Loop over elements
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
+        fill!(elmat,  zero(T)); # Initialize element matrix
+        for j in 1:npts # Loop over quadrature points
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
+            Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
+            gradN!(fes, gradN, gradNparams[j], J);
+            mu = viscf(loc, J, fes.label[i])
+            factor = mu * (Jac*w[j])
+            for a in 1:nne
+                for b in 1:nne
+                    for s in 1:ndn
+                        accum = zero(eltype(elmat))
+                        for q in 1:ndn
+                            accum += gradN[a, q] * gradN[b, q]
+                        end
+                        p = (a - 1) * ndn + s
+                        r = (b - 1) * ndn + s
+                        elmat[p, r] += factor * accum
+                    end
+                end
+            end
+        end # Loop over quadrature points
+        gatherdofnums!(u, dofnums, fes.conn[i]);# retrieve degrees of freedom
+        assemble!(assembler, elmat, dofnums, dofnums);# assemble matrix
+    end # Loop over elements
+    return makematrix!(assembler);
+end
+
+function bilform_div_grad(
+        self::FEMM,
+        geom::NodalField{FT},
+        u::NodalField{T},
+        viscf::DC
+) where {FEMM<:AbstractFEMM, FT, T, DC<:DataCache}
+    assembler = SysmatAssemblerSparseSymm()
+    return bilform_div_grad(self, assembler, geom, u, viscf);
+end
+
 end # module
 
 
