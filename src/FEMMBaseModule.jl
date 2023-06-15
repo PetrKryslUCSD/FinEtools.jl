@@ -1175,9 +1175,9 @@ end
 Compute the discrete vector implied by the linear form "dot".
 
 ```math
-\\int_{V}  \\vartheta \\cdot f \\; \\mathrm{d} V
+\\int_{V}  w \\cdot f \\; \\mathrm{d} V
 ```
-Here ``\\vartheta`` is the test function, ``f`` is a given function (data).
+Here ``w`` is the test function, ``f`` is a given function (data).
 Both are assumed to be vectors. ``f`` is represented with `DataCache`.
 
 # Arguments
@@ -1296,15 +1296,15 @@ end
 Compute the sparse matrix implied by the bilinear form of the "dot" type.
 
 ```math
-\\int_{V}  \\vartheta \\cdot c \\cdot u \\; \\mathrm{d} V
+\\int_{V}  \\mathbf{w} \\cdot \\mathbf{c} \\cdot \\mathbf{u} \\; \\mathrm{d} V
 ```
 
-Here ``\\vartheta`` is the test function, ``u`` is the trial function, ``c`` is
-a square matrix of coefficients; ``c`` is computed by `cf`, which is a given
-function (data). Both trial and test functions are assumed to be vectors
-(even if of length 1). `cf` is represented with `DataCache`, and needs to
-return a square matrix, with dimension equal to the number of degrees of
-freedom per node in the `u` field.
+Here ``\\mathbf{w}`` is the test function, ``\\mathbf{u}`` is the trial function, ``\\mathbf
+{c}`` is a square matrix of coefficients; ``\\mathbf{c}`` is computed by `cf`,
+which is a given function (data). Both trial and test functions are assumed to
+be vectors(even if of length 1). `cf` is represented with `DataCache`, and
+needs to return a square matrix, with dimension equal to the number of degrees
+of freedom per node in the `u` field.
 
 The integral is with respect to the volume of the domain ``V`` (i.e. a three
 dimensional integral).
@@ -1411,16 +1411,16 @@ end
 Compute the sparse matrix implied by the bilinear form of the "diffusion" type.
 
 ```math
-\\int_{V}  \\nabla\\vartheta \\cdot c \\cdot \\nabla u \\; \\mathrm{d} V
+\\int_{V}  \\nabla w \\cdot c \\cdot \\nabla u \\; \\mathrm{d} V
 ```
 
-Here ``\\nabla\\vartheta`` is the gradient of the scalar test function,
-``\\nabla u`` is the gradient of the scalar trial function, ``c`` is a square
-symmetric matrix of coefficients or a scalar; ``c`` is computed by `cf`,
-which is a given function (data). Both test and trial functions are assumed to
-be from the same approximation space. `cf` is represented with `DataCache`,
-and needs to return a symmetric square matrix (to represent general anisotropic
-diffusion) or a scalar(to represent isotropic diffusion).
+Here ``\\nabla w`` is the gradient of the scalar test function, ``\\nabla u`` is
+the gradient of the scalar trial function, ``c`` is a square symmetric matrix
+of coefficients or a scalar; ``c`` is computed by `cf`, which is a given
+function (data). Both test and trial functions are assumed to be from the same
+approximation space. `cf` is represented with `DataCache`, and needs to return
+a symmetric square matrix (to represent general anisotropic diffusion) or a
+scalar (to represent isotropic diffusion).
 
 The coefficient matrix ``c`` can be given in the so-called local material
 coordinates: coordinates that are attached to a material point and are
@@ -1536,15 +1536,14 @@ end
 Compute the sparse matrix implied by the bilinear form of the "convection" type.
 
 ```math
-\\int_{V}  \\vartheta \\rho \\mathbf{u} \\cdot \\nabla q \\; \\mathrm{d} V
+\\int_{V}  {w} \\rho \\mathbf{u} \\cdot \\nabla q \\; \\mathrm{d} V
 ```
 
-Here ``\\vartheta`` is the scalar test function, ``\\mathbf{u}`` is the
-convective velocity, ``q`` is the scalar trial function, ``\\rho`` is the mass
-density; ``\\rho`` is computed by `rhof`, which is a given function
-(data). Both test and trial functions are assumed to be from the same
-approximation space. `rhof` is represented with `DataCache`, and needs to
-return a  scalar mass density.
+Here ``w`` is the scalar test function, ``\\mathbf{u}`` is the convective
+velocity, ``q`` is the scalar trial function, ``\\rho`` is the mass density;
+``\\rho`` is computed by `rhof`, which is a given function(data). Both test and
+trial functions are assumed to be from the same approximation space. `rhof` is
+represented with `DataCache`, and needs to return a  scalar mass density.
 
 The integral is with respect to the volume of the domain ``V`` (i.e. a three
 dimensional integral).
@@ -1626,10 +1625,10 @@ end
 Compute the sparse matrix implied by the bilinear form of the "convection" type.
 
 ```math
-\\int_{V}  \\mu \\nabla \\mathbf{\\vartheta}:  \\nabla\\mathbf{u}   \\; \\mathrm{d} V
+\\int_{V}  \\mu \\nabla \\mathbf{w}:  \\nabla\\mathbf{u}   \\; \\mathrm{d} V
 ```
 
-Here `` \\mathbf{\\vartheta}`` is the vector test function, ``\\mathbf{u}`` is
+Here `` \\mathbf{w}`` is the vector test function, ``\\mathbf{u}`` is
 the velocity, ``\\mu`` is the dynamic viscosity (or kinematic viscosity,
 depending on the formulation); ``\\mu`` is computed by `viscf`, which is a
 given function(data). Both test and trial functions are assumed to be from the

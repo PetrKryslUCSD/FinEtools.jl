@@ -288,7 +288,7 @@ function test()
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
     v = gathersysvec(u)
     G = bilform_div_grad(femm, geom, u, DataCache(mu))
-    @show v' * G * v
+    # @show v' * G * v
     @test abs(v' * G * v - mu * (W*L*t) * sum(gradu.^2)) / (W*L*t) <= 1.0e-5
     true
 end
