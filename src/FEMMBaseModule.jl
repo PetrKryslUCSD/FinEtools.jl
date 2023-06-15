@@ -1290,7 +1290,7 @@ end
         assembler::A,
         geom::NodalField{FT},
         u::NodalField{T},
-        f::DC
+        cf::DC
     ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
 
 Compute the sparse matrix implied by the bilinear form of the "dot" type.
@@ -1300,10 +1300,11 @@ Compute the sparse matrix implied by the bilinear form of the "dot" type.
 ```
 
 Here ``\\vartheta`` is the test function, ``u`` is the trial function, ``c`` is
-a square matrix of coefficients; ``c`` is computed by ``f``, which is a given
+a square matrix of coefficients; ``c`` is computed by `cf`, which is a given
 function (data). Both trial and test functions are assumed to be vectors
-(even if of length 1). ``f`` is represented with `DataCache`, and needs to
-return a square matrix.
+(even if of length 1). `cf` is represented with `DataCache`, and needs to
+return a square matrix, with dimension equal to the number of degrees of
+freedom per node in the `u` field.
 
 The integral is with respect to the volume of the domain ``V`` (i.e. a three
 dimensional integral).
@@ -1313,7 +1314,7 @@ dimensional integral).
 - `assembler` = assembler of the global object;
 - `geom` = geometry field;
 - `u` = nodal field to define the degree of freedom numbers;
-- `f`= data cache, which is called to evaluate the coefficient ``c``, given the
+- `cf`= data cache, which is called to evaluate the coefficient ``c``, given the
   location of the integration point, the Jacobian matrix, and the finite
   element label.
 """
@@ -1322,7 +1323,7 @@ function bilform_dot(
     assembler::A,
     geom::NodalField{FT},
     u::NodalField{T},
-    f::DC
+    cf::DC
 ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
@@ -1335,7 +1336,7 @@ function bilform_dot(
         for j in 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j])
-            c = f(loc, J, fes.label[i])
+            c = cf(loc, J, fes.label[i])
             for k in 1:nne, m in 1:nne
                 factor = (Ns[j][k] * Ns[j][m] * Jac * w[j])
                 for p in 1:ndn,  q in 1:ndn
@@ -1353,10 +1354,10 @@ function bilform_dot(
     self::FEMM,
     geom::NodalField{FT},
     u::NodalField{T},
-    f::DC
+    cf::DC
 ) where {FEMM<:AbstractFEMM, FT, T, DC<:DataCache}
     assembler = SysmatAssemblerSparseSymm()
-    return bilform_dot(self, assembler, geom, u, f)
+    return bilform_dot(self, assembler, geom, u, cf)
 end
 
 """
@@ -1404,7 +1405,7 @@ end
         assembler::A,
         geom::NodalField{FT},
         u::NodalField{T},
-        f::DC
+        cf::DC
     ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
 
 Compute the sparse matrix implied by the bilinear form of the "diffusion" type.
@@ -1415,9 +1416,9 @@ Compute the sparse matrix implied by the bilinear form of the "diffusion" type.
 
 Here ``\\nabla\\vartheta`` is the gradient of the scalar test function,
 ``\\nabla u`` is the gradient of the scalar trial function, ``c`` is a square
-symmetric matrix of coefficients (or a scalar); ``c`` is computed by ``f``,
+symmetric matrix of coefficients or a scalar; ``c`` is computed by `cf`,
 which is a given function (data). Both test and trial functions are assumed to
-be from the same approximation space. ``f`` is represented with `DataCache`,
+be from the same approximation space. `cf` is represented with `DataCache`,
 and needs to return a symmetric square matrix (to represent general anisotropic
 diffusion) or a scalar(to represent isotropic diffusion).
 
@@ -1433,7 +1434,7 @@ dimensional integral).
 - `assembler` = assembler of the global matrix;
 - `geom` = geometry field;
 - `u` = nodal field to define the degree of freedom numbers;
-- `f`= data cache, which is called to evaluate the coefficient ``c``, given the
+- `cf`= data cache, which is called to evaluate the coefficient ``c``, given the
   location of the integration point, the Jacobian matrix, and the finite
   element label.
 """
@@ -1442,12 +1443,12 @@ function bilform_diffusion(
     assembler::A,
     geom::NodalField{FT},
     u::NodalField{T},
-    f::DC
+    cf::DC
 ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
-    if isempty(size(f)) # scalar
-        return _bilform_diffusion_iso(self, assembler, geom, u, f)
+    if isempty(size(cf)) # scalar
+        return _bilform_diffusion_iso(self, assembler, geom, u, cf)
     else
-        return _bilform_diffusion_general(self, assembler, geom, u, f)
+        return _bilform_diffusion_general(self, assembler, geom, u, cf)
     end
 end
 
@@ -1456,7 +1457,7 @@ function _bilform_diffusion_general(
     assembler::A,
     geom::NodalField{FT},
     u::NodalField{T},
-    f::DC
+    cf::DC
 ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
@@ -1473,7 +1474,7 @@ function _bilform_diffusion_general(
             updatecsmat!(self.mcsys, loc, J, fes.label[i]);
             mulCAtB!(RmTJ,  csmat(self.mcsys),  J); # local Jacobian matrix
             gradN!(fes, gradN, gradNparams[j], RmTJ);
-            c = f(loc, J, fes.label[i])
+            c = cf(loc, J, fes.label[i])
             add_gkgt_ut_only!(elmat, gradN, (Jac*w[j]), c, c_gradNT)
         end # Loop over quadrature points
         complete_lt!(elmat)
@@ -1488,7 +1489,7 @@ function _bilform_diffusion_iso(
     assembler::A,
     geom::NodalField{FT},
     u::NodalField{T},
-    f::DC
+    cf::DC
 ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
@@ -1502,7 +1503,7 @@ function _bilform_diffusion_iso(
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             gradN!(fes, gradN, gradNparams[j], J);
-            c = f(loc, J, fes.label[i])
+            c = cf(loc, J, fes.label[i])
             add_mggt_ut_only!(elmat, gradN, (c*Jac*w[j]))
         end # Loop over quadrature points
         complete_lt!(elmat)
