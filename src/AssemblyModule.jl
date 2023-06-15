@@ -20,6 +20,20 @@ abstract type AbstractSysmatAssembler end
 
 eltype(a::A) where {A<:AbstractSysmatAssembler} = eltype(a.matbuffer)
 
+function _resize(self, chunk)
+    new_buffer_length = self.buffer_length + chunk
+    resize!(self.rowbuffer, new_buffer_length)
+    resize!(self.colbuffer, new_buffer_length)
+    resize!(self.matbuffer, new_buffer_length)
+    if self.force_init
+        self.rowbuffer[self.buffer_length+1:end] .= 1
+        self.colbuffer[self.buffer_length+1:end] .= 1
+        self.matbuffer[self.buffer_length+1:end] .= 0
+    end
+    self.buffer_length = new_buffer_length
+    return self
+end
+
 """
     matrix_blocked(S, row_nfreedofs, col_nfreedofs)
 
@@ -263,10 +277,10 @@ Assemble a rectangular matrix.
 """
 function assemble!(
     self::SysmatAssemblerSparse,
-    mat::MT,
-    dofnums_row::IT,
-    dofnums_col::IT,
-) where {MT, IT}
+    mat::MBT,
+    dofnums_row::CIT,
+    dofnums_col::CIT,
+) where {MBT, CIT}
     # Assembly of a rectangular matrix.
     # The method assembles a rectangular matrix using the two vectors of
     # equation numbers for the rows and columns.
@@ -274,16 +288,7 @@ function assemble!(
     ncolumns = length(dofnums_col)
     p = self.buffer_pointer
     if p + ncolumns * nrows >= self.buffer_length
-        new_buffer_length = self.buffer_length + ncolumns * nrows * 1000
-        resize!(self.rowbuffer, new_buffer_length)
-        resize!(self.colbuffer, new_buffer_length)
-        resize!(self.matbuffer, new_buffer_length)
-        if self.force_init
-            self.rowbuffer[self.buffer_length+1:end] .= 1
-            self.colbuffer[self.buffer_length+1:end] .= 1
-            self.matbuffer[self.buffer_length+1:end] .= 0
-        end
-        self.buffer_length = new_buffer_length
+        self = _resize(self, ncolumns * nrows * 1000)
     end
     @assert size(mat) == (nrows, ncolumns)
     @inbounds for j in 1:ncolumns
@@ -494,10 +499,10 @@ number input is ignored (the row and column numbers are assumed to be the same).
 """
 function assemble!(
     self::SysmatAssemblerSparseSymm,
-    mat::MT,
-    dofnums_row::IT,
-    dofnums_col::IT,
-) where {MT, IT}
+    mat::MBT,
+    dofnums_row::CIT,
+    dofnums_col::CIT,
+) where {MBT, CIT}
     # Assembly of a square symmetric matrix.
     # The method assembles the lower triangle of the square symmetric matrix using the two vectors of
     # equation numbers for the rows and columns.
@@ -506,16 +511,7 @@ function assemble!(
     @assert nrows == ncolumns
     p = self.buffer_pointer
     if p + ncolumns * nrows >= self.buffer_length
-        new_buffer_length = self.buffer_length + ncolumns * nrows * 1000
-        resize!(self.rowbuffer, new_buffer_length)
-        resize!(self.colbuffer, new_buffer_length)
-        resize!(self.matbuffer, new_buffer_length)
-        if self.force_init
-            self.rowbuffer[self.buffer_length+1:end] .= 1
-            self.colbuffer[self.buffer_length+1:end] .= 1
-            self.matbuffer[self.buffer_length+1:end] .= 0
-        end
-        self.buffer_length = new_buffer_length
+        self = _resize(self, ncolumns * nrows * 1000)
     end
     @assert size(mat) == (nrows, ncolumns)
     @inbounds for j in 1:ncolumns
@@ -1015,25 +1011,16 @@ equation numbers for the rows and columns.
 """
 function assemble!(
     self::SysmatAssemblerSparseHRZLumpingSymm,
-    mat::MT,
-    dofnums_row::IV,
-    dofnums_col::IV,
-) where {MT, IV}
+    mat::MBT,
+    dofnums_row::CIT,
+    dofnums_col::CIT,
+) where {MBT, CIT}
     nrows = length(dofnums_row)
     ncolumns = length(dofnums_col)
     @assert nrows == ncolumns
     p = self.buffer_pointer
-    if p + ncolumns * nrows >= self.buffer_length
-        new_buffer_length = self.buffer_length + ncolumns * nrows * 1000
-        resize!(self.rowbuffer, new_buffer_length)
-        resize!(self.colbuffer, new_buffer_length)
-        resize!(self.matbuffer, new_buffer_length)
-        if self.force_init
-            self.rowbuffer[self.buffer_length+1:end] .= 1
-            self.colbuffer[self.buffer_length+1:end] .= 1
-            self.matbuffer[self.buffer_length+1:end] .= 0
-        end
-        self.buffer_length = new_buffer_length
+    if p + ncolumns >= self.buffer_length
+        self = _resize(self, ncolumns * nrows * 1000)
     end
     @assert size(mat) == (nrows, ncolumns)
     # Now comes the lumping procedure
