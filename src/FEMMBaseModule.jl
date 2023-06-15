@@ -1203,7 +1203,7 @@ function linform_dot(
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     # Prepare some buffers:
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, P)
-    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, P, assembler)
+    elmdim, elmat, elvec = _buff_e(self, geom, P, assembler)
     startassembly!(assembler, nalldofs(P))
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
