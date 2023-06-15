@@ -928,13 +928,13 @@ function test()
     psi = NodalField(fill(1.0, count(fens), 3))
     numberdofs!(psi)
 
-    @show nl * nt * nw * (nodesperelem(fes) * ndofs(psi))^2
+    # @show nl * nt * nw * (nodesperelem(fes) * ndofs(psi))^2
 
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
     v = gathersysvec(psi)
 
     @time G1 = bilform_dot(femm, geom, psi, DataCache(LinearAlgebra.I(3)))
-    @show v' * G1 * v, 3 * (W*L*t)
+    # @show v' * G1 * v, 3 * (W*L*t)
     @test abs(v' * G1 * v - 3 * (W*L*t)) / (W*L*t) <= 1.0e-5
     true
 end
