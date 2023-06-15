@@ -192,3 +192,42 @@ end
 end
 using .mdistributedl1
 mdistributedl1.test()
+
+module mbilform_convection_1
+using FinEtools
+using LinearAlgebra
+using Test
+function test()
+    W = 6.1
+    L = 12.0
+    t = 2.32
+    nl, nw = 3, 4
+    a, b, c = (-0.1, +0.3, +0.4)
+    u_x, u_y = (3.1, -2.7)
+
+    fens, fes = Q8block(L, W, nl, nw)
+    geom = NodalField(fens.xyz)
+    q = NodalField(reshape([a + b*fens.xyz[j, 1] + c*fens.xyz[j, 2]  for j in eachindex(fens)], count(fens), 1))
+    numberdofs!(q)
+    psi = deepcopy(q)
+    psi.values .= 1.0
+
+    u = NodalField(hcat(fill(u_x, count(fens), 1), fill(u_y, count(fens), 1)))
+    numberdofs!(u)
+
+    femm = FEMMBase(IntegDomain(fes, GaussRule(2, 3), t))
+    K = bilform_convection(femm, geom, u, q, DataCache(1.0))
+    Q = gathersysvec(q)
+    U = gathersysvec(u)
+    Psi = gathersysvec(psi)
+    # @show size(K)
+    # @show (b * u_x + c * u_y) * (W*L*t)
+    # @show Psi' * K * Q
+    @test abs(Psi' * K * Q - (b * u_x + c * u_y) * (W*L*t)) / (W*L*t) <= 1.0e-5
+    true
+end
+test()
+nothing
+end
+
+

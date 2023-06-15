@@ -37,6 +37,7 @@ using ..MeshSelectionModule: selectelem, vselect, findunconnnodes, connectednode
 using ..AssemblyModule:
     AbstractSysvecAssembler,
     AbstractSysmatAssembler,
+    SysmatAssemblerSparse,
     SysmatAssemblerSparseSymm,
     startassembly!,
     assemble!,
@@ -1519,6 +1520,97 @@ function bilform_diffusion(
 ) where {FEMM<:AbstractFEMM, FT, T, DC<:DataCache}
     assembler = SysmatAssemblerSparseSymm();
     return bilform_diffusion(self, assembler, geom, u, f);
+end
+
+"""
+    bilform_convection(
+        self::FEMM,
+        assembler::A,
+        geom::NodalField{FT},
+        u::NodalField{T},
+        Q::NodalField{QT},
+        rhof::DC
+    ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, QT, DC<:DataCache}
+
+Compute the sparse matrix implied by the bilinear form of the "convection" type.
+
+```math
+\\int_{V}  \\vartheta \\rho \\mathbf{u} \\cdot \\nabla q \\; \\mathrm{d} V
+```
+
+Here ``\\vartheta`` is the scalar test function, ``\\mathbf{u}`` is the
+convective velocity, ``q`` is the scalar trial function, ``\\rho`` is the mass
+density; ``\\rho`` is computed by `rhof`, which is a given function
+(data). Both test and trial functions are assumed to be from the same
+approximation space. `rhof` is represented with `DataCache`, and needs to
+return a  scalar mass density.
+
+The integral is with respect to the volume of the domain ``V`` (i.e. a three
+dimensional integral).
+
+# Arguments
+- `self` = finite element machine;
+- `assembler` = assembler of the global matrix;
+- `geom` = geometry field;
+- `u` = convective velocity field;
+- `Q` = nodal field to define the degree of freedom numbers;
+- `rhof`= data cache, which is called to evaluate the coefficient ``\\rho``,
+  given the location of the integration point, the Jacobian matrix, and the
+  finite element label.
+"""
+function bilform_convection(
+    self::FEMM,
+    assembler::A,
+    geom::NodalField{FT},
+    u::NodalField{T},
+    Q::NodalField{QT},
+    rhof::DC
+) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, QT, DC<:DataCache}
+    fes = finite_elements(self)
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, Q)
+    nsd = ndofs(u)
+    eus = deepcopy(ecoords);
+    elmdim, elmat, _ = _buff_e(self, geom, Q, assembler)
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
+    startassembly!(assembler, prod(size(elmat)) * count(fes), nalldofs(Q), nalldofs(Q))
+    for i in eachindex(fes) # Loop over elements
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
+        gathervalues_asmat!(u, eus, fes.conn[i]);
+        fill!(elmat,  zero(T)); # Initialize element matrix
+        for j in 1:npts # Loop over quadrature points
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
+            Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
+            gradN!(fes, gradN, gradNparams[j], J);
+            rho = rhof(loc, J, fes.label[i])
+            for p in 1:nne
+                for r in 1:nne
+                    accum = zero(eltype(elmat))
+                    for s in 1:nsd
+                        u_s = zero(T)
+                        for q in 1:nne
+                            u_s +=  Ns[j][q] * eus[q, s]
+                        end
+                        accum += u_s * gradN[r, s]
+                    end
+                    elmat[p, r] += Ns[j][p] * accum * (Jac*w[j])
+                end
+            end
+        end # Loop over quadrature points
+        gatherdofnums!(Q, dofnums, fes.conn[i]);# retrieve degrees of freedom
+        assemble!(assembler, elmat, dofnums, dofnums);# assemble matrix
+    end # Loop over elements
+    return makematrix!(assembler);
+end
+
+function bilform_convection(
+    self::FEMM,
+    geom::NodalField{FT},
+    u::NodalField{T},
+    Q::NodalField{QT},
+    rhof::DC
+) where {FEMM<:AbstractFEMM, FT, T, QT, DC<:DataCache}
+    assembler = SysmatAssemblerSparse() # must be able to assem. unsymmetric mtx
+    return bilform_convection(self, assembler, geom, u, Q, rhof);
 end
 
 end # module
