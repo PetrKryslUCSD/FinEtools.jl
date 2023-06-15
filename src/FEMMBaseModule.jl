@@ -1158,8 +1158,7 @@ function _buff_e(self, geom, P, assembler)
     T = eltype(assembler) # type of the elementwise matrices, and of the global one as well
     elmat = fill(zero(T), elmdim, elmdim);# element matrix -- used as a buffer
     elvec = fill(zero(T), elmdim); # buffer
-    elvecfix = fill(zero(T), elmdim); # buffer
-    return elmdim, elmat, elvec, elvecfix
+    return elmdim, elmat, elvec
 end
 
 """
@@ -1326,7 +1325,7 @@ function bilform_dot(
 ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
-    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u, assembler)
+    elmdim, elmat, elvec = _buff_e(self, geom, u, assembler)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     startassembly!(assembler, prod(size(elmat)) * count(fes), nalldofs(u), nalldofs(u))
     for i in eachindex(fes) # Loop over elements
@@ -1461,7 +1460,7 @@ function _bilform_diffusion_general(
 ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
-    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u, assembler)
+    elmdim, elmat, elvec = _buff_e(self, geom, u, assembler)
     RmTJ, c_gradNT = _buff_d(self, geom, u)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     startassembly!(assembler, prod(size(elmat)) * count(fes), nalldofs(u), nalldofs(u))
@@ -1493,7 +1492,7 @@ function _bilform_diffusion_iso(
 ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
-    elmdim, elmat, elvec, elvecfix = _buff_e(self, geom, u, assembler)
+    elmdim, elmat, elvec = _buff_e(self, geom, u, assembler)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     startassembly!(assembler, prod(size(elmat)) * count(fes), nalldofs(u), nalldofs(u))
     for i in eachindex(fes) # Loop over elements
