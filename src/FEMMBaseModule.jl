@@ -9,7 +9,8 @@ __precompile__(true)
 
 using LinearAlgebra
 using LinearAlgebra: mul!, Transpose
-my_At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
+At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
+A_mul_B!(C, A, B) = mul!(C, A, B)
 using SparseArrays: sparse, findnz
 using LinearAlgebra: norm
 using ..FENodeSetModule: FENodeSet
@@ -30,7 +31,7 @@ using ..ElementalFieldModule: ElementalField, nelems
 using ..ForceIntensityModule: ForceIntensity, updateforce!
 using ..DataCacheModule: DataCache
 using ..MatrixUtilityModule: locjac!, add_nnt_ut_only!
-using ..MatrixUtilityModule: add_gkgt_ut_only!, complete_lt!, locjac!, add_nnt_ut_only!, mulCAtB!, mulCAB!, add_mggt_ut_only!
+using ..MatrixUtilityModule: add_gkgt_ut_only!, complete_lt!, locjac!, add_nnt_ut_only!, mulCAtB!, mulCAB!, add_mggt_ut_only!, add_btdb_ut_only!
 using ..BoxModule: initbox!, boundingbox, inflatebox!
 using ..MeshModificationModule: nodepartitioning, compactnodes, renumberconn!
 using ..MeshSelectionModule: selectelem, vselect, findunconnnodes, connectednodes
@@ -45,6 +46,8 @@ using ..AssemblyModule:
     makevector!,
     SysvecAssembler
 using ..FENodeToFEMapModule: FENodeToFEMap
+using ..DeforModelRedModule: AbstractDeforModelRed, blmat!, nstressstrain
+
 
 """
     AbstractFEMM
@@ -1299,12 +1302,12 @@ Compute the sparse matrix implied by the bilinear form of the "dot" type.
 \\int_{V}  \\mathbf{w} \\cdot \\mathbf{c} \\cdot \\mathbf{u} \\; \\mathrm{d} V
 ```
 
-Here ``\\mathbf{w}`` is the test function, ``\\mathbf{u}`` is the trial function, ``\\mathbf
-{c}`` is a square matrix of coefficients; ``\\mathbf{c}`` is computed by `cf`,
-which is a given function (data). Both trial and test functions are assumed to
-be vectors(even if of length 1). `cf` is represented with `DataCache`, and
-needs to return a square matrix, with dimension equal to the number of degrees
-of freedom per node in the `u` field.
+Here ``\\mathbf{w}`` is the test function, ``\\mathbf{u}`` is the trial
+function, ``\\mathbf{c}`` is a square matrix of coefficients; ``\\mathbf
+{c}`` is computed by `cf`, which is a given function (data). Both trial and
+test functions are assumed to be vectors(even if of length 1). `cf` is
+represented with `DataCache`, and needs to return a square matrix, with
+dimension equal to the number of degrees of freedom per node in the `u` field.
 
 The integral is with respect to the volume of the domain ``V`` (i.e. a three
 dimensional integral).
@@ -1622,7 +1625,7 @@ end
         viscf::DC
     ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
 
-Compute the sparse matrix implied by the bilinear form of the "convection" type.
+Compute the sparse matrix implied by the bilinear form of the "div grad" type.
 
 ```math
 \\int_{V}  \\mu \\nabla \\mathbf{w}:  \\nabla\\mathbf{u}   \\; \\mathrm{d} V
@@ -1696,6 +1699,100 @@ function bilform_div_grad(
 ) where {FEMM<:AbstractFEMM, FT, T, DC<:DataCache}
     assembler = SysmatAssemblerSparseSymm()
     return bilform_div_grad(self, assembler, geom, u, viscf);
+end
+
+function _buff_cb(self, geom, u, mr, assembler)
+    fes = finite_elements(self)
+    ndn = ndofs(u); # number of degrees of freedom per node
+    nne =  nodesperelem(fes); # number of nodes per element
+    mdim = manifdim(fes); # manifold dimension of the element
+    FT = eltype(geom.values)
+    mdim = manifdim(fes); # manifold dimension of the element
+    nstrs = nstressstrain(mr);  # number of stresses
+    elmatdim = ndn*nne;             # dimension of the element matrix
+    B = fill(zero(FT), nstrs, elmatdim); # strain-displacement matrix -- buffer
+    CB = fill(zero(FT), nstrs, elmatdim); # strain-displacement matrix -- buffer
+    RmTJ = fill(zero(FT), mdim, mdim); # buffer
+    return B, CB, RmTJ
+end
+
+"""
+    bilform_lin_elastic(
+        self::FEMM,
+        assembler::A,
+        geom::NodalField{FT},
+        u::NodalField{T},
+        cf::DC
+    ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
+
+Compute the sparse matrix implied by the bilinear form of the "linearized elasticity" type.
+
+```math
+\\int_{V} (B \\mathbf{w})^T C  B \\mathbf{u}   \\; \\mathrm{d} V
+```
+
+Here `` \\mathbf{w}`` is the vector test function, ``\\mathbf{u}`` is the
+displacement (velocity), ``C`` is the elasticity (viscosity) matrix; ``C`` is
+computed by `cf`, which is a given function(data). Both test and trial
+functions are assumed to be from the same approximation space. `cf` is
+represented with `DataCache`, and needs to return a matrix of the appropriate
+size.
+
+The integral is with respect to the volume of the domain ``V`` (i.e. a three
+dimensional integral).
+
+# Arguments
+- `self` = finite element machine;
+- `assembler` = assembler of the global matrix;
+- `geom` = geometry field;
+- `u` = velocity field;
+- `viscf`= data cache, which is called to evaluate the coefficient ``\\mu``,
+  given the location of the integration point, the Jacobian matrix, and the
+  finite element label.
+"""
+function bilform_lin_elastic(
+        self::FEMM,
+        assembler::A,
+        geom::NodalField{FT},
+        u::NodalField{T},
+        mr::Type{MR},
+        cf::DC,
+) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, MR<:AbstractDeforModelRed, DC<:DataCache}
+    fes = finite_elements(self)
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
+    elmdim, elmat, _ = _buff_e(self, geom, u, assembler)
+    B, CB, RmTJ = _buff_cb(self, geom, u, mr, assembler)
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
+    startassembly!(assembler, prod(size(elmat)) * count(fes), nalldofs(u), nalldofs(u))
+    for i in eachindex(fes) # Loop over elements
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
+        fill!(elmat,  zero(T)); # Initialize element matrix
+        for j in 1:npts # Loop over quadrature points
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
+            Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
+            updatecsmat!(self.mcsys, loc, J, fes.label[i]);
+            At_mul_B!(RmTJ, csmat(self.mcsys), J); # local Jacobian matrix
+            gradN!(fes, gradN, gradNparams[j], RmTJ);
+            blmat!(mr, B, Ns[j], gradN, loc, csmat(self.mcsys));
+            C = cf(loc, J, fes.label[i])
+            add_btdb_ut_only!(elmat, B, Jac*w[j], C, CB)
+        end # Loop over quadrature points
+        complete_lt!(elmat)
+        gatherdofnums!(u, dofnums, fes.conn[i]);# retrieve degrees of freedom
+        assemble!(assembler, elmat, dofnums, dofnums);# assemble matrix
+    end # Loop over elements
+    return makematrix!(assembler);
+end
+
+function bilform_lin_elastic(
+        self::FEMM,
+        geom::NodalField{FT},
+        u::NodalField{T},
+        mr::Type{MR},
+        cf::DC,
+) where {FEMM<:AbstractFEMM, FT, T, MR<:AbstractDeforModelRed, DC<:DataCache}
+    assembler = SysmatAssemblerSparseSymm()
+    return bilform_lin_elastic(self, assembler, geom, u, mr, cf);
 end
 
 end # module

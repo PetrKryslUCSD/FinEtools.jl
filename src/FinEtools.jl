@@ -392,6 +392,11 @@ export IntegDomain,
     Jacobianmdim,
     integrationdata
 
+using .DeforModelRedModule: AbstractDeforModelRed, DeforModelRed1D, DeforModelRed1DStress, DeforModelRed1DStrain, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D, nstressstrain, nthermstrain, stresscomponentmap, blmat!
+export AbstractDeforModelRed, DeforModelRed1D, DeforModelRed1DStress, DeforModelRed1DStrain, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D
+export nstressstrain, nthermstrain, stresscomponentmap
+export blmat!
+
 using .FEMMBaseModule:
     AbstractFEMM,
     FEMMBase,
@@ -410,6 +415,7 @@ using .FEMMBaseModule:
     bilform_diffusion,
     bilform_convection,
     bilform_div_grad,
+    bilform_lin_elastic,
     innerproduct,
     field_elem_to_nodal!,
     field_nodal_to_elem!
@@ -431,6 +437,7 @@ export AbstractFEMM,
     bilform_diffusion,
     bilform_convection,
     bilform_div_grad,
+    bilform_lin_elastic,
     innerproduct,
     field_elem_to_nodal!,
     field_nodal_to_elem!
