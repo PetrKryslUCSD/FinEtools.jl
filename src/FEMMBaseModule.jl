@@ -180,7 +180,7 @@ function _integratefieldnodalfunction(self, geom, afield, fh, initial, m)
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         for j in 1:npts #Loop over all integration points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
-            my_At_mul_B!(val, Ns[j], a)# Field value at the quadrature point
+            At_mul_B!(val, Ns[j], a)# Field value at the quadrature point
             Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i], Ns[j], m)
             result = result + fh(loc, val) * Jac * w[j]
         end
