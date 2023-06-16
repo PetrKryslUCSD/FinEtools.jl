@@ -5,9 +5,10 @@ Module for base  algorithms.
 """
 module AlgoBaseModule
 
-import ..FEMMBaseModule: integratefieldfunction, transferfield!
-import LinearAlgebra: norm, dot
-import Statistics: mean
+using ..FEMMBaseModule: integratefieldfunction, transferfield!
+using ..FieldModule: AbstractField
+using LinearAlgebra: norm, dot
+using Statistics: mean
 
 function _keymatch(key::String, allowed_keys::Array{String})
     matched_key = nothing
@@ -521,4 +522,99 @@ function penaltyebc!(K, F, dofnums, prescribedvalues, penfact)
     return K, F
 end
 
+"""
+    matrix_blocked(S, row_nfreedofs, col_nfreedofs, which = (:a, ))10
+
+Partition matrix into blocks.
+
+The function returns the sparse matrix as a named tuple of its constituent
+blocks. The matrix is composed out of four blocks
+```
+A = [A_ff A_fd
+     A_df A_dd]
+```
+which are returned as a named tuple `(ff = A_ff, fd = A_fd, df = A_df, dd = A_dd)`.
+Here `f` stands for free, and `d` stands for data (i.e. fixed, prescribed, ...).
+The size of the `ff` block is `row_nfreedofs, col_nfreedofs`.
+"""
+function matrix_blocked(S, row_nfreedofs, col_nfreedofs, which = (:a, ))
+    row_nalldofs, col_nalldofs = size(S)
+    row_nfreedofs <= row_nalldofs || error("The ff block has too many rows")
+    col_nfreedofs <= col_nalldofs || error("The ff block has too many columns")
+    row_f_dim = row_nfreedofs
+    row_d_dim = (row_nfreedofs < row_nalldofs ? row_nalldofs - row_nfreedofs - 1 : 0)
+    col_f_dim = col_nfreedofs
+    col_d_dim = (col_nfreedofs < col_nalldofs ? col_nalldofs - col_nfreedofs - 1 : 0)
+
+    if (:ff in which  || :all  in which) &&
+        (row_f_dim > 0 &&  col_f_dim > 0)
+        S_ff = S[1:row_nfreedofs, 1:col_nfreedofs]
+    else
+        S_ff = spzeros(row_f_dim, col_f_dim)
+    end
+    if (:fd in which  || :all  in which) &&
+        (row_f_dim > 0 && col_d_dim > 0)
+        S_fd = S[1:row_nfreedofs, col_nfreedofs+1:end]
+    else
+        S_fd = spzeros(row_f_dim, col_d_dim)
+    end
+    if (:df in which  || :all  in which) &&
+        (row_d_dim > 0 && col_f_dim > 0)
+        S_df = S[row_nfreedofs+1:end, 1:col_nfreedofs]
+    else
+        S_df = spzeros(row_d_dim, col_f_dim)
+    end
+    if (:dd in which  || :all  in which) &&
+        (row_d_dim > 0 && col_d_dim > 0)
+        S_dd = S[row_nfreedofs+1:end, col_nfreedofs+1:end]
+    else
+        S_dd = spzeros(row_d_dim, col_d_dim)
+    end
+    return (ff = S_ff, fd = S_fd, df = S_df, dd = S_dd)
 end
+
+"""
+    vector_blocked(V, row_nfreedofs, which = (:f, ))
+
+Partition vector into two pieces.
+
+The vector is composed out of two blocks
+```
+V = [V_f
+     V_d]
+```
+which are returned as a named tuple `(f = V_f, d = V_d)`.
+"""
+function vector_blocked(V, row_nfreedofs, which = (:f, ))
+    row_nalldofs = length(V)
+    row_nfreedofs <= row_nalldofs || error("The f block has too many rows")
+    row_f_dim = row_nfreedofs
+    row_d_dim = (row_nfreedofs < row_nalldofs ? row_nalldofs - row_nfreedofs - 1 : 0)
+    if (:f in which) && (row_f_dim > 0)
+        V_f = V[1:row_nfreedofs]
+    else
+        V_f = eltype(V)[]
+    end
+    if (:d in which) && (row_d_dim > 0)
+        V_d = V[row_nfreedofs+1:end]
+    else
+        V_d = eltype(V)[]
+    end
+    return (f = V_f, d = V_d)
+end
+
+"""
+    solve!(u::F, K::M, F::V) where {F<:AbstractField, M<:AbstractMatrix, V<:AbstractVector}
+
+Solve a system of linear algebraic equations.
+"""
+function solve!(u::U, K::M, F::V) where {U<:AbstractField, M<:AbstractMatrix, V<:AbstractVector}
+    K_ff, K_fd = matrix_blocked(K, nfreedofs(u), nfreedofs(u), (:ff, :fd))[(:ff, :fd)]
+    F_f = vector_blocked(F2, nfreedofs(u))[:f]
+    U_d = gathersysvec(u, :d)
+    U_f =  K_ff\(F_f - K_fd * U_d)
+    scattersysvec!(u, U_f)
+    return u
+end
+
+end # module:

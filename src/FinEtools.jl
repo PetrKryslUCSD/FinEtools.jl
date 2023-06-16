@@ -333,8 +333,7 @@ using .AssemblyModule:
     startassembly!,
     assemble!,
     makevector!,
-    SysmatAssemblerReduced,
-    matrix_blocked, vector_blocked
+    SysmatAssemblerReduced
 # Exported: types and methods for  sparse matrix assembly  and vector assembly
 export AbstractSysmatAssembler, eltype,
     SysmatAssemblerSparse,
@@ -349,8 +348,7 @@ export AbstractSysmatAssembler, eltype,
     startassembly!,
     assemble!,
     makevector!,
-    SysmatAssemblerReduced,
-    matrix_blocked, vector_blocked
+    SysmatAssemblerReduced
 
 using .IntegRuleModule:
     AbstractIntegRule,
