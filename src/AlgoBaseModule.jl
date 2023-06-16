@@ -9,6 +9,7 @@ using ..FEMMBaseModule: integratefieldfunction, transferfield!
 using ..FieldModule: AbstractField
 using LinearAlgebra: norm, dot
 using Statistics: mean
+using SparseArrays: spzeros
 
 function _keymatch(key::String, allowed_keys::Array{String})
     matched_key = nothing
@@ -523,7 +524,7 @@ function penaltyebc!(K, F, dofnums, prescribedvalues, penfact)
 end
 
 """
-    matrix_blocked(S, row_nfreedofs, col_nfreedofs, which = (:a, ))10
+    matrix_blocked(S, row_nfreedofs, col_nfreedofs, which = (:all, ))
 
 Partition matrix into blocks.
 
@@ -537,7 +538,7 @@ which are returned as a named tuple `(ff = A_ff, fd = A_fd, df = A_df, dd = A_dd
 Here `f` stands for free, and `d` stands for data (i.e. fixed, prescribed, ...).
 The size of the `ff` block is `row_nfreedofs, col_nfreedofs`.
 """
-function matrix_blocked(S, row_nfreedofs, col_nfreedofs, which = (:a, ))
+function matrix_blocked(S, row_nfreedofs, col_nfreedofs, which = (:all, ))
     row_nalldofs, col_nalldofs = size(S)
     row_nfreedofs <= row_nalldofs || error("The ff block has too many rows")
     col_nfreedofs <= col_nalldofs || error("The ff block has too many columns")
@@ -585,17 +586,17 @@ V = [V_f
 ```
 which are returned as a named tuple `(f = V_f, d = V_d)`.
 """
-function vector_blocked(V, row_nfreedofs, which = (:f, ))
+function vector_blocked(V, row_nfreedofs, which = (:all, ))
     row_nalldofs = length(V)
     row_nfreedofs <= row_nalldofs || error("The f block has too many rows")
     row_f_dim = row_nfreedofs
     row_d_dim = (row_nfreedofs < row_nalldofs ? row_nalldofs - row_nfreedofs - 1 : 0)
-    if (:f in which) && (row_f_dim > 0)
+    if (:f in which || :all in which) && (row_f_dim > 0)
         V_f = V[1:row_nfreedofs]
     else
         V_f = eltype(V)[]
     end
-    if (:d in which) && (row_d_dim > 0)
+    if (:d in which || :all in which) && (row_d_dim > 0)
         V_d = V[row_nfreedofs+1:end]
     else
         V_d = eltype(V)[]
