@@ -1674,13 +1674,15 @@ function bilform_div_grad(
             for a in 1:nne
                 for b in 1:nne
                     for s in 1:ndn
-                        accum = zero(eltype(elmat))
-                        for q in 1:ndn
-                            accum += gradN[a, q] * gradN[b, q]
-                        end
                         p = (a - 1) * ndn + s
                         r = (b - 1) * ndn + s
-                        elmat[p, r] += factor * accum
+                        for q in 1:ndn
+                            elmat[p, r] += factor * gradN[a, q] * gradN[b, q]
+                        end
+                        for q in 1:ndn
+                            r = (b - 1) * ndn + q
+                            elmat[p, r] += factor * gradN[a, q] * gradN[b, s]
+                        end
                     end
                 end
             end

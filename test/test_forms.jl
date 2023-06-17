@@ -283,13 +283,14 @@ function test()
             ))
     numberdofs!(u)
     gradu = [b c d; c d a; d a b]
-    @show mu * (W*L*t) * sum(gradu.^2)
+    gradu_symm = (gradu + gradu') / 2
+    int_true = 2 * mu * (W*L*t) * sum(gradu_symm.^2)
 
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
     v = gathersysvec(u)
     G = bilform_div_grad(femm, geom, u, DataCache(mu))
     # @show v' * G * v
-    @test abs(v' * G * v - mu * (W*L*t) * sum(gradu.^2)) / (W*L*t) <= 1.0e-5
+    @test abs(v' * G * v - int_true) / (int_true) <= 1.0e-5
     true
 end
 test()
@@ -350,18 +351,60 @@ function test()
             ))
     numberdofs!(u)
     gradu = [b c d; c d a; d a b]
-    @show mu * (W*L*t) * sum(gradu.^2)
+    gradu_symm = (gradu + gradu') / 2
+    int_true = 2 * mu * (W*L*t) * sum(gradu_symm.^2)
 
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
     v = gathersysvec(u)
     C = diagm([2*mu, 2*mu, 2*mu, mu, mu, mu])
     G = bilform_lin_elastic(femm, geom, u, DeforModelRed3D, DataCache(C))
-    # @show v' * G * v / 2
-    @test abs(v' * G * v / 2 - mu * (W*L*t) * sum(gradu.^2)) / (W*L*t) <= 1.0e-5
+    # v' * G * v / 2
+    @test abs(v' * G * v  - int_true) / (int_true) <= 1.0e-5
     true
 end
 test()
 nothing
 end
+
+
+module mbilform_div_grad_3
+using FinEtools
+using LinearAlgebra
+using Test
+function test()
+    W = 11.1
+    L = 12.0
+    t = 7.32
+    nl, nt, nw = 12, 33, 24
+    a, b, c, d = (-0.33, 2/3, -1.67, 2/7)
+    mu = 0.13377
+
+    fens, fes = H8block(L, W, t, nl, nw, nt)
+    geom = NodalField(fens.xyz)
+
+    u = NodalField(
+        hcat(
+            reshape([a + b*fens.xyz[j, 1]^2 + c*fens.xyz[j, 2]^3 + d*fens.xyz[j, 3]  for j in eachindex(fens)], count(fens), 1),
+            reshape([b + c*fens.xyz[j, 1] + d*fens.xyz[j, 2]^2 + a*fens.xyz[j, 3]^4  for j in eachindex(fens)], count(fens), 1),
+            reshape([c + d*fens.xyz[j, 1]^3 + a*fens.xyz[j, 2] + b*fens.xyz[j, 3]^2  for j in eachindex(fens)], count(fens), 1)
+            ))
+    numberdofs!(u)
+
+
+    femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
+    v = gathersysvec(u)
+
+    G1 = bilform_div_grad(femm, geom, u, DataCache(mu))
+    C = diagm([2*mu, 2*mu, 2*mu, mu, mu, mu])
+    G2 = bilform_lin_elastic(femm, geom, u, DeforModelRed3D, DataCache(C))
+    # @show v' * G1 * v
+    # @show v' * G2 * v
+    @test abs(v' * G1 * v - v' * G2 * v) / (v' * G1 * v) <= 1.0e-5
+    true
+end
+test()
+nothing
+end
+
 
 
