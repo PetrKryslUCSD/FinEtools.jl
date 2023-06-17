@@ -6,7 +6,7 @@ Module for base  algorithms.
 module AlgoBaseModule
 
 using ..FEMMBaseModule: integratefieldfunction, transferfield!
-using ..FieldModule: AbstractField
+using ..FieldModule: AbstractField, nfreedofs, gathersysvec, scattersysvec!
 using LinearAlgebra: norm, dot
 using Statistics: mean
 using SparseArrays: spzeros
@@ -611,7 +611,7 @@ Solve a system of linear algebraic equations.
 """
 function solve!(u::U, K::M, F::V) where {U<:AbstractField, M<:AbstractMatrix, V<:AbstractVector}
     K_ff, K_fd = matrix_blocked(K, nfreedofs(u), nfreedofs(u), (:ff, :fd))[(:ff, :fd)]
-    F_f = vector_blocked(F2, nfreedofs(u))[:f]
+    F_f = vector_blocked(F, nfreedofs(u))[:f]
     U_d = gathersysvec(u, :d)
     U_f =  K_ff\(F_f - K_fd * U_d)
     scattersysvec!(u, U_f)
