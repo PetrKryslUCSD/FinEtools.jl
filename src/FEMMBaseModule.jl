@@ -1299,7 +1299,7 @@ end
 Compute the sparse matrix implied by the bilinear form of the "dot" type.
 
 ```math
-\\int_{V}  \\mathbf{w} \\cdot \\mathbf{c} \\cdot \\mathbf{u} \\; \\mathrm{d} V
+\\int_{\\Omega}  \\mathbf{w} \\cdot \\mathbf{c} \\cdot \\mathbf{u} \\; \\mathrm{d} \\Omega
 ```
 
 Here ``\\mathbf{w}`` is the test function, ``\\mathbf{u}`` is the trial
@@ -1309,8 +1309,9 @@ test functions are assumed to be vectors(even if of length 1). `cf` is
 represented with `DataCache`, and needs to return a square matrix, with
 dimension equal to the number of degrees of freedom per node in the `u` field.
 
-The integral is with respect to the volume of the domain ``V`` (i.e. a three
-dimensional integral).
+The integral domain ``\\Omega`` can be the volume of the domain ``V`` (i.e. a
+three dimensional integral), or a surface ``S`` (i.e. a two dimensional
+integral), or a line domain ``L`` (i.e. a one dimensional integral).
 
 # Arguments
 - `self` = finite element machine;
@@ -1320,13 +1321,15 @@ dimensional integral).
 - `cf`= data cache, which is called to evaluate the coefficient ``c``, given the
   location of the integration point, the Jacobian matrix, and the finite
   element label.
+- `m` = manifold dimension (default is 3).
 """
 function bilform_dot(
     self::FEMM,
     assembler::A,
     geom::NodalField{FT},
     u::NodalField{T},
-    cf::DC
+    cf::DC;
+    m = 3
 ) where {FEMM<:AbstractFEMM, A<:AbstractSysmatAssembler, FT, T, DC<:DataCache}
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
@@ -1338,7 +1341,7 @@ function bilform_dot(
         fill!(elmat, 0.0) # Initialize element matrix
         for j in 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
-            Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j])
+            Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i], Ns[j], m)
             c = cf(loc, J, fes.label[i])
             for k in 1:nne, m in 1:nne
                 factor = (Ns[j][k] * Ns[j][m] * Jac * w[j])
@@ -1699,7 +1702,7 @@ function bilform_div_grad(
         u::NodalField{T},
         viscf::DC
 ) where {FEMM<:AbstractFEMM, FT, T, DC<:DataCache}
-    assembler = SysmatAssemblerSparseSymm()
+    assembler = SysmatAssemblerSparse()
     return bilform_div_grad(self, assembler, geom, u, viscf);
 end
 
