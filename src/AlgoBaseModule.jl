@@ -543,9 +543,9 @@ function matrix_blocked(S, row_nfreedofs, col_nfreedofs, which = (:all, ))
     row_nfreedofs <= row_nalldofs || error("The ff block has too many rows")
     col_nfreedofs <= col_nalldofs || error("The ff block has too many columns")
     row_f_dim = row_nfreedofs
-    row_d_dim = (row_nfreedofs < row_nalldofs ? row_nalldofs - row_nfreedofs - 1 : 0)
+    row_d_dim = (row_nfreedofs < row_nalldofs ? row_nalldofs - row_nfreedofs : 0)
     col_f_dim = col_nfreedofs
-    col_d_dim = (col_nfreedofs < col_nalldofs ? col_nalldofs - col_nfreedofs - 1 : 0)
+    col_d_dim = (col_nfreedofs < col_nalldofs ? col_nalldofs - col_nfreedofs : 0)
 
     if (:ff in which  || :all  in which) &&
         (row_f_dim > 0 &&  col_f_dim > 0)
@@ -590,7 +590,7 @@ function vector_blocked(V, row_nfreedofs, which = (:all, ))
     row_nalldofs = length(V)
     row_nfreedofs <= row_nalldofs || error("The f block has too many rows")
     row_f_dim = row_nfreedofs
-    row_d_dim = (row_nfreedofs < row_nalldofs ? row_nalldofs - row_nfreedofs - 1 : 0)
+    row_d_dim = (row_nfreedofs < row_nalldofs ? row_nalldofs - row_nfreedofs : 0)
     if (:f in which || :all in which) && (row_f_dim > 0)
         V_f = V[1:row_nfreedofs]
     else
