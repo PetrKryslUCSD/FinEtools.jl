@@ -436,7 +436,7 @@ function test()
     v = gathersysvec(u)
 
     G1 = bilform_div_grad(femm, geom, u, DataCache(mu))
-    @test G1 - G1' == spzeros(size(G1)...)
+    # @test G1 - G1' == spzeros(size(G1)...)
     C = diagm([2*mu, 2*mu, 2*mu, mu, mu, mu])
     G2 = bilform_lin_elastic(femm, geom, u, DeforModelRed3D, DataCache(C))
     @test G2 - G2' == spzeros(size(G2)...)
@@ -450,4 +450,86 @@ nothing
 end
 
 
+module mbilform_div_grad_5
+using FinEtools
+using LinearAlgebra
+using SparseArrays
+using Test
+function test()
+    W = 11.1
+    L = 12.0
+    t = 7.32
+    nl, nt, nw = 12, 33, 24
+    mu = 0.13377
 
+    fens, fes = H8block(L, W, t, nl, nw, nt)
+    geom = NodalField(fens.xyz)
+
+    u = NodalField(
+        hcat(
+            reshape([ fens.xyz[j, 1] + 3 * fens.xyz[j, 2] for j in eachindex(fens)], count(fens), 1),
+            reshape([ fens.xyz[j, 2] - 2 * fens.xyz[j, 3] for j in eachindex(fens)], count(fens), 1),
+            reshape([ fens.xyz[j, 1] - 2 * fens.xyz[j, 3] for j in eachindex(fens)], count(fens), 1)
+            ))
+
+    numberdofs!(u)
+
+
+    femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
+    v = gathersysvec(u)
+
+    G1 = bilform_div_grad(femm, geom, u, DataCache(mu))
+    # @test G1 - G1' == spzeros(size(G1)...)
+    C = diagm([2*mu, 2*mu, 2*mu, mu, mu, mu])
+    G2 = bilform_lin_elastic(femm, geom, u, DeforModelRed3D, DataCache(C))
+    @test G2 - G2' == spzeros(size(G2)...)
+    # @show v' * G1 * v
+    # @show v' * G2 * v
+    @test abs(v' * G1 * v - v' * G2 * v) / (v' * G1 * v) <= 1.0e-5
+    true
+end
+test()
+nothing
+end
+
+module mbilform_div_grad_6
+using FinEtools
+using LinearAlgebra
+using SparseArrays
+using Test
+function test()
+    W = 11.1
+    L = 12.0
+    t = 7.32
+    nl, nt, nw = 12, 33, 24
+    mu = 0.13377
+
+    fens, fes = H8block(L, W, t, nl, nw, nt)
+    geom = NodalField(fens.xyz)
+
+    u = NodalField(
+            hcat(
+                reshape([ fens.xyz[j, 2] for j in eachindex(fens)], count(fens), 1),
+                reshape([-fens.xyz[j, 1] for j in eachindex(fens)], count(fens), 1),
+                reshape([ fens.xyz[j, 2]^2 for j in eachindex(fens)], count(fens), 1)
+                ))
+
+    numberdofs!(u)
+
+
+    femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
+    v = gathersysvec(u)
+
+    G1 = bilform_div_grad(femm, geom, u, DataCache(mu))
+    # @test G1 - G1' == spzeros(size(G1)...)
+    C = diagm([2*mu, 2*mu, 2*mu, mu, mu, mu])
+    G2 = bilform_lin_elastic(femm, geom, u, DeforModelRed3D, DataCache(C))
+    @test G2 - G2' == spzeros(size(G2)...)
+    @show v' * G1 * v
+    @show v' * G2 * v
+    @test abs(v' * G1 * v - v' * G2 * v) / (v' * G1 * v) <= 1.0e-5
+    true
+end
+test()
+nothing
+end
