@@ -1,3 +1,6 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 FinEtools = "91bb5406-6c9a-523d-811d-0644c4229550"
+
+[compat]
+Documenter = "=0.27.24"
