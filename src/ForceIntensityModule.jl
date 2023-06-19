@@ -93,15 +93,14 @@ function ForceIntensity(force::CT) where {CT<:Number}
 end
 
 """
-    updateforce!(self::ForceIntensity, XYZ::Matrix{T},
-        tangents::Matrix{T}, feid::IT) ) where {T<:Number, IT<:Integer}
+    updateforce!(self::ForceIntensity, XYZ::Matrix{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {T<:Number, IT<:Integer}
 
 Update the force intensity vector.
 
 Returns a vector (stored in the cache `self.cache`).
 """
-function updateforce!(self::ForceIntensity, XYZ::Matrix{T}, tangents::Matrix{T}, feid::IT) where {T<:Number, IT<:Integer}
-    return self._cache(XYZ, tangents, feid)
+function updateforce!(self::ForceIntensity, XYZ::Matrix{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {T<:Number, IT<:Integer}
+    return self._cache(XYZ, tangents, feid, qpid)
 end
 
 end

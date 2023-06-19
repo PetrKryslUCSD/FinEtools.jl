@@ -22,17 +22,18 @@ follows:
 
 ```
 function fillcache!(cacheout::D,
-    XYZ::VecOrMat{T}, tangents::Matrix{T}, feid::IT) where {D, T}
+    XYZ::VecOrMat{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {D, T, IT}
     ... # modify the value of cacheout
     return cacheout
 end
 ```
 
-It may use the location `XYZ`, it may use the columns of the Jacobian
-matrix of the element, `tangents`, it may also choose the value given the
-finite element id, `feid`. All of these values are chosen by
-the code requesting the value of the cache. It must return the modified
-argument `cacheout`.
+It may use the location `XYZ`, it may use the columns of the Jacobian matrix of
+the element, `tangents`, it may also choose the value given the finite element
+identifier (i.e. serial number), `feid`, and the identifier (i.e. serial
+number) of the quadrature point, `qpid`. All of these values are chosen by the
+code requesting the value of the cache. It must return the modified argument
+`cacheout`.
 
 When the cache is accessed, the callback `fillcache!` is
 called, and the output `cacheout` is filled with the value of the cached data.
@@ -41,14 +42,14 @@ called, and the output `cacheout` is filled with the value of the cached data.
 ```
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        feid::IT) where {CT, N, T, IT}
+        feid::IT, qpid::IT) where {CT, N, T, IT}
     cacheout .= LinearAlgebra.I(3)
     return cacheout
 end
 c = DataCache(zeros(Float32, 3, 3), fillcache!)
 function f(c)
-    XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
-    data = c(XYZ, tangents, feid)
+    XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
+    data = c(XYZ, tangents, feid, qpid)
 end
 @test f(c) == LinearAlgebra.I(3)
 ```
@@ -77,7 +78,7 @@ function DataCache(data::D) where {D}
         cacheout::D,
         XYZ::VecOrMat{T},
         tangents::Matrix{T},
-        feid::IT
+        feid::IT, qpid::IT
     ) where {D, T<:Number, IT<:Integer}
         # do nothing:  the data is already in the cache
         return cacheout
@@ -85,13 +86,15 @@ function DataCache(data::D) where {D}
     return DataCache(deepcopy(data), _fillcache_constant!)
 end
 
+datatype(c::DataCache) = typeof(c._cache)
+
 """
-    (c::DataCache)(XYZ::VecOrMat{T}, tangents::Matrix{T}, feid::IT) where {T<:Number, IT<:Integer}
+    (c::DataCache)(XYZ::VecOrMat{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {T<:Number, IT<:Integer}
 
 Update the cache and retrieve the array.
 """
-function (c::DataCache)(XYZ::VecOrMat{T}, tangents::Matrix{T}, feid::IT) where {T<:Number, IT<:Integer}
-    c._cache = c._fillcache!(c._cache, XYZ, tangents, feid::IT)
+function (c::DataCache)(XYZ::VecOrMat{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {T<:Number, IT<:Integer}
+    c._cache = c._fillcache!(c._cache, XYZ, tangents, feid, qpid)
     return c._cache
 end
 

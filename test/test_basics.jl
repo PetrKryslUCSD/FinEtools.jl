@@ -275,7 +275,7 @@ function test()
         0.8320502943378436 0.5547001962252293 0.0
         0.0 0.0 1.0
     ]
-    function compute!(csmatout, XYZ, tangents, fe_label)
+    function compute!(csmatout, XYZ, tangents, feid, qpid)
         # Cylindrical coordinate system
         xyz = XYZ[:] .- center
         xyz[3] = 0.0
@@ -286,11 +286,11 @@ function test()
         return csmatout
     end
     csys = CSys(3, 3, compute!)
-    updatecsmat!(csys, XYZ, tangents, 0)
+    updatecsmat!(csys, XYZ, tangents, 0, 0)
     @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
 
     csys = CSys(3, 3, zero(Float32), compute!)
-    updatecsmat!(csys, XYZ, tangents, 0)
+    updatecsmat!(csys, XYZ, tangents, 0, 0)
     @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
 
     true
@@ -315,7 +315,7 @@ function test()
         0.8320502943378436 0.5547001962252293 0.0
         0.0 0.0 1.0
     ]
-    # function compute!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    # function compute!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, feid::FInt)
     #     # Cylindrical coordinate system
     #     xyz = XYZ[:] .- center
     #     xyz[3] = 0.0
@@ -326,7 +326,7 @@ function test()
     #     return csmatout
     # end
     csys = CSys(rfcsmat)
-    updatecsmat!(csys, XYZ, tangents, 0)
+    updatecsmat!(csys, XYZ, tangents, 0, 0)
     @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
     true
 end
@@ -346,7 +346,7 @@ function test()
     XYZ = reshape([0.2, 0.3, 0.4], 1, 3)
     tangents = rand(3, 3)
     rfcsmat = Matrix(1.0 * I, 3, 3)
-    # function compute!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    # function compute!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, feid::FInt)
     #     # Cylindrical coordinate system
     #     xyz = XYZ[:] .- center
     #     xyz[3] = 0.0
@@ -357,7 +357,7 @@ function test()
     #     return csmatout
     # end
     csys = CSys(3)
-    updatecsmat!(csys, XYZ, tangents, 0)
+    updatecsmat!(csys, XYZ, tangents, 0, 0)
     @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
 
     true
@@ -376,7 +376,7 @@ function test()
     rfcsmat = Matrix(1.0 * I, 3, 3)
     tangents = rand(3, 3)
     csys = CSys(3, 3)
-    updatecsmat!(csys, XYZ, tangents, 0)
+    updatecsmat!(csys, XYZ, tangents, 0, 0)
     @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
     true
 end
@@ -394,7 +394,7 @@ function test()
     rfcsmat = reshape([0.37139067635410367; 0.5570860145311555; 0.7427813527082073], 3, 1)
     tangents = reshape([0.2, 0.3, 0.4], 3, 1)
     csys = CSys(3, 1)
-    updatecsmat!(csys, XYZ, tangents, 0)
+    updatecsmat!(csys, XYZ, tangents, 0, 0)
     # @show csmat(csys)
     @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
     true
@@ -413,7 +413,7 @@ function test()
     rfcsmat = reshape([0.37139067635410367; 0.5570860145311555; 0.7427813527082073], 3, 1)
     tangents = reshape([0.2 0.0; 0.0 0.5; 0.4 0.2], 3, 2)
     csys = CSys(3, 2)
-    updatecsmat!(csys, XYZ, tangents, 0)
+    updatecsmat!(csys, XYZ, tangents, 0, 0)
     # @show csmat(csys)
     n1 = cross(vec(tangents[:, 1]), vec(tangents[:, 2]))
     n1 = n1 / norm(n1)
@@ -1183,15 +1183,15 @@ using Test
 
 function test()
     ndimensions = 2
-    tangents, fe_label = reshape([1.0; 1.0], 2, 1), 0
+    tangents, feid = reshape([1.0; 1.0], 2, 1), 0
     n = SurfaceNormal(ndimensions::FInt)
-    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, fe_label::FInt)
+    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, feid::FInt)
     @test norm(normal - [0.7071067811865475, -0.7071067811865475]) <= 1.0e-5
 
     ndimensions = 3
-    tangents, fe_label = reshape([1.0 0.0; 1.0 0.0; 0.0 1.0], 3, 2), 0
+    tangents, feid = reshape([1.0 0.0; 1.0 0.0; 0.0 1.0], 3, 2), 0
     n = SurfaceNormal(ndimensions::FInt)
-    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, fe_label::FInt)
+    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, feid::FInt)
     @test norm(normal - [0.7071067811865475, -0.7071067811865475, 0.0]) <= 1.0e-5
     true
 end
@@ -2307,16 +2307,16 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Vector{CT},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label) where {CT, T}
+        feid) where {CT, T}
     cacheout .= 13
     return cacheout
 end
 c = DataCache(zeros(nentries), fillcache!)
-v = c(XYZ, tangents, fe_label)
+v = c(XYZ, tangents, feid)
 @test v == [13, 13, 13]
 end
 
@@ -2326,16 +2326,16 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Vector{CT},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label) where {CT, T}
+        feid) where {CT, T}
     cacheout .= 13
     return cacheout
 end
 c = DataCache(zeros(Float32, nentries), fillcache!)
-v = c(XYZ, tangents, fe_label)
+v = c(XYZ, tangents, feid)
 @test v == [13, 13, 13]
 end
 
@@ -2344,17 +2344,17 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label) where {CT, N, T}
+        feid) where {CT, N, T}
     cacheout .= 13
     return cacheout
 end
 data = rand(3, 3)
 c = DataCache(data)
-v = c(XYZ, tangents, fe_label)
+v = c(XYZ, tangents, feid)
 @test v == data
 end
 
@@ -2364,17 +2364,17 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label) where {CT, N, T}
+        feid) where {CT, N, T}
     cacheout .= 13
     return cacheout
 end
 data = rand(3, 3)
 c = DataCache(data, fillcache!)
-v = c(XYZ, tangents, fe_label)
+v = c(XYZ, tangents, feid)
 data .= 13
 @test v == data
 end
@@ -2384,17 +2384,17 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label) where {CT, N, T}
+        feid) where {CT, N, T}
     cacheout .= 13
     return cacheout
 end
 data = rand(3, 3)
 c = DataCache(data, fillcache!)
-v = c(XYZ, tangents, fe_label)
+v = c(XYZ, tangents, feid)
 data .= 13
 @test v == data
 end
@@ -2404,19 +2404,19 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label) where {CT, N, T}
-    cacheout .= fe_label
+        feid) where {CT, N, T}
+    cacheout .= feid
     return cacheout
 end
 for t in (Float32, Float64, ComplexF32, ComplexF64)
     data = rand(t, 3, 3)
     c = DataCache(data, fillcache!)
-    v = c(XYZ, tangents, fe_label)
-    data .= fe_label
+    v = c(XYZ, tangents, feid)
+    data .= feid
     @test v == data
 end
 end
@@ -2429,14 +2429,14 @@ using FinEtools
 
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label) where {CT, N, T}
+        feid) where {CT, N, T}
     cacheout .= LinearAlgebra.I(3)
     return cacheout
 end
 c = DataCache(zeros(Float32, 3, 3), fillcache!)
 function f(c)
-    XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
-    data = c(XYZ, tangents, fe_label)
+    XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+    data = c(XYZ, tangents, feid)
 end
 @test f(c) == LinearAlgebra.I(3)
 end
@@ -2448,7 +2448,7 @@ using FinEtools
 
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label, time) where {CT, N, T}
+        feid, time) where {CT, N, T}
     if time > 1.0
         cacheout .= LinearAlgebra.I(3)
     else
@@ -2458,14 +2458,14 @@ function fillcache!(cacheout::Array{CT, N},
 end
 t = Ref(0.0)
 
-c = DataCache(zeros(Float32, 3, 3), (cacheout, XYZ, tangents, fe_label) -> fillcache!(cacheout, XYZ, tangents, fe_label, t[]))
+c = DataCache(zeros(Float32, 3, 3), (cacheout, XYZ, tangents, feid) -> fillcache!(cacheout, XYZ, tangents, feid, t[]))
 function f(c)
-    XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+    XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
     t[] = 0.0
-    data = c(XYZ, tangents, fe_label)
+    data = c(XYZ, tangents, feid)
     @test data == zeros(Float32, 3, 3)
     t[] = 2.1
-    data = c(XYZ, tangents, fe_label)
+    data = c(XYZ, tangents, feid)
 end
 @test f(c) == LinearAlgebra.I(3)
 end
@@ -2480,16 +2480,16 @@ XYZ, tangents, _ = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 
 function fillcache!(cacheout::D,
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label) where {D, T}
-    cacheout = D(fe_label)
+        feid) where {D, T}
+    cacheout = D(feid)
     return cacheout
 end
 for t in (Float32, Float64, ComplexF32, ComplexF64)
     data = t(-42)
      c = DataCache(data, fillcache!)
-    for fe_label in 1:5
-         v = c(XYZ, tangents, fe_label)
-        @test v == t(fe_label)
+    for feid in 1:5
+         v = c(XYZ, tangents, feid)
+        @test v == t(feid)
     end
 end
 end
@@ -2501,7 +2501,7 @@ using FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 using LinearAlgebra
 using Test
 
-function __computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, time = 0.0)
+function __computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, feid::FInt, time = 0.0)
     fill!(normalout, 0.0)
     # We are assuming a surface element here!
     if (size(tangents,1) == 3) && (size(tangents,2) == 2)# surface in three dimensions
