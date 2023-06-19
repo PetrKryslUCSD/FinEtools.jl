@@ -31,7 +31,7 @@ end
 It may use the location `XYZ`, it may use the columns of the Jacobian matrix of
 the element, `tangents`, it may also choose the value given the finite element
 identifier (i.e. serial number), `feid`, and the identifier (i.e. serial
-number) of the quadrature point, `qpid`. All of these values are chosen by the
+number) of the quadrature point, `qpid`. All of these values are supplied by the
 code requesting the value of the cache. It must return the modified argument
 `cacheout`.
 
