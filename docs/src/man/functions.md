@@ -47,6 +47,30 @@ Private = true
 Order = [:function]
 ```
 
+## Surface-normal utilities
+
+```@autodocs
+Modules = [FinEtools, FinEtools.SurfaceNormalModule]
+Private = true
+Order = [:function]
+```
+
+## Force intensity
+
+```@autodocs
+Modules = [FinEtools, FinEtools.ForceIntensityModule]
+Private = true
+Order = [:function]
+```
+
+## Rotation utilities
+
+```@autodocs
+Modules = [FinEtools, FinEtools.RotationUtilModule]
+Private = true
+Order = [:function]
+```
+
 ## Finite element sets
 
 ```@autodocs
@@ -235,39 +259,6 @@ Order = [:function]
 #### H5MESH
 ```@autodocs
 Modules = [FinEtools, FinEtools.MeshExportModule.H5MESH]
-Private = true
-Order = [:function]
-```
-
-
-## Vector-cache utilities
-
-```@autodocs
-Modules = [FinEtools, FinEtools.VectorCacheModule]
-Private = true
-Order = [:function]
-```
-
-## Surface-normal utilities
-
-```@autodocs
-Modules = [FinEtools, FinEtools.SurfaceNormalModule]
-Private = true
-Order = [:function]
-```
-
-## Force intensity
-
-```@autodocs
-Modules = [FinEtools, FinEtools.ForceIntensityModule]
-Private = true
-Order = [:function]
-```
-
-## Rotation utilities
-
-```@autodocs
-Modules = [FinEtools, FinEtools.RotationUtilModule]
 Private = true
 Order = [:function]
 ```

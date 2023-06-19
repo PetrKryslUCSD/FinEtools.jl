@@ -1206,13 +1206,13 @@ function outer_surface_of_solid(fens::FENodeSet, bdry_fes::ET) where {ET<:Abstra
     conns = connasarray(bdry_fes)
     mask = fill(true, count(fens))
     start = 0
-    for j in eachindex(bdry_fes)
-        c = N' * view(fens.xyz, conns[j, :], :)
-        J = view(fens.xyz, conns[j, :], :)' * gradNpar
-        n = updatenormal!(sn, c, J, 0)
+    for i in eachindex(bdry_fes)
+        c = N' * view(fens.xyz, conns[i, :], :)
+        J = view(fens.xyz, conns[i, :], :)' * gradNpar
+        n = updatenormal!(sn, c, J, i, 0)
         n ./= norm(n)
-        if __all_behind(fens.xyz, centroid, vec(c), n, conns[j, :], angtol, mask)
-            start = j
+        if __all_behind(fens.xyz, centroid, vec(c), n, conns[i, :], angtol, mask)
+            start = i
             break
         end
     end

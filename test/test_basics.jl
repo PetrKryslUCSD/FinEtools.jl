@@ -1183,15 +1183,15 @@ using Test
 
 function test()
     ndimensions = 2
-    tangents, feid = reshape([1.0; 1.0], 2, 1), 0
+    tangents, feid, qpid = reshape([1.0; 1.0], 2, 1), 0, 0
     n = SurfaceNormal(ndimensions::FInt)
-    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, feid::FInt)
+    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, feid::FInt, qpid)
     @test norm(normal - [0.7071067811865475, -0.7071067811865475]) <= 1.0e-5
 
     ndimensions = 3
     tangents, feid = reshape([1.0 0.0; 1.0 0.0; 0.0 1.0], 3, 2), 0
     n = SurfaceNormal(ndimensions::FInt)
-    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, feid::FInt)
+    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, feid::FInt, qpid)
     @test norm(normal - [0.7071067811865475, -0.7071067811865475, 0.0]) <= 1.0e-5
     true
 end
@@ -2307,16 +2307,16 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
 nentries = 3
 function fillcache!(cacheout::Vector{CT},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        feid) where {CT, T}
+        feid, qpid) where {CT, T}
     cacheout .= 13
     return cacheout
 end
 c = DataCache(zeros(nentries), fillcache!)
-v = c(XYZ, tangents, feid)
+v = c(XYZ, tangents, feid, qpid)
 @test v == [13, 13, 13]
 end
 
@@ -2326,16 +2326,16 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
 nentries = 3
 function fillcache!(cacheout::Vector{CT},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        feid) where {CT, T}
+        feid, qpid) where {CT, T}
     cacheout .= 13
     return cacheout
 end
 c = DataCache(zeros(Float32, nentries), fillcache!)
-v = c(XYZ, tangents, feid)
+v = c(XYZ, tangents, feid, qpid)
 @test v == [13, 13, 13]
 end
 
@@ -2344,17 +2344,17 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        feid) where {CT, N, T}
+        feid, qpid) where {CT, N, T}
     cacheout .= 13
     return cacheout
 end
 data = rand(3, 3)
 c = DataCache(data)
-v = c(XYZ, tangents, feid)
+v = c(XYZ, tangents, feid, qpid)
 @test v == data
 end
 
@@ -2364,17 +2364,17 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        feid) where {CT, N, T}
+        feid, qpid) where {CT, N, T}
     cacheout .= 13
     return cacheout
 end
 data = rand(3, 3)
 c = DataCache(data, fillcache!)
-v = c(XYZ, tangents, feid)
+v = c(XYZ, tangents, feid, qpid)
 data .= 13
 @test v == data
 end
@@ -2384,17 +2384,17 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        feid) where {CT, N, T}
+        feid, qpid) where {CT, N, T}
     cacheout .= 13
     return cacheout
 end
 data = rand(3, 3)
 c = DataCache(data, fillcache!)
-v = c(XYZ, tangents, feid)
+v = c(XYZ, tangents, feid, qpid)
 data .= 13
 @test v == data
 end
@@ -2404,18 +2404,18 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        feid) where {CT, N, T}
+        feid, qpid) where {CT, N, T}
     cacheout .= feid
     return cacheout
 end
 for t in (Float32, Float64, ComplexF32, ComplexF64)
     data = rand(t, 3, 3)
     c = DataCache(data, fillcache!)
-    v = c(XYZ, tangents, feid)
+    v = c(XYZ, tangents, feid, qpid)
     data .= feid
     @test v == data
 end
@@ -2429,14 +2429,14 @@ using FinEtools
 
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        feid) where {CT, N, T}
+        feid, qpid) where {CT, N, T}
     cacheout .= LinearAlgebra.I(3)
     return cacheout
 end
 c = DataCache(zeros(Float32, 3, 3), fillcache!)
 function f(c)
-    XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
-    data = c(XYZ, tangents, feid)
+    XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
+    data = c(XYZ, tangents, feid, qpid)
 end
 @test f(c) == LinearAlgebra.I(3)
 end
@@ -2445,27 +2445,26 @@ module testing_cache_9
 using Test
 using LinearAlgebra
 using FinEtools
-
+const timenow = Ref(0.0)
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        feid, time) where {CT, N, T}
-    if time > 1.0
+        feid, qpid) where {CT, N, T}
+    if timenow[] > 1.0
         cacheout .= LinearAlgebra.I(3)
     else
         cacheout .= 0
     end
     return cacheout
 end
-t = Ref(0.0)
 
-c = DataCache(zeros(Float32, 3, 3), (cacheout, XYZ, tangents, feid) -> fillcache!(cacheout, XYZ, tangents, feid, t[]))
+c = DataCache(zeros(Float32, 3, 3), (cacheout, XYZ, tangents, feid, qpid) -> fillcache!(cacheout, XYZ, tangents, feid, 1))
 function f(c)
-    XYZ, tangents, feid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
-    t[] = 0.0
-    data = c(XYZ, tangents, feid)
+    XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
+    timenow[] = 0.0
+    data = c(XYZ, tangents, feid, qpid)
     @test data == zeros(Float32, 3, 3)
-    t[] = 2.1
-    data = c(XYZ, tangents, feid)
+    timenow[] = 2.1
+    data = c(XYZ, tangents, feid, qpid)
 end
 @test f(c) == LinearAlgebra.I(3)
 end
@@ -2480,7 +2479,7 @@ XYZ, tangents, _ = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 
 function fillcache!(cacheout::D,
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        feid) where {D, T}
+        feid, qpid) where {D, T}
     cacheout = D(feid)
     return cacheout
 end
@@ -2488,7 +2487,7 @@ for t in (Float32, Float64, ComplexF32, ComplexF64)
     data = t(-42)
      c = DataCache(data, fillcache!)
     for feid in 1:5
-         v = c(XYZ, tangents, feid)
+         v = c(XYZ, tangents, feid, 1)
         @test v == t(feid)
     end
 end
@@ -2501,7 +2500,7 @@ using FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 using LinearAlgebra
 using Test
 
-function __computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, feid::FInt, time = 0.0)
+function __computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     fill!(normalout, 0.0)
     # We are assuming a surface element here!
     if (size(tangents,1) == 3) && (size(tangents,2) == 2)# surface in three dimensions
@@ -2519,7 +2518,7 @@ end
 function test()
     n = SurfaceNormal(3, __computenormal!)
     XYZ, tangents, l = (reshape([0.0, 0.0, 0.0], 1, 3), [1.0 0.0; 0.0 1.0; 0.0 0.0], 1)
-    updatenormal!(n, XYZ, tangents, l)
+    updatenormal!(n, XYZ, tangents, l, 1)
     true
 
 end
