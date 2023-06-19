@@ -39,6 +39,14 @@ Private = true
 Order = [:function]
 ```
 
+## Data cache
+
+```@autodocs
+Modules = [FinEtools, FinEtools.DataCacheModule]
+Private = true
+Order = [:function]
+```
+
 ## Finite element sets
 
 ```@autodocs
