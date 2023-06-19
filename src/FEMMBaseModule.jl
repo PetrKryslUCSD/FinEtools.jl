@@ -1178,18 +1178,21 @@ end
 Compute the discrete vector implied by the linear form "dot".
 
 ```math
-\\int_{V}  w \\cdot f \\; \\mathrm{d} V
+\\int_{V}  \\mathbf{w} \\cdot \\mathbf{f} \\; \\mathrm{d} V
 ```
-Here ``w`` is the test function, ``f`` is a given function (data).
-Both are assumed to be vectors. ``f`` is represented with `DataCache`.
+
+Here ``\\mathbf{w}`` is the test function, ``\\mathbf{f}`` is a given function
+(data). Both are assumed to be vectors,  even if they are of length 1,
+representing scalars. The data ``\\mathbf{f}`` is represented with [`DataCache`]
+(@ref).
 
 # Arguments
 - `self` = finite element machine;
-- `assembler` = assembler of the global object;
+- `assembler` = assembler of the global vector;
 - `geom` = geometry field;
 - `P` = nodal field to define the degree of freedom numbers;
 - `f`= data cache, which is called to evaluate the location, the Jacobian
-  matrix, and the finite element label to come up with the value to be
+  matrix, and the finite element identifier to come up with the value to be
   integrated;
 - `m`= manifold dimension, 0= vertex (point), 1= curve, 2= surface, 3= volume.
   For body loads `m` is set to 3, for tractions on the surface it is set to 2,
@@ -1215,7 +1218,7 @@ function linform_dot(
         for j in 1:npts
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i], Ns[j], m)
-            force = f(loc, J, fes.label[i]) # retrieve the applied load
+            force = f(loc, J, i) # retrieve the applied load
             Factor = (Jac * w[j])
             NkxF = zero(T)
             rx = 1
@@ -1306,7 +1309,7 @@ Here ``\\mathbf{w}`` is the test function, ``\\mathbf{u}`` is the trial
 function, ``\\mathbf{c}`` is a square matrix of coefficients; ``\\mathbf
 {c}`` is computed by `cf`, which is a given function (data). Both trial and
 test functions are assumed to be vectors(even if of length 1). `cf` is
-represented with `DataCache`, and needs to return a square matrix, with
+represented with [`DataCache`](@ref), and needs to return a square matrix, with
 dimension equal to the number of degrees of freedom per node in the `u` field.
 
 The integral domain ``\\Omega`` can be the volume of the domain ``V`` (i.e. a
@@ -1342,7 +1345,7 @@ function bilform_dot(
         for j in 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i], Ns[j], m)
-            c = cf(loc, J, fes.label[i])
+            c = cf(loc, J, i)
             for k in 1:nne, m in 1:nne
                 factor = (Ns[j][k] * Ns[j][m] * Jac * w[j])
                 for p in 1:ndn,  q in 1:ndn
@@ -1424,9 +1427,9 @@ Here ``\\nabla w`` is the gradient of the scalar test function, ``\\nabla u`` is
 the gradient of the scalar trial function, ``c`` is a square symmetric matrix
 of coefficients or a scalar; ``c`` is computed by `cf`, which is a given
 function (data). Both test and trial functions are assumed to be from the same
-approximation space. `cf` is represented with `DataCache`, and needs to return
-a symmetric square matrix (to represent general anisotropic diffusion) or a
-scalar (to represent isotropic diffusion).
+approximation space. `cf` is represented with [`DataCache`](@ref), and needs to
+return a symmetric square matrix (to represent general anisotropic diffusion)
+or a scalar (to represent isotropic diffusion).
 
 The coefficient matrix ``c`` can be given in the so-called local material
 coordinates: coordinates that are attached to a material point and are
@@ -1480,7 +1483,7 @@ function _bilform_diffusion_general(
             updatecsmat!(self.mcsys, loc, J, fes.label[i]);
             mulCAtB!(RmTJ,  csmat(self.mcsys),  J); # local Jacobian matrix
             gradN!(fes, gradN, gradNparams[j], RmTJ);
-            c = cf(loc, J, fes.label[i])
+            c = cf(loc, J, i)
             add_gkgt_ut_only!(elmat, gradN, (Jac*w[j]), c, c_gradNT)
         end # Loop over quadrature points
         complete_lt!(elmat)
@@ -1509,7 +1512,7 @@ function _bilform_diffusion_iso(
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             gradN!(fes, gradN, gradNparams[j], J);
-            c = cf(loc, J, fes.label[i])
+            c = cf(loc, J, i)
             add_mggt_ut_only!(elmat, gradN, (c*Jac*w[j]))
         end # Loop over quadrature points
         complete_lt!(elmat)
@@ -1549,7 +1552,8 @@ Here ``w`` is the scalar test function, ``\\mathbf{u}`` is the convective
 velocity, ``q`` is the scalar trial function, ``\\rho`` is the mass density;
 ``\\rho`` is computed by `rhof`, which is a given function(data). Both test and
 trial functions are assumed to be from the same approximation space. `rhof` is
-represented with `DataCache`, and needs to return a  scalar mass density.
+represented with [`DataCache`](@ref), and needs to return a  scalar mass
+density.
 
 The integral is with respect to the volume of the domain ``V`` (i.e. a three
 dimensional integral).
@@ -1587,7 +1591,7 @@ function bilform_convection(
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             gradN!(fes, gradN, gradNparams[j], J);
-            rho = rhof(loc, J, fes.label[i])
+            rho = rhof(loc, J, i)
             for p in 1:nne
                 for r in 1:nne
                     accum = zero(eltype(elmat))
@@ -1634,12 +1638,12 @@ Compute the sparse matrix implied by the bilinear form of the "div grad" type.
 \\int_{V}  \\mu \\nabla \\mathbf{w}:  \\nabla\\mathbf{u}   \\; \\mathrm{d} V
 ```
 
-Here `` \\mathbf{w}`` is the vector test function, ``\\mathbf{u}`` is
-the velocity, ``\\mu`` is the dynamic viscosity (or kinematic viscosity,
-depending on the formulation); ``\\mu`` is computed by `viscf`, which is a
-given function(data). Both test and trial functions are assumed to be from the
-same approximation space. `viscf` is represented with `DataCache`, and needs to
-return a  scalar viscosity.
+Here `` \\mathbf{w}`` is the vector test function, ``\\mathbf{u}`` is the
+velocity, ``\\mu`` is the dynamic viscosity (or kinematic viscosity, depending
+on the formulation); ``\\mu`` is computed by `viscf`, which is a given function
+(data). Both test and trial functions are assumed to be from the same
+approximation space. `viscf` is represented with [`DataCache`](@ref), and needs
+to return a  scalar viscosity.
 
 The integral is with respect to the volume of the domain ``V`` (i.e. a three
 dimensional integral).
@@ -1672,7 +1676,7 @@ function bilform_div_grad(
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             gradN!(fes, gradN, gradNparams[j], J);
-            mu = viscf(loc, J, fes.label[i])
+            mu = viscf(loc, J, i)
             factor = mu * (Jac*w[j])
             for a in 1:nne
                 for b in 1:nne
@@ -1740,8 +1744,8 @@ Here `` \\mathbf{w}`` is the vector test function, ``\\mathbf{u}`` is the
 displacement (velocity), ``C`` is the elasticity (viscosity) matrix; ``C`` is
 computed by `cf`, which is a given function(data). Both test and trial
 functions are assumed to be from the same approximation space. `cf` is
-represented with `DataCache`, and needs to return a matrix of the appropriate
-size.
+represented with [`DataCache`](@ref), and needs to return a matrix of the
+appropriate size.
 
 The integral is with respect to the volume of the domain ``V`` (i.e. a three
 dimensional integral).
@@ -1779,7 +1783,7 @@ function bilform_lin_elastic(
             At_mul_B!(RmTJ, csmat(self.mcsys), J); # local Jacobian matrix
             gradN!(fes, gradN, gradNparams[j], RmTJ);
             blmat!(mr, B, Ns[j], gradN, loc, csmat(self.mcsys));
-            C = cf(loc, J, fes.label[i])
+            C = cf(loc, J, i)
             add_btdb_ut_only!(elmat, B, Jac*w[j], C, CB)
         end # Loop over quadrature points
         complete_lt!(elmat)

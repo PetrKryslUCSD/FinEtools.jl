@@ -23,13 +23,13 @@ where volume depends on to which manifold the force is applied:
 
 Signature of the function to compute the value of the force  at any given point
 `XYZ`, using the columns of the Jacobian matrix of the element, `tangents`, the
-finite element label, `fe_label`:
+finite element identifier, `feid`:
 
 ```
-getforce!(forceout::Vector{CT}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label::IT) where {CT, T, IT}
+getforce!(forceout::Vector{CT}, XYZ::Matrix{T}, tangents::Matrix{T}, feid::IT) where {CT, T, IT}
 ```
 
-A `DataCache` is used to store the data.
+A [`DataCache`](@ref) is used to store the data.
 """
 struct ForceIntensity{DC<:DataCache}
     _cache::DC  # data cache  where the current value of the force can be retrieved
@@ -46,20 +46,22 @@ Construct force intensity when the function to compute the intensity
 vector is given.
 
 # Arguments
-- `T` = the type of the elements of the force vector, typically floating-point or complex floating-point numbers,
-- `ndofn` = number of elements of the force vector (the length of the force vector),
+- `T` = the type of the elements of the force vector, typically floating-point
+  or complex floating-point numbers,
+- `ndofn` = number of elements of the force vector (the length of the force
+  vector),
 - `computeforce!` = callback function. The function `computeforce!` needs to
   have a signature of
     ```
     function computeforce!(forceout::Vector{CT}, XYZ::Matrix{T},
-        tangents::Matrix{T}, fe_label::IT) ) where {CT, T<:Number, IT<:Integer}
+        tangents::Matrix{T}, feid::IT) ) where {CT, T<:Number, IT<:Integer}
         # Calculate the force  and copy it into the buffer....
         return forceout
     end
     ```
     and it needs to  fill in the buffer `forceout` with the current force at the
     location `XYZ`, using, if appropriate, the information supplied in the Jacobian
-    matrix `tangents`, the label of the finite element, `fe_label`.
+    matrix `tangents`, the identifier of the finite element, `feid`.
 """
 function ForceIntensity(
     ::Type{CT},
@@ -92,14 +94,14 @@ end
 
 """
     updateforce!(self::ForceIntensity, XYZ::Matrix{T},
-        tangents::Matrix{T}, fe_label::IT) ) where {T<:Number, IT<:Integer}
+        tangents::Matrix{T}, feid::IT) ) where {T<:Number, IT<:Integer}
 
 Update the force intensity vector.
 
 Returns a vector (stored in the cache `self.cache`).
 """
-function updateforce!(self::ForceIntensity, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label::IT) where {T<:Number, IT<:Integer}
-    return self._cache(XYZ, tangents, fe_label)
+function updateforce!(self::ForceIntensity, XYZ::Matrix{T}, tangents::Matrix{T}, feid::IT) where {T<:Number, IT<:Integer}
+    return self._cache(XYZ, tangents, feid)
 end
 
 end
