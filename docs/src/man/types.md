@@ -23,6 +23,22 @@ Private = true
 Order = [:type]
 ```
 
+## Surface-normal utilities
+
+```@autodocs
+Modules = [FinEtools, FinEtools.SurfaceNormalModule]
+Private = true
+Order = [:type]
+```
+
+## Force intensity
+
+```@autodocs
+Modules = [FinEtools, FinEtools.ForceIntensityModule]
+Private = true
+Order = [:type]
+```
+
 ## Finite element sets
 
 ```@autodocs
@@ -86,30 +102,6 @@ Modules = [FinEtools, FinEtools.MeshImportModule, FinEtools.MeshExportModule]
 Private = true
 Order = [:type]
 Depth = 3
-```
-
-## Vector-cache utilities
-
-```@autodocs
-Modules = [FinEtools, FinEtools.VectorCacheModule]
-Private = true
-Order = [:type]
-```
-
-## Surface-normal utilities
-
-```@autodocs
-Modules = [FinEtools, FinEtools.SurfaceNormalModule]
-Private = true
-Order = [:type]
-```
-
-## Force intensity
-
-```@autodocs
-Modules = [FinEtools, FinEtools.ForceIntensityModule]
-Private = true
-Order = [:type]
 ```
 
 ## FEM machines
