@@ -186,7 +186,7 @@ function integratefieldfunction(
         cacheout = fh(XYZ, val)
         return cacheout
     end
-    return linform_integrate(self, geom, DataCache(initial, fillcache!), initial, m)
+    return ev_integrate(self, geom, DataCache(initial, fillcache!), initial, m)
 end
 
 """
@@ -235,7 +235,7 @@ function integratefieldfunction(
         cacheout = fh(XYZ, a)
         return cacheout
     end
-    return linform_integrate(self, geom, DataCache(initial, fillcache!), initial, m)
+    return ev_integrate(self, geom, DataCache(initial, fillcache!), initial, m)
 end
 
 """
@@ -292,7 +292,7 @@ function integratefunction(
         cacheout = fh(XYZ)
         return cacheout
     end
-    return linform_integrate(self, geom, DataCache(initial, fillcache!), initial, m)
+    return ev_integrate(self, geom, DataCache(initial, fillcache!), initial, m)
 end
 
 """
@@ -1127,7 +1127,7 @@ function _buff_e(self, geom, P, assembler)
 end
 
 """
-    linform_integrate(
+    ev_integrate(
             self::FEMM,
             geom::NodalField{FT},
             f::DC,
@@ -1155,7 +1155,7 @@ represented with [`DataCache`](@ref).
   For body loads `m` is set to 3, for tractions on the surface it is set to 2,
   and so on.
 """
-function linform_integrate(
+function ev_integrate(
     self::FEMM,
     geom::NodalField{FT},
     f::DC,
