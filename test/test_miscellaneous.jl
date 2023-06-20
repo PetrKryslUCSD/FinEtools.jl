@@ -763,8 +763,8 @@ function test()
     @test norm(u.dofnums) == 0
     setebc!(u, [1, 3])
     numberdofs!(u)
-    @test norm(u.dofnums[1, :]) == 0
-    @test norm(u.dofnums[3, :]) == 0
+    @test norm(u.is_fixed[1, :]) != 0
+    @test norm(u.is_fixed[3, :]) != 0
     @test norm(u.dofnums[2, :]) > 0.0
 end
 end
@@ -797,8 +797,8 @@ function test()
     @test norm(u.dofnums) == 0
     setebc!(u, [1, 3])
     numberdofs!(u)
-    @test norm(u.dofnums[1, :]) == 0
-    @test norm(u.dofnums[3, :]) == 0
+    @test norm(u.is_fixed[1, :]) != 0
+    @test norm(u.is_fixed[3, :]) != 0
     @test norm(u.dofnums[2, :]) > 0.0
 end
 end
@@ -853,7 +853,7 @@ function test()
     csmatout = zeros(FFlt, 3, 1)
     gradNparams = FESetModule.bfundpar(fes, vec([0.0]))
     J = transpose(fens.xyz) * gradNparams
-    CSysModule.gen_iso_csmat!(csmatout, mean(fens.xyz, dims = 1), J, 0)
+    CSysModule.gen_iso_csmat!(csmatout, mean(fens.xyz, dims = 1), J, 0, 0)
     # # println("$(csmatout)")
     # # println("$(norm(vec(csmatout)))")
     @test norm(csmatout - [0.894427; 0.0; 0.447214]) < 1.0e-5
@@ -887,7 +887,7 @@ function test()
     end
     # # println("J = $(J)")
     @test norm(J - [1.0 0.0; 0.0 2.0; 0.25 -0.25]) < 1.0e-5
-    CSysModule.gen_iso_csmat!(csmatout, mean(fens.xyz, dims = 1), J, 0)
+    CSysModule.gen_iso_csmat!(csmatout, mean(fens.xyz, dims = 1), J, 0, 0)
     # # println("csmatout = $(csmatout)")
     @test norm(csmatout - [0.970143 0.0291979; 0.0 0.992727; 0.242536 -0.116791]) < 1.0e-5
     try
@@ -1954,7 +1954,7 @@ using Test
 import LinearAlgebra: norm, cholesky
 function test()
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, 7, 7)
     m = [
         0.24406 0.599773 0.833404 0.0420141
         0.786024 0.00206713 0.995379 0.780298
@@ -1995,7 +1995,7 @@ using Test
 import LinearAlgebra: norm, cholesky
 function test()
     a = SysmatAssemblerSparseSymm(0.0)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, 7, 7)
     m = [
         0.24406 0.599773 0.833404 0.0420141
         0.786024 0.00206713 0.995379 0.780298
@@ -2036,9 +2036,9 @@ using Test
 function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
-    fe_label = 0
+    feid = 0; qpid = 1
     c = DataCache([10.0])
-    updateretrieve!(c, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    c(XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     @test c._cache == [10.0]
 end
 end
@@ -2051,12 +2051,12 @@ using Test
 function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
-    fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
+    feid = 0; qpid = 1
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
         v .= [10.0]
     end
     c = DataCache(FFlt[1], setvector!)
-    updateretrieve!(c, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    c(XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     @test c._cache == [10.0]
 end
 end
@@ -2069,21 +2069,24 @@ using Test
 function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
-    fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
-        if time < 5.0
+    feid = 0; qpid = 1
+    t = Ref(0.0)
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
+        if t[] < 5.0
             v .= [10.0]
         else
             v .= [0.0]
         end
         return v
     end
-    c = DataCache(FFlt[1], setvector!)
-    setcachetime!(c, 0.0)
-    updateretrieve!(c, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+
+
+
+    c = DataCache(FFlt[1], (cacheout, XYZ, tangents, feid, qpid) -> setvector!(cacheout, XYZ, tangents, feid, qpid))
+    c(XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     @test c._cache == [10.0]
-    setcachetime!(c, 6.0)
-    updateretrieve!(c, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    t[] = 6.0
+    c(XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     @test c._cache == [0.0]
 end
 end
@@ -2096,13 +2099,13 @@ using Test
 function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
-    fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time = 0.0) = begin
+    feid = 0; qpid = 1
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
         v .= [10.0]
         return v
     end
     c = DataCache(FFlt[1], setvector!)
-    updateretrieve!(c, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    c(XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     @test c._cache == [10.0]
 end
 end
@@ -2115,10 +2118,10 @@ using Test
 function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
-    fe_label = 0
+    feid = 0; qpid = 1
     vector = [10.0]
     fi = ForceIntensity(vector)
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     @test v == [10.0]
 end
 end
@@ -2131,13 +2134,13 @@ using Test
 function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
-    fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
+    feid = 0; qpid = 1
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
         v .= [10.0]
     end
     vector = [10.0]
     fi = ForceIntensity(FFlt, length(vector), setvector!)
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     @test v == [10.0]
 end
 end
@@ -2150,9 +2153,10 @@ using Test
 function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
-    fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
-        if time < 5.0
+    feid = 0; qpid = 1
+    t = Ref(0.0)
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
+        if t[] < 5.0
             v .= [10.0]
         else
             v .= [0.0]
@@ -2160,11 +2164,13 @@ function test()
         return v
     end
     vector = [10.0]
-    fi = ForceIntensity(FFlt, length(vector), setvector!, 0.0)
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    t[] = 0.0
+    fi = ForceIntensity(FFlt, length(vector), (out, XYZ, tangents, feid, qpid) -> setvector!(out, XYZ, tangents, feid, qpid))
+    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     @test v == [10.0]
-    setcachetime!(fi, 6.0)
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    t[] = 6.0
+    fi = ForceIntensity(FFlt, length(vector), (out, XYZ, tangents, feid, q) -> setvector!(out, XYZ, tangents, feid, qpid))
+    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     @test v == [0.0]
 end
 end
@@ -2177,17 +2183,16 @@ using Test
 function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
-    fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time = 0.0) = begin
+    feid = 0; qpid = 1
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
         v .= [10.0]
         return v
     end
     vector = [10.0]
     fi = ForceIntensity(FFlt, length(vector), setvector!)
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     @test v == [10.0]
-    setcachetime!(fi, 6.0)
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     @test v == [10.0]
 end
 end
@@ -2200,10 +2205,10 @@ using Test
 function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
-    fe_label = 0
+    feid = 0; qpid = 1
     vector = [10.0, -3.0]
     fi = SurfaceNormal(vector)
-    v = updatenormal!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    v = updatenormal!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     @test v == [10.0, -3.0]
 end
 end
@@ -2216,12 +2221,12 @@ using Test
 function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
-    fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
+    feid = 0; qpid = 1
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
         v .= [10.0, -3.13]
     end
     fi = SurfaceNormal(2, setvector!)
-    v = updatenormal!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    v = updatenormal!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     @test v == [10.0, -3.13]
 end
 end
@@ -2234,9 +2239,9 @@ using Test
 function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([-1.0, 1.0], 2, 1)
-    fe_label = 0
+    feid = 0; qpid = 1
     fi = SurfaceNormal(2)
-    v = updatenormal!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    v = updatenormal!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     @test v == [0.7071067811865475, 0.7071067811865475]
 end
 end
@@ -2249,12 +2254,12 @@ using Test
 function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
-    fe_label = 0
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt; time::FFlt = 0.0) = begin
+    feid = 0; qpid = 1
+    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
         v .= [10.0, -3.13]
     end
     fi = SurfaceNormal(2, zero(FFlt), setvector!)
-    v = updatenormal!(fi, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    v = updatenormal!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
     @test v == [10.0, -3.13]
 end
 end
@@ -2774,15 +2779,15 @@ using Test
 
 function test()
     ndimensions = 2
-    tangents, fe_label = reshape([1.0; 1.0], 2, 1), 0
+    tangents, feid, qpid = reshape([1.0; 1.0], 2, 1), 0, 0
     n = SurfaceNormal(ndimensions::FInt)
-    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, fe_label::FInt)
+    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, feid::FInt, qpid)
     @test norm(normal - [0.7071067811865475, -0.7071067811865475]) <= 1.0e-5
 
     ndimensions = 3
-    tangents, fe_label = reshape([1.0 0.0; 1.0 0.0; 0.0 1.0], 3, 2), 0
+    tangents, feid = reshape([1.0 0.0; 1.0 0.0; 0.0 1.0], 3, 2), 0
     n = SurfaceNormal(ndimensions::FInt)
-    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, fe_label::FInt)
+    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, feid::FInt, qpid)
     @test norm(normal - [0.7071067811865475, -0.7071067811865475, 0.0]) <= 1.0e-5
     true
 end

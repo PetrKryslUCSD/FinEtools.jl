@@ -9,6 +9,7 @@ __precompile__(true)
 
 using SparseArrays: sparse, spzeros, SparseMatrixCSC
 using LinearAlgebra: diag
+import Base: eltype
 
 """
     AbstractSysmatAssembler
@@ -16,6 +17,22 @@ using LinearAlgebra: diag
 Abstract type of system-matrix assembler.
 """
 abstract type AbstractSysmatAssembler end
+
+eltype(a::A) where {A<:AbstractSysmatAssembler} = eltype(a.matbuffer)
+
+function _resize(self, chunk)
+    new_buffer_length = self.buffer_length + chunk
+    resize!(self.rowbuffer, new_buffer_length)
+    resize!(self.colbuffer, new_buffer_length)
+    resize!(self.matbuffer, new_buffer_length)
+    if self.force_init
+        self.rowbuffer[self.buffer_length+1:end] .= 1
+        self.colbuffer[self.buffer_length+1:end] .= 1
+        self.matbuffer[self.buffer_length+1:end] .= 0
+    end
+    self.buffer_length = new_buffer_length
+    return self
+end
 
 """
     SysmatAssemblerSparse{IT, MBT, IBT} <: AbstractSysmatAssembler
@@ -27,14 +44,14 @@ Type for assembling a sparse global matrix from elementwise matrices.
     All fields of the datatype are private. The type is manipulated by the
     functions `startassembly!`, `assemble!`, and `makematrix!`.
 """
-mutable struct SysmatAssemblerSparse{IT, MBT, IBT} <: AbstractSysmatAssembler
+mutable struct SysmatAssemblerSparse{IT, T, MBT<:AbstractVector{T}, IJT<:AbstractVector{IT}} <: AbstractSysmatAssembler
     buffer_length::IT
     matbuffer::MBT
-    rowbuffer::IBT
-    colbuffer::IBT
+    rowbuffer::IJT
+    colbuffer::IJT
     buffer_pointer::IT
-    ndofs_row::IT
-    ndofs_col::IT
+    row_nalldofs::IT
+    col_nalldofs::IT
     nomatrixresult::Bool
     force_init::Bool
 end
@@ -42,20 +59,38 @@ end
 """
     SysmatAssemblerSparse(z = zero(T), nomatrixresult = false) where {T}
 
-Construct blank system matrix assembler.
+Construct a sparse system matrix assembler.
 
 The matrix entries are of type `T`. The assembler either produces a sparse
 matrix (when `nomatrixresult = true`), or does not (when `nomatrixresult =
 false`). When the assembler does not produce the sparse matrix when
 `makematrix!` is called, it still can be constructed from the buffers stored in
-the assembler.
+the assembler, until they are cleared when the assembler is destroyed.
 
 # Example
 
 This is how a sparse matrix is assembled from two rectangular dense matrices.
 ```
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, 7, 7)
+    m = [0.24406   0.599773    0.833404  0.0420141
+        0.786024  0.00206713  0.995379  0.780298
+        0.845816  0.198459    0.355149  0.224996]
+    assemble!(a, m, [1 7 5], [5 2 1 4])
+    m = [0.146618  0.53471   0.614342    0.737833
+         0.479719  0.41354   0.00760941  0.836455
+         0.254868  0.476189  0.460794    0.00919633
+         0.159064  0.261821  0.317078    0.77646
+         0.643538  0.429817  0.59788     0.958909]
+    assemble!(a, m, [2 3 1 7 5], [6 7 3 4])
+    A = makematrix!(a)
+```
+Here `A` is a sparse matrix of the size 7x7.
+
+When the `nomatrixresult` is set as true, no matrix is produced.
+```
+    a = SysmatAssemblerSparse(0.0, true)
+    startassembly!(a, 5*5*3, 7, 7)
     m = [0.24406   0.599773    0.833404  0.0420141
         0.786024  0.00206713  0.995379  0.780298
         0.845816  0.198459    0.355149  0.224996]
@@ -69,23 +104,7 @@ This is how a sparse matrix is assembled from two rectangular dense matrices.
     A = makematrix!(a)
 ```
 
-When the `nomatrixresult` is set as true, no matrix is produced.
-```
-    a = SysmatAssemblerSparse(0.0, true)
-    startassembly!(a, 5, 5, 3, 7, 7)
-    m = [0.24406   0.599773    0.833404  0.0420141
-        0.786024  0.00206713  0.995379  0.780298
-        0.845816  0.198459    0.355149  0.224996]
-    assemble!(a, m, [1 7 5], [5 2 1 4])
-    m = [0.146618  0.53471   0.614342    0.737833
-         0.479719  0.41354   0.00760941  0.836455
-         0.254868  0.476189  0.460794    0.00919633
-         0.159064  0.261821  0.317078    0.77646
-         0.643538  0.429817  0.59788     0.958909]
-    assemble!(a, m, [2 3 1 7 5], [6 7 3 4])
-    A = makematrix!(a)
-```
-Here `A` is a sparse zero matrix. To construct the correct matrix is still
+Here `A` is a named tuple of four sparse zero matrices. To construct the correct matrix is still
 possible, for instance like this:
 ```
     a.nomatrixresult = false
@@ -104,24 +123,23 @@ function SysmatAssemblerSparse()
 end
 
 """
-    startassembly!(
-        self::SysmatAssemblerSparse,
-        elem_mat_nrows,
-        elem_mat_ncols,
-        elem_mat_nmatrices,
-        ndofs_row,
-        ndofs_col,
-    )
+    startassembly!(self::SysmatAssemblerSparse{T},
+        expected_ntriples::IT,
+        row_nalldofs::IT,
+        col_nalldofs::IT;
+        force_init = false
+        ) where {T, IT<:Integer}
 
 Start the assembly of a global matrix.
 
 The method makes buffers for matrix assembly. It must be called before
 the first call to the method `assemble!`.
-- `elem_mat_nrows`= number of rows in typical element matrix,
-- `elem_mat_ncols`= number of columns in a typical element matrix,
-- `elem_mat_nmatrices`= number of element matrices,
-- `ndofs_row`= Total number of equations in the row direction,
-- `ndofs_col`= Total number of equations in the column direction.
+
+# Arguments
+- `expected_ntriples`= expected number of coordinate triples, i.e. the number of
+  terms in the `I`, `J`, `V` vectors;
+- `row_nalldofs`= The total number of rows as a tuple;
+- `col_nalldofs`= The total number of columns as a tuple.
 
 If the `buffer_pointer` field of the assembler is 0, which is the case after
 that assembler was created, the buffers are resized appropriately given the
@@ -130,7 +148,6 @@ dimensions on input. Otherwise, the buffers are left completely untouched. The
 
 # Returns
 - `self`: the modified assembler.
-
 
 !!! note
 
@@ -144,33 +161,30 @@ dimensions on input. Otherwise, the buffers are left completely untouched. The
     then initially intended. However, this operation will not necessarily
     be efficient and fast.
 """
-function startassembly!(
-    self::SysmatAssemblerSparse,
-    elem_mat_nrows,
-    elem_mat_ncols,
-    elem_mat_nmatrices,
-    ndofs_row,
-    ndofs_col;
+function startassembly!(self::SysmatAssemblerSparse{T},
+    expected_ntriples::IT,
+    row_nalldofs::IT,
+    col_nalldofs::IT;
     force_init = false
-)
-    # Only resize the buffers if the pointer is less than 1
+    ) where {T, IT<:Integer}
+    # Only resize the buffers if the pointer is less than 1; otherwise the
+    # buffers are already initialized and in use.
     if self.buffer_pointer < 1
-        self.buffer_length = elem_mat_nmatrices * elem_mat_nrows * elem_mat_ncols
+        self.buffer_length = expected_ntriples
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
         self.buffer_pointer = 1
-        self.ndofs_row = ndofs_row
-        self.ndofs_col = ndofs_col
+        self.row_nalldofs = row_nalldofs
+        self.col_nalldofs = col_nalldofs
     end
     # Leave the buffers uninitialized, unless the user requests otherwise
     self.force_init = force_init
     if self.force_init
         self.rowbuffer .= 1
         self.colbuffer .= 1
-        self.matbuffer .= 0
+        self.matbuffer .= zero(T)
     end
-
     return self
 end
 
@@ -186,10 +200,10 @@ Assemble a rectangular matrix.
 """
 function assemble!(
     self::SysmatAssemblerSparse,
-    mat::MT,
-    dofnums_row::IT,
-    dofnums_col::IT,
-) where {MT, IT}
+    mat::MBT,
+    dofnums_row::CIT,
+    dofnums_col::CIT,
+) where {MBT, CIT}
     # Assembly of a rectangular matrix.
     # The method assembles a rectangular matrix using the two vectors of
     # equation numbers for the rows and columns.
@@ -197,28 +211,21 @@ function assemble!(
     ncolumns = length(dofnums_col)
     p = self.buffer_pointer
     if p + ncolumns * nrows >= self.buffer_length
-        new_buffer_length = self.buffer_length + ncolumns * nrows * 1000
-        resize!(self.rowbuffer, new_buffer_length)
-        resize!(self.colbuffer, new_buffer_length)
-        resize!(self.matbuffer, new_buffer_length)
-        if self.force_init
-            self.rowbuffer[self.buffer_length+1:end] .= 1
-            self.colbuffer[self.buffer_length+1:end] .= 1
-            self.matbuffer[self.buffer_length+1:end] .= 0
-        end
-        self.buffer_length = new_buffer_length
+        self = _resize(self, ncolumns * nrows * 1000)
     end
     @assert size(mat) == (nrows, ncolumns)
     @inbounds for j in 1:ncolumns
-        if 0 < dofnums_col[j] <= self.ndofs_col
-            for i in 1:nrows
-                if 0 < dofnums_row[i] <= self.ndofs_row
-                    self.matbuffer[p] = mat[i, j] # serialized matrix
-                    self.rowbuffer[p] = dofnums_row[i]
-                    self.colbuffer[p] = dofnums_col[j]
-                    p = p + 1
-                end
-            end
+        dj = dofnums_col[j]
+        dj < 1 && error("Column degree of freedom < 1")
+        dj > self.col_nalldofs && error("Column degree of freedom > size")
+        for i in 1:nrows
+            di = dofnums_row[i]
+            di < 1 && error("Row degree of freedom < 1")
+            di > self.row_nalldofs && error("Row degree of freedom > size")
+            self.matbuffer[p] = mat[i, j] # serialized matrix
+            self.rowbuffer[p] = dofnums_row[i]
+            self.colbuffer[p] = dofnums_col[j]
+            p = p + 1
         end
     end
     self.buffer_pointer = p
@@ -230,10 +237,15 @@ end
 
 Make a sparse matrix.
 
+A named tuple of the four matrix blocks is returned, as described in the
+documentation for the constructor.
+
 !!! note
 
-    If `nomatrixresult` is set to true, dummy (zero) sparse matrix is returned. The entire result of the assembly is preserved in the assembler buffers.
-    The ends of the buffers are filled with illegal (ignorable) values.
+    If `nomatrixresult` is set to true, dummy (zero) sparse matrices are
+    returned. The entire result of the assembly is preserved in the assembler
+    buffers. The ends of the buffers are filled with illegal
+    (ignorable) values.
 
 !!! note
 
@@ -249,34 +261,24 @@ function makematrix!(self::SysmatAssemblerSparse)
     if self.nomatrixresult
         # Dummy (zero) sparse matrix is returned. The entire result of the
         # assembly is preserved in the assembler buffers. The ends of the
-        # buffers are filled with illegal (ignorable) values.
-        self.rowbuffer[self.buffer_pointer:end] .= 0
-        self.colbuffer[self.buffer_pointer:end] .= 0
+        # buffers are filled with legal (ignorable) values.
+        self.rowbuffer[self.buffer_pointer:end] .= 1
+        self.colbuffer[self.buffer_pointer:end] .= 1
         self.matbuffer[self.buffer_pointer:end] .= 0.0
-        return spzeros(self.ndofs_row, self.ndofs_col)
+        return spzeros(self.row_nalldofs, self.col_nalldofs)
     end
-    # Compact the buffers by deleting ignorable rows and columns.
-    p = 1
-    for j in 1:self.buffer_pointer-1
-        if self.rowbuffer[j] > 0 && self.colbuffer[j] > 0
-            self.rowbuffer[p] = self.rowbuffer[j]
-            self.colbuffer[p] = self.colbuffer[j]
-            self.matbuffer[p] = self.matbuffer[j]
-            p += 1
-        end
-    end
-    self.buffer_pointer = p
     # The sparse matrix is constructed and returned. The  buffers used for
     # the assembly are cleared.
     S = sparse(
         view(self.rowbuffer, 1:self.buffer_pointer-1),
         view(self.colbuffer, 1:self.buffer_pointer-1),
         view(self.matbuffer, 1:self.buffer_pointer-1),
-        self.ndofs_row,
-        self.ndofs_col,
+        self.row_nalldofs,
+        self.col_nalldofs,
         )
     # Get ready for more assembling
     self.buffer_pointer = 1
+    # Construct the blocks of the matrix
     return S
 end
 
@@ -291,13 +293,14 @@ matrices.
     All fields of the datatype are private. The type is manipulated by the
     functions `startassembly!`, `assemble!`, and `makematrix!`.
 """
-mutable struct SysmatAssemblerSparseSymm{IT, MBT, IBT} <: AbstractSysmatAssembler
+mutable struct SysmatAssemblerSparseSymm{IT, T, MBT<:AbstractVector{T}, IJT<:AbstractVector{IT}} <: AbstractSysmatAssembler
     buffer_length::IT
     matbuffer::MBT
-    rowbuffer::IBT
-    colbuffer::IBT
+    rowbuffer::IJT
+    colbuffer::IJT
     buffer_pointer::IT
-    ndofs::IT
+    row_nalldofs::IT
+    col_nalldofs::IT
     nomatrixresult::Bool
     force_init::Bool
 end
@@ -313,7 +316,7 @@ entries are of type `T`.
 This is how a symmetric sparse matrix is assembled from two square dense matrices.
 ```
     a = SysmatAssemblerSparseSymm(0.0)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, 7, 7)
     m = [0.24406   0.599773    0.833404  0.0420141
         0.786024  0.00206713  0.995379  0.780298
         0.845816  0.198459    0.355149  0.224996]
@@ -330,7 +333,7 @@ This is how a symmetric sparse matrix is assembled from two square dense matrice
 SysmatAssemblerSparse
 """
 function SysmatAssemblerSparseSymm(z::T, nomatrixresult = false) where {T}
-    return SysmatAssemblerSparseSymm(0, T[z], Int[0], Int[0], 0, 0, nomatrixresult, false)
+    return SysmatAssemblerSparseSymm(0, T[z], Int[0], Int[0], 0, 0, 0, nomatrixresult, false)
 end
 
 function SysmatAssemblerSparseSymm()
@@ -338,24 +341,23 @@ function SysmatAssemblerSparseSymm()
 end
 
 """
-    startassembly!(
-        self::SysmatAssemblerSparseSymm,
-        elem_mat_dim,
-        ignore1,
-        elem_mat_nmatrices,
-        ndofs,
-        ignore2,
-    )
+    startassembly!(self::SysmatAssemblerSparseSymm{T},
+        expected_ntriples::IT,
+        row_nalldofs::IT,
+        col_nalldofs::IT;
+        force_init = false
+        ) where {T, IT<:Integer}
 
-Start the assembly of a symmetric square global matrix.
+Start the assembly of a global matrix.
 
 The method makes buffers for matrix assembly. It must be called before
 the first call to the method `assemble!`.
-- `elem_mat_nrows`= number of rows in typical element matrix,
-- `elem_mat_ncols`= number of columns in a typical element matrix,
-- `elem_mat_nmatrices`= number of element matrices,
-- `ndofs_row`= Total number of equations in the row direction,
-- `ndofs_col`= Total number of equations in the column direction.
+
+# Arguments
+- `expected_ntriples`= expected number of coordinate triples, i.e. the number of
+  terms in the `I`, `J`, `V` vectors;
+- `row_nalldofs`= The total number of rows as a tuple;
+- `col_nalldofs`= The total number of columns as a tuple.
 
 If the `buffer_pointer` field of the assembler is 0, which is the case after
 that assembler was created, the buffers are resized appropriately given the
@@ -377,23 +379,23 @@ dimensions on input. Otherwise, the buffers are left completely untouched. The
     After the assembly, only the `(self.buffer_pointer - 1)` entries
     are meaningful numbers. Beware!
 """
-function startassembly!(
-    self::SysmatAssemblerSparseSymm,
-    elem_mat_dim,
-    ignore1,
-    elem_mat_nmatrices,
-    ndofs,
-    ignore2;
+function startassembly!(self::SysmatAssemblerSparseSymm{T},
+    expected_ntriples::IT,
+    row_nalldofs::IT,
+    col_nalldofs::IT;
     force_init = false
-)
-    # Only resize the buffers if the pointer is less than 1
+    ) where {T, IT<:Integer}
+    # Only resize the buffers if the pointer is less than 1; otherwise the
+    # buffers are already initialized and in use.
     if self.buffer_pointer < 1
-        self.buffer_length = elem_mat_nmatrices * elem_mat_dim^2
+        self.buffer_length = expected_ntriples
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
         self.buffer_pointer = 1
-        self.ndofs = ndofs
+        row_nalldofs == col_nalldofs || error("Row and column info do not agree")
+        self.row_nalldofs = row_nalldofs
+        self.col_nalldofs = col_nalldofs
     end
     # Leave the buffers uninitialized, unless the user requests otherwise
     if force_init
@@ -404,6 +406,7 @@ function startassembly!(
     end
     return self
 end
+
 
 """
     assemble!(
@@ -420,39 +423,33 @@ number input is ignored (the row and column numbers are assumed to be the same).
 """
 function assemble!(
     self::SysmatAssemblerSparseSymm,
-    mat::MT,
-    dofnums::IT,
-    ignore
-) where {MT, IT}
+    mat::MBT,
+    dofnums_row::CIT,
+    dofnums_col::CIT,
+) where {MBT, CIT}
     # Assembly of a square symmetric matrix.
     # The method assembles the lower triangle of the square symmetric matrix using the two vectors of
     # equation numbers for the rows and columns.
-    nrows = length(dofnums)
-    ncolumns = nrows
+    nrows = length(dofnums_row)
+    ncolumns = length(dofnums_col)
+    @assert nrows == ncolumns
     p = self.buffer_pointer
     if p + ncolumns * nrows >= self.buffer_length
-        new_buffer_length = self.buffer_length + ncolumns * nrows * 1000
-        resize!(self.rowbuffer, new_buffer_length)
-        resize!(self.colbuffer, new_buffer_length)
-        resize!(self.matbuffer, new_buffer_length)
-        if self.force_init
-            self.rowbuffer[self.buffer_length+1:end] .= 1
-            self.colbuffer[self.buffer_length+1:end] .= 1
-            self.matbuffer[self.buffer_length+1:end] .= 0
-        end
-        self.buffer_length = new_buffer_length
+        self = _resize(self, ncolumns * nrows * 1000)
     end
     @assert size(mat) == (nrows, ncolumns)
     @inbounds for j in 1:ncolumns
-        if 0 < dofnums[j] <= self.ndofs
-            for i in j:nrows
-                if 0 < dofnums[i] <= self.ndofs
-                    self.matbuffer[p] = mat[i, j] # serialized matrix
-                    self.rowbuffer[p] = dofnums[i]
-                    self.colbuffer[p] = dofnums[j]
-                    p = p + 1
-                end
-            end
+        dj = dofnums_col[j]
+        dj < 1 && error("Column degree of freedom < 1")
+        dj > self.col_nalldofs && error("Column degree of freedom > size")
+        for i in j:nrows
+            di = dofnums_row[i]
+            di < 1 && error("Row degree of freedom < 1")
+            di > self.row_nalldofs && error("Row degree of freedom > size")
+            self.matbuffer[p] = mat[i, j] # serialized matrix
+            self.rowbuffer[p] = dofnums_row[i]
+            self.colbuffer[p] = dofnums_col[j]
+            p = p + 1
         end
     end
     self.buffer_pointer = p
@@ -483,31 +480,20 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
     if self.nomatrixresult
         # Dummy (zero) sparse matrix is returned. The entire result of the
         # assembly is preserved in the assembler buffers. The ends of the
-        # buffers are filled with illegal (ignorable) values.
-        self.rowbuffer[self.buffer_pointer:end] .= 0
-        self.colbuffer[self.buffer_pointer:end] .= 0
+        # buffers are filled with legal (ignorable) values.
+        self.rowbuffer[self.buffer_pointer:end] .= 1
+        self.colbuffer[self.buffer_pointer:end] .= 1
         self.matbuffer[self.buffer_pointer:end] .= 0.0
-        return spzeros(self.ndofs, self.ndofs)
+        return spzeros(self.row_nalldofs, self.col_nalldofs)
     end
-    # Compact the buffers by deleting ignorable rows and columns.
-    p = 1
-    for j in 1:self.buffer_pointer-1
-        if self.rowbuffer[j] > 0 && self.colbuffer[j] > 0
-            self.rowbuffer[p] = self.rowbuffer[j]
-            self.colbuffer[p] = self.colbuffer[j]
-            self.matbuffer[p] = self.matbuffer[j]
-            p += 1
-        end
-    end
-    self.buffer_pointer = p
     # The sparse matrix is constructed and returned. The  buffers used for
     # the assembly are cleared.
     S = sparse(
         view(self.rowbuffer, 1:self.buffer_pointer-1),
         view(self.colbuffer, 1:self.buffer_pointer-1),
         view(self.matbuffer, 1:self.buffer_pointer-1),
-        self.ndofs,
-        self.ndofs,
+        self.row_nalldofs,
+        self.col_nalldofs,
     )
     #  Now we need to construct the other triangle of the matrix. The diagonal
     #  will be duplicated.
@@ -517,6 +503,7 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
     end
     # Get ready for more assembling
     self.buffer_pointer = 1
+    # Construct the blocks of the matrix
     return S
 end
 
@@ -534,15 +521,17 @@ during assembly!
     All fields of the datatype are private. The type is manipulated by the
     functions `startassembly!`, `assemble!`, and `makematrix!`.
 """
-mutable struct SysmatAssemblerSparseDiag{IT, MBT, IBT} <: AbstractSysmatAssembler
+mutable struct SysmatAssemblerSparseDiag{IT, T, MBT<:AbstractVector{T}, IJT<:AbstractVector{IT}} <: AbstractSysmatAssembler
     # Type for assembling of a sparse global matrix from elementwise matrices.
     buffer_length::IT
     matbuffer::MBT
-    rowbuffer::IBT
-    colbuffer::IBT
+    rowbuffer::IJT
+    colbuffer::IJT
     buffer_pointer::IT
-    ndofs::IT
+    row_nalldofs::IT
+    col_nalldofs::IT
     nomatrixresult::Bool
+    force_init::Bool
 end
 
 """
@@ -553,7 +542,7 @@ entries are of type `T`.
 
 """
 function SysmatAssemblerSparseDiag(z::T, nomatrixresult = false) where {T}
-    return SysmatAssemblerSparseDiag(0, T[z], Int[0], Int[0], 0, 0, nomatrixresult)
+    return SysmatAssemblerSparseDiag(0, T[z], Int[0], Int[0], 0, 0, 0, nomatrixresult, false)
 end
 
 function SysmatAssemblerSparseDiag()
@@ -562,41 +551,45 @@ end
 
 """
     startassembly!(self::SysmatAssemblerSparseDiag{T},
-      elem_mat_dim::FInt, ignore1::FInt, elem_mat_nmatrices::FInt,
-      ndofs::FInt, ignore2::FInt) where {T<:Number}
+        expected_ntriples::IT,
+        row_nalldofs::IT,
+        col_nalldofs::IT;
+        force_init = false
+        ) where {T, IT<:Integer}
 
-Start the assembly of a symmetric square global matrix.
+Start the assembly of a symmetric square diagonal matrix.
 
 The method makes buffers for matrix assembly. It must be called before
 the first call to the method `assemble!`.
-- `elem_mat_nrows`= number of rows in typical element matrix,
-- `elem_mat_ncols`= number of columns in a typical element matrix,
-- `elem_mat_nmatrices`= number of element matrices,
-- `ndofs_row`= Total number of equations in the row direction,
-- `ndofs_col`= Total number of equations in the column direction.
+
+# Arguments
+- `expected_ntriples`= expected number of coordinate triples, i.e. the number of
+  terms in the `I`, `J`, `V` vectors;
+- `row_nalldofs`= The total number of rows as a tuple;
+- `col_nalldofs`= The total number of columns as a tuple.
 
 The values stored in the buffers are initially undefined!
 
 # Returns
 - `self`: the modified assembler.
 """
-function startassembly!(
-    self::SysmatAssemblerSparseDiag,
-    elem_mat_dim,
-    ignore1,
-    elem_mat_nmatrices,
-    ndofs,
-    ignore2;
+function startassembly!(self::SysmatAssemblerSparseDiag{T},
+    expected_ntriples::IT,
+    row_nalldofs::IT,
+    col_nalldofs::IT;
     force_init = false
-)
-    # Only resize the buffers if the pointer is less than 1
+    ) where {T, IT<:Integer}
+    # Only resize the buffers if the pointer is less than 1; otherwise the
+    # buffers are already initialized and in use.
     if self.buffer_pointer < 1
-        self.buffer_length = elem_mat_nmatrices * elem_mat_dim + 1
+        self.buffer_length = expected_ntriples
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
         self.buffer_pointer = 1
-        self.ndofs = ndofs
+        row_nalldofs == col_nalldofs || error("Row and column info do not agree")
+        self.row_nalldofs = row_nalldofs
+        self.col_nalldofs = col_nalldofs
     end
     # Leave the buffers uninitialized, unless the user requests otherwise
     if force_init
@@ -611,9 +604,9 @@ end
     assemble!(
         self::SysmatAssemblerSparseDiag,
         mat::MT,
-        dofnums::IT,
-        ignore
-    ) where {MT, IT}
+        dofnums_row::IV,
+        dofnums_col::IV,
+    ) where {MT, IV}
 
 Assemble a square symmetric diagonal matrix.
 
@@ -623,25 +616,29 @@ number input is ignored (the row and column numbers are assumed to be the same).
 """
 function assemble!(
     self::SysmatAssemblerSparseDiag,
-    mat::MT,
-    dofnums::IT,
-    ignore
-) where {MT, IT}
+    mat::MBT,
+    dofnums_row::CIT,
+    dofnums_col::CIT,
+) where {MBT, CIT}
     # Assembly of a square symmetric matrix.
     # The method assembles the lower triangle of the square symmetric matrix using the two vectors of
     # equation numbers for the rows and columns.
-    nrows = length(dofnums)
-    ncolumns = nrows
+    nrows = length(dofnums_row)
+    ncolumns = length(dofnums_col)
+    @assert nrows == ncolumns
     p = self.buffer_pointer
-    @assert p + ncolumns <= self.buffer_length + 1
+    if p + ncolumns >= self.buffer_length
+        self = _resize(self, ncolumns * nrows * 1000)
+    end
     @assert size(mat) == (nrows, ncolumns)
     @inbounds for j in 1:ncolumns
-        if 0 < dofnums[j] <= self.ndofs
-            self.matbuffer[p] = mat[j, j] # serialized matrix
-            self.rowbuffer[p] = dofnums[j]
-            self.colbuffer[p] = dofnums[j]
-            p = p + 1
-        end
+        dj = dofnums_col[j]
+        dj < 1 && error("Column degree of freedom < 1")
+        dj > self.col_nalldofs && error("Column degree of freedom > size")
+        self.matbuffer[p] = mat[j, j] # serialized matrix
+        self.rowbuffer[p] = dj
+        self.colbuffer[p] = dj
+        p = p + 1
     end
     self.buffer_pointer = p
     return self
@@ -675,30 +672,20 @@ function makematrix!(self::SysmatAssemblerSparseDiag)
         self.rowbuffer[self.buffer_pointer:end] .= 0
         self.colbuffer[self.buffer_pointer:end] .= 0
         self.matbuffer[self.buffer_pointer:end] .= 0.0
-        return spzeros(self.ndofs, self.ndofs)
+        return spzeros(self.row_nalldofs, self.col_nalldofs)
     end
-    # Compact the buffers by deleting ignorable rows and columns.
-    p = 1
-    for j in 1:self.buffer_pointer-1
-        if self.rowbuffer[j] > 0 && self.colbuffer[j] > 0
-            self.rowbuffer[p] = self.rowbuffer[j]
-            self.colbuffer[p] = self.colbuffer[j]
-            self.matbuffer[p] = self.matbuffer[j]
-            p += 1
-        end
-    end
-    self.buffer_pointer = p
     # The sparse matrix is constructed and returned. The  buffers used for
     # the assembly are cleared.
     S = sparse(
         view(self.rowbuffer, 1:self.buffer_pointer-1),
         view(self.colbuffer, 1:self.buffer_pointer-1),
         view(self.matbuffer, 1:self.buffer_pointer-1),
-        self.ndofs,
-        self.ndofs,
+        self.row_nalldofs,
+        self.col_nalldofs,
     )
     # Get ready for more assembling
     self.buffer_pointer = 1
+    # Construct the blocks of the matrix
     return S
 end
 
@@ -715,6 +702,8 @@ Abstract type of system vector assembler.
 """
 abstract type AbstractSysvecAssembler end
 
+eltype(a::A) where {A<:AbstractSysvecAssembler} = eltype(a.F_buffer)
+
 """
     startassembly!(self::SysvecAssembler{T}, ndofs_row::FInt) where {T<:Number}
 
@@ -730,7 +719,7 @@ the first call to the method assemble.
 # Returns
 - `self`: the modified assembler.
 """
-function startassembly!(self::SV, ndofs_row) where {SV<:AbstractSysvecAssembler} end
+function startassembly!(self::SV, row_nalldofs::Tuple{IT, IT}) where {SV<:AbstractSysvecAssembler, IT} end
 
 """
     assemble!(self::SysvecAssembler{T}, vec::MV,
@@ -761,7 +750,7 @@ Assembler for the system vector.
 """
 mutable struct SysvecAssembler{VBT, IT} <: AbstractSysvecAssembler
     F_buffer::VBT
-    ndofs::IT
+    row_nalldofs::IT
 end
 
 """
@@ -791,9 +780,9 @@ the first call to the method assemble.
 # Returns
 - `self`: the modified assembler.
 """
-function startassembly!(self::SysvecAssembler, ndofs_row)
-    self.ndofs = ndofs_row
-    resize!(self.F_buffer, self.ndofs)
+function startassembly!(self::SysvecAssembler, row_nalldofs::IT) where {IT<:Integer}
+    self.row_nalldofs = row_nalldofs
+    resize!(self.F_buffer, self.row_nalldofs)
     self.F_buffer .= 0
     return self
 end
@@ -812,11 +801,11 @@ function assemble!(
     vec::MV,
     dofnums::IV,
 ) where {MV, IV}
-    for i in eachindex(dofnums)
+    @inbounds for i in eachindex(dofnums)
         gi = dofnums[i]
-        if (0 < gi <= self.ndofs)
-            self.F_buffer[gi] += vec[i]
-        end
+        gi < 1 && error("Row degree of freedom < 1")
+        gi > self.row_nalldofs && error("Row degree of freedom > size")
+        self.F_buffer[gi] += vec[i]
     end
 end
 
@@ -854,15 +843,16 @@ volume 4, number 3, 245--249, 1976.
     correctly. Put bluntly: it can only be used for homogeneous mass matrices,
     all translation degrees of freedom, for instance.
 """
-mutable struct SysmatAssemblerSparseHRZLumpingSymm{IT, MBT, IBT} <: AbstractSysmatAssembler
-    # Type for assembling of a sparse global matrix from elementwise matrices.
+mutable struct SysmatAssemblerSparseHRZLumpingSymm{IT, T, MBT<:AbstractVector{T}, IJT<:AbstractVector{IT}} <: AbstractSysmatAssembler
     buffer_length::IT
     matbuffer::MBT
-    rowbuffer::IBT
-    colbuffer::IBT
+    rowbuffer::IJT
+    colbuffer::IJT
     buffer_pointer::IT
-    ndofs::IT
+    row_nalldofs::IT
+    col_nalldofs::IT
     nomatrixresult::Bool
+    force_init::Bool
 end
 
 """
@@ -872,7 +862,7 @@ Construct blank system matrix assembler. The matrix entries are of type `T`.
 
 """
 function SysmatAssemblerSparseHRZLumpingSymm(z::T, nomatrixresult = false) where {T}
-    return SysmatAssemblerSparseHRZLumpingSymm(0, T[z], Int[0], Int[0], 0, 0, nomatrixresult)
+    return SysmatAssemblerSparseHRZLumpingSymm(0, T[z], Int[0], Int[0], 0, 0, 0, nomatrixresult, false)
 end
 
 function SysmatAssemblerSparseHRZLumpingSymm()
@@ -881,41 +871,45 @@ end
 
 """
     startassembly!(self::SysmatAssemblerSparseHRZLumpingSymm{T},
-      elem_mat_dim::FInt, ignore1::FInt, elem_mat_nmatrices::FInt,
-      ndofs::FInt, ignore2::FInt) where {T<:Number}
+            expected_ntriples::IT,
+            row_nalldofs::IT,
+            col_nalldofs::IT;
+            force_init = false
+            ) where {T, IT<:Integer}
 
-Start the assembly of a symmetric lumped square global matrix.
+Start the assembly of a symmetric lumped diagonal square global matrix.
 
 The method makes buffers for matrix assembly. It must be called before
 the first call to the method `assemble!`.
-- `elem_mat_nrows`= number of rows in typical element matrix,
-- `ignore1`= number of columns in a typical element matrix: equal to `elem_mat_nrows`,
-- `elem_mat_nmatrices`= number of element matrices,
-- `ndofs_row`= Total number of equations in the row direction,
-- `ignore2`= Total number of equations in the column direction: equal to `ndofs_row`.
+
+# Arguments
+- `expected_ntriples`= expected number of coordinate triples, i.e. the number of
+  terms in the `I`, `J`, `V` vectors;
+- `row_nalldofs`= The total number of rows as a tuple;
+- `col_nalldofs`= The total number of columns as a tuple.
 
 The values stored in the buffers are initially undefined!
 
 # Returns
 - `self`: the modified assembler.
 """
-function startassembly!(
-    self::SysmatAssemblerSparseHRZLumpingSymm,
-    elem_mat_dim,
-    ignore1,
-    elem_mat_nmatrices,
-    ndofs,
-    ignore2;
-    force_init = false
-)
-    # Only resize the buffers if the pointer is less than 1
+function startassembly!(self::SysmatAssemblerSparseHRZLumpingSymm{T},
+        expected_ntriples::IT,
+        row_nalldofs::IT,
+        col_nalldofs::IT;
+        force_init = false
+        ) where {T, IT<:Integer}
+    # Only resize the buffers if the pointer is less than 1; otherwise the
+    # buffers are already initialized and in use.
     if self.buffer_pointer < 1
-        self.buffer_length = elem_mat_nmatrices * elem_mat_dim^2
+        self.buffer_length = expected_ntriples
         resize!(self.rowbuffer, self.buffer_length)
         resize!(self.colbuffer, self.buffer_length)
         resize!(self.matbuffer, self.buffer_length)
         self.buffer_pointer = 1
-        self.ndofs = ndofs
+        row_nalldofs == col_nalldofs || error("Row and column info do not agree")
+        self.row_nalldofs = row_nalldofs
+        self.col_nalldofs = col_nalldofs
     end
     # Leave the buffers uninitialized, unless the user requests otherwise
     if force_init
@@ -942,16 +936,18 @@ equation numbers for the rows and columns.
 """
 function assemble!(
     self::SysmatAssemblerSparseHRZLumpingSymm,
-    mat::MT,
-    dofnums::IV,
-    ignore::IV,
-) where {MT, IV}
-    nrows = length(dofnums)
-    ncolumns = nrows
+    mat::MBT,
+    dofnums_row::CIT,
+    dofnums_col::CIT,
+) where {MBT, CIT}
+    nrows = length(dofnums_row)
+    ncolumns = length(dofnums_col)
+    @assert nrows == ncolumns
     p = self.buffer_pointer
-    @assert p + ncolumns * nrows <= self.buffer_length + 1
+    if p + ncolumns >= self.buffer_length
+        self = _resize(self, ncolumns * nrows * 1000)
+    end
     @assert size(mat) == (nrows, ncolumns)
-    @assert nrows == ncolumns # only square matrices allowed
     # Now comes the lumping procedure
     em2 = sum(sum(mat, dims = 1)) # total mass times the number of space dimensions
     dem2 = zero(eltype(mat)) # total mass on the diagonal times the number of space dimensions
@@ -960,18 +956,13 @@ function assemble!(
     end
     ffactor = em2 / dem2 # total-element-mass compensation factor
     @inbounds for j in 1:ncolumns
-        if 0 < dofnums[j] <= self.ndofs
-            for i in j:nrows
-                if i == j # only the diagonal elements are assembled
-                    if 0 < dofnums[i] <= self.ndofs
-                        self.matbuffer[p] = mat[i, j] * ffactor # serialized matrix
-                        self.rowbuffer[p] = dofnums[i]
-                        self.colbuffer[p] = dofnums[j]
-                        p = p + 1
-                    end
-                end
-            end
-        end
+        dj = dofnums_col[j]
+        dj < 1 && error("Column degree of freedom < 1")
+        dj > self.col_nalldofs && error("Column degree of freedom > size")
+        self.matbuffer[p] = mat[j, j] * ffactor # serialized matrix
+        self.rowbuffer[p] = dj
+        self.colbuffer[p] = dj
+        p = p + 1
     end
     self.buffer_pointer = p
     return self
@@ -1005,35 +996,20 @@ function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
         self.rowbuffer[self.buffer_pointer:end] .= 0
         self.colbuffer[self.buffer_pointer:end] .= 0
         self.matbuffer[self.buffer_pointer:end] .= 0.0
-        return spzeros(self.ndofs, self.ndofs)
+        return spzeros(self.row_nalldofs, self.col_nalldofs)
     end
-    # Compact the buffers by deleting ignorable rows and columns.
-    p = 1
-    for j in 1:self.buffer_pointer-1
-        if self.rowbuffer[j] > 0 && self.colbuffer[j] > 0
-            self.rowbuffer[p] = self.rowbuffer[j]
-            self.colbuffer[p] = self.colbuffer[j]
-            self.matbuffer[p] = self.matbuffer[j]
-            p += 1
-        end
-    end
-    self.buffer_pointer = p
     # The sparse matrix is constructed and returned. The  buffers used for
     # the assembly are cleared.
     S = sparse(
         view(self.rowbuffer, 1:self.buffer_pointer-1),
         view(self.colbuffer, 1:self.buffer_pointer-1),
         view(self.matbuffer, 1:self.buffer_pointer-1),
-        self.ndofs,
-        self.ndofs,
+        self.row_nalldofs,
+        self.col_nalldofs,
     )
-    # Construct the other half of the matrix. (Even though this one really should be diagonal!)
-    S = S + transpose(S)    # construct the other triangle
-    @inbounds for j in axes(S, 1)
-        S[j, j] /= 2.0      # the diagonal is there twice; fix it;
-    end
     # Get ready for more assembling
     self.buffer_pointer = 1
+    # Construct the blocks of the matrix
     return S
 end
 

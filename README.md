@@ -21,6 +21,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 06/19/2023: Introduce DataCache, generic linear and bilinear forms. 
 - 04/20/2023: Make all types in the library generic.
 - 04/18/2023: Implemented resizing of assembly buffers. Makematrix! resets pointers.
 - 04/16/2023: Enabled creation of finite element sets from arbitrary arrays.

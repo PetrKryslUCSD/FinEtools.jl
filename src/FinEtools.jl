@@ -22,6 +22,10 @@ using .FTypesModule:
 # Exported: basic numerical types, type of data dictionary
 export FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
+using .DataCacheModule: DataCache
+# Exported: vector-cache type and methods to invoke the update callback
+export DataCache
+
 using .BoxModule:
     inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap, intersectboxes
 # Exported: methods for manipulating and testing boxes
@@ -115,6 +119,11 @@ using .FieldModule:
     AbstractField,
     ndofs,
     nents,
+    nfreedofs,
+    nalldofs,
+    nfixeddofs,
+    freedofs,
+    fixeddofs,
     gathersysvec,
     gathersysvec!,
     gathervalues_asvec!,
@@ -134,6 +143,11 @@ using .FieldModule:
 export AbstractField,
     ndofs,
     nents,
+    nfreedofs,
+    nalldofs,
+    nfixeddofs,
+    freedofs,
+    fixeddofs,
     gathersysvec,
     gathersysvec!,
     gathervalues_asvec!,
@@ -301,16 +315,12 @@ using .MeshImportModule: import_NASTRAN, import_ABAQUS, import_MESH, import_H5ME
 # Exported: mesh import functions
 export import_NASTRAN, import_ABAQUS, import_MESH, import_H5MESH
 
-using .DataCacheModule: DataCache, updateretrieve!, setcachetime!, getcachetime
-# Exported: vector-cache type and methods to invoke the update callback
-export DataCache, updateretrieve!, setcachetime!, getcachetime
-
-using .ForceIntensityModule: ForceIntensity, updateforce!, setcachetime!
+using .ForceIntensityModule: ForceIntensity, updateforce!
 # Exported: force-intensity type and methods to invoke the update callback
-export ForceIntensity, updateforce!, setcachetime!, getcachetime
+export ForceIntensity, updateforce!
 
 using .AssemblyModule:
-    AbstractSysmatAssembler,
+    AbstractSysmatAssembler, eltype,
     SysmatAssemblerSparse,
     SysmatAssemblerSparseSymm,
     SysmatAssemblerSparseDiag,
@@ -325,7 +335,7 @@ using .AssemblyModule:
     makevector!,
     SysmatAssemblerReduced
 # Exported: types and methods for  sparse matrix assembly  and vector assembly
-export AbstractSysmatAssembler,
+export AbstractSysmatAssembler, eltype,
     SysmatAssemblerSparse,
     SysmatAssemblerSparseSymm,
     SysmatAssemblerSparseDiag,
@@ -380,6 +390,11 @@ export IntegDomain,
     Jacobianmdim,
     integrationdata
 
+using .DeforModelRedModule: AbstractDeforModelRed, DeforModelRed1D, DeforModelRed1DStress, DeforModelRed1DStrain, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D, nstressstrain, nthermstrain, stresscomponentmap, blmat!, divmat, vgradmat
+export AbstractDeforModelRed, DeforModelRed1D, DeforModelRed1DStress, DeforModelRed1DStrain, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D
+export nstressstrain, nthermstrain, stresscomponentmap
+export blmat!, divmat, vgradmat
+
 using .FEMMBaseModule:
     AbstractFEMM,
     FEMMBase,
@@ -388,6 +403,7 @@ using .FEMMBaseModule:
     integratefieldfunction,
     integratefunction,
     transferfield!,
+    linform_integrate,
     linform_dot,
     distribloads,
     connectionmatrix,
@@ -396,6 +412,9 @@ using .FEMMBaseModule:
     elemfieldfromintegpoints,
     bilform_dot,
     bilform_diffusion,
+    bilform_convection,
+    bilform_div_grad,
+    bilform_lin_elastic,
     innerproduct,
     field_elem_to_nodal!,
     field_nodal_to_elem!
@@ -407,6 +426,7 @@ export AbstractFEMM,
     integratefieldfunction,
     integratefunction,
     transferfield!,
+    linform_integrate,
     linform_dot,
     distribloads,
     connectionmatrix,
@@ -415,6 +435,9 @@ export AbstractFEMM,
     elemfieldfromintegpoints,
     bilform_dot,
     bilform_diffusion,
+    bilform_convection,
+    bilform_div_grad,
+    bilform_lin_elastic,
     innerproduct,
     field_elem_to_nodal!,
     field_nodal_to_elem!

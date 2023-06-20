@@ -81,7 +81,7 @@ The matrix `Ke` is assumed to be suitably initialized.
 The matrix `Ke` is modified.  The matrix `gradN` is not modified
 inside this function.
 """
-function add_mggt_ut_only!(Ke::Matrix{T}, gradN::Matrix{T}, mult) where {T}
+function add_mggt_ut_only!(Ke::Matrix{MT}, gradN::Matrix{T}, mult) where {MT, T}
     Kedim = size(Ke, 1)
     @assert Kedim == size(Ke, 2) # Square matrix?
     nne, mdim = size(gradN)

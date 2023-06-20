@@ -36,14 +36,14 @@ function test()
     # @show norm(M-testA)
 
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, 7, 7)
     assemble!(a, m1, i1, i1)
     assemble!(a, m2, i2, i2)
     Au = makematrix!(a)
     @test maximum(abs.(testA - Au)) < 1.0e-5
 
     a = SysmatAssemblerSparseSymm(0.0)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, 7, 7)
     assemble!(a, m1, i1, i1)
     assemble!(a, m2, i2, i2)
     A = makematrix!(a)
@@ -88,7 +88,7 @@ function test()
     ]
 
     a = SysmatAssemblerSparseDiag(0.0)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, 7, 7)
     assemble!(a, m1, i1, i1)
     assemble!(a, m2, i2, i2)
     A = makematrix!(a)
@@ -275,7 +275,7 @@ function test()
         0.8320502943378436 0.5547001962252293 0.0
         0.0 0.0 1.0
     ]
-    function compute!(csmatout, XYZ, tangents, fe_label)
+    function compute!(csmatout, XYZ, tangents, feid, qpid)
         # Cylindrical coordinate system
         xyz = XYZ[:] .- center
         xyz[3] = 0.0
@@ -286,11 +286,11 @@ function test()
         return csmatout
     end
     csys = CSys(3, 3, compute!)
-    updatecsmat!(csys, XYZ, tangents, 0)
+    updatecsmat!(csys, XYZ, tangents, 0, 0)
     @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
 
     csys = CSys(3, 3, zero(Float32), compute!)
-    updatecsmat!(csys, XYZ, tangents, 0)
+    updatecsmat!(csys, XYZ, tangents, 0, 0)
     @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
 
     true
@@ -315,7 +315,7 @@ function test()
         0.8320502943378436 0.5547001962252293 0.0
         0.0 0.0 1.0
     ]
-    # function compute!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    # function compute!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, feid::FInt)
     #     # Cylindrical coordinate system
     #     xyz = XYZ[:] .- center
     #     xyz[3] = 0.0
@@ -326,7 +326,7 @@ function test()
     #     return csmatout
     # end
     csys = CSys(rfcsmat)
-    updatecsmat!(csys, XYZ, tangents, 0)
+    updatecsmat!(csys, XYZ, tangents, 0, 0)
     @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
     true
 end
@@ -346,7 +346,7 @@ function test()
     XYZ = reshape([0.2, 0.3, 0.4], 1, 3)
     tangents = rand(3, 3)
     rfcsmat = Matrix(1.0 * I, 3, 3)
-    # function compute!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    # function compute!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, feid::FInt)
     #     # Cylindrical coordinate system
     #     xyz = XYZ[:] .- center
     #     xyz[3] = 0.0
@@ -357,7 +357,7 @@ function test()
     #     return csmatout
     # end
     csys = CSys(3)
-    updatecsmat!(csys, XYZ, tangents, 0)
+    updatecsmat!(csys, XYZ, tangents, 0, 0)
     @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
 
     true
@@ -376,7 +376,7 @@ function test()
     rfcsmat = Matrix(1.0 * I, 3, 3)
     tangents = rand(3, 3)
     csys = CSys(3, 3)
-    updatecsmat!(csys, XYZ, tangents, 0)
+    updatecsmat!(csys, XYZ, tangents, 0, 0)
     @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
     true
 end
@@ -394,7 +394,7 @@ function test()
     rfcsmat = reshape([0.37139067635410367; 0.5570860145311555; 0.7427813527082073], 3, 1)
     tangents = reshape([0.2, 0.3, 0.4], 3, 1)
     csys = CSys(3, 1)
-    updatecsmat!(csys, XYZ, tangents, 0)
+    updatecsmat!(csys, XYZ, tangents, 0, 0)
     # @show csmat(csys)
     @test norm(csmat(csys) - rfcsmat) / norm(rfcsmat) <= 1.0e-6
     true
@@ -413,7 +413,7 @@ function test()
     rfcsmat = reshape([0.37139067635410367; 0.5570860145311555; 0.7427813527082073], 3, 1)
     tangents = reshape([0.2 0.0; 0.0 0.5; 0.4 0.2], 3, 2)
     csys = CSys(3, 2)
-    updatecsmat!(csys, XYZ, tangents, 0)
+    updatecsmat!(csys, XYZ, tangents, 0, 0)
     # @show csmat(csys)
     n1 = cross(vec(tangents[:, 1]), vec(tangents[:, 2]))
     n1 = n1 / norm(n1)
@@ -617,15 +617,8 @@ cleandchi() = deepcopy(
             2.7755575615628914e-17 1.3552527156068805e-20 -0.14078343955580952 0.001474279595600101 0.0 0.0
             0.0 0.0 0.0 0.0020849461988275853 0.0 0.0
         ],
-        [0 0 0 1 0 0; 2 3 4 5 6 7; 8 9 10 11 12 13; 14 15 16 17 18 19; 0 0 0 20 0 0],
+        [21 22 23 1 24 25; 2 3 4 5 6 7; 8 9 10 11 12 13; 14 15 16 17 18 19; 26 27 28 20 29 30],
         Bool[1 1 1 0 1 1; 0 0 0 0 0 0; 0 0 0 0 0 0; 0 0 0 0 0 0; 1 1 1 0 1 1],
-        [
-            0.0 0.0 0.0 0.0 0.0 0.0
-            0.0 0.0 0.0 0.0 0.0 0.0
-            0.0 0.0 0.0 0.0 0.0 0.0
-            0.0 0.0 0.0 0.0 0.0 0.0
-            0.0 0.0 0.0 0.0 0.0 0.0
-        ],
         20,
     ),
 )
@@ -681,7 +674,7 @@ function test()
     @test FinEtools.FieldModule.anyfixedvaluenz(dchi, [1, 2]) == false
     edn = fill(0, 12)
     gatherdofnums!(dchi, edn, [1, 2])
-    @test norm(edn - vec([0 0 0 1 0 0; 2 3 4 5 6 7]')) == 0
+    @test norm(edn - vec([21 22 23 1 24 25; 2 3 4 5 6 7]')) == 0
     dchi = cleandchi()
     numberdofs!(dchi)
     @test norm(dchi.dofnums - cleandchi().dofnums) == 0
@@ -689,79 +682,79 @@ function test()
     dchi = cleandchi()
     setebc!(dchi, 1, true, 1, -0.013)
     @test dchi.is_fixed[1, 1] == true
-    @test dchi.fixed_values[1, 1] == -0.013
+    @test dchi.values[1, 1] == -0.013
     setebc!(dchi, 5, true, 4, 0.61)
     @test dchi.is_fixed[5, 4] == true
-    @test dchi.fixed_values[5, 4] == 0.61
+    @test dchi.values[5, 4] == 0.61
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], true, 2, [-0.013, 2.0])
     @test dchi.is_fixed[1, 2] == true
-    @test dchi.fixed_values[1, 2] == -0.013
+    @test dchi.values[1, 2] == -0.013
     @test dchi.is_fixed[5, 2] == true
-    @test dchi.fixed_values[5, 2] == 2.0
+    @test dchi.values[5, 2] == 2.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], true, 2, -10.0)
     @test dchi.is_fixed[1, 2] == true
-    @test dchi.fixed_values[1, 2] == -10.0
+    @test dchi.values[1, 2] == -10.0
     @test dchi.is_fixed[5, 2] == true
-    @test dchi.fixed_values[5, 2] == -10.0
+    @test dchi.values[5, 2] == -10.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], true, 2)
     @test dchi.is_fixed[1, 2] == true
-    @test dchi.fixed_values[1, 2] == 0.0
+    @test dchi.values[1, 2] == 0.0
     @test dchi.is_fixed[5, 2] == true
-    @test dchi.fixed_values[5, 2] == 0.0
+    @test dchi.values[5, 2] == 0.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], 2, [-10.0, 10.0])
     @test dchi.is_fixed[1, 2] == true
-    @test dchi.fixed_values[1, 2] == -10.0
+    @test dchi.values[1, 2] == -10.0
     @test dchi.is_fixed[5, 2] == true
-    @test dchi.fixed_values[5, 2] == 10.0
+    @test dchi.values[5, 2] == 10.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], 2)
     @test dchi.is_fixed[1, 2] == true
-    @test dchi.fixed_values[1, 2] == 0.0
+    @test dchi.values[1, 2] == 0.0
     @test dchi.is_fixed[5, 2] == true
-    @test dchi.fixed_values[5, 2] == 0.0
+    @test dchi.values[5, 2] == 0.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], true, [2, 3], -10.0)
     @test dchi.is_fixed[1, 2] == true
-    @test dchi.fixed_values[1, 2] == -10.0
+    @test dchi.values[1, 2] == -10.0
     @test dchi.is_fixed[5, 3] == true
-    @test dchi.fixed_values[5, 3] == -10.0
+    @test dchi.values[5, 3] == -10.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], true, [2, 3])
     @test dchi.is_fixed[1, 2] == true
-    @test dchi.fixed_values[1, 2] == 0.0
+    @test dchi.values[1, 2] == 0.0
     @test dchi.is_fixed[5, 3] == true
-    @test dchi.fixed_values[5, 3] == 0.0
+    @test dchi.values[5, 3] == 0.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5])
     for i in [1, 5]
         @test any([!dchi.is_fixed[i, idx] for idx in 1:ndofs(dchi)]) == false
-        @test any([dchi.fixed_values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
+        @test any([dchi.values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
     end
 
     dchi = cleandchi()
     setebc!(dchi, 3)
     for i in [3]
         @test any([!dchi.is_fixed[i, idx] for idx in 1:ndofs(dchi)]) == false
-        @test any([dchi.fixed_values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
+        @test any([dchi.values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
     end
 
     dchi = cleandchi()
     setebc!(dchi)
     for i in 1:nents(dchi)
         @test any([dchi.is_fixed[i, idx] for idx in 1:ndofs(dchi)]) == false
-        @test any([dchi.fixed_values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
+        @test any([dchi.values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
     end
 
     dchi = cleandchi()
@@ -836,12 +829,10 @@ function test()
     for (i, p) in zip(dofnums, vec)
         v[i] += p
     end
-    vec, dofnums = rand(7), [29, 0, 1, 7, 3, 0, 2]
+    vec, dofnums = rand(7), [29, 6, 1, 7, 3, 5, 2]
     assemble!(a, vec, dofnums)
     for (i, p) in zip(dofnums, vec)
-        if i > 0
-            v[i] += p
-        end
+        v[i] += p
     end
     w = makevector!(a)
     @test norm(v - w) / norm(w) <= 1.0e-9
@@ -872,7 +863,7 @@ function test()
         Mref
     end
     a = SysmatAssemblerSparseHRZLumpingSymm()
-    startassembly!(a, elem_mat_dim, 0, elem_mat_nmatrices, N, 0)
+    startassembly!(a, elem_mat_dim * elem_mat_nmatrices, N, N)
     dofnums = [10, 29, 15, 1, 7, 3, 6, 2]
     assemble!(a, elmat, dofnums, dofnums)
     add!(Mref, elmat, dofnums)
@@ -920,6 +911,37 @@ end
 end
 using .mgram1
 mgram1.test()
+
+module mgram1a
+using FinEtools
+using LinearAlgebra
+using Test
+function test()
+    W = 1.1
+    L = 12.0
+    t = 0.32
+    nl, nt, nw = 8, 4, 4
+
+
+    fens, fes = H8block(L, W, t, nl, nw, nt)
+    geom = NodalField(fens.xyz)
+    psi = NodalField(fill(1.0, count(fens), 3))
+    numberdofs!(psi)
+
+    # @show nl * nt * nw * (nodesperelem(fes) * ndofs(psi))^2
+
+    femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
+    v = gathersysvec(psi)
+
+    G1 = bilform_dot(femm, geom, psi, DataCache(LinearAlgebra.I(3)))
+    # @show v' * G1 * v, 3 * (W*L*t)
+    @test abs(v' * G1 * v - 3 * (W*L*t)) / (W*L*t) <= 1.0e-5
+    true
+end
+end
+using .mgram1a
+mgram1a.test()
+mgram1a.test()
 
 module mdistributedl1
 using FinEtools
@@ -1139,14 +1161,14 @@ function test()
         psi.values[i, 2] = g(fens.xyz[i, :])
     end
     numberdofs!(psi)
-    @test psi.nfreedofs == 220
+    @test nfreedofs(psi) == 220
 
     psi = GeneralField(fill(0.0, count(fens)))
     for i in eachindex(fens)
         psi.values[i, 1] = f(fens.xyz[i, :])
     end
     numberdofs!(psi)
-    @test psi.nfreedofs == 110
+    @test nfreedofs(psi) == 110
     true
 end
 end
@@ -1161,15 +1183,15 @@ using Test
 
 function test()
     ndimensions = 2
-    tangents, fe_label = reshape([1.0; 1.0], 2, 1), 0
+    tangents, feid, qpid = reshape([1.0; 1.0], 2, 1), 0, 0
     n = SurfaceNormal(ndimensions::FInt)
-    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, fe_label::FInt)
+    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, feid::FInt, qpid)
     @test norm(normal - [0.7071067811865475, -0.7071067811865475]) <= 1.0e-5
 
     ndimensions = 3
-    tangents, fe_label = reshape([1.0 0.0; 1.0 0.0; 0.0 1.0], 3, 2), 0
+    tangents, feid = reshape([1.0 0.0; 1.0 0.0; 0.0 1.0], 3, 2), 0
     n = SurfaceNormal(ndimensions::FInt)
-    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, fe_label::FInt)
+    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, feid::FInt, qpid)
     @test norm(normal - [0.7071067811865475, -0.7071067811865475, 0.0]) <= 1.0e-5
     true
 end
@@ -1368,14 +1390,16 @@ using FinEtools
 using Test
 import LinearAlgebra: norm, cholesky
 function test()
+    refa = zeros(7,7)
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, 7, 7)
     m = [
         0.24406 0.599773 0.833404 0.0420141
         0.786024 0.00206713 0.995379 0.780298
         0.845816 0.198459 0.355149 0.224996
     ]
-    assemble!(a, m, [1 7 5], [5 0 1 4])
+    assemble!(a, m, [1 7 5], [5 2 1 4])
+    refa[vec([1 7 5]), vec([5 2 1 4])] += m
     m = [
         0.146618 0.53471 0.614342 0.737833
         0.479719 0.41354 0.00760941 0.836455
@@ -1383,20 +1407,13 @@ function test()
         0.159064 0.261821 0.317078 0.77646
         0.643538 0.429817 0.59788 0.958909
     ]
-    assemble!(a, m, [2 3 1 0 5], [6 7 3 4])
+    assemble!(a, m, [2 3 1 4 5], [6 7 3 4])
+    refa[vec([2 3 1 4 5]), vec([6 7 3 4])] += m
     A = makematrix!(a)
     # @show Matrix(A)
     @test abs.(
         maximum(
-            [
-                0.833404 0.0 0.460794 0.05121043 0.24406 0.254868 0.476189
-                0.0 0.0 0.614342 0.737833 0.0 0.146618 0.53471
-                0.0 0.0 0.00760941 0.836455 0.0 0.479719 0.41354
-                0.0 0.0 0.0 0.0 0.0 0.0 0.0
-                0.355149 0.0 0.59788 1.183905 0.845816 0.643538 0.429817
-                0.0 0.0 0.0 0.0 0.0 0.0 0.0
-                0.995379 0.0 0.0 0.780298 0.786024 0.0 0.0
-            ] - A,
+            refa - A,
         )
     ) < 1.0e-5
     # @test abs(maximum(T_i)-1380.5883006341187) < 1.0e-3
@@ -1489,7 +1506,7 @@ using FinEtools.MeshExportModule.MESH
 using Test
 function test()
     a = SysmatAssemblerSparse(0.0, true)
-    startassembly!(a, 5, 5, 3, 7, 7)
+    startassembly!(a, 5*5*3, 7, 7)
     m = [
         0.24406 0.599773 0.833404 0.0420141
         0.786024 0.00206713 0.995379 0.780298
@@ -1607,7 +1624,7 @@ function _test()
     ndofs_row = 7
     ndofs_col = 7
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, ndofs_row, ndofs_col)
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
@@ -1619,7 +1636,7 @@ function _test()
 
     # Serial execution
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, ndofs_row, ndofs_col)
     ntasks = Base.Threads.nthreads()
     istart = 1; iend = 0;
     for ch in chunks(1:length(assembly_line), ntasks)
@@ -1644,7 +1661,7 @@ function _test()
 
     # Parallel execution
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, ndofs_row, ndofs_col)
     ntasks = Base.Threads.nthreads()
     istart = 1; iend = 0;
     Threads.@sync begin
@@ -1739,7 +1756,7 @@ function _test()
     # @info "Serial execution"
     start = time()
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, ndofs_row, ndofs_col)
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
@@ -1754,7 +1771,7 @@ function _test()
     # @info "Serial chunked execution"
     start = time()
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, ndofs_row, ndofs_col)
     ntasks = Base.Threads.nthreads()
     istart = 1; iend = 0;
     for ch in chunks(1:length(assembly_line), ntasks)
@@ -1782,7 +1799,7 @@ function _test()
     # @info "Parallel execution"
     start = time()
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, ndofs_row, ndofs_col)
     ntasks = Base.Threads.nthreads()
     istart = 1; iend = 0;
     Threads.@sync begin
@@ -1877,7 +1894,7 @@ function _test()
     # @info "Serial execution"
     start = time()
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, ndofs_row, ndofs_col)
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
@@ -1892,7 +1909,7 @@ function _test()
     # @info "Serial chunked execution"
     start = time()
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, ndofs_row, ndofs_col)
     ntasks = Base.Threads.nthreads()
     istart = 1; iend = 0;
     for ch in chunks(1:length(assembly_line), ntasks)
@@ -1942,7 +1959,7 @@ function _test()
     # @info "Parallel execution"
     start = time()
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, ndofs_row, ndofs_col)
     ntasks = Base.Threads.nthreads()
     iend = 0;
     Threads.@sync begin
@@ -2043,7 +2060,7 @@ function _test()
     end
 
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, ndofs_row, ndofs_col)
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
@@ -2053,7 +2070,7 @@ function _test()
 
 
     a = SysmatAssemblerSparseSymm(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, elem_mat_nmatrices, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, ndofs_row, ndofs_col)
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
@@ -2062,7 +2079,7 @@ function _test()
     # @show time() - start
     @test norm(A - refA) / norm(refA) < 1.0e-9
 
-    return A, refA
+    return true
 end
 
 _test()
@@ -2143,7 +2160,7 @@ function _test()
 
     a = SysmatAssemblerSparse(0.0)
     # We are testing resizing of buffers by under sizing initially
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, 1, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, ndofs_row, ndofs_col)
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
@@ -2154,7 +2171,7 @@ function _test()
 
     a = SysmatAssemblerSparseSymm(0.0)
     # We are testing resizing of buffers by under sizing initially
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, 1, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, ndofs_row, ndofs_col)
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
@@ -2163,7 +2180,7 @@ function _test()
     # @show time() - start
     @test norm(A - refA) / norm(refA) < 1.0e-9
 
-    return A, refA
+    return true
 end
 
 _test()
@@ -2244,7 +2261,7 @@ function _test()
     end
 
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, 110, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*110, ndofs_row, ndofs_col)
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
@@ -2252,7 +2269,7 @@ function _test()
     # @show time() - start
     @test norm(A - refA) / norm(refA) < 1.0e-9
     # Here we test that we can start assembly again
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, 110, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*110, ndofs_row, ndofs_col)
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
@@ -2261,7 +2278,7 @@ function _test()
     @test norm(A - refA) / norm(refA) < 1.0e-9
 
     a = SysmatAssemblerSparseSymm(0.0)
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, 1, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, ndofs_row, ndofs_col)
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
@@ -2269,7 +2286,7 @@ function _test()
     # @show time() - start
     @test norm(A - refA) / norm(refA) < 1.0e-9
     # Here we test that we can start assembly again
-    startassembly!(a, elem_mat_nrows, elem_mat_ncols, 1, ndofs_row, ndofs_col)
+    startassembly!(a, elem_mat_nrows*elem_mat_ncols*elem_mat_nmatrices, ndofs_row, ndofs_col)
     for i in eachindex(assembly_line)
         assemble!(a, assembly_line[i]...)
     end
@@ -2277,7 +2294,7 @@ function _test()
     # @show time() - start
     @test norm(A - refA) / norm(refA) < 1.0e-9
 
-    return A, refA
+    return true
 end
 
 _test()
@@ -2290,16 +2307,16 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
 nentries = 3
 function fillcache!(cacheout::Vector{CT},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, T}
+        feid, qpid) where {CT, T}
     cacheout .= 13
     return cacheout
 end
 c = DataCache(zeros(nentries), fillcache!)
-v = updateretrieve!(c, XYZ, tangents, fe_label)
+v = c(XYZ, tangents, feid, qpid)
 @test v == [13, 13, 13]
 end
 
@@ -2309,16 +2326,16 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
 nentries = 3
 function fillcache!(cacheout::Vector{CT},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, T}
+        feid, qpid) where {CT, T}
     cacheout .= 13
     return cacheout
 end
 c = DataCache(zeros(Float32, nentries), fillcache!)
-v = updateretrieve!(c, XYZ, tangents, fe_label)
+v = c(XYZ, tangents, feid, qpid)
 @test v == [13, 13, 13]
 end
 
@@ -2327,17 +2344,17 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, N, T}
+        feid, qpid) where {CT, N, T}
     cacheout .= 13
     return cacheout
 end
 data = rand(3, 3)
 c = DataCache(data)
-v = updateretrieve!(c, XYZ, tangents, fe_label)
+v = c(XYZ, tangents, feid, qpid)
 @test v == data
 end
 
@@ -2347,17 +2364,17 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, N, T}
+        feid, qpid) where {CT, N, T}
     cacheout .= 13
     return cacheout
 end
 data = rand(3, 3)
 c = DataCache(data, fillcache!)
-v = updateretrieve!(c, XYZ, tangents, fe_label)
+v = c(XYZ, tangents, feid, qpid)
 data .= 13
 @test v == data
 end
@@ -2367,17 +2384,17 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, N, T}
+        feid, qpid) where {CT, N, T}
     cacheout .= 13
     return cacheout
 end
 data = rand(3, 3)
 c = DataCache(data, fillcache!)
-v = c(XYZ, tangents, fe_label)
+v = c(XYZ, tangents, feid, qpid)
 data .= 13
 @test v == data
 end
@@ -2387,19 +2404,19 @@ using Test
 using LinearAlgebra
 using FinEtools
 
-XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
+XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
 nentries = 3
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, N, T}
-    cacheout .= fe_label
+        feid, qpid) where {CT, N, T}
+    cacheout .= feid
     return cacheout
 end
 for t in (Float32, Float64, ComplexF32, ComplexF64)
     data = rand(t, 3, 3)
     c = DataCache(data, fillcache!)
-    v = c(XYZ, tangents, fe_label)
-    data .= fe_label
+    v = c(XYZ, tangents, feid, qpid)
+    data .= feid
     @test v == data
 end
 end
@@ -2412,68 +2429,44 @@ using FinEtools
 
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, N, T}
+        feid, qpid) where {CT, N, T}
     cacheout .= LinearAlgebra.I(3)
     return cacheout
 end
 c = DataCache(zeros(Float32, 3, 3), fillcache!)
 function f(c)
-    XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
-    setcachetime!(c, 2.1)
-    data = c(XYZ, tangents, fe_label)
+    XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
+    data = c(XYZ, tangents, feid, qpid)
 end
 @test f(c) == LinearAlgebra.I(3)
-@test getcachetime(c) == 2.1
-end
-
-
-module testing_cache_8
-using Test
-using LinearAlgebra
-using FinEtools
-
-function fillcache!(cacheout::Array{CT, N},
-        XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, N, T}
-    cacheout .= LinearAlgebra.I(3)
-    return cacheout
-end
-c = DataCache(zeros(Float32, 3, 3), fillcache!)
-function f(c)
-    XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
-    setcachetime!(c, 2.1)
-    data = c(XYZ, tangents, fe_label)
-end
-@test f(c) == LinearAlgebra.I(3)
-@test getcachetime(c) == 2.1
 end
 
 module testing_cache_9
 using Test
 using LinearAlgebra
 using FinEtools
-
+const timenow = Ref(0.0)
 function fillcache!(cacheout::Array{CT, N},
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {CT, N, T}
-    if time > 1.0
+        feid, qpid) where {CT, N, T}
+    if timenow[] > 1.0
         cacheout .= LinearAlgebra.I(3)
     else
         cacheout .= 0
     end
     return cacheout
 end
-c = DataCache(zeros(Float32, 3, 3), fillcache!)
+
+c = DataCache(zeros(Float32, 3, 3), (cacheout, XYZ, tangents, feid, qpid) -> fillcache!(cacheout, XYZ, tangents, feid, 1))
 function f(c)
-    XYZ, tangents, fe_label = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
-    setcachetime!(c, 0.0)
-    data = c(XYZ, tangents, fe_label)
+    XYZ, tangents, feid, qpid = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1, 1)
+    timenow[] = 0.0
+    data = c(XYZ, tangents, feid, qpid)
     @test data == zeros(Float32, 3, 3)
-    setcachetime!(c, 2.1)
-    data = c(XYZ, tangents, fe_label)
+    timenow[] = 2.1
+    data = c(XYZ, tangents, feid, qpid)
 end
 @test f(c) == LinearAlgebra.I(3)
-@test getcachetime(c) == 2.1
 end
 
 
@@ -2486,16 +2479,48 @@ XYZ, tangents, _ = (reshape([0.0, 0.0], 1, 2), [1.0 0.0; 0.0 1.0], 1)
 
 function fillcache!(cacheout::D,
         XYZ::VecOrMat{T}, tangents::Matrix{T},
-        fe_label; time::T = 0.0) where {D, T}
-    cacheout = D(fe_label)
+        feid, qpid) where {D, T}
+    cacheout = D(feid)
     return cacheout
 end
 for t in (Float32, Float64, ComplexF32, ComplexF64)
     data = t(-42)
      c = DataCache(data, fillcache!)
-    for fe_label in 1:5
-         v = c(XYZ, tangents, fe_label)
-        @test v == t(fe_label)
+    for feid in 1:5
+         v = c(XYZ, tangents, feid, 1)
+        @test v == t(feid)
     end
 end
+end
+
+
+module mmacousticcouplingpanelsm1
+using FinEtools
+using FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
+using LinearAlgebra
+using Test
+
+function __computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    fill!(normalout, 0.0)
+    # We are assuming a surface element here!
+    if (size(tangents,1) == 3) && (size(tangents,2) == 2)# surface in three dimensions
+        normalout[:] .= cross(vec(tangents[:,1]), vec(tangents[:,2]));# outer normal to the surface
+    else
+        error("No definition of normal vector");
+    end
+    nn = norm(normalout);
+    if  nn != 0.0 # otherwise return an unnormalized normal
+        normalout ./= nn
+    end
+    return normalout
+end
+
+function test()
+    n = SurfaceNormal(3, __computenormal!)
+    XYZ, tangents, l = (reshape([0.0, 0.0, 0.0], 1, 3), [1.0 0.0; 0.0 1.0; 0.0 0.0], 1)
+    updatenormal!(n, XYZ, tangents, l, 1)
+    true
+
+end
+test()
 end

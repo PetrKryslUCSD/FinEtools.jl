@@ -19,7 +19,8 @@ struct CSys{T<:Number, F<:Function}
     isconstant::Bool
     isidentity::Bool
     updatebuffer!::F # function to update the coordinate system matrix.
-    # `updatebuffer!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)`
+    # Signature: `update!(csmatout::Matrix{T}, XYZ::VecOrMat{T}, tangents::Matrix{T},
+    # feid::IT, qpid::IT) where {T, IT}`
     _csmat::Array{T,2} # the coordinate system matrix (buffer); see
 end
 
@@ -32,14 +33,16 @@ rotation matrix is given.
 
 The function signature:
 ```
-update!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+update!(csmatout::Matrix{T}, XYZ::VecOrMat{T}, tangents::Matrix{T},
+    feid::IT, qpid::IT) where {T, IT}
 ```
 where
 - `csmatout`= output matrix buffer, of size `(sdim, mdim)`
 - `XYZ`= location  in physical coordinates,
 - `tangents`= tangent vector matrix, tangents to the parametric coordinate
   curves  in the element,
-- `fe_label`= finite element label.
+- `feid`= finite element identifier;
+- `qpid`= quadrature point identifier.
 """
 function CSys(sdim, mdim, computecsmat::F) where {F<:Function}
     csmat = fill(zero(Float64), sdim, mdim) # Allocate buffer, in preparation for the first call
@@ -56,14 +59,16 @@ rotation matrix of type `T` is given.
 - `z` = zero value,
 - The `computecsmat` function signature:
     ```
-    update!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+    update!(csmatout::Matrix{T}, XYZ::VecOrMat{T}, tangents::Matrix{T},
+        feid::IT, qpid::IT) where {T, IT}
     ```
     where
-    - `csmatout`= output matrix buffer, of size `(sdim, mdim)`
-    - `XYZ`= location  in physical coordinates,
+    - `csmatout`= output matrix buffer, of size `(sdim, mdim)`;
+    - `XYZ`= location  in physical coordinates;
     - `tangents`= tangent vector matrix, tangents to the parametric coordinate
-      curves  in the element,
-    - `fe_label`= finite element label.
+      curves  in the element;
+    - `feid`= finite element identifier;
+    - `qpid`= quadrature point identifier.
 """
 function CSys(sdim, mdim, z::T, computecsmat::F) where {T<:Number, F<:Function}
     csmat = fill(z, sdim, mdim) # Allocate buffer, in preparation for the first call
@@ -80,7 +85,7 @@ function CSys(csmat::Matrix{T}) where {T}
         csmatout::Matrix{T},
         XYZ::Matrix{T},
         tangents::Matrix{T},
-        fe_label,
+        feid, qpid
     )
         return csmatout # nothing to be done here, the matrix is already in the buffer
     end
@@ -121,8 +126,10 @@ finite elements.
   coordinate system  is being evaluated.
 
 !!! note
-    If  the coordinate system matrix  should be identity, better use the constructor
-    for this specific situation, `CSys(dim)`. That will be much more efficient.
+
+    If  the coordinate system matrix  should be identity, better use the
+    constructor for this specific situation, `CSys(dim)`. That will be much
+    more efficient.
 
 # See also
 `gen_iso_csmat`
@@ -131,31 +138,32 @@ function CSys(sdim::IT, mdim::IT) where {IT}
     csmat = fill(zero(Float64), sdim, mdim) # Allocate buffer, prepare for the first call
     function updatebuffer!(
         csmatout::Matrix{T},
-        XYZ::Matrix{T},
+        XYZ::VecOrMat{T},
         tangents::Matrix{T},
-        fe_label,
+        feid, qpid
     ) where {T}
-        gen_iso_csmat!(csmatout, XYZ, tangents, fe_label)
+        gen_iso_csmat!(csmatout, XYZ, tangents, feid, qpid)
         return csmatout
     end
     return CSys(false, false, updatebuffer!, csmat)
 end
 
 """
-    updatecsmat!(self::CSys, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T}
+    updatecsmat!(self::CSys, XYZ::Matrix{T}, tangents::Matrix{T},
+        feid::IT, qpid::IT) where {T, IT}
 
 Update the coordinate system orientation matrix.
 
 The  coordinate system matrix is updated based upon the location `XYZ` of the
 evaluation point, and possibly on the Jacobian matrix `tangents` within the
 element in which the coordinate system matrix is evaluated,  or perhaps on the
-label `fe_label` of the finite element.
+identifier `feid` of the finite element and/or the quadrature point identifier.
 
-After this function returns, the coordinate system matrix can be retrieved
-from the buffer as `self.csmat`.
+After this function returns, the coordinate system matrix can be read in the
+buffer as `self.csmat`.
 """
-function updatecsmat!(self::CSys, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T}
-    self.updatebuffer!(self._csmat, XYZ, tangents, fe_label)
+function updatecsmat!(self::CSys, XYZ::Matrix{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {T, IT}
+    self.updatebuffer!(self._csmat, XYZ, tangents, feid, qpid)
     return self._csmat
 end
 
@@ -171,7 +179,7 @@ function csmat(self::CSys)
 end
 
 """
-    gen_iso_csmat!(csmatout::Matrix{T}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T}
+    gen_iso_csmat!(csmatout::Matrix{T}, XYZ::Matrix{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {T, IT}
 
 Compute the coordinate system  for an isotropic material using information
 available  by looking at the coordinate curves of isoparametric finite
@@ -180,7 +188,8 @@ elements.
 - `XYZ`= location  in physical coordinates,
 - `tangents`= tangent vector matrix, tangents to the parametric coordinate
   curves  in the element,
-- `fe_label`= finite element label.
+- `feid`= finite element identifier;
+- `qpid` = quadrature point identifier.
 
 The basic assumption here is that the material is isotropic, and
 therefore the choice of the material directions does not really matter as
@@ -198,9 +207,9 @@ tangent vectors.
 
 This *cannot* be reliably used to produce consistent stresses because each
 quadrature point gets a local coordinate system which depends on the
-orientation of the element.
+orientation of the element, in general different from the neighboring elements.
 """
-function gen_iso_csmat!(csmatout::Matrix{T}, XYZ::Matrix{T}, tangents::Matrix{T}, fe_label) where {T}
+function gen_iso_csmat!(csmatout::Matrix{T}, XYZ::Matrix{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {T, IT}
     sdim, mdim = size(tangents)
     if sdim == mdim # finite element embedded in space of the same dimension
         copyto!(csmatout, [i == j ? one(T) : zero(T) for i in 1:sdim, j in 1:sdim])

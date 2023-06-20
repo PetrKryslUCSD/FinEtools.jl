@@ -4,13 +4,6 @@ using Test
     include("test_basics.jl")
 end
 
-@testset "Meshing" begin
-    include("test_meshing.jl")
-end
-@testset "Meshing 2" begin
-    include("test_meshing_2.jl")
-end
-
 @testset "Miscellaneous" begin
     include("test_miscellaneous.jl")
 end
@@ -20,6 +13,13 @@ end
 
 @testset "Matrix ops" begin
     include("test_matrix_multiplication.jl")
+end
+
+@testset "Meshing" begin
+    include("test_meshing.jl")
+end
+@testset "Meshing 2" begin
+    include("test_meshing_2.jl")
 end
 
 @testset "Forms" begin

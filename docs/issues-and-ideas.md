@@ -1313,3 +1313,6 @@ _test()
 
 end # module
 
+-- Updating of coordinate systems. updatecsmat!() perhaps should receive the id
+   of the finite element instead of its label?
+   
