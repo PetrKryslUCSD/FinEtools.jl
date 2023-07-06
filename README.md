@@ -30,8 +30,7 @@ The package supports application packages, for instance:
 - 12/27/2022: Added T4 and T10 cylinder meshing routines.
 - 11/03/2022: Added extraction of outer surface of solid.
 - 06/29/2022: Reconfigured documentation.
-- 06/15/2022: Added point partitioning.
-- 06/15/2022: Added dual connection matrix implementation.
+- 06/15/2022: Added point partitioning. Added dual connection matrix implementation.
 - 05/03/2022: Updated project to Julia 1.7.2: Julia 1.6 is not supported from version 5.4.0 on.
 - 01/26/2022: Added assembler for sparse diagonal matrices (such as the mass
   matrix for explicit finite element methods).
