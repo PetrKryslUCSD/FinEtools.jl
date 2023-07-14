@@ -321,7 +321,7 @@ function add_nnt_ut_only!(Ke::Matrix{T}, N::Matrix{T}, Jac_w_coeff::T) where {T<
 end
 
 """
-    add_n1n2t_ut_only!(Ke::Matrix{T}, N1::Matrix{T}, N2::Matrix{T}, Jac_w_coeff::T) where {T<:Number}
+    add_n1n2t!(Ke::Matrix{T}, N1::Matrix{T}, N2::Matrix{T}, Jac_w_coeff::T) where {T<:Number}
 
 Add the product  `N1*(N2'*(coeff*(Jac*w(j)))`, to the matrix `Ke`.
 
@@ -331,7 +331,7 @@ matrices `N1` and `N2` have a single column each.
 The matrix `Ke` is modified.  The matrix `N1` and `N2` are  not modified inside
 this function.
 """
-function add_n1n2t_ut_only!(Ke::Matrix{T}, N1::VecOrMat{T}, N2::VecOrMat{T}, Jac_w_coeff::T) where {T<:Number}
+function add_n1n2t!(Ke::Matrix{T}, N1::VecOrMat{T}, N2::VecOrMat{T}, Jac_w_coeff::T) where {T<:Number}
     @assert length(N1) == size(Ke, 1)
     @assert length(N2) == size(Ke, 2)
     @inbounds for nx in 1:size(Ke, 2)

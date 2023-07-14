@@ -3094,25 +3094,25 @@ end
 module mmuln1n2t001
 using LinearAlgebra
 using FinEtools
-using FinEtools.MatrixUtilityModule: add_n1n2t_ut_only!
+using FinEtools.MatrixUtilityModule: add_n1n2t!
 using Test
 function test()
     Ke = zeros(5, 7)
     N1 = rand(5, 1)
     N2 = rand(7, 1)
     Jac_w_coeff = 100.0
-    add_n1n2t_ut_only!(Ke, N1, N2, Jac_w_coeff)
+    add_n1n2t!(Ke, N1, N2, Jac_w_coeff)
     @test norm(Ke - vec(N1) * vec(N2)' * Jac_w_coeff) / Jac_w_coeff < 1e-3
     Ke .= 0.0
-    add_n1n2t_ut_only!(Ke, vec(N1), N2, Jac_w_coeff)
+    add_n1n2t!(Ke, vec(N1), N2, Jac_w_coeff)
     @test norm(Ke - vec(N1) * vec(N2)' * Jac_w_coeff) / Jac_w_coeff < 1e-3
     Ke .= 0.0
-    add_n1n2t_ut_only!(Ke, vec(N1), vec(N2), Jac_w_coeff)
+    add_n1n2t!(Ke, vec(N1), vec(N2), Jac_w_coeff)
     @test norm(Ke - vec(N1) * vec(N2)' * Jac_w_coeff) / Jac_w_coeff < 1e-3
     N1 = rand(1, 5)
     N2 = rand(1, 7)
     Ke .= 0.0
-    add_n1n2t_ut_only!(Ke, vec(N1), vec(N2), Jac_w_coeff)
+    add_n1n2t!(Ke, vec(N1), vec(N2), Jac_w_coeff)
     @test norm(Ke - vec(N1) * vec(N2)' * Jac_w_coeff) / Jac_w_coeff < 1e-3
     true
 end
