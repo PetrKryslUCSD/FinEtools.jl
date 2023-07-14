@@ -320,6 +320,29 @@ function add_nnt_ut_only!(Ke::Matrix{T}, N::Matrix{T}, Jac_w_coeff::T) where {T<
     return true
 end
 
+"""
+    add_n1n2t_ut_only!(Ke::Matrix{T}, N1::Matrix{T}, N2::Matrix{T}, Jac_w_coeff::T) where {T<:Number}
+
+Add the product  `N1*(N2'*(coeff*(Jac*w(j)))`, to the matrix `Ke`.
+
+The matrix `Ke` is assumed to be suitably initialized. The
+matrices `N1` and `N2` have a single column each.
+
+The matrix `Ke` is modified.  The matrix `N1` and `N2` are  not modified inside
+this function.
+"""
+function add_n1n2t_ut_only!(Ke::Matrix{T}, N1::VecOrMat{T}, N2::VecOrMat{T}, Jac_w_coeff::T) where {T<:Number}
+    @assert length(N1) == size(Ke, 1)
+    @assert length(N2) == size(Ke, 2)
+    @inbounds for nx in 1:size(Ke, 2)
+        a = (Jac_w_coeff) * N2[nx]
+        @inbounds for mx in 1:size(Ke, 1) # only the upper triangle
+            Ke[mx, nx] += N1[mx] * a
+        end
+    end
+    return true
+end
+
 function add_nnt_ut_only!(Ke::Matrix{T}, N::Vector{T}, Jac_w_coeff::T) where {T}
     return add_nnt_ut_only!(Ke, reshape(N, length(N), 1), Jac_w_coeff)
 end
