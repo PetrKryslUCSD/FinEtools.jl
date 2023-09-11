@@ -3119,3 +3119,19 @@ end
 test()
 nothing
 end
+
+module mphunm2a
+using FinEtools
+using Test
+function test()
+   t1 = 0.333 * u"kg/m^3"
+   t2 = 333 * u"kg/m^3" / 1000
+   @test abs(t1 - t2) / abs(t1) < 1.0e-6
+   t1 = 0.333 * u"MPa"
+   t2 = 333 * u"Pa" * 1000
+   @test abs(t1 - t2) / abs(t1) < 1.0e-6
+   @test abs(phun("mm")  - u"mm")  < 1.0e-6
+   true
+end
+test()
+end

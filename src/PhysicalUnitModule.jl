@@ -322,5 +322,17 @@ function phun(str::String; system_of_units = :SI, base_time_units = :SEC, output
     return val
 end
 
+"""
+    macro u_str(s)
+
+Enable evaluation of physical units in the form
+```
+2.1 * u"GPa"
+```
+"""
+macro u_str(s)
+    esc(phun(s))
+end
+
 
 end

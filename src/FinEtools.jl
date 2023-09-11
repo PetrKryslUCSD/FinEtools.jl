@@ -31,9 +31,9 @@ using .BoxModule:
 # Exported: methods for manipulating and testing boxes
 export inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap, intersectboxes
 
-using .PhysicalUnitModule: phun
+using .PhysicalUnitModule: phun, @u_str
 # Exported: function for evaluating physical units
-export phun
+export phun, @u_str
 
 using .RotationUtilModule: rotmat3!, rotmat3, skewmat!, cross3!, cross2
 # Exported: functions for 3D rotation matrix computation, skew symmetric matrix computation,  in-place  cross product of 3-vectors, and  cross product of 2-vectors
