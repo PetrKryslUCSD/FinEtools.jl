@@ -68,7 +68,7 @@ abstract type AbstractFEMM end
 """
     FEMMBase{S<:AbstractFESet, F<:Function} <: AbstractFEMM
 
-Class for base finite element modeling machine.
+Type for base finite element modeling machine.
 """
 mutable struct FEMMBase{ID<:IntegDomain} <: AbstractFEMM
     integdomain::ID # domain data
