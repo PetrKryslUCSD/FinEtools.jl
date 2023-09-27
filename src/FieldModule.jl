@@ -183,9 +183,9 @@ function gathersysvec!(self::F,
         N = nfreedofs(self)
         (upto == N) || error("Vector needs to be of length equal to $N")
         for j in 1:dim
-        for i in 1:nents
+            for i in 1:nents
                 en = self.dofnums[i, j]
-                if en <= nfreedofs(self)
+                if 1 <= en <= nfreedofs(self)
                     vec[en] = self.values[i, j]
                 end
             end
@@ -197,7 +197,9 @@ function gathersysvec!(self::F,
             for j in 1:dim
                 for i in 1:nents
                     en = self.dofnums[i, j]
-                    vec[en] = self.values[i, j]
+                    if 1 <= en <= nalldofs(self)
+                        vec[en] = self.values[i, j]
+                    end
                 end
             end
         else
