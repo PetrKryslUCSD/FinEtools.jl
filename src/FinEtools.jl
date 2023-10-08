@@ -17,6 +17,8 @@ include("allmodules.jl")
 ###########################################################################
 # General facilities
 ###########################################################################
+using FinEtools.FTypesModule: FDataDict
+export FDataDict
 
 using .DataCacheModule: DataCache
 # Exported: vector-cache type and methods to invoke the update callback
