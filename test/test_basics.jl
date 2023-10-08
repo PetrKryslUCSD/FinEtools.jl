@@ -315,7 +315,7 @@ function test()
         0.8320502943378436 0.5547001962252293 0.0
         0.0 0.0 1.0
     ]
-    # function compute!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, feid::FInt)
+    # function compute!(csmatout, XYZ, tangents, feid)
     #     # Cylindrical coordinate system
     #     xyz = XYZ[:] .- center
     #     xyz[3] = 0.0
@@ -346,7 +346,7 @@ function test()
     XYZ = reshape([0.2, 0.3, 0.4], 1, 3)
     tangents = rand(3, 3)
     rfcsmat = Matrix(1.0 * I, 3, 3)
-    # function compute!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, feid::FInt)
+    # function compute!(csmatout, XYZ, tangents, feid)
     #     # Cylindrical coordinate system
     #     xyz = XYZ[:] .- center
     #     xyz[3] = 0.0
@@ -442,59 +442,59 @@ using Test
 function test()
     let
         N = 8
-        Ke::FFltMat, gradN::FFltMat, mult::FFlt = fill(0.0, N, N), rand(N, 2), 3.0
-        add_mggt_ut_only!(Ke::FFltMat, gradN::FFltMat, mult::FFlt)
-        complete_lt!(Ke::FFltMat)
+        Ke, gradN, mult = fill(0.0, N, N), rand(N, 2), 3.0
+        add_mggt_ut_only!(Ke, gradN, mult)
+        complete_lt!(Ke)
         @test norm(Ke - (mult .* (gradN * gradN'))) / norm(Ke) <= 1.0e-9
     end
 
 
     let
         N = 8
-        Ke::FFltMat, gradN::FFltMat, Jac_w::FFlt = fill(0.0, N, N), rand(N, 3), 0.33
-        kappa_bar::FFltMat = rand(3, 3)
+        Ke, gradN, Jac_w = fill(0.0, N, N), rand(N, 3), 0.33
+        kappa_bar = rand(3, 3)
         kappa_bar = kappa_bar + kappa_bar'
-        kappa_bargradNT::FFltMat = fill(0.0, 3, N)
+        kappa_bargradNT = fill(0.0, 3, N)
         add_gkgt_ut_only!(
-            Ke::FFltMat,
-            gradN::FFltMat,
-            Jac_w::FFlt,
-            kappa_bar::FFltMat,
-            kappa_bargradNT::FFltMat,
+            Ke,
+            gradN,
+            Jac_w,
+            kappa_bar,
+            kappa_bargradNT,
         )
-        complete_lt!(Ke::FFltMat)
+        complete_lt!(Ke)
         @test norm(Ke - (Jac_w .* (gradN * kappa_bar * gradN'))) / norm(Ke) <= 1.0e-9
     end
 
 
     let
         N = 12
-        Ke::FFltMat, B::FFltMat, Jac_w::FFlt = fill(0.0, N, N), rand(3, N), 0.33
-        D::FFltMat = rand(3, 3)
+        Ke, B, Jac_w = fill(0.0, N, N), rand(3, N), 0.33
+        D = rand(3, 3)
         D = D + D'
-        DB::FFltMat = fill(0.0, 3, N)
-        add_btdb_ut_only!(Ke::FFltMat, B::FFltMat, Jac_w::FFlt, D::FFltMat, DB::FFltMat)
-        complete_lt!(Ke::FFltMat)
+        DB = fill(0.0, 3, N)
+        add_btdb_ut_only!(Ke, B, Jac_w, D, DB)
+        complete_lt!(Ke)
         @test norm(Ke - (Jac_w .* (B' * D * B))) / norm(Ke) <= 1.0e-9
     end
 
 
     let
         N = 16
-        Fe::FFltVec, B::FFltMat, coefficient::FFlt, sigma::FFltVec =
+        Fe, B, coefficient, sigma =
             fill(0.0, N), rand(3, N), 0.33, rand(3)
-        D::FFltMat = rand(3, 3)
+        D = rand(3, 3)
         D = D + D'
-        add_btsigma!(Fe::FFltVec, B::FFltMat, coefficient::FFlt, sigma::FFltVec)
+        add_btsigma!(Fe, B, coefficient, sigma)
         @test norm(Fe - (coefficient * (B' * sigma))) / norm(Fe) <= 1.0e-9
     end
 
 
     let
         M = 21
-        Ke::FFltMat, Nn::FFltMat, Jac_w_coeff::FFlt = fill(0.0, M, M), rand(M, 1), 0.533
-        add_nnt_ut_only!(Ke::FMat{FFlt}, Nn::FFltMat, Jac_w_coeff::FFlt)
-        complete_lt!(Ke::FFltMat)
+        Ke, Nn, Jac_w_coeff = fill(0.0, M, M), rand(M, 1), 0.533
+        add_nnt_ut_only!(Ke, Nn, Jac_w_coeff)
+        complete_lt!(Ke)
         @test norm(Ke - ((Nn * Nn') * (Jac_w_coeff))) / norm(Ke) <= 1.0e-9
     end
 
@@ -583,10 +583,10 @@ using FinEtools.MeshExportModule: VTK
 using LinearAlgebra
 using Test
 function test()
-    rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol =
+    rin, rex, nr, nc, Angl, orientation::Symbol =
         100.0, 200.0, 3, 6, pi / 3, :a
     fens, fes =
-        T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol)
+        T3annulus(rin, rex, nr, nc, Angl, orientation::Symbol)
     # File = "mesh.vtk"
     # VTK.vtkexportmesh(File, fens, fes)
     geom = NodalField(fens.xyz)
@@ -1082,7 +1082,7 @@ function test()
     gradN, gradNparams, redJ =
         fill(0.0, nodesperelem(fes), 2), bfundpar(fes, [0.57, 0.57]), Matrix(1.0 * I, 2, 2)
 
-    gradN!(fes, gradN::FFltMat, gradNparams::FFltMat, redJ::FFltMat)
+    gradN!(fes, gradN, gradNparams, redJ)
     @test norm(
         gradN - [
             -0.10750000000000001 -0.10750000000000001
@@ -1115,7 +1115,7 @@ function test()
     bfundpar(fes, [0.57, 0.57, -0.57]),
     Matrix(1.0 * I, 3, 3)
 
-    gradN!(fes, gradN::FFltMat, gradNparams::FFltMat, redJ::FFltMat)
+    gradN!(fes, gradN, gradNparams, redJ)
     # @show gradN
     @test norm(
         gradN - [
@@ -1184,14 +1184,14 @@ using Test
 function test()
     ndimensions = 2
     tangents, feid, qpid = reshape([1.0; 1.0], 2, 1), 0, 0
-    n = SurfaceNormal(ndimensions::FInt)
-    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, feid::FInt, qpid)
+    n = SurfaceNormal(ndimensions)
+    normal = updatenormal!(n, [0.0 0.0 0.0], tangents, feid, qpid)
     @test norm(normal - [0.7071067811865475, -0.7071067811865475]) <= 1.0e-5
 
     ndimensions = 3
     tangents, feid = reshape([1.0 0.0; 1.0 0.0; 0.0 1.0], 3, 2), 0
-    n = SurfaceNormal(ndimensions::FInt)
-    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, feid::FInt, qpid)
+    n = SurfaceNormal(ndimensions)
+    normal = updatenormal!(n, [0.0 0.0 0.0], tangents, feid, qpid)
     @test norm(normal - [0.7071067811865475, -0.7071067811865475, 0.0]) <= 1.0e-5
     true
 end
@@ -2500,7 +2500,7 @@ using FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 using LinearAlgebra
 using Test
 
-function __computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+function __computenormal!(normalout, XYZ, tangents, feid, qpid)
     fill!(normalout, 0.0)
     # We are assuming a surface element here!
     if (size(tangents,1) == 3) && (size(tangents,2) == 2)# surface in three dimensions

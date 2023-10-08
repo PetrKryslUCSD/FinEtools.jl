@@ -17,10 +17,6 @@ include("allmodules.jl")
 ###########################################################################
 # General facilities
 ###########################################################################
-using .FTypesModule:
-    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-# Exported: basic numerical types, type of data dictionary
-export FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 
 using .DataCacheModule: DataCache
 # Exported: vector-cache type and methods to invoke the update callback

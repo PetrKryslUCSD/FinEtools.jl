@@ -1317,3 +1317,6 @@ end # module
    of the finite element instead of its label?
    Done. Also the quadrature point id.
    
+-- The delegation mechanism needs to be described. 09/29/23
+
+-- The finite element model machine documentation needs to be refreshed. 09/29/23

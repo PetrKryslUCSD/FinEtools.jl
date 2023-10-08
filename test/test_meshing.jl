@@ -2418,9 +2418,9 @@ module mpointmm1
 using FinEtools
 using Test
 function test()
-    x::FFltMat = [i == j ? one(FFlt) : zero(FFlt) for i in 1:4, j in 1:3]
+    x = [i == j ? one(Float64) : zero(Float64) for i in 1:4, j in 1:3]
     fes = FESetP1(reshape([1 2 4 3], 4, 1))
-    pt::FFltVec = x[4, :]
+    pt = x[4, :]
     pc, success = map2parametric(fes, reshape(x[4, :], 1, 3), pt)
     @test success
     @test pc[1] == 00.0
@@ -3542,7 +3542,7 @@ using FinEtools
 using FinEtools.MeshExportModule
 using Test
 function test()
-    Radius::FFlt, Length::FFlt, nperradius, nL = 1.0, 2.0, 7, 9
+    Radius, Length, nperradius, nL = 1.0, 2.0, 7, 9
 
     fens, fes = H8cylindern(Radius, Length, nperradius, nL)
 
@@ -3562,7 +3562,7 @@ using FinEtools
 using FinEtools.MeshExportModule
 using Test
 function test()
-    Radius::FFlt, Length::FFlt, nperradius, nL = 1.0, 2.0, 17, 3
+    Radius, Length, nperradius, nL = 1.0, 2.0, 17, 3
 
     fens, fes = H8cylindern(Radius, Length, nperradius, nL)
 
@@ -4271,7 +4271,7 @@ using FinEtools
 using Test
 function test()
     img = fill(1, 30, 20, 10)
-    fens, fes = T4voximg(img, FFlt[1.0, 1.1, 1.3], [1])
+    fens, fes = T4voximg(img, Float64[1.0, 1.1, 1.3], [1])
     @test count(fes) == 30 * 20 * 10 * 5
     true
 end
@@ -4309,10 +4309,10 @@ using FinEtools
 using FinEtools.MeshExportModule: VTK
 using Test
 function test()
-    rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol =
+    rin, rex, nr, nc, Angl, orientation::Symbol =
         100.0, 200.0, 3, 6, pi / 3, :a
     fens, fes =
-        T6annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol)
+        T6annulus(rin, rex, nr, nc, Angl, orientation::Symbol)
     # @show count(fens), count(fes)
     @test (count(fens), count(fes)) == (91, 36)
     fens.xyz = xyz3(fens)
@@ -4331,10 +4331,10 @@ using FinEtools
 using FinEtools.MeshExportModule: VTK
 using Test
 function test()
-    rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol =
+    rin, rex, nr, nc, Angl, orientation::Symbol =
         100.0, 200.0, 3, 6, pi / 3, :a
     fens, fes =
-        T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol)
+        T3annulus(rin, rex, nr, nc, Angl, orientation::Symbol)
     # @show count(fens), count(fes)
     @test (count(fens), count(fes)) == (28, 36)
     fens.xyz = xyz3(fens)
@@ -4353,10 +4353,10 @@ using FinEtools
 using FinEtools.MeshExportModule: VTK
 using Test
 function test()
-    rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol =
+    rin, rex, nr, nc, Angl, orientation::Symbol =
         100.0, 200.0, 3, 6, pi / 3, :a
     fens, fes =
-        T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol)
+        T3annulus(rin, rex, nr, nc, Angl, orientation::Symbol)
     fens, fes = T3refine(fens, fes)
     # @show count(fens), count(fes)
     @test (count(fens), count(fes)) == (91, 144)
@@ -4426,7 +4426,7 @@ using FinEtools.MeshExportModule: VTK
 using Test
 function test()
     img = fill(1, 30, 20, 10)
-    fens, fes = H8voximg(img, FFlt[1.0, 1.1, 1.3], [1])
+    fens, fes = H8voximg(img, Float64[1.0, 1.1, 1.3], [1])
     @test (count(fens), count(fes)) == (7161, 6000)
     # File = "mesh.vtk"
     # VTK.vtkexportmesh(File, fens, fes)
@@ -4470,10 +4470,10 @@ using FinEtools
 using FinEtools.MeshExportModule: VTK
 using Test
 function test()
-    rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol =
+    rin, rex, nr, nc, Angl, orientation::Symbol =
         100.0, 200.0, 13, 16, pi / 3, :a
     fens, fes =
-        T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol)
+        T3annulus(rin, rex, nr, nc, Angl, orientation::Symbol)
     d = (fens.xyz[:, 1] .^ 2 + fens.xyz[:, 2] .^ 2)
     File = "mesh.vtk"
     # Export of multiple scalar fields
@@ -4491,10 +4491,10 @@ using FinEtools
 using FinEtools.MeshExportModule: STL
 using Test
 function test()
-    rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol =
+    rin, rex, nr, nc, Angl, orientation::Symbol =
         1.0, 2.0, 7, 16, pi / 3, :a
     fens, fes =
-        T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol)
+        T3annulus(rin, rex, nr, nc, Angl, orientation::Symbol)
     fens.xyz = xyz3(fens)
     filename = "mesh.stl"
     e = STLExporter(filename::AbstractString)
@@ -4519,10 +4519,10 @@ using FinEtools
 using FinEtools.MeshExportModule: VTK
 using Test
 function test()
-    rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol =
+    rin, rex, nr, nc, Angl, orientation::Symbol =
         100.0, 200.0, 13, 16, pi / 3, :a
     fens, fes =
-        T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol)
+        T3annulus(rin, rex, nr, nc, Angl, orientation::Symbol)
     d = (fens.xyz[:, 1] .^ 2 + fens.xyz[:, 2] .^ 2)
     File = "mesh.vtk"
     # Export of multiple scalar fields
@@ -4545,10 +4545,10 @@ using FinEtools
 using FinEtools.MeshExportModule: VTK
 using Test
 function test()
-    rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol =
+    rin, rex, nr, nc, Angl, orientation::Symbol =
         100.0, 200.0, 3, 6, pi / 3, :a
     fens, fes =
-        T3annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol)
+        T3annulus(rin, rex, nr, nc, Angl, orientation::Symbol)
     fens.xyz = xyz3(fens)
     d = (fens.xyz[:, 1] .^ 2 + fens.xyz[:, 2] .^ 2)
     File = "mesh.vtk"
@@ -4775,7 +4775,7 @@ module mtetvt1
 using FinEtools
 using FinEtools.MeshTetrahedronModule: tetv
 using Test
-function reftetv(X::FFltMat)
+function reftetv(X)
     local one6th = 1.0 / 6
     # @assert size(X, 1) == 4
     # @assert size(X, 2) == 3
@@ -4830,25 +4830,25 @@ using FinEtools
 using FinEtools.MeshExportModule: VTK
 using Test
 function test()
-    xradius::FFlt,
-    yradius::FFlt,
-    L::FFlt,
-    H::FFlt,
-    T::FFlt,
-    nL::FInt,
-    nH::FInt,
-    nW::FInt,
-    nT::FInt = 0.3, 0.45, 0.9, 0.8, 0.1, 5, 4, 3, 2
+    xradius,
+    yradius,
+    L,
+    H,
+    T,
+    nL,
+    nH,
+    nW,
+    nT = 0.3, 0.45, 0.9, 0.8, 0.1, 5, 4, 3, 2
     fens, fes = H8elliphole(
-        xradius::FFlt,
-        yradius::FFlt,
-        L::FFlt,
-        H::FFlt,
-        T::FFlt,
-        nL::FInt,
-        nH::FInt,
-        nW::FInt,
-        nT::FInt,
+        xradius,
+        yradius,
+        L,
+        H,
+        T,
+        nL,
+        nH,
+        nW,
+        nT,
     )
     # @show count(fens), count(fes)
     @test (count(fens), count(fes)) == (120, 54)
@@ -4932,9 +4932,9 @@ using FinEtools
 using FinEtools.MeshExportModule: VTK
 using Test
 function test()
-    rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt, orientation::Symbol =
+    rin, rex, nr, nc, Angl, orientation::Symbol =
         100.0, 200.0, 13, 16, pi / 3, :a
-    fens, fes = Q8annulus(rin::FFlt, rex::FFlt, nr::FInt, nc::FInt, Angl::FFlt)
+    fens, fes = Q8annulus(rin, rex, nr, nc, Angl)
     d = (fens.xyz[:, 1] .^ 2 + fens.xyz[:, 2] .^ 2)
     File = "mesh.vtk"
     # Export of multiple scalar fields

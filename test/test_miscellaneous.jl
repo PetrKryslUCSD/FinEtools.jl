@@ -850,7 +850,7 @@ function test()
     fens, fes = L2block(L, nl)
     fens.xyz = xyz3(fens)
     fens.xyz[2, 3] += L / 2
-    csmatout = zeros(FFlt, 3, 1)
+    csmatout = zeros(Float64, 3, 1)
     gradNparams = FESetModule.bfundpar(fes, vec([0.0]))
     J = transpose(fens.xyz) * gradNparams
     CSysModule.gen_iso_csmat!(csmatout, mean(fens.xyz, dims = 1), J, 0, 0)
@@ -879,7 +879,7 @@ function test()
     fens.xyz[2, 3] += L / 2
     File = "mesh.vtk"
     MeshExportModule.VTK.vtkexportmesh(File, fens, fes)
-    csmatout = zeros(FFlt, 3, 2)
+    csmatout = zeros(Float64, 3, 2)
     gradNparams = FESetModule.bfundpar(fes, vec([0.0 0.0]))
     J = zeros(3, 2)
     for i in eachindex(fes.conn[1])
@@ -1297,7 +1297,7 @@ function test()
         0.6324
         0.0975
     ]
-    x0 = fill(zero(FFlt), 6)
+    x0 = fill(zero(Float64), 6)
     maxiter = 20
     x = conjugategradient(A, b, x0, maxiter)
 end
@@ -2037,7 +2037,7 @@ function test()
     tangents = reshape([0.0, 1.0], 2, 1)
     feid = 0; qpid = 1
     c = DataCache([10.0])
-    c(XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    c(XYZ, tangents, feid, qpid)
     @test c._cache == [10.0]
 end
 end
@@ -2051,11 +2051,11 @@ function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
     feid = 0; qpid = 1
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
+    setvector!(v, XYZ, tangents, feid, qpid) = begin
         v .= [10.0]
     end
-    c = DataCache(FFlt[1], setvector!)
-    c(XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    c = DataCache(Float64[1], setvector!)
+    c(XYZ, tangents, feid, qpid)
     @test c._cache == [10.0]
 end
 end
@@ -2070,7 +2070,7 @@ function test()
     tangents = reshape([0.0, 1.0], 2, 1)
     feid = 0; qpid = 1
     t = Ref(0.0)
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
+    setvector!(v, XYZ, tangents, feid, qpid) = begin
         if t[] < 5.0
             v .= [10.0]
         else
@@ -2081,11 +2081,11 @@ function test()
 
 
 
-    c = DataCache(FFlt[1], (cacheout, XYZ, tangents, feid, qpid) -> setvector!(cacheout, XYZ, tangents, feid, qpid))
-    c(XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    c = DataCache(Float64[1], (cacheout, XYZ, tangents, feid, qpid) -> setvector!(cacheout, XYZ, tangents, feid, qpid))
+    c(XYZ, tangents, feid, qpid)
     @test c._cache == [10.0]
     t[] = 6.0
-    c(XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    c(XYZ, tangents, feid, qpid)
     @test c._cache == [0.0]
 end
 end
@@ -2099,12 +2099,12 @@ function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
     feid = 0; qpid = 1
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
+    setvector!(v, XYZ, tangents, feid, qpid) = begin
         v .= [10.0]
         return v
     end
-    c = DataCache(FFlt[1], setvector!)
-    c(XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    c = DataCache(Float64[1], setvector!)
+    c(XYZ, tangents, feid, qpid)
     @test c._cache == [10.0]
 end
 end
@@ -2120,7 +2120,7 @@ function test()
     feid = 0; qpid = 1
     vector = [10.0]
     fi = ForceIntensity(vector)
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    v = updateforce!(fi, XYZ, tangents, feid, qpid)
     @test v == [10.0]
 end
 end
@@ -2134,12 +2134,12 @@ function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
     feid = 0; qpid = 1
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
+    setvector!(v, XYZ, tangents, feid, qpid) = begin
         v .= [10.0]
     end
     vector = [10.0]
-    fi = ForceIntensity(FFlt, length(vector), setvector!)
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    fi = ForceIntensity(Float64, length(vector), setvector!)
+    v = updateforce!(fi, XYZ, tangents, feid, qpid)
     @test v == [10.0]
 end
 end
@@ -2154,7 +2154,7 @@ function test()
     tangents = reshape([0.0, 1.0], 2, 1)
     feid = 0; qpid = 1
     t = Ref(0.0)
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
+    setvector!(v, XYZ, tangents, feid, qpid) = begin
         if t[] < 5.0
             v .= [10.0]
         else
@@ -2164,12 +2164,12 @@ function test()
     end
     vector = [10.0]
     t[] = 0.0
-    fi = ForceIntensity(FFlt, length(vector), (out, XYZ, tangents, feid, qpid) -> setvector!(out, XYZ, tangents, feid, qpid))
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    fi = ForceIntensity(Float64, length(vector), (out, XYZ, tangents, feid, qpid) -> setvector!(out, XYZ, tangents, feid, qpid))
+    v = updateforce!(fi, XYZ, tangents, feid, qpid)
     @test v == [10.0]
     t[] = 6.0
-    fi = ForceIntensity(FFlt, length(vector), (out, XYZ, tangents, feid, q) -> setvector!(out, XYZ, tangents, feid, qpid))
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    fi = ForceIntensity(Float64, length(vector), (out, XYZ, tangents, feid, q) -> setvector!(out, XYZ, tangents, feid, qpid))
+    v = updateforce!(fi, XYZ, tangents, feid, qpid)
     @test v == [0.0]
 end
 end
@@ -2183,15 +2183,15 @@ function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
     feid = 0; qpid = 1
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
+    setvector!(v, XYZ, tangents, feid, qpid) = begin
         v .= [10.0]
         return v
     end
     vector = [10.0]
-    fi = ForceIntensity(FFlt, length(vector), setvector!)
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    fi = ForceIntensity(Float64, length(vector), setvector!)
+    v = updateforce!(fi, XYZ, tangents, feid, qpid)
     @test v == [10.0]
-    v = updateforce!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    v = updateforce!(fi, XYZ, tangents, feid, qpid)
     @test v == [10.0]
 end
 end
@@ -2207,7 +2207,7 @@ function test()
     feid = 0; qpid = 1
     vector = [10.0, -3.0]
     fi = SurfaceNormal(vector)
-    v = updatenormal!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    v = updatenormal!(fi, XYZ, tangents, feid, qpid)
     @test v == [10.0, -3.0]
 end
 end
@@ -2221,11 +2221,11 @@ function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
     feid = 0; qpid = 1
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
+    setvector!(v, XYZ, tangents, feid, qpid) = begin
         v .= [10.0, -3.13]
     end
     fi = SurfaceNormal(2, setvector!)
-    v = updatenormal!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    v = updatenormal!(fi, XYZ, tangents, feid, qpid)
     @test v == [10.0, -3.13]
 end
 end
@@ -2240,7 +2240,7 @@ function test()
     tangents = reshape([-1.0, 1.0], 2, 1)
     feid = 0; qpid = 1
     fi = SurfaceNormal(2)
-    v = updatenormal!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    v = updatenormal!(fi, XYZ, tangents, feid, qpid)
     @test v == [0.7071067811865475, 0.7071067811865475]
 end
 end
@@ -2254,11 +2254,11 @@ function test()
     XYZ = reshape([0.0, 0.0], 2, 1)
     tangents = reshape([0.0, 1.0], 2, 1)
     feid = 0; qpid = 1
-    setvector!(v, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid) = begin
+    setvector!(v, XYZ, tangents, feid, qpid) = begin
         v .= [10.0, -3.13]
     end
-    fi = SurfaceNormal(2, zero(FFlt), setvector!)
-    v = updatenormal!(fi, XYZ::FFltMat, tangents::FFltMat, feid::FInt, qpid)
+    fi = SurfaceNormal(2, zero(Float64), setvector!)
+    v = updatenormal!(fi, XYZ, tangents, feid, qpid)
     @test v == [10.0, -3.13]
 end
 end
@@ -2625,25 +2625,29 @@ th = 7.0
 f(x) = cos(0.93 * pi * x[1] / Lx) + sin(1.7 * pi * x[2] / Ly)
 g(x) = -cos(0.93 * pi * x[1] / Lx) + 2 * sin(1.7 * pi * x[2] / Ly)
 
+mutable struct FEMMAdhocBase{ID<:IntegDomain} <: AbstractFEMM
+    integdomain::ID # domain data
+end
+
 function inspectintegpoints(
-    self::FEMM,
-    geom::NodalField{FFlt},
-    u::NodalField{FFlt},
-    dT::NodalField{FFlt},
-    felist::FIntVec,
+    self::FEMMAdhocBase,
+    geom::NodalField{Float64},
+    u::NodalField{Float64},
+    dT::NodalField{Float64},
+    felist,
     inspector::F,
     idat,
     quantity = :Cauchy;
     context...,
-) where {FEMM<:FEMMBase,F<:Function}
+) where {F<:Function}
     fes = self.integdomain.fes
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     nne = nodesperelem(fes)
     sdim = ndofs(geom)   # number of space dimensions
     mdim = manifdim(fes) # manifold dimension of the element
-    ecoords = fill(zero(FFlt), nne, ndofs(geom)) # array of Element coordinates
-    loc = fill(zero(FFlt), 1, sdim) # buffer
-    J = fill(zero(FFlt), sdim, mdim) # buffer
+    ecoords = fill(zero(Float64), nne, ndofs(geom)) # array of Element coordinates
+    loc = fill(zero(Float64), 1, sdim) # buffer
+    J = fill(zero(Float64), sdim, mdim) # buffer
     for ilist in eachindex(felist) # Loop over elements
         i = felist[ilist]
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
@@ -2659,7 +2663,7 @@ end
 function test()
 
     fens, fes = Q4block(Lx, Ly, nx, ny) # Mesh
-    femm = FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
+    femm = FEMMAdhocBase(IntegDomain(fes, GaussRule(2, 2), th))
     geom = NodalField(fens.xyz)
     u = NodalField(0.0 .* fens.xyz)
     dT = NodalField(fill(0.0, count(fens), 1))
@@ -2706,25 +2710,29 @@ th = 7.0
 f(x) = cos(0.93 * pi * x[1] / Lx) + sin(1.7 * pi * x[2] / Ly)
 g(x) = -cos(0.93 * pi * x[1] / Lx) + 2 * sin(1.7 * pi * x[2] / Ly)
 
+mutable struct FEMMAdhocBase{ID<:IntegDomain} <: AbstractFEMM
+    integdomain::ID # domain data
+end
+
 function inspectintegpoints(
-    self::FEMM,
-    geom::NodalField{FFlt},
-    u::NodalField{FFlt},
-    dT::NodalField{FFlt},
-    felist::FIntVec,
+    self::FEMMAdhocBase,
+    geom::NodalField{Float64},
+    u::NodalField{Float64},
+    dT::NodalField{Float64},
+    felist,
     inspector::F,
     idat,
     quantity = :Cauchy;
     context...,
-) where {FEMM<:FEMMBase,F<:Function}
+) where {F<:Function}
     fes = self.integdomain.fes
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     nne = nodesperelem(fes)
     sdim = ndofs(geom)   # number of space dimensions
     mdim = manifdim(fes) # manifold dimension of the element
-    ecoords = fill(zero(FFlt), nne, ndofs(geom)) # array of Element coordinates
-    loc = fill(zero(FFlt), 1, sdim) # buffer
-    J = fill(zero(FFlt), sdim, mdim) # buffer
+    ecoords = fill(zero(Float64), nne, ndofs(geom)) # array of Element coordinates
+    loc = fill(zero(Float64), 1, sdim) # buffer
+    J = fill(zero(Float64), sdim, mdim) # buffer
     for ilist in eachindex(felist) # Loop over elements
         i = felist[ilist]
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
@@ -2740,7 +2748,7 @@ end
 function test()
 
     fens, fes = Q4block(Lx, Ly, nx, ny) # Mesh
-    femm = FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
+    femm = FEMMAdhocBase(IntegDomain(fes, GaussRule(2, 2), th))
     geom = NodalField(fens.xyz)
     u = NodalField(0.0 .* fens.xyz)
     dT = NodalField(fill(0.0, count(fens), 1))
@@ -2779,14 +2787,14 @@ using Test
 function test()
     ndimensions = 2
     tangents, feid, qpid = reshape([1.0; 1.0], 2, 1), 0, 0
-    n = SurfaceNormal(ndimensions::FInt)
-    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, feid::FInt, qpid)
+    n = SurfaceNormal(ndimensions)
+    normal = updatenormal!(n, [0.0 0.0 0.0], tangents, feid, qpid)
     @test norm(normal - [0.7071067811865475, -0.7071067811865475]) <= 1.0e-5
 
     ndimensions = 3
     tangents, feid = reshape([1.0 0.0; 1.0 0.0; 0.0 1.0], 3, 2), 0
-    n = SurfaceNormal(ndimensions::FInt)
-    normal = updatenormal!(n, [0.0 0.0 0.0], tangents::FFltMat, feid::FInt, qpid)
+    n = SurfaceNormal(ndimensions)
+    normal = updatenormal!(n, [0.0 0.0 0.0], tangents, feid, qpid)
     @test norm(normal - [0.7071067811865475, -0.7071067811865475, 0.0]) <= 1.0e-5
     true
 end
@@ -2811,25 +2819,29 @@ th = 7.0
 f(x) = cos(0.93 * pi * x[1] / Lx) + sin(1.7 * pi * x[2] / Ly)
 g(x) = -cos(0.93 * pi * x[1] / Lx) + 2 * sin(1.7 * pi * x[2] / Ly)
 
+mutable struct FEMMAdhocBase{ID<:IntegDomain} <: AbstractFEMM
+    integdomain::ID # domain data
+end
+
 function inspectintegpoints(
-    self::FEMM,
-    geom::NodalField{FFlt},
-    u::NodalField{FFlt},
-    dT::NodalField{FFlt},
-    felist::FIntVec,
+    self::FEMMAdhocBase,
+    geom::NodalField{Float64},
+    u::NodalField{Float64},
+    dT::NodalField{Float64},
+    felist,
     inspector::F,
     idat,
     quantity = :Cauchy;
     context...,
-) where {FEMM<:FEMMBase,F<:Function}
+) where {F<:Function}
     fes = self.integdomain.fes
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     nne = nodesperelem(fes)
     sdim = ndofs(geom)   # number of space dimensions
     mdim = manifdim(fes) # manifold dimension of the element
-    ecoords = fill(zero(FFlt), nne, ndofs(geom)) # array of Element coordinates
-    loc = fill(zero(FFlt), 1, sdim) # buffer
-    J = fill(zero(FFlt), sdim, mdim) # buffer
+    ecoords = fill(zero(Float64), nne, ndofs(geom)) # array of Element coordinates
+    loc = fill(zero(Float64), 1, sdim) # buffer
+    J = fill(zero(Float64), sdim, mdim) # buffer
     for ilist in eachindex(felist) # Loop over elements
         i = felist[ilist]
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
@@ -2845,7 +2857,7 @@ end
 function test()
 
     fens, fes = Q4block(Lx, Ly, nx, ny) # Mesh
-    femm = FEMMBase(IntegDomain(fes, GaussRule(2, 2), th))
+    femm = FEMMAdhocBase(IntegDomain(fes, GaussRule(2, 2), th))
     geom = NodalField(fens.xyz)
     u = NodalField(0.0 .* fens.xyz)
     dT = NodalField(fill(0.0, count(fens), 1))
@@ -2895,13 +2907,14 @@ using DelimitedFiles
 using SparseArrays
 using FinEtools
 using FinEtools.MatrixUtilityModule: export_sparse, import_sparse
+using LinearAlgebra
 using Test
 function test()
     N = 10
     A = sprand(N, N, 0.1)
     export_sparse("A.txt", A)
     B = import_sparse("A.txt")
-    @test (A - B) == spzeros(size(B)...)
+    @test maximum(abs.(A[:] - B[:]))  < 1.0e-5
     try
         rm("A.txt")
     catch
@@ -3135,3 +3148,24 @@ function test()
 end
 test()
 end
+
+# struct T
+# end
+
+# f(a::T) = "Main"
+
+# module M1
+# import Main: T, f
+# f(a::T) = "M1"
+# end
+
+# module M2
+# import Main: T, f
+# f(a::T) = "M2"
+# end
+
+# using .M1
+# using .M2
+
+# M1.f(T())
+# M2.f(T())

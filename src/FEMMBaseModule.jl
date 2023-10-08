@@ -94,7 +94,7 @@ function finite_elements(self::AbstractFEMM)
 end
 
 """
-    associategeometry!(self::AbstractFEMM, geom::NodalField{FT}) where {FT}
+    associategeometry!(self::AbstractFEMM, geom::NodalField{GFT}) where {GFT}
 
 Associate geometry field with the FEMM.
 
@@ -108,44 +108,44 @@ routine is not consistent with the one for which `associategeometry!()`
 was called before, `associategeometry!()` needs to be called with
 the new geometry field.
 """
-function associategeometry!(self::AbstractFEMM, geom::NodalField{FT}) where {FT}
+function associategeometry!(self::AbstractFEMM, geom::NodalField{GFT}) where {GFT}
     return self # default is no-op
 end
 
 """
     inspectintegpoints(
         self::FEMM,
-        geom::NodalField{FT},
+        geom::NodalField{GFT},
         felist::AbstractVector{IT},
         inspector::F,
         idat,
         quantity = :Cauchy;
         context...,
-    ) where {FEMM<:AbstractFEMM, FT, IT, F<:Function}
+    ) where {FEMM<:AbstractFEMM, GFT, IT, F<:Function}
 
 Inspect integration points.
 """
 function inspectintegpoints(
     self::FEMM,
-    geom::NodalField{FT},
+    geom::NodalField{GFT},
     felist::AbstractVector{IT},
     inspector::F,
     idat,
     quantity = :Cauchy;
     context...,
-) where {FEMM<:AbstractFEMM,FT,IT,F<:Function}
+) where {FEMM<:AbstractFEMM, GFT, IT, F<:Function}
     return idat # default is no-op
 end
 
 """
     integratefieldfunction(
         self::AbstractFEMM,
-        geom::NodalField{FT},
+        geom::NodalField{GFT},
         afield::FL,
         fh::F;
         initial::R,
         m = -1,
-    ) where {FT, FL<:NodalField{T}, T, F<:Function, R}
+    ) where {GFT, T, FL<:NodalField{T}, F<:Function,R}
 
 Integrate a nodal-field function over the discrete manifold.
 
@@ -161,12 +161,12 @@ Returns value of type `R`, which is initialized by `initial`.
 """
 function integratefieldfunction(
     self::AbstractFEMM,
-    geom::NodalField{FT},
+    geom::NodalField{GFT},
     afield::FL,
     fh::F;
     initial::R,
     m = -1,
-) where {FT,T,FL<:NodalField{T},F<:Function,R}
+) where {GFT, T, FL<:NodalField{T}, F<:Function,R}
     fes = finite_elements(self)
     if m < 0
         m = manifdim(fes)  # native  manifold dimension
@@ -192,12 +192,12 @@ end
 """
     integratefieldfunction(
         self::AbstractFEMM,
-        geom::NodalField{FT},
+        geom::NodalField{GFT},
         afield::FL,
         fh::F;
         initial::R = zero(FT),
         m = -1,
-    ) where {FT, T, FL<:ElementalField{T}, F<:Function, R}
+    ) where {GFT, T, FL<:ElementalField{T}, F<:Function,R}
 
 Integrate a elemental-field function over the discrete manifold.
 
@@ -212,12 +212,12 @@ Returns value of type `R`, which is initialized by `initial`.
 """
 function integratefieldfunction(
     self::AbstractFEMM,
-    geom::NodalField{FT},
+    geom::NodalField{GFT},
     afield::FL,
     fh::F;
     initial::R = zero(FT),
     m = -1,
-) where {FT,T,FL<:ElementalField{T},F<:Function,R}
+) where {GFT, T, FL<:ElementalField{T}, F<:Function,R}
     fes = finite_elements(self)
     if m < 0
         m = manifdim(fes)  # native  manifold dimension
@@ -241,11 +241,11 @@ end
 """
     integratefunction(
         self::AbstractFEMM,
-        geom::NodalField{FT},
+        geom::NodalField{GFT},
         fh::F;
-        initial::R = zero(FT),
+        initial::R = zero(typeof(fh(zeros(ndofs(geom), 1)))),
         m = -1,
-    ) where {FT, F<:Function, R<:Number}
+    ) where {GFT<:Number, F<:Function, R<:Number}
 
 Integrate a function over the discrete manifold.
 
@@ -261,10 +261,10 @@ measure the static moment with respect to the y- axis, and so on.
 # Example:
 Compute the volume of the mesh and then its center of gravity:
 ```
-V = integratefunction(femm, geom, (x) ->  1.0)
-Sx = integratefunction(femm, geom, (x) ->  x[1])
-Sy = integratefunction(femm, geom, (x) ->  x[2])
-Sz = integratefunction(femm, geom, (x) ->  x[3])
+V = integratefunction(femm, geom, (x) ->  1.0, 0.0)
+Sx = integratefunction(femm, geom, (x) ->  x[1], 0.0)
+Sy = integratefunction(femm, geom, (x) ->  x[2], 0.0)
+Sz = integratefunction(femm, geom, (x) ->  x[3], 0.0)
 CG = vec([Sx Sy Sz]/V)
 ```
 Compute a moment of inertia of the mesh relative to the origin:
@@ -274,11 +274,11 @@ Ixx = integratefunction(femm, geom, (x) ->  x[2]^2 + x[3]^2)
 """
 function integratefunction(
     self::AbstractFEMM,
-    geom::NodalField{FT},
+    geom::NodalField{GFT},
     fh::F;
-    initial::R = zero(FT),
+    initial::R = zero(typeof(fh(zeros(ndofs(geom), 1)))),
     m = -1,
-) where {FT, F<:Function, R<:Number}
+) where {GFT<:Number, F<:Function, R<:Number}
     fes = finite_elements(self)
     if m < 0
         m = manifdim(fes)  # native  manifold dimension
@@ -620,13 +620,13 @@ end
 """
     fieldfromintegpoints(
         self::FEMM,
-        geom::NodalField{FT},
-        u::NodalField{T},
-        dT::NodalField{FT},
+        geom::NodalField{GFT},
+        u::NodalField{UFT},
+        dT::NodalField{TFT},
         quantity::Symbol,
-        component::FIntVec;
+        component::AbstractVector{IT};
         context...,
-    ) where {FEMM<:AbstractFEMM, FT<:Number, T<:Number}
+    ) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, TFT<:Number, IT<:Integer}
 
 Construct nodal field from integration points.
 
@@ -648,17 +648,18 @@ Keyword arguments
 """
 function fieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FT},
-    u::NodalField{T},
-    dT::NodalField{FT},
+    geom::NodalField{GFT},
+    u::NodalField{UFT},
+    dT::NodalField{TFT},
     quantity::Symbol,
     component::AbstractVector{IT};
     context...,
-) where {FEMM<:AbstractFEMM,FT<:Number,T<:Number,IT<:Integer}
+) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, TFT<:Number, IT<:Integer}
     fes = finite_elements(self)
     # Constants
     nne = nodesperelem(fes) # number of nodes for element
     sdim = ndofs(geom)            # number of space dimensions
+    FT = typeof(zero(GFT) + zero(UFT) + zero(TFT))
     nodevalmethod = :invdistance
     reportat = :default
     for apair in pairs(context)
@@ -738,36 +739,36 @@ end
 
 function fieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FT},
-    u::NodalField{T},
-    dT::NodalField{FT},
+    geom::NodalField{GFT},
+    u::NodalField{UFT},
+    dT::NodalField{TFT},
     quantity::Symbol,
     component::IT;
     context...,
-) where {FEMM<:AbstractFEMM,FT<:Number,T<:Number,IT<:Integer}
+) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, TFT<:Number, IT<:Integer}
     return fieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
 end
 
 function fieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FT},
-    u::NodalField{T},
+    geom::NodalField{GFT},
+    u::NodalField{UFT},
     quantity::Symbol,
     component::AbstractVector{IT};
     context...,
-) where {FEMM<:AbstractFEMM,FT<:Number,T<:Number,IT<:Integer}
+) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, IT<:Integer}
     dT = NodalField(zeros(FT, nnodes(geom), 1)) # zero difference in temperature
     return fieldfromintegpoints(self, geom, u, dT, quantity, component; context...)
 end
 
 function fieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FT},
-    u::NodalField{T},
+    geom::NodalField{GFT},
+    u::NodalField{UFT},
     quantity::Symbol,
     component::IT;
     context...,
-) where {FEMM<:AbstractFEMM,FT<:Number,T<:Number,IT<:Integer}
+) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, IT<:Integer}
     dT = NodalField(zeros(FT, nnodes(geom), 1)) # zero difference in temperature
     return fieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
 end
@@ -781,13 +782,13 @@ end
 """
     elemfieldfromintegpoints(
         self::FEMM,
-        geom::NodalField{FT},
-        u::NodalField{T},
-        dT::NodalField{FT},
+        geom::NodalField{GFT},
+        u::NodalField{UFT},
+        dT::NodalField{TFT},
         quantity::Symbol,
-        component::FIntVec;
+        component::AbstractVector{IT};
         context...,
-    ) where {FEMM<:AbstractFEMM, FT<:Number, T<:Number}
+    ) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, TFT<:Number, IT<:Integer}
 
 Construct elemental field from integration points.
 
@@ -805,17 +806,18 @@ Construct elemental field from integration points.
 """
 function elemfieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FT},
-    u::NodalField{T},
-    dT::NodalField{FT},
+    geom::NodalField{GFT},
+    u::NodalField{UFT},
+    dT::NodalField{TFT},
     quantity::Symbol,
     component::AbstractVector{IT};
     context...,
-) where {FEMM<:AbstractFEMM,FT<:Number,T<:Number,IT<:Integer}
+) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, TFT<:Number, IT<:Integer}
     fes = finite_elements(self)
     # Constants
     nne = nodesperelem(fes) # number of nodes for element
     sdim = ndofs(geom)            # number of space dimensions
+    FT = typeof(zero(GFT) + zero(UFT) + zero(TFT))
     # Container of intermediate results
     idat = MeanValueInspectorData(
         zeros(IT, count(fes)),
@@ -859,36 +861,36 @@ end
 
 function elemfieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FT},
-    u::NodalField{T},
-    dT::NodalField{FT},
+    geom::NodalField{GFT},
+    u::NodalField{UFT},
+    dT::NodalField{TFT},
     quantity::Symbol,
     component::IT;
     context...,
-) where {FEMM<:AbstractFEMM,FT<:Number,T<:Number,IT<:Integer}
+) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, TFT<:Number, IT<:Integer}
     return elemfieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
 end
 
 function elemfieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FT},
-    u::NodalField{T},
+    geom::NodalField{GFT},
+    u::NodalField{UFT},
     quantity::Symbol,
     component::IT;
     context...,
-) where {FEMM<:AbstractFEMM,FT<:Number,T<:Number,IT<:Integer}
+) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, IT<:Integer}
     dT = NodalField(zeros(FT, nnodes(geom), 1)) # zero difference in temperature
     return elemfieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
 end
 
 function elemfieldfromintegpoints(
     self::FEMM,
-    geom::NodalField{FT},
-    u::NodalField{T},
+    geom::NodalField{GFT},
+    u::NodalField{UFT},
     quantity::Symbol,
     component::AbstractVector{IT};
     context...,
-) where {FEMM<:AbstractFEMM,FT<:Number,T<:Number,IT<:Integer}
+) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, IT<:Integer}
     dT = NodalField(zeros(FT, nnodes(geom), 1)) # zero difference in temperature
     return elemfieldfromintegpoints(self, geom, u, dT, quantity, component; context...)
 end
