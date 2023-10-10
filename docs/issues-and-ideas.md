@@ -1320,3 +1320,5 @@ end # module
 -- The delegation mechanism needs to be described. 09/29/23
 
 -- The finite element model machine documentation needs to be refreshed. 09/29/23
+
+-- Describe bilinear form and linear form functions.
