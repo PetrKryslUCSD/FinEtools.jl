@@ -757,7 +757,7 @@ function fieldfromintegpoints(
     component::AbstractVector{IT};
     context...,
 ) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, IT<:Integer}
-    dT = NodalField(zeros(FT, nnodes(geom), 1)) # zero difference in temperature
+    dT = NodalField(zeros(GFT, nnodes(geom), 1)) # zero difference in temperature
     return fieldfromintegpoints(self, geom, u, dT, quantity, component; context...)
 end
 
@@ -769,7 +769,7 @@ function fieldfromintegpoints(
     component::IT;
     context...,
 ) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, IT<:Integer}
-    dT = NodalField(zeros(FT, nnodes(geom), 1)) # zero difference in temperature
+    dT = NodalField(zeros(GFT, nnodes(geom), 1)) # zero difference in temperature
     return fieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
 end
 
