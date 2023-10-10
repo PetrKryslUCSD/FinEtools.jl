@@ -1393,7 +1393,7 @@ function solid(self::STLExporter, name::AbstractString = "thesolid")
 end
 
 """
-    facet(self::STLExporter, v1::Vector{FFlt}, v2::Vector{FFlt}, v3::Vector{FFlt})
+    facet(self::STLExporter, v1::Vector{T}, v2::Vector{T}, v3::Vector{T}) where {T}
 
 Write a single facet.
 """
