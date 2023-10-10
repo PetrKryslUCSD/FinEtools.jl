@@ -45,6 +45,7 @@ The FinEtools package consists of many modules which fall into several  categori
 
 - **Integration**: Support for  integration over solids, surfaces, curves, and
     points: `IntegRuleModule`,   `IntegDomainModule`.
+    The package defines some common bilinear and linear forms to aid in constructing weighted residual methods.
 
 - **General algorithms**: `AlgoBaseModule` (algorithms), `FEMMBaseModule`
     (FEM machine for general tasks).
@@ -59,7 +60,7 @@ algebra quantities.
 
 The module `FTypesModule` defines these types, and also defines abbreviations for vectors and matrices with entries of these types.
 
-Some algorithms expect input in the form of the data dictionary, `FDataDict`, and also produce output in this form.
+Some algorithms expect input in the form of a *data dictionary*, `FDataDict`, and also produce output in this form.
 
 
 ## Physical units
@@ -87,6 +88,18 @@ Numbers output by the simulation can also be converted  to appropriate units for
 julia> E/phun("MPa")
 200000.0
 ```
+
+It is also possible to use a macro to define physical units:
+
+```julia
+E = 200*u"GPa";# Young's modulus
+nu = 0.3;# Poisson ratio
+rho = 8000*u"KG*M^-3";# mass density
+L = 10.0*u"M"; # side of the square plate
+t = 0.05*u"M"; # thickness of the square plate
+t / u"mm"
+```
+
 
 ## Mesh entities
 
@@ -261,9 +274,10 @@ The assumption is that a field has one set of degrees of freedom per node or per
 It assumes that concrete  subtypes of the abstract field  have the following data, one row per entity:
 
 - `values::FMat{T}`: Array of the values of the degrees of freedom, one row  for each entity. All the arrays below have the same dimensions as this one.
-- `dofnums::FIntMat`: Array  of the numbers of the free degrees of freedom. If the degree of freedom is fixed (prescribed), the corresponding entry is zero.
+- `dofnums::FIntMat`: Array  of the numbers of the free degrees of freedom. First the free degrees of freedom are numbered, then the fixed (prescribed) degrees of freedom.
 - `is_fixed::Matrix{Bool}`: Array of  Boolean flags,  `true` for fixed  (prescribed) degrees of freedom, `false` otherwise.
 - `fixed_values::FMat{T}`: Array  of the same size and type  as  `values`. Its entries are only relevant  for the fixed (prescribed)  degrees of freedom.
+- `nalldofs::FInt`:  the total number of all degrees of freedom.
 - `nfreedofs::FInt`:  the total number of free degrees of freedom.
 
 The methods defined for the abstract field  include:
@@ -294,9 +308,8 @@ In this case  the  abstract field  is subtyped to a concrete field where the ent
 ### Numbering of the degrees of freedom
 
 The simplest method is at the moment implemented: number all free degrees of freedom, row-by-row and column-by-column,
-starting from 1 up to `f.nfreedofs`, for the field `f`.
-
-The prescribed degrees of freedom are not numbered, and are marked with the "degree of freedom number" 0.
+starting from 1 up to `nfreedofs(f)`, for the field `f`. 
+Then number the prescribed degrees of freedom are numbered, up to `nalldofs(f)`.
 
 There is also a method to supply the numbering of the nodes, perhaps  resulting from the Reverse Cuthill-McKee permutation. This may be useful when using LU or LDLT factorization as the fill-in may be minimized.
 
