@@ -2524,3 +2524,96 @@ function test()
 end
 test()
 end
+
+module mblocked1
+using Test
+using FinEtools.AlgoBaseModule: solve!, matrix_blocked, vector_blocked
+using LinearAlgebra
+
+function test(n, nfreedofs)
+    A = rand(n, n)
+    A_ff = matrix_blocked(A, nfreedofs)[:ff]
+    @test size(A_ff) == (nfreedofs, nfreedofs)
+    A_fd = matrix_blocked(A, nfreedofs)[:fd]
+    @test size(A_fd) == (nfreedofs, n - nfreedofs)
+    A_dd = matrix_blocked(A, nfreedofs)[:dd]
+    @test size(A_dd) == (n - nfreedofs, n - nfreedofs)
+    A_df = matrix_blocked(A, nfreedofs)[:df]
+    @test size(A_df) == (n - nfreedofs, nfreedofs)
+
+    A_ff, A_fd, A_df, A_dd = matrix_blocked(A, nfreedofs)[(:ff, :fd, :df, :dd)]
+    @test size(A_ff) == (nfreedofs, nfreedofs)
+    @test size(A_fd) == (nfreedofs, n - nfreedofs)
+    @test size(A_dd) == (n - nfreedofs, n - nfreedofs)
+    @test size(A_df) == (n - nfreedofs, nfreedofs)
+
+    A_ff, A_fd = matrix_blocked(A, nfreedofs, nfreedofs)[(:ff, :fd)]
+    @test size(A_ff) == (nfreedofs, nfreedofs)
+    @test size(A_fd) == (nfreedofs, n - nfreedofs)
+
+    A_b = matrix_blocked(A, nfreedofs, nfreedofs)
+    @test size(A_b.ff) == (nfreedofs, nfreedofs)
+    @test size(A_b.fd) == (nfreedofs, size(A, 1) - nfreedofs)
+
+    A_ff, A_fd = matrix_blocked(A, nfreedofs)[(:ff, :fd)]
+    @test size(A_ff) == (nfreedofs, nfreedofs)
+    @test size(A_fd) == (nfreedofs, n - nfreedofs)
+
+    A_b = matrix_blocked(A, nfreedofs)
+    @test size(A_b.ff) == (nfreedofs, nfreedofs)
+    @test size(A_b.fd) == (nfreedofs, size(A, 1) - nfreedofs)
+    true
+end
+test(100, 90)
+test(1000, 90)
+test(1000, 999)
+test(1000, 1000)
+test(1000, 0)
+nothing
+end
+
+
+module mblocked2
+using Test
+using FinEtools.AlgoBaseModule: solve!, vector_blocked
+using LinearAlgebra
+
+function test(n, nfreedofs)
+    V = rand(n)
+    V_f = vector_blocked(V, nfreedofs)[:f]
+    @test size(V_f) == (nfreedofs,)
+    V_d = vector_blocked(V, nfreedofs)[:d]
+    @test size(V_d) == (n - nfreedofs,)
+
+    V_f, V_d = vector_blocked(V, nfreedofs)[(:f, :d)]
+    @test size(V_f) == (nfreedofs,)
+    @test size(V_d) == (n - nfreedofs,)
+
+    V_f, V_d = vector_blocked(V, nfreedofs)
+    @test size(V_f) == (nfreedofs,)
+    @test size(V_d) == (n - nfreedofs,)
+
+    V_f, V_d = vector_blocked(V, nfreedofs)[(:f, :d)]
+    @test size(V_f) == (nfreedofs,)
+    @test size(V_d) == (n - nfreedofs,)
+
+    V_b = vector_blocked(V, nfreedofs)
+    @test size(V_b.f) == (nfreedofs,)
+    @test size(V_b.d) == (n - nfreedofs,)
+
+    V_f, V_d = vector_blocked(V, nfreedofs)[(:f, :d)]
+    @test size(V_f) == (nfreedofs,)
+    @test size(V_d) == (n - nfreedofs,)
+
+    V_b = vector_blocked(V, nfreedofs)
+    @test size(V_b.f) == (nfreedofs,)
+    @test size(V_b.d) == (n - nfreedofs,)
+    true
+end
+test(100, 90)
+test(100, 0)
+test(100, 100)
+nothing
+end
+
+

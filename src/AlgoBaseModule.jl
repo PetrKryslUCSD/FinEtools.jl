@@ -524,22 +524,50 @@ function penaltyebc!(K, F, dofnums, prescribedvalues, penfact)
 end
 
 """
-    matrix_blocked(S, row_nfreedofs, col_nfreedofs, which = (:all, ))
+    matrix_blocked(A, row_nfreedofs, col_nfreedofs = row_nfreedofs)
 
 Partition matrix into blocks.
 
 The function returns the sparse matrix as a named tuple of its constituent
-blocks. The matrix is composed out of four blocks
+blocks. The matrix is assumed to be composed of four blocks
 ```
 A = [A_ff A_fd
      A_df A_dd]
 ```
-which are returned as a named tuple `(ff = A_ff, fd = A_fd, df = A_df, dd = A_dd)`.
+
+The named tuple is the value `(ff = A_ff, fd = A_fd, df = A_df, dd = A_dd)`.
+Index into this named tuple to retrieve the parts of the matrix that you want.
+
 Here `f` stands for free, and `d` stands for data (i.e. fixed, prescribed, ...).
-The size of the `ff` block is `row_nfreedofs, col_nfreedofs`.
+The size of the `ff` block is `row_nfreedofs, col_nfreedofs`. Neither one of
+the blocks is square, unless `row_nfreedofs == col_nfreedofs`.
+
+When `row_nfreedofs == col_nfreedofs`, only the number of rows needs to be given.
+
+# Example
+
+Both
+```
+K_ff, K_fd = matrix_blocked(K, nfreedofs, nfreedofs)[(:ff, :fd)]
+K_ff, K_fd = matrix_blocked(K, nfreedofs)[(:ff, :fd)]
+```
+define a square `K_ff` matrix and, in general a rectangular, matrix `K_fd`.
+
+This retrieves all four partitions of the matrix
+```
+A_ff, A_fd, A_df, A_dd = matrix_blocked(A, nfreedofs)[(:ff, :fd, :df, :dd)]
+```
+
+This retrieves the complete named tuple, and then the matrices can be referenced
+with a dot syntax.
+```
+A_b = matrix_blocked(A, nfreedofs, nfreedofs)
+@test size(A_b.ff) == (nfreedofs, nfreedofs)
+@test size(A_b.fd) == (nfreedofs, size(A, 1) - nfreedofs)
+```
 """
-function matrix_blocked(S, row_nfreedofs, col_nfreedofs, which = (:all, ))
-    row_nalldofs, col_nalldofs = size(S)
+function matrix_blocked(A, row_nfreedofs, col_nfreedofs = row_nfreedofs)
+    row_nalldofs, col_nalldofs = size(A)
     row_nfreedofs <= row_nalldofs || error("The ff block has too many rows")
     col_nfreedofs <= col_nalldofs || error("The ff block has too many columns")
     row_f_dim = row_nfreedofs
@@ -547,57 +575,53 @@ function matrix_blocked(S, row_nfreedofs, col_nfreedofs, which = (:all, ))
     col_f_dim = col_nfreedofs
     col_d_dim = (col_nfreedofs < col_nalldofs ? col_nalldofs - col_nfreedofs : 0)
 
-    if (:ff in which  || :all  in which) &&
-        (row_f_dim > 0 &&  col_f_dim > 0)
-        S_ff = S[1:row_nfreedofs, 1:col_nfreedofs]
+    if (row_f_dim > 0 &&  col_f_dim > 0)
+        A_ff = A[1:row_nfreedofs, 1:col_nfreedofs]
     else
-        S_ff = spzeros(row_f_dim, col_f_dim)
+        A_ff = spzeros(row_f_dim, col_f_dim)
     end
-    if (:fd in which  || :all  in which) &&
-        (row_f_dim > 0 && col_d_dim > 0)
-        S_fd = S[1:row_nfreedofs, col_nfreedofs+1:end]
+    if (row_f_dim > 0 && col_d_dim > 0)
+        A_fd = A[1:row_nfreedofs, col_nfreedofs+1:end]
     else
-        S_fd = spzeros(row_f_dim, col_d_dim)
+        A_fd = spzeros(row_f_dim, col_d_dim)
     end
-    if (:df in which  || :all  in which) &&
-        (row_d_dim > 0 && col_f_dim > 0)
-        S_df = S[row_nfreedofs+1:end, 1:col_nfreedofs]
+    if (row_d_dim > 0 && col_f_dim > 0)
+        A_df = A[row_nfreedofs+1:end, 1:col_nfreedofs]
     else
-        S_df = spzeros(row_d_dim, col_f_dim)
+        A_df = spzeros(row_d_dim, col_f_dim)
     end
-    if (:dd in which  || :all  in which) &&
-        (row_d_dim > 0 && col_d_dim > 0)
-        S_dd = S[row_nfreedofs+1:end, col_nfreedofs+1:end]
+    if (row_d_dim > 0 && col_d_dim > 0)
+        A_dd = A[row_nfreedofs+1:end, col_nfreedofs+1:end]
     else
-        S_dd = spzeros(row_d_dim, col_d_dim)
+        A_dd = spzeros(row_d_dim, col_d_dim)
     end
-    return (ff = S_ff, fd = S_fd, df = S_df, dd = S_dd)
+    return (ff = A_ff, fd = A_fd, df = A_df, dd = A_dd)
 end
 
 """
-    vector_blocked(V, row_nfreedofs, which = (:f, ))
+    vector_blocked(V, row_nfreedofs, which = (:all, ))
 
 Partition vector into two pieces.
 
-The vector is composed out of two blocks
+The vector is composed of two blocks
 ```
 V = [V_f
      V_d]
 ```
 which are returned as a named tuple `(f = V_f, d = V_d)`.
 """
-function vector_blocked(V, row_nfreedofs, which = (:all, ))
-    row_nalldofs = length(V)
-    row_nfreedofs <= row_nalldofs || error("The f block has too many rows")
-    row_f_dim = row_nfreedofs
-    row_d_dim = (row_nfreedofs < row_nalldofs ? row_nalldofs - row_nfreedofs : 0)
-    if (:f in which || :all in which) && (row_f_dim > 0)
-        V_f = V[1:row_nfreedofs]
+function vector_blocked(V, nfreedofs)
+    nalldofs = length(V)
+    nfreedofs <= nalldofs || error("The f block has too many rows")
+    row_f_dim = nfreedofs
+    row_d_dim = (nfreedofs < nalldofs ? nalldofs - nfreedofs : 0)
+    if (row_f_dim > 0)
+        V_f = V[1:nfreedofs]
     else
         V_f = eltype(V)[]
     end
-    if (:d in which || :all in which) && (row_d_dim > 0)
-        V_d = V[row_nfreedofs+1:end]
+    if (row_d_dim > 0)
+        V_d = V[nfreedofs+1:end]
     else
         V_d = eltype(V)[]
     end
