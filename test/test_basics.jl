@@ -2527,7 +2527,7 @@ end
 
 module mblocked1
 using Test
-using FinEtools.AlgoBaseModule: solve!, matrix_blocked, vector_blocked
+using FinEtools.AlgoBaseModule: matrix_blocked, vector_blocked
 using LinearAlgebra
 
 function test(n, nfreedofs)
@@ -2575,7 +2575,7 @@ end
 
 module mblocked2
 using Test
-using FinEtools.AlgoBaseModule: solve!, vector_blocked
+using FinEtools.AlgoBaseModule: vector_blocked
 using LinearAlgebra
 
 function test(n, nfreedofs)
@@ -2615,5 +2615,76 @@ test(100, 0)
 test(100, 100)
 nothing
 end
+
+
+module mblocked3
+using Test
+using FinEtools.AlgoBaseModule: solve_blocked, solve_blocked!, vector_blocked, matrix_blocked
+using LinearAlgebra
+
+function test(n, nfreedofs)
+    A = rand(n, n) + I(n)
+    b = rand(n)
+    x = A \ b
+
+    b_b = vector_blocked(b, nfreedofs)
+    x_b = vector_blocked(x, nfreedofs)
+    A_b = matrix_blocked(A, nfreedofs)
+
+    x_f = A_b.ff \ (b_b.f - A_b.fd * x_b.d)
+    b_d = A_b.df * x_f + A_b.dd * x_b.d
+
+    @test norm(x - vcat(x_f, x_b.d)) / norm(x)  < 1.0e-9
+    @test norm(x_f - x_b.f) / norm(x_f)  < 1.0e-9
+    @test norm(b_b.d - b_d) / norm(b_d)  < 1.0e-9
+
+    x_f, b_d  = solve_blocked(A, b, x, nfreedofs)
+
+    @test norm(x - vcat(x_f, x_b.d)) / norm(x)  < 1.0e-9
+    @test norm(x_f - x_b.f) / norm(x_f)  < 1.0e-9
+    @test norm(b_b.d - b_d) / norm(b_d)  < 1.0e-9
+
+    true
+end
+test(10, 9)
+test(100, 9)
+test(1000, 999)
+test(200, 99)
+nothing
+end
+
+module mblocked4
+using Test
+using FinEtools
+using FinEtools.AlgoBaseModule: solve_blocked, solve_blocked!, vector_blocked, matrix_blocked
+using LinearAlgebra
+
+function test(n, nfreed)
+    A = rand(n, n) + 2*I(n)
+    b = rand(n)
+    x = A \ b
+
+    u = NodalField(x)
+    u.is_fixed[nfreed+1:end] .= true
+    numberdofs!(u)
+
+    solve_blocked!(u, A, b)
+
+    x_f = gathersysvec(u, :f)
+    x_b = vector_blocked(x, nfreed)
+
+    @test norm(x_f - x_b.f) / norm(x_f)  < 1.0e-9
+
+    true
+end
+test(10, 9)
+test(100, 9)
+test(1000, 999)
+test(200, 99)
+test(130, 99)
+test(130, 1)
+nothing
+end
+
 
 

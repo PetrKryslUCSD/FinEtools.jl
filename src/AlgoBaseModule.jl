@@ -629,16 +629,30 @@ function vector_blocked(V, nfreedofs)
 end
 
 """
-    solve!(u::F, K::M, F::V) where {F<:AbstractField, M<:AbstractMatrix, V<:AbstractVector}
+    solve_blocked(A::M, b::VB, x::VX, nfreedofs::IT) where {M<:AbstractMatrix, VB<:AbstractVector, VX<:AbstractVector, IT<:Integer}
+
+Solve a blocked system of linear algebraic equations.
+
+b_f and x_d are known, x_f and b_d need to be computed.
+"""
+function solve_blocked(A::M, b::VB, x::VX, nfreedofs::IT) where {M<:AbstractMatrix, VB<:AbstractVector, VX<:AbstractVector, IT<:Integer}
+    A_b = matrix_blocked(A, nfreedofs)
+    b_b = vector_blocked(b, nfreedofs)
+    x_b = vector_blocked(x, nfreedofs)
+    x_f = A_b.ff \ (b_b.f - A_b.fd * x_b.d)
+    b_d = A_b.df * x_f + A_b.dd * x_b.d
+    return x_f, b_d
+end
+
+"""
+    solve_blocked!(u::AF, K::M, F::V) where {AF<:AbstractField, M<:AbstractMatrix, V<:AbstractVector}
 
 Solve a system of linear algebraic equations.
 """
-function solve!(u::U, K::M, F::V) where {U<:AbstractField, M<:AbstractMatrix, V<:AbstractVector}
-    K_ff, K_fd = matrix_blocked(K, nfreedofs(u), nfreedofs(u), (:ff, :fd))[(:ff, :fd)]
-    F_f = vector_blocked(F, nfreedofs(u))[:f]
-    U_d = gathersysvec(u, :d)
-    U_f =  K_ff\(F_f - K_fd * U_d)
-    scattersysvec!(u, U_f)
+function solve_blocked!(u::AF, K::M, F::V) where {AF<:AbstractField, M<:AbstractMatrix, V<:AbstractVector}
+    U = gathersysvec(u, :a)
+    x_f, b_d = solve_blocked(K, F, U, nfreedofs(u))
+    scattersysvec!(u, x_f)
     return u
 end
 
