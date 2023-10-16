@@ -8,6 +8,7 @@ module CSysModule
 __precompile__(true)
 
 import LinearAlgebra: norm, cross
+using ..RotationUtilModule: cross3!
 
 """
     CSys{T<:Number, F<:Function}
@@ -18,7 +19,7 @@ systems, and output coordinate systems, for instance.
 struct CSys{T<:Number, F<:Function}
     isconstant::Bool
     isidentity::Bool
-    updatebuffer!::F # function to update the coordinate system matrix.
+    __updatebuffer!::F # function to update the coordinate system matrix.
     # Signature: `update!(csmatout::Matrix{T}, XYZ::VecOrMat{T}, tangents::Matrix{T},
     # feid::IT, qpid::IT) where {T, IT}`
     _csmat::Array{T,2} # the coordinate system matrix (buffer); see
@@ -43,6 +44,23 @@ where
   curves  in the element,
 - `feid`= finite element identifier;
 - `qpid`= quadrature point identifier.
+
+# Example
+
+```
+# Cylindrical coordinate system: NO ALLOCATIONS WHATSOEVER!
+@views function compute!(csmatout, XYZ, tangents, feid, qpid)
+    center = (0.0, 0.0, 0.0)
+    xyz = (XYZ[1], XYZ[2], XYZ[3])
+    csmatout[:, 1] .= xyz .- center
+    csmatout[3, 1] = 0.0
+    csmatout[:, 1] ./= norm(csmatout[:, 1])
+    csmatout[:, 3] .= (0.0, 0.0, 1.0)
+    cross3!(csmatout[:, 2], csmatout[:, 3], csmatout[:, 1])
+    csmatout[:, 2] ./=  norm(csmatout[:, 2])
+    return csmatout
+end
+```
 """
 function CSys(sdim, mdim, computecsmat::F) where {F<:Function}
     csmat = fill(zero(Float64), sdim, mdim) # Allocate buffer, in preparation for the first call
@@ -69,6 +87,24 @@ rotation matrix of type `T` is given.
       curves  in the element;
     - `feid`= finite element identifier;
     - `qpid`= quadrature point identifier.
+
+
+# Example
+
+```
+# Cylindrical coordinate system: NO ALLOCATIONS WHATSOEVER!
+@views function compute!(csmatout, XYZ, tangents, feid, qpid)
+    center = (0.0, 0.0, 0.0)
+    xyz = (XYZ[1], XYZ[2], XYZ[3])
+    csmatout[:, 1] .= xyz .- center
+    csmatout[3, 1] = 0.0
+    csmatout[:, 1] ./= norm(csmatout[:, 1])
+    csmatout[:, 3] .= (0.0, 0.0, 1.0)
+    cross3!(csmatout[:, 2], csmatout[:, 3], csmatout[:, 1])
+    csmatout[:, 2] ./=  norm(csmatout[:, 2])
+    return csmatout
+end
+```
 """
 function CSys(sdim, mdim, z::T, computecsmat::F) where {T<:Number, F<:Function}
     csmat = fill(z, sdim, mdim) # Allocate buffer, in preparation for the first call
@@ -81,7 +117,7 @@ end
 Construct coordinate system when the rotation matrix is given.
 """
 function CSys(csmat::Matrix{T}) where {T}
-    function updatebuffer!(
+    function __updatebuffer!(
         csmatout::Matrix{T},
         XYZ::Matrix{T},
         tangents::Matrix{T},
@@ -89,7 +125,7 @@ function CSys(csmat::Matrix{T}) where {T}
     )
         return csmatout # nothing to be done here, the matrix is already in the buffer
     end
-    return CSys(true, false, updatebuffer!, deepcopy(csmat))# fill the buffer with the given matrix
+    return CSys(true, false, __updatebuffer!, deepcopy(csmat))# fill the buffer with the given matrix
 end
 
 """
@@ -101,7 +137,15 @@ identity.
 `dim` = is the space dimension.
 """
 function CSys(dim, z::T) where {T}
-    return CSys([i == j ? one(T) : zero(T) for i in 1:dim, j in 1:dim])
+    function __updatebuffer!(
+        csmatout::Matrix{T},
+        XYZ::Matrix{T},
+        tangents::Matrix{T},
+        feid, qpid
+    )
+        return csmatout # nothing to be done here, the matrix is already in the buffer
+    end
+    return CSys(true, true, __updatebuffer!, [i == j ? one(T) : zero(T) for i in 1:dim, j in 1:dim])# identity
 end
 
 """
@@ -127,7 +171,7 @@ finite elements.
 
 !!! note
 
-    If  the coordinate system matrix  should be identity, better use the
+    If  the coordinate system matrix should be identity, better use the
     constructor for this specific situation, `CSys(dim)`. That will be much
     more efficient.
 
@@ -135,17 +179,15 @@ finite elements.
 `gen_iso_csmat`
 """
 function CSys(sdim::IT, mdim::IT) where {IT}
-    csmat = fill(zero(Float64), sdim, mdim) # Allocate buffer, prepare for the first call
-    function updatebuffer!(
+    function __updatebuffer!(
         csmatout::Matrix{T},
         XYZ::VecOrMat{T},
         tangents::Matrix{T},
         feid, qpid
     ) where {T}
-        gen_iso_csmat!(csmatout, XYZ, tangents, feid, qpid)
-        return csmatout
+        return gen_iso_csmat!(csmatout, XYZ, tangents, feid, qpid)
     end
-    return CSys(false, false, updatebuffer!, csmat)
+    return CSys(false, false, __updatebuffer!, fill(zero(Float64), sdim, mdim))
 end
 
 """
@@ -163,7 +205,7 @@ After this function returns, the coordinate system matrix can be read in the
 buffer as `self.csmat`.
 """
 function updatecsmat!(self::CSys, XYZ::Matrix{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {T, IT}
-    self.updatebuffer!(self._csmat, XYZ, tangents, feid, qpid)
+    self.__updatebuffer!(self._csmat, XYZ, tangents, feid, qpid)
     return self._csmat
 end
 
@@ -205,28 +247,33 @@ tangent vectors.
 
 !!! warning
 
-This *cannot* be reliably used to produce consistent stresses because each
-quadrature point gets a local coordinate system which depends on the
-orientation of the element, in general different from the neighboring elements.
+    This *cannot* be reliably used to produce consistent stresses because each
+    quadrature point gets a local coordinate system which depends on the
+    orientation of the element, in general different from the neighboring elements.
 """
-function gen_iso_csmat!(csmatout::Matrix{T}, XYZ::Matrix{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {T, IT}
+@views function gen_iso_csmat!(csmatout::Matrix{T}, XYZ::Matrix{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {T, IT}
     sdim, mdim = size(tangents)
     if sdim == mdim # finite element embedded in space of the same dimension
-        copyto!(csmatout, [i == j ? one(T) : zero(T) for i in 1:sdim, j in 1:sdim])
+        for i in 1:size(csmatout, 1), j in 1:size(csmatout, 2)
+            csmatout[i, j] = (i == j ? one(T) : zero(T))
+        end
     else # lower-dimensional finite element embedded in space of higher dimension
-        @assert 0 < mdim < 3
-        e1 = tangents[:, 1] / norm(tangents[:, 1])
-        if mdim == 1 # curve-like finite element
-            copyto!(csmatout, e1)
-        elseif mdim == 2 # surface-like finite element
-            n = cross(e1, vec(tangents[:, 2] / norm(tangents[:, 2])))
-            e2 = cross(n, e1)
-            e2 = e2 / norm(e2)
-            csmatout[:, 1] = e1
-            csmatout[:, 2] = e2
+        @assert 0 < mdim < sdim
+        @assert 0 < sdim
+        csmatout[:, 1] = tangents[:, 1]
+        csmatout[:, 1] ./= norm(csmatout[:, 1])
+        if mdim == 1 # curve-like finite element in 2d or 3d
+             # all done
+        elseif mdim == 2 # surface-like finite element in 3d
+            e2 = (tangents[1, 2], tangents[2, 2], tangents[3, 2])
+            cross3!(csmatout[:, 2], csmatout[:, 1], e2)
+            e3 = (csmatout[1, 2], csmatout[2, 2], csmatout[3, 2])
+            cross3!(csmatout[:, 2], e3, csmatout[:, 1])
+            csmatout[:, 2] ./= norm(csmatout[:, 2])
         end
     end
     return csmatout
 end
 
-end
+end # module
+

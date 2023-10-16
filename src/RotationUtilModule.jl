@@ -106,6 +106,27 @@ function cross3!(
     return result
 end
 
+"""
+    cross3!(
+        result::AbstractVector{T1},
+        theta::Union{AbstractVector{T2}, Tuple{T2, T2, T2}},
+        v::Union{AbstractVector{T3}, Tuple{T3, T3, T3}}
+    ) where {T1, T2, T3}
+
+Compute the cross product of two vectors in three-space in place.
+"""
+function cross3!(
+    result::AbstractVector{T1},
+    theta::Union{AbstractVector{T2}, Tuple{T2, T2, T2}},
+    v::Union{AbstractVector{T3}, Tuple{T3, T3, T3}}
+) where {T1, T2, T3}
+    @assert (length(theta) == 3) && (length(v) == 3) "Inputs must be 3-vectors"
+    result[1] = -theta[3] * v[2] + theta[2] * v[3]
+    result[2] = theta[3] * v[1] - theta[1] * v[3]
+    result[3] = -theta[2] * v[1] + theta[1] * v[2]
+    return result
+end
+
 
 """
     cross2(theta::AbstractVector{T1}, v::AbstractVector{T2}) where {T1, T2}

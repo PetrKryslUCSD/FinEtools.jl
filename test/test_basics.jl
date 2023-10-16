@@ -2687,4 +2687,47 @@ nothing
 end
 
 
+module mcs002
+using FinEtools
+using LinearAlgebra
+using Test
+
+function doit()
+    XYZ = reshape([0.2, 0.3, 0.4], 1, 3)
+    # isoparametric, tangent to a surface
+    tangents = reshape([1.0, 0.0, 0.0, 1.0, 1.0, 0.0], 3, 2)
+    refc = reshape([1.0, 0.0, 0.0, 0.0, 1.0, 0.0], 3, 2)
+
+    csys = CSys(3, 2)
+    c = updatecsmat!(csys, XYZ, tangents, 0, 0)
+
+    @test norm(c - refc) / norm(c) < 1.0e-6
+    true
+end
+doit()
+nothing
+end
+
+
+module mcs001xxx
+using FinEtools
+using LinearAlgebra
+using Test
+function doit()
+    XYZ = reshape([0.2, 0.3, 0.4], 1, 3)
+    tangents = reshape([1.0, 2.0, 3.0], 3, 1) # isoparametric, tangent to a curve
+    refc = tangents / norm(tangents)
+    csys = CSys(3, 1)
+    @time c = updatecsmat!(csys, XYZ, tangents, 0, 0)
+
+    @info "Test now now"
+    @time c = updatecsmat!(csys, XYZ, tangents, 0, 0)
+    @test norm(c - refc) / norm(c) < 1.0e-6
+
+    true
+end
+doit()
+nothing
+end
+
 
