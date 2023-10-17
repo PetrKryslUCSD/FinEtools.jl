@@ -2731,3 +2731,120 @@ nothing
 end
 
 
+module mbascstypes01
+using FinEtools
+using FinEtools.AlgoBaseModule: fieldnorm
+using LinearAlgebra
+using InteractiveUtils
+using Test
+function test()
+    center = [0.0, 0.0, 0.0]
+    ez = [0.0, 0.0, 1.0]
+    v = rand(3)
+    XYZ = reshape([0.2, 0.3, 0.4], 1, 3)
+    tangents = rand(3, 3)
+    rfcsmat = [
+        0.5547001962252291 -0.8320502943378437 0.0
+        0.8320502943378436 0.5547001962252293 0.0
+        0.0 0.0 1.0
+    ]
+    function compute!(csmatout, XYZ, tangents, feid, qpid)
+        # Cylindrical coordinate system
+        xyz = XYZ[:] .- center
+        xyz[3] = 0.0
+        csmatout[:, 1] = xyz / norm(xyz)
+        cross3!(v, ez, vec(csmatout[:, 1]))
+        csmatout[:, 2] = v / norm(v)
+        csmatout[:, 3] = ez
+        return csmatout
+    end
+
+    csys = CSys(3, 3, compute!)
+    updatecsmat!(csys, XYZ, tangents, 0, 0) #@code_warntype
+
+    csys = CSys(3, 3, zero(Float32), compute!)
+    updatecsmat!(csys, XYZ, tangents, 0, 0) #@code_warntype
+
+    csys = CSys(rfcsmat)
+    updatecsmat!(csys, XYZ, tangents, 0, 0) #@code_warntype
+
+    csys = CSys(3, 0.0)
+    updatecsmat!(csys, XYZ, tangents, 0, 0) #@code_warntype
+
+    csys = CSys(3, zero(Float32))
+    updatecsmat!(csys, Float32.(XYZ), Float32.(tangents), 0, 0) #@code_warntype
+
+    csys = CSys(3)
+    updatecsmat!(csys, XYZ, tangents, 0, 0) #@code_warntype
+
+    csys = CSys(3, 3)
+    updatecsmat!(csys, XYZ, tangents, 0, 0) #@code_warntype
+
+    csys = CSys(3, 2)
+    updatecsmat!(csys, XYZ, tangents, 0, 0) #@code_warntype
+
+    csys = CSys(3, 1)
+    updatecsmat!(csys, XYZ, tangents, 0, 0) #@code_warntype
+
+
+
+    csys = CSys(3, 3, compute!)
+    updatecsmat!(csys, XYZ, tangents, zero(Int), zero(Int32)) #@code_warntype
+
+    csys = CSys(3, 3, zero(Float32), compute!)
+    updatecsmat!(csys, XYZ, tangents, zero(Int), zero(Int32)) #@code_warntype
+
+    csys = CSys(rfcsmat)
+    updatecsmat!(csys, XYZ, tangents, zero(Int), zero(Int32)) #@code_warntype
+
+    csys = CSys(3, 0.0)
+    updatecsmat!(csys, XYZ, tangents, zero(Int), zero(Int32)) #@code_warntype
+
+    csys = CSys(3, zero(Float32))
+    updatecsmat!(csys, Float32.(XYZ), Float32.(tangents), zero(Int), zero(Int32)) #@code_warntype
+
+    csys = CSys(3)
+    updatecsmat!(csys, XYZ, tangents, zero(Int), zero(Int32)) #@code_warntype
+
+    csys = CSys(3, 3)
+    updatecsmat!(csys, XYZ, tangents, zero(Int), zero(Int32)) #@code_warntype
+
+    csys = CSys(3, 2)
+    updatecsmat!(csys, XYZ, tangents, zero(Int), zero(Int32)) #@code_warntype
+
+    csys = CSys(3, 1)
+    updatecsmat!(csys, XYZ, tangents, zero(Int), zero(Int32)) #@code_warntype
+
+
+
+    csys = CSys(3, 3, compute!)
+    updatecsmat!(csys, XYZ, tangents, zero(Int32), zero(Int32)) #@code_warntype
+
+    csys = CSys(3, 3, zero(Float32), compute!)
+    updatecsmat!(csys, XYZ, tangents, zero(Int32), zero(Int32)) #@code_warntype
+
+    csys = CSys(rfcsmat)
+    updatecsmat!(csys, XYZ, tangents, zero(Int32), zero(Int32)) #@code_warntype
+
+    csys = CSys(3, 0.0)
+    updatecsmat!(csys, XYZ, tangents, zero(Int32), zero(Int32)) #@code_warntype
+
+    csys = CSys(3, zero(Float32))
+    updatecsmat!(csys, Float32.(XYZ), Float32.(tangents), zero(Int32), zero(Int32)) #@code_warntype
+
+    csys = CSys(3)
+    updatecsmat!(csys, XYZ, tangents, zero(Int32), zero(Int32)) #@code_warntype
+
+    csys = CSys(3, 3)
+    updatecsmat!(csys, XYZ, tangents, zero(Int32), zero(Int32)) #@code_warntype
+
+    csys = CSys(3, 2)
+    updatecsmat!(csys, XYZ, tangents, zero(Int32), zero(Int32)) #@code_warntype
+
+    csys = CSys(3, 1)
+    updatecsmat!(csys, XYZ, tangents, zero(Int32), zero(Int32)) #@code_warntype
+
+    true
+end
+test()
+end

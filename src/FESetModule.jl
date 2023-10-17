@@ -105,7 +105,7 @@ count(self::T) where {T <: AbstractFESet} = length(self.conn)
 
 Create an iterator for elements.
 """
-eachindex(fes::AbstractFESet) = 1:count(fes)
+eachindex(fes::FES) where {FES<:AbstractFESet}  = 1:count(fes)
 
 """
     delegateof(self::T) where {T<:AbstractFESet} 

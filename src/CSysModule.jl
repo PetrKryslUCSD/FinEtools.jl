@@ -26,7 +26,7 @@ struct CSys{T <: Number, F <: Function}
 end
 
 """
-    CSys(sdim, mdim, computecsmat::F) where {F<:Function}
+    CSys(sdim::IT1, mdim::IT2, computecsmat::F) where {F <: Function, IT1, IT2}
 
 Construct coordinate system when the function to compute the
 rotation matrix is given.
@@ -61,13 +61,13 @@ where
 end
 ```
 """
-function CSys(sdim, mdim, computecsmat::F) where {F <: Function}
-    csmat = fill(zero(Float64), sdim, mdim) # Allocate buffer, in preparation for the first call
+function CSys(sdim::IT1, mdim::IT2, computecsmat::F) where {F <: Function, IT1, IT2}
+    csmat = fill(zero(Float64), sdim, mdim) # Allocate buffer for the first call
     return CSys(false, false, computecsmat, csmat)
 end
 
 """
-    CSys(sdim, mdim, z::T, computecsmat::F) where {T<:Number, F<:Function}
+    CSys(sdim::IT1, mdim::IT2, z::T, computecsmat::F) where {IT1, IT2, T <: Number, F <: Function}
 
 Construct coordinate system when the function to compute the
 rotation matrix of type `T` is given.
@@ -105,7 +105,7 @@ rotation matrix of type `T` is given.
 end
 ```
 """
-function CSys(sdim, mdim, z::T, computecsmat::F) where {T <: Number, F <: Function}
+function CSys(sdim::IT1, mdim::IT2, z::T, computecsmat::F) where {IT1, IT2, T <: Number, F <: Function}
     csmat = fill(z, sdim, mdim) # Allocate buffer, in preparation for the first call
     return CSys(false, false, computecsmat, csmat)
 end
@@ -117,9 +117,9 @@ Construct coordinate system when the rotation matrix is given.
 """
 function CSys(csmat::Matrix{T}) where {T}
     function __updatebuffer!(csmatout::Matrix{T},
-        XYZ::Matrix{T},
+        XYZ::VecOrMat{T},
         tangents::Matrix{T},
-        feid, qpid)
+        feid::IT1, qpid::IT2) where {T, IT1, IT2}
         return csmatout # nothing to be done here, the matrix is already in the buffer
     end
     return CSys(true, false, __updatebuffer!, deepcopy(csmat))# fill the buffer with the given matrix
@@ -133,11 +133,11 @@ identity.
 
 `dim` = is the space dimension.
 """
-function CSys(dim, z::T) where {T}
+function CSys(dim::IT, z::T) where {IT<:Integer, T}
     function __updatebuffer!(csmatout::Matrix{T},
-        XYZ::Matrix{T},
+        XYZ::VecOrMat{T},
         tangents::Matrix{T},
-        feid, qpid)
+        feid::IT1, qpid::IT2) where {T, IT1, IT2}
         return csmatout # nothing to be done here, the matrix is already in the buffer
     end
     return CSys(true,
@@ -158,7 +158,7 @@ function CSys(dim::IT) where {IT}
 end
 
 """
-    CSys(sdim::IT, mdim::IT) where {IT}
+    CSys(sdim::IT1, mdim::IT2) where {IT1<:Integer, IT2<:Integer}
 
 Construct coordinate system for isotropic-material used with isoparametric
 finite elements.
@@ -176,19 +176,22 @@ finite elements.
 # See also
 `gen_iso_csmat`
 """
-function CSys(sdim::IT, mdim::IT) where {IT}
+function CSys(sdim::IT1, mdim::IT2) where {IT1<:Integer, IT2<:Integer}
     function __updatebuffer!(csmatout::Matrix{T},
         XYZ::VecOrMat{T},
         tangents::Matrix{T},
-        feid, qpid) where {T}
+        feid::IT1, qpid::IT2) where {T, IT1, IT2}
         return gen_iso_csmat!(csmatout, XYZ, tangents, feid, qpid)
     end
     return CSys(false, false, __updatebuffer!, fill(zero(Float64), sdim, mdim))
 end
 
 """
-    updatecsmat!(self::CSys, XYZ::Matrix{T}, tangents::Matrix{T},
-        feid::IT, qpid::IT) where {T, IT}
+    updatecsmat!(self::CSys,
+        XYZ::Matrix{T},
+        tangents::Matrix{T},
+        feid::IT1,
+        qpid::IT2) where {T, IT1, IT2}
 
 Update the coordinate system orientation matrix.
 
@@ -203,8 +206,8 @@ buffer as `self.csmat`.
 function updatecsmat!(self::CSys,
     XYZ::Matrix{T},
     tangents::Matrix{T},
-    feid::IT,
-    qpid::IT) where {T, IT}
+    feid::IT1,
+    qpid::IT2) where {T, IT1, IT2}
     self.__updatebuffer!(self._csmat, XYZ, tangents, feid, qpid)
     return self._csmat
 end
@@ -239,8 +242,8 @@ long as they correspond to the dimensionality of the element. For
 instance a one-dimensional element (L2 as an example) may be embedded
 in a three-dimensional space.
 
-This function assumes that it is being called for an mdim-dimensional manifold
-element, which is embedded in a sdim-dimensional Euclidean space. If `mdim ==
+This function assumes that it is being called for an `mdim`-dimensional manifold
+element, which is embedded in a `sdim`-dimensional Euclidean space. If `mdim ==
 sdim`, the coordinate system matrix is the identity; otherwise the local
 coordinate directions are aligned with the linear subspace defined by the
 tangent vectors.
@@ -254,8 +257,8 @@ tangent vectors.
 @views function gen_iso_csmat!(csmatout::Matrix{T},
     XYZ::Matrix{T},
     tangents::Matrix{T},
-    feid::IT,
-    qpid::IT) where {T, IT}
+    feid::IT1,
+    qpid::IT2) where {T, IT1, IT2}
     sdim, mdim = size(tangents)
     if sdim == mdim # finite element embedded in space of the same dimension
         for i in 1:size(csmatout, 1), j in 1:size(csmatout, 2)
