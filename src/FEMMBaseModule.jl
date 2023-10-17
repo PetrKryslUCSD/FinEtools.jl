@@ -56,7 +56,7 @@ using ..AssemblyModule:
     SysvecAssembler
 using ..FENodeToFEMapModule: FENodeToFEMap
 using ..DeforModelRedModule: AbstractDeforModelRed, blmat!, nstressstrain
-
+using InteractiveUtils
 
 """
     AbstractFEMM
@@ -89,7 +89,7 @@ end
 
 Retrieve the finite element set for this FEMM to work on.
 """
-function finite_elements(self::AbstractFEMM)
+function finite_elements(self::FEMM) where {FEMM <: AbstractFEMM}
     self.integdomain.fes
 end
 
