@@ -16,15 +16,14 @@ using ..RotationUtilModule: cross3!
 Type for coordinate system transformations. Used to define material coordinate
 systems, and output coordinate systems, for instance.
 """
-struct CSys{T<:Number, F<:Function}
+struct CSys{T <: Number, F <: Function}
     isconstant::Bool
     isidentity::Bool
     __updatebuffer!::F # function to update the coordinate system matrix.
     # Signature: `update!(csmatout::Matrix{T}, XYZ::VecOrMat{T}, tangents::Matrix{T},
     # feid::IT, qpid::IT) where {T, IT}`
-    _csmat::Array{T,2} # the coordinate system matrix (buffer); see
+    _csmat::Array{T, 2} # the coordinate system matrix (buffer); see
 end
-
 
 """
     CSys(sdim, mdim, computecsmat::F) where {F<:Function}
@@ -62,7 +61,7 @@ where
 end
 ```
 """
-function CSys(sdim, mdim, computecsmat::F) where {F<:Function}
+function CSys(sdim, mdim, computecsmat::F) where {F <: Function}
     csmat = fill(zero(Float64), sdim, mdim) # Allocate buffer, in preparation for the first call
     return CSys(false, false, computecsmat, csmat)
 end
@@ -106,7 +105,7 @@ rotation matrix of type `T` is given.
 end
 ```
 """
-function CSys(sdim, mdim, z::T, computecsmat::F) where {T<:Number, F<:Function}
+function CSys(sdim, mdim, z::T, computecsmat::F) where {T <: Number, F <: Function}
     csmat = fill(z, sdim, mdim) # Allocate buffer, in preparation for the first call
     return CSys(false, false, computecsmat, csmat)
 end
@@ -117,12 +116,10 @@ end
 Construct coordinate system when the rotation matrix is given.
 """
 function CSys(csmat::Matrix{T}) where {T}
-    function __updatebuffer!(
-        csmatout::Matrix{T},
+    function __updatebuffer!(csmatout::Matrix{T},
         XYZ::Matrix{T},
         tangents::Matrix{T},
-        feid, qpid
-    )
+        feid, qpid)
         return csmatout # nothing to be done here, the matrix is already in the buffer
     end
     return CSys(true, false, __updatebuffer!, deepcopy(csmat))# fill the buffer with the given matrix
@@ -137,15 +134,16 @@ identity.
 `dim` = is the space dimension.
 """
 function CSys(dim, z::T) where {T}
-    function __updatebuffer!(
-        csmatout::Matrix{T},
+    function __updatebuffer!(csmatout::Matrix{T},
         XYZ::Matrix{T},
         tangents::Matrix{T},
-        feid, qpid
-    )
+        feid, qpid)
         return csmatout # nothing to be done here, the matrix is already in the buffer
     end
-    return CSys(true, true, __updatebuffer!, [i == j ? one(T) : zero(T) for i in 1:dim, j in 1:dim])# identity
+    return CSys(true,
+        true,
+        __updatebuffer!,
+        [i == j ? one(T) : zero(T) for i in 1:dim, j in 1:dim])# identity
 end
 
 """
@@ -179,12 +177,10 @@ finite elements.
 `gen_iso_csmat`
 """
 function CSys(sdim::IT, mdim::IT) where {IT}
-    function __updatebuffer!(
-        csmatout::Matrix{T},
+    function __updatebuffer!(csmatout::Matrix{T},
         XYZ::VecOrMat{T},
         tangents::Matrix{T},
-        feid, qpid
-    ) where {T}
+        feid, qpid) where {T}
         return gen_iso_csmat!(csmatout, XYZ, tangents, feid, qpid)
     end
     return CSys(false, false, __updatebuffer!, fill(zero(Float64), sdim, mdim))
@@ -204,7 +200,11 @@ identifier `feid` of the finite element and/or the quadrature point identifier.
 After this function returns, the coordinate system matrix can be read in the
 buffer as `self.csmat`.
 """
-function updatecsmat!(self::CSys, XYZ::Matrix{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {T, IT}
+function updatecsmat!(self::CSys,
+    XYZ::Matrix{T},
+    tangents::Matrix{T},
+    feid::IT,
+    qpid::IT) where {T, IT}
     self.__updatebuffer!(self._csmat, XYZ, tangents, feid, qpid)
     return self._csmat
 end
@@ -251,7 +251,11 @@ tangent vectors.
     quadrature point gets a local coordinate system which depends on the
     orientation of the element, in general different from the neighboring elements.
 """
-@views function gen_iso_csmat!(csmatout::Matrix{T}, XYZ::Matrix{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {T, IT}
+@views function gen_iso_csmat!(csmatout::Matrix{T},
+    XYZ::Matrix{T},
+    tangents::Matrix{T},
+    feid::IT,
+    qpid::IT) where {T, IT}
     sdim, mdim = size(tangents)
     if sdim == mdim # finite element embedded in space of the same dimension
         for i in 1:size(csmatout, 1), j in 1:size(csmatout, 2)
@@ -263,7 +267,7 @@ tangent vectors.
         csmatout[:, 1] = tangents[:, 1]
         csmatout[:, 1] ./= norm(csmatout[:, 1])
         if mdim == 1 # curve-like finite element in 2d or 3d
-             # all done
+        # all done
         elseif mdim == 2 # surface-like finite element in 3d
             e2 = (tangents[1, 2], tangents[2, 2], tangents[3, 2])
             cross3!(csmatout[:, 2], csmatout[:, 1], e2)
@@ -276,4 +280,3 @@ tangent vectors.
 end
 
 end # module
-

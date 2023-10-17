@@ -24,13 +24,12 @@ needs to be numbered between `1` and `size(xyz, 1)`.
     The constructor makes a *copy* of the input `xyz` array for safety.
 """
 mutable struct FENodeSet{T}
-    xyz::Array{T,2}
+    xyz::Array{T, 2}
 
     function FENodeSet(xyz::Matrix{T}) where {T}
         return new{T}(deepcopy(xyz)) # Need to make a COPY of the input array!
     end
 end
-
 
 """
     spacedim(self::FENodeSet)

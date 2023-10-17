@@ -25,7 +25,8 @@ using .DataCacheModule: DataCache
 export DataCache
 
 using .BoxModule:
-    inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap, intersectboxes
+    inbox,
+    initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap, intersectboxes
 # Exported: methods for manipulating and testing boxes
 export inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap, intersectboxes
 
@@ -179,7 +180,8 @@ using .MeshUtilModule: linearspace, gradedspace, logspace
 export linearspace, gradedspace, logspace
 
 using .MeshSelectionModule:
-    connectednodes, connectedelems, selectnode, selectelem, findunconnnodes
+    connectednodes,
+    connectedelems, selectnode, selectelem, findunconnnodes
 # Exported: functions to select (find) nodes and elements
 export connectednodes, connectedelems, selectnode, selectelem, findunconnnodes
 
@@ -258,7 +260,8 @@ using .MeshExportModule.CSV: savecsv
 # Exported: simple CSV export
 export savecsv
 using .MeshExportModule.NASTRAN:
-    NASTRANExporter, close, CEND, BEGIN_BULK, ENDDATA, GRID, PSOLID, MAT1, CTETRA
+    NASTRANExporter,
+    close, CEND, BEGIN_BULK, ENDDATA, GRID, PSOLID, MAT1, CTETRA
 # Exported: NASTRAN  export
 export NASTRANExporter, close, CEND, BEGIN_BULK, ENDDATA, GRID, PSOLID, MAT1, CTETRA
 using .MeshExportModule.STL: STLExporter, solid, facet, endsolid
@@ -388,8 +391,12 @@ export IntegDomain,
     Jacobianmdim,
     integrationdata
 
-using .DeforModelRedModule: AbstractDeforModelRed, DeforModelRed1D, DeforModelRed1DStress, DeforModelRed1DStrain, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D, nstressstrain, nthermstrain, stresscomponentmap, blmat!, divmat, vgradmat
-export AbstractDeforModelRed, DeforModelRed1D, DeforModelRed1DStress, DeforModelRed1DStrain, DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D
+using .DeforModelRedModule: AbstractDeforModelRed, DeforModelRed1D, DeforModelRed1DStress,
+    DeforModelRed1DStrain, DeforModelRed2DStrain, DeforModelRed2DStress,
+    DeforModelRed2DAxisymm, DeforModelRed3D, nstressstrain, nthermstrain,
+    stresscomponentmap, blmat!, divmat, vgradmat
+export AbstractDeforModelRed, DeforModelRed1D, DeforModelRed1DStress, DeforModelRed1DStrain,
+    DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D
 export nstressstrain, nthermstrain, stresscomponentmap
 export blmat!, divmat, vgradmat
 

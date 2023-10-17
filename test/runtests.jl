@@ -7,7 +7,7 @@ end
 @testset "Miscellaneous" begin
     include("test_miscellaneous.jl")
 end
-@testset "Miscellaneous 2" begin
+@testset "Miscell. 2" begin
     include("test_miscellaneous2.jl")
 end
 

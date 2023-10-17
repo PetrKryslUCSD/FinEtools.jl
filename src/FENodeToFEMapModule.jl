@@ -39,7 +39,6 @@ struct FENodeToFEMap{IT}
     map::Vector{Vector{IT}}
 end
 
-
 """
     FENodeToFEMap(conn::Vector{NTuple{N, IT}}, nmax::FInt) where {N, IT<:Integer}
 
@@ -53,7 +52,7 @@ Example:
 m = FENodeToFEMap(fes.conn, count(fens))
 ```
 """
-function FENodeToFEMap(conn::Vector{NTuple{N,IT}}, nmax::IT) where {N, IT<:Integer}
+function FENodeToFEMap(conn::Vector{NTuple{N, IT}}, nmax::IT) where {N, IT <: Integer}
     map = Vector{IT}[]
     sizehint!(map, nmax)
     for i in 1:nmax
@@ -76,7 +75,7 @@ Map from finite element nodes to the finite elements connecting them.
 - `conns` = integer array of the connectivities
 - `nmax` = largest possible node number
 """
-function FENodeToFEMap(conns::Matrix{IT}, nmax::IT) where {IT<:Integer}
+function FENodeToFEMap(conns::Matrix{IT}, nmax::IT) where {IT <: Integer}
     map = Vector{IT}[]
     sizehint!(map, nmax)
     for i in 1:nmax
@@ -90,6 +89,5 @@ function FENodeToFEMap(conns::Matrix{IT}, nmax::IT) where {IT<:Integer}
     end
     return FENodeToFEMap(map)
 end
-
 
 end

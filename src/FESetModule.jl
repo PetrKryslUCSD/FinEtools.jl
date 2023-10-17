@@ -55,18 +55,17 @@ abstract type AbstractFESet3Manifold{NODESPERELEM} <: AbstractFESet{NODESPERELEM
 Define the concrete type for a finite element set.
 """
 macro define_FESet(NAME, MANIFOLD, NODESPERELEM)
-    return esc(:(
-        mutable struct $NAME{IT} <: $MANIFOLD{$NODESPERELEM}
-            conn::Array{NTuple{$NODESPERELEM,IT},1};
-            label::Vector{IT};
-            delegateof
-            function $NAME(conn::AbstractArray{IT}) where {IT}
-                self = new{IT}(NTuple{$NODESPERELEM,IT}[], IT[], nothing)
-                self = fromarray!(self, conn)
-                setlabel!(self, 0)
-                return self
-            end
-        end))
+    return esc(:(mutable struct $NAME{IT} <: $MANIFOLD{$NODESPERELEM}
+        conn::Array{NTuple{$NODESPERELEM, IT}, 1}
+        label::Vector{IT}
+        delegateof::Any
+        function $NAME(conn::AbstractArray{IT}) where {IT}
+            self = new{IT}(NTuple{$NODESPERELEM, IT}[], IT[], nothing)
+            self = fromarray!(self, conn)
+            setlabel!(self, 0)
+            return self
+        end
+    end))
 end
 # show(macroexpand(Main, :(@define_FESet FESetT10 AbstractFESet0Manifold 10)))
 
@@ -82,7 +81,7 @@ nodesperelem(fes::AbstractFESet{NODESPERELEM}) where {NODESPERELEM} = NODESPEREL
 
 Provide the number of nodes per element for a given type.
 """
-nodesperelem(::Type{T}) where {NODESPERELEM,T<:AbstractFESet{NODESPERELEM}} = NODESPERELEM
+nodesperelem(::Type{T}) where {NODESPERELEM, T <: AbstractFESet{NODESPERELEM}} = NODESPERELEM
 
 """
     manifdim(me)
@@ -99,7 +98,7 @@ manifdim(me::AbstractFESet3Manifold{NODESPERELEM}) where {NODESPERELEM} = 3
 
 Get the number of individual connectivities in the FE set.
 """
-count(self::T) where {T<:AbstractFESet} = length(self.conn)
+count(self::T) where {T <: AbstractFESet} = length(self.conn)
 
 """
     eachindex(fes::AbstractFESet)
@@ -113,22 +112,22 @@ eachindex(fes::AbstractFESet) = 1:count(fes)
 
 Return the object of which the elements set is a delegate.
 """
-delegateof(self::T) where {T<:AbstractFESet} = self.delegateof
+delegateof(self::T) where {T <: AbstractFESet} = self.delegateof
 
 """
     accepttodelegate(self::T, delegateof) where {T<:AbstractFESet}
 
 Accept to delegate for an object.
 """
-accepttodelegate(self::T, delegateof) where {T<:AbstractFESet} =
-    (self.delegateof = delegateof; self)
+accepttodelegate(self::T, delegateof) where {T <: AbstractFESet} = (self.delegateof = delegateof; self)
 
 """
     fromarray!(self::AbstractFESet{NODESPERELEM}, conn::FIntMat) where {NODESPERELEM}
 
 Set  the connectivity from an integer array.
 """
-function fromarray!(self::AbstractFESet{NODESPERELEM}, conn::AbstractArray) where {NODESPERELEM}
+function fromarray!(self::AbstractFESet{NODESPERELEM},
+    conn::AbstractArray) where {NODESPERELEM}
     @assert size(conn, 2) == NODESPERELEM
     self.conn = fill(tuple(fill(0, NODESPERELEM)...), size(conn, 1))
     for i in eachindex(self.conn)
@@ -160,7 +159,7 @@ end
 
 Get boundary connectivity.
 """
-function boundaryconn(self::T) where {T<:AbstractFESet}
+function boundaryconn(self::T) where {T <: AbstractFESet}
     return privboundaryconn(self)
 end
 
@@ -169,7 +168,7 @@ end
 
 Return the constructor of the type of the boundary finite element.
 """
-function boundaryfe(self::T) where {T<:AbstractFESet}
+function boundaryfe(self::T) where {T <: AbstractFESet}
     return privboundaryfe(self)
 end
 
@@ -181,7 +180,7 @@ Compute the values of the basis functions.
 Compute the values of the basis functions at a given parametric coordinate.
 One basis function per row.
 """
-function bfun(self::ET, param_coords::Vector{T}) where {ET<:AbstractFESet, T}
+function bfun(self::ET, param_coords::Vector{T}) where {ET <: AbstractFESet, T}
     return privbfun(self, param_coords)
 end
 
@@ -194,7 +193,7 @@ Compute the values of the basis function gradients with respect to the
 parametric coordinates at a given parametric coordinate. One basis function
 gradients per row.
 """
-function bfundpar(self::ET, param_coords::Vector{T}) where {ET<:AbstractFESet, T}
+function bfundpar(self::ET, param_coords::Vector{T}) where {ET <: AbstractFESet, T}
     return privbfundpar(self, param_coords)
 end
 
@@ -205,7 +204,7 @@ Set the label of the entire finite elements set.
 
 All elements are labeled with this number.
 """
-function setlabel!(self::ET, val::IT) where {ET<:AbstractFESet, IT}
+function setlabel!(self::ET, val::IT) where {ET <: AbstractFESet, IT}
     self.label = zeros(IT, size(self.conn, 1))
     fill!(self.label, val)
     return self
@@ -216,9 +215,9 @@ end
 
 Set the labels of individual elements.
 """
-function setlabel!(self::ET, val::Vector{IT}) where {ET<:AbstractFESet, IT}
+function setlabel!(self::ET, val::Vector{IT}) where {ET <: AbstractFESet, IT}
     #    Set the label of this set.
-    @assert size(self.conn, 1) == length(val) "Must get one  label per finite element connectivity"
+    @assert size(self.conn, 1)==length(val) "Must get one  label per finite element connectivity"
     self.label = zeros(IT, size(self.conn, 1))
     copyto!(self.label, val)
     return self
@@ -231,7 +230,7 @@ Extract a subset of the finite elements from the given finite element set.
 
 - `L`: an integer vector, tuple, or a range.
 """
-function subset(self::ET, L) where {ET<:AbstractFESet}
+function subset(self::ET, L) where {ET <: AbstractFESet}
     result = deepcopy(self)
     result.conn = deepcopy(self.conn[L])
     result.label = deepcopy(self.label[L])
@@ -243,7 +242,7 @@ end
 
 Concatenate the connectivities of two FE sets.
 """
-function cat(self::ET, other::ET) where {ET<:AbstractFESet}
+function cat(self::ET, other::ET) where {ET <: AbstractFESet}
     @assert nodesperelem(self) == nodesperelem(other)
     result = deepcopy(self)
     result.conn = vcat(self.conn, other.conn)
@@ -260,7 +259,7 @@ Update the connectivity after the IDs of nodes changed.
 _into_ the  `newids` array. After the connectivity was updated
 this will no longer be true!
 """
-function updateconn!(self::ET, newids::Vector{IT}) where {ET<:AbstractFESet, IT}
+function updateconn!(self::ET, newids::Vector{IT}) where {ET <: AbstractFESet, IT}
     conn = connasarray(self)
     for i in axes(conn, 1)
         for j in axes(conn, 2)
@@ -277,11 +276,9 @@ Are given parametric coordinates inside the element parametric domain?
 
 Return a Boolean: is the point inside, true or false?
 """
-function inparametric(
-    self::ET,
+function inparametric(self::ET,
     param_coords::Vector{FT};
-    tolerance = 0.0,
-) where {ET<:AbstractFESet, FT}
+    tolerance = 0.0,) where {ET <: AbstractFESet, FT}
     return privinparametric(self, param_coords, tolerance)
 end
 
@@ -305,13 +302,11 @@ Map a spatial location to parametric coordinates.
 - `pc` = Returns a row array of parametric coordinates if the solution was
   successful, otherwise NaN are returned.
 """
-function map2parametric(
-    self::ET,
+function map2parametric(self::ET,
     x::Matrix{FT},
     pt::Vector{FT};
     tolerance = 0.001,
-    maxiter = 5,
-) where {ET<:AbstractFESet, FT}
+    maxiter = 5,) where {ET <: AbstractFESet, FT}
     sdim = size(x, 2) # number of space dimensions
     mdim = manifdim(self) # manifold dimension of the element
     ppc = zeros(mdim)
@@ -339,7 +334,7 @@ end
 
 Return the parametric coordinates  of the centroid of the element.
 """
-function centroidparametric(self::T) where {T<:AbstractFESet}
+function centroidparametric(self::T) where {T <: AbstractFESet}
     return privcentroidparametric(self)
 end
 
@@ -350,7 +345,7 @@ Evaluate the point Jacobian.
 
 - `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
-function Jacobian(self::ET, J::Matrix{FT}) where {ET<:AbstractFESet0Manifold, FT}
+function Jacobian(self::ET, J::Matrix{FT}) where {ET <: AbstractFESet0Manifold, FT}
     return 1.0
 end
 
@@ -361,9 +356,9 @@ Evaluate the curve Jacobian.
 
 - `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
-function Jacobian(self::ET, J::Matrix{FT}) where {ET<:AbstractFESet1Manifold, FT}
+function Jacobian(self::ET, J::Matrix{FT}) where {ET <: AbstractFESet1Manifold, FT}
     sdim, ntan = size(J)
-    @assert ntan == 1 "Expected number of tangent vectors: 1"
+    @assert ntan==1 "Expected number of tangent vectors: 1"
     return norm(J)
 end
 
@@ -382,12 +377,10 @@ the "reduced" spatial coordinates.
 - `gradNparams`= matrix of gradients with respect to parametric coordinates, one per row
 - `redJ`= reduced Jacobian matrix `redJ=transpose(Rm)*J`
 """
-function gradN!(
-    self::AbstractFESet1Manifold,
+function gradN!(self::AbstractFESet1Manifold,
     gradN::Matrix{FT},
     gradNparams::Matrix{FT},
-    redJ::Matrix{FT},
-) where {FT}
+    redJ::Matrix{FT}) where {FT}
     for r in axes(gradN, 1)
         gradN[r, 1] = gradNparams[r, 1] / redJ[1, 1]
     end
@@ -400,9 +393,9 @@ Evaluate the curve Jacobian.
 
 - `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
-function Jacobian(self::ET, J::Matrix{FT}) where {ET<:AbstractFESet2Manifold, FT}
+function Jacobian(self::ET, J::Matrix{FT}) where {ET <: AbstractFESet2Manifold, FT}
     sdim, ntan = size(J)
-    @assert ntan == 2 "Expected number of tangent vectors: 2"
+    @assert ntan==2 "Expected number of tangent vectors: 2"
     if sdim == ntan
         @inbounds Jac = (J[1, 1] * J[2, 2] - J[2, 1] * J[1, 2])
         return Jac # is det(J);% Compute the Jacobian
@@ -427,12 +420,10 @@ the "reduced" spatial coordinates.
   one per row
 - `redJ`= reduced Jacobian matrix `redJ=transpose(Rm)*J`
 """
-function gradN!(
-    self::AbstractFESet2Manifold,
+function gradN!(self::AbstractFESet2Manifold,
     gradN::Matrix{FT},
     gradNparams::Matrix{FT},
-    redJ::Matrix{FT},
-) where {FT}
+    redJ::Matrix{FT}) where {FT}
     # This is the unrolled version that avoids allocation of a 3 x 3 matrix
     invdet = 1.0 / (redJ[1, 1] * redJ[2, 2] - redJ[1, 2] * redJ[2, 1])
     invredJ11 = (redJ[2, 2]) * invdet
@@ -453,16 +444,14 @@ Evaluate the volume Jacobian.
 
 `J` = Jacobian matrix, columns are tangent to parametric coordinates curves.
 """
-function Jacobian(self::ET, J::Matrix{FT}) where {ET<:AbstractFESet3Manifold, FT}
+function Jacobian(self::ET, J::Matrix{FT}) where {ET <: AbstractFESet3Manifold, FT}
     sdim, ntan = size(J)
-    @assert (ntan == 3) && (sdim == 3) "Expected number of tangent vectors: 3"
+    @assert (ntan == 3)&&(sdim == 3) "Expected number of tangent vectors: 3"
     #Jac = det(J);# Compute the Jacobian
     # The unrolled version
-    return (
-        J[1, 1] * (J[2, 2] * J[3, 3] - J[3, 2] * J[2, 3]) -
-        J[1, 2] * (J[2, 1] * J[3, 3] - J[2, 3] * J[3, 1]) +
-        J[1, 3] * (J[2, 1] * J[3, 2] - J[2, 2] * J[3, 1])
-    )
+    return (J[1, 1] * (J[2, 2] * J[3, 3] - J[3, 2] * J[2, 3]) -
+            J[1, 2] * (J[2, 1] * J[3, 3] - J[2, 3] * J[3, 1]) +
+            J[1, 3] * (J[2, 1] * J[3, 2] - J[2, 2] * J[3, 1]))
 end
 
 """
@@ -481,18 +470,13 @@ the "reduced" spatial coordinates.
   one per row
 - `redJ`= reduced Jacobian matrix `redJ=transpose(Rm)*J`
 """
-function gradN!(
-    self::AbstractFESet3Manifold,
+function gradN!(self::AbstractFESet3Manifold,
     gradN::Matrix{FT},
     gradNparams::Matrix{FT},
-    redJ::Matrix{FT},
-) where {FT}
-    invdet =
-        1.0 / (
-            +redJ[1, 1] * (redJ[2, 2] * redJ[3, 3] - redJ[3, 2] * redJ[2, 3]) -
-            redJ[1, 2] * (redJ[2, 1] * redJ[3, 3] - redJ[2, 3] * redJ[3, 1]) +
-            redJ[1, 3] * (redJ[2, 1] * redJ[3, 2] - redJ[2, 2] * redJ[3, 1])
-        )
+    redJ::Matrix{FT}) where {FT}
+    invdet = 1.0 / (+redJ[1, 1] * (redJ[2, 2] * redJ[3, 3] - redJ[3, 2] * redJ[2, 3]) -
+              redJ[1, 2] * (redJ[2, 1] * redJ[3, 3] - redJ[2, 3] * redJ[3, 1]) +
+              redJ[1, 3] * (redJ[2, 1] * redJ[3, 2] - redJ[2, 2] * redJ[3, 1]))
     # This is the unrolled version that avoids allocation of a 3 x 3 matrix
     invredJ11 = (redJ[2, 2] * redJ[3, 3] - redJ[3, 2] * redJ[2, 3]) * invdet
     invredJ12 = -(redJ[1, 2] * redJ[3, 3] - redJ[1, 3] * redJ[3, 2]) * invdet
@@ -505,22 +489,17 @@ function gradN!(
     invredJ33 = (redJ[1, 1] * redJ[2, 2] - redJ[2, 1] * redJ[1, 2]) * invdet
     @assert size(gradN, 1) == size(gradNparams, 1)
     @inbounds for r in axes(gradN, 1)
-        gradN[r, 1] =
-            gradNparams[r, 1] * invredJ11 +
-            gradNparams[r, 2] * invredJ21 +
-            gradNparams[r, 3] * invredJ31
-        gradN[r, 2] =
-            gradNparams[r, 1] * invredJ12 +
-            gradNparams[r, 2] * invredJ22 +
-            gradNparams[r, 3] * invredJ32
-        gradN[r, 3] =
-            gradNparams[r, 1] * invredJ13 +
-            gradNparams[r, 2] * invredJ23 +
-            gradNparams[r, 3] * invredJ33
+        gradN[r, 1] = gradNparams[r, 1] * invredJ11 +
+                      gradNparams[r, 2] * invredJ21 +
+                      gradNparams[r, 3] * invredJ31
+        gradN[r, 2] = gradNparams[r, 1] * invredJ12 +
+                      gradNparams[r, 2] * invredJ22 +
+                      gradNparams[r, 3] * invredJ32
+        gradN[r, 3] = gradNparams[r, 1] * invredJ13 +
+                      gradNparams[r, 2] * invredJ23 +
+                      gradNparams[r, 3] * invredJ33
     end
 end
-
-
 
 ################################################################################
 ################################################################################
@@ -535,7 +514,6 @@ Type for sets of point-like of finite elements.
 privbfun(self::FESetP1, param_coords) = reshape([1.0], 1, 1) # make sure this is a matrix
 privbfundpar(self::FESetP1, param_coords) = zeros(1, 0)
 
-
 function privinparametric(self::FESetP1, param_coords, tolerance)
     return param_coords[1] == 0.0
 end
@@ -544,13 +522,11 @@ function privcentroidparametric(self::FESetP1)
     return vec([0.0])
 end
 
-function map2parametric(
-    self::FESetP1,
+function map2parametric(self::FESetP1,
     x::Matrix{FT},
     pt::Vector{FT};
     tolerance = 0.001,
-    maxiter = 5,
-) where {FT}
+    maxiter = 5,) where {FT}
     success = false
     pc = [0.0]
     if norm(vec(x) - pt) < tolerance
@@ -569,8 +545,9 @@ Type for sets of curve-like finite elements with two nodes.
 """
 @define_FESet FESetL2 AbstractFESet1Manifold 2
 
-privbfun(self::FESetL2, param_coords) =
-    reshape([(1.0 - param_coords[1]); (1.0 + param_coords[1])] / 2.0, 2, 1) # make sure this is a matrix
+function privbfun(self::FESetL2, param_coords)
+    reshape([(1.0 - param_coords[1]); (1.0 + param_coords[1])] / 2.0, 2, 1)
+end # make sure this is a matrix
 privbfundpar(self::FESetL2, param_coords) = reshape([-1.0; +1.0] / 2.0, 2, 1)
 
 function privboundaryconn(self::FESetL2)
@@ -643,11 +620,11 @@ Type for sets of surface-like triangular finite elements with three nodes.
 
 function privbfun(self::FESetT3, param_coords)
     # Evaluate the basis function matrix for an 3-node triangle.
-    return reshape(
-        [(1 - param_coords[1] - param_coords[2]); param_coords[1]; param_coords[2]],
+    return reshape([(1 - param_coords[1] - param_coords[2]);
+            param_coords[1];
+            param_coords[2]],
         3,
-        1,
-    ) # Make sure this is a matrix
+        1) # Make sure this is a matrix
 end
 
 function privbfundpar(self::FESetT3, param_coords)
@@ -687,23 +664,19 @@ Type for sets of surface-like quadrilateral finite elements with four nodes.
 
 function privbfun(self::FESetQ4, param_coords)
     # Evaluate the basis function matrix for an 4-node quadrilateral.
-    val = [
-        0.25 * (1.0 - param_coords[1]) * (1.0 - param_coords[2])
+    val = [0.25 * (1.0 - param_coords[1]) * (1.0 - param_coords[2])
         0.25 * (1.0 + param_coords[1]) * (1.0 - param_coords[2])
         0.25 * (1.0 + param_coords[1]) * (1.0 + param_coords[2])
-        0.25 * (1.0 - param_coords[1]) * (1.0 + param_coords[2])
-    ]
+        0.25 * (1.0 - param_coords[1]) * (1.0 + param_coords[2])]
     return reshape(val, 4, 1) # Make sure this is a matrix
 end
 
 function privbfundpar(self::FESetQ4, param_coords)
     # Evaluate the derivatives of the basis function matrix.
-    val = [
-        -(1.0 - param_coords[2])*0.25 -(1.0 - param_coords[1])*0.25
-        (1.0-param_coords[2])*0.25 -(1.0 + param_coords[1])*0.25
-        (1.0+param_coords[2])*0.25 (1.0+param_coords[1])*0.25
-        -(1.0 + param_coords[2])*0.25 (1.0-param_coords[1])*0.25
-    ]
+    val = [-(1.0 - param_coords[2])*0.25 -(1.0 - param_coords[1])*0.25
+        (1.0 - param_coords[2])*0.25 -(1.0 + param_coords[1])*0.25
+        (1.0 + param_coords[2])*0.25 (1.0 + param_coords[1])*0.25
+        -(1.0 + param_coords[2])*0.25 (1.0 - param_coords[1])*0.25]
     return val
 end
 
@@ -796,16 +769,14 @@ function privbfun(self::FESetQ8, param_coords)
     etam = (-1 + param_coords[2])
     xip = (1 + param_coords[1])
     etap = (1 + param_coords[2])
-    val = [
-        -1.0 / 4 * xim * etam * (1 + param_coords[1] + param_coords[2])
+    val = [-1.0 / 4 * xim * etam * (1 + param_coords[1] + param_coords[2])
         1.0 / 4 * xip * etam * (1 - param_coords[1] + param_coords[2])
         -1.0 / 4 * xip * etap * (1 - param_coords[1] - param_coords[2])
         1.0 / 4 * xim * etap * (1 + param_coords[1] - param_coords[2])
         1.0 / 2 * xim * xip * etam
         -1.0 / 2 * etam * etap * xip
         -1.0 / 2 * xim * xip * etap
-        1.0 / 2 * etam * etap * xim
-    ]
+        1.0 / 2 * etam * etap * xim]
     return reshape(val, 8, 1) # Make sure this is a matrix
 end
 
@@ -814,26 +785,22 @@ function privbfundpar(self::FESetQ8, param_coords)
     xi = param_coords[1]
     eta = param_coords[2]
     val = zeros(eltype(param_coords), 8, 2)
-    val[:, 1] = [
-        1.0 / 4 * (1 - eta) * (1 + xi + eta) - 1.0 / 4 * (1 - xi) * (1 - eta)
+    val[:, 1] = [1.0 / 4 * (1 - eta) * (1 + xi + eta) - 1.0 / 4 * (1 - xi) * (1 - eta)
         -1.0 / 4 * (1 - eta) * (1 - xi + eta) + 1.0 / 4 * (1 + xi) * (1 - eta)
         -1.0 / 4 * (1 + eta) * (1 - xi - eta) + 1.0 / 4 * (1 + xi) * (1 + eta)
         1.0 / 4 * (1 + eta) * (1 + xi - eta) - 1.0 / 4 * (1 - xi) * (1 + eta)
         -1.0 / 2 * (1 + xi) * (1 - eta) + 1.0 / 2 * (1 - xi) * (1 - eta)
         1.0 / 2 * (1 - eta) * (1 + eta)
         -1.0 / 2 * (1 + xi) * (1 + eta) + 1.0 / 2 * (1 - xi) * (1 + eta)
-        -1.0 / 2 * (1 - eta) * (1 + eta)
-    ]
-    val[:, 2] = [
-        1.0 / 4 * (1 - xi) * (1 + xi + eta) - 1.0 / 4 * (1 - xi) * (1 - eta)
+        -1.0 / 2 * (1 - eta) * (1 + eta)]
+    val[:, 2] = [1.0 / 4 * (1 - xi) * (1 + xi + eta) - 1.0 / 4 * (1 - xi) * (1 - eta)
         1.0 / 4 * (1 + xi) * (1 - xi + eta) - 1.0 / 4 * (1 + xi) * (1 - eta)
         -1.0 / 4 * (1 + xi) * (1 - xi - eta) + 1.0 / 4 * (1 + xi) * (1 + eta)
         -1.0 / 4 * (1 - xi) * (1 + xi - eta) + 1.0 / 4 * (1 - xi) * (1 + eta)
         -1.0 / 2 * (1 - xi) * (1 + xi)
         -1.0 / 2 * (1 + xi) * (1 + eta) + 1.0 / 2 * (1 + xi) * (1 - eta)
         1.0 / 2 * (1 - xi) * (1 + xi)
-        -1.0 / 2 * (1 - xi) * (1 + eta) + 1.0 / 2 * (1 - xi) * (1 - eta)
-    ]
+        -1.0 / 2 * (1 - xi) * (1 + eta) + 1.0 / 2 * (1 - xi) * (1 - eta)]
     return reshape(val, 8, 2) # Make sure this is a matrix
 end
 
@@ -870,14 +837,12 @@ function privbfun(self::FESetT6, param_coords)
     r = param_coords[1]
     s = param_coords[2]
     t = 1.0 - r - s
-    val = [
-        t * (t + t - 1)
+    val = [t * (t + t - 1)
         r * (r + r - 1)
         s * (s + s - 1)
         4 * r * t
         4 * r * s
-        4 * s * t
-    ]
+        4 * s * t]
     return reshape(val, 6, 1) # Make sure this is a matrix
 end
 
@@ -886,14 +851,12 @@ function privbfundpar(self::FESetT6, param_coords)
     r = param_coords[1]
     s = param_coords[2]
     t = 1.0 - r - s
-    val = [
-        -3+4*r+4*s -3+4*r+4*s
-        4*r-1 0.0
-        0.0 4*s-1
-        4-8*r-4*s -4*r
+    val = [-3+4*r+4*s -3+4*r+4*s
+        4 * r-1 0.0
+        0.0 4 * s-1
+        4 - 8 * r-4 * s -4*r
         4*s 4*r
-        -4*s 4-4*r-8*s
-    ]
+        -4*s 4 - 4 * r-8 * s]
     return reshape(val, 6, 2) # Make sure this is a matrix
 end
 
@@ -935,17 +898,14 @@ function privbfun(self::FESetH8, param_coords)
     one_plus_xi = (1.0 + param_coords[1])
     one_plus_eta = (1.0 + param_coords[2])
     one_plus_theta = (1.0 + param_coords[3])
-    val =
-        [
-            one_minus_xi * one_minus_eta * one_minus_theta
-            one_plus_xi * one_minus_eta * one_minus_theta
-            one_plus_xi * one_plus_eta * one_minus_theta
-            one_minus_xi * one_plus_eta * one_minus_theta
-            one_minus_xi * one_minus_eta * one_plus_theta
-            one_plus_xi * one_minus_eta * one_plus_theta
-            one_plus_xi * one_plus_eta * one_plus_theta
-            one_minus_xi * one_plus_eta * one_plus_theta
-        ] / 8.0
+    val = [one_minus_xi * one_minus_eta * one_minus_theta
+        one_plus_xi * one_minus_eta * one_minus_theta
+        one_plus_xi * one_plus_eta * one_minus_theta
+        one_minus_xi * one_plus_eta * one_minus_theta
+        one_minus_xi * one_minus_eta * one_plus_theta
+        one_plus_xi * one_minus_eta * one_plus_theta
+        one_plus_xi * one_plus_eta * one_plus_theta
+        one_minus_xi * one_plus_eta * one_plus_theta] / 8.0
     return reshape(val, 8, 1) # Make sure this is a matrix
 end
 
@@ -957,25 +917,21 @@ function privbfundpar(self::FESetH8, param_coords)
     opxi = (1.0 + param_coords[1])
     opeta = (1.0 + param_coords[2])
     optheta = (1.0 + param_coords[3])
-    val =
-        [
-            -ometa*omtheta ometa*omtheta opeta*omtheta -opeta*omtheta -ometa*optheta ometa*optheta opeta*optheta -opeta*optheta
-            -omxi*omtheta -opxi*omtheta opxi*omtheta omxi*omtheta -omxi*optheta -opxi*optheta opxi*optheta omxi*optheta
-            -omxi*ometa -opxi*ometa -opxi*opeta -omxi*opeta omxi*ometa opxi*ometa opxi*opeta omxi*opeta
-        ]' / 8.0
+    val = [-ometa*omtheta ometa*omtheta opeta*omtheta -opeta*omtheta -ometa*optheta ometa*optheta opeta*optheta -opeta*optheta
+        -omxi*omtheta -opxi*omtheta opxi*omtheta omxi*omtheta -omxi*optheta -opxi*optheta opxi*optheta omxi*optheta
+        -omxi*ometa -opxi*ometa -opxi*opeta -omxi*opeta omxi*ometa opxi*ometa opxi*opeta omxi*opeta]' /
+          8.0
     return val
 end
 
 function privboundaryconn(self::FESetH8)
     conn = connasarray(self)
-    return [
-        conn[:, [1, 4, 3, 2]]
+    return [conn[:, [1, 4, 3, 2]]
         conn[:, [1, 2, 6, 5]]
         conn[:, [2, 3, 7, 6]]
         conn[:, [3, 4, 8, 7]]
         conn[:, [4, 1, 5, 8]]
-        conn[:, [6, 7, 8, 5]]
-    ]
+        conn[:, [6, 7, 8, 5]]]
 end
 
 function privboundaryfe(self::FESetH8)
@@ -1010,12 +966,11 @@ function privbfun(self::FESetH20, param_coords)
     xip = (1 + param_coords[1])
     etap = (1 + param_coords[2])
     zetap = (1 + param_coords[3])
-    val = [
-        1.0 / 8 *
-        xim *
-        etam *
-        zetam *
-        (2 + param_coords[1] + param_coords[2] + param_coords[3])
+    val = [1.0 / 8 *
+           xim *
+           etam *
+           zetam *
+           (2 + param_coords[1] + param_coords[2] + param_coords[3])
         -1.0 / 8 *
         xip *
         etam *
@@ -1062,8 +1017,7 @@ function privbfun(self::FESetH20, param_coords)
         -1.0 / 4 * zetam * zetap * xim * etam
         1.0 / 4 * zetam * zetap * xip * etam
         -1.0 / 4 * zetam * zetap * xip * etap
-        1.0 / 4 * zetam * zetap * xim * etap
-    ]
+        1.0 / 4 * zetam * zetap * xim * etap]
     return reshape(val, 20, 1) # Make sure this is a matrix
 end
 
@@ -1084,8 +1038,7 @@ function privbfundpar(self::FESetH20, param_coords)
     twompm = (2 - param_coords[1] + param_coords[2] - param_coords[3])
     twommm = (2 - param_coords[1] - param_coords[2] - param_coords[3])
     val = zeros(eltype(param_coords), 20, 3)
-    val[:, 1] = [
-        1.0 / 8 * etam * zetam * twoppp - 1.0 / 8 * xim * etam * zetam
+    val[:, 1] = [1.0 / 8 * etam * zetam * twoppp - 1.0 / 8 * xim * etam * zetam
         -1.0 / 8 * etam * zetam * twompp + 1.0 / 8 * xip * etam * zetam
         -1.0 / 8 * etap * zetam * twommp + 1.0 / 8 * xip * etap * zetam
         1.0 / 8 * etap * zetam * twopmp - 1.0 / 8 * xim * etap * zetam
@@ -1104,10 +1057,8 @@ function privbfundpar(self::FESetH20, param_coords)
         -1.0 / 4 * zetam * zetap * etam
         1.0 / 4 * zetam * zetap * etam
         1.0 / 4 * zetam * zetap * etap
-        -1.0 / 4 * zetam * zetap * etap
-    ]
-    val[:, 2] = [
-        1.0 / 8 * xim * zetam * twoppp - 1.0 / 8 * xim * etam * zetam
+        -1.0 / 4 * zetam * zetap * etap]
+    val[:, 2] = [1.0 / 8 * xim * zetam * twoppp - 1.0 / 8 * xim * etam * zetam
         1.0 / 8 * xip * zetam * twompp - 1.0 / 8 * xip * etam * zetam
         -1.0 / 8 * xip * zetam * twommp + 1.0 / 8 * xip * etap * zetam
         -1.0 / 8 * xim * zetam * twopmp + 1.0 / 8 * xim * etap * zetam
@@ -1126,10 +1077,8 @@ function privbfundpar(self::FESetH20, param_coords)
         -1.0 / 4 * zetam * zetap * xim
         -1.0 / 4 * zetam * zetap * xip
         1.0 / 4 * zetam * zetap * xip
-        1.0 / 4 * zetam * zetap * xim
-    ]
-    val[:, 3] = [
-        1.0 / 8 * xim * etam * twoppp - 1.0 / 8 * xim * etam * zetam
+        1.0 / 4 * zetam * zetap * xim]
+    val[:, 3] = [1.0 / 8 * xim * etam * twoppp - 1.0 / 8 * xim * etam * zetam
         1.0 / 8 * xip * etam * twompp - 1.0 / 8 * xip * etam * zetam
         1.0 / 8 * xip * etap * twommp - 1.0 / 8 * xip * etap * zetam
         1.0 / 8 * xim * etap * twopmp - 1.0 / 8 * xim * etap * zetam
@@ -1148,21 +1097,18 @@ function privbfundpar(self::FESetH20, param_coords)
         -1.0 / 4 * xim * etam * zetap + 1.0 / 4 * xim * etam * zetam
         -1.0 / 4 * xip * etam * zetap + 1.0 / 4 * xip * etam * zetam
         -1.0 / 4 * xip * etap * zetap + 1.0 / 4 * xip * etap * zetam
-        -1.0 / 4 * xim * etap * zetap + 1.0 / 4 * xim * etap * zetam
-    ]
+        -1.0 / 4 * xim * etap * zetap + 1.0 / 4 * xim * etap * zetam]
     return reshape(val, 20, 3)
 end
 
 function privboundaryconn(self::FESetH20)
     conn = connasarray(self)
-    return [
-        conn[:, [1, 4, 3, 2, 12, 11, 10, 9]]
+    return [conn[:, [1, 4, 3, 2, 12, 11, 10, 9]]
         conn[:, [1, 2, 6, 5, 9, 18, 13, 17]]
         conn[:, [2, 3, 7, 6, 10, 19, 14, 18]]
         conn[:, [3, 4, 8, 7, 11, 20, 15, 19]]
         conn[:, [4, 1, 5, 8, 12, 17, 16, 20]]
-        conn[:, [6, 7, 8, 5, 14, 15, 16, 13]]
-    ]
+        conn[:, [6, 7, 8, 5, 14, 15, 16, 13]]]
 end
 
 function privboundaryfe(self::FESetH20)
@@ -1200,8 +1146,7 @@ function privbfun(self::FESetH27, param_coords)
     x2 = (xi + 1)
     y2 = (eta + 1)
     z2 = (zet + 1)
-    val = [
-        1.0 / 8.0 * z1 * zet * x1 * xi * y1 * eta
+    val = [1.0 / 8.0 * z1 * zet * x1 * xi * y1 * eta
         1.0 / 8.0 * z1 * zet * x2 * xi * y1 * eta
         1.0 / 8.0 * z1 * zet * x2 * xi * y2 * eta
         1.0 / 8.0 * z1 * zet * x1 * xi * y2 * eta
@@ -1227,8 +1172,7 @@ function privbfun(self::FESetH27, param_coords)
         1.0 / 2.0 * (-z2) * z1 * (-x2) * x1 * y2 * eta
         1.0 / 2.0 * (-z2) * z1 * x1 * xi * (-y2) * y1
         1.0 / 2.0 * z2 * zet * (-x2) * x1 * (-y2) * y1
-        (-z2) * z1 * (-x2) * x1 * (-y2) * y1
-    ]
+        (-z2) * z1 * (-x2) * x1 * (-y2) * y1]
     return reshape(val, 27, 1) # Make sure this is a matrix
 end
 
@@ -1249,8 +1193,7 @@ function privbfundpar(self::FESetH27, param_coords)
     y2 = (eta - 1.0 / 2.0)
     y3 = (eta + 1.0)
     y4 = (eta + 1.0 / 2.0)
-    val = [
-        1.0/4.0*z1*zet*x1*y1*eta 1.0/4.0*z1*zet*x3*xi*y2 1.0/4.0*z2*x3*xi*y1*eta
+    val = [1.0/4.0*z1*zet*x1*y1*eta 1.0/4.0*z1*zet*x3*xi*y2 1.0/4.0*z2*x3*xi*y1*eta
         1.0/4.0*z1*zet*x2*y1*eta 1.0/4.0*z1*zet*x4*xi*y2 1.0/4.0*z2*x4*xi*y1*eta
         1.0/4.0*z1*zet*x2*y3*eta 1.0/4.0*z1*zet*x4*xi*y4 1.0/4.0*z2*x4*xi*y3*eta
         1.0/4.0*z1*zet*x1*y3*eta 1.0/4.0*z1*zet*x3*xi*y4 1.0/4.0*z2*x3*xi*y3*eta
@@ -1276,21 +1219,18 @@ function privbfundpar(self::FESetH27, param_coords)
         -(-z3)*z1*xi*y3*eta (-z3)*z1*(-x4)*x3*y4 -zet*(-x4)*x3*y3*eta
         (-z3)*z1*x1*(-y3)*y1 -(-z3)*z1*x3*xi*eta -zet*x3*xi*(-y3)*y1
         -z3*zet*xi*(-y3)*y1 -z3*zet*(-x4)*x3*eta z4*(-x4)*x3*(-y3)*y1
-        -2.0*(-z3)*z1*xi*(-y3)*y1 -2.0*(-z3)*z1*(-x4)*x3*eta -2.0*zet*(-x4)*x3*(-y3)*y1
-    ]
+        -2.0*(-z3)*z1*xi*(-y3)*y1 -2.0*(-z3)*z1*(-x4)*x3*eta -2.0*zet*(-x4)*x3*(-y3)*y1]
     return reshape(val, 27, 3)
 end
 
 function privboundaryconn(self::FESetH27)
     conn = connasarray(self)
-    return [
-        conn[:, [1, 4, 3, 2, 12, 11, 10, 9, 21]]
+    return [conn[:, [1, 4, 3, 2, 12, 11, 10, 9, 21]]
         conn[:, [1, 2, 6, 5, 9, 18, 13, 17, 22]]
         conn[:, [2, 3, 7, 6, 10, 19, 14, 18, 23]]
         conn[:, [3, 4, 8, 7, 11, 20, 15, 19, 24]]
         conn[:, [4, 1, 5, 8, 12, 17, 16, 20, 25]]
-        conn[:, [6, 7, 8, 5, 14, 15, 16, 13, 26]]
-    ]
+        conn[:, [6, 7, 8, 5, 14, 15, 16, 13, 26]]]
 end
 
 function privboundaryfe(self::FESetH27)
@@ -1318,23 +1258,19 @@ Type for sets of volume-like tetrahedral finite elements with four nodes.
 
 function privbfun(self::FESetT4, param_coords)
     # Evaluate the basis function matrix for an 3-node triangle.
-    val = [
-        (1 - param_coords[1] - param_coords[2] - param_coords[3])
+    val = [(1 - param_coords[1] - param_coords[2] - param_coords[3])
         param_coords[1]
         param_coords[2]
-        param_coords[3]
-    ]
+        param_coords[3]]
     return reshape(val, 4, 1)
 end
 
 function privbfundpar(self::FESetT4, param_coords)
     # Evaluate the derivatives of the basis function matrix.
-    val = [
-        -1.0 -1.0 -1.0
+    val = [-1.0 -1.0 -1.0
         +1.0 0.0 0.0
         0.0 +1.0 0.0
-        0.0 0.0 +1.0
-    ]
+        0.0 0.0 +1.0]
     return reshape(val, 4, 3)
 end
 
@@ -1372,8 +1308,7 @@ function privbfun(self::FESetT10, param_coords)
     r = param_coords[1]
     s = param_coords[2]
     t = param_coords[3]
-    val = [
-        (1 - r - s - t) * (2 * (1 - r - s - t) - 1)
+    val = [(1 - r - s - t) * (2 * (1 - r - s - t) - 1)
         r * (2 * r - 1)
         s * (2 * s - 1)
         t * (2 * t - 1)
@@ -1382,8 +1317,7 @@ function privbfun(self::FESetT10, param_coords)
         4 * s * (1 - r - s - t)
         4 * (1 - r - s - t) * t
         4 * r * t
-        4 * s * t
-    ]
+        4 * s * t]
     return reshape(val, 10, 1)
 end
 
@@ -1392,23 +1326,18 @@ function privbfundpar(self::FESetT10, param_coords)
     r = param_coords[1]
     s = param_coords[2]
     t = param_coords[3]
-    val =
-        [
-            -3+4*r+4*s+4*t 4*r-1 0 0 -8*r+4-4*s-4*t 4*s -4*s -4*t 4*t 0
-            -3+4*r+4*s+4*t 0 4*s-1 0 -4*r 4*r 4-4*r-8*s-4*t -4*t 0 4*t
-            -3+4*r+4*s+4*t 0 0 4*t-1 -4*r 0 -4*s -8*t+4-4*r-4*s 4*r 4*s
-        ]'
+    val = [-3+4*r+4*s+4*t 4 * r-1 0 0 -8 * r + 4 - 4 * s-4 * t 4*s -4*s -4*t 4*t 0
+        -3+4*r+4*s+4*t 0 4 * s-1 0 -4*r 4*r 4 - 4 * r - 8 * s-4 * t -4*t 0 4*t
+        -3+4*r+4*s+4*t 0 0 4 * t-1 -4*r 0 -4*s -8 * t + 4 - 4 * r-4 * s 4*r 4*s]'
     return reshape(val, 10, 3)
 end
 
 function privboundaryconn(self::FESetT10)
     conn = connasarray(self)
-    return [
-        conn[:, [1, 3, 2, 7, 6, 5]]
+    return [conn[:, [1, 3, 2, 7, 6, 5]]
         conn[:, [1, 2, 4, 5, 9, 8]]
         conn[:, [2, 3, 4, 6, 10, 9]]
-        conn[:, [3, 1, 4, 7, 8, 10]]
-    ]
+        conn[:, [3, 1, 4, 7, 8, 10]]]
 end
 
 function privboundaryfe(self::FESetT10)

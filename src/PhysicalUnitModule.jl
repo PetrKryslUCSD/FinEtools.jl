@@ -100,7 +100,6 @@ function _physunitdict(::Type{T}, system_of_units, base_time_units) where {T}
     d["SLUG"] = uSLUG
     d["RAN"] = uRAN
 
-
     # prefixes
     uNANO = 10.0^(-9)
     d["NANO"] = uNANO
@@ -290,8 +289,10 @@ yields
 
 
 """
-function phun(str::String; system_of_units = :SI, base_time_units = :SEC, output_type = Float64)
-
+function phun(str::String;
+    system_of_units = :SI,
+    base_time_units = :SEC,
+    output_type = Float64)
     @assert system_of_units in [:SI :SIM :US :IMPERIAL :CGS :SIMM]
     @assert base_time_units in [:SEC :MIN :HR :DY :YR :WK]
 
@@ -307,7 +308,7 @@ function phun(str::String; system_of_units = :SI, base_time_units = :SEC, output
                 while (k <= length(str)) && (isuppercase(str[k]))
                     k = k + 1
                 end
-                outstr = outstr * string(d[str[i:k-1]])
+                outstr = outstr * string(d[str[i:(k - 1)]])
                 i = k - 1
             else
                 outstr = outstr * string(str[i])
@@ -333,6 +334,5 @@ Enable evaluation of physical units in the form
 macro u_str(s)
     esc(phun(s))
 end
-
 
 end

@@ -1322,3 +1322,10 @@ end # module
 -- The finite element model machine documentation needs to be refreshed. 09/29/23
 
 -- Describe bilinear form and linear form functions.
+
+-- JuliaFormatter: annotate_untyped_fields_with_any=true
+
+
+-- Formatting: JuliaFormatter
+using JuliaFormatter
+format("./src", SciMLStyle(), annotate_untyped_fields_with_any=true)   

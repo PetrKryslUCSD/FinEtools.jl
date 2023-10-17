@@ -21,7 +21,8 @@ import ..FENodeSetModule: FENodeSet
 import ..MeshUtilModule: makecontainer, addhyperface!, findhyperface!, linearspace
 import ..MeshSelectionModule: findunconnnodes, selectelem, connectednodes
 import ..MeshModificationModule:
-    compactnodes, renumberconn!, meshboundary, mirrormesh, mergenmeshes
+    compactnodes,
+    renumberconn!, meshboundary, mirrormesh, mergenmeshes
 import ..MeshHexahedronModule: H8hexahedron
 
 using LinearAlgebra: norm
@@ -50,21 +51,17 @@ generates 6 tetrahedra per cell. `:ca`, `:cb` generates 5 tetrahedra per cell.
 Range =<0, Length> x <0, Width> x <0, Height>.
 Divided into elements: nL x nW x nH.
 """
-function T4block(
-    Length::T,
+function T4block(Length::T,
     Width::T,
     Height::T,
     nL::IT,
     nW::IT,
     nH::IT,
-    orientation::Symbol = :a,
-) where {T<:Number, IT<:Integer}
-    return T4blockx(
-        collect(linearspace(0.0, Length, nL + 1)),
+    orientation::Symbol = :a) where {T <: Number, IT <: Integer}
+    return T4blockx(collect(linearspace(0.0, Length, nL + 1)),
         collect(linearspace(0.0, Width, nW + 1)),
         collect(linearspace(0.0, Height, nH + 1)),
-        orientation,
-    )
+        orientation)
 end
 
 """
@@ -78,7 +75,10 @@ between the nodes, with a given orientation of the diagonals.
 The mesh is produced by splitting each logical  rectangular cell into five or
 six tetrahedra: refer to `T4block`.
 """
-function T4blockx(xs::VecOrMat{T}, ys::VecOrMat{T}, zs::VecOrMat{T}, orientation::Symbol = :a) where {T<:Number}
+function T4blockx(xs::VecOrMat{T},
+    ys::VecOrMat{T},
+    zs::VecOrMat{T},
+    orientation::Symbol = :a) where {T <: Number}
     nL = length(xs) - 1
     nW = length(ys) - 1
     nH = length(zs) - 1
@@ -102,9 +102,9 @@ function T4blockx(xs::VecOrMat{T}, ys::VecOrMat{T}, zs::VecOrMat{T}, orientation
         error("Unknown orientation")
     end
     f = 1
-    for k in 1:(nH+1)
-        for j in 1:(nW+1)
-            for i in 1:(nL+1)
+    for k in 1:(nH + 1)
+        for j in 1:(nW + 1)
+            for i in 1:(nL + 1)
                 xyzs[f, 1] = xs[i]
                 xyzs[f, 2] = ys[j]
                 xyzs[f, 3] = zs[k]
@@ -140,7 +140,7 @@ function T4blockx(xs::VecOrMat{T}, ys::VecOrMat{T}, zs::VecOrMat{T}, orientation
             end
         end
     end
-    fes = FESetT4(conns[1:gc-1, :])
+    fes = FESetT4(conns[1:(gc - 1), :])
 
     return fens, fes
 end
@@ -241,15 +241,13 @@ end
 
 Generate a tetrahedral  mesh of T10 elements  of a rectangular block.
 """
-function T10block(
-    Length::T,
+function T10block(Length::T,
     Width::T,
     Height::T,
     nL::IT,
     nW::IT,
     nH::IT;
-    orientation::Symbol = :a,
-) where {T<:Number, IT<:Integer}
+    orientation::Symbol = :a,) where {T <: Number, IT <: Integer}
     fens, fes = T4block(Length, Width, Height, nL, nW, nH, orientation)
     fens, fes = T4toT10(fens, fes)
     return fens, fes
@@ -266,7 +264,10 @@ between the nodes, with a given orientation of the diagonals.
 The mesh is produced by splitting each logical  rectangular cell into six
 tetrahedra.
 """
-function T10blockx(xs::VecOrMat{T}, ys::VecOrMat{T}, zs::VecOrMat{T}, orientation::Symbol = :a) where {T<:Number}
+function T10blockx(xs::VecOrMat{T},
+    ys::VecOrMat{T},
+    zs::VecOrMat{T},
+    orientation::Symbol = :a) where {T <: Number}
     fens, fes = T4blockx(vec(xs), vec(ys), vec(zs), orientation)
     fens, fes = T4toT10(fens, fes)
     return fens, fes
@@ -290,31 +291,27 @@ nts= array of numbers of elements per layer
 The finite elements of each layer are labeled with the layer number, starting
 from 1 at the bottom.
 """
-function T10layeredplatex(
-    xs::VecOrMat{T},
+function T10layeredplatex(xs::VecOrMat{T},
     ys::VecOrMat{T},
     ts::VecOrMat{T},
     nts::VecOrMat{IT},
-    orientation::Symbol = :a,
-) where {T<:Number, IT<:Integer}
+    orientation::Symbol = :a) where {T <: Number, IT <: Integer}
     tolerance = minimum(abs.(ts)) / maximum(nts) / 10.0
     @assert length(ts) >= 1
     @assert sum(nts) >= length(ts)
     zs = collect(linearspace(0.0, ts[1], nts[1] + 1))
     for layer in 2:length(ts)
-        oz = collect(linearspace(sum(ts[1:layer-1]), sum(ts[1:layer]), nts[layer] + 1))
+        oz = collect(linearspace(sum(ts[1:(layer - 1)]), sum(ts[1:layer]), nts[layer] + 1))
         zs = vcat(zs, oz[2:end])
     end
     fens, fes = T4blockx(xs, ys, zs, orientation)
     List = selectelem(fens, fes, box = [-Inf Inf -Inf Inf 0.0 ts[1]], inflate = tolerance)
     fes.label[List] .= 1
     for layer in 2:length(ts)
-        List = selectelem(
-            fens,
+        List = selectelem(fens,
             fes,
-            box = [-Inf Inf -Inf Inf sum(ts[1:layer-1]) sum(ts[1:layer])],
-            inflate = tolerance,
-        )
+            box = [-Inf Inf -Inf Inf sum(ts[1:(layer - 1)]) sum(ts[1:layer])],
+            inflate = tolerance)
         fes.label[List] .= layer
     end
     fens, fes = T4toT10(fens, fes)
@@ -348,11 +345,9 @@ function tetv(X::Matrix{T}) where {T}
         C1 = X[4, 1] - X[1, 1]
         C2 = X[4, 2] - X[1, 2]
         C3 = X[4, 3] - X[1, 3]
-        return one6th * (
-            (-A3 * B2 + A2 * B3) * C1 +
-            (A3 * B1 - A1 * B3) * C2 +
-            (-A2 * B1 + A1 * B2) * C3
-        )
+        return one6th * ((-A3 * B2 + A2 * B3) * C1 +
+                (A3 * B1 - A1 * B3) * C2 +
+                (-A2 * B1 + A1 * B2) * C3)
     end
 end
 
@@ -369,8 +364,7 @@ X = [0  4  3
 tetv(X)
 ```
 """
-function tetv(
-    v11::T,
+function tetv(v11::T,
     v12::T,
     v13::T,
     v21::T,
@@ -381,11 +375,9 @@ function tetv(
     v33::T,
     v41::T,
     v42::T,
-    v43::T,
-) where {T<:Number}
+    v43::T) where {T <: Number}
     local one6th = 1.0 / 6
-    return one6th * tetvtimes6(
-        v11::T,
+    return one6th * tetvtimes6(v11::T,
         v12::T,
         v13::T,
         v21::T,
@@ -396,8 +388,7 @@ function tetv(
         v33::T,
         v41::T,
         v42::T,
-        v43::T,
-    )
+        v43::T)
 end
 
 """
@@ -415,8 +406,7 @@ tetv(X, 1, 2, 3, 4)
 """
 function tetv(v::Matrix{T}, i1::Int, i2::Int, i3::Int, i4::Int) where {T}
     local one6th = 1.0 / 6
-    return one6th * tetvtimes6(
-        v[i1, 1],
+    return one6th * tetvtimes6(v[i1, 1],
         v[i1, 2],
         v[i1, 3],
         v[i2, 1],
@@ -427,12 +417,10 @@ function tetv(v::Matrix{T}, i1::Int, i2::Int, i3::Int, i4::Int) where {T}
         v[i3, 3],
         v[i4, 1],
         v[i4, 2],
-        v[i4, 3],
-    )
+        v[i4, 3])
 end
 
-function tetvtimes6(
-    v11::T,
+function tetvtimes6(v11::T,
     v12::T,
     v13::T,
     v21::T,
@@ -443,8 +431,7 @@ function tetvtimes6(
     v33::T,
     v41::T,
     v42::T,
-    v43::T,
-) where {T}
+    v43::T) where {T}
     A1 = v21 - v11
     A2 = v22 - v12
     A3 = v23 - v13
@@ -454,9 +441,8 @@ function tetvtimes6(
     C1 = v41 - v11
     C2 = v42 - v12
     C3 = v43 - v13
-    return (
-        (-A3 * B2 + A2 * B3) * C1 + (A3 * B1 - A1 * B3) * C2 + (-A2 * B1 + A1 * B2) * C3
-    )
+    return ((-A3 * B2 + A2 * B3) * C1 + (A3 * B1 - A1 * B3) * C2 +
+            (-A2 * B1 + A1 * B2) * C3)
 end
 
 """
@@ -465,8 +451,7 @@ end
 Compute 6 times the volume of the tetrahedron.
 """
 function tetv1times6(v::Matrix{T}, i1::Int, i2::Int, i3::Int, i4::Int) where {T}
-    return tetvtimes6(
-        v[i1, 1],
+    return tetvtimes6(v[i1, 1],
         v[i1, 2],
         v[i1, 3],
         v[i2, 1],
@@ -477,8 +462,7 @@ function tetv1times6(v::Matrix{T}, i1::Int, i2::Int, i3::Int, i4::Int) where {T}
         v[i3, 3],
         v[i4, 1],
         v[i4, 2],
-        v[i4, 3],
-    )
+        v[i4, 3])
 end
 
 """
@@ -486,24 +470,20 @@ end
 
 Compute all the edges of the 4-node triangulation.
 """
-function T4meshedges(t::Array{IT,2}) where {IT<:Integer}
+function T4meshedges(t::Array{IT, 2}) where {IT <: Integer}
     @assert size(t, 2) == 4
-    ec = [
-        1 2
+    ec = [1 2
         2 3
         3 1
         4 1
         4 2
-        4 3
-    ]
-    e = vcat(
-        t[:, ec[1, :]],
+        4 3]
+    e = vcat(t[:, ec[1, :]],
         t[:, ec[2, :]],
         t[:, ec[3, :]],
         t[:, ec[4, :]],
         t[:, ec[5, :]],
-        t[:, ec[6, :]],
-    )
+        t[:, ec[6, :]])
     e = sort(e; dims = 2)
     ix = sortperm(e[:, 1])
     e = e[ix, :]
@@ -519,16 +499,15 @@ function T4meshedges(t::Array{IT,2}) where {IT<:Integer}
             end
             m = m + 1
         end
-        us = unique(ue[n:m-1, 2], dims = 1)
+        us = unique(ue[n:(m - 1), 2], dims = 1)
         ls = length(us)
-        e[i:i+ls-1, 1] .= c
-        e[i:i+ls-1, 2] = sort(us)
+        e[i:(i + ls - 1), 1] .= c
+        e[i:(i + ls - 1), 2] = sort(us)
         i = i + ls
         n = m
     end
-    e = e[1:i-1, :]
+    e = e[1:(i - 1), :]
 end
-
 
 # Construct arrays to describe a hexahedron mesh created from voxel image.
 #
@@ -539,7 +518,7 @@ end
 # Output:
 # t = array of hexahedron connectivities,  one hexahedron per row
 # v =Array of vertex locations,  one vertex per row
-function T4voximggen(img::Array{DataT,3}, voxval::Array{DataT,1}) where {DataT<:Number}
+function T4voximggen(img::Array{DataT, 3}, voxval::Array{DataT, 1}) where {DataT <: Number}
     M = size(img, 1)
     N = size(img, 2)
     P = size(img, 3)
@@ -589,8 +568,14 @@ function T4voximggen(img::Array{DataT,3}, voxval::Array{DataT,1}) where {DataT<:
         return vidx
     end
     function store_elements(I, J, K)
-        locs =
-            [1 J K; 1+1 J K; 1+1 J+1 K; 1 J+1 K; 1 J K+1; 1+1 J K+1; 1+1 J+1 K+1; 1 J+1 K+1]
+        locs = [1 J K;
+            1+1 J K;
+            1+1 J+1 K;
+            1 J+1 K;
+            1 J K+1;
+            1+1 J K+1;
+            1+1 J+1 K+1;
+            1 J+1 K+1]
         vidx = find_vertex(I, locs)
         for r in 1:5
             nt = nt + 1
@@ -601,10 +586,8 @@ function T4voximggen(img::Array{DataT,3}, voxval::Array{DataT,1}) where {DataT<:
             end
             tmid[nt] = convert(Int, img[I, J, K])
         end
-
     end
 
-    
     for I in 1:M
         for J in 1:N
             for K in 1:P
@@ -635,11 +618,9 @@ end
 
 Generate a tetrahedral mesh  from three-dimensional image.
 """
-function T4voximg(
-    img::Array{DataT,3},
+function T4voximg(img::Array{DataT, 3},
     voxdims::T,
-    voxval::Array{DataT,1},
-) where {DataT<:Number, T}
+    voxval::Array{DataT, 1}) where {DataT <: Number, T}
     t, v, tmid = T4voximggen(img, voxval)
     xyz = zeros(Float64, size(v, 1), 3)
     for k in 1:3
@@ -742,7 +723,6 @@ function T10refine(fens::FENodeSet, fes::FESetT10)
     return T4toT10(fens, nfes)
 end
 
-
 """
     T4refine20(fens::FENodeSet, fes::FESetT4)
 
@@ -818,23 +798,19 @@ function T4refine20(fens::FENodeSet, fes::FESetT4)
     labels = zeros(Int, 20 * length(fes.conn))
     c = fill(0, 15)
     hc = fill(0, 8)
-    nt = [
-        1 2 3 6
+    nt = [1 2 3 6
         4 1 3 8
         5 8 6 1
         7 6 8 3
-        1 8 6 3
-    ]
+        1 8 6 3]
     # nh   = [15 12 8 14 11 5 1 7
     # 		15 13 9 12 11 6 2 5 
     # 		15 11 7 14 13 6 3 10 
     # 		15 14 8 12 13 10 4 9]
-    nh = [
-        1 5 11 7 8 12 15 14
+    nh = [1 5 11 7 8 12 15 14
         2 6 11 5 9 13 15 12
         3 7 11 6 10 14 15 13
-        4 8 14 10 9 12 15 13
-    ]
+        4 8 14 10 9 12 15 13]
     nc = 1
     for i in eachindex(fes.conn)
         econn = zeros(Int, nedges)
@@ -881,18 +857,20 @@ Even though the orientation is controllable, for some orientations the mesh is
 highly distorted (`:a`, `:ca`, `:cb`). So a decent mesh can only be expected
 for the orientation `:b` (default).
 """
-function T4quartercyln(R::T, L::T, nR::IT, nL::IT; orientation = :b) where {T<:Number, IT<:Integer}
+function T4quartercyln(R::T,
+    L::T,
+    nR::IT,
+    nL::IT;
+    orientation = :b) where {T <: Number, IT <: Integer}
     tol = min(L / nL, R / 2 / nR) / 100
-    xyz = [
-        0 0 0
+    xyz = [0 0 0
         R 0 0
         R/sqrt(2) R/sqrt(2) 0
         0 R 0
         0 0 L
         R 0 L
         R/sqrt(2) R/sqrt(2) L
-        0 R L
-    ]
+        0 R L]
     fens, fes = H8hexahedron(xyz, nR, nR, nL)
     if orientation == :a
         t4ia = [1 8 5 6; 3 4 2 7; 7 2 6 8; 4 7 8 2; 2 1 6 8; 4 8 1 2]
@@ -927,7 +905,7 @@ function T4quartercyln(R::T, L::T, nR::IT, nL::IT; orientation = :b) where {T<:N
             end
         end
     end
-    fes = FESetT4(conns[1:gc-1, :])
+    fes = FESetT4(conns[1:(gc - 1), :])
 
     bfes = meshboundary(fes)
     z1 = selectelem(fens, bfes, facing = true, direction = [0, 0, -1.0], tolerance = 0.999)
@@ -942,7 +920,6 @@ function T4quartercyln(R::T, L::T, nR::IT, nL::IT; orientation = :b) where {T<:N
     return fens, fes
 end
 
-
 """
     T10quartercyln(R::T, L::T, nR::IT, nL::IT; orientation = :b) where {T<:Number, IT<:Integer}
 
@@ -951,7 +928,11 @@ of edges per radius.
 
 See: T4quartercyln
 """
-function T10quartercyln(R::T, L::T, nR::IT, nL::IT; orientation = :b) where {T<:Number, IT<:Integer}
+function T10quartercyln(R::T,
+    L::T,
+    nR::IT,
+    nL::IT;
+    orientation = :b) where {T <: Number, IT <: Integer}
     fens, fes = T4quartercyln(R, L, nR, nL; orientation)
     fens, fes = T4toT10(fens, fes)
     bfes = meshboundary(fes)
@@ -964,7 +945,6 @@ function T10quartercyln(R::T, L::T, nR::IT, nL::IT; orientation = :b) where {T<:
     end
     return fens, fes
 end
-
 
 function _doextrude(fens, fes::FESetT3, nLayers, extrusionh)
     nn1 = count(fens) # number of nodes in the surface to be extruded
@@ -1013,12 +993,10 @@ end
 
 Extrude a mesh of triangles into a mesh of tetrahedra (T4).
 """
-function T4extrudeT3(
-    fens::FENodeSet,
+function T4extrudeT3(fens::FENodeSet,
     fes::FESetT3,
     nLayers::IT,
-    extrusionh::F,
-) where {F<:Function, IT<:Integer}
+    extrusionh::F) where {F <: Function, IT <: Integer}
     id = fill(0, count(fens))
     cn = connectednodes(fes)
     id[cn[:]] = vec([i for i in eachindex(cn)])
@@ -1030,13 +1008,13 @@ end
 
 function __complete_cylinder(fens, fes, renumb, tol)
     fens1, fes1 = mirrormesh(fens, fes, [0.0, -1.0, 0.0], [0.0, 0.0, 0.0], renumb = renumb)
-    meshes = Array{Tuple{FENodeSet,AbstractFESet},1}()
+    meshes = Array{Tuple{FENodeSet, AbstractFESet}, 1}()
     push!(meshes, (fens, fes))
     push!(meshes, (fens1, fes1))
     fens, fesa = mergenmeshes(meshes, tol)
     fes = cat(fesa[1], fesa[2])
     fens1, fes1 = mirrormesh(fens, fes, [-1.0, 0.0, 0.0], [0.0, 0.0, 0.0], renumb = renumb)
-    meshes = Array{Tuple{FENodeSet,AbstractFESet},1}()
+    meshes = Array{Tuple{FENodeSet, AbstractFESet}, 1}()
     push!(meshes, (fens, fes))
     push!(meshes, (fens1, fes1))
     fens, fesa = mergenmeshes(meshes, tol)
@@ -1056,7 +1034,11 @@ Even though the orientation is controllable, for some orientations the mesh is
 highly distorted (`:a`, `:ca`, `:cb`). So a decent mesh can only be expected
 for the orientation `:b` (default).
 """
-function T4cylindern(R::T, L::T, nR::IT, nL::IT; orientation = :b) where {T<:Number, IT<:Integer}
+function T4cylindern(R::T,
+    L::T,
+    nR::IT,
+    nL::IT;
+    orientation = :b) where {T <: Number, IT <: Integer}
     nR = Int(round(nR))
     nL = Int(round(nL))
     fens, fes = T4quartercyln(R, L, nR, nL)
@@ -1077,7 +1059,11 @@ Even though the orientation is controllable, for some orientations the mesh is
 highly distorted (`:a`, `:ca`, `:cb`). So a decent mesh can only be expected
 for the orientation `:b` (default).
 """
-function T10cylindern(R::T, L::T, nR::IT, nL::IT; orientation = :b) where {T<:Number, IT<:Integer}
+function T10cylindern(R::T,
+    L::T,
+    nR::IT,
+    nL::IT;
+    orientation = :b) where {T <: Number, IT <: Integer}
     nR = Int(round(nR))
     nL = Int(round(nL))
     fens, fes = T4quartercyln(R, L, nR, nL)

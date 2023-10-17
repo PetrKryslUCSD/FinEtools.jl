@@ -36,21 +36,23 @@ Length, Width, Height= dimensions of the mesh in Cartesian coordinate axes,
 smallest coordinate in all three directions is  0 (origin)
 nL, nW, nH=number of elements in the three directions
 """
-function H8block(Length::T, Width::T, Height::T, nL::IT, nW::IT, nH::IT) where {T<:Number, IT<:Integer}
-    return H8blockx(
-        collect(linearspace(0.0, Length, nL + 1)),
+function H8block(Length::T,
+    Width::T,
+    Height::T,
+    nL::IT,
+    nW::IT,
+    nH::IT) where {T <: Number, IT <: Integer}
+    return H8blockx(collect(linearspace(0.0, Length, nL + 1)),
         collect(linearspace(0.0, Width, nW + 1)),
-        collect(linearspace(0.0, Height, nH + 1)),
-    )
+        collect(linearspace(0.0, Height, nH + 1)))
 end
-
 
 """
     H8blockx(xs::Vector{T}, ys::Vector{T}, zs::Vector{T}) where {T<:Number}
 
 Graded mesh of a 3-D block of H8 finite elements.
 """
-function H8blockx(xs::Vector{T}, ys::Vector{T}, zs::Vector{T}) where {T<:Number}
+function H8blockx(xs::Vector{T}, ys::Vector{T}, zs::Vector{T}) where {T <: Number}
     nL = length(xs) - 1
     nW = length(ys) - 1
     nH = length(zs) - 1
@@ -60,7 +62,6 @@ function H8blockx(xs::Vector{T}, ys::Vector{T}, zs::Vector{T}) where {T<:Number}
     ncells = (nL) * (nW) * (nH)
     conns = zeros(Int, ncells, 8)
 
-
     # first go along Length,  then Width,  and finally Height
     # function  break(i, j, k, nL, nW, nH)
     #     f=(k-1)*((nL+1)*(nW+1))+(j-1)*(nL+1)+i;
@@ -69,9 +70,9 @@ function H8blockx(xs::Vector{T}, ys::Vector{T}, zs::Vector{T}) where {T<:Number}
     # end
 
     f = 1
-    for k in 1:(nH+1)
-        for j in 1:(nW+1)
-            for i in 1:(nL+1)
+    for k in 1:(nH + 1)
+        for j in 1:(nW + 1)
+            for i in 1:(nL + 1)
                 xyz[f, 1] = xs[i]
                 xyz[f, 2] = ys[j]
                 xyz[f, 3] = zs[k]
@@ -113,7 +114,7 @@ end
     four hexahedral elements if "nrefine==0",  or more if "nrefine>0".
     "nrefine" is the number of bisections applied  to refine the mesh.
 """
-function H8sphere(radius::T, nrefine::IT) where {T<:Number, IT<:Integer}
+function H8sphere(radius::T, nrefine::IT) where {T <: Number, IT <: Integer}
     a = sqrt(2.0) / 2.0
     b = 1.0 / sqrt(3.0)
     c = 0.6 * a
@@ -121,30 +122,25 @@ function H8sphere(radius::T, nrefine::IT) where {T<:Number, IT<:Integer}
     z = 0.0
     h = 0.5
     o = 1.0
-    xyz =
-        [
-            z z z
-            h z z
-            c c z
-            z h z
-            z z h
-            c z c
-            d d d
-            z c c
-            z z o
-            a z a
-            o z z
-            a a z
-            z o z
-            z a a
-            b b b
-        ] * radius
-    conns = [
-        1 2 3 4 5 6 7 8
+    xyz = [z z z
+        h z z
+        c c z
+        z h z
+        z z h
+        c z c
+        d d d
+        z c c
+        z z o
+        a z a
+        o z z
+        a a z
+        z o z
+        z a a
+        b b b] * radius
+    conns = [1 2 3 4 5 6 7 8
         2 11 12 3 6 10 15 7
         4 3 12 13 8 7 15 14
-        5 6 7 8 9 10 15 14
-    ]
+        5 6 7 8 9 10 15 14]
 
     fens = FENodeSet(xyz)
     fes = FESetH8(conns)
@@ -203,14 +199,12 @@ function H8toH27(fens::FENodeSet, fes::FESetH8)
     nedges = 12
     nfaces = 6
     ec = [1 2; 2 3; 3 4; 4 1; 5 6; 6 7; 7 8; 8 5; 1 5; 2 6; 3 7; 4 8]
-    fc = [
-        1 4 3 2
+    fc = [1 4 3 2
         1 2 6 5
         2 3 7 6
         3 4 8 7
         4 1 5 8
-        6 7 8 5
-    ]
+        6 7 8 5]
     conns = connasarray(fes)
     labels = deepcopy(fes.label)
     # Additional node numbers are numbered from here
@@ -313,22 +307,24 @@ Mesh of a general hexahedron given by the location of the vertices.
 `blockfun` = Optional argument: function of the block-generating mesh function
      (having the signature of the function `H8block()`).
 """
-function H8hexahedron(xyz::Matrix{T}, nL::IT, nW::IT, nH::IT; blockfun = nothing) where {T<:Number, IT<:Integer}
+function H8hexahedron(xyz::Matrix{T},
+    nL::IT,
+    nW::IT,
+    nH::IT;
+    blockfun = nothing) where {T <: Number, IT <: Integer}
     npts = size(xyz, 1)
-    @assert (npts == 2) || (npts == 8) "Need 2 or 8 points"
+    @assert (npts == 2)||(npts == 8) "Need 2 or 8 points"
     if npts == 2
         lo = minimum(xyz, dims = 1)
         hi = maximum(xyz, dims = 1)
-        xyz = [
-            lo[1] lo[2] lo[3]
+        xyz = [lo[1] lo[2] lo[3]
             hi[1] lo[2] lo[3]
             hi[1] hi[2] lo[3]
             lo[1] hi[2] lo[3]
             lo[1] lo[2] hi[3]
             hi[1] lo[2] hi[3]
             hi[1] hi[2] hi[3]
-            lo[1] hi[2] hi[3]
-        ]
+            lo[1] hi[2] hi[3]]
     end
 
     if blockfun === nothing
@@ -353,7 +349,12 @@ end
 
 Create mesh of a 3-D block of H27 finite elements.
 """
-function H27block(Length::T, Width::T, Height::T, nL::IT, nW::IT, nH::IT) where {T<:Number, IT<:Integer}
+function H27block(Length::T,
+    Width::T,
+    Height::T,
+    nL::IT,
+    nW::IT,
+    nH::IT) where {T <: Number, IT <: Integer}
     fens, fes = H8block(Length, Width, Height, nL, nW, nH)
     fens, fes = H8toH27(fens, fes)
     return fens, fes
@@ -364,7 +365,7 @@ end
 
 Graded mesh of a 3-D block of H27 finite elements.
 """
-function H27blockx(xs::Vector{T}, ys::Vector{T}, zs::Vector{T}) where {T<:Number}
+function H27blockx(xs::Vector{T}, ys::Vector{T}, zs::Vector{T}) where {T <: Number}
     fens, fes = H8blockx(xs, ys, zs)
     fens, fes = H8toH27(fens, fes)
 end
@@ -389,8 +390,9 @@ function _doextrude(fens, fes::FESetQ4, nLayers, extrusionh)
     gc = 1
     for k in 1:nLayers
         for i in eachindex(fes)
-            hconn[gc, :] =
-                [broadcast(+, conn[i, :], (k - 1) * nn1) broadcast(+, conn[i, :], k * nn1)]
+            hconn[gc, :] = [broadcast(+, conn[i, :], (k - 1) * nn1) broadcast(+,
+                conn[i, :],
+                k * nn1)]
             gc = gc + 1
         end
     end
@@ -409,12 +411,10 @@ end
 
 Extrude a mesh of quadrilaterals into a mesh of hexahedra (H8).
 """
-function H8extrudeQ4(
-    fens::FENodeSet,
+function H8extrudeQ4(fens::FENodeSet,
     fes::FESetQ4,
     nLayers::IT,
-    extrusionh::F,
-) where {F<:Function, IT<:Integer}
+    extrusionh::F) where {F <: Function, IT <: Integer}
     id = vec([i for i in eachindex(fens)])
     cn = connectednodes(fes)
     id[cn[:]] = vec([i for i in eachindex(cn)])
@@ -434,7 +434,7 @@ Create a solid mesh of 1/8 of the sphere of `radius`,  with `nperradius`
 elements per radius.
 
 """
-function H8spheren(radius::T, nperradius::IT) where {T<:Number, IT<:Integer}
+function H8spheren(radius::T, nperradius::IT) where {T <: Number, IT <: Integer}
     if (mod(nperradius, 2) != 0)
         nperradiu = nperradius + 1
     end
@@ -449,30 +449,25 @@ function H8spheren(radius::T, nperradius::IT) where {T<:Number, IT<:Integer}
     z = 0.0
     h = 0.5
     o = 1.0
-    xyz =
-        [
-            z z z
-            h z z
-            c c z
-            z h z
-            z z h
-            c z c
-            d d d
-            z c c
-            z z o
-            a z a
-            o z z
-            a a z
-            z o z
-            z a a
-            b b b
-        ] * radius
-    conns = [
-        1 2 3 4 5 6 7 8
+    xyz = [z z z
+        h z z
+        c c z
+        z h z
+        z z h
+        c z c
+        d d d
+        z c c
+        z z o
+        a z a
+        o z z
+        a a z
+        z o z
+        z a a
+        b b b] * radius
+    conns = [1 2 3 4 5 6 7 8
         2 11 12 3 6 10 15 7
         4 3 12 13 8 7 15 14
-        5 6 7 8 9 10 15 14
-    ]
+        5 6 7 8 9 10 15 14]
     tolerance = radius * 1.0e-6
 
     fens, fes = H8hexahedron(xyz[conns[1, :][:], :], nL, nW, nH)
@@ -493,7 +488,7 @@ function H8spheren(radius::T, nperradius::IT) where {T<:Number, IT<:Integer}
     l = selectelem(fens, bg; facing = true, direction = [1.0 1.0 1.0], dotmin = 0.01)
     cn = connectednodes(subset(bg, l))
     layer[cn] .= 1
-    for j in 1:nperradius-1
+    for j in 1:(nperradius - 1)
         for k in axes(conn, 1)
             ll = layer[conn[k, :]]
             ml = minimum(ll)
@@ -507,9 +502,8 @@ function H8spheren(radius::T, nperradius::IT) where {T<:Number, IT<:Integer}
     nxyz = deepcopy(xyz)
     for j in axes(xyz, 1)
         if (!isinf.(layer[j]))
-            nxyz[j, :] =
-                nxyz[j, :] * (nperradius - layer[j] + 1) / nperradius * radius /
-                norm(nxyz[j, :])
+            nxyz[j, :] = nxyz[j, :] * (nperradius - layer[j] + 1) / nperradius * radius /
+                         norm(nxyz[j, :])
         end
     end
     s = collect(linearspace(0.0, 1.0, nperradius))
@@ -530,7 +524,12 @@ end
 
 Create mesh of a 3-D block of H20 finite elements.
 """
-function H20block(Length::T, Width::T, Height::T, nL::IT, nW::IT, nH::IT) where {T<:Number, IT<:Integer}
+function H20block(Length::T,
+    Width::T,
+    Height::T,
+    nL::IT,
+    nW::IT,
+    nH::IT) where {T <: Number, IT <: Integer}
     fens, fes = H8block(Length, Width, Height, nL, nW, nH)
     fens, fes = H8toH20(fens, fes)
 end
@@ -540,7 +539,7 @@ end
 
 Graded mesh of a 3-D block of H20 finite elements.
 """
-function H20blockx(xs::Vector{T}, ys::Vector{T}, zs::Vector{T}) where {T<:Number}
+function H20blockx(xs::Vector{T}, ys::Vector{T}, zs::Vector{T}) where {T <: Number}
     fens, fes = H8blockx(xs, ys, zs)
     fens, fes = H8toH20(fens, fes)
 end
@@ -609,7 +608,7 @@ end
 # Output:
 # t = array of hexahedron connectivities,  one hexahedron per row
 # v =Array of vertex locations,  one vertex per row
-function H8voximggen(img::Array{DataT,3}, voxval::Array{DataT,1}) where {DataT<:Number}
+function H8voximggen(img::Array{DataT, 3}, voxval::Array{DataT, 1}) where {DataT <: Number}
     M = size(img, 1)
     N = size(img, 2)
     P = size(img, 3)
@@ -651,8 +650,14 @@ function H8voximggen(img::Array{DataT,3}, voxval::Array{DataT,1}) where {DataT<:
         return vidx
     end
     function store_hex(I, J, K)
-        locs =
-            [1 J K; 1+1 J K; 1+1 J+1 K; 1 J+1 K; 1 J K+1; 1+1 J K+1; 1+1 J+1 K+1; 1 J+1 K+1]
+        locs = [1 J K;
+            1+1 J K;
+            1+1 J+1 K;
+            1 J+1 K;
+            1 J K+1;
+            1+1 J K+1;
+            1+1 J+1 K+1;
+            1 J+1 K+1]
         vidx = find_vertex(I, locs)
         nh = nh + 1
         h[nh, :] = vidx
@@ -689,11 +694,9 @@ end
 
 Generate a hexahedral mesh  from three-dimensional image.
 """
-function H8voximg(
-    img::Array{DataT,3},
+function H8voximg(img::Array{DataT, 3},
     voxdims::Vector{T},
-    voxval::Array{DataT,1},
-) where {DataT<:Number, T<:Number}
+    voxval::Array{DataT, 1}) where {DataT <: Number, T <: Number}
     h, v, hmid = H8voximggen(img, voxval)
     xyz = zeros(T, size(v, 1), 3)
     for k in 1:3
@@ -719,7 +722,10 @@ nts= array of numbers of elements per layer
 The finite elements of each layer are labeled with the layer number, starting
 from 1.
 """
-function H8layeredplatex(xs::Vector{T}, ys::Vector{T}, ts::Vector{T}, nts::Vector{IT}) where {T<:Number, IT<:Integer}
+function H8layeredplatex(xs::Vector{T},
+    ys::Vector{T},
+    ts::Vector{T},
+    nts::Vector{IT}) where {T <: Number, IT <: Integer}
     tolerance = minimum(abs.(ts)) / maximum(nts) / 10.0
     @assert length(ts) >= 1
     layer = 1
@@ -730,7 +736,7 @@ function H8layeredplatex(xs::Vector{T}, ys::Vector{T}, ts::Vector{T}, nts::Vecto
         zs = collect(linearspace(0.0, ts[layer], nts[layer] + 1))
         fens1, fes1 = H8blockx(xs, ys, zs)
         setlabel!(fes1, layer)
-        fens1.xyz[:, 3] = fens1.xyz[:, 3] .+ sum(ts[1:layer-1])
+        fens1.xyz[:, 3] = fens1.xyz[:, 3] .+ sum(ts[1:(layer - 1)])
         fens, fes1, fes2 = mergemeshes(fens1, fes1, fens, fes, tolerance)
         fes = cat(fes1, fes2)
     end
@@ -760,8 +766,7 @@ Mesh of one quarter of a rectangular plate with an elliptical hole.
 `nW` = number of edges along the remaining straight edge (from the hole
   in the radial direction),
 """
-function H8elliphole(
-    xradius::T,
+function H8elliphole(xradius::T,
     yradius::T,
     L::T,
     H::T,
@@ -769,12 +774,12 @@ function H8elliphole(
     nL::IT,
     nH::IT,
     nW::IT,
-    nT::IT,
-) where {T<:Number, IT<:Integer}
+    nT::IT) where {T <: Number, IT <: Integer}
     fens, fes = Q4elliphole(xradius, yradius, L, H, nL, nH, nW)
     fens.xyz = xyz3(fens)
-    ex(xyz, layer) =
+    function ex(xyz, layer)
         xyz + reshape(layer / nT * Th * [0.0 0.0 1.0], size(xyz, 1), size(xyz, 2))
+    end
     fens, fes = H8extrudeQ4(fens, fes, nT, ex)
     return fens, fes
 end
@@ -785,7 +790,10 @@ end
 H8 mesh of a solid  cylinder with given number of edges per radius (`nperradius`)
 and per length (`nL`).
 """
-function H8cylindern(Radius::T, Length::T, nperradius::IT, nL::IT) where {T<:Number, IT<:Integer}
+function H8cylindern(Radius::T,
+    Length::T,
+    nperradius::IT,
+    nL::IT) where {T <: Number, IT <: Integer}
     tol = min((Length / nL), (Radius / 2 / nperradius)) / 100
     fens, fes = Q4circlen(Radius, nperradius)
     fens2 = deepcopy(fens)

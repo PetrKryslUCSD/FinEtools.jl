@@ -15,7 +15,7 @@ import LinearAlgebra: norm
 
 Type of a hyper face data to store a newly generated node.
 """
-mutable struct HyperFaceContainer{IT<:Integer}
+mutable struct HyperFaceContainer{IT <: Integer}
     o::BitSet # numbers of the other nodes on the hyperface
     n::IT # new node number generated on the hyperface
 end
@@ -105,7 +105,7 @@ julia> linearspace(2.0, 3.0, 5)
 2.0:0.25:3.0
 ```
 """
-function linearspace(start::T, stop::T, N::Int) where {T<:Number}
+function linearspace(start::T, stop::T, N::Int) where {T <: Number}
     return range(start, stop = stop, length = N)
 end
 
@@ -129,7 +129,7 @@ julia> gradedspace(2.0, 3.0, 5)
  3.0
 ```
 """
-function gradedspace(start::T, stop::T, N::Int, strength = 2) where {T<:Number}
+function gradedspace(start::T, stop::T, N::Int, strength = 2) where {T <: Number}
     x = range(0.0, stop = 1.0, length = N)
     x = x .^ strength
     # for i = 1:strength
@@ -158,7 +158,7 @@ julia> logspace(2.0, 3.0, 5)
  1000.0    
 ```
 """
-function logspace(start::T, stop::T, N::Int) where {T<:Number}
+function logspace(start::T, stop::T, N::Int) where {T <: Number}
     es = range(start, stop = stop, length = N)
     return [10^e for e in es]
 end

@@ -57,13 +57,11 @@ Arguments:
 `N` = matrix of basis function values
 `gradNparams` = matrix of basis function gradients
 """
-function locjac!(
-    loc::Matrix{T},
+function locjac!(loc::Matrix{T},
     J::Matrix{T},
     ecoords::Matrix{T},
     N::Matrix{T},
-    gradNparams::Matrix{T},
-) where {T}
+    gradNparams::Matrix{T}) where {T}
     return loc!(loc, ecoords, N), jac!(J, ecoords, gradNparams)
 end
 
@@ -117,13 +115,11 @@ Upon return,  the matrix `Ke` is updated.  The scratch buffer `kappa_bargradNT`
 is overwritten during each call of this function. The matrices `gradN` and
 `kappa_bar` are not modified inside this function.
 """
-function add_gkgt_ut_only!(
-    Ke::Matrix{T},
+function add_gkgt_ut_only!(Ke::Matrix{T},
     gradN::Matrix{T},
     Jac_w::T,
     kappa_bar::Matrix{T},
-    kappa_bargradNT::Matrix{T},
-) where {T}
+    kappa_bargradNT::Matrix{T}) where {T}
     @assert size(Ke, 1) == size(Ke, 2)
     Kedim = size(Ke, 1)
     nne, mdim = size(gradN)
@@ -165,7 +161,7 @@ function complete_lt!(Ke::Matrix{T}) where {T}
     Kedim = size(Ke, 1)
     @assert Kedim == size(Ke, 2)
     @inbounds for nx in 1:Kedim # complete the lower triangle
-        @inbounds for mx in nx+1:Kedim
+        @inbounds for mx in (nx + 1):Kedim
             Ke[mx, nx] = Ke[nx, mx]
         end
     end
@@ -186,7 +182,11 @@ The matrix Ke is modified.  The matrices B and D are not modified
 inside this function. The scratch buffer DB is overwritten
 during each call of this function.
 """
-function add_btdb_ut_only!(Ke::Matrix{T}, B::Matrix{T}, Jac_w::T, D::Matrix{T}, DB::Matrix{T}) where {T}
+function add_btdb_ut_only!(Ke::Matrix{T},
+    B::Matrix{T},
+    Jac_w::T,
+    D::Matrix{T},
+    DB::Matrix{T}) where {T}
     @assert size(Ke, 1) == size(Ke, 2)
     @assert size(B, 1) == size(D, 1)
     nstr, Kedim = size(B)
@@ -236,14 +236,12 @@ The matrix Ke is modified.  The matrices `B1`, `B2`, and `D` are not modified
 inside this function. The scratch buffer `DB` is overwritten
 during each call of this function.
 """
-function add_b1tdb2!(
-    Ke::Matrix{T},
+function add_b1tdb2!(Ke::Matrix{T},
     B1::Matrix{T},
     B2::Matrix{T},
     Jac_w::T,
     D::Matrix{T},
-    DB2::Matrix{T},
-) where {T}
+    DB2::Matrix{T}) where {T}
     Kedim1, Kedim2 = size(Ke)
     Ddim1, Ddim2 = size(D)
     @assert size(B1) == (Ddim1, Kedim1)
@@ -282,7 +280,10 @@ The vector `Fe` is assumed to be suitably initialized.
 The vector `Fe` is modified.  The vector `sigma` is not modified
 inside this function. 
 """
-function add_btsigma!(Fe::Vector{T}, B::Matrix{T}, coefficient::T, sigma::Vector{T}) where {T}
+function add_btsigma!(Fe::Vector{T},
+    B::Matrix{T},
+    coefficient::T,
+    sigma::Vector{T}) where {T}
     @assert size(B, 1) == length(sigma)
     nstr, Kedim = size(B)
     @inbounds for nx in 1:Kedim
@@ -308,7 +309,7 @@ matrix `Nn` has a single column.
 The matrix `Ke` is modified.  The matrix `Nn` is not modified
 inside this function.
 """
-function add_nnt_ut_only!(Ke::Matrix{T}, N::Matrix{T}, Jac_w_coeff::T) where {T<:Number}
+function add_nnt_ut_only!(Ke::Matrix{T}, N::Matrix{T}, Jac_w_coeff::T) where {T <: Number}
     Kedim = size(N, 1)
     @assert Kedim == size(Ke, 2)
     @inbounds for nx in 1:Kedim
@@ -331,7 +332,10 @@ matrices `N1` and `N2` have a single column each.
 The matrix `Ke` is modified.  The matrix `N1` and `N2` are  not modified inside
 this function.
 """
-function add_n1n2t!(Ke::Matrix{T}, N1::VecOrMat{T}, N2::VecOrMat{T}, Jac_w_coeff::T) where {T<:Number}
+function add_n1n2t!(Ke::Matrix{T},
+    N1::VecOrMat{T},
+    N2::VecOrMat{T},
+    Jac_w_coeff::T) where {T <: Number}
     @assert length(N1) == size(Ke, 1)
     @assert length(N2) == size(Ke, 2)
     @inbounds for nx in 1:size(Ke, 2)
@@ -567,12 +571,10 @@ Compute determinant of 3X3 `C`.
 """
 function detC(::Val{3}, C::Matrix{T}) where {T}
     #define MAT3DUTIL_DET_3X3(T3X3) 
-    return (
-        (C[1, 1] * C[2, 2] * C[3, 3]) +
-        (C[1, 2] * C[2, 3] * C[3, 1]) +
-        (C[1, 3] * C[2, 1] * C[3, 2]) - (C[1, 3] * C[2, 2] * C[3, 1]) -
-        (C[1, 2] * C[2, 1] * C[3, 3]) - (C[1, 1] * C[2, 3] * C[3, 2])
-    )
+    return ((C[1, 1] * C[2, 2] * C[3, 3]) +
+            (C[1, 2] * C[2, 3] * C[3, 1]) +
+            (C[1, 3] * C[2, 1] * C[3, 2]) - (C[1, 3] * C[2, 2] * C[3, 1]) -
+            (C[1, 2] * C[2, 1] * C[3, 3]) - (C[1, 1] * C[2, 3] * C[3, 2]))
 end
 
 """
@@ -625,7 +627,7 @@ function import_sparse(filnam)
         J = fill(0, length(rows) - 1)
         V = fill(0.0, length(rows) - 1)
         for i in eachindex(I)
-            s = split(replace(rows[i+1], "," => " "))
+            s = split(replace(rows[i + 1], "," => " "))
             I[i] = parse(Int64, s[1])
             J[i] = parse(Int64, s[2])
             V[i] = parse(Float64, s[3])

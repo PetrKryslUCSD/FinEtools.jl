@@ -15,7 +15,7 @@ import ..FieldModule.@add_Field_fields
 
 Nodal field, meaning the entities are the finite element nodes.
 """
-mutable struct NodalField{T<:Number, IT<:Integer} <: AbstractField
+mutable struct NodalField{T <: Number, IT <: Integer} <: AbstractField
     @add_Field_fields()
 end
 
@@ -29,7 +29,7 @@ and as many columns as there are degrees of freedom per node.
 The integer type for the storage of the degree of freedom numbers is set as that
 of the argument `zi`.
 """
-function NodalField(data::Matrix{T}, zi::IT) where {T<:Number, IT<:Integer}
+function NodalField(data::Matrix{T}, zi::IT) where {T <: Number, IT <: Integer}
     values = deepcopy(data)
     dofnums = 0 * similar(values, IT)
     is_fixed = similar(values, Bool)
@@ -38,7 +38,7 @@ function NodalField(data::Matrix{T}, zi::IT) where {T<:Number, IT<:Integer}
     return NodalField(values, dofnums, is_fixed, nfreedofs)
 end
 
-function NodalField(data::Matrix{T}) where {T<:Number}
+function NodalField(data::Matrix{T}) where {T <: Number}
     return NodalField(data, zero(Int))
 end
 
@@ -49,7 +49,7 @@ Constructor of nodal field. The values of the field are given by the vector on
 input, `data`. This vector needs to have as many entries as there are nodes;
 there is just one degree of freedom per node.
 """
-function NodalField(data::Vector{T}) where {T<:Number}
+function NodalField(data::Vector{T}) where {T <: Number}
     return NodalField(reshape(data, length(data), 1))
 end
 

@@ -21,7 +21,7 @@ import Unicode: uppercase, isdigit
 import LinearAlgebra: norm
 using DelimitedFiles
 
-const DataDict = Dict{String,Any}
+const DataDict = Dict{String, Any}
 
 """
 !!! note
@@ -33,16 +33,15 @@ const DataDict = Dict{String,Any}
 """
 const chunk = 1000
 
-
 # Fix up an old style floating-point number without the exponent letter.  
 function _fixupdecimal(s)
     os = ""
     for i in length(s):-1:1
         os = s[i] * os
-        if (s[i] == '-') && (i > 1) && (uppercase(s[i-1]) != "E") && isdigit(s[i-1])
+        if (s[i] == '-') && (i > 1) && (uppercase(s[i - 1]) != "E") && isdigit(s[i - 1])
             os = "E" * os
         end
-        if (s[i] == '+') && (i > 1) && (uppercase(s[i-1]) != "E") && isdigit(s[i-1])
+        if (s[i] == '+') && (i > 1) && (uppercase(s[i - 1]) != "E") && isdigit(s[i - 1])
             os = "E" * os
         end
     end
@@ -90,7 +89,7 @@ function import_NASTRAN(filename; allocationchunk = chunk, expectfixedformat = f
                 largefield = true
                 fixedformat = true
             end
-            @assert (!fixedformat) || (fixedformat && largefield) "Can handle either free format or large-field fixed format"
+            @assert (!fixedformat)||(fixedformat && largefield) "Can handle either free format or large-field fixed format"
             nnode = nnode + 1
             if size(node, 1) < nnode
                 node = vcat(node, zeros(allocationchunk, 4))
@@ -110,7 +109,7 @@ function import_NASTRAN(filename; allocationchunk = chunk, expectfixedformat = f
                 #   GRID,1,,-1.32846E-017,3.25378E-033,0.216954
                 A = split(replace(temp, "," => " "))
                 for six in 1:4
-                    node[nnode, six] = parse(Float64, A[six+1])
+                    node[nnode, six] = parse(Float64, A[six + 1])
                 end
             end
         end # GRID
@@ -138,7 +137,7 @@ function import_NASTRAN(filename; allocationchunk = chunk, expectfixedformat = f
                     temp = lines[current_line]
                     current_line = current_line + 1
                     if fixedformat
-                        temp = temp[length(continuation)+1:min(length(temp), 72)]
+                        temp = temp[(length(continuation) + 1):min(length(temp), 72)]
                     end
                     temp = strip(temp)
                     Acont = split(replace(temp, "," => " "))
@@ -147,10 +146,9 @@ function import_NASTRAN(filename; allocationchunk = chunk, expectfixedformat = f
             end
             elem[nelem, 3] = nperel
             for six in 1:nperel
-                elem[nelem, six+3] = parse(Int, A[six+3])
+                elem[nelem, six + 3] = parse(Int, A[six + 3])
             end
         end # CTETRA
-
     end # while
 
     # Trim the arrays
@@ -159,17 +157,17 @@ function import_NASTRAN(filename; allocationchunk = chunk, expectfixedformat = f
 
     # The nodes need to be in serial order:  if they are not,  the element
     # connectivities  will not point at the right nodes
-    @assert norm(collect(1:nnode) - node[:, 1]) == 0 "Nodes are not in serial order"
+    @assert norm(collect(1:nnode) - node[:, 1])==0 "Nodes are not in serial order"
 
     # Process output arguments
     # Extract coordinates
     xyz = node[:, 2:4]
     # Cleanup element connectivities
     ennod = unique(elem[:, 3])
-    @assert length(ennod) == 1 "Cannot handle mixture of element types"
+    @assert length(ennod)==1 "Cannot handle mixture of element types"
 
-    @assert ((ennod[1] == 4) || (ennod[1] == 10)) "Unknown element type"
-    conn = elem[:, 4:3+convert(Int, ennod[1])]
+    @assert ((ennod[1] == 4)||(ennod[1] == 10)) "Unknown element type"
+    conn = elem[:, 4:(3 + convert(Int, ennod[1]))]
     pids = elem[:, 2] # property identifier: different identifiers, different materials
     upids = unique(pids)
 
@@ -196,7 +194,7 @@ end
 mutable struct _AbaqusElementSection
     ElementLine::AbstractString
     nelem::Int
-    elem::Array{Int,2}
+    elem::Array{Int, 2}
 end
 
 mutable struct _AbaqusNSetSection
@@ -282,11 +280,9 @@ function import_ABAQUS(filename; allocationchunk = chunk)
             Reading_elements = true
             nelemset = nelemset + 1
             nelem = 0
-            a = _AbaqusElementSection(
-                temp,
+            a = _AbaqusElementSection(temp,
                 nelem,
-                zeros(Int, allocationchunk, maxelnodes + 1),
-            )
+                zeros(Int, allocationchunk, maxelnodes + 1))
             push!(elemset, a)
             temp = uppercase(strip(lines[next_line]))
             next_line = next_line + 1
@@ -298,21 +294,19 @@ function import_ABAQUS(filename; allocationchunk = chunk)
             end
             elemset[nelemset].nelem = elemset[nelemset].nelem + 1
             if size(elemset[nelemset].elem, 1) < elemset[nelemset].nelem
-                elemset[nelemset].elem = vcat(
-                    elemset[nelemset].elem,
-                    zeros(Int, allocationchunk, maxelnodes + 1),
-                )
+                elemset[nelemset].elem = vcat(elemset[nelemset].elem,
+                    zeros(Int, allocationchunk, maxelnodes + 1))
             end
             A = split(temp, ",")
             if (A[end] == "") # the present line is continued on the next one
                 temp = uppercase(strip(lines[next_line]))
                 next_line = next_line + 1
                 Acont = split(temp, ",")
-                A = vcat(A[1:end-1], Acont)
+                A = vcat(A[1:(end - 1)], Acont)
             end
             for ixxxx in eachindex(A)
-                elemset[nelemset].elem[elemset[nelemset].nelem, ixxxx] =
-                    parse(Int, A[ixxxx])
+                elemset[nelemset].elem[elemset[nelemset].nelem, ixxxx] = parse(Int,
+                    A[ixxxx])
             end
         end
     end # while
@@ -324,7 +318,6 @@ function import_ABAQUS(filename; allocationchunk = chunk)
 
     # truncate the array to just the lines read
     node = node[1:nnode, :]
-
 
     nsetsarr = _AbaqusNSetSection[]
     Reading_nsetsarr = false
@@ -475,7 +468,7 @@ function import_ABAQUS(filename; allocationchunk = chunk)
     end
 
     for ixxxx in eachindex(elemset)
-        elemset[ixxxx].elem = elemset[ixxxx].elem[1:elemset[ixxxx].nelem, :]
+        elemset[ixxxx].elem = elemset[ixxxx].elem[1:(elemset[ixxxx].nelem), :]
         fes = feset_construct(elemset[ixxxx])
         if (fes === nothing)
             push!(warnings, "Don't know how to handle " * elemset[ixxxx].ElementLine)
@@ -496,13 +489,11 @@ function import_ABAQUS(filename; allocationchunk = chunk)
         elsets[elsetsarr[ixxxx].esetname] = elsetsarr[ixxxx].elements
     end
 
-    output = DataDict(
-        "fens" => fens,
+    output = DataDict("fens" => fens,
         "fesets" => fesets,
         "nsets" => nsets,
         "elsets" => elsets,
-        "warnings" => warnings,
-    )
+        "warnings" => warnings)
     return output
 end
 
@@ -632,7 +623,6 @@ function import_H5MESH(meshfile)
 
     lab = DataDrop.retrieve_matrix(fname, "label")
     setlabel!(fes, vec(lab))
-
 
     output = DataDict("fens" => fens, "fesets" => [fes], "warnings" => warnings)
     return output
