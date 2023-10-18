@@ -56,7 +56,6 @@ using ..AssemblyModule:
     SysvecAssembler
 using ..FENodeToFEMapModule: FENodeToFEMap
 using ..DeforModelRedModule: AbstractDeforModelRed, blmat!, nstressstrain
-using InteractiveUtils
 
 """
     AbstractFEMM
@@ -66,7 +65,7 @@ Abstract type for all finite element model machines.
 abstract type AbstractFEMM end
 
 """
-    FEMMBase{S<:AbstractFESet, F<:Function} <: AbstractFEMM
+    FEMMBase{ID<:IntegDomain, CS<:CSys} <: AbstractFEMM
 
 Type for base finite element modeling machine.
 """
@@ -76,7 +75,7 @@ mutable struct FEMMBase{ID<:IntegDomain, CS<:CSys} <: AbstractFEMM
 end
 
 """
-    FEMMBase(integdomain::IntegDomain{S, F}) where {S<:AbstractFESet, F<:Function}
+    FEMMBase(integdomain::ID) where {ID<:IntegDomain}
 
 Construct with the default orientation matrix (identity).
 """
@@ -85,7 +84,7 @@ function FEMMBase(integdomain::ID) where {ID<:IntegDomain}
 end
 
 """
-    finite_elements(self::AbstractFEMM)
+    finite_elements(self::FEMM) where {FEMM <: AbstractFEMM}
 
 Retrieve the finite element set for this FEMM to work on.
 """
