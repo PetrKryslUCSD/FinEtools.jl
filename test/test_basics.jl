@@ -107,6 +107,7 @@ using FinEtools
 using Test
 function test()
     fens, fes = Q4block(1.3, 3.1, 3, 2) # Mesh
+    eachindex(fes)
     @test manifdim(fes) == 2
     bfes = meshboundary(fes)
     @test manifdim(bfes) == 1
