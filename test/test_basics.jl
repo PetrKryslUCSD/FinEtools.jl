@@ -2736,7 +2736,6 @@ module mbascstypes01
 using FinEtools
 using FinEtools.AlgoBaseModule: fieldnorm
 using LinearAlgebra
-using InteractiveUtils
 using Test
 function test()
     center = [0.0, 0.0, 0.0]
