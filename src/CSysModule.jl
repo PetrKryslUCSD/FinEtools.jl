@@ -105,7 +105,10 @@ rotation matrix of type `T` is given.
 end
 ```
 """
-function CSys(sdim::IT1, mdim::IT2, z::T, computecsmat::F) where {IT1, IT2, T <: Number, F <: Function}
+function CSys(sdim::IT1,
+    mdim::IT2,
+    z::T,
+    computecsmat::F) where {IT1, IT2, T <: Number, F <: Function}
     csmat = fill(z, sdim, mdim) # Allocate buffer, in preparation for the first call
     return CSys(false, false, computecsmat, csmat)
 end
@@ -133,7 +136,7 @@ identity.
 
 `dim` = is the space dimension.
 """
-function CSys(dim::IT, z::T) where {IT<:Integer, T}
+function CSys(dim::IT, z::T) where {IT <: Integer, T}
     function __updatebuffer!(csmatout::Matrix{T},
         XYZ::VecOrMat{T},
         tangents::Matrix{T},
@@ -176,7 +179,7 @@ finite elements.
 # See also
 `gen_iso_csmat`
 """
-function CSys(sdim::IT1, mdim::IT2) where {IT1<:Integer, IT2<:Integer}
+function CSys(sdim::IT1, mdim::IT2) where {IT1 <: Integer, IT2 <: Integer}
     function __updatebuffer!(csmatout::Matrix{T},
         XYZ::VecOrMat{T},
         tangents::Matrix{T},

@@ -69,7 +69,7 @@ abstract type AbstractFEMM end
 
 Type for base finite element modeling machine.
 """
-mutable struct FEMMBase{ID<:IntegDomain, CS<:CSys} <: AbstractFEMM
+mutable struct FEMMBase{ID <: IntegDomain, CS <: CSys} <: AbstractFEMM
     integdomain::ID # domain data
     mcsys::CS # updater of the material orientation matrix
 end
@@ -79,7 +79,7 @@ end
 
 Construct with the default orientation matrix (identity).
 """
-function FEMMBase(integdomain::ID) where {ID<:IntegDomain}
+function FEMMBase(integdomain::ID) where {ID <: IntegDomain}
     return FEMMBase(integdomain, CSys(manifdim(integdomain.fes)))
 end
 
@@ -124,15 +124,13 @@ end
 
 Inspect integration points.
 """
-function inspectintegpoints(
-    self::FEMM,
+function inspectintegpoints(self::FEMM,
     geom::NodalField{GFT},
     felist::AbstractVector{IT},
     inspector::F,
     idat,
     quantity = :Cauchy;
-    context...,
-) where {FEMM<:AbstractFEMM, GFT, IT, F<:Function}
+    context...,) where {FEMM <: AbstractFEMM, GFT, IT, F <: Function}
     return idat # default is no-op
 end
 
@@ -158,14 +156,12 @@ Integrate a nodal-field function over the discrete manifold.
 
 Returns value of type `R`, which is initialized by `initial`.
 """
-function integratefieldfunction(
-    self::AbstractFEMM,
+function integratefieldfunction(self::AbstractFEMM,
     geom::NodalField{GFT},
     afield::FL,
     fh::F;
     initial::R,
-    m = -1,
-) where {GFT, T, FL<:NodalField{T}, F<:Function,R}
+    m = -1,) where {GFT, T, FL <: NodalField{T}, F <: Function, R}
     fes = finite_elements(self)
     if m < 0
         m = manifdim(fes)  # native  manifold dimension
@@ -174,12 +170,10 @@ function integratefieldfunction(
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     a = fill(zero(eltype(afield.values)), nne, ndn) # used as a buffer
     val = fill(zero(eltype(afield.values)), 1, ndn) # used as a buffer
-    function fillcache!(
-        cacheout::R,
+    function fillcache!(cacheout::R,
         XYZ::VecOrMat{T},
         tangents::Matrix{T},
-        feid::IT, qpid::IT
-    ) where {R,T,IT}
+        feid::IT, qpid::IT) where {R, T, IT}
         gathervalues_asmat!(afield, a, fes.conn[feid])# retrieve element dofs
         At_mul_B!(val, Ns[qpid], a)# Field value at the quadrature point
         cacheout = fh(XYZ, val)
@@ -209,14 +203,12 @@ Integrate a elemental-field function over the discrete manifold.
 
 Returns value of type `R`, which is initialized by `initial`.
 """
-function integratefieldfunction(
-    self::AbstractFEMM,
+function integratefieldfunction(self::AbstractFEMM,
     geom::NodalField{GFT},
     afield::FL,
     fh::F;
     initial::R = zero(FT),
-    m = -1,
-) where {GFT, T, FL<:ElementalField{T}, F<:Function,R}
+    m = -1,) where {GFT, T, FL <: ElementalField{T}, F <: Function, R}
     fes = finite_elements(self)
     if m < 0
         m = manifdim(fes)  # native  manifold dimension
@@ -224,12 +216,10 @@ function integratefieldfunction(
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, afield)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     a = fill(zero(eltype(afield.values)), nne, ndn) # used as a buffer
-    function fillcache!(
-        cacheout::R,
+    function fillcache!(cacheout::R,
         XYZ::VecOrMat{T},
         tangents::Matrix{T},
-        feid::IT, qpid::IT
-    ) where {R,T,IT}
+        feid::IT, qpid::IT) where {R, T, IT}
         gathervalues_asmat!(afield, a, (feid,))# retrieve element dofs
         cacheout = fh(XYZ, a)
         return cacheout
@@ -271,23 +261,19 @@ Compute a moment of inertia of the mesh relative to the origin:
 Ixx = integratefunction(femm, geom, (x) ->  x[2]^2 + x[3]^2)
 ```
 """
-function integratefunction(
-    self::AbstractFEMM,
+function integratefunction(self::AbstractFEMM,
     geom::NodalField{GFT},
     fh::F;
     initial::R = zero(typeof(fh(zeros(ndofs(geom), 1)))),
-    m = -1,
-) where {GFT<:Number, F<:Function, R<:Number}
+    m = -1,) where {GFT <: Number, F <: Function, R <: Number}
     fes = finite_elements(self)
     if m < 0
         m = manifdim(fes)  # native  manifold dimension
     end
-    function fillcache!(
-        cacheout::R,
+    function fillcache!(cacheout::R,
         XYZ::VecOrMat{T},
         tangents::Matrix{T},
-        feid::IT, qpid::IT
-    ) where {R,T,IT}
+        feid::IT, qpid::IT) where {R, T, IT}
         cacheout = fh(XYZ)
         return cacheout
     end
@@ -322,16 +308,14 @@ Transfer a nodal field from a coarse mesh to a finer one.
 # Output
 Nodal field `ff` transferred to the fine mesh is output.
 """
-function transferfield!(
-    ff::F,
+function transferfield!(ff::F,
     fensf::FENodeSet{FT},
     fesf::AbstractFESet,
     fc::F,
     fensc::FENodeSet{FT},
     fesc::AbstractFESet,
     geometricaltolerance::FT;
-    parametrictolerance::FT = 0.01,
-) where {FT<:Number,T,F<:NodalField{T}}
+    parametrictolerance::FT = 0.01,) where {FT <: Number, T, F <: NodalField{T}}
     fill!(ff.values, Inf) # the "infinity" value indicates a missed node
     @assert count(fensf) == nents(ff)
     parametrictol = 0.01
@@ -343,7 +327,7 @@ function transferfield!(
     partitionnumbers = unique(npf)
     npartitions = length(partitionnumbers)
     # Go through all the partitions
-    for p = 1:npartitions
+    for p in 1:npartitions
         pnl = findall(x -> x == partitionnumbers[p], npf) # subset of fine-mesh nodes
         # Find the bounding box
         subbox = boundingbox(fensf.xyz[pnl, :])
@@ -375,13 +359,11 @@ function transferfield!(
                     el = selectelem(fenscsub, fescsub; overlappingbox = nodebox)
                     for e in el
                         c = [k for k in fescsub.conn[e]] #c = view(fescsub.conn, e, :)
-                        pc, success = map2parametric(
-                            fescsub,
+                        pc, success = map2parametric(fescsub,
                             fenscsub.xyz[c, :],
                             vec(fensf.xyz[i, :]);
                             tolerance = 0.000001,
-                            maxiter = 7,
-                        )
+                            maxiter = 7,)
                         @assert success # this shouldn't be tripped; normally we succeed
                         if inparametric(fescsub, pc; tolerance = parametrictolerance) # coarse mesh element encloses the node
                             N = bfun(fescsub, pc)
@@ -431,16 +413,14 @@ Transfer an elemental field from a coarse mesh to a finer one.
 # Output
 Elemental field `ff` transferred to the fine mesh is output.
 """
-function transferfield!(
-    ff::F,
+function transferfield!(ff::F,
     fensf::FENodeSet{FT},
     fesf::AbstractFESet,
     fc::F,
     fensc::FENodeSet{FT},
     fesc::AbstractFESet,
     geometricaltolerance::FT;
-    parametrictolerance::FT = 0.01,
-) where {FT<:Number,T,F<:ElementalField{T}}
+    parametrictolerance::FT = 0.01,) where {FT <: Number, T, F <: ElementalField{T}}
     @assert count(fesf) == nents(ff)
     nodebox = initbox!([], vec(fensc.xyz[1, :]))
     centroidpc = centroidparametric(fesf)
@@ -455,13 +435,11 @@ function transferfield!(
         foundone = false
         for e in el
             c = [k for k in fesc.conn[e]]
-            pc, success = map2parametric(
-                fesc,
+            pc, success = map2parametric(fesc,
                 fensc.xyz[c, :],
                 vec(centroid);
                 tolerance = 0.000001,
-                maxiter = 9,
-            )
+                maxiter = 9,)
             # if !success
             # println("pc = $(pc)")
             # N1 = bfun(fesf, pc)
@@ -489,7 +467,7 @@ Compute the connection matrix.
 The matrix has a nonzero in all the rows and columns which correspond to nodes
 connected by some finite element.
 """
-function connectionmatrix(self::FEMM, nnodes) where {FEMM<:AbstractFEMM}
+function connectionmatrix(self::FEMM, nnodes) where {FEMM <: AbstractFEMM}
     fes = finite_elements(self)
     nfes = length(fes.conn)
     nconns = nodesperelem(fes)
@@ -500,10 +478,10 @@ function connectionmatrix(self::FEMM, nnodes) where {FEMM<:AbstractFEMM}
     cb = IT[]
     sizehint!(cb, N)
     vb = ones(IT, N)
-    for j = 1:nfes
-        for k = 1:nconns
+    for j in 1:nfes
+        for k in 1:nconns
             append!(rb, fes.conn[j])
-            @inbounds for m = 1:nconns
+            @inbounds for m in 1:nconns
                 push!(cb, fes.conn[j][k])
             end
         end
@@ -526,11 +504,9 @@ elements connected by some finite element nodes.
 - `minnodes`: minimum number of nodes that the elements needs to share in order
   to be neighbors (default 1)
 """
-function dualconnectionmatrix(
-    self::FEMM,
+function dualconnectionmatrix(self::FEMM,
     fens::FENodeSet,
-    minnodes = 1,
-) where {FEMM<:AbstractFEMM}
+    minnodes = 1) where {FEMM <: AbstractFEMM}
     fes = finite_elements(self)
     nfes = length(fes.conn)
     nconns = nodesperelem(fes)
@@ -556,14 +532,12 @@ function dualconnectionmatrix(
     return sparse(I[ix], J[ix], V[ix], nfes, nfes)
 end
 
-
-struct InverseDistanceInspectorData{IT,FT}
+struct InverseDistanceInspectorData{IT, FT}
     component::Vector{IT}
     d::Vector{FT} # nodesperelem(integdomain.fes)
     sum_inv_dist::Vector{FT} # nnodes(geom)
-    sum_quant_inv_dist::Array{FT,2} # nnodes(geom) x length(component)
+    sum_quant_inv_dist::Array{FT, 2} # nnodes(geom) x length(component)
 end
-
 
 # This is an inverse-distance interpolation inspector.
 function _idi_inspector(idat, elnum, conn, xe, out, xq)
@@ -588,12 +562,11 @@ function _idi_inspector(idat, elnum, conn, xe, out, xq)
     return idat
 end
 
-
-struct AveragingInspectorData{IT,FT}
+struct AveragingInspectorData{IT, FT}
     component::Vector{IT}
     d::Vector{FT} # nodesperelem(fes)
     ncontrib::Vector{IT} # nnodes(geom)
-    sum_quant::Array{FT,2} # nnodes(geom) x length(component)
+    sum_quant::Array{FT, 2} # nnodes(geom) x length(component)
 end
 
 # This is a simple nodal averaging inspector.
@@ -645,15 +618,13 @@ Keyword arguments
 # Output
 - the new field that can be used to map values to colors and so on
 """
-function fieldfromintegpoints(
-    self::FEMM,
+function fieldfromintegpoints(self::FEMM,
     geom::NodalField{GFT},
     u::NodalField{UFT},
     dT::NodalField{TFT},
     quantity::Symbol,
     component::AbstractVector{IT};
-    context...,
-) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, TFT<:Number, IT<:Integer}
+    context...,) where {FEMM <: AbstractFEMM, GFT <: Number, UFT <: Number, TFT <: Number, IT <: Integer}
     fes = finite_elements(self)
     # Constants
     nne = nodesperelem(fes) # number of nodes for element
@@ -672,15 +643,12 @@ function fieldfromintegpoints(
     end
     if nodevalmethod == :averaging
         # Container of intermediate results
-        idat = AveragingInspectorData(
-            component,
+        idat = AveragingInspectorData(component,
             zeros(FT, nne),
             zeros(Int, nnodes(geom)),
-            zeros(FT, nnodes(geom), length(component)),
-        )
+            zeros(FT, nnodes(geom), length(component)))
         # Loop over cells to interpolate to nodes
-        idat = inspectintegpoints(
-            self,
+        idat = inspectintegpoints(self,
             geom,
             u,
             dT,
@@ -688,8 +656,7 @@ function fieldfromintegpoints(
             _avg_inspector,
             idat,
             quantity;
-            context...,
-        )
+            context...,)
         # The data for the field to be constructed is initialized
         nvals = zeros(FT, nnodes(geom), length(component))
         # compute the data array
@@ -701,17 +668,14 @@ function fieldfromintegpoints(
             end
         end
     else # inverse distance
-        @assert (reportat == :default) || (reportat == :meanonly) "Inverse-distance interpolation requires :meanonly"
+        @assert (reportat == :default)||(reportat == :meanonly) "Inverse-distance interpolation requires :meanonly"
         # Container of intermediate results
-        idat = InverseDistanceInspectorData(
-            component,
+        idat = InverseDistanceInspectorData(component,
             zeros(FT, nne),
             zeros(FT, nnodes(geom)),
-            zeros(FT, nnodes(geom), length(component)),
-        )
+            zeros(FT, nnodes(geom), length(component)))
         # Loop over cells to interpolate to nodes
-        idat = inspectintegpoints(
-            self,
+        idat = inspectintegpoints(self,
             geom,
             u,
             dT,
@@ -719,8 +683,7 @@ function fieldfromintegpoints(
             _idi_inspector,
             idat,
             quantity;
-            context...,
-        )
+            context...,)
         # The data for the field to be constructed is initialized
         nvals = zeros(FT, nnodes(geom), length(component))
         # compute the data array
@@ -736,46 +699,39 @@ function fieldfromintegpoints(
     return NodalField(nvals)
 end
 
-function fieldfromintegpoints(
-    self::FEMM,
+function fieldfromintegpoints(self::FEMM,
     geom::NodalField{GFT},
     u::NodalField{UFT},
     dT::NodalField{TFT},
     quantity::Symbol,
     component::IT;
-    context...,
-) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, TFT<:Number, IT<:Integer}
+    context...,) where {FEMM <: AbstractFEMM, GFT <: Number, UFT <: Number, TFT <: Number, IT <: Integer}
     return fieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
 end
 
-function fieldfromintegpoints(
-    self::FEMM,
+function fieldfromintegpoints(self::FEMM,
     geom::NodalField{GFT},
     u::NodalField{UFT},
     quantity::Symbol,
     component::AbstractVector{IT};
-    context...,
-) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, IT<:Integer}
+    context...,) where {FEMM <: AbstractFEMM, GFT <: Number, UFT <: Number, IT <: Integer}
     dT = NodalField(zeros(GFT, nnodes(geom), 1)) # zero difference in temperature
     return fieldfromintegpoints(self, geom, u, dT, quantity, component; context...)
 end
 
-function fieldfromintegpoints(
-    self::FEMM,
+function fieldfromintegpoints(self::FEMM,
     geom::NodalField{GFT},
     u::NodalField{UFT},
     quantity::Symbol,
     component::IT;
-    context...,
-) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, IT<:Integer}
+    context...,) where {FEMM <: AbstractFEMM, GFT <: Number, UFT <: Number, IT <: Integer}
     dT = NodalField(zeros(GFT, nnodes(geom), 1)) # zero difference in temperature
     return fieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
 end
 
-
-struct MeanValueInspectorData{IT,FT}
+struct MeanValueInspectorData{IT, FT}
     n_quant::Vector{IT}
-    sum_quant_value::Array{FT,2}
+    sum_quant_value::Array{FT, 2}
 end
 
 """
@@ -803,25 +759,21 @@ Construct elemental field from integration points.
 # Output
  - the new field that can be used to map values to colors and so on
 """
-function elemfieldfromintegpoints(
-    self::FEMM,
+function elemfieldfromintegpoints(self::FEMM,
     geom::NodalField{GFT},
     u::NodalField{UFT},
     dT::NodalField{TFT},
     quantity::Symbol,
     component::AbstractVector{IT};
-    context...,
-) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, TFT<:Number, IT<:Integer}
+    context...,) where {FEMM <: AbstractFEMM, GFT <: Number, UFT <: Number, TFT <: Number, IT <: Integer}
     fes = finite_elements(self)
     # Constants
     nne = nodesperelem(fes) # number of nodes for element
     sdim = ndofs(geom)            # number of space dimensions
     FT = typeof(zero(GFT) + zero(UFT) + zero(TFT))
     # Container of intermediate results
-    idat = MeanValueInspectorData(
-        zeros(IT, count(fes)),
-        zeros(FT, count(fes), length(component)),
-    )
+    idat = MeanValueInspectorData(zeros(IT, count(fes)),
+        zeros(FT, count(fes), length(component)))
     # This is an mean-value interpolation inspector. The mean of the
     # quadrature-point quantities is reported per element.
     function mv_inspector(idat, elnum, conn, xe, out, xq)
@@ -835,8 +787,7 @@ function elemfieldfromintegpoints(
         return idat
     end
     # Loop over cells to interpolate to nodes
-    idat = inspectintegpoints(
-        self,
+    idat = inspectintegpoints(self,
         geom,
         u,
         dT,
@@ -844,8 +795,7 @@ function elemfieldfromintegpoints(
         mv_inspector,
         idat,
         quantity;
-        context...,
-    )
+        context...,)
     # The data for the field to be constructed is initialized
     evals = zeros(FT, count(fes), length(component))
     # compute the data array
@@ -858,43 +808,35 @@ function elemfieldfromintegpoints(
     return ElementalField(evals)
 end
 
-function elemfieldfromintegpoints(
-    self::FEMM,
+function elemfieldfromintegpoints(self::FEMM,
     geom::NodalField{GFT},
     u::NodalField{UFT},
     dT::NodalField{TFT},
     quantity::Symbol,
     component::IT;
-    context...,
-) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, TFT<:Number, IT<:Integer}
+    context...,) where {FEMM <: AbstractFEMM, GFT <: Number, UFT <: Number, TFT <: Number, IT <: Integer}
     return elemfieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
 end
 
-function elemfieldfromintegpoints(
-    self::FEMM,
+function elemfieldfromintegpoints(self::FEMM,
     geom::NodalField{GFT},
     u::NodalField{UFT},
     quantity::Symbol,
     component::IT;
-    context...,
-) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, IT<:Integer}
+    context...,) where {FEMM <: AbstractFEMM, GFT <: Number, UFT <: Number, IT <: Integer}
     dT = NodalField(zeros(GFT, nnodes(geom), 1)) # zero difference in temperature
     return elemfieldfromintegpoints(self, geom, u, dT, quantity, [component]; context...)
 end
 
-function elemfieldfromintegpoints(
-    self::FEMM,
+function elemfieldfromintegpoints(self::FEMM,
     geom::NodalField{GFT},
     u::NodalField{UFT},
     quantity::Symbol,
     component::AbstractVector{IT};
-    context...,
-) where {FEMM<:AbstractFEMM, GFT<:Number, UFT<:Number, IT<:Integer}
+    context...,) where {FEMM <: AbstractFEMM, GFT <: Number, UFT <: Number, IT <: Integer}
     dT = NodalField(zeros(GFT, nnodes(geom), 1)) # zero difference in temperature
     return elemfieldfromintegpoints(self, geom, u, dT, quantity, component; context...)
 end
-
-
 
 """
     field_elem_to_nodal!(
@@ -913,13 +855,11 @@ Make a nodal field  from an elemental field over the discrete manifold.
 
 Returns `nf`.
 """
-function field_elem_to_nodal!(
-    self::AbstractFEMM,
+function field_elem_to_nodal!(self::AbstractFEMM,
     geom::NodalField{FT},
     ef::EFL,
     nf::NFL;
-    kind = :weighted_average,
-) where {FT,T<:Number,EFL<:ElementalField{T},NFL<:NodalField{T}}
+    kind = :weighted_average,) where {FT, T <: Number, EFL <: ElementalField{T}, NFL <: NodalField{T}}
     if kind == :max
         return _field_elem_to_nodal_max!(self, geom, ef, nf)
     else #:weighted_average
@@ -927,12 +867,10 @@ function field_elem_to_nodal!(
     end
 end
 
-function _field_elem_to_nodal_weighted_average!(
-    self::AbstractFEMM,
+function _field_elem_to_nodal_weighted_average!(self::AbstractFEMM,
     geom::NodalField{FT},
     ef::EFL,
-    nf::NFL,
-) where {FT,T<:Number,EFL<:ElementalField{T},NFL<:NodalField{T}}
+    nf::NFL) where {FT, T <: Number, EFL <: ElementalField{T}, NFL <: NodalField{T}}
     fes = finite_elements(self)  # finite elements
     # Dimensions
     nfes = count(fes) # number of finite elements in the set
@@ -952,7 +890,7 @@ function _field_elem_to_nodal_weighted_average!(
     for i in eachindex(fes) #Now loop over all fes in the block
         ev = ef.values[i, :]
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
-        for j = 1:npts #Loop over all integration points
+        for j in 1:npts #Loop over all integration points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i], Ns[j], mdim)
             for k in eachindex(fes.conn[i])
@@ -962,18 +900,16 @@ function _field_elem_to_nodal_weighted_average!(
             end
         end
     end
-    for g = 1:nents(nf)
+    for g in 1:nents(nf)
         nf.values[g, :] ./= nvolums[g]
     end
     return nf
 end
 
-function _field_elem_to_nodal_max!(
-    self::AbstractFEMM,
+function _field_elem_to_nodal_max!(self::AbstractFEMM,
     geom::NodalField{FT},
     ef::EFL,
-    nf::NFL,
-) where {FT,T<:Number,EFL<:ElementalField{T},NFL<:NodalField{T}}
+    nf::NFL) where {FT, T <: Number, EFL <: ElementalField{T}, NFL <: NodalField{T}}
     fes = finite_elements(self)  # finite elements
     nf.values .= zero(T) - Inf
     for i in eachindex(fes) #Now loop over all fes in the block
@@ -1003,13 +939,11 @@ Make an elemental field  from a nodal field over the discrete manifold.
 
 Returns `ef`.
 """
-function field_nodal_to_elem!(
-    self::AbstractFEMM,
+function field_nodal_to_elem!(self::AbstractFEMM,
     geom::NodalField{FT},
     nf::NFL,
     ef::EFL;
-    kind = :weighted_average,
-) where {FT<:Number,T,EFL<:ElementalField{T},NFL<:NodalField{T}}
+    kind = :weighted_average,) where {FT <: Number, T, EFL <: ElementalField{T}, NFL <: NodalField{T}}
     if kind == :max
         return _field_nodal_to_elem_max!(self, geom, nf, ef)
     else #:weighted_average
@@ -1017,12 +951,10 @@ function field_nodal_to_elem!(
     end
 end
 
-function _field_nodal_to_elem_weighted_average!(
-    self::AbstractFEMM,
+function _field_nodal_to_elem_weighted_average!(self::AbstractFEMM,
     geom::NodalField{FT},
     nf::NFL,
-    ef::EFL,
-) where {FT<:Number,T,EFL<:ElementalField{T},NFL<:NodalField{T}}
+    ef::EFL) where {FT <: Number, T, EFL <: ElementalField{T}, NFL <: NodalField{T}}
     fes = finite_elements(self)  # finite elements
     # Dimensions
     nfes = count(fes) # number of finite elements in the set
@@ -1042,7 +974,7 @@ function _field_nodal_to_elem_weighted_average!(
     ef.values .= zero(T)
     for i in eachindex(fes) #Now loop over all fes in the block
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
-        for j = 1:npts #Loop over all integration points
+        for j in 1:npts #Loop over all integration points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i], Ns[j], mdim)
             for k in eachindex(fes.conn[i])
@@ -1065,12 +997,10 @@ function _field_nodal_to_elem_weighted_average!(
     return ef
 end
 
-function _field_nodal_to_elem_max!(
-    self::AbstractFEMM,
+function _field_nodal_to_elem_max!(self::AbstractFEMM,
     geom::NodalField{FT},
     nf::NFL,
-    ef::EFL,
-) where {FT<:Number,T,EFL<:ElementalField{T},NFL<:NodalField{T}}
+    ef::EFL) where {FT <: Number, T, EFL <: ElementalField{T}, NFL <: NodalField{T}}
     fes = finite_elements(self)  # finite elements
     # Dimensions
     nfes = count(fes) # number of finite elements in the set
@@ -1095,7 +1025,6 @@ function _field_nodal_to_elem_max!(
     end
     return ef
 end
-
 
 function _buff_b(self, geom, P)
     fes = finite_elements(self)
@@ -1156,20 +1085,18 @@ represented with [`DataCache`](@ref).
   For body loads `m` is set to 3, for tractions on the surface it is set to 2,
   and so on.
 """
-function ev_integrate(
-    self::FEMM,
+function ev_integrate(self::FEMM,
     geom::NodalField{FT},
     f::DC,
     initial::R,
-    m,
-) where {FEMM<:AbstractFEMM,FT<:Number,DC<:DataCache,R}
+    m) where {FEMM <: AbstractFEMM, FT <: Number, DC <: DataCache, R}
     fes = finite_elements(self)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, geom)
     result = initial # Initialize the result
     for i in eachindex(fes)  # Now loop over all fes in the set
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
-        for j  in 1:npts #Loop over all integration points
+        for j in 1:npts #Loop over all integration points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i], Ns[j], m)
             val = f(loc, J, i, j)
@@ -1212,14 +1139,18 @@ representing scalars. The data ``\\mathbf{f}`` is represented with [`DataCache`]
   For body loads `m` is set to 3, for tractions on the surface it is set to 2,
   and so on.
 """
-function linform_dot(
-    self::FEMM,
+function linform_dot(self::FEMM,
     assembler::A,
     geom::NodalField{FT},
     P::NodalField{T},
     f::DC,
-    m,
-) where {FEMM<:AbstractFEMM,A<:AbstractSysvecAssembler,FT<:Number,T,DC<:DataCache}
+    m) where {
+    FEMM <: AbstractFEMM,
+    A <: AbstractSysvecAssembler,
+    FT <: Number,
+    T,
+    DC <: DataCache,
+}
     fes = finite_elements(self)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     # Prepare some buffers:
@@ -1229,16 +1160,16 @@ function linform_dot(
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(elvec, T(0.0))
-        for j  in  1:npts
+        for j in 1:npts
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i], Ns[j], m)
             force = f(loc, J, i, j) # retrieve the applied load
             Factor = (Jac * w[j])
             NkxF = zero(T)
             rx = 1
-            for kx = 1:nne # all the nodes
+            for kx in 1:nne # all the nodes
                 NkxF = Ns[j][kx] * Factor
-                for mx = 1:ndn   # all the degrees of freedom
+                for mx in 1:ndn   # all the degrees of freedom
                     elvec[rx] = elvec[rx] + NkxF * force[mx]
                     rx = rx + 1    # next component of the vector
                 end
@@ -1251,13 +1182,11 @@ function linform_dot(
     return F
 end
 
-function linform_dot(
-    self::FEMM,
+function linform_dot(self::FEMM,
     geom::NodalField{FT},
     P::NodalField{T},
     f::DC,
-    m,
-) where {FEMM<:AbstractFEMM,FT<:Number,T,DC<:DataCache}
+    m) where {FEMM <: AbstractFEMM, FT <: Number, T, DC <: DataCache}
     assembler = SysvecAssembler(zero(eltype(P.values)))
     return linform_dot(self, assembler, geom, P, f, m)
 end
@@ -1282,24 +1211,20 @@ Compute distributed loads vector.
 
 The actual work is done by `linform_dot()`.
 """
-function distribloads(
-    self::FEMM,
+function distribloads(self::FEMM,
     assembler::A,
     geom::NodalField{FT},
     P::NodalField{T},
     fi::ForceIntensity,
-    m,
-) where {FEMM<:AbstractFEMM,A<:AbstractSysvecAssembler,FT<:Number,T}
+    m) where {FEMM <: AbstractFEMM, A <: AbstractSysvecAssembler, FT <: Number, T}
     return linform_dot(self, assembler, geom, P, fi._cache, m)
 end
 
-function distribloads(
-    self::FEMM,
+function distribloads(self::FEMM,
     geom::NodalField{FT},
     P::NodalField{T},
     fi::ForceIntensity,
-    m,
-) where {FEMM<:AbstractFEMM,FT<:Number,T}
+    m) where {FEMM <: AbstractFEMM, FT <: Number, T}
     assembler = SysvecAssembler(zero(eltype(P.values)))
     return distribloads(self, assembler, geom, P, fi, m)
 end
@@ -1340,14 +1265,12 @@ integral), or a line domain ``L`` (i.e. a one dimensional integral).
   element label.
 - `m` = manifold dimension (default is 3).
 """
-function bilform_dot(
-    self::FEMM,
+function bilform_dot(self::FEMM,
     assembler::A,
     geom::NodalField{FT},
     u::NodalField{T},
     cf::DC;
-    m = 3,
-) where {FEMM<:AbstractFEMM,A<:AbstractSysmatAssembler,FT,T,DC<:DataCache}
+    m = 3,) where {FEMM <: AbstractFEMM, A <: AbstractSysmatAssembler, FT, T, DC <: DataCache}
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
     elmdim, elmat, elvec = _buff_e(self, geom, u, assembler)
@@ -1356,14 +1279,14 @@ function bilform_dot(
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(elmat, 0.0) # Initialize element matrix
-        for j  in  1:npts # Loop over quadrature points
+        for j in 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i], Ns[j], m)
             c = cf(loc, J, i, j)
-            for k = 1:nne, m = 1:nne
+            for k in 1:nne, m in 1:nne
                 factor = (Ns[j][k] * Ns[j][m] * Jac * w[j])
-                for p  in  1:ndn, q  in  1:ndn
-                    elmat[(k-1)*ndn+p, (m-1)*ndn+q] += factor * c[p, q]
+                for p in 1:ndn, q in 1:ndn
+                    elmat[(k - 1) * ndn + p, (m - 1) * ndn + q] += factor * c[p, q]
                 end
             end
         end # Loop over quadrature points
@@ -1373,12 +1296,10 @@ function bilform_dot(
     return makematrix!(assembler)
 end
 
-function bilform_dot(
-    self::FEMM,
+function bilform_dot(self::FEMM,
     geom::NodalField{FT},
     u::NodalField{T},
-    cf::DC,
-) where {FEMM<:AbstractFEMM,FT,T,DC<:DataCache}
+    cf::DC) where {FEMM <: AbstractFEMM, FT, T, DC <: DataCache}
     assembler = SysmatAssemblerSparseSymm()
     return bilform_dot(self, assembler, geom, u, cf)
 end
@@ -1393,26 +1314,20 @@ end
 
 Compute the inner-product (Gram) matrix.
 """
-function innerproduct(
-    self::FEMM,
+function innerproduct(self::FEMM,
     assembler::A,
     geom::NodalField{FT},
-    afield::NodalField{T},
-) where {FEMM<:AbstractFEMM,A<:AbstractSysmatAssembler,FT,T}
-    return bilform_dot(
-        self,
+    afield::NodalField{T}) where {FEMM <: AbstractFEMM, A <: AbstractSysmatAssembler, FT, T}
+    return bilform_dot(self,
         assembler,
         geom,
         afield,
-        DataCache(LinearAlgebra.I(ndofs(afield))),
-    )
+        DataCache(LinearAlgebra.I(ndofs(afield))))
 end
 
-function innerproduct(
-    self::FEMM,
+function innerproduct(self::FEMM,
     geom::NodalField{FT},
-    afield::NodalField{T},
-) where {FEMM<:AbstractFEMM,FT,T}
+    afield::NodalField{T}) where {FEMM <: AbstractFEMM, FT, T}
     assembler = SysmatAssemblerSparseSymm()
     return innerproduct(self, assembler, geom, afield)
 end
@@ -1467,13 +1382,11 @@ dimensional integral).
   location of the integration point, the Jacobian matrix, and the finite
   element label.
 """
-function bilform_diffusion(
-    self::FEMM,
+function bilform_diffusion(self::FEMM,
     assembler::A,
     geom::NodalField{FT},
     u::NodalField{T},
-    cf::DC,
-) where {FEMM<:AbstractFEMM,A<:AbstractSysmatAssembler,FT,T,DC<:DataCache}
+    cf::DC) where {FEMM <: AbstractFEMM, A <: AbstractSysmatAssembler, FT, T, DC <: DataCache}
     if isempty(size(cf)) # scalar
         return _bilform_diffusion_iso(self, assembler, geom, u, cf)
     else
@@ -1481,13 +1394,11 @@ function bilform_diffusion(
     end
 end
 
-function _bilform_diffusion_general(
-    self::FEMM,
+function _bilform_diffusion_general(self::FEMM,
     assembler::A,
     geom::NodalField{FT},
     u::NodalField{T},
-    cf::DC,
-) where {FEMM<:AbstractFEMM,A<:AbstractSysmatAssembler,FT,T,DC<:DataCache}
+    cf::DC) where {FEMM <: AbstractFEMM, A <: AbstractSysmatAssembler, FT, T, DC <: DataCache}
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
     elmdim, elmat, elvec = _buff_e(self, geom, u, assembler)
@@ -1497,7 +1408,7 @@ function _bilform_diffusion_general(
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(elmat, zero(T)) # Initialize element matrix
-        for j  in  1:npts # Loop over quadrature points
+        for j in 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j])
             updatecsmat!(self.mcsys, loc, J, i, j)
@@ -1513,13 +1424,11 @@ function _bilform_diffusion_general(
     return makematrix!(assembler)
 end
 
-function _bilform_diffusion_iso(
-    self::FEMM,
+function _bilform_diffusion_iso(self::FEMM,
     assembler::A,
     geom::NodalField{FT},
     u::NodalField{T},
-    cf::DC,
-) where {FEMM<:AbstractFEMM,A<:AbstractSysmatAssembler,FT,T,DC<:DataCache}
+    cf::DC) where {FEMM <: AbstractFEMM, A <: AbstractSysmatAssembler, FT, T, DC <: DataCache}
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
     elmdim, elmat, elvec = _buff_e(self, geom, u, assembler)
@@ -1528,7 +1437,7 @@ function _bilform_diffusion_iso(
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(elmat, zero(T)) # Initialize element matrix
-        for j  in  1:npts # Loop over quadrature points
+        for j in 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j])
             gradN!(fes, gradN, gradNparams[j], J)
@@ -1542,12 +1451,10 @@ function _bilform_diffusion_iso(
     return makematrix!(assembler)
 end
 
-function bilform_diffusion(
-    self::FEMM,
+function bilform_diffusion(self::FEMM,
     geom::NodalField{FT},
     u::NodalField{T},
-    f::DC,
-) where {FEMM<:AbstractFEMM,FT,T,DC<:DataCache}
+    f::DC) where {FEMM <: AbstractFEMM, FT, T, DC <: DataCache}
     assembler = SysmatAssemblerSparseSymm()
     return bilform_diffusion(self, assembler, geom, u, f)
 end
@@ -1588,14 +1495,12 @@ dimensional integral).
   given the location of the integration point, the Jacobian matrix, and the
   finite element label.
 """
-function bilform_convection(
-    self::FEMM,
+function bilform_convection(self::FEMM,
     assembler::A,
     geom::NodalField{FT},
     u::NodalField{T},
     Q::NodalField{QT},
-    rhof::DC,
-) where {FEMM<:AbstractFEMM,A<:AbstractSysmatAssembler,FT,T,QT,DC<:DataCache}
+    rhof::DC) where {FEMM <: AbstractFEMM, A <: AbstractSysmatAssembler, FT, T, QT, DC <: DataCache}
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, Q)
     nsd = ndofs(u)
@@ -1607,17 +1512,17 @@ function bilform_convection(
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         gathervalues_asmat!(u, eus, fes.conn[i])
         fill!(elmat, zero(T)) # Initialize element matrix
-        for j  in  1:npts # Loop over quadrature points
+        for j in 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j])
             gradN!(fes, gradN, gradNparams[j], J)
             rho = rhof(loc, J, i, j)
-            for p = 1:nne
-                for r = 1:nne
+            for p in 1:nne
+                for r in 1:nne
                     accum = zero(eltype(elmat))
-                    for s = 1:nsd
+                    for s in 1:nsd
                         u_s = zero(T)
-                        for q = 1:nne
+                        for q in 1:nne
                             u_s += Ns[j][q] * eus[q, s]
                         end
                         accum += u_s * gradN[r, s]
@@ -1632,13 +1537,11 @@ function bilform_convection(
     return makematrix!(assembler)
 end
 
-function bilform_convection(
-    self::FEMM,
+function bilform_convection(self::FEMM,
     geom::NodalField{FT},
     u::NodalField{T},
     Q::NodalField{QT},
-    rhof::DC,
-) where {FEMM<:AbstractFEMM,FT,T,QT,DC<:DataCache}
+    rhof::DC) where {FEMM <: AbstractFEMM, FT, T, QT, DC <: DataCache}
     assembler = SysmatAssemblerSparse() # must be able to assem. unsymmetric mtx
     return bilform_convection(self, assembler, geom, u, Q, rhof)
 end
@@ -1677,13 +1580,11 @@ dimensional integral).
   given the location of the integration point, the Jacobian matrix, and the
   finite element label.
 """
-function bilform_div_grad(
-    self::FEMM,
+function bilform_div_grad(self::FEMM,
     assembler::A,
     geom::NodalField{FT},
     u::NodalField{T},
-    viscf::DC,
-) where {FEMM<:AbstractFEMM,A<:AbstractSysmatAssembler,FT,T,DC<:DataCache}
+    viscf::DC) where {FEMM <: AbstractFEMM, A <: AbstractSysmatAssembler, FT, T, DC <: DataCache}
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
     elmdim, elmat, _ = _buff_e(self, geom, u, assembler)
@@ -1692,21 +1593,21 @@ function bilform_div_grad(
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(elmat, zero(T)) # Initialize element matrix
-        for j  in  1:npts # Loop over quadrature points
+        for j in 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j])
             gradN!(fes, gradN, gradNparams[j], J)
             mu = viscf(loc, J, i, j)
             factor = mu * (Jac * w[j])
-            for a = 1:nne
-                for b = 1:nne
-                    for s = 1:ndn
+            for a in 1:nne
+                for b in 1:nne
+                    for s in 1:ndn
                         p = (a - 1) * ndn + s
                         r = (b - 1) * ndn + s
-                        for q = 1:ndn
+                        for q in 1:ndn
                             elmat[p, r] += factor * gradN[a, q] * gradN[b, q]
                         end
-                        for q = 1:ndn
+                        for q in 1:ndn
                             r = (b - 1) * ndn + q
                             elmat[p, r] += factor * gradN[a, q] * gradN[b, s]
                         end
@@ -1720,12 +1621,10 @@ function bilform_div_grad(
     return makematrix!(assembler)
 end
 
-function bilform_div_grad(
-    self::FEMM,
+function bilform_div_grad(self::FEMM,
     geom::NodalField{FT},
     u::NodalField{T},
-    viscf::DC,
-) where {FEMM<:AbstractFEMM,FT,T,DC<:DataCache}
+    viscf::DC) where {FEMM <: AbstractFEMM, FT, T, DC <: DataCache}
     assembler = SysmatAssemblerSparse()
     return bilform_div_grad(self, assembler, geom, u, viscf)
 end
@@ -1779,20 +1678,18 @@ dimensional integral).
   given the location of the integration point, the Jacobian matrix, and the
   finite element label.
 """
-function bilform_lin_elastic(
-    self::FEMM,
+function bilform_lin_elastic(self::FEMM,
     assembler::A,
     geom::NodalField{FT},
     u::NodalField{T},
     mr::Type{MR},
-    cf::DC,
-) where {
-    FEMM<:AbstractFEMM,
-    A<:AbstractSysmatAssembler,
+    cf::DC) where {
+    FEMM <: AbstractFEMM,
+    A <: AbstractSysmatAssembler,
     FT,
     T,
-    MR<:AbstractDeforModelRed,
-    DC<:DataCache,
+    MR <: AbstractDeforModelRed,
+    DC <: DataCache,
 }
     fes = finite_elements(self)
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
@@ -1803,7 +1700,7 @@ function bilform_lin_elastic(
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(elmat, zero(T)) # Initialize element matrix
-        for j  in  1:npts # Loop over quadrature points
+        for j in 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j])
             updatecsmat!(self.mcsys, loc, J, i, j)
@@ -1820,18 +1717,13 @@ function bilform_lin_elastic(
     return makematrix!(assembler)
 end
 
-function bilform_lin_elastic(
-    self::FEMM,
+function bilform_lin_elastic(self::FEMM,
     geom::NodalField{FT},
     u::NodalField{T},
     mr::Type{MR},
-    cf::DC,
-) where {FEMM<:AbstractFEMM,FT,T,MR<:AbstractDeforModelRed,DC<:DataCache}
+    cf::DC) where {FEMM <: AbstractFEMM, FT, T, MR <: AbstractDeforModelRed, DC <: DataCache}
     assembler = SysmatAssemblerSparseSymm()
     return bilform_lin_elastic(self, assembler, geom, u, mr, cf)
 end
 
 end # module
-
-
-
