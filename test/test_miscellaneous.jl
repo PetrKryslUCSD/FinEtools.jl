@@ -3169,3 +3169,137 @@ end
 
 # M1.f(T())
 # M2.f(T())
+
+
+module mmgradient_x2
+using FinEtools
+using FinEtools.AlgoBaseModule: matrix_blocked, vector_blocked
+using FinEtools.MeshExportModule.VTK: vtkexportmesh, T3, vtkexportvectors
+using LinearAlgebra
+using FinEtools.MatrixUtilityModule: locjac!
+using FinEtools.FESetModule: gradN!
+using Test
+
+function h20_mesh()
+    Lx = 0.414 * phun("m") # dimension
+    Ly = 0.314 * phun("m") # dimension
+    Lz = 0.360 * phun("m") # dimension
+    n = 3
+    fens, fes = H8block(Lx, Ly, Lz, n, n, n) # Mesh
+    fens, fes = H8toH20(fens, fes)
+    fens, fes
+end
+
+function h8_mesh()
+    Lx = 0.414 * phun("m") # dimension
+    Ly = 0.314 * phun("m") # dimension
+    Lz = 0.360 * phun("m") # dimension
+    n = 10
+    fens, fes = H8block(Lx, Ly, Lz, n, n, n) # Mesh
+    fens, fes
+end
+
+const meshfun = Dict("h20" => h20_mesh, "h8" => h8_mesh)
+
+function _buffers1(self::FEMMBase,
+    geom::NodalField{GFT},
+    P::NodalField{FT}) where {GFT, FT}
+# Constants
+fes = finite_elements(self)
+IntT = eltype(P.dofnums)
+nfes = count(fes) # number of finite elements in the set
+ndn = ndofs(P) # number of degrees of freedom per node
+nne = nodesperelem(fes) # number of nodes for element
+sdim = ndofs(geom)   # number of space dimensions
+mdim = manifdim(fes) # manifold dimension of the element
+Kedim = ndn * nne      # dimension of the element matrix
+ecoords = fill(zero(GFT), nne, ndofs(geom)) # array of Element coordinates
+dofnums = fill(zero(IntT), Kedim) # buffer
+loc = fill(zero(GFT), 1, sdim) # buffer
+J = fill(zero(GFT), sdim, mdim) # buffer
+gradN = fill(zero(GFT), nne, mdim) # buffer
+Pe = fill(zero(FT), nodesperelem(fes)) # nodal pressures -- buffer
+qpgradP = fill(zero(FT), 1, sdim) # Pressure gradient -- buffer
+return ecoords,
+dofnums,
+loc,
+J,
+gradN,
+Pe,
+qpgradP
+end
+
+function inspectintegpoints(self::FEMMBase,
+    geom::NodalField{GFT},
+    P::NodalField{T},
+    temp::NodalField{FT},
+    felist::VecOrMat{IntT},
+    inspector::F,
+    idat,
+    quantity = :gradient;
+    context...) where {T <: Number, GFT, FT, IntT, F <: Function}
+fes = finite_elements(self)
+npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
+ecoords, dofnums, loc, J, gradN, Pe, qpgradP = _buffers1(self, geom, P)
+t = 0.0
+dt = 0.0
+# Loop over  all the elements and all the quadrature points within them
+for i in felist # Loop over elements
+    gathervalues_asmat!(geom, ecoords, fes.conn[i])
+    gathervalues_asvec!(P, Pe, fes.conn[i])# retrieve element temperatures
+    for j in 1:npts # Loop over quadrature points
+        locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
+        Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j])
+        gradN!(fes, gradN, gradNparams[j], J)
+# Quadrature point quantities
+        mul!(qpgradP, reshape(Pe, 1, :), gradN) # temperature gradient in material coordinates
+# Call the inspector
+        idat = inspector(idat, i, fes.conn[i], ecoords, qpgradP, loc)
+    end # Loop over quadrature points
+end # Loop over elements
+return idat # return the updated inspector data
+end
+
+function test(name)
+    alpha, beta, gamma = 0.13, -0.3, 0.1333
+    pfun(x) = alpha * x[1] + beta * x[2] + gamma * x[3]
+    gradP = reshape([alpha, beta, gamma], 1, 3)
+
+    fens, fes = meshfun[name]()
+
+    geom = NodalField(fens.xyz)
+    P = NodalField(reshape([pfun(fens.xyz[i, :]) for i in eachindex(fens)], count(fens), 1))
+    numberdofs!(P)
+
+    femm = FEMMBase(IntegDomain(fes, GaussRule(3, 3)))
+
+    qpgradients = zeros(count(fes), 3)
+    idat = inspectintegpoints(femm, geom, P, NodalField([1.0]),
+        collect(1:count(fes)),
+        (idat, i, conn, xe, out, loc) -> let
+            qpgradients = idat
+            qpgradients[i, :] .+= out[:]
+            return qpgradients
+        end,
+        qpgradients, :gradient)
+    qpgradients = idat
+    qpgradients ./= femm.integdomain.integration_rule.npts
+    qpgf = ElementalField(qpgradients)
+
+    V = integratefunction(femm, geom, (x) -> 1.0)
+    femm = FEMMBase(IntegDomain(fes, GaussRule(3, 1)))
+    pgi_1 = integratefieldfunction(femm, geom, qpgf, (x, v) -> v[1]; initial = 0.0)
+    @test pgi_1 / V ≈ alpha
+    pgi_2 = integratefieldfunction(femm, geom, qpgf, (x, v) -> v[2]; initial = 0.0)
+    @test pgi_2 / V ≈ beta
+    pgi_3 = integratefieldfunction(femm, geom, qpgf, (x, v) -> v[3]; initial = 0.0)
+    @test pgi_3 / V ≈ gamma
+    true
+end #
+
+test("h8")
+test("h20")
+
+end # module
+nothing
+

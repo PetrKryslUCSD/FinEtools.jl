@@ -215,7 +215,7 @@ function integratefieldfunction(self::AbstractFEMM,
     end
     nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, afield)
     npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
-    a = fill(zero(eltype(afield.values)), nne, ndn) # used as a buffer
+    a = fill(zero(eltype(afield.values)), 1, ndn) # used as a buffer
     function fillcache!(cacheout::R,
         XYZ::VecOrMat{T},
         tangents::Matrix{T},
