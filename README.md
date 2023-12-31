@@ -21,7 +21,7 @@ The package supports application packages, for instance:
 
 ## News
 
-- 10/07/2023: Update for Julia 1.10.
+- 12/31/2023: Update for Julia 1.10.
 - 06/19/2023: Introduce DataCache, generic linear and bilinear forms. 
 - 04/20/2023: Make all types in the library generic.
 - 04/18/2023: Implemented resizing of assembly buffers. Makematrix! resets pointers.
