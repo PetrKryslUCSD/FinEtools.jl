@@ -24,18 +24,7 @@ The package supports application packages, for instance:
 - 12/31/2023: Update for Julia 1.10.
 - 06/19/2023: Introduce DataCache, generic linear and bilinear forms. 
 - 04/20/2023: Make all types in the library generic.
-- 04/18/2023: Implemented resizing of assembly buffers. Makematrix! resets pointers.
-- 04/16/2023: Enabled creation of finite element sets from arbitrary arrays.
-- 03/15/2023: Changed strategy when assembling into the COO format.
-- 03/10/2023: Genericity of arguments enabled in the assembly module.
-- 12/27/2022: Added T4 and T10 cylinder meshing routines.
-- 11/03/2022: Added extraction of outer surface of solid.
-- 06/29/2022: Reconfigured documentation.
-- 06/15/2022: Added point partitioning. Added dual connection matrix implementation.
-- 05/03/2022: Updated project to Julia 1.7.2: Julia 1.6 is not supported from version 5.4.0 on.
-- 01/26/2022: Added assembler for sparse diagonal matrices (such as the mass
-  matrix for explicit finite element methods).
-- 01/25/2022: Added export of a ParaView collection of a time sequence of data.
+
 
 
 [Past news](oldnews.md)
