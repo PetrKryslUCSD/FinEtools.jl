@@ -26,7 +26,6 @@ The package supports application packages, for instance:
 - 04/20/2023: Make all types in the library generic.
 
 
-
 [Past news](oldnews.md)
 
 ## Get FinEtools
