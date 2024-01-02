@@ -10,6 +10,7 @@ __precompile__(true)
 using SparseArrays: sparse, spzeros, SparseMatrixCSC
 using LinearAlgebra: diag
 import Base: eltype
+using ..MatrixUtilityModule: matrix_blocked_ff
 
 """
     AbstractSysmatAssembler
@@ -1031,5 +1032,35 @@ function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
     return S
 end
 
+struct SysmatAssemblerFFBlock{A<:AbstractSysmatAssembler, IT} <: AbstractSysmatAssembler
+    a::A
+    row_nfreedofs::IT
+    col_nfreedofs::IT
+end
+
+eltype(a::A) where {A <: SysmatAssemblerFFBlock} = eltype(a.a.matbuffer)
+
+function SysmatAssemblerFFBlock(row_nfreedofs::IT, col_nfreedofs = row_nfreedofs) where {IT<:Integer}
+    return SysmatAssemblerFFBlock(SysmatAssemblerSparse(), row_nfreedofs, col_nfreedofs)
+end
+
+function startassembly!(self::SysmatAssemblerFFBlock,
+    expected_ntriples::IT,
+    row_nalldofs::IT,
+    col_nalldofs::IT;
+    force_init = false) where {IT <: Integer}
+    return startassembly!(self.a, expected_ntriples, row_nalldofs, col_nalldofs; force_init)
+end
+
+function assemble!(self::SysmatAssemblerFFBlock,
+    mat::MBT,
+    dofnums_row::CIT,
+    dofnums_col::CIT) where {MBT, CIT}
+    assemble!(self.a, mat, dofnums_row, dofnums_col)
+end
+
+function makematrix!(self::SysmatAssemblerFFBlock)
+    return matrix_blocked_ff(makematrix!(self.a), self.row_nfreedofs, self.col_nfreedofs)
+end
 
 end # end of module

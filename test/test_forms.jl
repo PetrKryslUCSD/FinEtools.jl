@@ -533,3 +533,70 @@ end
 test()
 nothing
 end
+
+
+module mbilform_diffusion_assembly_1
+using FinEtools
+using LinearAlgebra
+using Test
+function test()
+    W = 1.1
+    L = 12.0
+    t = 0.32
+    nl, nt, nw = 12, 13, 14
+
+    fens, fes = H8block(L, W, t, nl, nw, nt)
+    geom = NodalField(fens.xyz)
+    psi = NodalField(fill(1.0, count(fens), 1))
+    nl = collect(1:3)
+    setebc!(psi, nl, true, ones(Int, length(nl)), 0.0)
+    numberdofs!(psi)
+
+    femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
+    v_f = gathersysvec(psi)
+    K = bilform_diffusion(femm, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
+    K_ff = matrix_blocked_ff(K, nfreedofs(psi))
+    result = abs(v_f' * K_ff * v_f)
+
+    ass = SysmatAssemblerFFBlock(nfreedofs(psi))
+    K_ff = bilform_diffusion(femm, ass, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
+    @test abs(v_f' * K_ff * v_f - (result)) / (result) <= 1.0e-5
+    true
+end
+test()
+nothing
+end
+
+module mbilform_diffusion_assembly_2
+using FinEtools
+using LinearAlgebra
+using Test
+function test()
+    W = 1.1
+    L = 12.0
+    t = 0.32
+    nl, nt, nw = 12, 13, 14
+
+    fens, fes = H8block(L, W, t, nl, nw, nt)
+    geom = NodalField(fens.xyz)
+    psi = NodalField(fill(1.0, count(fens), 1))
+    nl = collect(1:3)
+    setebc!(psi, nl, true, ones(Int, length(nl)), 0.0)
+    numberdofs!(psi)
+
+    femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
+    v_f = vector_blocked_f(gathersysvec(psi, :a), nfreedofs(psi))
+    K = bilform_diffusion(femm, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
+    K_ff = matrix_blocked_ff(K, nfreedofs(psi))
+    result = abs(v_f' * K_ff * v_f)
+
+    ass = SysmatAssemblerFFBlock(nfreedofs(psi))
+    K_ff = bilform_diffusion(femm, ass, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
+    @test abs(v_f' * K_ff * v_f - (result)) / (result) <= 1.0e-5
+    true
+end
+test()
+nothing
+end
+
+

@@ -326,6 +326,7 @@ using .AssemblyModule:
     SysmatAssemblerSparseSymm,
     SysmatAssemblerSparseDiag,
     SysmatAssemblerSparseHRZLumpingSymm,
+    SysmatAssemblerFFBlock,
     startassembly!,
     assemble!,
     makematrix!,
@@ -334,12 +335,14 @@ using .AssemblyModule:
     startassembly!,
     assemble!,
     makevector!
+
 # Exported: types and methods for  sparse matrix assembly  and vector assembly
 export AbstractSysmatAssembler, eltype,
     SysmatAssemblerSparse,
     SysmatAssemblerSparseSymm,
     SysmatAssemblerSparseDiag,
     SysmatAssemblerSparseHRZLumpingSymm,
+    SysmatAssemblerFFBlock,
     startassembly!,
     assemble!,
     makematrix!,
