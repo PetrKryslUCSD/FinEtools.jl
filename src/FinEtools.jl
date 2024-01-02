@@ -333,8 +333,7 @@ using .AssemblyModule:
     SysvecAssembler,
     startassembly!,
     assemble!,
-    makevector!,
-    SysmatAssemblerReduced
+    makevector!
 # Exported: types and methods for  sparse matrix assembly  and vector assembly
 export AbstractSysmatAssembler, eltype,
     SysmatAssemblerSparse,
@@ -348,8 +347,7 @@ export AbstractSysmatAssembler, eltype,
     SysvecAssembler,
     startassembly!,
     assemble!,
-    makevector!,
-    SysmatAssemblerReduced
+    makevector!
 
 using .IntegRuleModule:
     AbstractIntegRule,
