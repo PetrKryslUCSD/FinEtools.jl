@@ -637,4 +637,191 @@ function import_sparse(filnam)
     return B
 end
 
+"""
+    matrix_blocked_ff(A, row_nfreedofs, col_nfreedofs = row_nfreedofs)
+
+Extract the "free-free" partition of a matrix.
+
+The matrix is assumed to be composed of four blocks
+```
+A = [A_ff A_fd
+     A_df A_dd]
+```
+
+Here `f` stands for free, and `d` stands for data (i.e. fixed, prescribed, ...).
+The size of the `ff` block is `row_nfreedofs, col_nfreedofs`. Neither one of
+the blocks is square, unless `row_nfreedofs == col_nfreedofs`.
+
+When `row_nfreedofs == col_nfreedofs`, only the number of rows needs to be given.
+"""
+function matrix_blocked_ff(A, row_nfreedofs, col_nfreedofs = row_nfreedofs)
+    row_nalldofs, col_nalldofs = size(A)
+    row_nfreedofs <= row_nalldofs || error("The ff block has too many rows")
+    col_nfreedofs <= col_nalldofs || error("The ff block has too many columns")
+    row_f_dim = row_nfreedofs
+    col_f_dim = col_nfreedofs
+
+    if (row_f_dim > 0 && col_f_dim > 0)
+        A_ff = A[1:row_nfreedofs, 1:col_nfreedofs]
+    else
+        A_ff = spzeros(row_f_dim, col_f_dim)
+    end
+    return A_ff
+end
+
+
+"""
+    matrix_blocked_fd(A, row_nfreedofs, col_nfreedofs = row_nfreedofs)
+
+Extract the "free-data" partition of a matrix.
+
+The matrix is assumed to be composed of four blocks
+```
+A = [A_ff A_fd
+     A_df A_dd]
+```
+
+Here `f` stands for free, and `d` stands for data (i.e. fixed, prescribed, ...).
+The size of the `ff` block is `row_nfreedofs, col_nfreedofs`. Neither one of
+the blocks is square, unless `row_nfreedofs == col_nfreedofs`.
+
+When `row_nfreedofs == col_nfreedofs`, only the number of rows needs to be given.
+"""
+function matrix_blocked_fd(A, row_nfreedofs, col_nfreedofs = row_nfreedofs)
+    row_nalldofs, col_nalldofs = size(A)
+    row_nfreedofs <= row_nalldofs || error("The ff block has too many rows")
+    col_nfreedofs <= col_nalldofs || error("The ff block has too many columns")
+    row_f_dim = row_nfreedofs
+    row_d_dim = (row_nfreedofs < row_nalldofs ? row_nalldofs - row_nfreedofs : 0)
+    col_f_dim = col_nfreedofs
+    col_d_dim = (col_nfreedofs < col_nalldofs ? col_nalldofs - col_nfreedofs : 0)
+
+    if (row_f_dim > 0 && col_d_dim > 0)
+        A_fd = A[1:row_nfreedofs, (col_nfreedofs + 1):end]
+    else
+        A_fd = spzeros(row_f_dim, col_d_dim)
+    end
+    return A_fd
+end
+
+
+"""
+    matrix_blocked_df(A, row_nfreedofs, col_nfreedofs = row_nfreedofs)
+
+Extract the "data-free" partition of a matrix.
+
+The matrix is assumed to be composed of four blocks
+```
+A = [A_ff A_fd
+     A_df A_dd]
+```
+
+Here `f` stands for free, and `d` stands for data (i.e. fixed, prescribed, ...).
+The size of the `ff` block is `row_nfreedofs, col_nfreedofs`. Neither one of
+the blocks is square, unless `row_nfreedofs == col_nfreedofs`.
+
+When `row_nfreedofs == col_nfreedofs`, only the number of rows needs to be given.
+"""
+function matrix_blocked_df(A, row_nfreedofs, col_nfreedofs = row_nfreedofs)
+    row_nalldofs, col_nalldofs = size(A)
+    row_nfreedofs <= row_nalldofs || error("The ff block has too many rows")
+    col_nfreedofs <= col_nalldofs || error("The ff block has too many columns")
+    row_f_dim = row_nfreedofs
+    row_d_dim = (row_nfreedofs < row_nalldofs ? row_nalldofs - row_nfreedofs : 0)
+    col_f_dim = col_nfreedofs
+    col_d_dim = (col_nfreedofs < col_nalldofs ? col_nalldofs - col_nfreedofs : 0)
+
+    if (row_d_dim > 0 && col_f_dim > 0)
+        A_df = A[(row_nfreedofs + 1):end, 1:col_nfreedofs]
+    else
+        A_df = spzeros(row_d_dim, col_f_dim)
+    end
+    return A_df
+end
+
+
+"""
+    matrix_blocked_dd(A, row_nfreedofs, col_nfreedofs = row_nfreedofs)
+
+Extract the "data-data" partition of a matrix.
+
+The matrix is assumed to be composed of four blocks
+```
+A = [A_ff A_fd
+     A_df A_dd]
+```
+
+Here `f` stands for free, and `d` stands for data (i.e. fixed, prescribed, ...).
+The size of the `ff` block is `row_nfreedofs, col_nfreedofs`. Neither one of
+the blocks is square, unless `row_nfreedofs == col_nfreedofs`.
+
+When `row_nfreedofs == col_nfreedofs`, only the number of rows needs to be given.
+"""
+function matrix_blocked_dd(A, row_nfreedofs, col_nfreedofs = row_nfreedofs)
+    row_nalldofs, col_nalldofs = size(A)
+    row_nfreedofs <= row_nalldofs || error("The ff block has too many rows")
+    col_nfreedofs <= col_nalldofs || error("The ff block has too many columns")
+    row_f_dim = row_nfreedofs
+    row_d_dim = (row_nfreedofs < row_nalldofs ? row_nalldofs - row_nfreedofs : 0)
+    col_f_dim = col_nfreedofs
+    col_d_dim = (col_nfreedofs < col_nalldofs ? col_nalldofs - col_nfreedofs : 0)
+
+    if (row_d_dim > 0 && col_d_dim > 0)
+        A_dd = A[(row_nfreedofs + 1):end, (col_nfreedofs + 1):end]
+    else
+        A_dd = spzeros(row_d_dim, col_d_dim)
+    end
+    return A_dd
+end
+
+"""
+    vector_blocked_f(V, nfreedofs)
+
+Extract the "free" part of a vector.
+
+The vector is composed of two blocks
+```
+V = [V_f
+     V_d]
+```
+Here `f` stands for free, and `d` stands for data (i.e. fixed, prescribed, ...).
+"""
+function vector_blocked_f(V, nfreedofs)
+    nalldofs = length(V)
+    nfreedofs <= nalldofs || error("The f block has too many rows")
+    row_f_dim = nfreedofs
+    row_d_dim = (nfreedofs < nalldofs ? nalldofs - nfreedofs : 0)
+    if (row_f_dim > 0)
+        V_f = V[1:nfreedofs]
+    else
+        V_f = eltype(V)[]
+    end
+    return V_f
+end
+
+"""
+    vector_blocked_d(V, nfreedofs)
+
+Extract the "data" part of a vector.
+
+The vector is composed of two blocks
+```
+V = [V_f
+     V_d]
+```
+Here `f` stands for free, and `d` stands for data (i.e. fixed, prescribed, ...).
+"""
+function vector_blocked_d(V, nfreedofs)
+    nalldofs = length(V)
+    nfreedofs <= nalldofs || error("The f block has too many rows")
+    row_f_dim = nfreedofs
+    row_d_dim = (nfreedofs < nalldofs ? nalldofs - nfreedofs : 0)
+    if (row_d_dim > 0)
+        V_d = V[(nfreedofs + 1):end]
+    else
+        V_d = eltype(V)[]
+    end
+    return V_d
+end
+
 end

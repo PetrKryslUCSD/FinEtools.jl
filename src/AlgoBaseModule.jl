@@ -7,6 +7,8 @@ module AlgoBaseModule
 
 using ..FEMMBaseModule: integratefieldfunction, transferfield!
 using ..FieldModule: AbstractField, nfreedofs, gathersysvec, scattersysvec!
+using ..MatrixUtilityModule: matrix_blocked_ff, matrix_blocked_fd, matrix_blocked_df, matrix_blocked_dd
+using ..MatrixUtilityModule: vector_blocked_f, vector_blocked_d
 using LinearAlgebra: norm, dot
 using Statistics: mean
 using SparseArrays: spzeros
@@ -558,35 +560,8 @@ A_b = matrix_blocked(A, nfreedofs, nfreedofs)
 ```
 """
 function matrix_blocked(A, row_nfreedofs, col_nfreedofs = row_nfreedofs)
-    row_nalldofs, col_nalldofs = size(A)
-    row_nfreedofs <= row_nalldofs || error("The ff block has too many rows")
-    col_nfreedofs <= col_nalldofs || error("The ff block has too many columns")
-    row_f_dim = row_nfreedofs
-    row_d_dim = (row_nfreedofs < row_nalldofs ? row_nalldofs - row_nfreedofs : 0)
-    col_f_dim = col_nfreedofs
-    col_d_dim = (col_nfreedofs < col_nalldofs ? col_nalldofs - col_nfreedofs : 0)
-
-    if (row_f_dim > 0 && col_f_dim > 0)
-        A_ff = A[1:row_nfreedofs, 1:col_nfreedofs]
-    else
-        A_ff = spzeros(row_f_dim, col_f_dim)
-    end
-    if (row_f_dim > 0 && col_d_dim > 0)
-        A_fd = A[1:row_nfreedofs, (col_nfreedofs + 1):end]
-    else
-        A_fd = spzeros(row_f_dim, col_d_dim)
-    end
-    if (row_d_dim > 0 && col_f_dim > 0)
-        A_df = A[(row_nfreedofs + 1):end, 1:col_nfreedofs]
-    else
-        A_df = spzeros(row_d_dim, col_f_dim)
-    end
-    if (row_d_dim > 0 && col_d_dim > 0)
-        A_dd = A[(row_nfreedofs + 1):end, (col_nfreedofs + 1):end]
-    else
-        A_dd = spzeros(row_d_dim, col_d_dim)
-    end
-    return (ff = A_ff, fd = A_fd, df = A_df, dd = A_dd)
+    return (ff = matrix_blocked_ff(A, row_nfreedofs, col_nfreedofs), fd = matrix_blocked_fd(A, row_nfreedofs, col_nfreedofs),
+            df = matrix_blocked_df(A, row_nfreedofs, col_nfreedofs), dd = matrix_blocked_dd(A, row_nfreedofs, col_nfreedofs))
 end
 
 """
@@ -602,21 +577,7 @@ V = [V_f
 which are returned as a named tuple `(f = V_f, d = V_d)`.
 """
 function vector_blocked(V, nfreedofs)
-    nalldofs = length(V)
-    nfreedofs <= nalldofs || error("The f block has too many rows")
-    row_f_dim = nfreedofs
-    row_d_dim = (nfreedofs < nalldofs ? nalldofs - nfreedofs : 0)
-    if (row_f_dim > 0)
-        V_f = V[1:nfreedofs]
-    else
-        V_f = eltype(V)[]
-    end
-    if (row_d_dim > 0)
-        V_d = V[(nfreedofs + 1):end]
-    else
-        V_d = eltype(V)[]
-    end
-    return (f = V_f, d = V_d)
+    return (f = vector_blocked_f(V, nfreedofs), d = vector_blocked_d(V, nfreedofs))
 end
 
 """
@@ -624,7 +585,24 @@ end
 
 Solve a blocked system of linear algebraic equations.
 
-b_f and x_d are known, x_f and b_d need to be computed.
+The matrix is blocked as
+```
+A = [A_ff A_fd
+     A_df A_dd]
+```
+and the solution and the righthand side vector are blocked accordingly
+```
+x = [x_f
+     x_d]
+```
+and
+```
+b = [b_f
+     b_d]
+```
+
+Above, `b_f and `x_d` are known, `x_f` (solution) and `b_d` (reactions) need to
+be computed.
 """
 function solve_blocked(A::M,
     b::VB,

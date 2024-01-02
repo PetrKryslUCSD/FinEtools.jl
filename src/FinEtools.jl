@@ -597,4 +597,13 @@ using .MatModule: AbstractMat, massdensity
 # Exported: abstract type of material
 export AbstractMat, massdensity
 
+
+###########################################################################
+# Matrix utilities
+###########################################################################
+using .MatrixUtilityModule: matrix_blocked_ff, matrix_blocked_fd, matrix_blocked_df, matrix_blocked_dd
+export matrix_blocked_ff, matrix_blocked_fd, matrix_blocked_df, matrix_blocked_dd
+using .MatrixUtilityModule: vector_blocked_f, vector_blocked_d
+export vector_blocked_f, vector_blocked_d
+
 end

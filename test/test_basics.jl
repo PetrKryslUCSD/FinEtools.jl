@@ -2848,3 +2848,53 @@ function test()
 end
 test()
 end
+
+
+module mblockedx_1
+using Test
+using FinEtools
+using FinEtools.AlgoBaseModule: solve_blocked, solve_blocked!, vector_blocked, matrix_blocked
+using LinearAlgebra
+
+function test(n, nfreedofs)
+    A = rand(n, n)
+    A_ff = matrix_blocked_ff(A, nfreedofs)
+    @test size(A_ff) == (nfreedofs, nfreedofs)
+    A_fd = matrix_blocked_fd(A, nfreedofs)
+    @test size(A_fd) == (nfreedofs, n - nfreedofs)
+    A_dd = matrix_blocked_dd(A, nfreedofs)
+    @test size(A_dd) == (n - nfreedofs, n - nfreedofs)
+    A_df = matrix_blocked_df(A, nfreedofs)
+    @test size(A_df) == (n - nfreedofs, nfreedofs)
+
+    A_ff, A_fd, A_df, A_dd = matrix_blocked(A, nfreedofs)[(:ff, :fd, :df, :dd)]
+    @test size(A_ff) == (nfreedofs, nfreedofs)
+    @test size(A_fd) == (nfreedofs, n - nfreedofs)
+    @test size(A_dd) == (n - nfreedofs, n - nfreedofs)
+    @test size(A_df) == (n - nfreedofs, nfreedofs)
+
+    A_ff, A_fd = matrix_blocked(A, nfreedofs, nfreedofs)[(:ff, :fd)]
+    @test size(A_ff) == (nfreedofs, nfreedofs)
+    @test size(A_fd) == (nfreedofs, n - nfreedofs)
+
+    A_b = matrix_blocked(A, nfreedofs, nfreedofs)
+    @test size(A_b.ff) == (nfreedofs, nfreedofs)
+    @test size(A_b.fd) == (nfreedofs, size(A, 1) - nfreedofs)
+
+    A_ff, A_fd = matrix_blocked(A, nfreedofs)[(:ff, :fd)]
+    @test size(A_ff) == (nfreedofs, nfreedofs)
+    @test size(A_fd) == (nfreedofs, n - nfreedofs)
+
+    A_b = matrix_blocked(A, nfreedofs)
+    @test size(A_b.ff) == (nfreedofs, nfreedofs)
+    @test size(A_b.fd) == (nfreedofs, size(A, 1) - nfreedofs)
+    true
+end
+test(100, 90)
+test(1000, 90)
+test(1000, 999)
+test(1000, 1000)
+test(1000, 0)
+nothing
+end
+
