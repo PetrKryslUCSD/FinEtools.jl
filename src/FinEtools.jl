@@ -332,6 +332,7 @@ using .AssemblyModule:
     makematrix!,
     AbstractSysvecAssembler,
     SysvecAssembler,
+    SysvecAssemblerFBlock,
     startassembly!,
     assemble!,
     makevector!
@@ -348,6 +349,7 @@ export AbstractSysmatAssembler, eltype,
     makematrix!,
     AbstractSysvecAssembler,
     SysvecAssembler,
+    SysvecAssemblerFBlock,
     startassembly!,
     assemble!,
     makevector!

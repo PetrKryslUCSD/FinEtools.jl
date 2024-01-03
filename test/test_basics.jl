@@ -2898,3 +2898,29 @@ test(1000, 0)
 nothing
 end
 
+
+module mvass_x1
+using FinEtools
+using LinearAlgebra
+using Test
+function test()
+    N = 30
+    N_f = 20
+    v = fill(0.0, N)
+    a = SysvecAssemblerFBlock(N_f)
+    startassembly!(a, N)
+    vec, dofnums = rand(3), [1, 7, 2]
+    assemble!(a, vec, dofnums)
+    for (i, p) in zip(dofnums, vec)
+        v[i] += p
+    end
+    vec, dofnums = rand(7), [29, 15, 1, 7, 3, 6, 2]
+    assemble!(a, vec, dofnums)
+    for (i, p) in zip(dofnums, vec)
+        v[i] += p
+    end
+    w = makevector!(a)
+    @test norm(v[1:N_f] - w) / norm(w) <= 1.0e-9
+end
+test()
+end

@@ -10,7 +10,7 @@ __precompile__(true)
 using SparseArrays: sparse, spzeros, SparseMatrixCSC
 using LinearAlgebra: diag
 import Base: eltype
-using ..MatrixUtilityModule: matrix_blocked_ff
+using ..MatrixUtilityModule: matrix_blocked_ff, vector_blocked_f
 
 """
     AbstractSysmatAssembler
@@ -1032,7 +1032,13 @@ function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
     return S
 end
 
-struct SysmatAssemblerFFBlock{A<:AbstractSysmatAssembler, IT} <: AbstractSysmatAssembler
+"""
+    SysmatAssemblerFFBlock{A<:AbstractSysmatAssembler, IT} <: AbstractSysmatAssembler
+
+Type for extracting a free-free matrix, delegating the actual assembly to a
+different assembler.
+"""
+mutable struct SysmatAssemblerFFBlock{A<:AbstractSysmatAssembler, IT} <: AbstractSysmatAssembler
     a::A
     row_nfreedofs::IT
     col_nfreedofs::IT
@@ -1040,27 +1046,112 @@ end
 
 eltype(a::A) where {A <: SysmatAssemblerFFBlock} = eltype(a.a.matbuffer)
 
+"""
+    SysmatAssemblerFFBlock(row_nfreedofs::IT, col_nfreedofs = row_nfreedofs) where {IT<:Integer}
+
+Constructor, where the wrapped assembler is for general sparse matrices.
+
+Supply the number of free degrees of freedom.
+"""
 function SysmatAssemblerFFBlock(row_nfreedofs::IT, col_nfreedofs = row_nfreedofs) where {IT<:Integer}
     return SysmatAssemblerFFBlock(SysmatAssemblerSparse(), row_nfreedofs, col_nfreedofs)
 end
 
+"""
+    startassembly!(self::SysmatAssemblerFFBlock,
+        expected_ntriples::IT,
+        row_nalldofs::IT,
+        col_nalldofs::IT;
+        force_init = false) where {IT <: Integer}
+
+Start assembly, delegate to the wrapped assembler.
+"""
 function startassembly!(self::SysmatAssemblerFFBlock,
     expected_ntriples::IT,
     row_nalldofs::IT,
     col_nalldofs::IT;
     force_init = false) where {IT <: Integer}
-    return startassembly!(self.a, expected_ntriples, row_nalldofs, col_nalldofs; force_init)
+    startassembly!(self.a, expected_ntriples, row_nalldofs, col_nalldofs; force_init)
+    return self
 end
 
+"""
+    assemble!(self::SysmatAssemblerFFBlock,
+        mat::MBT,
+        dofnums_row::CIT,
+        dofnums_col::CIT) where {MBT, CIT}
+
+Assemble a matrix, v
+"""
 function assemble!(self::SysmatAssemblerFFBlock,
     mat::MBT,
     dofnums_row::CIT,
     dofnums_col::CIT) where {MBT, CIT}
     assemble!(self.a, mat, dofnums_row, dofnums_col)
+    return self
 end
 
+"""
+    makematrix!(self::SysmatAssemblerFFBlock)
+
+Make an assembled matrix. Delegate the construction of the matrix to the wrapped
+assembler. Then extract the left upper corner block of the matrix(the free-free
+matrix).
+"""
 function makematrix!(self::SysmatAssemblerFFBlock)
     return matrix_blocked_ff(makematrix!(self.a), self.row_nfreedofs, self.col_nfreedofs)
+end
+
+"""
+    SysvecAssemblerFBlock
+
+Assembler for the system vector, which extracts the free vector.
+"""
+mutable struct SysvecAssemblerFBlock{A<:AbstractSysvecAssembler, IT} <: AbstractSysvecAssembler
+    a::A
+    row_nfreedofs::IT
+end
+
+"""
+    SysvecAssemblerFBlock(row_nfreedofs::IT) where {IT}
+
+Constructor of the free block assembler.
+"""
+function SysvecAssemblerFBlock(row_nfreedofs::IT) where {IT}
+    return SysvecAssemblerFBlock(SysvecAssembler(zero(Float64)), row_nfreedofs)
+end
+
+"""
+    startassembly!(self::SysvecAssemblerFBlock, row_nalldofs::IT) where {IT <: Integer}
+
+Start assembly.
+"""
+function startassembly!(self::SysvecAssemblerFBlock, row_nalldofs::IT) where {IT <: Integer}
+    startassembly!(self.a, row_nalldofs)
+    return self
+end
+
+"""
+    assemble!(self::SysvecAssemblerFBlock,
+        vec::MV,
+        dofnums::IV) where {MV, IV}
+
+Assemble an elementwise vector.
+"""
+function assemble!(self::SysvecAssemblerFBlock,
+    vec::MV,
+    dofnums::IV) where {MV, IV}
+    assemble!(self.a, vec, dofnums)
+    return self
+end
+
+"""
+    makevector!(self::SysvecAssemblerFBlock)
+
+Make the global "free" vector.
+"""
+function makevector!(self::SysvecAssemblerFBlock)
+    return vector_blocked_f(makevector!(self.a), self.row_nfreedofs)
 end
 
 end # end of module
