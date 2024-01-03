@@ -1421,3 +1421,5 @@ function makematrix!(self::SysmatAssemblerReduced)
     return self.m
 end
 ```
+
+-- Why is DeforModelRedModule in FinEtools? Should it (could it) be moved to the linear deformation package? 
