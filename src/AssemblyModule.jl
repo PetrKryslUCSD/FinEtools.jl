@@ -270,8 +270,7 @@ function makematrix!(self::SysmatAssemblerSparse)
         self.matbuffer[(self.buffer_pointer):end] .= 0.0
         return spzeros(self.row_nalldofs, self.col_nalldofs)
     end
-    # The sparse matrix is constructed and returned. The  buffers used for
-    # the assembly are cleared.
+    # The sparse matrix is constructed and returned.
     S = sparse(view(self.rowbuffer, 1:(self.buffer_pointer - 1)),
         view(self.colbuffer, 1:(self.buffer_pointer - 1)),
         view(self.matbuffer, 1:(self.buffer_pointer - 1)),
@@ -279,7 +278,6 @@ function makematrix!(self::SysmatAssemblerSparse)
         self.col_nalldofs)
     # Get ready for more assembling
     self.buffer_pointer = 1
-    # Construct the blocks of the matrix
     return S
 end
 
@@ -511,7 +509,6 @@ function makematrix!(self::SysmatAssemblerSparseSymm)
     end
     # Get ready for more assembling
     self.buffer_pointer = 1
-    # Construct the blocks of the matrix
     return S
 end
 
@@ -701,7 +698,6 @@ function makematrix!(self::SysmatAssemblerSparseDiag)
         self.col_nalldofs)
     # Get ready for more assembling
     self.buffer_pointer = 1
-    # Construct the blocks of the matrix
     return S
 end
 
@@ -1028,7 +1024,6 @@ function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
         self.col_nalldofs)
     # Get ready for more assembling
     self.buffer_pointer = 1
-    # Construct the blocks of the matrix
     return S
 end
 
@@ -1071,7 +1066,7 @@ function startassembly!(self::SysmatAssemblerFFBlock,
     row_nalldofs::IT,
     col_nalldofs::IT;
     force_init = false) where {IT <: Integer}
-    startassembly!(self.a, expected_ntriples, row_nalldofs, col_nalldofs; force_init)
+    self.a = startassembly!(self.a, expected_ntriples, row_nalldofs, col_nalldofs; force_init)
     return self
 end
 
