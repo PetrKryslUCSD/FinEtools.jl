@@ -1039,7 +1039,7 @@ mutable struct SysmatAssemblerFFBlock{A<:AbstractSysmatAssembler, IT} <: Abstrac
     col_nfreedofs::IT
 end
 
-eltype(a::A) where {A <: SysmatAssemblerFFBlock} = eltype(a.a.matbuffer)
+eltype(self::A) where {A <: SysmatAssemblerFFBlock} = eltype(self.a)
 
 """
     SysmatAssemblerFFBlock(row_nfreedofs::IT, col_nfreedofs = row_nfreedofs) where {IT<:Integer}
@@ -1106,6 +1106,8 @@ mutable struct SysvecAssemblerFBlock{A<:AbstractSysvecAssembler, IT} <: Abstract
     a::A
     row_nfreedofs::IT
 end
+
+eltype(self::A) where {A <: SysvecAssemblerFBlock} = eltype(self.a)
 
 """
     SysvecAssemblerFBlock(row_nfreedofs::IT) where {IT}
