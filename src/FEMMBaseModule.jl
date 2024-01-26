@@ -120,21 +120,11 @@ end
         inspector::F,
         idat,
         quantity = :Cauchy;
-        context...,) where {FEMM <: AbstractFEMM, GFT, IT, FT, F <: Function}
+        context...,) where {FEMM<:AbstractFEMM, GFT, IT, FT, F <: Function}
 
 Inspect integration points.
 """
-function inspectintegpoints(self::FEMM,
-    geom::NodalField{GFT},
-    u::NodalField{FT},
-    dT::NodalField{FT},
-    felist::AbstractVector{IT},
-    inspector::F,
-    idat,
-    quantity = :Cauchy;
-    context...,) where {FEMM <: AbstractFEMM, GFT, IT, FT, F <: Function}
-    return idat # default is no-op
-end
+function inspectintegpoints end
 
 """
     integratefieldfunction(
