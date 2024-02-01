@@ -157,7 +157,7 @@ end
 """
     GaussRule <: AbstractIntegRule
 
-The Gauss rul, applicable for a tensor product of  intervals -1 <=x<= +1.
+The Gauss rule, applicable for a tensor product of  intervals -1 <=x<= +1.
 """
 struct GaussRule <: AbstractIntegRule
     dim::Int
