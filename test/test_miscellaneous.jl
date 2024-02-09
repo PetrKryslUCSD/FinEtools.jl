@@ -2631,9 +2631,9 @@ end
 
 function inspectintegpoints(
     self::FEMMAdhocBase,
-    geom::NodalField{Float64},
-    u::NodalField{Float64},
-    dT::NodalField{Float64},
+    geom,
+    u,
+    dT,
     felist,
     inspector::F,
     idat,
