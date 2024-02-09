@@ -213,7 +213,7 @@ function assemble!(self::SysmatAssemblerSparse,
     nrows = length(dofnums_row)
     ncolumns = length(dofnums_col)
     p = self.buffer_pointer
-    if p + ncolumns * nrows >= self.buffer_length
+    if p + ncolumns * nrows > self.buffer_length
         self = _resize(self, ncolumns * nrows * 1000)
     end
     @assert size(mat) == (nrows, ncolumns)
@@ -442,7 +442,7 @@ function assemble!(self::SysmatAssemblerSparseSymm,
     ncolumns = length(dofnums_col)
     @assert nrows == ncolumns
     p = self.buffer_pointer
-    if p + ncolumns * nrows >= self.buffer_length
+    if p + ncolumns * nrows > self.buffer_length
         self = _resize(self, ncolumns * nrows * 1000)
     end
     @assert size(mat) == (nrows, ncolumns)
