@@ -56,13 +56,26 @@ Define the concrete type for a finite element set.
 """
 macro define_FESet(NAME, MANIFOLD, NODESPERELEM)
     return esc(:(mutable struct $NAME{IT} <: $MANIFOLD{$NODESPERELEM}
-        conn::Array{NTuple{$NODESPERELEM, IT}, 1}
+        conn::Vector{NTuple{$NODESPERELEM, IT}}
         label::Vector{IT}
         delegateof::Any
         function $NAME(conn::AbstractArray{IT}) where {IT}
             self = new{IT}(NTuple{$NODESPERELEM, IT}[], IT[], nothing)
             self = fromarray!(self, conn)
             setlabel!(self, 0)
+            return self
+        end
+        function $NAME{IT}(conn::Vector{NTuple{$NODESPERELEM, IT}}) where {IT}
+            self = new{IT}(conn, IT[], nothing)
+            setlabel!(self, 0)
+            return self
+        end
+        function $NAME{IT}(conn::Vector{NTuple{$NODESPERELEM, IT}}, labels::Vector{IT}) where {IT}
+            self = new{IT}(conn, labels, nothing)
+            return self
+        end
+        function $NAME{IT}(conn::Vector{NTuple{$NODESPERELEM, IT}}, labels::Vector{IT}, delegof) where {IT}
+            self = new{IT}(conn, labels, delegof)
             return self
         end
     end))
@@ -231,10 +244,7 @@ Extract a subset of the finite elements from the given finite element set.
 - `L`: an integer vector, tuple, or a range.
 """
 function subset(self::ET, L) where {ET <: AbstractFESet}
-    result = deepcopy(self)
-    result.conn = deepcopy(self.conn[L])
-    result.label = deepcopy(self.label[L])
-    return result
+    return ET(self.conn[L], self.label[L], self.delegateof)
 end
 
 """
