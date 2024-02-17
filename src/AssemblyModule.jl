@@ -47,8 +47,9 @@ Type for assembling a sparse global matrix from elementwise matrices.
 """
 mutable struct SysmatAssemblerSparse{
     IT,
-    MBT, # matrix-entry buffer type
-    IJT, # index buffer type
+    T,
+    MBT <: AbstractVector{T},
+    IJT <: AbstractVector{IT},
 } <: AbstractSysmatAssembler
     buffer_length::IT
     matbuffer::MBT

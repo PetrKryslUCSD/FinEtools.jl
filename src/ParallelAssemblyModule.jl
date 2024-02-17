@@ -5,7 +5,7 @@ using ..FieldModule: ndofs, nalldofs
 using ..NodalFieldModule: NodalField
 using ..AssemblyModule:
     AbstractSysmatAssembler,
-    startassembly!
+    startassembly!, makematrix!
 using ..FESetModule: nodesperelem
 
 function _update_buffer_range(buffer_length, iend)
@@ -15,61 +15,57 @@ function _update_buffer_range(buffer_length, iend)
     return buffer_range, iend
 end
 
-function _task_local_assembler(a::AT, buffer_range) where {AT}
+function _task_local_assembler(AssemblerType::Type{AT}, buffer_range, matbuffer, rowbuffer, colbuffer, row_nalldofs, col_nalldofs) where {AT}
     buffer_length = maximum(buffer_range) - minimum(buffer_range) + 1
-    matbuffer = view(a.matbuffer, buffer_range)
-    rowbuffer = view(a.rowbuffer, buffer_range)
-    colbuffer = view(a.colbuffer, buffer_range)
-    @show typeof(matbuffer)
     buffer_pointer = 1
     nomatrixresult = true
     force_init = false
-    _a =  AT(
+    return AssemblerType(
         buffer_length,
-        matbuffer,
-        rowbuffer,
-        colbuffer,
+        view(matbuffer, buffer_range),
+        view(rowbuffer, buffer_range),
+        view(colbuffer, buffer_range),
         buffer_pointer,
-        a.row_nalldofs,
-        a.col_nalldofs,
+        row_nalldofs,
+        col_nalldofs,
         nomatrixresult,
         force_init,
     )
-    @show typeof(_a)
-    return _a
+end
+
+function _check_femm_compatibility(femms::AbstractArray{FEMM, 1}) where {FEMM<:AbstractFEMM}
+    for j in eachindex(femms)
+        iselementbased(femms[j]) || error("FEMM is not element-based")
+        (nameof(typeof(femms[j])) ===
+         nameof(typeof(femms[1]))) ||
+            error("All FEMMs must be of the same type")
+        (nameof(typeof(finite_elements(femms[j]))) ===
+         nameof(typeof(finite_elements(femms[1])))) ||
+            error("All finite elements must be of the same type")
+    end
+    return true
 end
 
 """
-    parallel_tasks_matrix_assembly(
+    make_assembler(
         femms::AbstractArray{FEMM, 1},
-        assembler::AT,
+        AssemblerType::Type{AT},
         uf::NodalField{UFT},
-        matrixcomputation!::F
-    ) where {FEMM<:AbstractFEMM, AT<:AbstractSysmatAssembler, F<:Function}
+    ) where {FEMM<:AbstractFEMM, AT<:AbstractSysmatAssembler, UFT<:Number}
+    
+Make the global assembler.    
 
-
+- `femms`: array of finite element machines, one for each subdomain
+- `AssemblerType`: type of the global assembler, unparametrized
+- `uf`: nodal field of the unknowns
 """
-function parallel_matrix_assembly(
+function make_assembler(
     femms::AbstractArray{FEMM, 1},
-    assembler::AT,
+    AssemblerType::Type{AT},
     uf::NodalField{UFT},
-    matrixcomputation!::F
-) where {FEMM<:AbstractFEMM, AT<:AbstractSysmatAssembler, UFT<:Number, F<:Function}
-    # The number of tasks is equal to the number of the FEMMs
-    ntasks = length(femms)
-    ntasks >= 1 || error("Number of tasks must be >= 1")
+) where {FEMM<:AbstractFEMM, AT<:AbstractSysmatAssembler, UFT<:Number}
+    _check_femm_compatibility(femms)
     elem_mat_nmatrices = count.(finite_elements.(femms))
-    # Check compatibility of the FEMMs: they need to be the same "type" -- all
-    # conductivity, for instance, and all using the same type of finite element 
-    for j in eachindex(femms)
-        # Check that the femms are element-based
-        # TO DO
-        iselementbased(femms[j]) || error("FEMM is not element-based")
-        (supertype(typeof(femms[j])) === supertype(typeof(femms[1]))) || 
-            error("All FEMMs must be of the same type")
-        (typeof(finite_elements(femms[j])) === typeof(finite_elements(femms[1]))) || 
-            error("All finite elements must be of the same type")
-    end
     # Count the total number of COO triples
     nne = nodesperelem(finite_elements(femms[1]))
     ndn = ndofs(uf)
@@ -79,26 +75,126 @@ function parallel_matrix_assembly(
     totaltriples = sum(triples)
     ndofs_row = nalldofs(uf)
     ndofs_col = nalldofs(uf)
-    # Started the assembly
-    startassembly!(assembler, totaltriples, ndofs_row, ndofs_col,)
-    # Parallel assembly loop
+    # Start the assembly
+    assembler = startassembly!(AssemblerType(zero(UFT)), totaltriples, ndofs_row, ndofs_col,)
+    assembler.nomatrixresult = true
+    return assembler
+end
+
+"""
+    start_assembler(
+        assembler::AT
+    ) where {AT<:AbstractSysmatAssembler}
+
+Start assembly on the global assembler.
+
+The assembler is informed that no matrix result should be computed. All the data
+should be preserved in the assembly buffers.
+"""
+function start_assembler(
+    assembler::AT
+) where {AT<:AbstractSysmatAssembler}
+    assembler = startassembly!(AssemblerType(zero(UFT)),
+        assembler.buffer_length,
+        assembler.row_nalldofs,
+        assembler.col_nalldofs,)
+    assembler.nomatrixresult = true
+    return assembler
+end
+
+
+"""
+    make_matrix!(
+        assembler::AT
+    ) where {AT<:AbstractSysmatAssembler}
+
+Make the global matrix, using the data collected in the assembler.
+"""
+function make_matrix!(
+    assembler::AT
+) where {AT<:AbstractSysmatAssembler}
+    assembler.buffer_pointer = assembler.buffer_length + 1
+    assembler.nomatrixresult = !true
+    return makematrix!(assembler)
+end
+
+"""
+    make_task_assemblers(
+        femms::AbstractArray{FEMM, 1},
+        assembler::AT,
+        AssemblerType::Type{AT},
+        uf::NodalField{UFT}
+    ) where {FEMM<:AbstractFEMM, AT<:AbstractSysmatAssembler, UFT<:Number}
+
+Make task assemblers for the subdomains.
+
+- `femms`: array of finite element machines, one for each subdomain
+- `assembler`: the global assembler 
+- `AssemblerType`: type of the global assembler, unparametrized
+- `uf`: nodal field of the unknowns
+
+Return an array of the assemblers. Each of the assemblers only refers to a view
+of the buffers of the global assembler, hence they are reasonably cheap to
+construct.
+"""
+function make_task_assemblers(
+    femms::AbstractArray{FEMM, 1},
+    assembler::AT,
+    AssemblerType::Type{AT},
+    uf::NodalField{UFT}
+) where {FEMM<:AbstractFEMM, AT<:AbstractSysmatAssembler, UFT<:Number}
+    _check_femm_compatibility(femms)
+    # The number of tasks is equal to the number of the FEMMs
+    ntasks = length(femms)
+    ntasks >= 1 || error("Number of tasks must be >= 1")
+    elem_mat_nmatrices = count.(finite_elements.(femms))
+    # Check compatibility of the FEMMs: they need to be the same "type" -- all
+    # conductivity, for instance, and all using the same type of finite element 
+    elem_mat_nmatrices = count.(finite_elements.(femms))
+    # Count the total number of COO triples
+    nne = nodesperelem(finite_elements(femms[1]))
+    ndn = ndofs(uf)
+    elem_mat_nrows = nne * ndn
+    elem_mat_ncols = nne * ndn
+    triples = elem_mat_nrows * elem_mat_ncols .* elem_mat_nmatrices
+    # Make there task assemblers
+    assemblers = AssemblerType[]
     iend = 0
+    for j in eachindex(femms)
+        buffer_range, iend = _update_buffer_range(triples[j], iend)
+        push!(assemblers, _task_local_assembler(
+            AssemblerType, buffer_range, 
+            assembler.matbuffer, assembler.rowbuffer, assembler.colbuffer, 
+            assembler.row_nalldofs, assembler.col_nalldofs)
+        )
+    end
+    return assemblers
+end
+
+"""
+    parallel_matrix_assembly(
+        femms::AbstractArray{FEMM, 1},
+        assemblers::AbstractVector{AT},
+        matrixcomputation!::F
+    ) where {FEMM<:AbstractFEMM, AT<:AbstractSysmatAssembler, F<:Function}
+
+Execute the assembly in parallel.
+"""
+function parallel_matrix_assembly(
+    femms::AbstractArray{FEMM, 1},
+    assemblers::AbstractVector{AT},
+    matrixcomputation!::F
+) where {FEMM<:AbstractFEMM, AT<:AbstractSysmatAssembler, F<:Function}
     Threads.@sync begin
         for j in eachindex(femms)
+            assemblers[j].buffer_pointer = 1
+            assemblers[j].nomatrixresult = true
             Threads.@spawn let 
-                buffer_range, iend = _update_buffer_range(triples[j], iend)
-                _a = _task_local_assembler(assembler, buffer_range)
-                @show typeof(_a)
-                matrixcomputation!(femms[j], _a, uf)
+                matrixcomputation!(femms[j], assemblers[j])
             end
         end
     end
-    # The buffer should now be completely full
-    iend == assembler.buffer_length || error("Buffer pointer mismatch") 
-    assembler.buffer_pointer = iend
-    # Return the updated assembler; makematrix! can be called on that to retrieve the matrix
-    assembler.nomatrixresult = !true
-    return assembler
+    return true
 end
 
 end # module

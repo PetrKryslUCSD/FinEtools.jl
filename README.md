@@ -25,6 +25,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 02/17/2024: Implement generic parallel matrix assembly using threaded tasks.
 - 12/31/2023: Update for Julia 1.10.
 - 06/19/2023: Introduce DataCache, generic linear and bilinear forms. 
 - 04/20/2023: Make all types in the library generic.
