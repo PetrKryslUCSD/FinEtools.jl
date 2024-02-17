@@ -47,9 +47,8 @@ Type for assembling a sparse global matrix from elementwise matrices.
 """
 mutable struct SysmatAssemblerSparse{
     IT,
-    T,
-    MBT <: AbstractVector{T},
-    IJT <: AbstractVector{IT},
+    MBT, # matrix-entry buffer type
+    IJT, # index buffer type
 } <: AbstractSysmatAssembler
     buffer_length::IT
     matbuffer::MBT
@@ -226,8 +225,8 @@ function assemble!(self::SysmatAssemblerSparse,
             di < 1 && error("Row degree of freedom < 1")
             di > self.row_nalldofs && error("Row degree of freedom > size")
             self.matbuffer[p] = mat[i, j] # serialized matrix
-            self.rowbuffer[p] = dofnums_row[i]
-            self.colbuffer[p] = dofnums_col[j]
+            self.rowbuffer[p] = di
+            self.colbuffer[p] = dj
             p = p + 1
         end
     end

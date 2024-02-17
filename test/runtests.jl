@@ -1,5 +1,9 @@
 using Test
 
+@testset "Parallel" begin
+    include("test_parallel.jl")
+end
+
 @testset "Basics" begin
     include("test_basics.jl")
 end
