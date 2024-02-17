@@ -83,6 +83,7 @@ function test()
     end
 
     assembler = make_assembler(femms, SysmatAssemblerSparseSymm, psi)
+    start_assembler!(assembler)
     assemblers = make_task_assemblers(femms, assembler, SysmatAssemblerSparseSymm, psi)
     parallel_matrix_assembly(femms, assemblers, matrixcomputation!)
     K = make_matrix!(assembler)
