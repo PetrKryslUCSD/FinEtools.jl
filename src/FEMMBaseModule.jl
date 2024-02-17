@@ -93,6 +93,13 @@ function finite_elements(self::FEMM) where {FEMM <: AbstractFEMM}
 end
 
 """
+    iselementbased(self::FEMM) where {FEMM <: AbstractFEMM}
+
+Is the FEMM element-based? (This will only be false for nodal-integration formulations.)
+"""
+iselementbased(self::FEMM) where {FEMM <: AbstractFEMM} = true
+
+"""
     associategeometry!(self::AbstractFEMM, geom::NodalField{GFT}) where {GFT}
 
 Associate geometry field with the FEMM.
