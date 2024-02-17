@@ -82,7 +82,7 @@ function make_assembler(
 end
 
 """
-    start_assembler(
+    start_assembler!(
         assembler::AT
     ) where {AT<:AbstractSysmatAssembler}
 
@@ -91,10 +91,10 @@ Start assembly on the global assembler.
 The assembler is informed that no matrix result should be computed. All the data
 should be preserved in the assembly buffers.
 """
-function start_assembler(
+function start_assembler!(
     assembler::AT
 ) where {AT<:AbstractSysmatAssembler}
-    assembler = startassembly!(AssemblerType(zero(UFT)),
+    assembler = startassembly!(assembler,
         assembler.buffer_length,
         assembler.row_nalldofs,
         assembler.col_nalldofs,)
