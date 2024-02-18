@@ -4,8 +4,7 @@ using ..FEMMBaseModule: AbstractFEMM, finite_elements, iselementbased
 using ..FieldModule: ndofs, nalldofs
 using ..NodalFieldModule: NodalField
 using ..AssemblyModule:
-    AbstractSysmatAssembler,
-    startassembly!, makematrix!
+    AbstractSysmatAssembler, startassembly!, makematrix!, setnomatrixresult, expectedntriples
 using ..FESetModule: nodesperelem
 
 function _update_buffer_range(buffer_length, iend)
@@ -15,7 +14,15 @@ function _update_buffer_range(buffer_length, iend)
     return buffer_range, iend
 end
 
-function _task_local_assembler(AssemblerType::Type{AT}, buffer_range, matbuffer, rowbuffer, colbuffer, row_nalldofs, col_nalldofs) where {AT}
+function _task_local_assembler(
+    AssemblerType::Type{AT},
+    buffer_range,
+    matbuffer,
+    rowbuffer,
+    colbuffer,
+    row_nalldofs,
+    col_nalldofs,
+) where {AT}
     buffer_length = maximum(buffer_range) - minimum(buffer_range) + 1
     buffer_pointer = 1
     nomatrixresult = true
@@ -33,15 +40,15 @@ function _task_local_assembler(AssemblerType::Type{AT}, buffer_range, matbuffer,
     )
 end
 
-function _check_femm_compatibility(femms::AbstractArray{FEMM, 1}) where {FEMM<:AbstractFEMM}
+function _check_femm_compatibility(femms::AbstractArray{FEMM,1}) where {FEMM<:AbstractFEMM}
     for j in eachindex(femms)
         iselementbased(femms[j]) || error("FEMM is not element-based")
-        (nameof(typeof(femms[j])) ===
-         nameof(typeof(femms[1]))) ||
+        (nameof(typeof(femms[j])) === nameof(typeof(femms[1]))) ||
             error("All FEMMs must be of the same type")
-        (nameof(typeof(finite_elements(femms[j]))) ===
-         nameof(typeof(finite_elements(femms[1])))) ||
-            error("All finite elements must be of the same type")
+        (
+            nameof(typeof(finite_elements(femms[j]))) ===
+            nameof(typeof(finite_elements(femms[1])))
+        ) || error("All finite elements must be of the same type")
     end
     return true
 end
@@ -60,10 +67,10 @@ Make the global assembler.
 - `uf`: nodal field of the unknowns
 """
 function make_assembler(
-    femms::AbstractArray{FEMM, 1},
+    femms::AbstractArray{FEMM,1},
     AssemblerType::Type{AT},
     uf::NodalField{UFT},
-) where {FEMM<:AbstractFEMM, AT<:AbstractSysmatAssembler, UFT<:Number}
+) where {FEMM<:AbstractFEMM,AT<:AbstractSysmatAssembler,UFT<:Number}
     _check_femm_compatibility(femms)
     elem_mat_nmatrices = count.(finite_elements.(femms))
     # Count the total number of COO triples
@@ -71,13 +78,18 @@ function make_assembler(
     ndn = ndofs(uf)
     elem_mat_nrows = nne * ndn
     elem_mat_ncols = nne * ndn
-    triples = elem_mat_nrows * elem_mat_ncols .* elem_mat_nmatrices
-    totaltriples = sum(triples)
     ndofs_row = nalldofs(uf)
     ndofs_col = nalldofs(uf)
     # Start the assembly
-    assembler = startassembly!(AssemblerType(zero(UFT)), totaltriples, ndofs_row, ndofs_col,)
-    assembler.nomatrixresult = true
+    assembler = startassembly!(
+        AssemblerType(zero(UFT)),
+        elem_mat_nrows,
+        elem_mat_ncols,
+        sum(elem_mat_nmatrices),
+        ndofs_row,
+        ndofs_col,
+    )
+    setnomatrixresult(assembler, true)
     return assembler
 end
 
@@ -86,19 +98,21 @@ end
         assembler::AT
     ) where {AT<:AbstractSysmatAssembler}
 
-Start assembly on the global assembler.
+Start parallel assembly on the global assembler.
 
 The assembler is informed that no matrix result should be computed. All the data
 should be preserved in the assembly buffers.
 """
-function start_assembler!(
-    assembler::AT
-) where {AT<:AbstractSysmatAssembler}
-    assembler = startassembly!(assembler,
-        assembler.buffer_length,
-        assembler.row_nalldofs,
-        assembler.col_nalldofs,)
-    assembler.nomatrixresult = true
+function start_assembler!(assembler::AT) where {AT<:AbstractSysmatAssembler}
+    assembler = startassembly!(
+        assembler,
+        1,
+        1,
+        assembler._buffer_length,
+        assembler._row_nalldofs,
+        assembler._col_nalldofs,
+    )
+    setnomatrixresult(assembler, true)
     return assembler
 end
 
@@ -110,11 +124,10 @@ end
 
 Make the global matrix, using the data collected in the assembler.
 """
-function make_matrix!(
-    assembler::AT
-) where {AT<:AbstractSysmatAssembler}
-    assembler.buffer_pointer = assembler.buffer_length + 1
-    assembler.nomatrixresult = !true
+function make_matrix!(assembler::AT) where {AT<:AbstractSysmatAssembler}
+    # At this point all data is in the buffer
+    assembler._buffer_pointer = assembler._buffer_length + 1
+    setnomatrixresult(assembler, false)
     return makematrix!(assembler)
 end
 
@@ -138,11 +151,11 @@ of the buffers of the global assembler, hence they are reasonably cheap to
 construct.
 """
 function make_task_assemblers(
-    femms::AbstractArray{FEMM, 1},
+    femms::AbstractArray{FEMM,1},
     assembler::AT,
     AssemblerType::Type{AT},
-    uf::NodalField{UFT}
-) where {FEMM<:AbstractFEMM, AT<:AbstractSysmatAssembler, UFT<:Number}
+    uf::NodalField{UFT},
+) where {FEMM<:AbstractFEMM,AT<:AbstractSysmatAssembler,UFT<:Number}
     _check_femm_compatibility(femms)
     # The number of tasks is equal to the number of the FEMMs
     ntasks = length(femms)
@@ -156,16 +169,23 @@ function make_task_assemblers(
     ndn = ndofs(uf)
     elem_mat_nrows = nne * ndn
     elem_mat_ncols = nne * ndn
-    triples = elem_mat_nrows * elem_mat_ncols .* elem_mat_nmatrices
+    triples = [expectedntriples(assembler, elem_mat_nrows, elem_mat_ncols, n) for n in elem_mat_nmatrices]
     # Make there task assemblers
     assemblers = AssemblerType[]
     iend = 0
     for j in eachindex(femms)
         buffer_range, iend = _update_buffer_range(triples[j], iend)
-        push!(assemblers, _task_local_assembler(
-            AssemblerType, buffer_range, 
-            assembler.matbuffer, assembler.rowbuffer, assembler.colbuffer, 
-            assembler.row_nalldofs, assembler.col_nalldofs)
+        push!(
+            assemblers,
+            _task_local_assembler(
+                AssemblerType,
+                buffer_range,
+                assembler._matbuffer,
+                assembler._rowbuffer,
+                assembler._colbuffer,
+                assembler._row_nalldofs,
+                assembler._col_nalldofs,
+            ),
         )
     end
     return assemblers
@@ -175,32 +195,36 @@ end
     parallel_matrix_assembly(
         femms::AbstractArray{FEMM, 1},
         assemblers::AbstractVector{AT},
-        matrixcomputation!::F
+        matrixcomputation!::F,
+        kind = :threaded,
     ) where {FEMM<:AbstractFEMM, AT<:AbstractSysmatAssembler, F<:Function}
 
 Execute the assembly in parallel.
 """
 function parallel_matrix_assembly(
-    femms::AbstractArray{FEMM, 1},
+    femms::AbstractArray{FEMM,1},
     assemblers::AbstractVector{AT},
-    matrixcomputation!::F
-) where {FEMM<:AbstractFEMM, AT<:AbstractSysmatAssembler, F<:Function}
+    matrixcomputation!::F,
+    kind = :threaded,
+) where {FEMM<:AbstractFEMM,AT<:AbstractSysmatAssembler,F<:Function}
+    length(femms) == length(assemblers) || error("Domains and assemblers mismatched")
     for j in eachindex(assemblers)
-        assemblers[j].buffer_pointer = 1
-        assemblers[j].nomatrixresult = true
+        assemblers[j]._buffer_pointer = 1
+        setnomatrixresult(assemblers[j], true)
     end
-    Threads.@threads for j in eachindex(femms)
-        matrixcomputation!(femms[j], assemblers[j])
+    if kind == :threaded
+        Threads.@threads for j in eachindex(femms)
+            matrixcomputation!(femms[j], assemblers[j])
+        end
+    else
+        Threads.@sync begin
+            for j in eachindex(femms)
+                Threads.@spawn let
+                    matrixcomputation!(femms[j], assemblers[j])
+                end
+            end
+        end
     end
-    # Threads.@sync begin
-    #     for j in eachindex(femms)
-    #         assemblers[j].buffer_pointer = 1
-    #         assemblers[j].nomatrixresult = true
-    #         Threads.@spawn let 
-    #             matrixcomputation!(femms[j], assemblers[j])
-    #         end
-    #     end
-    # end
     return true
 end
 

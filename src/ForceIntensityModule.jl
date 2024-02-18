@@ -31,7 +31,7 @@ getforce!(forceout::Vector{CT}, XYZ::Matrix{T}, tangents::Matrix{T}, feid::IT) w
 
 A [`DataCache`](@ref) is used to store the data.
 """
-struct ForceIntensity{DC <: DataCache}
+struct ForceIntensity{DC<:DataCache}
     _cache::DC  # data cache  where the current value of the force can be retrieved
 end
 
@@ -63,9 +63,7 @@ vector is given.
     location `XYZ`, using, if appropriate, the information supplied in the Jacobian
     matrix `tangents`, the identifier of the finite element, `feid`.
 """
-function ForceIntensity(::Type{CT},
-    ndofn,
-    computeforce!::F) where {CT <: Number, F <: Function}
+function ForceIntensity(::Type{CT}, ndofn, computeforce!::F) where {CT<:Number,F<:Function}
     # Allocate the buffer to be ready for the first call
     return ForceIntensity(DataCache(zeros(CT, ndofn), computeforce!))
 end
@@ -75,7 +73,7 @@ end
 
 Construct force intensity when the constant `force` vector is given.
 """
-function ForceIntensity(force::Vector{CT}) where {CT <: Number}
+function ForceIntensity(force::Vector{CT}) where {CT<:Number}
     return ForceIntensity(DataCache(deepcopy(force)))
 end
 
@@ -86,7 +84,7 @@ Construct force intensity when the force is given as a scalar value.
 
 The dimension of the force vector in this case is 1.
 """
-function ForceIntensity(force::CT) where {CT <: Number}
+function ForceIntensity(force::CT) where {CT<:Number}
     return ForceIntensity(CT[force])
 end
 
@@ -97,11 +95,13 @@ Update the force intensity vector.
 
 Returns a vector (stored in the cache `self.cache`).
 """
-function updateforce!(self::ForceIntensity,
+function updateforce!(
+    self::ForceIntensity,
     XYZ::Matrix{T},
     tangents::Matrix{T},
     feid::IT,
-    qpid::IT) where {T <: Number, IT <: Integer}
+    qpid::IT,
+) where {T<:Number,IT<:Integer}
     return self._cache(XYZ, tangents, feid, qpid)
 end
 

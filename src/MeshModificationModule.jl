@@ -41,10 +41,12 @@ Extract the boundary connectivity from the connectivity of the interior.
     extractb = [1 3 2; 1 2 4; 2 3 4; 1 4 3]
     ```
 """
-function interior2boundary(interiorconn::Array{IT, 2},
-    extractb::Array{IT, 2}) where {IT <: Integer}
+function interior2boundary(
+    interiorconn::Array{IT,2},
+    extractb::Array{IT,2},
+) where {IT<:Integer}
     hypf = interiorconn[:, extractb[1, :]]
-    for i in 2:size(extractb, 1)
+    for i = 2:size(extractb, 1)
         hypf = vcat(hypf, interiorconn[:, extractb[i, :]])
     end
     return _myunique2(hypf)
@@ -58,7 +60,7 @@ Extract the boundary finite elements from a mesh.
 Extract the finite elements of manifold dimension (n-1) from the
 supplied finite element set of manifold dimension (n).
 """
-function meshboundary(fes::T) where {T <: AbstractFESet}
+function meshboundary(fes::T) where {T<:AbstractFESet}
     # Form all hyperfaces, non-duplicates are boundary cells
     hypf = boundaryconn(fes)    # get the connectivity of the boundary elements
     bdryconn = _myunique2(hypf)
@@ -66,30 +68,30 @@ function meshboundary(fes::T) where {T <: AbstractFESet}
     return make(bdryconn)
 end
 
-function _mysortrows(A::Matrix{IT}) where {IT <: Integer}
+function _mysortrows(A::Matrix{IT}) where {IT<:Integer}
     # Sort the rows of A by sorting each column from back to front.
 
     m, n = size(A)
 
     indx = zeros(IT, m)
     sindx = zeros(IT, m)
-    for i in 1:m
+    for i = 1:m
         indx[i] = i
     end
     nindx = zeros(IT, m)
     col = zeros(IT, m)
-    for c in n:-1:1
-        for i in 1:m
+    for c = n:-1:1
+        for i = 1:m
             col[i] = A[indx[i], c]
         end
         #Sorting a column vector is much faster than sorting a column matrix
         sindx = sortperm(col, alg = QuickSort)
         #sortperm!(sindx,col,alg=QuickSort); # available for 0.4, slightly faster
         #indx=indx[sindx] # saving allocations by using the below loops
-        for i in 1:m
+        for i = 1:m
             nindx[i] = indx[sindx[i]]
         end
-        for i in 1:m
+        for i = 1:m
             indx[i] = nindx[i]
         end
     end
@@ -97,33 +99,33 @@ function _mysortrows(A::Matrix{IT}) where {IT <: Integer}
     return A[indx, :]
 end
 
-function _mysortdim2!(A::Matrix{IT}) where {IT <: Integer}
+function _mysortdim2!(A::Matrix{IT}) where {IT<:Integer}
     # Sort each row  of A in ascending order.
 
     m, n = size(A)
 
     r = zeros(IT, n)
-    @inbounds for k in 1:m
-        for i in 1:n
+    @inbounds for k = 1:m
+        for i = 1:n
             r[i] = A[k, i]
         end
         sort!(r)
-        for i in 1:n
+        for i = 1:n
             A[k, i] = r[i]
         end
     end
     return A
 end
 
-function _myunique2(A::Vector{IT}) where {IT <: Integer}
+function _myunique2(A::Vector{IT}) where {IT<:Integer}
     return _myunique2(reshape(A, length(A), 1))
 end
 
-function _myunique2(A::Matrix{IT}) where {IT <: Integer} # speeded up; now the bottleneck is _mysortrows
+function _myunique2(A::Matrix{IT}) where {IT<:Integer} # speeded up; now the bottleneck is _mysortrows
     Out = A[_myunique2index(A), :]
 end
 
-function _myunique2index(A::Matrix{IT}) where {IT <: Integer} # speeded up; now the bottleneck is _mysortrows
+function _myunique2index(A::Matrix{IT}) where {IT<:Integer} # speeded up; now the bottleneck is _mysortrows
     #println("size(A)=$(size(A))")
     maxA = maximum(A[:])
     sA = deepcopy(A)
@@ -136,11 +138,11 @@ function _myunique2index(A::Matrix{IT}) where {IT <: Integer} # speeded up; now 
     #@time sA  = sortrows(sA,alg=QuickSort);;#this is slow
     rix = sA[:, end]
     broadcast!(-, rix, rix, maxA)
-    sA = sA[:, 1:(end - 1)]
+    sA = sA[:, 1:(end-1)]
     d = falses(size(sA, 1) - 1)
     for k in eachindex(d)
         for m in axes(sA, 2)
-            if sA[k, m] != sA[k + 1, m]
+            if sA[k, m] != sA[k+1, m]
                 d[k] = true
                 break
             end
@@ -149,9 +151,9 @@ function _myunique2index(A::Matrix{IT}) where {IT <: Integer} # speeded up; now 
     #d=(sA[1:end-1,:].!=sA[2:end,:]); # element-wise comparison!
     ad = zeros(IT, size(d, 1) + 1)
     ad[1] = 1
-    for k in 2:lastindex(ad)
+    for k = 2:lastindex(ad)
         for m in axes(d, 2)
-            if d[k - 1, m] != 0
+            if d[k-1, m] != 0
                 ad[k] = 1
                 break
             end
@@ -159,8 +161,8 @@ function _myunique2index(A::Matrix{IT}) where {IT <: Integer} # speeded up; now 
     end
     #ad=map((x) -> (x?1:0),[true; any(d,2)]);
     iu = trues(length(ad))
-    for k in 1:(lastindex(ad) - 1)
-        ad[k] = ad[k] + ad[k + 1]
+    for k = 1:(lastindex(ad)-1)
+        ad[k] = ad[k] + ad[k+1]
         iu[k] = (ad[k] > 1)
     end
     ad[end] = ad[end] + 1
@@ -207,9 +209,7 @@ The finite element set connectivity that used to refer to `fens1`
 needs to be updated to refer to the same nodes in  the set `fens` as
      `updateconn!(fes, new_indexes_of_fens1_nodes);`
 """
-function fusenodes(fens1::FENodeSet{T},
-    fens2::FENodeSet{T},
-    tolerance::T) where {T <: Number}
+function fusenodes(fens1::FENodeSet{T}, fens2::FENodeSet{T}, tolerance::T) where {T<:Number}
     @assert size(fens1.xyz, 2) == size(fens2.xyz, 2)
     dim = size(fens1.xyz, 2)
     nn1 = count(fens1)
@@ -221,27 +221,29 @@ function fusenodes(fens1::FENodeSet{T},
     copyto!(xyz2, fens2.xyz)#xyz2::FFltMat = copy(fens2.xyz::FFltMat)
     id2 = collect(1:nn2)
     # Decide which nodes should be checked for proximity
-    ib = intersectboxes(inflatebox!(boundingbox(xyz1), tolerance),
-        inflatebox!(boundingbox(xyz2), tolerance))
+    ib = intersectboxes(
+        inflatebox!(boundingbox(xyz1), tolerance),
+        inflatebox!(boundingbox(xyz2), tolerance),
+    )
     node1in = fill(false, nn1)
     node2in = fill(false, nn2)
     if length(ib) > 0
-        for i in 1:nn1
+        for i = 1:nn1
             node1in[i] = inbox(ib, @view xyz1[i, :])
         end
-        for i in 1:nn2
+        for i = 1:nn2
             node2in[i] = inbox(ib, @view xyz2[i, :])
         end
     end
     # Mark nodes from the first array that are duplicated in the second
     if (tolerance > 0.0) # should we attempt to merge nodes?
-        for i in 1:nn1
+        for i = 1:nn1
             if node1in[i]
                 breakoff = false
-                for rx in 1:nn2
+                for rx = 1:nn2
                     if node2in[rx]
                         distance = T(0.0)
-                        for cx in 1:dim
+                        for cx = 1:dim
                             distance = distance + abs(xyz2[rx, cx] - xyz1[i, cx])
                             if (distance >= tolerance) # shortcut: if the distance is already too large, stop checking
                                 break
@@ -261,22 +263,22 @@ function fusenodes(fens1::FENodeSet{T},
     end
     # Generate  fused arrays of the nodes. First copy in the nodes from the second set...
     xyzm = zeros(eltype(xyz1), nn1 + nn2, dim)
-    for rx in 1:nn2
-        for cx in 1:dim
+    for rx = 1:nn2
+        for cx = 1:dim
             xyzm[rx, cx] = xyz2[rx, cx]
         end
     end
     idm = zeros(Int, nn1 + nn2)
-    for rx in 1:nn2
+    for rx = 1:nn2
         idm[rx] = rx
     end
     mid = nn2 + 1
     # ...and then we add in only non-duplicated nodes from the first set
-    for i in 1:nn1
+    for i = 1:nn1
         if id1[i] > 0
             id1[i] = mid
             idm[mid] = mid
-            for cx in 1:dim
+            for cx = 1:dim
                 xyzm[mid, cx] = xyz1[i, cx]
             end
             mid = mid + 1
@@ -338,7 +340,7 @@ function compactnodes(fens::FENodeSet, connected::BitArray{1})
             id = id + 1
         end
     end
-    fens = FENodeSet(nxyz[1:(id - 1), :])
+    fens = FENodeSet(nxyz[1:(id-1), :])
     return fens, vec(new_numbering)
 end
 
@@ -370,11 +372,13 @@ this function returns the connectivity of both `fes1` and `fes2` point into
 `fens2` is are guaranteed to be the same. Therefore, the connectivity of
 `fes2` will in fact remain the same.
 """
-function mergemeshes(fens1::FENodeSet{T},
+function mergemeshes(
+    fens1::FENodeSet{T},
     fes1::T1,
     fens2::FENodeSet{T},
     fes2::T2,
-    tolerance::T) where {T, T1 <: AbstractFESet, T2 <: AbstractFESet}
+    tolerance::T,
+) where {T,T1<:AbstractFESet,T2<:AbstractFESet}
     # Fuse the nodes
     # @code_warntype fusenodes(fens1, fens2, tolerance);
     fens, new_indexes_of_fens1_nodes = fusenodes(fens1, fens2, tolerance)
@@ -399,9 +403,11 @@ nodes is performed; the nodes from the meshes are simply concatenated together.
 The merged node set, `fens`, and an array of finite element sets with
 renumbered  connectivities are returned.
 """
-function mergenmeshes(meshes::Array{Tuple{FENodeSet, AbstractFESet}},
-    tolerance::T) where {T <: Number}
-    outputfes = Array{AbstractFESet, 1}()
+function mergenmeshes(
+    meshes::Array{Tuple{FENodeSet,AbstractFESet}},
+    tolerance::T,
+) where {T<:Number}
+    outputfes = Array{AbstractFESet,1}()
     if (length(meshes)) == 1 # A single mesh, package output and return
         fens, fes = meshes[1]
         push!(outputfes, fes)
@@ -410,7 +416,7 @@ function mergenmeshes(meshes::Array{Tuple{FENodeSet, AbstractFESet}},
     # Multiple meshes: process
     fens, fes = meshes[1]
     push!(outputfes, fes)
-    for j in 2:length(meshes)
+    for j = 2:length(meshes)
         fens1, fes1 = meshes[j]
         fens, new_indexes_of_fens1_nodes = fusenodes(fens1, fens, tolerance)
         updateconn!(fes1, new_indexes_of_fens1_nodes)
@@ -432,9 +438,7 @@ are returned.
 
 Warning: This tends to be an expensive operation!
 """
-function mergenodes(fens::FENodeSet{T},
-    fes::AbstractFESet,
-    tolerance::T) where {T <: Number}
+function mergenodes(fens::FENodeSet{T}, fes::AbstractFESet, tolerance::T) where {T<:Number}
     maxnn = count(fens) + 1
     xyz1 = fens.xyz
     dim = size(xyz1, 2)
@@ -495,10 +499,12 @@ Similar to `mergenodes(fens, fes, tolerance)`,
 but only the candidate nodes are considered for merging. This can potentially
 speed up the operation by orders of magnitude.
 """
-function mergenodes(fens::FENodeSet{T},
+function mergenodes(
+    fens::FENodeSet{T},
     fes::AbstractFESet,
     tolerance::T,
-    candidates::AbstractVector{IT}) where {T <: Number, IT <: Integer}
+    candidates::AbstractVector{IT},
+) where {T<:Number,IT<:Integer}
     maxnn = count(fens) + 1
     xyz1 = fens.xyz
     dim = size(xyz1, 2)
@@ -571,8 +577,10 @@ Finally, check that the mesh is valid:
 validate_mesh(fens, fes);
 ```
 """
-function renumberconn!(fes::AbstractFESet,
-    new_numbering::AbstractVector{IT}) where {IT <: Integer}
+function renumberconn!(
+    fes::AbstractFESet,
+    new_numbering::AbstractVector{IT},
+) where {IT<:Integer}
     conn = connasarray(fes)
     for i in axes(conn, 1)
         c = conn[i, :]
@@ -592,9 +600,7 @@ Keyword options:
     or movable  (false)
 `npass` = number of passes (default 2)
 """
-function vsmoothing(v::Matrix{T},
-    t::Matrix{IT};
-    kwargs...) where {T <: Number, IT <: Integer}
+function vsmoothing(v::Matrix{T}, t::Matrix{IT}; kwargs...) where {T<:Number,IT<:Integer}
     fixedv = falses(size(v, 1))
     npass = 2
     method = :taubin
@@ -636,22 +642,24 @@ General smoothing of meshes.
 # Return
 The modified  node set.
 """
-function meshsmoothing(fens::FENodeSet, fes::T; options...) where {T <: AbstractFESet}
+function meshsmoothing(fens::FENodeSet, fes::T; options...) where {T<:AbstractFESet}
     v = deepcopy(fens.xyz)
     v = vsmoothing(v, connasarray(fes); options...)
     copyto!(fens.xyz, v)
     return fens
 end
 
-function smoothertaubin(vinp::Matrix{T},
-    vneigh::Array{IT, 1},
+function smoothertaubin(
+    vinp::Matrix{T},
+    vneigh::Array{IT,1},
     fixedv::VF,
     npass,
     lambda::T,
-    mu::T) where {T, IT, VF}
+    mu::T,
+) where {T,IT,VF}
     v = deepcopy(vinp)
     nv = deepcopy(vinp)
-    for I in 1:npass
+    for I = 1:npass
         o = randperm(length(vneigh))
         damping_factor = lambda
         for k in eachindex(vneigh)
@@ -659,9 +667,9 @@ function smoothertaubin(vinp::Matrix{T},
             n = vneigh[r]
             if (length(n) > 1) && (!fixedv[r])
                 ln1 = (length(n) - 1)
-                nv[r, :] .= (1 - damping_factor) * vec(v[r, :]) +
-                            damping_factor * (vec(sum(v[n, :], dims = 1)) - vec(v[r, :])) /
-                            ln1
+                nv[r, :] .=
+                    (1 - damping_factor) * vec(v[r, :]) +
+                    damping_factor * (vec(sum(v[n, :], dims = 1)) - vec(v[r, :])) / ln1
             end
         end
         v = deepcopy(nv)
@@ -671,9 +679,9 @@ function smoothertaubin(vinp::Matrix{T},
             n = vneigh[r]
             if (length(n) > 1) && (!fixedv[r])
                 ln1 = (length(n) - 1)
-                nv[r, :] .= (1 - damping_factor) * vec(v[r, :]) +
-                            damping_factor * (vec(sum(v[n, :], dims = 1)) - vec(v[r, :])) /
-                            ln1
+                nv[r, :] .=
+                    (1 - damping_factor) * vec(v[r, :]) +
+                    damping_factor * (vec(sum(v[n, :], dims = 1)) - vec(v[r, :])) / ln1
             end
         end
         v = deepcopy(nv)
@@ -681,25 +689,27 @@ function smoothertaubin(vinp::Matrix{T},
     return nv
 end
 
-function smootherlaplace(vinp::Matrix{T},
-    vneigh::Array{IT, 1},
+function smootherlaplace(
+    vinp::Matrix{T},
+    vneigh::Array{IT,1},
     fixedv::VF,
     npass,
     lambda::T,
-    mu::T) where {T, IT, VF}
+    mu::T,
+) where {T,IT,VF}
     v = deepcopy(vinp)
     nv = deepcopy(vinp)
     damping_factor = lambda
-    for I in 1:npass
+    for I = 1:npass
         o = randperm(length(vneigh))
         for k in eachindex(vneigh)
             r = o[k]
             n = vneigh[r]
             if (length(n) > 1) && (!fixedv[r])
                 ln1 = (length(n) - 1)
-                nv[r, :] = (1 - damping_factor) * vec(v[r, :]) +
-                           damping_factor * (vec(sum(v[n, :], dims = 1)) - vec(v[r, :])) /
-                           ln1
+                nv[r, :] =
+                    (1 - damping_factor) * vec(v[r, :]) +
+                    damping_factor * (vec(sum(v[n, :], dims = 1)) - vec(v[r, :])) / ln1
             end
         end
         v = deepcopy(nv)
@@ -715,10 +725,10 @@ Find the node neighbors in the mesh.
 Return an array of integer vectors, element I holds an array of numbers of nodes
 which are connected to node I (including node I).
 """
-function vertexneighbors(conn::Matrix{IT}, nvertices::IT) where {IT <: Integer}
+function vertexneighbors(conn::Matrix{IT}, nvertices::IT) where {IT<:Integer}
     vn = Vector{IT}[]
     sizehint!(vn, nvertices)
-    for I in 1:nvertices
+    for I = 1:nvertices
         push!(vn, IT[])          # preallocate
     end
     for I in axes(conn, 1)
@@ -758,11 +768,13 @@ For instance: H8 elements require the renumbering function to be supplied as
 renumb = (c) -> c[[1, 4, 3, 2, 5, 8, 7, 6]]
 ```
 """
-function mirrormesh(fens::FENodeSet,
+function mirrormesh(
+    fens::FENodeSet,
     fes::ET,
     Normal::Vector{T},
     Point::Vector{T};
-    kwargs...,) where {ET <: AbstractFESet, T <: Number}
+    kwargs...,
+) where {ET<:AbstractFESet,T<:Number}
     # Default renumbering function.
     # Simply switch the order of nodes.  Works for simplexes...
     renumb(conn) = conn[end:-1:1]
@@ -798,7 +810,7 @@ function _nodepartitioning3(xyz, nincluded::Vector{Bool}, npartitions::Int = 2)
         nspdim = 3
         StaticMoments = fill(zero(eltype(xyz)), nspdim, length(parts))
         npart = fill(0, length(parts))
-        for spdim in 1:nspdim
+        for spdim = 1:nspdim
             @inbounds for j in axes(X, 1)
                 if nincluded[j] # Is the node to be included in the partitioning?
                     jp = partitioning[j]
@@ -859,7 +871,7 @@ function _nodepartitioning3(xyz, nincluded::Vector{Bool}, npartitions::Int = 2)
 
     nlevels = Int(round(ceil(log(npartitions) / log(2))))
     partitioning = fill(1, size(xyz, 1))  # start with nodes assigned to partition 1
-    for level in 0:1:(nlevels - 1)
+    for level = 0:1:(nlevels-1)
         inertialcutpartitioning!(partitioning, collect(1:(2^level)), xyz)
     end
     return partitioning
@@ -870,7 +882,7 @@ function _nodepartitioning2(xy, nincluded::Vector{Bool}, npartitions::Int = 2)
         nspdim = 2
         StaticMoments = fill(zero(eltype(xy)), nspdim, length(parts))
         npart = fill(0, length(parts))
-        for spdim in 1:nspdim
+        for spdim = 1:nspdim
             @inbounds for j in axes(X, 1)
                 if nincluded[j] # Is the node to be included in the partitioning?
                     jp = partitions[j]
@@ -926,7 +938,7 @@ function _nodepartitioning2(xy, nincluded::Vector{Bool}, npartitions::Int = 2)
 
     nlevels = Int(round(ceil(log(npartitions) / log(2))))
     partitions = fill(1, size(xy, 1))  # start with nodes assigned to partition 1
-    for level in 0:1:(nlevels - 1)
+    for level = 0:1:(nlevels-1)
         inertialcutpartitioning!(partitions, collect(1:(2^level)), xy)
     end
     return partitions
@@ -1048,7 +1060,7 @@ function nodepartitioning(fens::FENodeSet, fesarr, npartitions::Vector{Int})
     totnpartitions = maximum(partitioning1)
     # Transfer the partitioning of region 1 into the overall partitioning
     partitioning[nincludedp] = partitioning1[nincludedp]
-    for i in 2:length(npartitions)
+    for i = 2:length(npartitions)
         # Find the partitioning of the nodes in FESet i, but not in the preceding sets
         nincluded = fill(false, count(fens))
         for j in connectednodes(fesarr[i]) # For nodes connected by region i
@@ -1070,7 +1082,7 @@ end
 Distort a block mesh by shifting around the nodes. The goal is to
 distort the horizontal and vertical mesh lines into slanted lines.
 """
-function distortblock(ofens::FENodeSet{T}, xdispmul::T, ydispmul::T) where {T <: Number}
+function distortblock(ofens::FENodeSet{T}, xdispmul::T, ydispmul::T) where {T<:Number}
     Lx = maximum(ofens.xyz[:, 1])
     Ly = maximum(ofens.xyz[:, 2])
     xic(x) = (2 * x - Lx) / Lx
@@ -1106,13 +1118,15 @@ Distort a block mesh by shifting around the nodes. The goal is to distort the
 horizontal and vertical mesh lines into slanted lines. This is useful when
 testing finite elements where special directions must be avoided.
 """
-function distortblock(B::F,
+function distortblock(
+    B::F,
     Length::T,
     Width::T,
     nL::IT,
     nW::IT,
     xdispmul::T,
-    ydispmul::T) where {F <: Function, T <: Number, IT <: Integer}
+    ydispmul::T,
+) where {F<:Function,T<:Number,IT<:Integer}
     @assert 1.0 >= abs(xdispmul) >= 0.0
     @assert 1.0 >= abs(ydispmul) >= 0.0
     fens, fes = B(1.0, 1.0, nL, nW)
@@ -1169,7 +1183,7 @@ The code will currently not work correctly for 2D axially symmetric geometries.
 Set of boundary finite elements that enclose the solid. Now cavities 
 are included.
 """
-function outer_surface_of_solid(fens::FENodeSet, bdry_fes::ET) where {ET <: AbstractFESet}
+function outer_surface_of_solid(fens::FENodeSet, bdry_fes::ET) where {ET<:AbstractFESet}
     sn = SurfaceNormal(size(fens.xyz, 2))
     parametric_centroid = centroidparametric(bdry_fes)
     N = bfun(bdry_fes, parametric_centroid)

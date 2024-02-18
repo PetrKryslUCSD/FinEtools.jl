@@ -34,9 +34,11 @@ end
 Extract the list of numbers for the fes  that are connected to given
 nodes.
 """
-function connectedelems(fes::AbstractFESet,
+function connectedelems(
+    fes::AbstractFESet,
     node_list::Vector{IT},
-    nmax::IT) where {IT <: Integer}
+    nmax::IT,
+) where {IT<:Integer}
     f2fm = FENodeToFEMap(fes.conn, nmax)
     cg = zeros(IT, count(fes)) # No elements are part of the group to begin with
     for j in node_list # for all nodes in the list
@@ -189,7 +191,7 @@ the criterion; otherwise  one is enough.
 # Output
 `felist` = list of finite elements from the set that satisfy the criteria
 """
-function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET <: AbstractFESet}
+function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET<:AbstractFESet}
 
     # smoothpatch
     #
@@ -356,7 +358,7 @@ function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET <: AbstractFE
         xs = fens.xyz
         sd = spacedim(fens)
         md = manifdim(fes)
-        @assert (md==sd - 1) "'Facing': only for Manifold dim. == Space dim.-1"
+        @assert (md == sd - 1) "'Facing': only for Manifold dim. == Space dim.-1"
         param_coords = zeros(T, 1, md)
         Need_Evaluation = (typeof(direction) <: Function)
         if (!Need_Evaluation)
@@ -425,7 +427,7 @@ function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET <: AbstractFE
         bbox = zeros(2 * size(fens.xyz, 2))
         for i in eachindex(fes.conn)
             bbox = initbox!(bbox, vec(fens.xyz[fes.conn[i][1], :]))
-            for k in 2:length(fes.conn[i])
+            for k = 2:length(fes.conn[i])
                 bbox = updatebox!(bbox, fens.xyz[fes.conn[i][k], :])
             end
             if boxesoverlap(obox, bbox)
@@ -531,17 +533,19 @@ function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET <: AbstractFE
     return felist[findall(x -> x != 0, felist)] # return the nonzero element numbers
 end
 
-function _compute_vlist!(vlist::Vector{IT},
+function _compute_vlist!(
+    vlist::Vector{IT},
     abox::Vector{T},
     sdim::IT,
-    v::Matrix{T}) where {IT, T}
+    v::Matrix{T},
+) where {IT,T}
     # Helper functions
     @inline inrange(rangelo, rangehi, x) = (rangelo <= x <= rangehi)
     nn = 0
     for j in axes(v, 1)
         matches = true
-        for i in 1:sdim
-            if !inrange(abox[2 * i - 1], abox[2 * i], v[j, i])
+        for i = 1:sdim
+            if !inrange(abox[2*i-1], abox[2*i], v[j, i])
                 matches = false
                 break
             end
@@ -562,7 +566,7 @@ Select locations (vertices) from the array based on some criterion.
 See the function `selectnode()` for examples of the criteria that can be
 used to search vertices.
 """
-function vselect(v::Matrix{T}; kwargs...) where {T <: Number}
+function vselect(v::Matrix{T}; kwargs...) where {T<:Number}
     # Extract arguments
     box = nothing
     distance = nothing
@@ -607,7 +611,7 @@ function vselect(v::Matrix{T}; kwargs...) where {T <: Number}
     if box !== nothing
         sdim = size(v, 2)
         dim = Int(round(length(box) / 2.0))
-        @assert dim==sdim "Dimension of box not matched to dimension of array of vertices"
+        @assert dim == sdim "Dimension of box not matched to dimension of array of vertices"
         abox = vec(box)
         inflatebox!(abox, inflatevalue)
         vlist, nn = _compute_vlist!(vlist, abox, sdim, v)
@@ -625,7 +629,7 @@ function vselect(v::Matrix{T}; kwargs...) where {T <: Number}
             end
         end
     elseif plane !== nothing
-        normal = plane[1:(end - 1)]
+        normal = plane[1:(end-1)]
         normal = vec(normal / norm(normal))
         thicknessvalue = 0.0
         if thickness !== nothing

@@ -7,7 +7,8 @@ module AlgoBaseModule
 
 using ..FEMMBaseModule: integratefieldfunction, transferfield!
 using ..FieldModule: AbstractField, nfreedofs, gathersysvec, scattersysvec!
-using ..MatrixUtilityModule: matrix_blocked_ff, matrix_blocked_fd, matrix_blocked_df, matrix_blocked_dd
+using ..MatrixUtilityModule:
+    matrix_blocked_ff, matrix_blocked_fd, matrix_blocked_df, matrix_blocked_dd
 using ..MatrixUtilityModule: vector_blocked_f, vector_blocked_d
 using LinearAlgebra: norm, dot
 using Statistics: mean
@@ -25,7 +26,7 @@ function _keymatch(key::String, allowed_keys::Array{String})
     return matched_key
 end
 
-function dcheck!(d::Dict{String, Any}, recognized_keys::Array{String})
+function dcheck!(d::Dict{String,Any}, recognized_keys::Array{String})
     notmatched = fill("", 0)
     for key in keys(d)
         matched_key = _keymatch(key, recognized_keys)
@@ -33,8 +34,10 @@ function dcheck!(d::Dict{String, Any}, recognized_keys::Array{String})
             push!(notmatched, "Key \"$key\" not matched")
         else
             if key != matched_key
-                push!(notmatched,
-                    "Key \"$key\" not fully matched (partial match \"$matched_key\")")
+                push!(
+                    notmatched,
+                    "Key \"$key\" not fully matched (partial match \"$matched_key\")",
+                )
             end
         end
     end
@@ -77,10 +80,12 @@ the smallest value of the extrapolation parameter:
 - `maxresidual` = maximum residual after equations from which the above quantities were
   solved (this is a measure of how accurately was the system solved).
 """
-function richextrapol(solns::T,
+function richextrapol(
+    solns::T,
     params::T;
     lower_conv_rate = 0.001,
-    upper_conv_rate = 10.0,) where {T <: AbstractArray{Tn} where {Tn}}
+    upper_conv_rate = 10.0,
+) where {T<:AbstractArray{Tn} where {Tn}}
     # These two constants may needs to be tweaked in special cases. They are the
     # lower and upper bound on the convergence rate.
     lower, upper = lower_conv_rate, upper_conv_rate
@@ -91,11 +96,11 @@ function richextrapol(solns::T,
     nsolns = solns ./ solnn # Normalize data for robust calculation
     nhs1, nhs2, nhs3 = params ./ maximum(params) # Normalize the parameter values
     napproxerror1, napproxerror2 = diff(nsolns) # Normalized approximate errors
-    napperr1, napperr2 = (napproxerror1, napproxerror2) ./
-                         max(abs(napproxerror1), abs(napproxerror2))
+    napperr1, napperr2 =
+        (napproxerror1, napproxerror2) ./ max(abs(napproxerror1), abs(napproxerror2))
     maxfun = -Inf
     minfun = Inf
-    for y in lower:lower:upper
+    for y = lower:lower:upper
         a = napperr1 * (nhs2^y - nhs3^y) - napperr2 * (nhs1^y - nhs2^y)
         maxfun = max(maxfun, a)
         minfun = min(minfun, a)
@@ -123,7 +128,7 @@ function richextrapol(solns::T,
     c = c * solnn # adjust for not-normalized data
     # just to check things, calculate the residual
     maxresidual = 0.0
-    for I in 1:3
+    for I = 1:3
         maxresidual = max(maxresidual, abs((solnestim - solns[I]) - c * params[I]^beta)) # this should be close to zero
     end
     return solnestim, beta, c, maxresidual
@@ -148,22 +153,27 @@ Richardson extrapolation.
 - `residual` = residual after equations from which the above quantities were
   solved (this is a measure of how accurately was the system solved).
 """
-function richextrapoluniform(solns::T, params::T) where {T <: AbstractArray{Tn} where {Tn}}
-    @assert abs(params[1] / params[2] - params[2] / params[3])<1e-6 "Parameter pair ratio not fixed"
+function richextrapoluniform(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn}}
+    @assert abs(params[1] / params[2] - params[2] / params[3]) < 1e-6 "Parameter pair ratio not fixed"
     nsolns = solns ./ solns[1]
-    solnestim = ((-(nsolns[1] * nsolns[3] - nsolns[2]^2) /
-                  (2 * nsolns[2] - nsolns[1] - nsolns[3]))) * solns[1]
+    solnestim =
+        ((
+            -(nsolns[1] * nsolns[3] - nsolns[2]^2) /
+            (2 * nsolns[2] - nsolns[1] - nsolns[3])
+        )) * solns[1]
     if (solnestim - solns[1]) <= 0
-        beta = log((solnestim - solns[2]) / (solnestim - solns[3])) /
-               log(params[2] / params[3])
+        beta =
+            log((solnestim - solns[2]) / (solnestim - solns[3])) /
+            log(params[2] / params[3])
     else
-        beta = log((solnestim - solns[1]) / (solnestim - solns[3])) /
-               log(params[1] / params[3])
+        beta =
+            log((solnestim - solns[1]) / (solnestim - solns[3])) /
+            log(params[1] / params[3])
     end
     # just to check things, calculate the residual
     c = (solnestim - solns[1]) / params[1]^beta
     residual = fill(zero(solns[1]), 3)
-    for I in 1:3
+    for I = 1:3
         residual[I] = (solnestim - solns[I]) - c * params[I]^beta # this should be close to zero
     end
     return solnestim, beta, c, residual
@@ -234,7 +244,7 @@ function bisect(fun, xl, xu, tolx, tolf)
     end
     fl = fun(xl)
     fu = fun(xu)
-    @assert fl * fu<0.0 "Need to get a bracket"
+    @assert fl * fu < 0.0 "Need to get a bracket"
     while true
         xr = (xu + xl) / 2.0 # bisect interval
         fr = fun(xr) # value at the midpoint
@@ -283,11 +293,13 @@ function fieldnorm(modeldata)
     fnorm = 0.0 # Initialize the norm of the difference
     for i in eachindex(regions)
         # Compute the addition to the norm of the field
-        fnorm += integratefieldfunction(regions[i]["femm"],
+        fnorm += integratefieldfunction(
+            regions[i]["femm"],
             geom,
             targetfields[i],
             (x, v) -> norm(v)^2;
-            initial = zero(eltype(targetfields[i].values)),)
+            initial = zero(eltype(targetfields[i].values)),
+        )
     end
 
     return sqrt(fnorm)
@@ -342,23 +354,27 @@ function fielddiffnorm(modeldatacoarse, modeldatafine)
         ffine = targetfieldsfine[i]
         fcoarse = targetfieldscoarse[i]
         fcoarsetransferred = deepcopy(ffine)
-        fcoarsetransferred = transferfield!(fcoarsetransferred,
+        fcoarsetransferred = transferfield!(
+            fcoarsetransferred,
             fensfine,
             regionsfine[i]["femm"].integdomain.fes,
             fcoarse,
             fenscoarse,
             regionscoarse[i]["femm"].integdomain.fes,
             geometricaltolerance;
-            parametrictolerance = parametrictolerance,)
+            parametrictolerance = parametrictolerance,
+        )
         # Form the difference  field
         diffff = deepcopy(fcoarsetransferred)
         diffff.values[:] = ffine.values - fcoarsetransferred.values
         # Compute the addition to the norm of the difference
-        diffnorm += integratefieldfunction(regionsfine[i]["femm"],
+        diffnorm += integratefieldfunction(
+            regionsfine[i]["femm"],
             geom,
             diffff,
             (x, v) -> norm(v)^2;
-            initial = zero(eltype(diffff.values)),)
+            initial = zero(eltype(diffff.values)),
+        )
     end
 
     return sqrt(diffnorm)
@@ -387,14 +403,14 @@ function evalconvergencestudy(modeldatasequence)
     finestsolnorm = fieldnorm(modeldatasequence[end])
     # Compute the approximate errors  as the differences of successive solutions
     diffnorms = Float64[]
-    for i in 1:(length(modeldatasequence) - 1)
-        push!(diffnorms, fielddiffnorm(modeldatasequence[i], modeldatasequence[i + 1]))
+    for i = 1:(length(modeldatasequence)-1)
+        push!(diffnorms, fielddiffnorm(modeldatasequence[i], modeldatasequence[i+1]))
     end
     # Normalize the errors
     errornorms = diffnorms ./ finestsolnorm
     # Compute the convergence rate
     f = log.(vec(errornorms))
-    A = hcat(log.(vec(elementsizes[1:(end - 1)])), ones(size(f)))
+    A = hcat(log.(vec(elementsizes[1:(end-1)])), ones(size(f)))
     p = A \ f
     convergencerate = p[1]
 
@@ -406,16 +422,13 @@ end
 
 Compute one or more iterations of the conjugate gradient process.  
 """
-function conjugategradient(A::MT,
-    b::Vector{T},
-    x0::Vector{T},
-    maxiter) where {MT, T <: Number}
+function conjugategradient(A::MT, b::Vector{T}, x0::Vector{T}, maxiter) where {MT,T<:Number}
     x = deepcopy(x0)
     gt = deepcopy(x0)
     d = deepcopy(x0)
     gt .= A * x - b# transpose of gradient: g = x'*A-b';
     @. d = gt
-    for iter in 1:maxiter
+    for iter = 1:maxiter
         Ad = A * d
         rho = dot(d, Ad)
         alpha = -dot(gt, d) / rho # alpha =(-g*d)/(d'*A*d);
@@ -437,11 +450,11 @@ The parameter values need not be uniformly distributed.
 Trapezoidal rule is used to evaluate the integral. The 'function' is 
 assumed to vary linearly inbetween the given points.
 """
-function qtrap(ps::VecOrMat{T}, xs::VecOrMat{T}) where {T <: Number}
+function qtrap(ps::VecOrMat{T}, xs::VecOrMat{T}) where {T<:Number}
     @assert length(ps) == length(xs)
     num = T(0.0)
-    for i in 1:(length(ps) - 1)
-        num += (ps[i + 1] - ps[i]) * (xs[i + 1] + xs[i]) / 2.0
+    for i = 1:(length(ps)-1)
+        num += (ps[i+1] - ps[i]) * (xs[i+1] + xs[i]) / 2.0
     end
     return num
 end
@@ -460,10 +473,12 @@ Notes:
   functions and it allocates arrays instead of overwriting the contents of the
   arguments.
 """
-function qcovariance(ps::VecOrMat{T},
+function qcovariance(
+    ps::VecOrMat{T},
     xs::VecOrMat{T},
     ys::VecOrMat{T};
-    ws = nothing) where {T <: Number}
+    ws = nothing,
+) where {T<:Number}
     @assert length(ps) == length(xs) == length(ys)
     if (ws === nothing)
         ws = ones(T, length(ps))
@@ -560,8 +575,12 @@ A_b = matrix_blocked(A, nfreedofs, nfreedofs)
 ```
 """
 function matrix_blocked(A, row_nfreedofs, col_nfreedofs = row_nfreedofs)
-    return (ff = matrix_blocked_ff(A, row_nfreedofs, col_nfreedofs), fd = matrix_blocked_fd(A, row_nfreedofs, col_nfreedofs),
-            df = matrix_blocked_df(A, row_nfreedofs, col_nfreedofs), dd = matrix_blocked_dd(A, row_nfreedofs, col_nfreedofs))
+    return (
+        ff = matrix_blocked_ff(A, row_nfreedofs, col_nfreedofs),
+        fd = matrix_blocked_fd(A, row_nfreedofs, col_nfreedofs),
+        df = matrix_blocked_df(A, row_nfreedofs, col_nfreedofs),
+        dd = matrix_blocked_dd(A, row_nfreedofs, col_nfreedofs),
+    )
 end
 
 """
@@ -604,10 +623,12 @@ b = [b_f
 Above, `b_f and `x_d` are known, `x_f` (solution) and `b_d` (reactions) need to
 be computed.
 """
-function solve_blocked(A::M,
+function solve_blocked(
+    A::M,
     b::VB,
     x::VX,
-    nfreedofs::IT) where {M <: AbstractMatrix, VB <: AbstractVector, VX <: AbstractVector, IT <: Integer}
+    nfreedofs::IT,
+) where {M<:AbstractMatrix,VB<:AbstractVector,VX<:AbstractVector,IT<:Integer}
     A_b = matrix_blocked(A, nfreedofs)
     b_b = vector_blocked(b, nfreedofs)
     x_b = vector_blocked(x, nfreedofs)
@@ -621,9 +642,11 @@ end
 
 Solve a system of linear algebraic equations.
 """
-function solve_blocked!(u::AF,
+function solve_blocked!(
+    u::AF,
     K::M,
-    F::V) where {AF <: AbstractField, M <: AbstractMatrix, V <: AbstractVector}
+    F::V,
+) where {AF<:AbstractField,M<:AbstractMatrix,V<:AbstractVector}
     U = gathersysvec(u, :a)
     x_f, b_d = solve_blocked(K, F, U, nfreedofs(u))
     scattersysvec!(u, x_f)

@@ -13,7 +13,9 @@ __precompile__(true)
 include("allmodules.jl")
 
 # Enable LSP look up in test modules
-if false include("../test/runtests.jl") end
+if false
+    include("../test/runtests.jl")
+end
 
 # Exports follow:
 
@@ -28,8 +30,7 @@ using .DataCacheModule: DataCache
 export DataCache
 
 using .BoxModule:
-    inbox,
-    initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap, intersectboxes
+    inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap, intersectboxes
 # Exported: methods for manipulating and testing boxes
 export inbox, initbox!, updatebox!, boundingbox, inflatebox!, boxesoverlap, intersectboxes
 
@@ -183,8 +184,7 @@ using .MeshUtilModule: linearspace, gradedspace, logspace
 export linearspace, gradedspace, logspace
 
 using .MeshSelectionModule:
-    connectednodes,
-    connectedelems, selectnode, selectelem, findunconnnodes
+    connectednodes, connectedelems, selectnode, selectelem, findunconnnodes
 # Exported: functions to select (find) nodes and elements
 export connectednodes, connectedelems, selectnode, selectelem, findunconnnodes
 
@@ -263,8 +263,7 @@ using .MeshExportModule.CSV: savecsv
 # Exported: simple CSV export
 export savecsv
 using .MeshExportModule.NASTRAN:
-    NASTRANExporter,
-    close, CEND, BEGIN_BULK, ENDDATA, GRID, PSOLID, MAT1, CTETRA
+    NASTRANExporter, close, CEND, BEGIN_BULK, ENDDATA, GRID, PSOLID, MAT1, CTETRA
 # Exported: NASTRAN  export
 export NASTRANExporter, close, CEND, BEGIN_BULK, ENDDATA, GRID, PSOLID, MAT1, CTETRA
 using .MeshExportModule.STL: STLExporter, solid, facet, endsolid
@@ -324,7 +323,8 @@ using .ForceIntensityModule: ForceIntensity, updateforce!
 export ForceIntensity, updateforce!
 
 using .AssemblyModule:
-    AbstractSysmatAssembler, eltype,
+    AbstractSysmatAssembler,
+    eltype,
     SysmatAssemblerSparse,
     SysmatAssemblerSparseSymm,
     SysmatAssemblerSparseDiag,
@@ -338,10 +338,14 @@ using .AssemblyModule:
     SysvecAssemblerFBlock,
     startassembly!,
     assemble!,
-    makevector!
+    makevector!,
+    expectedntriples,
+    setnomatrixresult,
+    setforceinit
 
 # Exported: types and methods for  sparse matrix assembly  and vector assembly
-export AbstractSysmatAssembler, eltype,
+export AbstractSysmatAssembler,
+    eltype,
     SysmatAssemblerSparse,
     SysmatAssemblerSparseSymm,
     SysmatAssemblerSparseDiag,
@@ -355,7 +359,10 @@ export AbstractSysmatAssembler, eltype,
     SysvecAssemblerFBlock,
     startassembly!,
     assemble!,
-    makevector!
+    makevector!,
+    expectedntriples,
+    setnomatrixresult,
+    setforceinit
 
 using .IntegRuleModule:
     AbstractIntegRule,
@@ -397,12 +404,29 @@ export IntegDomain,
     Jacobianmdim,
     integrationdata
 
-using .DeforModelRedModule: AbstractDeforModelRed, DeforModelRed1D, DeforModelRed1DStress,
-    DeforModelRed1DStrain, DeforModelRed2DStrain, DeforModelRed2DStress,
-    DeforModelRed2DAxisymm, DeforModelRed3D, nstressstrain, nthermstrain,
-    stresscomponentmap, blmat!, divmat, vgradmat
-export AbstractDeforModelRed, DeforModelRed1D, DeforModelRed1DStress, DeforModelRed1DStrain,
-    DeforModelRed2DStrain, DeforModelRed2DStress, DeforModelRed2DAxisymm, DeforModelRed3D
+using .DeforModelRedModule:
+    AbstractDeforModelRed,
+    DeforModelRed1D,
+    DeforModelRed1DStress,
+    DeforModelRed1DStrain,
+    DeforModelRed2DStrain,
+    DeforModelRed2DStress,
+    DeforModelRed2DAxisymm,
+    DeforModelRed3D,
+    nstressstrain,
+    nthermstrain,
+    stresscomponentmap,
+    blmat!,
+    divmat,
+    vgradmat
+export AbstractDeforModelRed,
+    DeforModelRed1D,
+    DeforModelRed1DStress,
+    DeforModelRed1DStrain,
+    DeforModelRed2DStrain,
+    DeforModelRed2DStress,
+    DeforModelRed2DAxisymm,
+    DeforModelRed3D
 export nstressstrain, nthermstrain, stresscomponentmap
 export blmat!, divmat, vgradmat
 
@@ -609,23 +633,21 @@ export AbstractMat, massdensity
 # Parallel matrix assembly
 ###########################################################################
 using .ParallelAssemblyModule:
-    make_assembler, 
+    make_assembler,
     start_assembler!,
     make_task_assemblers,
     parallel_matrix_assembly,
     make_matrix!
 
 # Exported: types and methods for  sparse matrix assembly  and vector assembly
-export make_assembler, 
-    start_assembler!,
-    make_task_assemblers,
-    parallel_matrix_assembly,
-    make_matrix!
+export make_assembler,
+    start_assembler!, make_task_assemblers, parallel_matrix_assembly, make_matrix!
 
 ###########################################################################
 # Matrix utilities
 ###########################################################################
-using .MatrixUtilityModule: matrix_blocked_ff, matrix_blocked_fd, matrix_blocked_df, matrix_blocked_dd
+using .MatrixUtilityModule:
+    matrix_blocked_ff, matrix_blocked_fd, matrix_blocked_df, matrix_blocked_dd
 export matrix_blocked_ff, matrix_blocked_fd, matrix_blocked_df, matrix_blocked_dd
 using .MatrixUtilityModule: vector_blocked_f, vector_blocked_d
 export vector_blocked_f, vector_blocked_d

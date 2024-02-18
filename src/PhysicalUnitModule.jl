@@ -8,7 +8,7 @@ module PhysicalUnitModule
 __precompile__(true)
 
 function _physunitdict(::Type{T}, system_of_units, base_time_units) where {T}
-    d = Dict{String, T}()
+    d = Dict{String,T}()
 
     uSEC = 1.0
     if base_time_units == :MIN
@@ -289,16 +289,18 @@ yields
 
 
 """
-function phun(str::String;
+function phun(
+    str::String;
     system_of_units = :SI,
     base_time_units = :SEC,
-    output_type = Float64)
+    output_type = Float64,
+)
     @assert system_of_units in [:SI :SIM :US :IMPERIAL :CGS :SIMM]
     @assert base_time_units in [:SEC :MIN :HR :DY :YR :WK]
 
     d = _physunitdict(output_type, system_of_units, base_time_units)
 
-    function _replacesymbols(d::Dict{String, T}, str::String) where {T}
+    function _replacesymbols(d::Dict{String,T}, str::String) where {T}
         str = uppercase(str)
         outstr = ""
         i = 1
@@ -308,7 +310,7 @@ function phun(str::String;
                 while (k <= length(str)) && (isuppercase(str[k]))
                     k = k + 1
                 end
-                outstr = outstr * string(d[str[i:(k - 1)]])
+                outstr = outstr * string(d[str[i:(k-1)]])
                 i = k - 1
             else
                 outstr = outstr * string(str[i])

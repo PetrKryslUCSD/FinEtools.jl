@@ -17,7 +17,7 @@ import Statistics: mean
 
 Mesh of a 1-D block of L2 finite elements.
 """
-function L2block(Length::T, nL::IT) where {T <: Number, IT <: Integer}
+function L2block(Length::T, nL::IT) where {T<:Number,IT<:Integer}
     fens, fes = L2blockx(collect(dropdims(linearspace(0.0, Length, nL + 1)', dims = 1)))
 end
 
@@ -26,14 +26,14 @@ end
 
 Graded mesh of a 1-D block, L2 finite elements.
 """
-function L2blockx(xs::Vector{T}) where {T <: Number}
+function L2blockx(xs::Vector{T}) where {T<:Number}
     xyz = reshape(sort(xs), length(xs), 1)
     ncells = length(xs) - 1
 
     # create the nodes
     fens = FENodeSet(xyz)
     # Create the finite elements
-    fes = FESetL2([(1:ncells) (2:(ncells + 1))])
+    fes = FESetL2([(1:ncells) (2:(ncells+1))])
 
     return fens, fes
 end
@@ -43,7 +43,7 @@ end
 
 Graded mesh of a 1-D block, L2 finite elements.
 """
-function L3blockx(xs::Vector{T}) where {T <: Number}
+function L3blockx(xs::Vector{T}) where {T<:Number}
     fens, fes = L2blockx(xs)
     nxyz = zeros(count(fes), size(fens.xyz, 2))
     nconn = zeros(Int, count(fes), 3)

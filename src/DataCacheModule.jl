@@ -61,7 +61,7 @@ end
     The bad news is, the cache is not thread safe. Reading is okay, but writing
     can lead to data races.
 """
-mutable struct DataCache{D, F <: Function}
+mutable struct DataCache{D,F<:Function}
     # Cache where the current value of the data can be retrieved
     _cache::D
     # Function to update and retrieve the array
@@ -74,10 +74,13 @@ end
 Construct data cache. The *constant* data is given.
 """
 function DataCache(data::D) where {D}
-    function _fillcache_constant!(cacheout::D,
+    function _fillcache_constant!(
+        cacheout::D,
         XYZ::VecOrMat{T},
         tangents::Matrix{T},
-        feid::IT, qpid::IT) where {D, T <: Number, IT <: Integer}
+        feid::IT,
+        qpid::IT,
+    ) where {D,T<:Number,IT<:Integer}
         # do nothing:  the data is already in the cache
         return cacheout
     end
@@ -91,10 +94,12 @@ datatype(c::DataCache) = typeof(c._cache)
 
 Update the cache and retrieve the array.
 """
-function (c::DataCache)(XYZ::VecOrMat{T},
+function (c::DataCache)(
+    XYZ::VecOrMat{T},
     tangents::Matrix{T},
     feid::IT,
-    qpid::IT) where {T <: Number, IT <: Integer}
+    qpid::IT,
+) where {T<:Number,IT<:Integer}
     c._cache = c._fillcache!(c._cache, XYZ, tangents, feid, qpid)
     return c._cache
 end

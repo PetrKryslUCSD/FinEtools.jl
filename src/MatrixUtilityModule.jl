@@ -57,11 +57,13 @@ Arguments:
 `N` = matrix of basis function values
 `gradNparams` = matrix of basis function gradients
 """
-function locjac!(loc::Matrix{T},
+function locjac!(
+    loc::Matrix{T},
     J::Matrix{T},
     ecoords::Matrix{T},
     N::Matrix{T},
-    gradNparams::Matrix{T}) where {T}
+    gradNparams::Matrix{T},
+) where {T}
     return loc!(loc, ecoords, N), jac!(J, ecoords, gradNparams)
 end
 
@@ -79,15 +81,15 @@ The matrix `Ke` is assumed to be suitably initialized.
 The matrix `Ke` is modified.  The matrix `gradN` is not modified
 inside this function.
 """
-function add_mggt_ut_only!(Ke::Matrix{MT}, gradN::Matrix{T}, mult) where {MT, T}
+function add_mggt_ut_only!(Ke::Matrix{MT}, gradN::Matrix{T}, mult) where {MT,T}
     Kedim = size(Ke, 1)
     @assert Kedim == size(Ke, 2) # Square matrix?
     nne, mdim = size(gradN)
     @assert nne == Kedim # compatible matrices?
-    @inbounds for nx in 1:Kedim # Do: Ce  =  Ce + gradN*((Jac*w[j]))*gradN' ;
-        @inbounds for px in 1:mdim
+    @inbounds for nx = 1:Kedim # Do: Ce  =  Ce + gradN*((Jac*w[j]))*gradN' ;
+        @inbounds for px = 1:mdim
             a = (mult) * gradN[nx, px]
-            @inbounds for mx in 1:nx # only the upper triangle
+            @inbounds for mx = 1:nx # only the upper triangle
                 Ke[mx, nx] += gradN[mx, px] * a
             end
         end
@@ -115,31 +117,33 @@ Upon return,  the matrix `Ke` is updated.  The scratch buffer `kappa_bargradNT`
 is overwritten during each call of this function. The matrices `gradN` and
 `kappa_bar` are not modified inside this function.
 """
-function add_gkgt_ut_only!(Ke::Matrix{T},
+function add_gkgt_ut_only!(
+    Ke::Matrix{T},
     gradN::Matrix{T},
     Jac_w::T,
     kappa_bar::Matrix{T},
-    kappa_bargradNT::Matrix{T}) where {T}
+    kappa_bargradNT::Matrix{T},
+) where {T}
     @assert size(Ke, 1) == size(Ke, 2)
     Kedim = size(Ke, 1)
     nne, mdim = size(gradN)
     @assert size(kappa_bar) == (mdim, mdim)
     @assert size(kappa_bargradNT) == (mdim, nne)
     # A_mul_Bt!(kappa_bargradNT, kappa_bar, gradN); # intermediate result
-    @inbounds for nx in 1:nne
-        @inbounds for mx in 1:mdim
+    @inbounds for nx = 1:nne
+        @inbounds for mx = 1:mdim
             accum = T(0.0)
-            @inbounds @simd for px in 1:mdim
+            @inbounds @simd for px = 1:mdim
                 accum += kappa_bar[mx, px] * gradN[nx, px]
             end
             kappa_bargradNT[mx, nx] = Jac_w * accum
         end
     end
     # Ke = Ke + gradN*(kappa_bar*(Jac*w[j]))*gradN'; only upper triangle
-    @inbounds for nx in 1:Kedim
-        @inbounds for mx in 1:nx # only the upper triangle
+    @inbounds for nx = 1:Kedim
+        @inbounds for mx = 1:nx # only the upper triangle
             accum = T(0.0)
-            @inbounds @simd for px in 1:mdim
+            @inbounds @simd for px = 1:mdim
                 accum += gradN[mx, px] * kappa_bargradNT[px, nx]
             end
             Ke[mx, nx] += accum
@@ -160,8 +164,8 @@ to the lower triangle.
 function complete_lt!(Ke::Matrix{T}) where {T}
     Kedim = size(Ke, 1)
     @assert Kedim == size(Ke, 2)
-    @inbounds for nx in 1:Kedim # complete the lower triangle
-        @inbounds for mx in (nx + 1):Kedim
+    @inbounds for nx = 1:Kedim # complete the lower triangle
+        @inbounds for mx = (nx+1):Kedim
             Ke[mx, nx] = Ke[nx, mx]
         end
     end
@@ -182,31 +186,33 @@ The matrix Ke is modified.  The matrices B and D are not modified
 inside this function. The scratch buffer DB is overwritten
 during each call of this function.
 """
-function add_btdb_ut_only!(Ke::Matrix{T},
+function add_btdb_ut_only!(
+    Ke::Matrix{T},
     B::Matrix{T},
     Jac_w::T,
     D::Matrix{T},
-    DB::Matrix{T}) where {T}
+    DB::Matrix{T},
+) where {T}
     @assert size(Ke, 1) == size(Ke, 2)
     @assert size(B, 1) == size(D, 1)
     nstr, Kedim = size(B)
     @assert size(D) == (nstr, nstr)
     @assert size(DB) == (nstr, Kedim)
     # A_mul_B!(DB, D, B)    # intermediate product
-    @inbounds for nx in 1:Kedim
-        @inbounds for mx in 1:nstr
+    @inbounds for nx = 1:Kedim
+        @inbounds for mx = 1:nstr
             accum = T(0.0)
-            @inbounds for px in 1:nstr
+            @inbounds for px = 1:nstr
                 accum += D[mx, px] * B[px, nx]
             end
             DB[mx, nx] = Jac_w * accum
         end
     end
     #  Ke = Ke + (B'*(D*(Jac*w[j]))*B); only the upper triangle
-    @inbounds for nx in 1:Kedim
-        @inbounds for mx in 1:nx # only the upper triangle
+    @inbounds for nx = 1:Kedim
+        @inbounds for mx = 1:nx # only the upper triangle
             accum = T(0.0)
-            @inbounds for px in 1:nstr
+            @inbounds for px = 1:nstr
                 accum += B[px, mx] * DB[px, nx]
             end
             Ke[mx, nx] += accum
@@ -236,32 +242,34 @@ The matrix Ke is modified.  The matrices `B1`, `B2`, and `D` are not modified
 inside this function. The scratch buffer `DB` is overwritten
 during each call of this function.
 """
-function add_b1tdb2!(Ke::Matrix{T},
+function add_b1tdb2!(
+    Ke::Matrix{T},
     B1::Matrix{T},
     B2::Matrix{T},
     Jac_w::T,
     D::Matrix{T},
-    DB2::Matrix{T}) where {T}
+    DB2::Matrix{T},
+) where {T}
     Kedim1, Kedim2 = size(Ke)
     Ddim1, Ddim2 = size(D)
     @assert size(B1) == (Ddim1, Kedim1)
     @assert size(B2) == (Ddim2, Kedim2)
     @assert size(DB2) == (Ddim1, Kedim2)
     # A_mul_B!(DB, D, B)    # intermediate product
-    @inbounds for nx in 1:Kedim2
-        for mx in 1:Ddim1
+    @inbounds for nx = 1:Kedim2
+        for mx = 1:Ddim1
             accum = T(0.0)
-            for px in 1:Ddim2
+            for px = 1:Ddim2
                 accum += D[mx, px] * B2[px, nx]
             end
             DB2[mx, nx] = Jac_w * accum
         end
     end
     #  Ke = Ke + (B1'*(D*(Jac_w))*B2)
-    @inbounds for nx in 1:Kedim2
-        for mx in 1:Kedim1 # only the upper triangle
+    @inbounds for nx = 1:Kedim2
+        for mx = 1:Kedim1 # only the upper triangle
             accum = T(0.0)
-            for px in 1:Ddim1
+            for px = 1:Ddim1
                 accum += B1[px, mx] * DB2[px, nx]
             end
             Ke[mx, nx] += accum
@@ -280,15 +288,17 @@ The vector `Fe` is assumed to be suitably initialized.
 The vector `Fe` is modified.  The vector `sigma` is not modified
 inside this function. 
 """
-function add_btsigma!(Fe::Vector{T},
+function add_btsigma!(
+    Fe::Vector{T},
     B::Matrix{T},
     coefficient::T,
-    sigma::Vector{T}) where {T}
+    sigma::Vector{T},
+) where {T}
     @assert size(B, 1) == length(sigma)
     nstr, Kedim = size(B)
-    @inbounds for nx in 1:Kedim
+    @inbounds for nx = 1:Kedim
         accum = T(0.0)
-        @inbounds for px in 1:nstr
+        @inbounds for px = 1:nstr
             accum += sigma[px] * B[px, nx]
         end
         Fe[nx] += coefficient * accum
@@ -309,12 +319,12 @@ matrix `Nn` has a single column.
 The matrix `Ke` is modified.  The matrix `Nn` is not modified
 inside this function.
 """
-function add_nnt_ut_only!(Ke::Matrix{T}, N::Matrix{T}, Jac_w_coeff::T) where {T <: Number}
+function add_nnt_ut_only!(Ke::Matrix{T}, N::Matrix{T}, Jac_w_coeff::T) where {T<:Number}
     Kedim = size(N, 1)
     @assert Kedim == size(Ke, 2)
-    @inbounds for nx in 1:Kedim
+    @inbounds for nx = 1:Kedim
         a = (Jac_w_coeff) * N[nx]
-        @inbounds for mx in 1:nx # only the upper triangle
+        @inbounds for mx = 1:nx # only the upper triangle
             Ke[mx, nx] += N[mx] * a
         end
     end
@@ -332,15 +342,17 @@ matrices `N1` and `N2` have a single column each.
 The matrix `Ke` is modified.  The matrix `N1` and `N2` are  not modified inside
 this function.
 """
-function add_n1n2t!(Ke::Matrix{T},
+function add_n1n2t!(
+    Ke::Matrix{T},
     N1::VecOrMat{T},
     N2::VecOrMat{T},
-    Jac_w_coeff::T) where {T <: Number}
+    Jac_w_coeff::T,
+) where {T<:Number}
     @assert length(N1) == size(Ke, 1)
     @assert length(N2) == size(Ke, 2)
-    @inbounds for nx in 1:size(Ke, 2)
+    @inbounds for nx = 1:size(Ke, 2)
         a = (Jac_w_coeff) * N2[nx]
-        @inbounds for mx in 1:size(Ke, 1) # only the upper triangle
+        @inbounds for mx = 1:size(Ke, 1) # only the upper triangle
             Ke[mx, nx] += N1[mx] * a
         end
     end
@@ -384,7 +396,7 @@ The operation is in-place.
 function symmetrize!(a)
     @assert size(a, 1) == size(a, 2)
     @inbounds for c in axes(a, 2)
-        @inbounds for r in c:size(a, 1)
+        @inbounds for r = c:size(a, 1)
             a[c, r] = a[r, c] += a[c, r]
         end
     end
@@ -530,9 +542,9 @@ function mulCAB!(C, A, B)
     # 	end
     # end
     # z = zero(eltype(C))
-    @avx for m in 1:M, n in 1:N
+    @avx for m = 1:M, n = 1:N
         Cmn = zero(eltype(C))
-        for k in 1:K
+        for k = 1:K
             Cmn += A[m, k] * B[k, n]
         end
         C[m, n] = Cmn
@@ -555,9 +567,9 @@ function mulCABt!(C, A, B)
     @assert size(C, 2) == size(B, 1)
     @assert size(A, 2) == size(B, 2)
     C .= 0
-    @avx for n in 1:N, k in 1:K # for k ∈ 1:K, n ∈ 1:N #
+    @avx for n = 1:N, k = 1:K # for k ∈ 1:K, n ∈ 1:N #
         Bnk = B[n, k]
-        for m in 1:M
+        for m = 1:M
             C[m, n] += A[m, k] * Bnk
         end
     end
@@ -571,10 +583,12 @@ Compute determinant of 3X3 `C`.
 """
 function detC(::Val{3}, C::Matrix{T}) where {T}
     #define MAT3DUTIL_DET_3X3(T3X3) 
-    return ((C[1, 1] * C[2, 2] * C[3, 3]) +
-            (C[1, 2] * C[2, 3] * C[3, 1]) +
-            (C[1, 3] * C[2, 1] * C[3, 2]) - (C[1, 3] * C[2, 2] * C[3, 1]) -
-            (C[1, 2] * C[2, 1] * C[3, 3]) - (C[1, 1] * C[2, 3] * C[3, 2]))
+    return (
+        (C[1, 1] * C[2, 2] * C[3, 3]) +
+        (C[1, 2] * C[2, 3] * C[3, 1]) +
+        (C[1, 3] * C[2, 1] * C[3, 2]) - (C[1, 3] * C[2, 2] * C[3, 1]) -
+        (C[1, 2] * C[2, 1] * C[3, 3]) - (C[1, 1] * C[2, 3] * C[3, 2])
+    )
 end
 
 """
@@ -590,8 +604,8 @@ function mulCAB!(C::Vector{T}, A, B::Vector{T}) where {T}
     @assert length(C) == M
     @assert length(B) == N
     C .= 0.0
-    @avx for n in 1:N
-        for m in 1:M
+    @avx for n = 1:N
+        for m = 1:M
             C[m] += A[m, n] * B[n]
         end
     end
@@ -627,7 +641,7 @@ function import_sparse(filnam)
         J = fill(0, length(rows) - 1)
         V = fill(0.0, length(rows) - 1)
         for i in eachindex(I)
-            s = split(replace(rows[i + 1], "," => " "))
+            s = split(replace(rows[i+1], "," => " "))
             I[i] = parse(Int64, s[1])
             J[i] = parse(Int64, s[2])
             V[i] = parse(Float64, s[3])
@@ -697,7 +711,7 @@ function matrix_blocked_fd(A, row_nfreedofs, col_nfreedofs = row_nfreedofs)
     col_d_dim = (col_nfreedofs < col_nalldofs ? col_nalldofs - col_nfreedofs : 0)
 
     if (row_f_dim > 0 && col_d_dim > 0)
-        A_fd = A[1:row_nfreedofs, (col_nfreedofs + 1):end]
+        A_fd = A[1:row_nfreedofs, (col_nfreedofs+1):end]
     else
         A_fd = spzeros(row_f_dim, col_d_dim)
     end
@@ -732,7 +746,7 @@ function matrix_blocked_df(A, row_nfreedofs, col_nfreedofs = row_nfreedofs)
     col_d_dim = (col_nfreedofs < col_nalldofs ? col_nalldofs - col_nfreedofs : 0)
 
     if (row_d_dim > 0 && col_f_dim > 0)
-        A_df = A[(row_nfreedofs + 1):end, 1:col_nfreedofs]
+        A_df = A[(row_nfreedofs+1):end, 1:col_nfreedofs]
     else
         A_df = spzeros(row_d_dim, col_f_dim)
     end
@@ -767,7 +781,7 @@ function matrix_blocked_dd(A, row_nfreedofs, col_nfreedofs = row_nfreedofs)
     col_d_dim = (col_nfreedofs < col_nalldofs ? col_nalldofs - col_nfreedofs : 0)
 
     if (row_d_dim > 0 && col_d_dim > 0)
-        A_dd = A[(row_nfreedofs + 1):end, (col_nfreedofs + 1):end]
+        A_dd = A[(row_nfreedofs+1):end, (col_nfreedofs+1):end]
     else
         A_dd = spzeros(row_d_dim, col_d_dim)
     end
@@ -817,7 +831,7 @@ function vector_blocked_d(V, nfreedofs)
     row_f_dim = nfreedofs
     row_d_dim = (nfreedofs < nalldofs ? nalldofs - nfreedofs : 0)
     if (row_d_dim > 0)
-        V_d = V[(nfreedofs + 1):end]
+        V_d = V[(nfreedofs+1):end]
     else
         V_d = eltype(V)[]
     end

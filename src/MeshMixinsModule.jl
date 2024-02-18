@@ -29,7 +29,7 @@ import Statistics: mean
 
 T3 mesh of a rectangle with random orientation.
 """
-function T3blockrand(Length::T, Width::T, nL::IT, nW::IT) where {T <: Number, IT <: Integer}
+function T3blockrand(Length::T, Width::T, nL::IT, nW::IT) where {T<:Number,IT<:Integer}
     # nL = Int(round(nL/2))
     # nW = Int(round(nW/2))
     fens, fes = Q4block(Length, Width, nL, nW) # Mesh

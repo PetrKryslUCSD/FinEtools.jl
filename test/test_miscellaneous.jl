@@ -1953,7 +1953,7 @@ using Test
 import LinearAlgebra: norm, cholesky
 function test()
     a = SysmatAssemblerSparse(0.0)
-    startassembly!(a, 5*5*3, 7, 7)
+    startassembly!(a, 5, 5, 3, 7, 7)
     m = [
         0.24406 0.599773 0.833404 0.0420141
         0.786024 0.00206713 0.995379 0.780298
@@ -1994,7 +1994,7 @@ using Test
 import LinearAlgebra: norm, cholesky
 function test()
     a = SysmatAssemblerSparseSymm(0.0)
-    startassembly!(a, 5*5*3, 7, 7)
+    startassembly!(a, 5, 5, 3, 7, 7)
     m = [
         0.24406 0.599773 0.833404 0.0420141
         0.786024 0.00206713 0.995379 0.780298

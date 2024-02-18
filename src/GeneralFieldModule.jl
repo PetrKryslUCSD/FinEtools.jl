@@ -15,7 +15,7 @@ import ..FieldModule.@add_Field_fields
 
 General field, meaning the entities can be anything.
 """
-mutable struct GeneralField{T <: Number, IT <: Integer} <: AbstractField
+mutable struct GeneralField{T<:Number,IT<:Integer} <: AbstractField
     @add_Field_fields()
 end
 
@@ -29,7 +29,7 @@ as many columns as there are degrees of freedom per entities.
 The integer type for the storage of the degree of freedom numbers is set as that
 of the argument `zi`.
 """
-function GeneralField(data::Matrix{T}, zi::IT) where {T <: Number, IT <: Integer}
+function GeneralField(data::Matrix{T}, zi::IT) where {T<:Number,IT<:Integer}
     values = deepcopy(data)
     dofnums = 0 * similar(values, IT)
     is_fixed = similar(values, Bool)
@@ -38,7 +38,7 @@ function GeneralField(data::Matrix{T}, zi::IT) where {T <: Number, IT <: Integer
     return GeneralField(values, dofnums, is_fixed, nfreedofs)
 end
 
-function GeneralField(data::Matrix{T}) where {T <: Number}
+function GeneralField(data::Matrix{T}) where {T<:Number}
     return GeneralField(data, zero(Int))
 end
 
@@ -49,7 +49,7 @@ Constructor of general field.  The values of the field are given by the vector
 on input, `data`. This vector needs to have as many rows as there are
 entities.
 """
-function GeneralField(data::Vector{T}) where {T <: Number}
+function GeneralField(data::Vector{T}) where {T<:Number}
     return GeneralField(reshape(data, length(data), 1))
 end
 

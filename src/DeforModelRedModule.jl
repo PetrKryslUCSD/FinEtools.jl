@@ -107,14 +107,14 @@ julia> comp[:x]
 ```
 """
 function stresscomponentmap(::Type{DeforModelRed1D})
-    a = Dict{Symbol, Int}()
+    a = Dict{Symbol,Int}()
     a[:x] = 1
     a[:xx] = 1
     return a
 end
 
 function stresscomponentmap(::Type{DeforModelRed2DStrain})
-    a = Dict{Symbol, Int}()
+    a = Dict{Symbol,Int}()
     a[:x] = 1
     a[:y] = 2
     a[:xy] = 3
@@ -126,7 +126,7 @@ function stresscomponentmap(::Type{DeforModelRed2DStrain})
 end
 
 function stresscomponentmap(::Type{DeforModelRed2DStress})
-    a = Dict{Symbol, Int}()
+    a = Dict{Symbol,Int}()
     a[:x] = 1
     a[:y] = 2
     a[:xy] = 3
@@ -136,7 +136,7 @@ function stresscomponentmap(::Type{DeforModelRed2DStress})
 end
 
 function stresscomponentmap(::Type{DeforModelRed2DAxisymm})
-    a = Dict{Symbol, Int}()
+    a = Dict{Symbol,Int}()
     a[:x] = 1
     a[:y] = 2
     a[:z] = 3
@@ -148,7 +148,7 @@ function stresscomponentmap(::Type{DeforModelRed2DAxisymm})
 end
 
 function stresscomponentmap(::Type{DeforModelRed3D})
-    a = Dict{Symbol, Int}()
+    a = Dict{Symbol,Int}()
     a[:x] = 1
     a[:y] = 2
     a[:z] = 3
@@ -197,20 +197,22 @@ coordinate system, the output strains are in the material coordinate system.*
   zero,  and filled in  with the nonzero components.  It is also returned for
   convenience.
 """
-function blmat!(MR::Type{DeforModelRed1D},
+function blmat!(
+    MR::Type{DeforModelRed1D},
     B::AbstractMatrix{T},
     N::AbstractMatrix{T},
     gradN::AbstractMatrix{T},
     c::AbstractMatrix{T},
-    Rm::AbstractMatrix{T}) where {T <: Number}
+    Rm::AbstractMatrix{T},
+) where {T<:Number}
     nnodes = size(gradN, 1)
     @assert (dim = size(c, 2)) >= 1
     @assert size(B) == (nstressstrain(MR), dim * nnodes)
     fill!(B, zero(T))
-    @inbounds for i in 1:nnodes
-        for j in 1:dim
+    @inbounds for i = 1:nnodes
+        for j = 1:dim
             k = dim * (i - 1)
-            B[1, k + j] = gradN[i, 1] * Rm[j, 1]
+            B[1, k+j] = gradN[i, 1] * Rm[j, 1]
         end
     end
     return B
@@ -254,22 +256,24 @@ material coordinate system.*
   zero,  and filled in  with the nonzero components.  It is also returned for
   convenience.
 """
-function blmat!(MR::Type{DeforModelRed2DStrain},
+function blmat!(
+    MR::Type{DeforModelRed2DStrain},
     B::AbstractMatrix{T},
     N::AbstractMatrix{T},
     gradN::AbstractMatrix{T},
     c::AbstractMatrix{T},
-    Rm::AbstractMatrix{T}) where {T <: Number}
+    Rm::AbstractMatrix{T},
+) where {T<:Number}
     nnodes = size(gradN, 1)
     @assert (dim = size(c, 2)) == 2
     @assert size(B) == (nstressstrain(MR), dim * nnodes)
     fill!(B, zero(T))
-    @inbounds for i in 1:nnodes
+    @inbounds for i = 1:nnodes
         k = dim * (i - 1)
-        @inbounds for j in 1:dim
-            B[1, k + j] = gradN[i, 1] * Rm[j, 1]
-            B[2, k + j] = gradN[i, 2] * Rm[j, 2]
-            B[3, k + j] = gradN[i, 2] * Rm[j, 1] + gradN[i, 1] * Rm[j, 2]
+        @inbounds for j = 1:dim
+            B[1, k+j] = gradN[i, 1] * Rm[j, 1]
+            B[2, k+j] = gradN[i, 2] * Rm[j, 2]
+            B[3, k+j] = gradN[i, 2] * Rm[j, 1] + gradN[i, 1] * Rm[j, 2]
         end
     end
     return B
@@ -313,22 +317,24 @@ material coordinate system.*
   zero,  and filled in  with the nonzero components.  It is also returned for
   convenience.
 """
-function blmat!(MR::Type{DeforModelRed2DStress},
+function blmat!(
+    MR::Type{DeforModelRed2DStress},
     B::AbstractMatrix{T},
     N::AbstractMatrix{T},
     gradN::AbstractMatrix{T},
     c::AbstractMatrix{T},
-    Rm::AbstractMatrix{T}) where {T <: Number}
+    Rm::AbstractMatrix{T},
+) where {T<:Number}
     nnodes = size(gradN, 1)
     @assert (dim = size(c, 2)) >= 2
     @assert size(B) == (nstressstrain(MR), dim * nnodes)
     fill!(B, zero(T))
-    @inbounds for i in 1:nnodes
+    @inbounds for i = 1:nnodes
         k = dim * (i - 1)
-        for j in 1:dim
-            B[1, k + j] = gradN[i, 1] * Rm[j, 1]
-            B[2, k + j] = gradN[i, 2] * Rm[j, 2]
-            B[3, k + j] = gradN[i, 2] * Rm[j, 1] + gradN[i, 1] * Rm[j, 2]
+        for j = 1:dim
+            B[1, k+j] = gradN[i, 1] * Rm[j, 1]
+            B[2, k+j] = gradN[i, 2] * Rm[j, 2]
+            B[3, k+j] = gradN[i, 2] * Rm[j, 1] + gradN[i, 1] * Rm[j, 2]
         end
     end
     return B
@@ -372,12 +378,14 @@ material coordinate system.*
   zero,  and filled in  with the nonzero components.  It is also returned for
   convenience.
 """
-function blmat!(MR::Type{DeforModelRed2DAxisymm},
+function blmat!(
+    MR::Type{DeforModelRed2DAxisymm},
     B::AbstractMatrix{T},
     N::AbstractMatrix{T},
     gradN::AbstractMatrix{T},
     c::AbstractMatrix{T},
-    Rm::AbstractMatrix{T}) where {T <: Number}
+    Rm::AbstractMatrix{T},
+) where {T<:Number}
     nnodes = size(gradN, 1)
     @assert (dim = size(c, 2)) == 2
     @assert size(B) == (nstressstrain(MR), dim * nnodes)
@@ -387,13 +395,13 @@ function blmat!(MR::Type{DeforModelRed2DAxisymm},
         r = eps(1.0)
     end
     fill!(B, zero(T))
-    @inbounds for i in 1:nnodes
+    @inbounds for i = 1:nnodes
         k = dim * (i - 1)
-        for j in 1:dim
-            B[1, k + j] = gradN[i, 1] * Rm[j, 1]
-            B[2, k + j] = gradN[i, 2] * Rm[j, 2]
-            B[3, k + j] = N[i] / r * Rm[j, 1]
-            B[4, k + j] = gradN[i, 2] * Rm[j, 1] + gradN[i, 1] * Rm[j, 2]
+        for j = 1:dim
+            B[1, k+j] = gradN[i, 1] * Rm[j, 1]
+            B[2, k+j] = gradN[i, 2] * Rm[j, 2]
+            B[3, k+j] = N[i] / r * Rm[j, 1]
+            B[4, k+j] = gradN[i, 2] * Rm[j, 1] + gradN[i, 1] * Rm[j, 2]
         end
     end
     return B
@@ -436,19 +444,21 @@ system.*
   zero,  and filled in  with the nonzero components.  It is also returned for
   convenience.
 """
-function blmat!(MR::Type{DeforModelRed3D},
+function blmat!(
+    MR::Type{DeforModelRed3D},
     B::AbstractMatrix{T},
     N::AbstractMatrix{T},
     gradN::AbstractMatrix{T},
     c::AbstractMatrix{T},
-    Rm::AbstractMatrix{T}) where {T <: Number}
+    Rm::AbstractMatrix{T},
+) where {T<:Number}
     nnodes = size(gradN, 1)
     @assert (dim = size(c, 2)) == 3
     @assert size(B) == (nstressstrain(MR), dim * nnodes)
     fill!(B, zero(T))
-    @inbounds for i in 1:nnodes
+    @inbounds for i = 1:nnodes
         k = dim * (i - 1)
-        for j in 1:dim
+        for j = 1:dim
             kj = k + j
             B[1, kj] = gradN[i, 1] * Rm[j, 1]
             B[2, kj] = gradN[i, 2] * Rm[j, 2]
@@ -485,17 +495,19 @@ Compute the displacement divergence matrix for a three-manifold element.
   is passed in as a buffer, set to zero,  and filled in  with the nonzero
   components.  It is also returned for convenience.
 """
-function divmat(MR::Type{DeforModelRed3D},
+function divmat(
+    MR::Type{DeforModelRed3D},
     N::AbstractMatrix{T},
     gradN::AbstractMatrix{T},
-    c::AbstractMatrix{T}) where {T}
+    c::AbstractMatrix{T},
+) where {T}
     nnodes = size(gradN, 1)
     @assert (dim = size(c, 2)) == 3
     divm = fill(0.0, 1, dim * nnodes)
-    for j in 1:dim
-        for i in 1:nnodes
+    for j = 1:dim
+        for i = 1:nnodes
             k = dim * (i - 1)
-            divm[1, k + j] = gradN[i, j]
+            divm[1, k+j] = gradN[i, j]
         end
     end
     return divm
@@ -525,15 +537,17 @@ Compute the matrix of displacement gradient in vector form for a three-manifold 
   is passed in as a buffer, set to zero,  and filled in  with the nonzero
   components.  It is also returned for convenience.
 """
-function vgradmat(MR::Type{DeforModelRed3D},
+function vgradmat(
+    MR::Type{DeforModelRed3D},
     N::AbstractMatrix{T},
     gradN::AbstractMatrix{T},
-    c::AbstractMatrix{T}) where {T}
+    c::AbstractMatrix{T},
+) where {T}
     nnodes = size(gradN, 1)
     @assert (dim = size(c, 2)) == 3
     vgradm = fill(0.0, dim * dim, dim * nnodes)
-    for i in 1:dim
-        vgradm[(dim * (i - 1) + 1):(dim * i), i:dim:(nnodes * dim - dim + i)] .= transpose(gradN)
+    for i = 1:dim
+        vgradm[(dim*(i-1)+1):(dim*i), i:dim:(nnodes*dim-dim+i)] .= transpose(gradN)
     end
     return vgradm
 end

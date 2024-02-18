@@ -16,13 +16,13 @@ using ..RotationUtilModule: cross3!
 Type for coordinate system transformations. Used to define material coordinate
 systems, and output coordinate systems, for instance.
 """
-struct CSys{T <: Number, F <: Function}
+struct CSys{T<:Number,F<:Function}
     isconstant::Bool
     isidentity::Bool
     __updatebuffer!::F # function to update the coordinate system matrix.
     # Signature: `update!(csmatout::Matrix{T}, XYZ::VecOrMat{T}, tangents::Matrix{T},
     # feid::IT, qpid::IT) where {T, IT}`
-    _csmat::Array{T, 2} # the coordinate system matrix (buffer); see
+    _csmat::Array{T,2} # the coordinate system matrix (buffer); see
 end
 
 """
@@ -61,7 +61,7 @@ where
 end
 ```
 """
-function CSys(sdim::IT1, mdim::IT2, computecsmat::F) where {F <: Function, IT1, IT2}
+function CSys(sdim::IT1, mdim::IT2, computecsmat::F) where {F<:Function,IT1,IT2}
     csmat = fill(zero(Float64), sdim, mdim) # Allocate buffer for the first call
     return CSys(false, false, computecsmat, csmat)
 end
@@ -105,10 +105,12 @@ rotation matrix of type `T` is given.
 end
 ```
 """
-function CSys(sdim::IT1,
+function CSys(
+    sdim::IT1,
     mdim::IT2,
     z::T,
-    computecsmat::F) where {IT1, IT2, T <: Number, F <: Function}
+    computecsmat::F,
+) where {IT1,IT2,T<:Number,F<:Function}
     csmat = fill(z, sdim, mdim) # Allocate buffer, in preparation for the first call
     return CSys(false, false, computecsmat, csmat)
 end
@@ -119,10 +121,13 @@ end
 Construct coordinate system when the rotation matrix is given.
 """
 function CSys(csmat::Matrix{T}) where {T}
-    function __updatebuffer!(csmatout::Matrix{T},
+    function __updatebuffer!(
+        csmatout::Matrix{T},
         XYZ::VecOrMat{T},
         tangents::Matrix{T},
-        feid::IT1, qpid::IT2) where {T, IT1, IT2}
+        feid::IT1,
+        qpid::IT2,
+    ) where {T,IT1,IT2}
         return csmatout # nothing to be done here, the matrix is already in the buffer
     end
     return CSys(true, false, __updatebuffer!, deepcopy(csmat))# fill the buffer with the given matrix
@@ -136,17 +141,22 @@ identity.
 
 `dim` = is the space dimension.
 """
-function CSys(dim::IT, z::T) where {IT <: Integer, T}
-    function __updatebuffer!(csmatout::Matrix{T},
+function CSys(dim::IT, z::T) where {IT<:Integer,T}
+    function __updatebuffer!(
+        csmatout::Matrix{T},
         XYZ::VecOrMat{T},
         tangents::Matrix{T},
-        feid::IT1, qpid::IT2) where {T, IT1, IT2}
+        feid::IT1,
+        qpid::IT2,
+    ) where {T,IT1,IT2}
         return csmatout # nothing to be done here, the matrix is already in the buffer
     end
-    return CSys(true,
+    return CSys(
+        true,
         true,
         __updatebuffer!,
-        [i == j ? one(T) : zero(T) for i in 1:dim, j in 1:dim])# identity
+        [i == j ? one(T) : zero(T) for i = 1:dim, j = 1:dim],
+    )# identity
 end
 
 """
@@ -179,11 +189,14 @@ finite elements.
 # See also
 `gen_iso_csmat`
 """
-function CSys(sdim::IT1, mdim::IT2) where {IT1 <: Integer, IT2 <: Integer}
-    function __updatebuffer!(csmatout::Matrix{T},
+function CSys(sdim::IT1, mdim::IT2) where {IT1<:Integer,IT2<:Integer}
+    function __updatebuffer!(
+        csmatout::Matrix{T},
         XYZ::VecOrMat{T},
         tangents::Matrix{T},
-        feid::IT1, qpid::IT2) where {T, IT1, IT2}
+        feid::IT1,
+        qpid::IT2,
+    ) where {T,IT1,IT2}
         return gen_iso_csmat!(csmatout, XYZ, tangents, feid, qpid)
     end
     return CSys(false, false, __updatebuffer!, fill(zero(Float64), sdim, mdim))
@@ -206,11 +219,13 @@ identifier `feid` of the finite element and/or the quadrature point identifier.
 After this function returns, the coordinate system matrix can be read in the
 buffer as `self.csmat`.
 """
-function updatecsmat!(self::CSys,
+function updatecsmat!(
+    self::CSys,
     XYZ::Matrix{T},
     tangents::Matrix{T},
     feid::IT1,
-    qpid::IT2) where {T, IT1, IT2}
+    qpid::IT2,
+) where {T,IT1,IT2}
     self.__updatebuffer!(self._csmat, XYZ, tangents, feid, qpid)
     return self._csmat
 end
@@ -257,14 +272,16 @@ tangent vectors.
     quadrature point gets a local coordinate system which depends on the
     orientation of the element, in general different from the neighboring elements.
 """
-@views function gen_iso_csmat!(csmatout::Matrix{T},
+@views function gen_iso_csmat!(
+    csmatout::Matrix{T},
     XYZ::Matrix{T},
     tangents::Matrix{T},
     feid::IT1,
-    qpid::IT2) where {T, IT1, IT2}
+    qpid::IT2,
+) where {T,IT1,IT2}
     sdim, mdim = size(tangents)
     if sdim == mdim # finite element embedded in space of the same dimension
-        for i in 1:size(csmatout, 1), j in 1:size(csmatout, 2)
+        for i = 1:size(csmatout, 1), j = 1:size(csmatout, 2)
             csmatout[i, j] = (i == j ? one(T) : zero(T))
         end
     else # lower-dimensional finite element embedded in space of higher dimension

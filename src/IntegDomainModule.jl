@@ -40,7 +40,7 @@ geometry, the function to supply the "missing" (other) dimension, indication
 whether or not the integration domain represents an axially symmetric
 situation, and integration rule used to evaluate integrals over the domain.
 """
-mutable struct IntegDomain{S <: AbstractFESet, F <: Function, IR <: AbstractIntegRule}
+mutable struct IntegDomain{S<:AbstractFESet,F<:Function,IR<:AbstractIntegRule}
     fes::S # finite element set object
     integration_rule::IR  # integration rule object
     otherdimension::F # function to compute the "other" dimension (thickness, or cross-sectional area)
@@ -53,8 +53,10 @@ end
 Construct with the default orientation matrix (identity), and the other
 dimension  being the default 1.0.
 """
-function IntegDomain(fes::S,
-    integration_rule::IR) where {S <: AbstractFESet, IR <: AbstractIntegRule}
+function IntegDomain(
+    fes::S,
+    integration_rule::IR,
+) where {S<:AbstractFESet,IR<:AbstractIntegRule}
     return IntegDomain(fes, integration_rule, otherdimensionunity, false)
 end
 
@@ -68,12 +70,12 @@ end
 Construct with the default orientation matrix (identity), and constant other
 dimension.
 """
-function IntegDomain(fes::S,
+function IntegDomain(
+    fes::S,
     integration_rule::IR,
-    otherdimension::T) where {S <: AbstractFESet, IR <: AbstractIntegRule, T <: Number}
-    function otherdimensionfu(loc::Matrix{T},
-        conn::CC,
-        N::Matrix{T}) where {CC, T <: Number}
+    otherdimension::T,
+) where {S<:AbstractFESet,IR<:AbstractIntegRule,T<:Number}
+    function otherdimensionfu(loc::Matrix{T}, conn::CC, N::Matrix{T}) where {CC,T<:Number}
         return otherdimension
     end
     return IntegDomain(fes, integration_rule, otherdimensionfu, false)
@@ -92,9 +94,11 @@ symmetric models. The other dimension is the default unity (1.0).
 This will probably be called when `axisymmetric = true`, since the default is
 `axisymmetric = false`.
 """
-function IntegDomain(fes::S,
+function IntegDomain(
+    fes::S,
     integration_rule::IR,
-    axisymmetric::Bool) where {S <: AbstractFESet, IR <: AbstractIntegRule}
+    axisymmetric::Bool,
+) where {S<:AbstractFESet,IR<:AbstractIntegRule}
     return IntegDomain(fes, integration_rule, otherdimensionunity, axisymmetric)
 end
 
@@ -108,10 +112,12 @@ end
 
 Construct for axially symmetric models. The other dimension is given as a number.
 """
-function IntegDomain(fes::S,
+function IntegDomain(
+    fes::S,
     integration_rule::IR,
     axisymmetric::Bool,
-    otherdimension::T) where {S <: AbstractFESet, IR <: AbstractIntegRule, T <: Number}
+    otherdimension::T,
+) where {S<:AbstractFESet,IR<:AbstractIntegRule,T<:Number}
     function otherdimensionfu(loc::Matrix{T}, conn::CC, N::Matrix{T}) where {CC}
         return otherdimension::T
     end
@@ -123,7 +129,7 @@ end
 
 Evaluate the other dimension: default is 1.0.
 """
-function otherdimensionunity(loc::Matrix{T}, conn::CC, N::Matrix{T}) where {CC, T <: Number}
+function otherdimensionunity(loc::Matrix{T}, conn::CC, N::Matrix{T}) where {CC,T<:Number}
     return 1.0
 end
 
@@ -143,11 +149,13 @@ Evaluate the point Jacobian.
 - `conn` = connectivity of the element,
 - `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobianpoint(self::IntegDomain{MT},
+function Jacobianpoint(
+    self::IntegDomain{MT},
     J::Matrix{T},
     loc::Matrix{T},
     conn::CC,
-    N::Matrix{T}) where {MT <: AbstractFESet0Manifold, CC, T <: Number}
+    N::Matrix{T},
+) where {MT<:AbstractFESet0Manifold,CC,T<:Number}
     return Jacobian(self.fes, J)
 end
 
@@ -167,11 +175,13 @@ Evaluate the curve Jacobian.
 - `conn` = connectivity of the element,
 - `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobiancurve(self::IntegDomain{MT},
+function Jacobiancurve(
+    self::IntegDomain{MT},
     J::Matrix{T},
     loc::Matrix{T},
     conn::CC,
-    N::Matrix{T}) where {MT <: AbstractFESet0Manifold, CC, T <: Number}
+    N::Matrix{T},
+) where {MT<:AbstractFESet0Manifold,CC,T<:Number}
     Jac = Jacobianpoint(self, J, loc, conn, N)
     if self.axisymmetric
         return Jac * 2 * pi * loc[1]
@@ -202,11 +212,13 @@ circumference of the circle through the point `loc` times the other dimension
 - `conn` = connectivity of the element,
 - `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobiansurface(self::IntegDomain{MT},
+function Jacobiansurface(
+    self::IntegDomain{MT},
     J::Matrix{T},
     loc::Matrix{T},
     conn::CC,
-    N::Matrix{T}) where {MT <: AbstractFESet0Manifold, CC, T <: Number}
+    N::Matrix{T},
+) where {MT<:AbstractFESet0Manifold,CC,T<:Number}
     Jac = Jacobianpoint(self, J, loc, conn, N)
     if self.axisymmetric
         return Jac * 2 * pi * loc[1] * self.otherdimension(loc, conn, N)
@@ -237,11 +249,13 @@ circumference of the circle through the point `loc` and the other dimension
 - `conn` = connectivity of the element,
 - `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobianvolume(self::IntegDomain{MT},
+function Jacobianvolume(
+    self::IntegDomain{MT},
     J::Matrix{T},
     loc::Matrix{T},
     conn::CC,
-    N::Matrix{T}) where {MT <: AbstractFESet0Manifold, CC, T <: Number}
+    N::Matrix{T},
+) where {MT<:AbstractFESet0Manifold,CC,T<:Number}
     Jac = Jacobianpoint(self, J, loc, conn, N)
     if self.axisymmetric
         return Jac * 2 * pi * loc[1] * self.otherdimension(loc, conn, N)
@@ -268,13 +282,15 @@ For an 0-dimensional finite element,  the manifold Jacobian is for
 - m=2: `Jacobiansurface`
 - m=3: `Jacobianvolume`
 """
-function Jacobianmdim(self::IntegDomain{MT},
+function Jacobianmdim(
+    self::IntegDomain{MT},
     J::Matrix{T},
     loc::Matrix{T},
     conn::CC,
     N::Matrix{T},
-    m::IT) where {MT <: AbstractFESet0Manifold, CC, T <: Number, IT}
-    @assert (m >= 0)&&(m <= 3) "Those are the only acceptable options here."
+    m::IT,
+) where {MT<:AbstractFESet0Manifold,CC,T<:Number,IT}
+    @assert (m >= 0) && (m <= 3) "Those are the only acceptable options here."
     if (m == 3)
         return Jacobianvolume(self, J, loc, conn, N)
     elseif (m == 2)
@@ -302,11 +318,13 @@ Evaluate the curve Jacobian.
 - `conn` = connectivity of the element,
 - `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobiancurve(self::IntegDomain{MT},
+function Jacobiancurve(
+    self::IntegDomain{MT},
     J::Matrix{T},
     loc::Matrix{T},
     conn::CC,
-    N::Matrix{T}) where {MT <: AbstractFESet1Manifold, CC, T <: Number}
+    N::Matrix{T},
+) where {MT<:AbstractFESet1Manifold,CC,T<:Number}
     return Jacobian(self.fes, J)
 end
 
@@ -331,11 +349,13 @@ of the circle through the point `loc`.
 - `conn` = connectivity of the element,
 - `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobiansurface(self::IntegDomain{MT},
+function Jacobiansurface(
+    self::IntegDomain{MT},
     J::Matrix{T},
     loc::Matrix{T},
     conn::CC,
-    N::Matrix{T}) where {MT <: AbstractFESet1Manifold, CC, T <: Number}
+    N::Matrix{T},
+) where {MT<:AbstractFESet1Manifold,CC,T<:Number}
     Jac = Jacobiancurve(self, J, loc, conn, N)
     if self.axisymmetric
         return Jac * 2 * pi * loc[1]
@@ -366,11 +386,13 @@ circumference of the circle through the point `loc` and the other dimension
 - `conn` = connectivity of the element,
 - `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobianvolume(self::IntegDomain{MT},
+function Jacobianvolume(
+    self::IntegDomain{MT},
     J::Matrix{T},
     loc::Matrix{T},
     conn::CC,
-    N::Matrix{T}) where {MT <: AbstractFESet1Manifold, CC, T <: Number}
+    N::Matrix{T},
+) where {MT<:AbstractFESet1Manifold,CC,T<:Number}
     Jac = Jacobiancurve(self, J, loc, conn, N)
     if self.axisymmetric
         return Jac * 2 * pi * loc[1] * self.otherdimension(loc, conn, N)
@@ -396,13 +418,15 @@ For an 1-dimensional finite element,  the manifold Jacobian is for
 - m=2: `Jacobiansurface`
 - m=3: `Jacobianvolume`
 """
-function Jacobianmdim(self::IntegDomain{MT},
+function Jacobianmdim(
+    self::IntegDomain{MT},
     J::Matrix{T},
     loc::Matrix{T},
     conn::CC,
     N::Matrix{T},
-    m::IT) where {MT <: AbstractFESet1Manifold, CC, T <: Number, IT}
-    @assert (m >= 1)&&(m <= 3) "Those are the only acceptable options here."
+    m::IT,
+) where {MT<:AbstractFESet1Manifold,CC,T<:Number,IT}
+    @assert (m >= 1) && (m <= 3) "Those are the only acceptable options here."
     if (m == 3)
         return Jacobianvolume(self, J, loc, conn, N)
     elseif (m == 2)
@@ -428,11 +452,13 @@ Evaluate the surface Jacobian.
 - `conn` = connectivity of the element,
 - `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobiansurface(self::IntegDomain{MT},
+function Jacobiansurface(
+    self::IntegDomain{MT},
     J::Matrix{T},
     loc::Matrix{T},
     conn::CC,
-    N::Matrix{T}) where {MT <: AbstractFESet2Manifold, CC, T <: Number}
+    N::Matrix{T},
+) where {MT<:AbstractFESet2Manifold,CC,T<:Number}
     return Jacobian(self.fes, J)
 end
 
@@ -457,11 +483,13 @@ circumference of the circle through the point `loc` (units of length).
 - `conn` = connectivity of the element,
 - `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobianvolume(self::IntegDomain{MT},
+function Jacobianvolume(
+    self::IntegDomain{MT},
     J::Matrix{T},
     loc::Matrix{T},
     conn::CC,
-    N::Matrix{T}) where {MT <: AbstractFESet2Manifold, CC, T <: Number}
+    N::Matrix{T},
+) where {MT<:AbstractFESet2Manifold,CC,T<:Number}
     Jac = Jacobiansurface(self, J, loc, conn, N)
     if self.axisymmetric
         return Jac * 2 * pi * loc[1]
@@ -486,13 +514,15 @@ For an 2-dimensional finite element,  the manifold Jacobian is for
 - m=2: `Jacobiansurface`
 - m=3: `Jacobianvolume`
 """
-function Jacobianmdim(self::IntegDomain{MT},
+function Jacobianmdim(
+    self::IntegDomain{MT},
     J::Matrix{T},
     loc::Matrix{T},
     conn::CC,
     N::Matrix{T},
-    m::IT) where {MT <: AbstractFESet2Manifold, CC, T <: Number, IT}
-    @assert (m >= 2)&&(m <= 3) "Those are the only acceptable options here."
+    m::IT,
+) where {MT<:AbstractFESet2Manifold,CC,T<:Number,IT}
+    @assert (m >= 2) && (m <= 3) "Those are the only acceptable options here."
     if (m == 3)
         return Jacobianvolume(self, J, loc, conn, N)
     else # (m==2)
@@ -516,11 +546,13 @@ Evaluate the volume Jacobian.
 - `conn` = connectivity of the element,
 - `N` = matrix of basis function values at the quadrature point.
 """
-function Jacobianvolume(self::IntegDomain{MT},
+function Jacobianvolume(
+    self::IntegDomain{MT},
     J::Matrix{T},
     loc::Matrix{T},
     conn::CC,
-    N::Matrix{T}) where {MT <: AbstractFESet3Manifold, CC, T <: Number}
+    N::Matrix{T},
+) where {MT<:AbstractFESet3Manifold,CC,T<:Number}
     return Jacobian(self.fes, J)
 end
 
@@ -539,13 +571,15 @@ Evaluate the manifold Jacobian for an m-dimensional manifold.
 For an 3-dimensional cell,  the manifold Jacobian is
 - m=3: `Jacobianvolume`
 """
-function Jacobianmdim(self::IntegDomain{MT},
+function Jacobianmdim(
+    self::IntegDomain{MT},
     J::Matrix{T},
     loc::Matrix{T},
     conn::CC,
     N::Matrix{T},
-    m::IT) where {MT <: AbstractFESet3Manifold, CC, T <: Number, IT}
-    @assert (m==3) "That is the only acceptable option here."
+    m::IT,
+) where {MT<:AbstractFESet3Manifold,CC,T<:Number,IT}
+    @assert (m == 3) "That is the only acceptable option here."
     return Jacobianvolume(self, J, loc, conn, N)
 end
 
@@ -555,7 +589,7 @@ end
 Calculate the data needed for  numerical quadrature for the integration rule
 stored by the integration domain.
 """
-function integrationdata(self::ID) where {ID <: IntegDomain}
+function integrationdata(self::ID) where {ID<:IntegDomain}
     return integrationdata(self, self.integration_rule)
 end
 
@@ -577,8 +611,10 @@ basis function values at the quadrature points,  arrays of gradients of basis
 functions  with respect  to the parametric coordinates, array of weights and
 array of locations of the quadrature points.
 """
-function integrationdata(self::ID,
-    integration_rule::IR) where {ID <: IntegDomain, IR <: AbstractIntegRule}
+function integrationdata(
+    self::ID,
+    integration_rule::IR,
+) where {ID<:IntegDomain,IR<:AbstractIntegRule}
     T = eltype(integration_rule.param_coords)
     pc::Matrix{T} = integration_rule.param_coords
     w::Matrix{T} = integration_rule.weights
@@ -586,7 +622,7 @@ function integrationdata(self::ID,
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     Ns = Matrix{T}[]
     gradNparams = Matrix{T}[]
-    for j in 1:npts
+    for j = 1:npts
         push!(Ns, bfun(self.fes, vec(pc[j, :])))
         push!(gradNparams, bfundpar(self.fes, vec(pc[j, :])))
     end

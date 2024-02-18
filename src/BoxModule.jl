@@ -24,8 +24,8 @@ function inbox(box::AbstractVector, x::AbstractVector)
     if !inrange(box[1], box[2], x[1])
         return false # short-circuit
     end
-    for i in 2:sdim
-        if !inrange(box[2 * i - 1], box[2 * i], x[i])
+    for i = 2:sdim
+        if !inrange(box[2*i-1], box[2*i], x[i])
             return false # short-circuit
         end
     end
@@ -46,8 +46,8 @@ function initbox!(box::AbstractVector, x::AbstractVector)
     if length(box) < 2 * sdim
         box = fill(zero(eltype(x)), 2 * sdim)
     end
-    for i in 1:sdim
-        box[2 * i - 1] = box[2 * i] = x[i]
+    for i = 1:sdim
+        box[2*i-1] = box[2*i] = x[i]
     end
     return box
 end
@@ -71,14 +71,14 @@ function updatebox!(box::AbstractVector, x::AbstractArray)
     if length(box) < 2 * sdim
         box = fill(zero(eltype(x)), 2 * sdim)
         for i in axes(x, 2)
-            box[2 * i - 1] = Inf
-            box[2 * i] = -Inf
+            box[2*i-1] = Inf
+            box[2*i] = -Inf
         end
     end
     for j in axes(x, 1)
-        for i in 1:sdim
-            box[2 * i - 1] = min(box[2 * i - 1], x[j, i])
-            box[2 * i] = max(box[2 * i], x[j, i])
+        for i = 1:sdim
+            box[2*i-1] = min(box[2*i-1], x[j, i])
+            box[2*i] = max(box[2*i], x[j, i])
         end
     end
     return box
@@ -112,9 +112,9 @@ Inflate the box by the value supplied.
 function inflatebox!(box::AbstractVector, inflatevalue::T) where {T}
     abox = deepcopy(box)
     sdim = Int(length(box) / 2)
-    for i in 1:sdim
-        box[2 * i - 1] = min(abox[2 * i - 1], abox[2 * i]) - inflatevalue
-        box[2 * i] = max(abox[2 * i - 1], abox[2 * i]) + inflatevalue
+    for i = 1:sdim
+        box[2*i-1] = min(abox[2*i-1], abox[2*i]) - inflatevalue
+        box[2*i] = max(abox[2*i-1], abox[2*i]) + inflatevalue
     end
     return box
 end
@@ -126,12 +126,12 @@ Do the given boxes overlap?
 """
 function boxesoverlap(box1::AbstractVector, box2::AbstractVector)
     dim = Int(length(box1) / 2)
-    @assert 2 * dim==length(box2) "Mismatched boxes"
-    for i in 1:dim
-        if box1[2 * i - 1] > box2[2 * i]
+    @assert 2 * dim == length(box2) "Mismatched boxes"
+    for i = 1:dim
+        if box1[2*i-1] > box2[2*i]
             return false
         end
-        if box1[2 * i] < box2[2 * i - 1]
+        if box1[2*i] < box2[2*i-1]
             return false
         end
     end
@@ -147,18 +147,18 @@ The function returns an empty box (length(b) == 0) if the intersection is
 empty; otherwise a box is returned.
 """
 function intersectboxes(box1::AbstractVector, box2::AbstractVector)
-    @assert length(box1)==length(box2) "Mismatched boxes"
+    @assert length(box1) == length(box2) "Mismatched boxes"
     b = copy(box1)
     dim = Int(length(box1) / 2)
-    @assert 2 * dim==length(box2) "Wrong box data"
-    for i in 1:dim
-        lb = max(box1[2 * i - 1], box2[2 * i - 1])
-        ub = min(box1[2 * i], box2[2 * i])
+    @assert 2 * dim == length(box2) "Wrong box data"
+    for i = 1:dim
+        lb = max(box1[2*i-1], box2[2*i-1])
+        ub = min(box1[2*i], box2[2*i])
         if (ub <= lb) # intersection is empty
             return eltype(box1)[] # box of length zero signifies empty intersection
         end
-        b[2 * i - 1] = lb
-        b[2 * i] = ub
+        b[2*i-1] = lb
+        b[2*i] = ub
     end
     return b
 end

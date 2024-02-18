@@ -52,10 +52,10 @@ Example:
 m = FENodeToFEMap(fes.conn, count(fens))
 ```
 """
-function FENodeToFEMap(conn::Vector{NTuple{N, IT}}, nmax::IT) where {N, IT <: Integer}
+function FENodeToFEMap(conn::Vector{NTuple{N,IT}}, nmax::IT) where {N,IT<:Integer}
     map = Vector{IT}[]
     sizehint!(map, nmax)
-    for i in 1:nmax
+    for i = 1:nmax
         push!(map, [])  # initially empty arrays
     end
     for j in eachindex(conn)
@@ -75,10 +75,10 @@ Map from finite element nodes to the finite elements connecting them.
 - `conns` = integer array of the connectivities
 - `nmax` = largest possible node number
 """
-function FENodeToFEMap(conns::Matrix{IT}, nmax::IT) where {IT <: Integer}
+function FENodeToFEMap(conns::Matrix{IT}, nmax::IT) where {IT<:Integer}
     map = Vector{IT}[]
     sizehint!(map, nmax)
-    for i in 1:nmax
+    for i = 1:nmax
         push!(map, [])  # initially empty arrays
     end
     for j in axes(conns, 1)
