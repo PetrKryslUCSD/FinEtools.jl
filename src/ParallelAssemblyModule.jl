@@ -185,15 +185,22 @@ function parallel_matrix_assembly(
     assemblers::AbstractVector{AT},
     matrixcomputation!::F
 ) where {FEMM<:AbstractFEMM, AT<:AbstractSysmatAssembler, F<:Function}
-    Threads.@sync begin
-        for j in eachindex(femms)
-            assemblers[j].buffer_pointer = 1
-            assemblers[j].nomatrixresult = true
-            Threads.@spawn let 
-                matrixcomputation!(femms[j], assemblers[j])
-            end
-        end
+    for j in eachindex(assemblers)
+        assemblers[j].buffer_pointer = 1
+        assemblers[j].nomatrixresult = true
     end
+    Threads.@threads for j in eachindex(femms)
+        matrixcomputation!(femms[j], assemblers[j])
+    end
+    # Threads.@sync begin
+    #     for j in eachindex(femms)
+    #         assemblers[j].buffer_pointer = 1
+    #         assemblers[j].nomatrixresult = true
+    #         Threads.@spawn let 
+    #             matrixcomputation!(femms[j], assemblers[j])
+    #         end
+    #     end
+    # end
     return true
 end
 
