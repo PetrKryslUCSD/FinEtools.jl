@@ -1846,3 +1846,87 @@ function test()
 end
 test()
 end
+
+
+module misc_reorder_1
+using FinEtools
+using SymRCM
+using LinearAlgebra
+using Test
+function test()
+    xs = collect(linearspace(0.0, 5 * pi / 2, 6))
+    ys = collect(linearspace(0.0, 10.0, 7))
+    zs = collect(linearspace(0.0, 10.0, 7))
+
+    for f in (H8blockx, H20blockx, )
+    # for f in (H8blockx, T4blockx, H20blockx, T10blockx)
+        fens, fes = f(xs, ys, zs)
+        geom = NodalField(fens.xyz)
+        femm = FEMMBase(IntegDomain(bfes, GaussRule(3, 3)))
+        V0 = integratefunction(femm, geom, (x) -> 1.0)
+
+        C = connectionmatrix(FEMMBase(IntegDomain(fes)), count(fens))
+            ordering = symrcm(C)
+        fens, fes = reordermesh(fens, fes, ordering)
+        geom = NodalField(fens.xyz)
+        femm = FEMMBase(IntegDomain(bfes, GaussRule(3, 3)))
+        V = integratefunction(femm, geom, (x) -> 1.0)
+        @test abs(V - V0) / V0 < 1.0e-6
+        
+    end
+    nothing
+end
+test()
+end
+
+module misc_reorder_1
+using FinEtools
+using SymRCM
+# using FinEtools.MeshExportModule: VTKWrite
+using LinearAlgebra
+using Test
+function test()
+    xs = collect(linearspace(0.0, 5 * pi / 2, 6))
+    ys = collect(linearspace(0.0, 10.0, 7))
+    zs = collect(linearspace(0.0, 10.0, 7))
+
+    for f in (H8blockx, H20blockx )
+    # for f in (H8blockx, T4blockx, H20blockx, T10blockx)
+        fens, fes = f(xs, ys, zs)
+        geom = NodalField(fens.xyz)
+        femm = FEMMBase(IntegDomain(fes, GaussRule(3, 3)))
+        V0 = integratefunction(femm, geom, (x) -> 1.0)
+
+        C = connectionmatrix(FEMMBase(IntegDomain(fes, GaussRule(3, 3))), count(fens))
+        ordering = symrcm(C)
+        fens, fes = reordermesh(fens, fes, ordering)
+        # File = "misc_reorder_1.vtk"
+        #  VTKWrite.vtkwrite(File, fens, fes)
+        geom = NodalField(fens.xyz)
+        femm = FEMMBase(IntegDomain(fes, GaussRule(3, 3)))
+        V = integratefunction(femm, geom, (x) -> 1.0)
+        @test abs(V - V0) / V0 < 1.0e-6
+    end
+
+    
+    # for f in (H8blockx, H20blockx )
+    for f in (T4blockx, T10blockx)
+        fens, fes = f(xs, ys, zs)
+        geom = NodalField(fens.xyz)
+        femm = FEMMBase(IntegDomain(fes, TetRule(4)))
+        V0 = integratefunction(femm, geom, (x) -> 1.0)
+
+        C = connectionmatrix(FEMMBase(IntegDomain(fes, TetRule(4))), count(fens))
+        ordering = symrcm(C)
+        fens, fes = reordermesh(fens, fes, ordering)
+        # File = "misc_reorder_1.vtk"
+        #  VTKWrite.vtkwrite(File, fens, fes)
+        geom = NodalField(fens.xyz)
+        femm = FEMMBase(IntegDomain(fes, TetRule(4)))
+        V = integratefunction(femm, geom, (x) -> 1.0)
+        @test abs(V - V0) / V0 < 1.0e-6
+    end
+    nothing
+end
+test()
+end

@@ -565,7 +565,7 @@ numbering for the nodes.
 `new_numbering` = new serial numbers for the nodes.  The connectivity
           should be changed as `conn[j]` --> `new_numbering[conn[j]]`
 
-Let us say there are nodes not connected to any finite element that you would
+Let us say there are nodes not connected to any finite element that we would
 like to remove from the mesh: here is how that would be accomplished.
 ```
 connected = findunconnnodes(fens, fes);
@@ -1236,6 +1236,19 @@ function outer_surface_of_solid(fens::FENodeSet, bdry_fes::ET) where {ET<:Abstra
     osfesl = selectelem(fens, bdry_fes, flood = true, startnode = startfen)
 
     return subset(bdry_fes, osfesl)
+end
+
+"""
+    reordermesh(fens, fes, ordering)    
+
+Reorder mesh (reshuffle nodes, renumber connectivities correspondingly).
+
+The ordering may come from Reverse Cuthill-McKey (package SymRCM).
+"""
+function reordermesh(fens, fes, ordering)
+    iordering = collect(1:length(ordering))
+    iordering[ordering] = iordering
+    return FENodeSet(fens.xyz[ordering, :]), renumberconn!(fes, iordering)
 end
 
 end
