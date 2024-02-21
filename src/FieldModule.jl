@@ -268,8 +268,8 @@ function gathervalues_asmat!(
     dest::AbstractArray{T,2},
     conn::CC,
 ) where {F<:AbstractField,T,CC}
-    @inbounds for j in axes(self.values, 2)
-        for i in eachindex(conn)
+    @inbounds for i in eachindex(conn)
+        for j in axes(self.values, 2)
             dest[i, j] = self.values[conn[i], j]
         end
     end
