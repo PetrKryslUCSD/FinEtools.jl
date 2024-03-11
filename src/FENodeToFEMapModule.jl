@@ -55,10 +55,10 @@ m = FENodeToFEMap(fes.conn, count(fens))
 function FENodeToFEMap(conn::Vector{NTuple{N,IT}}, nmax::IT) where {N,IT<:Integer}
     map = Vector{IT}[]
     sizehint!(map, nmax)
-    for i = 1:nmax
-        push!(map, [])  # initially empty arrays
+    for i in 1:nmax
+        push!(map, IT[])  # initially empty arrays
     end
-    for j in eachindex(conn)
+    @inbounds for j in eachindex(conn)
         for i in eachindex(conn[j])
             ni = conn[j][i]
             push!(map[ni], j)
@@ -78,10 +78,10 @@ Map from finite element nodes to the finite elements connecting them.
 function FENodeToFEMap(conns::Matrix{IT}, nmax::IT) where {IT<:Integer}
     map = Vector{IT}[]
     sizehint!(map, nmax)
-    for i = 1:nmax
-        push!(map, [])  # initially empty arrays
+    for i in 1:nmax
+        push!(map, IT[])  # initially empty arrays
     end
-    for j in axes(conns, 1)
+    @inbounds for j in axes(conns, 1)
         for i in axes(conns, 2)
             ni = conns[j, i]
             push!(map[ni], j)

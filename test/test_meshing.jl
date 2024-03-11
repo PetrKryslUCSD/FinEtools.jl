@@ -7044,3 +7044,37 @@ end
 test()
 end
 
+module mmmmaps1
+using FinEtools
+using Test
+function test(n = 20)
+    W, L, H = 3.5, 7.1, 9.3
+    fens, fes = H8block(W, L, H, n, n, n)
+    # println("Number of elements: $(count(fes))")
+    
+    geom = NodalField(fens.xyz)
+    u = NodalField(zeros(size(fens.xyz, 1), 3)) # displacement field
+
+    femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
+
+    numberdofs!(u)
+
+    # println("nalldofs(u) = $(nalldofs(u))").#
+    n2e = FENodeToFEMap(fes.conn, count(fens))
+    n2n = FENodeToNeighborsMap(n2e, fes.conn)
+    
+    found = true
+    for i in eachindex(fes.conn)
+        for k in fes.conn[i]
+            for m in fes.conn[i]
+                found = found && ((k in n2n.map[m]) && (m in n2n.map[k]))
+            end
+        end
+    end
+    @test found
+end
+test(13)
+test(17)
+test(18)
+nothing
+end
