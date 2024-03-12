@@ -25,6 +25,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 03/12/2024: Move parallel functionality to ParFEM.
 - 02/19/2024: Implement mesh reordering.
 - 02/17/2024: Implement generic parallel matrix assembly using threaded tasks.
 - 12/31/2023: Update for Julia 1.10.

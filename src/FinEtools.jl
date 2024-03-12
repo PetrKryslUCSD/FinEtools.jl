@@ -636,20 +636,6 @@ using .MatModule: AbstractMat, massdensity
 export AbstractMat, massdensity
 
 ###########################################################################
-# Parallel matrix assembly
-###########################################################################
-using .ParallelAssemblyModule:
-    make_assembler,
-    start_assembler!,
-    make_task_assemblers,
-    parallel_matrix_assembly,
-    make_matrix!
-
-# Exported: types and methods for  sparse matrix assembly  and vector assembly
-export make_assembler,
-    start_assembler!, make_task_assemblers, parallel_matrix_assembly, make_matrix!
-
-###########################################################################
 # Matrix utilities
 ###########################################################################
 using .MatrixUtilityModule:
