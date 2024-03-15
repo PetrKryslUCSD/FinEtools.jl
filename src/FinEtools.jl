@@ -643,5 +643,7 @@ using .MatrixUtilityModule:
 export matrix_blocked_ff, matrix_blocked_fd, matrix_blocked_df, matrix_blocked_dd
 using .MatrixUtilityModule: vector_blocked_f, vector_blocked_d
 export vector_blocked_f, vector_blocked_d
+using .MatrixUtilityModule: setvectorentries!
+export setvectorentries!
 
 end

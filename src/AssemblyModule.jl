@@ -58,15 +58,15 @@ expectedntriples(
     n_elem_mats::IT,
 ) where {A<:AbstractSysmatAssembler, IT} = elem_mat_nrows * elem_mat_ncols * n_elem_mats
 
-function _resize(self, chunk)
+function _resize_buffers(self, chunk)
     new_buffer_length = self._buffer_length + chunk
     resize!(self._rowbuffer, new_buffer_length)
     resize!(self._colbuffer, new_buffer_length)
     resize!(self._matbuffer, new_buffer_length)
     if self._force_init
-        self._rowbuffer[(self._buffer_length+1):end] .= 1
-        self._colbuffer[(self._buffer_length+1):end] .= 1
-        self._matbuffer[(self._buffer_length+1):end] .= 0
+        setvectorentries!(@view(self._rowbuffer[(self._buffer_length+1):end]), 1)
+        setvectorentries!(@view(self._colbuffer[(self._buffer_length+1):end]), 1)
+        setvectorentries!(@view(self._matbuffer[(self._buffer_length+1):end]), zero(eltype(self._matbuffer)))
     end
     self._buffer_length = new_buffer_length
     return self
@@ -227,9 +227,9 @@ function startassembly!(
     # Leave the buffers uninitialized, unless the user requests otherwise
     self._force_init = force_init
     if self._force_init
-        self._rowbuffer .= 1
-        self._colbuffer .= 1
-        self._matbuffer .= zero(T)
+        setvectorentries!(self._rowbuffer, 1)
+        setvectorentries!(self._colbuffer, 1)
+        setvectorentries!(self._matbuffer, zero(eltype(self._matbuffer)))
     end
     return self
 end
@@ -257,7 +257,7 @@ function assemble!(
     ncolumns = length(dofnums_col)
     p = self._buffer_pointer
     if self._buffer_length < p + ncolumns * nrows - 1
-        self = _resize(self, ncolumns * nrows * 1000)
+        self = _resize_buffers(self, ncolumns * nrows * 1000)
     end
     size(mat) == (nrows, ncolumns) || error("Wrong size of matrix")
     @inbounds for j in 1:ncolumns
@@ -472,11 +472,11 @@ function startassembly!(
         self._col_nalldofs = col_nalldofs
     end
     # Leave the buffers uninitialized, unless the user requests otherwise
+    self._force_init = force_init
     if force_init
-        self._rowbuffer .= 1
-        self._colbuffer .= 1
-        self._matbuffer .= 0
-        self._force_init = force_init
+        setvectorentries!(self._rowbuffer, 1)
+        setvectorentries!(self._colbuffer, 1)
+        setvectorentries!(self._matbuffer, zero(eltype(self._matbuffer)))
     end
     return self
 end
@@ -508,7 +508,7 @@ function assemble!(
     @assert nrows == ncolumns
     p = self._buffer_pointer
     if self._buffer_length < p + (ncolumns * nrows + nrows) / 2 - 1
-        self = _resize(self, ncolumns * nrows * 1000)
+        self = _resize_buffers(self, ncolumns * nrows * 1000)
     end
     @assert size(mat) == (nrows, ncolumns)
     @inbounds for j = 1:ncolumns
@@ -694,10 +694,11 @@ function startassembly!(
         self._col_nalldofs = col_nalldofs
     end
     # Leave the buffers uninitialized, unless the user requests otherwise
+    self._force_init = force_init
     if force_init
-        self._rowbuffer .= 1
-        self._colbuffer .= 1
-        self._matbuffer .= 0
+        setvectorentries!(self._rowbuffer, 1)
+        setvectorentries!(self._colbuffer, 1)
+        setvectorentries!(self._matbuffer, zero(eltype(self._matbuffer)))
     end
     return self
 end
@@ -730,7 +731,7 @@ function assemble!(
     @assert nrows == ncolumns
     p = self._buffer_pointer
     if self._buffer_length < p + ncolumns * nrows - 1
-        self = _resize(self, ncolumns * nrows * 1000)
+        self = _resize_buffers(self, ncolumns * nrows * 1000)
     end
     @assert size(mat) == (nrows, ncolumns)
     @inbounds for j = 1:ncolumns
@@ -1036,10 +1037,11 @@ function startassembly!(
         self._col_nalldofs = col_nalldofs
     end
     # Leave the buffers uninitialized, unless the user requests otherwise
+    self._force_init = force_init
     if force_init
-        self._rowbuffer .= 1
-        self._colbuffer .= 1
-        self._matbuffer .= 0
+        setvectorentries!(self._rowbuffer, 1)
+        setvectorentries!(self._colbuffer, 1)
+        setvectorentries!(self._matbuffer, zero(eltype(self._matbuffer)))
     end
     return self
 end
@@ -1069,7 +1071,7 @@ function assemble!(
     @assert nrows == ncolumns
     p = self._buffer_pointer
     if self._buffer_length < p + ncolumns * nrows - 1
-        self = _resize(self, ncolumns * nrows * 1000)
+        self = _resize_buffers(self, ncolumns * nrows * 1000)
     end
     @assert size(mat) == (nrows, ncolumns)
     # Now comes the lumping procedure

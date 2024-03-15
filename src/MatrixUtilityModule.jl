@@ -838,4 +838,19 @@ function vector_blocked_d(V, nfreedofs)
     return V_d
 end
 
+"""
+    setvectorentries!(a, v = zero(eltype(a)))
+
+Set entries of a long vector to a given constant.
+
+The operation runs in parallel on as many threads as are available.
+"""
+function setvectorentries!(a, v = zero(eltype(a)))
+    @inbounds Threads.@threads for k in eachindex(a)
+        a[k] = v
+    end
+    a
+end
+
+
 end
