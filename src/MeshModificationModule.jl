@@ -1255,8 +1255,8 @@ function __find_minimal_count(color_conflicts, color_counts)
     c = 1
     mincount = typemax(eltype(color_counts))
     for k in eachindex(color_conflicts)
-        if color_conflicts[k] == 0 && mincount  > color_counts[k]
-            mincount = color_counts[k]; 
+        if color_conflicts[k] == 0 && mincount > color_counts[k]
+            mincount = color_counts[k]
             c = k
         end
     end
@@ -1282,7 +1282,7 @@ function element_coloring(fes, n2e)
                     m = n2e.map[n]
                     for j in eachindex(m)
                         oe = m[j]
-                        if element_colors[oe] > 0 && element_colors[oe] in unique_colors 
+                        if element_colors[oe] > 0 && element_colors[oe] in unique_colors
                             if !(element_colors[oe] in color_conflicts)
                                 color_conflicts[element_colors[oe]] = element_colors[oe]
                             end

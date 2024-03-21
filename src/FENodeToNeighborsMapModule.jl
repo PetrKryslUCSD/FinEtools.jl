@@ -15,7 +15,7 @@ function __collect_unique_node_neighbors(ellist, conn, npe)
     p = 1
     @inbounds for i in ellist
         for k in conn[i]
-            nodes[p] = k 
+            nodes[p] = k
             p += 1
         end
     end
@@ -62,7 +62,10 @@ Example:
 m = FENodeToNeighborsMap(fes.conn, count(fens))
 ```
 """
-function FENodeToNeighborsMap(n2e::N2EMAP, conn::Vector{NTuple{N, IT}}) where {N2EMAP<:FENodeToFEMap, N, IT<:Integer}
+function FENodeToNeighborsMap(
+    n2e::N2EMAP,
+    conn::Vector{NTuple{N,IT}},
+) where {N2EMAP<:FENodeToFEMap,N,IT<:Integer}
     return FENodeToNeighborsMap(_unique_nodes(n2e, conn))
 end
 
