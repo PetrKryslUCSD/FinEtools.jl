@@ -148,7 +148,7 @@ possible, for instance like this:
 ```
     a.nomatrixresult = false
     A = makematrix!(a)
-```:1
+```
 At this point all the buffers of the assembler have potentially been cleared,
 and `makematrix!(a) ` is no longer possible.
 
