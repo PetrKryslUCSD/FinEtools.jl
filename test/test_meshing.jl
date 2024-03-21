@@ -7078,3 +7078,70 @@ test(17)
 test(18)
 nothing
 end
+
+module mesh_test_3
+using FinEtools
+using FinEtools.MeshExportModule
+using Statistics
+using LinearAlgebra
+using Test
+function test()
+    W = 25.0
+    H = 50.0
+    L = 50.0
+    N = 11
+    
+    fens, fes = H8block(W, L, H, N, N, N)
+      
+    # vtkexportmesh("H8block.vtk", fes.conn, fens.xyz,  FinEtools.MeshExportModule.VTK.H8)
+    
+    n2e = FENodeToFEMap(fes.conn, count(fens))
+
+    element_colors = element_coloring(fes, n2e)
+
+    @test norm(unique(element_colors) - [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) == 0
+
+    # @show partitions = unique(element_colors)
+    # for j in 1:length(partitions)
+    #     sfes = subset(fes, findall(v -> v == partitions[j], element_colors))
+    #     @show count(sfes)
+    #     vtkexportmesh("H8block-c=$(partitions[j]).vtk", fens, sfes)
+    # end
+    
+end
+test()
+end
+
+
+module mesh_test_4
+using FinEtools
+using FinEtools.MeshExportModule
+using Statistics
+using LinearAlgebra
+using Test
+function test()
+    W = 25.0
+    H = 50.0
+    L = 50.0
+    N = 11
+
+    fens, fes = T4block(W, L, H, N, N, N)
+
+    # vtkexportmesh("T4block.vtk", fes.conn, fens.xyz,  FinEtools.MeshExportModule.VTK.T4)
+
+    n2e = FENodeToFEMap(fes.conn, count(fens))
+
+    element_colors = element_coloring(fes, n2e)
+
+    @test norm(unique(element_colors) - [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]) == 0
+
+    # @show partitions = unique(element_colors)
+    # for j in 1:length(partitions)
+    #     sfes = subset(fes, findall(v -> v == partitions[j], element_colors))
+    #     @show count(sfes)
+    #     vtkexportmesh("T4block-c=$(partitions[j]).vtk", fens, sfes)
+    # end
+
+end
+test()
+end

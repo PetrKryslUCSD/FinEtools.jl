@@ -1251,4 +1251,72 @@ function reordermesh(fens, fes, ordering)
     return FENodeSet(fens.xyz[ordering, :]), renumberconn!(fes, iordering)
 end
 
+function __find_minimal_count(color_conflicts, color_counts)
+    c = 1
+    mincount = typemax(eltype(color_counts))
+    for k in eachindex(color_conflicts)
+        if color_conflicts[k] == 0 && mincount  > color_counts[k]
+            mincount = color_counts[k]; 
+            c = k
+        end
+    end
+    return c
 end
+
+"""
+    element_coloring(fes, n2e)
+
+Find coloring of the elements such that no two elements of the same color share a node.
+"""
+function element_coloring(fes, n2e)
+    element_colors = fill(0, count(fes))
+    unique_colors = eltype(element_colors)[1]
+    color_counts = eltype(element_colors)[0]
+    color_conflicts = eltype(element_colors)[0]
+    done = 0
+    while true
+        for e in eachindex(fes)
+            color_conflicts .= 0
+            if element_colors[e] == 0
+                for n in fes.conn[e]
+                    m = n2e.map[n]
+                    for j in eachindex(m)
+                        oe = m[j]
+                        if element_colors[oe] > 0 && element_colors[oe] in unique_colors 
+                            if !(element_colors[oe] in color_conflicts)
+                                color_conflicts[element_colors[oe]] = element_colors[oe]
+                            end
+                        end
+                    end
+                end
+                if sum(color_conflicts) == 0
+                    c = argmin(color_counts)
+                    element_colors[e] = unique_colors[c]
+                    color_counts[c] += 1
+                else
+                    first_not_in_conflict = findfirst(x -> x == 0, color_conflicts)
+                    if first_not_in_conflict === nothing
+                        added = maximum(unique_colors) + 1
+                        push!(unique_colors, added)
+                        push!(color_counts, 0)
+                        push!(color_conflicts, 0)
+                        c = argmin(color_counts)
+                        element_colors[e] = unique_colors[c]
+                        color_counts[c] += 1
+                    else
+                        c = __find_minimal_count(color_conflicts, color_counts)
+                        element_colors[e] = unique_colors[c]
+                        color_counts[c] += 1
+                    end
+                end
+                done += 1
+            end
+        end
+        if done == length(element_colors)
+            break
+        end
+    end
+    return element_colors
+end
+
+end # module
