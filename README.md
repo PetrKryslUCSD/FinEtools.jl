@@ -25,12 +25,11 @@ The package supports application packages, for instance:
 
 ## News
 
-- 03/12/2024: Move parallel functionality to ParFEM.
+
+- 03/21/2024: Implement element coloring.
+- 03/12/2024: Move parallel functionality to FinEtoolsMultithreading.
 - 02/19/2024: Implement mesh reordering.
-- 02/17/2024: Implement generic parallel matrix assembly using threaded tasks.
-- 12/31/2023: Update for Julia 1.10.
-- 06/19/2023: Introduce DataCache, generic linear and bilinear forms. 
-- 04/20/2023: Make all types in the library generic.
+
 
 
 [Past news](#past-news)
@@ -64,6 +63,10 @@ The documentation  is published as [Github pages](https://petrkryslucsd.github.i
 
 ## <a name="past-news"></a>Past news
 
+- 02/17/2024: Implement generic parallel matrix assembly using threaded tasks.
+- 12/31/2023: Update for Julia 1.10.
+- 06/19/2023: Introduce DataCache, generic linear and bilinear forms. 
+- 04/20/2023: Make all types in the library generic.
 - 04/18/2023: Implemented resizing of assembly buffers. Makematrix! resets pointers.
 - 04/16/2023: Enabled creation of finite element sets from arbitrary arrays.
 - 03/15/2023: Changed strategy when assembling into the COO format.

@@ -10,7 +10,7 @@ __precompile__(true)
 using SparseArrays: sparse, spzeros, SparseMatrixCSC
 using LinearAlgebra: diag
 import Base: eltype
-using ..MatrixUtilityModule: matrix_blocked_ff, vector_blocked_f
+using ..MatrixUtilityModule: matrix_blocked_ff, vector_blocked_f, _zeros_via_calloc
 
 """
     AbstractSysmatAssembler
@@ -56,7 +56,7 @@ expectedntriples(
     elem_mat_nrows::IT,
     elem_mat_ncols::IT,
     n_elem_mats::IT,
-) where {A<:AbstractSysmatAssembler, IT} = elem_mat_nrows * elem_mat_ncols * n_elem_mats
+) where {A<:AbstractSysmatAssembler,IT} = elem_mat_nrows * elem_mat_ncols * n_elem_mats
 
 function _resize_buffers(self, chunk)
     new_buffer_length = self._buffer_length + chunk
@@ -66,7 +66,10 @@ function _resize_buffers(self, chunk)
     if self._force_init
         setvectorentries!(@view(self._rowbuffer[(self._buffer_length+1):end]), 1)
         setvectorentries!(@view(self._colbuffer[(self._buffer_length+1):end]), 1)
-        setvectorentries!(@view(self._matbuffer[(self._buffer_length+1):end]), zero(eltype(self._matbuffer)))
+        setvectorentries!(
+            @view(self._matbuffer[(self._buffer_length+1):end]),
+            zero(eltype(self._matbuffer)),
+        )
     end
     self._buffer_length = new_buffer_length
     return self
@@ -260,11 +263,11 @@ function assemble!(
         self = _resize_buffers(self, ncolumns * nrows * 1000)
     end
     size(mat) == (nrows, ncolumns) || error("Wrong size of matrix")
-    @inbounds for j in 1:ncolumns
+    @inbounds for j = 1:ncolumns
         dj = dofnums_col[j]
         dj < 1 && error("Column degree of freedom < 1")
         dj > self._col_nalldofs && error("Column degree of freedom > size")
-        for i in 1:nrows
+        for i = 1:nrows
             di = dofnums_row[i]
             di < 1 && error("Row degree of freedom < 1")
             di > self._row_nalldofs && error("Row degree of freedom > size")
@@ -283,8 +286,7 @@ end
 
 Make a sparse matrix.
 
-A named tuple of the four matrix blocks is returned, as described in the
-documentation for the constructor.
+The sparse matrix is returned.
 
 !!! note
 
@@ -359,7 +361,7 @@ expectedntriples(
     elem_mat_nrows::IT,
     elem_mat_ncols::IT,
     n_elem_mats::IT,
-)  where {IT} = Int((elem_mat_nrows * elem_mat_ncols + elem_mat_nrows) / 2 * n_elem_mats)
+) where {IT} = Int((elem_mat_nrows * elem_mat_ncols + elem_mat_nrows) / 2 * n_elem_mats)
 
 """
     SysmatAssemblerSparseSymm(z::T, nomatrixresult = false) where {T}
@@ -616,7 +618,7 @@ expectedntriples(
     elem_mat_nrows::IT,
     elem_mat_ncols::IT,
     n_elem_mats::IT,
-)  where {IT} = (max(elem_mat_nrows, elem_mat_ncols) * n_elem_mats)
+) where {IT} = (max(elem_mat_nrows, elem_mat_ncols) * n_elem_mats)
 
 """
     SysmatAssemblerSparseDiag(z::T, nomatrixresult = false) where {T}
@@ -960,7 +962,7 @@ expectedntriples(
     elem_mat_nrows::IT,
     elem_mat_ncols::IT,
     n_elem_mats::IT,
-)  where {IT} = (max(elem_mat_nrows, elem_mat_ncols) * n_elem_mats)
+) where {IT} = (max(elem_mat_nrows, elem_mat_ncols) * n_elem_mats)
 
 """
     SysmatAssemblerSparseHRZLumpingSymm(z::T, nomatrixresult = false) where {T}
@@ -1280,5 +1282,6 @@ Make the global "free" vector.
 function makevector!(self::SysvecAssemblerFBlock)
     return vector_blocked_f(makevector!(self._a), self._row_nfreedofs)
 end
+
 
 end # end of module

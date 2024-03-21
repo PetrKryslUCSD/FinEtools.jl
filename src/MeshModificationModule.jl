@@ -1266,7 +1266,11 @@ end
 """
     element_coloring(fes, n2e)
 
-Find coloring of the elements such that no two elements of the same color share a node.
+Find coloring of the elements such that no two elements of the same color share
+a node.
+
+Returns the numbering of the elements (color here means an integer), and a list
+of the unique colors (numbers).
 """
 function element_coloring(fes, n2e)
     element_colors = fill(0, count(fes))
@@ -1316,7 +1320,7 @@ function element_coloring(fes, n2e)
             break
         end
     end
-    return element_colors
+    return element_colors, unique_colors
 end
 
 end # module

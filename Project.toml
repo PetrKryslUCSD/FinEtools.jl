@@ -1,7 +1,7 @@
 name = "FinEtools"
 uuid = "91bb5406-6c9a-523d-811d-0644c4229550"
 authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
-version = "8.0.7"
+version = "8.0.8"
 
 [deps]
 ChunkSplitters = "ae650224-84b6-46f8-82ea-d812ca08434e"
@@ -16,6 +16,7 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 SymRCM = "286e6d88-80af-4590-acc9-0001b223b9bd"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+ThreadedScans = "24d252fe-5d94-4a69-83ea-56a14333d47a"
 Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 WriteVTK = "64499a7a-5c06-52f2-abe2-ccb03c286192"
 
