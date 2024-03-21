@@ -10,7 +10,7 @@ __precompile__(true)
 using SparseArrays: sparse, spzeros, SparseMatrixCSC
 using LinearAlgebra: diag
 import Base: eltype
-using ..MatrixUtilityModule: matrix_blocked_ff, vector_blocked_f, _zeros_via_calloc
+using ..MatrixUtilityModule: matrix_blocked_ff, vector_blocked_f
 
 """
     AbstractSysmatAssembler
