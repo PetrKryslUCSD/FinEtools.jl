@@ -3216,6 +3216,21 @@ function test()
         #     display(fen2fe2.map[i])
         # end
     end
+
+    fen2fe1 = FENodeToFEMap(fes, count(fens))
+    # display(connasarray(fes))
+    # display(fen2fe1)
+    fen2fe2 = FENodeToFEMap(fes.conn, count(fens))
+    # display(fes.conn)
+    # display(fen2fe2)
+    identical = true
+    for i in eachindex(fen2fe1.map)
+        identical = identical && (fen2fe1.map[i] == fen2fe2.map[i])
+        # if !(fen2fe1.map[i] == fen2fe2.map[i])
+        #     display(fen2fe1.map[i])
+        #     display(fen2fe2.map[i])
+        # end
+    end
     @test identical
 end
 end
@@ -7062,6 +7077,18 @@ function test(n = 20)
     # println("nalldofs(u) = $(nalldofs(u))").#
     n2e = FENodeToFEMap(fes.conn, count(fens))
     n2n = FENodeToNeighborsMap(n2e, fes.conn)
+    
+    found = true
+    for i in eachindex(fes.conn)
+        for k in fes.conn[i]
+            for m in fes.conn[i]
+                found = found && ((k in n2n.map[m]) && (m in n2n.map[k]))
+            end
+        end
+    end
+    @test found
+
+    n2n = FENodeToNeighborsMap(n2e, fes)
     
     found = true
     for i in eachindex(fes.conn)

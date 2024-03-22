@@ -5,6 +5,8 @@ Module to construct a map from finite element nodes to the finite elements.
 """
 module FENodeToFEMapModule
 
+using ..FESetModule: AbstractFESet
+
 __precompile__(true)
 
 """
@@ -65,6 +67,17 @@ function FENodeToFEMap(conn::Vector{NTuple{N,IT}}, nmax::IT) where {N,IT<:Intege
         end
     end
     return FENodeToFEMap(map)
+end
+
+"""
+    FENodeToFEMap(fes::FE, nmax::IT) where {FE<:AbstractFESet,IT<:Integer}
+
+Map from finite element nodes to the finite elements connecting them.
+
+Convenience constructor.
+"""
+function FENodeToFEMap(fes::FE, nmax::IT) where {FE<:AbstractFESet,IT<:Integer}
+    return FENodeToFEMap(fes.conn, nmax)
 end
 
 """

@@ -7,6 +7,7 @@ module FENodeToNeighborsMapModule
 
 __precompile__(true)
 
+using ..FESetModule: AbstractFESet
 using ..FENodeToFEMapModule: FENodeToFEMap
 
 function __collect_unique_node_neighbors(ellist, conn, npe)
@@ -50,23 +51,38 @@ struct FENodeToNeighborsMap{IT}
 end
 
 """
-    FENodeToNeighborsMap(conn::Vector{NTuple{N, IT}}, nmax::FInt) where {N, IT<:Integer}
+    FENodeToNeighborsMap(
+        n2e::N2EMAP,
+        conn::Vector{NTuple{N,IT}},
+    ) where {N2EMAP<:FENodeToFEMap,N,IT<:Integer}
 
-Map from finite element nodes to the finite elements connecting them.
+    Map from finite element nodes to the nodes connected to them by elements.
 
 - `conns` = connectivities as a vector of tuples
 - `nmax` = largest possible node number
-
-Example:
-```
-m = FENodeToNeighborsMap(fes.conn, count(fens))
-```
 """
 function FENodeToNeighborsMap(
     n2e::N2EMAP,
     conn::Vector{NTuple{N,IT}},
 ) where {N2EMAP<:FENodeToFEMap,N,IT<:Integer}
     return FENodeToNeighborsMap(_unique_nodes(n2e, conn))
+end
+
+"""
+    FENodeToNeighborsMap(
+        n2e::N2EMAP,
+        fes::FE,
+    ) where {N2EMAP<:FENodeToFEMap,FE<:AbstractFESet}
+
+Map from finite element nodes to the nodes connected to them by elements.
+
+Convenience constructor.
+"""
+function FENodeToNeighborsMap(
+    n2e::N2EMAP,
+    fes::FE,
+) where {N2EMAP<:FENodeToFEMap,FE<:AbstractFESet}
+    return FENodeToNeighborsMap(_unique_nodes(n2e, fes.conn))
 end
 
 end
