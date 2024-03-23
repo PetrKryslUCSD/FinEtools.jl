@@ -8,6 +8,8 @@ using LinearAlgebra
 using Test
 function test_coloring(coloring, n2e)
     element_colors, unique_colors = coloring
+    findall(c -> c <= 0, element_colors) === nothing
+    findall(c -> c > maximum(unique_colors), element_colors) === nothing
     @assert norm(sort(unique(element_colors)) - sort(unique_colors)) == 0
     for k in eachindex(n2e.map)
         nc = element_colors[n2e.map[k]]
@@ -7111,6 +7113,17 @@ using FinEtools.MeshExportModule
 using Statistics
 using LinearAlgebra
 using Test
+function test_coloring(coloring, n2e)
+    element_colors, unique_colors = coloring
+    findall(c -> c <= 0, element_colors) === nothing
+    findall(c -> c > maximum(unique_colors), element_colors) === nothing
+    @assert norm(sort(unique(element_colors)) - sort(unique_colors)) == 0
+    for k in eachindex(n2e.map)
+        nc = element_colors[n2e.map[k]]
+        @assert length(nc) == length(unique(nc))
+        @assert norm(sort(nc) - sort(unique(nc))) == 0
+    end
+end
 function test()
     W = 25.0
     H = 50.0
@@ -7124,7 +7137,7 @@ function test()
     n2e = FENodeToFEMap(fes.conn, count(fens))
 
     element_colors, unique_colors = element_coloring(fes, n2e)
-
+    test_coloring((element_colors, unique_colors), n2e)
     @test norm(unique(element_colors) - [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) == 0
 
     # @show partitions = unique(element_colors)
@@ -7145,6 +7158,17 @@ using FinEtools.MeshExportModule
 using Statistics
 using LinearAlgebra
 using Test
+function test_coloring(coloring, n2e)
+    element_colors, unique_colors = coloring
+    findall(c -> c <= 0, element_colors) === nothing
+    findall(c -> c > maximum(unique_colors), element_colors) === nothing
+    @assert norm(sort(unique(element_colors)) - sort(unique_colors)) == 0
+    for k in eachindex(n2e.map)
+        nc = element_colors[n2e.map[k]]
+        @assert length(nc) == length(unique(nc))
+        @assert norm(sort(nc) - sort(unique(nc))) == 0
+    end
+end
 function test()
     W = 25.0
     H = 50.0
@@ -7158,7 +7182,7 @@ function test()
     n2e = FENodeToFEMap(fes.conn, count(fens))
 
     element_colors, unique_colors = element_coloring(fes, n2e)
-
+    test_coloring((element_colors, unique_colors), n2e)
     @test norm(unique(element_colors) - [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]) == 0
 
     # @show partitions = unique(element_colors)
