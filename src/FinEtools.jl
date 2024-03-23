@@ -118,10 +118,6 @@ using .FENodeToFEMapModule: FENodeToFEMap
 # Exported: type for maps from nodes to finite elements
 export FENodeToFEMap
 
-using .FENodeToNeighborsMapModule: FENodeToNeighborsMap
-# Exported: type for maps from nodes to connected nodes
-export FENodeToNeighborsMap
-
 using .FieldModule:
     AbstractField,
     ndofs,
