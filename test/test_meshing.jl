@@ -1,3 +1,49 @@
+
+
+module mesh_test_coloring_1
+using FinEtools
+using FinEtools.MeshExportModule
+using Statistics
+using LinearAlgebra
+using Test
+function test_coloring(coloring, n2e)
+    element_colors, unique_colors = coloring
+    @assert norm(sort(unique(element_colors)) - sort(unique_colors)) == 0
+    for k in eachindex(n2e.map)
+        nc = element_colors[n2e.map[k]]
+        @assert length(nc) == length(unique(nc))
+        @assert norm(sort(nc) - sort(unique(nc))) == 0
+    end
+end
+function test()
+    W = 25.0
+    H = 50.0
+    L = 50.0
+    for    nl = [1, 2, 3, 4, 5], nt = [1, 3, 4, 5], nw = [1, 2, 3, 7]
+
+        fens, fes = H8block(W, L, H, nl, nt, nw)
+
+        # vtkexportmesh("T4block.vtk", fes.conn, fens.xyz,  FinEtools.MeshExportModule.VTK.T4)
+
+        n2e = FENodeToFEMap(fes.conn, count(fens))
+
+        element_colors, unique_colors = element_coloring(fes, n2e)
+
+        # @test norm(unique(element_colors) - [1, 2, 3, 4, 5, 6, 7, 8, ]) == 0
+
+        # @show partitions = unique(element_colors)
+        # for j in 1:length(partitions)
+        #     sfes = subset(fes, findall(v -> v == partitions[j], element_colors))
+        #     @show count(sfes)
+        #     vtkexportmesh("mesh_test_coloring_1-c=$(partitions[j]).vtk", fens, sfes)
+        # end
+
+        test_coloring((element_colors, unique_colors), n2e)
+    end
+end
+test()
+end
+
 module mexpmeshx1ba3
 using FinEtools
 using FinEtools.MeshExportModule.MESH: write_MESH
