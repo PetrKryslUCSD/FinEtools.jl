@@ -1293,46 +1293,39 @@ elements to be assigned colors.
 function element_coloring!(element_colors, unique_colors, color_counts, fes, n2e, ellist)
     __color_used = fill(zero(eltype(element_colors)), length(unique_colors))
     it = isempty(ellist) ? eachindex(fes) : eachindex(ellist)
-    done = 0
-    while true
-        for e in it
+    for e in it
+        if element_colors[e] == 0
             __color_used .= 0
-            if element_colors[e] == 0
-                for n in fes.conn[e]
-                    m = n2e.map[n]
-                    for j in eachindex(m)
-                        oe = m[j]
-                        c = element_colors[oe]
-                        if c > 0 
-                            __color_used[c] += 1
-                        end
+            for n in fes.conn[e]
+                m = n2e.map[n]
+                for j in eachindex(m)
+                    oe = m[j]
+                    c = element_colors[oe]
+                    if c > 0
+                        __color_used[c] += 1
                     end
                 end
-                if sum(__color_used) == 0
+            end
+            if sum(__color_used) == 0
+                c = argmin(color_counts)
+                element_colors[e] = unique_colors[c]
+                color_counts[c] += 1
+            else
+                first_not_used = findfirst(x -> x == 0, __color_used)
+                if first_not_used === nothing
+                    added = maximum(unique_colors) + 1
+                    push!(unique_colors, added)
+                    push!(color_counts, 0)
+                    push!(__color_used, 0)
                     c = argmin(color_counts)
                     element_colors[e] = unique_colors[c]
                     color_counts[c] += 1
                 else
-                    first_not_used = findfirst(x -> x == 0, __color_used)
-                    if first_not_used === nothing
-                        added = maximum(unique_colors) + 1
-                        push!(unique_colors, added)
-                        push!(color_counts, 0)
-                        push!(__color_used, 0)
-                        c = argmin(color_counts)
-                        element_colors[e] = unique_colors[c]
-                        color_counts[c] += 1
-                    else
-                        c = __find_minimal_count(__color_used, color_counts)
-                        element_colors[e] = unique_colors[c]
-                        color_counts[c] += 1
-                    end
+                    c = __find_minimal_count(__color_used, color_counts)
+                    element_colors[e] = unique_colors[c]
+                    color_counts[c] += 1
                 end
-                done += 1
             end
-        end
-        if done == length(element_colors)
-            break
         end
     end
     return element_colors, unique_colors, color_counts
