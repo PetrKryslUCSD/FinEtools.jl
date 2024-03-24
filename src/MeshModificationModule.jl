@@ -1251,11 +1251,11 @@ function reordermesh(fens, fes, ordering)
     return FENodeSet(fens.xyz[ordering, :]), renumberconn!(fes, iordering)
 end
 
-function __find_minimal_count(color_used, color_counts)
+function __find_minimal_count(__color_used, color_counts)
     c = 1
     mincount = typemax(eltype(color_counts))
-    for k in eachindex(color_used)
-        if color_used[k] == 0 && mincount > color_counts[k]
+    for k in eachindex(__color_used)
+        if __color_used[k] == 0 && mincount > color_counts[k]
             mincount = color_counts[k]
             c = k
         end
@@ -1277,11 +1277,12 @@ of the unique colors (numbers).
 function element_coloring(fes, n2e)
     element_colors = fill(zero(eltype(fes.conn[1])), count(fes))
     unique_colors = eltype(element_colors)[1]
-    return element_coloring!(element_colors, unique_colors, fes, n2e, eltype(element_colors)[])
+    color_counts = eltype(element_colors)[0]
+    return element_coloring!(element_colors, unique_colors, color_counts, fes, n2e, eltype(n2e.map[1])[])
 end
 
 """
-    element_coloring!(element_colors, fes, n2e, ellist)
+    element_coloring!(element_colors, unique_colors, color_counts, fes, n2e, ellist)
 
 Find coloring of the elements such that no two elements of the same color share
 a node.
@@ -1289,14 +1290,13 @@ a node.
 Compute element coloring, supplying the current element colors and the list of
 elements to be assigned colors.
 """
-function element_coloring!(element_colors, unique_colors, fes, n2e, ellist)
-    color_counts = fill(zero(eltype(element_colors)), length(unique_colors))
-    color_used = fill(zero(eltype(element_colors)), length(unique_colors))
+function element_coloring!(element_colors, unique_colors, color_counts, fes, n2e, ellist)
+    __color_used = fill(zero(eltype(element_colors)), length(unique_colors))
     it = isempty(ellist) ? eachindex(fes) : eachindex(ellist)
     done = 0
     while true
         for e in it
-            color_used .= 0
+            __color_used .= 0
             if element_colors[e] == 0
                 for n in fes.conn[e]
                     m = n2e.map[n]
@@ -1304,26 +1304,26 @@ function element_coloring!(element_colors, unique_colors, fes, n2e, ellist)
                         oe = m[j]
                         c = element_colors[oe]
                         if c > 0 
-                            color_used[c] += 1
+                            __color_used[c] += 1
                         end
                     end
                 end
-                if sum(color_used) == 0
+                if sum(__color_used) == 0
                     c = argmin(color_counts)
                     element_colors[e] = unique_colors[c]
                     color_counts[c] += 1
                 else
-                    first_not_used = findfirst(x -> x == 0, color_used)
+                    first_not_used = findfirst(x -> x == 0, __color_used)
                     if first_not_used === nothing
                         added = maximum(unique_colors) + 1
                         push!(unique_colors, added)
                         push!(color_counts, 0)
-                        push!(color_used, 0)
+                        push!(__color_used, 0)
                         c = argmin(color_counts)
                         element_colors[e] = unique_colors[c]
                         color_counts[c] += 1
                     else
-                        c = __find_minimal_count(color_used, color_counts)
+                        c = __find_minimal_count(__color_used, color_counts)
                         element_colors[e] = unique_colors[c]
                         color_counts[c] += 1
                     end
@@ -1335,7 +1335,7 @@ function element_coloring!(element_colors, unique_colors, fes, n2e, ellist)
             break
         end
     end
-    return element_colors, unique_colors
+    return element_colors, unique_colors, color_counts
 end
 
 end # module
