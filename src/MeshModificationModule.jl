@@ -1266,7 +1266,12 @@ function element_coloring(fes, n2e, ellist::Vector{IT} = Int[]) where {IT<:Integ
     element_colors = fill(zero(eltype(fes.conn[1])), count(fes))
     unique_colors = eltype(element_colors)[1]
     color_counts = eltype(element_colors)[0]
-    return element_coloring!(element_colors, unique_colors, color_counts, fes, n2e, ellist)
+    if isempty(ellist) 
+        ellistit = 1:count(fes)
+    else
+        ellistit = ellist
+    end
+    return element_coloring!(element_colors, unique_colors, color_counts, fes, n2e, ellistit)
 end
 
 function __find_minimal_count(__color_used, color_counts)
@@ -1290,10 +1295,9 @@ a node.
 Compute element coloring, supplying the current element colors and the list of
 elements to be assigned colors.
 """
-function element_coloring!(element_colors, unique_colors, color_counts, fes, n2e, ellist)
+function element_coloring!(element_colors, unique_colors, color_counts, fes, n2e, ellist_iterator)
     __color_used = fill(zero(eltype(element_colors)), length(unique_colors))
-    it = isempty(ellist) ? eachindex(fes) : eachindex(ellist)
-    for e in it
+    for e in ellist_iterator
         if element_colors[e] == 0
             __color_used .= 0
             for n in fes.conn[e]
