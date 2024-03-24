@@ -1269,17 +1269,33 @@ end
 Find coloring of the elements such that no two elements of the same color share
 a node.
 
-Returns the numbering of the elements (color here means an integer), and a list
+Returns the colors of the elements (color here means an integer), and a list
 of the unique colors (numbers).
+
+`ellist` = list of elements to be assigned colors; other element colors may be looked at
 """
 function element_coloring(fes, n2e)
-    element_colors = fill(0, count(fes))
+    element_colors = fill(zero(eltype(fes.conn[1])), count(fes))
     unique_colors = eltype(element_colors)[1]
-    color_counts = eltype(element_colors)[0]
-    color_used = eltype(element_colors)[0]
+    return element_coloring!(element_colors, unique_colors, fes, n2e, eltype(element_colors)[])
+end
+
+"""
+    element_coloring!(element_colors, fes, n2e, ellist)
+
+Find coloring of the elements such that no two elements of the same color share
+a node.
+
+Compute element coloring, supplying the current element colors and the list of
+elements to be assigned colors.
+"""
+function element_coloring!(element_colors, unique_colors, fes, n2e, ellist)
+    color_counts = fill(zero(eltype(element_colors)), length(unique_colors))
+    color_used = fill(zero(eltype(element_colors)), length(unique_colors))
+    it = isempty(ellist) ? eachindex(fes) : eachindex(ellist)
     done = 0
     while true
-        for e in eachindex(fes)
+        for e in it
             color_used .= 0
             if element_colors[e] == 0
                 for n in fes.conn[e]
