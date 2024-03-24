@@ -1251,6 +1251,24 @@ function reordermesh(fens, fes, ordering)
     return FENodeSet(fens.xyz[ordering, :]), renumberconn!(fes, iordering)
 end
 
+"""
+    element_coloring(fes, n2e, ellist::Vector{IT} = IT[]) where {IT<:Integer}
+
+Find coloring of the elements such that no two elements of the same color share
+a node.
+
+Returns the colors of the elements (color here means an integer), and a list
+of the unique colors (numbers).
+
+`ellist` = list of elements to be assigned colors; other element colors may be looked at
+"""
+function element_coloring(fes, n2e, ellist::Vector{IT} = Int[]) where {IT<:Integer}
+    element_colors = fill(zero(eltype(fes.conn[1])), count(fes))
+    unique_colors = eltype(element_colors)[1]
+    color_counts = eltype(element_colors)[0]
+    return element_coloring!(element_colors, unique_colors, color_counts, fes, n2e, ellist)
+end
+
 function __find_minimal_count(__color_used, color_counts)
     c = 1
     mincount = typemax(eltype(color_counts))
@@ -1261,24 +1279,6 @@ function __find_minimal_count(__color_used, color_counts)
         end
     end
     return c
-end
-
-"""
-    element_coloring(fes, n2e)
-
-Find coloring of the elements such that no two elements of the same color share
-a node.
-
-Returns the colors of the elements (color here means an integer), and a list
-of the unique colors (numbers).
-
-`ellist` = list of elements to be assigned colors; other element colors may be looked at
-"""
-function element_coloring(fes, n2e)
-    element_colors = fill(zero(eltype(fes.conn[1])), count(fes))
-    unique_colors = eltype(element_colors)[1]
-    color_counts = eltype(element_colors)[0]
-    return element_coloring!(element_colors, unique_colors, color_counts, fes, n2e, eltype(n2e.map[1])[])
 end
 
 """
