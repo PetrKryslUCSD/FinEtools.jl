@@ -1274,16 +1274,25 @@ function element_coloring(fes, n2e, ellist::Vector{IT} = Int[]) where {IT<:Integ
     return element_coloring!(element_colors, unique_colors, color_counts, fes, n2e, ellistit)
 end
 
-function __find_minimal_count(__color_used, color_counts)
-    c = 1
+function __find_minimal_count(color_used, color_counts)
+    c = 0
     mincount = typemax(eltype(color_counts))
-    for k in eachindex(__color_used)
-        if __color_used[k] == 0 && mincount > color_counts[k]
+    @inbounds for k in eachindex(color_used)
+        if color_used[k] == 0 && mincount > color_counts[k]
             mincount = color_counts[k]
             c = k
         end
     end
     return c
+end
+
+function __find_first_zero(color_used)
+    @inbounds for k in eachindex(color_used)
+        if color_used[k] == 0 
+            return k
+        end
+    end
+    return 0
 end
 
 """
@@ -1300,7 +1309,7 @@ function element_coloring!(element_colors, unique_colors, color_counts, fes, n2e
     for e in ellist_iterator
         if element_colors[e] == 0
             __color_used .= 0
-            for n in fes.conn[e]
+            @inbounds for n in fes.conn[e]
                 m = n2e.map[n]
                 for j in eachindex(m)
                     oe = m[j]
@@ -1315,13 +1324,12 @@ function element_coloring!(element_colors, unique_colors, color_counts, fes, n2e
                 element_colors[e] = unique_colors[c]
                 color_counts[c] += 1
             else
-                first_not_used = findfirst(x -> x == 0, __color_used)
-                if first_not_used === nothing
+                if __find_first_zero(__color_used) == 0
                     added = maximum(unique_colors) + 1
                     push!(unique_colors, added)
                     push!(color_counts, 0)
                     push!(__color_used, 0)
-                    c = argmin(color_counts)
+                    c = length(color_counts)
                     element_colors[e] = unique_colors[c]
                     color_counts[c] += 1
                 else
