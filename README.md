@@ -25,7 +25,7 @@ The package supports application packages, for instance:
 
 ## News
 
-
+- 04/11/2024: Speed up box selection of elements.
 - 03/21/2024: Implement element coloring.
 - 03/12/2024: Move parallel functionality to FinEtoolsMultithreading.
 - 02/19/2024: Implement mesh reordering.

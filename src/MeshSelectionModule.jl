@@ -512,11 +512,13 @@ function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET<:AbstractFESe
     allinvalue = (allin === nothing) || ((allin !== nothing) && (allin))
     # Select elements whose nodes are in the selected node list
     nodelist = selectnode(fens; kwargs...)
+    node_selected = fill(false, count(fens))
+    node_selected[nodelist] .= true
     nper = nodesperelem(fes)
     for i in eachindex(fes.conn)
         found = 0
         for nd in fes.conn[i]
-            if nd in nodelist
+            if node_selected[nd]
                 found = found + 1
             end
         end
