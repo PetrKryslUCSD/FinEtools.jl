@@ -82,7 +82,15 @@ end
 """
     ontosphere(xyz::Matrix{T}, radius::T) where {T}
 
-Project nodes onto a sphere of given radius.
+    Project nodes onto a sphere of given radius.
+
+# Arguments
+- `xyz::Matrix{T}`: A matrix of shape `(3, N)` representing the coordinates of `N` points.
+- `radius::T`: The radius of the sphere.
+
+# Returns
+A matrix of shape `(3, N)` representing the coordinates of points on the sphere.
+
 """
 function ontosphere(xyz::Matrix{T}, radius::T) where {T}
     for j in axes(xyz, 1)

@@ -55,7 +55,13 @@ end
 """
     meshboundary(fes::T) where {T<:AbstractFESet}
 
-Extract the boundary finite elements from a mesh.
+Compute the boundary of a mesh defined by the given finite element set.
+
+# Arguments
+- `fes::T`: The finite element set representing the mesh.
+
+# Returns
+The boundary of the mesh.
 
 Extract the finite elements of manifold dimension (n-1) from the
 supplied finite element set of manifold dimension (n).
@@ -1242,6 +1248,14 @@ end
     reordermesh(fens, fes, ordering)    
 
 Reorder mesh (reshuffle nodes, renumber connectivities correspondingly).
+
+# Arguments
+- `fens`: The set of mesh nodes.
+- `fes`: The set of elements.
+- `ordering`: The desired ordering of the nodes and elements.
+
+# Returns
+The reordered mesh nodes and elements.
 
 The ordering may come from Reverse Cuthill-McKey (package SymRCM).
 """

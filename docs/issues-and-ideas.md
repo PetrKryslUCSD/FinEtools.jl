@@ -20,7 +20,7 @@ SPyFE.
 Initiated 05/02/2017. It is working in  heat diffusion 05//23/2017.
 
 -- There are some loops  in the finite element model machines which
-are not instrumented with @inbounds end @fastmath.
+are not instrumented with @inbounds and @fastmath.
 
 -- Implement coordinate system module. Replace MaterialOrientationModule
 with it.
@@ -46,29 +46,10 @@ Profiling? Could be array slicing?
 Solution: It was the type instability due to the keyword arguments  used  for
 the finite element sets. Keyword arguments  should be removed everywhere.
 
--- What is __precompile__() for?
-
--- What is @propagate_inbounds for?
-
--- 
-```
-julia> A = rand(3,4);
-
-julia> B = A .- mean(A,1)
-3×4 Array{Float64,2}:
-  0.343976   0.427378  -0.503356  -0.00448691
- -0.210096  -0.531489   0.168928  -0.128212
- -0.13388    0.104111   0.334428   0.132699
-
-julia> mean(B,1)
-1×4 Array{Float64,2}:
- 0.0  0.0  0.0  0.0
-```
-
- -- Use return type annotations. Status: Still not sure if I want to do this in 2023.
+-- Use return type annotations. Status: Still not sure if I want to do this in 2023.
  It might help with understanding the code from the signature?
 
- -- Replace explicit loops with in-place matrix mult functions? A_mult_B! and so on...
+-- Replace explicit loops with in-place matrix mult functions? A_mult_B! and so on...
  Notes: Tested for  the heat conduction model. Around 20% slower: more
  memory allocations.
  ```
@@ -82,7 +63,7 @@ versus
 ```
 A_mul_Bt!(kappa_bargradNT, (Jac*w[j])*kappa_bar, gradN); # intermediate result
 A_mul_B!(Ke1, gradN, kappa_bargradNT);
-@inbounds for nx = 1:Kedim # complete the lower triangle
+@inbounds for nx = 1:Kedim 
   @inbounds for mx = 1:Kedim
     Ke[mx, nx] = Ke[mx, nx] + Ke1[nx, mx]
   end
@@ -94,6 +75,7 @@ versus
 All-loops
 Conductivity
     6.209980 seconds (2.05 M allocations: 1.298 GB, 12.54% gc time)
+
 
 -- add_nhnt!(): test and include  in the code
 Implemented.
@@ -111,7 +93,7 @@ would not work if the assembler expected the full matrix.
 
 -- Test the speed  with the material orientation  matrix different from identity.
 
---
+-- 
 Other workarounds include "types as tags" (search; NumericFuns.jl is one example
 among many), FastAnonymous.jl, and in julia 0.4 the new call() overloading.
 
@@ -122,7 +104,7 @@ into the FEMM modules: type  parameter?
 
 -- I think Julia is about giving you the tools to build these things.
 If you want "the tool for auto-optimizing scientific computing code",
-that would ParallelAccelerator.jl
+that would be ParallelAccelerator.jl
 
 -- Jacobian functions for zero-dimensional manifolds.
 Implemented 05/20/2017
@@ -131,14 +113,8 @@ Implemented 05/20/2017
 export getRm!  Not used?
 Implemented 05/20/2017
 
---
-@code_warntype Jacobiansurface(FEMMBase, FFltMat, FFltMat, FIntMat, FFltMat)
-
 -- replace error() with assert in FEMMBaseModule
 Implemented 05/01/2017
-
--- return fens,nfes            # I think I should not be overwriting the input!
-What is that about?
 
 -- FEMMBaseModule:  redesign  integration methods  by parameterising with
 the function type.
@@ -149,12 +125,12 @@ Implemented  July 2017.
 
 -- Implement  element  fields. (Analogy to  nodal fields.)
 Implemented partially: so far only elementwise constant field has been
-implemented (or rather used  in code)..
+implemented (or rather used  in code). I'm not sure what to do about more complex element fields.
 
 -- To get type stability  (to eliminate that pesky allocation during
-calls in a loop), one has to  define:
+calls in a loop), one has to  define a concrete parametric type:
     femmbase::FEMMBase{S, F} # base finite element modeling machine
-Implemented
+Implemented.
 
 -- Type function cross(theta, v) and others in the rotation module.
 It would seem that  cross() is no longer needed in the rotation module.
@@ -1423,3 +1399,5 @@ end
 ```
 
 -- Why is DeforModelRedModule in FinEtools? Should it (could it) be moved to the linear deformation package? 
+
+-- The element selection techniques should be speeded up by employing a function barrier.
