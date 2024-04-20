@@ -200,7 +200,7 @@ end
 Gauss rule.
 """
 function GaussRule(dim = 1, order = 1)
-    @assert 1 <= dim <= 3 "Gauss rule of dimension $(dim) not available"
+    (1 <= dim <= 3) || error("Gauss rule of dimension $(dim) not available")
     if (order == 1)
         param_coords = vec([0.0])
         weights = vec([2.0])
@@ -485,7 +485,7 @@ end
 Return simplex rule, appropriate for the manifold dimension `dim`.
 """
 function SimplexRule(dim = 1, npts = 1)
-    @assert 0 <= dim <= 3 "Simplex rule of dimension $(dim) not available"
+    (0 <= dim <= 3) || error("Simplex rule of dimension $(dim) not available")
 
     if dim == 0
         r = PointRule()
@@ -522,7 +522,7 @@ end
 Trapezoidal rule.
 """
 function TrapezoidalRule(dim = 1)
-    @assert 1 <= dim <= 3 "Trapezoidal rule of dimension $(dim) not available"
+    (1 <= dim <= 3) || error("Trapezoidal rule of dimension $(dim) not available")
     order = 2 # order of the trapezoidal rule: fixed
     param_coords = [-1.0 1.0]
     weights = [1.0 1.0]
@@ -591,7 +591,7 @@ end
 Nodal-quadrature simplex rule.
 """
 function NodalSimplexRule(dim = 1)
-    @assert 1 <= dim <= 3 "Nodal-quadrature simplex rule of dimension $(dim) not available"
+    (1 <= dim <= 3) || error("Nodal-quadrature simplex rule of dimension $(dim) not available")
     order = 1 # order of the rule
     if (dim == 1)
         param_coords = reshape([-1.0 1.0]', 2, 1)
@@ -637,7 +637,7 @@ end
 Nodal-quadrature tensor-product rule.
 """
 function NodalTensorProductRule(dim = 1)
-    @assert 1 <= dim <= 3 "Nodal-quadrature tensor-product rule of dimension $(dim) not available"
+    (1 <= dim <= 3) || error("Nodal-quadrature tensor-product rule of dimension $(dim) not available")
     order = 1 # order of the rule
     if (dim == 1)
         param_coords = Float64[-1.0 -1.0]

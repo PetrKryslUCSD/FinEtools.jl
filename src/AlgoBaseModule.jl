@@ -154,7 +154,7 @@ Richardson extrapolation.
   solved (this is a measure of how accurately was the system solved).
 """
 function richextrapoluniform(solns::T, params::T) where {T<:AbstractArray{Tn} where {Tn}}
-    @assert abs(params[1] / params[2] - params[2] / params[3]) < 1e-6 "Parameter pair ratio not fixed"
+    (abs(params[1] / params[2] - params[2] / params[3]) < 1e-6) || error("Parameter pair ratio not fixed")
     nsolns = solns ./ solns[1]
     solnestim =
         ((
@@ -199,9 +199,9 @@ function bisect(fun, xl, xu, fl, fu, tolx, tolf)
         xl = xu
         xu = temp
     end
-    # fl = fun(xl);
-    # fu = fun(xu);
-    # @assert fl*fu < 0.0 "Need to get a bracket"
+    fl = fun(xl);
+    fu = fun(xu);
+    (fl*fu < 0.0)  || error("Need to get a bracket")
     while true
         xr = (xu + xl) / 2.0 # bisect interval
         fr = fun(xr) # value at the midpoint
@@ -244,7 +244,7 @@ function bisect(fun, xl, xu, tolx, tolf)
     end
     fl = fun(xl)
     fu = fun(xu)
-    @assert fl * fu < 0.0 "Need to get a bracket"
+    (fl * fu < 0.0) || error("Need to get a bracket")
     while true
         xr = (xu + xl) / 2.0 # bisect interval
         fr = fun(xr) # value at the midpoint
@@ -288,7 +288,7 @@ function fieldnorm(modeldata)
     targetfields = modeldata["targetfields"]
     geom = modeldata["geom"]
 
-    @assert length(regions) == length(targetfields)
+    (length(regions) == length(targetfields)) || error("Mismatch between regions and target fields")
 
     fnorm = 0.0 # Initialize the norm of the difference
     for i in eachindex(regions)
@@ -344,9 +344,9 @@ function fielddiffnorm(modeldatacoarse, modeldatafine)
 
     geom = modeldatafine["geom"]
 
-    @assert length(regionscoarse) == length(regionsfine)
-    @assert length(regionscoarse) == length(targetfieldscoarse)
-    @assert length(regionsfine) == length(targetfieldsfine)
+    (length(regionscoarse) == length(regionsfine)) || error("Mismatch between regions and fields")
+    (length(regionscoarse) == length(targetfieldscoarse)) || error("Mismatch between regions and fields")
+    (length(regionsfine) == length(targetfieldsfine)) || error("Mismatch between regions and fields")
 
     diffnorm = 0.0 # Initialize the norm of the difference
     for i in eachindex(regionscoarse)
@@ -451,7 +451,7 @@ Trapezoidal rule is used to evaluate the integral. The 'function' is
 assumed to vary linearly inbetween the given points.
 """
 function qtrap(ps::VecOrMat{T}, xs::VecOrMat{T}) where {T<:Number}
-    @assert length(ps) == length(xs)
+    (length(ps) == length(xs)) || error("Mismatch between parameters and values")
     num = T(0.0)
     for i = 1:(length(ps)-1)
         num += (ps[i+1] - ps[i]) * (xs[i+1] + xs[i]) / 2.0
@@ -479,11 +479,11 @@ function qcovariance(
     ys::VecOrMat{T};
     ws = nothing,
 ) where {T<:Number}
-    @assert length(ps) == length(xs) == length(ys)
+    (length(ps) == length(xs) == length(ys)) || error("Mismatch between parameters and values")
     if (ws === nothing)
         ws = ones(T, length(ps))
     end
-    @assert length(ws) == length(xs)
+    (length(ws) == length(xs)) || error("Mismatch between coordinates and weights")
     ws[:] = ws ./ qtrap(ps, ws) # Make sure the integral of the weight is equal to 1.0
     xmean = qtrap(ps, xs .* ws)
     ymean = qtrap(ps, ys .* ws)

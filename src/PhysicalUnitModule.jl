@@ -295,8 +295,8 @@ function phun(
     base_time_units = :SEC,
     output_type = Float64,
 )
-    @assert system_of_units in [:SI :SIM :US :IMPERIAL :CGS :SIMM]
-    @assert base_time_units in [:SEC :MIN :HR :DY :YR :WK]
+    (system_of_units in [:SI :SIM :US :IMPERIAL :CGS :SIMM]) || error("Invalid system_of_units")
+    (base_time_units in [:SEC :MIN :HR :DY :YR :WK]) || error("Invalid base_time_units")
 
     d = _physunitdict(output_type, system_of_units, base_time_units)
 

@@ -290,7 +290,7 @@ function Jacobianmdim(
     N::Matrix{T},
     m::IT,
 ) where {MT<:AbstractFESet0Manifold,CC,T<:Number,IT}
-    @assert (m >= 0) && (m <= 3) "Those are the only acceptable options here."
+    ((m >= 0) && (m <= 3)) || error("Those are the only acceptable options here.")
     if (m == 3)
         return Jacobianvolume(self, J, loc, conn, N)
     elseif (m == 2)
@@ -426,7 +426,7 @@ function Jacobianmdim(
     N::Matrix{T},
     m::IT,
 ) where {MT<:AbstractFESet1Manifold,CC,T<:Number,IT}
-    @assert (m >= 1) && (m <= 3) "Those are the only acceptable options here."
+    ((m >= 1) && (m <= 3)) || error("Those are the only acceptable options here.")
     if (m == 3)
         return Jacobianvolume(self, J, loc, conn, N)
     elseif (m == 2)
@@ -522,7 +522,7 @@ function Jacobianmdim(
     N::Matrix{T},
     m::IT,
 ) where {MT<:AbstractFESet2Manifold,CC,T<:Number,IT}
-    @assert (m >= 2) && (m <= 3) "Those are the only acceptable options here."
+    ((m >= 2) && (m <= 3)) || error("Those are the only acceptable options here.")
     if (m == 3)
         return Jacobianvolume(self, J, loc, conn, N)
     else # (m==2)
@@ -579,7 +579,7 @@ function Jacobianmdim(
     N::Matrix{T},
     m::IT,
 ) where {MT<:AbstractFESet3Manifold,CC,T<:Number,IT}
-    @assert (m == 3) "That is the only acceptable option here."
+    (m == 3)  || error("That is the only acceptable option here.")
     return Jacobianvolume(self, J, loc, conn, N)
 end
 

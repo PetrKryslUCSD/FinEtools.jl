@@ -326,7 +326,7 @@ function H8hexahedron(
     blockfun = nothing,
 ) where {T<:Number,IT<:Integer}
     npts = size(xyz, 1)
-    @assert (npts == 2) || (npts == 8) "Need 2 or 8 points"
+    ((npts == 2) || (npts == 8)) || error("Need 2 or 8 points")
     if npts == 2
         lo = minimum(xyz, dims = 1)
         hi = maximum(xyz, dims = 1)
@@ -759,7 +759,7 @@ function H8layeredplatex(
     nts::Vector{IT},
 ) where {T<:Number,IT<:Integer}
     tolerance = minimum(abs.(ts)) / maximum(nts) / 10.0
-    @assert length(ts) >= 1
+    (length(ts) >= 1) || error("Need at least one layer")
     layer = 1
     zs = collect(linearspace(0.0, ts[layer], nts[layer] + 1))
     fens, fes = H8blockx(xs, ys, zs)

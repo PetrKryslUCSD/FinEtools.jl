@@ -483,8 +483,8 @@ function setebc!(
     comp::IT,
     val::T,
 ) where {F<:AbstractField,T<:Number,IT<:Integer}
-    @assert 1 <= comp <= size(self.values, 2) "Requested  nonexistent  degree of freedom"
-    @assert 1 <= fenid <= size(self.values, 1) "Requested nonexistent node"
+    (1 <= comp <= size(self.values, 2)) || error("Requested  nonexistent  degree of freedom")
+    (1 <= fenid <= size(self.values, 1)) || error("Requested nonexistent node")
     _setebc!(self, fenid, is_fixed, comp, val)
     self._nfreedofs = 0
     fill!(self.dofnums, 0)
@@ -520,9 +520,9 @@ function setebc!(
     comp::IT,
     val::AbstractVector{T},
 ) where {F<:AbstractField,T<:Number,IT<:Integer}
-    @assert comp <= size(self.values, 2) "Requested  nonexistent  degree of freedom"
-    @assert maximum(fenids) <= size(self.values, 1) "Requested nonexistent node"
-    @assert size(fenids) == size(val) "Arrays of mismatched sizes"
+    (comp <= size(self.values, 2)) || error("Requested  nonexistent  degree of freedom")
+    (maximum(fenids) <= size(self.values, 1)) || error("Requested nonexistent node")
+    (size(fenids) == size(val)) || error("Arrays of mismatched sizes")
     for j in eachindex(fenids)
         _setebc!(self, fenids[j], is_fixed, comp, val[j])
     end
@@ -560,9 +560,9 @@ function setebc!(
     comp::IT,
     val::T = 0.0,
 ) where {F<:AbstractField,T<:Number,IT<:Integer}
-    @assert (comp >= 1 && comp <= size(self.values, 2)) "Requested  nonexistent  degree of freedom"
-    @assert maximum(fenids) <= size(self.values, 1) "Requested nonexistent node"
-    @assert minimum(fenids) >= 1 "Requested nonexistent node"
+    ((comp >= 1 && comp <= size(self.values, 2))) || error("Requested  nonexistent  degree of freedom")
+    (maximum(fenids) <= size(self.values, 1)) || error("Requested nonexistent node")
+    (minimum(fenids) >= 1) || error("Requested nonexistent node")
     for j in eachindex(fenids)
         _setebc!(self, fenids[j], is_fixed, comp, val)
     end
@@ -792,7 +792,7 @@ function prescribeddofs(uebc::F1, u::F2) where {F1<:AbstractField,F2<:AbstractFi
     dofnums = eltype(u.dofnums)[]
     prescribedvalues = eltype(uebc.values)[]
     nents, dim = size(uebc.values)
-    @assert size(uebc.values) == size(u.values)
+    (size(uebc.values) == size(u.values)) || error("Fields of different sizes")
     for i = 1:nents
         for j = 1:dim
             if uebc.is_fixed[i, j]

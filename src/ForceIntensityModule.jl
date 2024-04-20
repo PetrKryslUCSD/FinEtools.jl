@@ -55,13 +55,13 @@ vector is given.
     ```
     function computeforce!(forceout::Vector{CT}, XYZ::Matrix{T},
         tangents::Matrix{T}, feid::IT) ) where {CT, T<:Number, IT<:Integer}
-        # Calculate the force  and copy it into the buffer....
+        # Calculate the force  and copy it into the buffer forceout....
         return forceout
     end
     ```
-    and it needs to  fill in the buffer `forceout` with the current force at the
+    and it needs to fill in the buffer `forceout` with the current force at the
     location `XYZ`, using, if appropriate, the information supplied in the Jacobian
-    matrix `tangents`, the identifier of the finite element, `feid`.
+    matrix `tangents`, and the identifier of the finite element, `feid`.
 """
 function ForceIntensity(::Type{CT}, ndofn, computeforce!::F) where {CT<:Number,F<:Function}
     # Allocate the buffer to be ready for the first call

@@ -89,7 +89,8 @@ function import_NASTRAN(filename; allocationchunk = chunk, expectfixedformat = f
                 largefield = true
                 fixedformat = true
             end
-            @assert (!fixedformat) || (fixedformat && largefield) "Can handle either free format or large-field fixed format"
+            ((!fixedformat) || (fixedformat && largefield)) ||
+                error("Can handle either free format or large-field fixed format")
             nnode = nnode + 1
             if size(node, 1) < nnode
                 node = vcat(node, zeros(allocationchunk, 4))
@@ -157,16 +158,16 @@ function import_NASTRAN(filename; allocationchunk = chunk, expectfixedformat = f
 
     # The nodes need to be in serial order:  if they are not,  the element
     # connectivities  will not point at the right nodes
-    @assert norm(collect(1:nnode) - node[:, 1]) == 0 "Nodes are not in serial order"
+    (norm(collect(1:nnode) - node[:, 1]) == 0) || error("Nodes are not in serial order")
 
     # Process output arguments
     # Extract coordinates
     xyz = node[:, 2:4]
     # Cleanup element connectivities
     ennod = unique(elem[:, 3])
-    @assert length(ennod) == 1 "Cannot handle mixture of element types"
+    (length(ennod) == 1) || zero("Cannot handle mixture of element types")
 
-    @assert ((ennod[1] == 4) || (ennod[1] == 10)) "Unknown element type"
+    (((ennod[1] == 4) || (ennod[1] == 10))) || zero("Unknown element type")
     conn = elem[:, 4:(3+convert(Int, ennod[1]))]
     pids = elem[:, 2] # property identifier: different identifiers, different materials
     upids = unique(pids)

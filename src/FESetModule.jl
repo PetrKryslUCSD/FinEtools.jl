@@ -155,7 +155,7 @@ function fromarray!(
     self::AbstractFESet{NODESPERELEM},
     conn::AbstractArray,
 ) where {NODESPERELEM}
-    @assert size(conn, 2) == NODESPERELEM
+    (size(conn, 2) == NODESPERELEM) || error("Invalid number of nodes per element")
     self.conn = fill(tuple(fill(0, NODESPERELEM)...), size(conn, 1))
     for i in eachindex(self.conn)
         self.conn[i] = ntuple(y -> conn[i, y], NODESPERELEM)
@@ -244,7 +244,7 @@ Set the labels of individual elements.
 """
 function setlabel!(self::ET, val::Vector{IT}) where {ET<:AbstractFESet,IT}
     #    Set the label of this set.
-    @assert size(self.conn, 1) == length(val) "Must get one  label per finite element connectivity"
+    (size(self.conn, 1) == length(val)) || error("Must get one  label per finite element connectivity")
     self.label = zeros(IT, size(self.conn, 1))
     copyto!(self.label, val)
     return self
@@ -267,7 +267,7 @@ end
 Concatenate the connectivities of two FE sets.
 """
 function cat(self::ET, other::ET) where {ET<:AbstractFESet}
-    @assert nodesperelem(self) == nodesperelem(other)
+    (nodesperelem(self) == nodesperelem(other)) || error("Incompatible number of nodes per element")
     result = deepcopy(self)
     result.conn = vcat(self.conn, other.conn)
     setlabel!(result, vcat(self.label, other.label))
@@ -386,7 +386,7 @@ Evaluate the curve Jacobian.
 """
 function Jacobian(self::ET, J::Matrix{FT}) where {ET<:AbstractFESet1Manifold,FT}
     sdim, ntan = size(J)
-    @assert ntan == 1 "Expected number of tangent vectors: 1"
+    (ntan == 1) || error("Expected number of tangent vectors: 1")
     return norm(J)
 end
 
@@ -425,7 +425,7 @@ Evaluate the curve Jacobian.
 """
 function Jacobian(self::ET, J::Matrix{FT}) where {ET<:AbstractFESet2Manifold,FT}
     sdim, ntan = size(J)
-    @assert ntan == 2 "Expected number of tangent vectors: 2"
+    (ntan == 2) || error("Expected number of tangent vectors: 2")
     if sdim == ntan
         @inbounds Jac = (J[1, 1] * J[2, 2] - J[2, 1] * J[1, 2])
         return Jac # is det(J);% Compute the Jacobian
@@ -462,7 +462,7 @@ function gradN!(
     invredJ12 = -(redJ[1, 2]) * invdet
     invredJ21 = -(redJ[2, 1]) * invdet
     invredJ22 = (redJ[1, 1]) * invdet
-    @assert size(gradN, 1) == size(gradNparams, 1)
+    (size(gradN, 1) == size(gradNparams, 1)) || error("Number of basis functions must match")
     @inbounds for r in axes(gradN, 1)
         gradN[r, 1] = gradNparams[r, 1] * invredJ11 + gradNparams[r, 2] * invredJ21
         gradN[r, 2] = gradNparams[r, 1] * invredJ12 + gradNparams[r, 2] * invredJ22
@@ -478,7 +478,7 @@ Evaluate the volume Jacobian.
 """
 function Jacobian(self::ET, J::Matrix{FT}) where {ET<:AbstractFESet3Manifold,FT}
     sdim, ntan = size(J)
-    @assert (ntan == 3) && (sdim == 3) "Expected number of tangent vectors: 3"
+    ((ntan == 3) && (sdim == 3)) || error("Expected number of tangent vectors: 3")
     #Jac = det(J);# Compute the Jacobian
     # The unrolled version
     return (
@@ -526,7 +526,7 @@ function gradN!(
     invredJ31 = (redJ[2, 1] * redJ[3, 2] - redJ[3, 1] * redJ[2, 2]) * invdet
     invredJ32 = -(redJ[1, 1] * redJ[3, 2] - redJ[3, 1] * redJ[1, 2]) * invdet
     invredJ33 = (redJ[1, 1] * redJ[2, 2] - redJ[2, 1] * redJ[1, 2]) * invdet
-    @assert size(gradN, 1) == size(gradNparams, 1)
+    (size(gradN, 1) == size(gradNparams, 1)) || error("Number of basis functions must match")
     @inbounds for r in axes(gradN, 1)
         gradN[r, 1] =
             gradNparams[r, 1] * invredJ11 +

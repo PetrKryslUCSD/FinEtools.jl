@@ -291,7 +291,6 @@ function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET<:AbstractFESe
 
     #     Select based on fe label
     if label !== nothing
-        @assert length(fes.label) == length(fes.conn)
         for i in eachindex(fes.conn)
             if label == fes.label[i]
                 felist[i] = i   # matched this element
@@ -302,7 +301,7 @@ function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET<:AbstractFESe
 
     # Select by flooding
     if flood !== nothing && (flood)
-        @assert startnode > 0
+        (startnode > 0) || error("Need the number of the starting node (>0)")
         fen2fe = FENodeToFEMap(connasarray(fes), count(fens))
         felist = zeros(IT, count(fes))
         pfelist = zeros(IT, count(fes))
@@ -345,7 +344,7 @@ function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET<:AbstractFESe
     # Helper function: calculate the normal to a boundary finite element
     function normal(Tangents)
         sdim, mdim = size(Tangents)
-        @assert (mdim == 1) || (mdim == 2)
+        ((mdim == 1) || (mdim == 2)) || error("Only 1-D or 2-D boundary elements are supported")
         if mdim == 1 # 1-D fe
             N = [Tangents[2, 1], -Tangents[1, 1]]
             return N / norm(N)
@@ -360,7 +359,7 @@ function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET<:AbstractFESe
         xs = fens.xyz
         sd = spacedim(fens)
         md = manifdim(fes)
-        @assert (md == sd - 1) "'Facing': only for Manifold dim. == Space dim.-1"
+        (md == sd - 1) || error("\"Facing\": only for Manifold dim. == Space dim.-1")
         param_coords = zeros(T, 1, md)
         Need_Evaluation = (typeof(direction) <: Function)
         if (!Need_Evaluation)
@@ -615,7 +614,7 @@ function vselect(v::Matrix{T}; kwargs...) where {T<:Number}
     if box !== nothing
         sdim = size(v, 2)
         dim = Int(round(length(box) / 2.0))
-        @assert dim == sdim "Dimension of box not matched to dimension of array of vertices"
+        (dim == sdim) || error("Dimension of box not matched to dimension of array of vertices")
         abox = vec(box)
         inflatebox!(abox, inflatevalue)
         vlist, nn = _compute_vlist!(vlist, abox, sdim, v)

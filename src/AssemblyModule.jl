@@ -302,8 +302,8 @@ The sparse matrix is returned.
     possible to immediately start assembling another matrix.
 """
 function makematrix!(self::SysmatAssemblerSparse)
-    @assert length(self._rowbuffer) >= self._buffer_pointer - 1
-    @assert length(self._colbuffer) >= self._buffer_pointer - 1
+    (length(self._rowbuffer) >= self._buffer_pointer - 1) || error("Access outside of buffer")
+    (length(self._colbuffer) >= self._buffer_pointer - 1) || error("Access outside of buffer")
     # We have the option of retaining the assembled results, but not
     # constructing the sparse matrix.
     if self._nomatrixresult
@@ -459,7 +459,7 @@ function startassembly!(
     col_nalldofs::IT;
     force_init = false,
 ) where {T,IT<:Integer}
-    @assert elem_mat_nrows == elem_mat_ncols "Symmetric sparse matrix is assumed to be assembled from square matrices"
+    (elem_mat_nrows == elem_mat_ncols) || error("Symmetric sparse matrix is assumed to be assembled from square matrices")
     expected_ntriples = expectedntriples(self, elem_mat_nrows, elem_mat_ncols, n_elem_mats)
     # Only resize the buffers if the pointer is less than 1; otherwise the
     # buffers are already initialized and in use.
@@ -507,12 +507,12 @@ function assemble!(
     # equation numbers for the rows and columns.
     nrows = length(dofnums_row)
     ncolumns = length(dofnums_col)
-    @assert nrows == ncolumns
+    (nrows == ncolumns) || error("Size mismatch")
     p = self._buffer_pointer
     if self._buffer_length < p + (ncolumns * nrows + nrows) / 2 - 1
         self = _resize_buffers(self, ncolumns * nrows * 1000)
     end
-    @assert size(mat) == (nrows, ncolumns)
+    (size(mat) == (nrows, ncolumns)) || error("Size mismatch")
     @inbounds for j = 1:ncolumns
         dj = dofnums_col[j]
         dj < 1 && error("Column degree of freedom < 1")
@@ -548,8 +548,8 @@ Make a sparse symmetric square matrix.
     possible to immediately start assembling another matrix.
 """
 function makematrix!(self::SysmatAssemblerSparseSymm)
-    @assert length(self._rowbuffer) >= self._buffer_pointer - 1
-    @assert length(self._colbuffer) >= self._buffer_pointer - 1
+    (length(self._rowbuffer) >= self._buffer_pointer - 1) || error("Access outside of buffer")
+    (length(self._colbuffer) >= self._buffer_pointer - 1) || error("Access outside of buffer")
     # We have the option of retaining the assembled results, but not
     # constructing the sparse matrix.
     if self._nomatrixresult
@@ -681,7 +681,6 @@ function startassembly!(
     col_nalldofs::IT;
     force_init = false,
 ) where {T,IT<:Integer}
-    @assert elem_mat_nrows == elem_mat_ncols "Diagonal sparse matrix is assumed to be assembled from square matrices"
     expected_ntriples = expectedntriples(self, elem_mat_nrows, elem_mat_ncols, n_elem_mats)
     # Only resize the buffers if the pointer is less than 1; otherwise the
     # buffers are already initialized and in use.
@@ -730,12 +729,12 @@ function assemble!(
     # equation numbers for the rows and columns.
     nrows = length(dofnums_row)
     ncolumns = length(dofnums_col)
-    @assert nrows == ncolumns
+    (nrows == ncolumns) || error("Size mismatch")
     p = self._buffer_pointer
     if self._buffer_length < p + ncolumns * nrows - 1
         self = _resize_buffers(self, ncolumns * nrows * 1000)
     end
-    @assert size(mat) == (nrows, ncolumns)
+    (size(mat) == (nrows, ncolumns)) || error("Size mismatch")
     @inbounds for j = 1:ncolumns
         dj = dofnums_col[j]
         dj < 1 && error("Column degree of freedom < 1")
@@ -766,8 +765,8 @@ Make a sparse symmetric square diagonal matrix.
     possible to immediately start assembling another matrix.
 """
 function makematrix!(self::SysmatAssemblerSparseDiag)
-    @assert length(self._rowbuffer) >= self._buffer_pointer - 1
-    @assert length(self._colbuffer) >= self._buffer_pointer - 1
+    (length(self._rowbuffer) >= self._buffer_pointer - 1) || error("Access outside of buffer")
+    (length(self._colbuffer) >= self._buffer_pointer - 1) || error("Access outside of buffer")
     # We have the option of retaining the assembled results, but not
     # constructing the sparse matrix.
     if self._nomatrixresult
@@ -1024,7 +1023,7 @@ function startassembly!(
     col_nalldofs::IT;
     force_init = false,
 ) where {T,IT<:Integer}
-    @assert elem_mat_nrows == elem_mat_ncols "Diagonal sparse matrix is assumed to be assembled from square matrices"
+    (elem_mat_nrows == elem_mat_ncols) || error("Diagonal sparse matrix is assumed to be assembled from square matrices")
     expected_ntriples = expectedntriples(self, elem_mat_nrows, elem_mat_ncols, n_elem_mats)
     # Only resize the buffers if the pointer is less than 1; otherwise the
     # buffers are already initialized and in use.
@@ -1070,12 +1069,12 @@ function assemble!(
 ) where {MBT,CIT}
     nrows = length(dofnums_row)
     ncolumns = length(dofnums_col)
-    @assert nrows == ncolumns
+    (nrows == ncolumns) || error("Size mismatch")
     p = self._buffer_pointer
     if self._buffer_length < p + ncolumns * nrows - 1
         self = _resize_buffers(self, ncolumns * nrows * 1000)
     end
-    @assert size(mat) == (nrows, ncolumns)
+    (size(mat) == (nrows, ncolumns)) || error("Size mismatch")
     # Now comes the lumping procedure
     em2 = sum(sum(mat, dims = 1)) # total mass times the number of space dimensions
     dem2 = zero(eltype(mat)) # total mass on the diagonal times the number of space dimensions
@@ -1113,8 +1112,8 @@ Make a sparse HRZ-lumped **symmetric square**  matrix.
     possible to immediately start assembling another matrix.
 """
 function makematrix!(self::SysmatAssemblerSparseHRZLumpingSymm)
-    @assert length(self._rowbuffer) >= self._buffer_pointer - 1
-    @assert length(self._colbuffer) >= self._buffer_pointer - 1
+    (length(self._rowbuffer) >= self._buffer_pointer - 1) || error("Access outside of buffer")
+    (length(self._colbuffer) >= self._buffer_pointer - 1) || error("Access outside of buffer")
     # We have the option of retaining the assembled results, but not
     # constructing the sparse matrix.
     if self._nomatrixresult

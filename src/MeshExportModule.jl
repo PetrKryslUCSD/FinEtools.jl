@@ -153,7 +153,7 @@ function vtkexportmesh(
         end
         Connectivity = c
     end
-    @assert numnodes == size(Connectivity, 2)
+    (numnodes == size(Connectivity, 2)) || error("Wrong number of connected nodes!")
 
     fid = open(theFile, "w")
     if (fid == -1)
@@ -546,11 +546,11 @@ function ELEMENT(
     conn::AbstractArray{T,2},
 ) where {T<:Integer}
     # Check that start is valid
-    @assert start > 0 "The  starting element number must be > 0"
+    (start > 0) || error("The  starting element number must be > 0")
     # Check that the current element number range is disjoint from the
     # range of the elements on input: they must not overlap
-    @assert (self.element_range[2] < start) ||
-            (self.element_range[1] > start + size(conn, 1) - 1) "Elements  must be given unique numbers"
+    ((self.element_range[2] < start) ||
+        (self.element_range[1] > start + size(conn, 1) - 1)) || error("Elements  must be given unique numbers")
     # Update the element range
     self.element_range = (
         min(self.element_range[1], start),
@@ -1069,7 +1069,7 @@ function TEMPERATURE(
     nlist::AbstractArray{I,1},
     tlist::AbstractArray{F,1},
 ) where {I,F}
-    @assert length(nlist) == length(tlist)
+    (length(nlist) == length(tlist)) || error("The number of nodes and temperatures must be the same")
     println(self.ios, "*TEMPERATURE")
     for ixxxx in eachindex(nlist)
         println(self.ios, Classifier * "$(nlist[ixxxx]),$(tlist[ixxxx])")
@@ -1156,7 +1156,7 @@ function savecsv(name::String; kwargs...)
     ncol = length(colnames)
     nrow = length(columns[1])
     for j = 1:ncol
-        @assert length(columns[j]) == nrow "Columns must have the same number of rows"
+        (length(columns[j]) == nrow) || error("Columns must have the same number of rows")
     end
     if DataDrop.file_extension(name) == ""
         name = name * ".csv"
@@ -1461,7 +1461,7 @@ end
 
 function inserthypface!(container, hypf)
     if hypfacen(container, hypf) == 0
-        @assert length(hypf) == container.nv "Hyperface does not have the right number of vertices"
+        (length(hypf) == container.nv) || error("Hyperface does not have the right number of vertices")
         h = sort([i for i in hypf])
         anchor = h[1]
         other = BitSet(h[2:end])
@@ -1489,7 +1489,7 @@ end
 Write a file in the H2Lib format.
 """
 function h2libexporttri(theFile::String, Connectivity, Points)
-    @assert size(Connectivity, 2) == 3 "Only triangles accepted"
+    (size(Connectivity, 2) == 3) || error("Only triangles accepted")
     adjust = 1 # the library is C-based and expects indexes to be zero-based
 
     ed = makehypfacedict(2)
@@ -1884,7 +1884,7 @@ function vtkwritecollection(
 )
     pvd = paraview_collection(DataDrop.with_extension(theFile, "pvd"))
     if scalars !== nothing
-        @assert length(times) == length(scalars)
+        (length(times) == length(scalars)) || error("The number of times and scalars must be the same")
         for (i, t, nt) in zip(1:length(times), times, scalars)
             an = nt[1] # name of the shape collection
             d = nt[2]
@@ -1898,7 +1898,7 @@ function vtkwritecollection(
         end
     end
     if vectors !== nothing
-        @assert length(times) == length(vectors)
+        (length(times) == length(vectors)) || error("The number of times and vectors must be the same")
         for (i, t, nt) in zip(1:length(times), times, vectors)
             an = nt[1] # name of the shape collection
             d = nt[2]

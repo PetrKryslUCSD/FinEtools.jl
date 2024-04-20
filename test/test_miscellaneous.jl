@@ -969,7 +969,7 @@ function test()
     gr = GaussRule(1, 1)
     @test gr.param_coords[1] == 0.0
     @test_throws ErrorException gr = GaussRule(1, 15)
-    @test_throws AssertionError gr = GaussRule(4, 1)
+    @test_throws ErrorException gr = GaussRule(4, 1)
 
     @test_throws ErrorException tr = TriRule(8)
 
@@ -1843,7 +1843,7 @@ function test()
     xu = 1.0
     tolx = eps(1.0)
     tolf = eps(1.0)
-    @test_throws AssertionError bracket = bisect(fun, xl, xu, tolx, tolf)
+    @test_throws ErrorException bracket = bisect(fun, xl, xu, tolx, tolf)
 
     fun = x -> (x - 0.5)^3
     xl = -0.5

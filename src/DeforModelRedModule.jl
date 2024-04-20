@@ -206,8 +206,8 @@ function blmat!(
     Rm::AbstractMatrix{T},
 ) where {T<:Number}
     nnodes = size(gradN, 1)
-    @assert (dim = size(c, 2)) >= 1
-    @assert size(B) == (nstressstrain(MR), dim * nnodes)
+    ((dim = size(c, 2)) >= 1) || error("Wrong dimensions")
+    (size(B) == (nstressstrain(MR), dim * nnodes)) || error("Wrong dimensions")
     fill!(B, zero(T))
     @inbounds for i = 1:nnodes
         for j = 1:dim
@@ -265,8 +265,8 @@ function blmat!(
     Rm::AbstractMatrix{T},
 ) where {T<:Number}
     nnodes = size(gradN, 1)
-    @assert (dim = size(c, 2)) == 2
-    @assert size(B) == (nstressstrain(MR), dim * nnodes)
+    ((dim = size(c, 2)) == 2) || error("Wrong dimensions")
+    (size(B) == (nstressstrain(MR), dim * nnodes)) || error("Wrong dimensions")
     fill!(B, zero(T))
     @inbounds for i = 1:nnodes
         k = dim * (i - 1)
@@ -326,8 +326,8 @@ function blmat!(
     Rm::AbstractMatrix{T},
 ) where {T<:Number}
     nnodes = size(gradN, 1)
-    @assert (dim = size(c, 2)) >= 2
-    @assert size(B) == (nstressstrain(MR), dim * nnodes)
+    ((dim = size(c, 2)) >= 2) || error("Wrong dimensions")
+    (size(B) == (nstressstrain(MR), dim * nnodes)) || error("Wrong dimensions")
     fill!(B, zero(T))
     @inbounds for i = 1:nnodes
         k = dim * (i - 1)
@@ -387,8 +387,8 @@ function blmat!(
     Rm::AbstractMatrix{T},
 ) where {T<:Number}
     nnodes = size(gradN, 1)
-    @assert (dim = size(c, 2)) == 2
-    @assert size(B) == (nstressstrain(MR), dim * nnodes)
+    ((dim = size(c, 2)) == 2) || error("Wrong dimensions")
+    (size(B) == (nstressstrain(MR), dim * nnodes)) || error("Wrong dimensions")
     r = c[1] # distance from the axis of symmetry
     # if practically zero, clamped it to machine epsilon because we need to divide with it
     if r <= eps(1.0)
@@ -453,8 +453,8 @@ function blmat!(
     Rm::AbstractMatrix{T},
 ) where {T<:Number}
     nnodes = size(gradN, 1)
-    @assert (dim = size(c, 2)) == 3
-    @assert size(B) == (nstressstrain(MR), dim * nnodes)
+    ((dim = size(c, 2)) == 3) || error("Wrong dimensions")
+    (size(B) == (nstressstrain(MR), dim * nnodes)) || error("Wrong dimensions")
     fill!(B, zero(T))
     @inbounds for i = 1:nnodes
         k = dim * (i - 1)
@@ -502,7 +502,7 @@ function divmat(
     c::AbstractMatrix{T},
 ) where {T}
     nnodes = size(gradN, 1)
-    @assert (dim = size(c, 2)) == 3
+    ((dim = size(c, 2)) == 3) || error("Wrong dimensions")
     divm = fill(0.0, 1, dim * nnodes)
     for j = 1:dim
         for i = 1:nnodes
@@ -544,7 +544,7 @@ function vgradmat(
     c::AbstractMatrix{T},
 ) where {T}
     nnodes = size(gradN, 1)
-    @assert (dim = size(c, 2)) == 3
+    ((dim = size(c, 2)) == 3) || error("Wrong dimensions")
     vgradm = fill(0.0, dim * dim, dim * nnodes)
     for i = 1:dim
         vgradm[(dim*(i-1)+1):(dim*i), i:dim:(nnodes*dim-dim+i)] .= transpose(gradN)

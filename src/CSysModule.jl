@@ -285,8 +285,8 @@ tangent vectors.
             csmatout[i, j] = (i == j ? one(T) : zero(T))
         end
     else # lower-dimensional finite element embedded in space of higher dimension
-        @assert 0 < mdim < sdim
-        @assert 0 < sdim
+        (0 < mdim < sdim) || error("Invalid dimensions for the coordinate system matrix.")
+        (0 < sdim) || error("Invalid space dimension for the coordinate system matrix.")
         csmatout[:, 1] = tangents[:, 1]
         csmatout[:, 1] ./= norm(csmatout[:, 1])
         if mdim == 1 # curve-like finite element in 2d or 3d

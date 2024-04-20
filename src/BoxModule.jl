@@ -20,7 +20,7 @@ Note: point on the boundary of the box is counted as being inside.
 function inbox(box::AbstractVector, x::AbstractVector)
     inrange(rangelo, rangehi, r) = ((r >= rangelo) && (r <= rangehi))
     sdim = length(x)
-    @assert 2 * sdim == length(box)
+    (2 * sdim == length(box)) || error("Mismatched box")
     if !inrange(box[1], box[2], x[1])
         return false # short-circuit
     end
@@ -126,7 +126,7 @@ Do the given boxes overlap?
 """
 function boxesoverlap(box1::AbstractVector, box2::AbstractVector)
     dim = Int(length(box1) / 2)
-    @assert 2 * dim == length(box2) "Mismatched boxes"
+    (2 * dim == length(box2)) || error("Mismatched boxes")
     for i = 1:dim
         if box1[2*i-1] > box2[2*i]
             return false
@@ -147,10 +147,10 @@ The function returns an empty box (length(b) == 0) if the intersection is
 empty; otherwise a box is returned.
 """
 function intersectboxes(box1::AbstractVector, box2::AbstractVector)
-    @assert length(box1) == length(box2) "Mismatched boxes"
+    (length(box1) == length(box2)) || error("Mismatched boxes")
     b = copy(box1)
     dim = Int(length(box1) / 2)
-    @assert 2 * dim == length(box2) "Wrong box data"
+    (2 * dim == length(box2)) || error("Wrong box data")
     for i = 1:dim
         lb = max(box1[2*i-1], box2[2*i-1])
         ub = min(box1[2*i], box2[2*i])

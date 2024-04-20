@@ -340,7 +340,7 @@ function transferfield!(
     parametrictolerance::FT = 0.01,
 ) where {FT<:Number,T,F<:NodalField{T}}
     fill!(ff.values, Inf) # the "infinity" value indicates a missed node
-    @assert count(fensf) == nents(ff)
+    (count(fensf) == nents(ff))  || error("Field and node set sizes do not match")
     parametrictol = 0.01
     nodebox = initbox!([], vec(fensc.xyz[1, :]))
     # Find out how many partitions of the nodes on the fine mesh we should use
@@ -389,7 +389,6 @@ function transferfield!(
                             tolerance = 0.000001,
                             maxiter = 7,
                         )
-                        @assert success # this shouldn't be tripped; normally we succeed
                         if inparametric(fescsub, pc; tolerance = parametrictolerance) # coarse mesh element encloses the node
                             N = bfun(fescsub, pc)
                             ff.values[i, :] = transpose(N) * fcsub.values[c, :]
@@ -448,7 +447,7 @@ function transferfield!(
     geometricaltolerance::FT;
     parametrictolerance::FT = 0.01,
 ) where {FT<:Number,T,F<:ElementalField{T}}
-    @assert count(fesf) == nents(ff)
+    (count(fesf) == nents(ff))  || error("Field and node set sizes do not match")
     nodebox = initbox!([], vec(fensc.xyz[1, :]))
     centroidpc = centroidparametric(fesf)
     N = bfun(fesf, centroidpc)
@@ -469,21 +468,13 @@ function transferfield!(
                 tolerance = 0.000001,
                 maxiter = 9,
             )
-            # if !success
-            # println("pc = $(pc)")
-            # N1 = bfun(fesf, pc)
-            # p = transpose(N1) * fensc.xyz[view(fesc.conn, e, :), :]
-            # println("p = $(p)")
-            # println("centroid = $(centroid)")
-            # end
-            # @assert success # this shouldn't be tripped; normally we succeed
             if success && inparametric(fesc, pc; tolerance = 0.001) # coarse mesh element encloses the centroid
                 ff.values[i, :] = fc.values[e, :]
                 foundone = true
                 break
             end
         end
-        @assert foundone
+        foundone || error("Missed element in transfer")
     end
     return ff
 end
@@ -705,7 +696,8 @@ function fieldfromintegpoints(
             end
         end
     else # inverse distance
-        @assert (reportat == :default) || (reportat == :meanonly) "Inverse-distance interpolation requires :meanonly"
+        ((reportat == :default) || (reportat == :meanonly)) ||
+            error("Inverse-distance interpolation requires :meanonly")
         # Container of intermediate results
         idat = InverseDistanceInspectorData(
             component,

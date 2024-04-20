@@ -216,7 +216,7 @@ needs to be updated to refer to the same nodes in  the set `fens` as
      `updateconn!(fes, new_indexes_of_fens1_nodes);`
 """
 function fusenodes(fens1::FENodeSet{T}, fens2::FENodeSet{T}, tolerance::T) where {T<:Number}
-    @assert size(fens1.xyz, 2) == size(fens2.xyz, 2)
+    (size(fens1.xyz, 2) == size(fens2.xyz, 2)) || error("The two node sets must have the same number of space dimensions")
     dim = size(fens1.xyz, 2)
     nn1 = count(fens1)
     nn2 = count(fens2)
@@ -335,7 +335,7 @@ validate_mesh(fens, fes);
 ```
 """
 function compactnodes(fens::FENodeSet, connected::BitArray{1})
-    @assert length(connected) == count(fens)
+    (length(connected) == count(fens)) || error("Length of the connected array must be == number of nodes")
     new_numbering = zeros(Int, count(fens), 1)
     nxyz = deepcopy(fens.xyz)
     id = 1
@@ -975,7 +975,7 @@ vtkexportmesh(File, fens, fes)
 ```
 """
 function nodepartitioning(fens::FENodeSet, nincluded::Vector{Bool}, npartitions::Int = 2)
-    @assert npartitions >= 2
+    (npartitions >= 2) || error("Number of partitions must be >= 2")
     if size(fens.xyz, 2) == 3
         return _nodepartitioning3(fens.xyz, nincluded, npartitions)
     elseif size(fens.xyz, 2) == 2
@@ -1010,7 +1010,7 @@ vtkexportmesh(File, fens, fes)
 ```
 """
 function nodepartitioning(fens::FENodeSet, npartitions::Int = 2)
-    @assert npartitions >= 2
+    (npartitions >= 2) || error("Number of partitions must be >= 2")
     nincluded = fill(true, count(fens)) # The default is all nodes are included in the partitioning.
     if size(fens.xyz, 2) == 3
         return _nodepartitioning3(fens.xyz, nincluded, npartitions)
@@ -1027,7 +1027,7 @@ end
 Compute the inertial-cut partitioning of a set of points.
 """
 function pointpartitioning(xyz, npartitions::Int = 2)
-    @assert npartitions >= 2
+    (npartitions >= 2) || error("Number of partitions must be >= 2")
     nincluded = fill(true, size(xyz, 1)) # The default is all nodes are included in the partitioning.
     if size(xyz, 2) == 3
         return _nodepartitioning3(xyz, nincluded, npartitions)
@@ -1054,7 +1054,7 @@ the elements of that region, but not to elements that belong to
 any of the previous regions, 1…I-1.
 """
 function nodepartitioning(fens::FENodeSet, fesarr, npartitions::Vector{Int})
-    @assert length(fesarr) == length(npartitions)
+    (length(fesarr) == length(npartitions)) || error("Number of regions and number of partitions must match")
     # Partitioning of all the nodes
     partitioning = fill(0, count(fens))
     # Find the partitioning of the nodes in FESet 1
@@ -1133,8 +1133,8 @@ function distortblock(
     xdispmul::T,
     ydispmul::T,
 ) where {F<:Function,T<:Number,IT<:Integer}
-    @assert 1.0 >= abs(xdispmul) >= 0.0
-    @assert 1.0 >= abs(ydispmul) >= 0.0
+    (1.0 >= abs(xdispmul) >= 0.0) || error("xdispmul must be between 0 and 1")
+    (1.0 >= abs(ydispmul) >= 0.0) || error("ydispmul must be between 0 and 1")
     fens, fes = B(1.0, 1.0, nL, nW)
     nfens = deepcopy(fens)
     if xdispmul != 0.0 || ydispmul != 0.0

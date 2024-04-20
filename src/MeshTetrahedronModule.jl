@@ -308,8 +308,8 @@ function T10layeredplatex(
     orientation::Symbol = :a,
 ) where {T<:Number,IT<:Integer}
     tolerance = minimum(abs.(ts)) / maximum(nts) / 10.0
-    @assert length(ts) >= 1
-    @assert sum(nts) >= length(ts)
+    (length(ts) >= 1) || error("The number of layers must be at least one")o
+    (sum(nts) >= length(ts)) || error("The total number of elements must be greater than the number of layers")
     zs = collect(linearspace(0.0, ts[1], nts[1] + 1))
     for layer = 2:length(ts)
         oz = collect(linearspace(sum(ts[1:(layer-1)]), sum(ts[1:layer]), nts[layer] + 1))
@@ -346,8 +346,6 @@ tetv(X)
 """
 function tetv(X::Matrix{T}) where {T}
     local one6th = 1.0 / 6
-    # @assert size(X, 1) == 4
-    # @assert size(X, 2) == 3
     @inbounds let
         A1 = X[2, 1] - X[1, 1]
         A2 = X[2, 2] - X[1, 2]
@@ -497,7 +495,7 @@ end
 Compute all the edges of the 4-node triangulation.
 """
 function T4meshedges(t::Array{IT,2}) where {IT<:Integer}
-    @assert size(t, 2) == 4
+    (size(t, 2) == 4) || error("Only 4-node tetrahedra are supported: size(t, 2) == 4")
     ec = [
         1 2
         2 3
