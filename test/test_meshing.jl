@@ -3267,7 +3267,7 @@ function test()
     fens, fes = Q4block(Lx, Ly, 3, 2) # Mesh
     # show(fes.conn)
 
-    fen2fe1 = FENodeToFEMap(connasarray(fes), count(fens))
+    fen2fe1 = FENodeToFEMap(fes, count(fens))
     # display(connasarray(fes))
     # display(fen2fe1)
     fen2fe2 = FENodeToFEMap(fes.conn, count(fens))
