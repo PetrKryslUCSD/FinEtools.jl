@@ -302,7 +302,7 @@ function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET<:AbstractFESe
     # Select by flooding
     if flood !== nothing && (flood)
         (startnode > 0) || error("Need the number of the starting node (>0)")
-        fen2fe = FENodeToFEMap(connasarray(fes), count(fens))
+        fen2fe = FENodeToFEMap(fes, count(fens))
         felist = zeros(IT, count(fes))
         pfelist = zeros(IT, count(fes))
         felist[fen2fe.map[startnode]] .= 1
@@ -679,17 +679,15 @@ end
 
 Find nodes that are not connected to any finite element.
 
-connected = array is returned which is for the node k either true (node k is
+## Returns
+`connected` = array is returned which is for the node k either true (node k is
      connected), or false (node k is not connected).
-
-Let us say there are nodes not connected to any finite element that you
-would like to remove from the mesh: here is how that would be
-accomplished.
 """
 function findunconnnodes(fens::FENodeSet, fes::AbstractFESet)
     connected = trues(count(fens))
-    fen2fem = FENodeToFEMap(connasarray(fes), count(fens))
-    for i in eachindex(fen2fem.map), connected[i] in (!isempty(fen2fem.map[i]))
+    fen2fem = FENodeToFEMap(fes, count(fens))
+    for i in eachindex(fen2fem.map)
+        connected[i] = (!isempty(fen2fem.map[i]))
     end
     return connected
 end
