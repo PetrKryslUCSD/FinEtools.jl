@@ -41,6 +41,21 @@ struct FENodeToFEMap{IT}
     map::Vector{Vector{IT}}
 end
 
+function _makemap(conn, nmax::IT) where {IT<:Integer}
+    map = Array{Vector{IT}}(undef, nmax)
+    @inbounds for i in eachindex(map)
+        map[i] = IT[]  # initially empty arrays
+    end
+    @inbounds for j in eachindex(conn)
+        c = conn[j]
+        for i in eachindex(c)
+            ni = c[i]
+            push!(map[ni], j)
+        end
+    end
+    return map
+end
+
 """
     FENodeToFEMap(conn::Vector{NTuple{N, IT}}, nmax::FInt) where {N, IT<:Integer}
 
@@ -55,18 +70,18 @@ m = FENodeToFEMap(fes.conn, count(fens))
 ```
 """
 function FENodeToFEMap(conn::Vector{NTuple{N,IT}}, nmax::IT) where {N,IT<:Integer}
-    map = Vector{IT}[]
-    sizehint!(map, nmax)
-    for i in 1:nmax
-        push!(map, IT[])  # initially empty arrays
-    end
-    @inbounds for j in eachindex(conn)
-        for i in eachindex(conn[j])
-            ni = conn[j][i]
-            push!(map[ni], j)
-        end
-    end
-    return FENodeToFEMap(map)
+    # map = Vector{IT}[]
+    # sizehint!(map, nmax)
+    # for i in 1:nmax
+    #     push!(map, IT[])  # initially empty arrays
+    # end
+    # @inbounds for j in eachindex(conn)
+    #     for i in eachindex(conn[j])
+    #         ni = conn[j][i]
+    #         push!(map[ni], j)
+    #     end
+    # end
+    return FENodeToFEMap(_makemap(conn, nmax))
 end
 
 """
@@ -77,30 +92,30 @@ Map from finite element nodes to the finite elements connecting them.
 Convenience constructor.
 """
 function FENodeToFEMap(fes::FE, nmax::IT) where {FE<:AbstractFESet,IT<:Integer}
-    return FENodeToFEMap(fes.conn, nmax)
+    return FENodeToFEMap(_makemap(fes.conn, nmax))
 end
 
-"""
-    FENodeToFEMap(conns::FIntMat, nmax::FInt)
+# """
+#     FENodeToFEMap(conns::FIntMat, nmax::FInt)
 
-Map from finite element nodes to the finite elements connecting them.
+# Map from finite element nodes to the finite elements connecting them.
 
-- `conns` = integer array of the connectivities
-- `nmax` = largest possible node number
-"""
-function FENodeToFEMap(conns::Matrix{IT}, nmax::IT) where {IT<:Integer}
-    map = Vector{IT}[]
-    sizehint!(map, nmax)
-    for i in 1:nmax
-        push!(map, IT[])  # initially empty arrays
-    end
-    @inbounds for j in axes(conns, 1)
-        for i in axes(conns, 2)
-            ni = conns[j, i]
-            push!(map[ni], j)
-        end
-    end
-    return FENodeToFEMap(map)
-end
+# - `conns` = integer array of the connectivities
+# - `nmax` = largest possible node number
+# """
+# function FENodeToFEMap(conns::Matrix{IT}, nmax::IT) where {IT<:Integer}
+#     map = Vector{IT}[]
+#     sizehint!(map, nmax)
+#     for i in 1:nmax
+#         push!(map, IT[])  # initially empty arrays
+#     end
+#     @inbounds for j in axes(conns, 1)
+#         for i in axes(conns, 2)
+#             ni = conns[j, i]
+#             push!(map[ni], j)
+#         end
+#     end
+#     return FENodeToFEMap(map)
+# end
 
 end
