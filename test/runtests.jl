@@ -1,5 +1,9 @@
 using Test
 
+@testset "Forms" begin
+    include("test_forms.jl")
+end
+
 @testset "Miscellaneous" begin
     include("test_miscellaneous.jl")
 end
@@ -14,10 +18,6 @@ end
 
 @testset "Meshing 2" begin
     include("test_meshing_2.jl")
-end
-
-@testset "Forms" begin
-    include("test_forms.jl")
 end
 
 @testset "Meshing" begin

@@ -585,7 +585,7 @@ function test()
     numberdofs!(psi)
 
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
-    v_f = vector_blocked_f(gathersysvec(psi, :a), nfreedofs(psi))
+    v_f = vector_blocked_f(gathersysvec(psi, DOF_KIND_ALL), nfreedofs(psi))
     K = bilform_diffusion(femm, geom, psi, DataCache(Matrix(1.0 * LinearAlgebra.I(3))))
     K_ff = matrix_blocked_ff(K, nfreedofs(psi))
     result = abs(v_f' * K_ff * v_f)

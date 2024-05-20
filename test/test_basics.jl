@@ -2670,7 +2670,7 @@ function test(n, nfreed)
 
     solve_blocked!(u, A, b)
 
-    x_f = gathersysvec(u, :f)
+    x_f = gathersysvec(u, DOF_KIND_FREE)
     x_b = vector_blocked(x, nfreed)
 
     @test norm(x_f - x_b.f) / norm(x_f)  < 1.0e-9
