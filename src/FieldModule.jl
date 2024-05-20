@@ -168,11 +168,13 @@ function gathersysvec!(self::F, vec::Vector{T}, kind = DOF_KIND_FREE) where {F<:
     nents, dim = size(self.values)
     from, upto = first(dofrange(self, kind)), last(dofrange(self, kind))
     length(vec) == length(from:upto) || error("Vector needs to be of length equal to $(length(from:upto))")
-    for j = 1:dim
-        for i = 1:nents
+    p = 1
+    for j in 1:dim
+        for i in 1:nents
             en = self.dofnums[i, j]
             if from <= en <= upto
-                vec[en] = self.values[i, j]
+                vec[p] = self.values[i, j]
+                p += 1
             end
         end
     end
