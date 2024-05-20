@@ -168,13 +168,12 @@ function gathersysvec!(self::F, vec::Vector{T}, kind = DOF_KIND_FREE) where {F<:
     nents, dim = size(self.values)
     from, upto = first(dofrange(self, kind)), last(dofrange(self, kind))
     length(vec) == length(from:upto) || error("Vector needs to be of length equal to $(length(from:upto))")
-    p = 1
-    for j in 1:dim
-        for i in 1:nents
+    @inbounds for i in 1:nents
+        for j in 1:dim
             en = self.dofnums[i, j]
             if from <= en <= upto
+                p = en - from + 1
                 vec[p] = self.values[i, j]
-                p += 1
             end
         end
     end
@@ -206,7 +205,7 @@ function gathervalues_asvec!(
 ) where {F<:AbstractField,T,CC}
     length(dest) == length(conn) * ndofs(self) || error("Destination buffer has wrong size")
     en = 1
-    for i in eachindex(conn)
+    @inbounds for i in eachindex(conn)
         for j in axes(self.values, 2)
             dest[en] = self.values[conn[i], j]
             en = en + 1
