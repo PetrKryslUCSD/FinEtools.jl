@@ -4,7 +4,6 @@ authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
 version = "8.0.19"
 
 [deps]
-ChunkSplitters = "ae650224-84b6-46f8-82ea-d812ca08434e"
 DataDrop = "aa547a04-dd37-49ab-8e73-656744f8a8fc"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
@@ -20,7 +19,6 @@ Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 WriteVTK = "64499a7a-5c06-52f2-abe2-ccb03c286192"
 
 [compat]
-ChunkSplitters = "^0.1, 1, 2"
 DataDrop = "^0.1"
 DelimitedFiles = "^1.9"
 HDF5 = "^0.17"
