@@ -25,6 +25,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 05/19/2024: Make it possible to have different kinds of degrees of freedom.
 - 04/19/2024: Replace asserts with errors.
 - 04/11/2024: Speed up box selection of elements.
 - 03/21/2024: Implement element coloring.

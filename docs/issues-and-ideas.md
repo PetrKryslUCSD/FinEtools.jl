@@ -1401,3 +1401,8 @@ end
 -- Why is DeforModelRedModule in FinEtools? Should it (could it) be moved to the linear deformation package? 
 
 -- The element selection techniques should be speeded up by employing a function barrier.
+
+-- Redesign for arbitrary kinds of degrees of freedom.
+anyfixedvaluenz: Is that needed
+prescribeddofs
+incrscattersysvec!

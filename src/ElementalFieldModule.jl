@@ -9,6 +9,7 @@ __precompile__(true)
 
 import ..FieldModule: AbstractField, nents
 import ..FieldModule.@add_Field_fields
+import ..FieldModule.DOF_KIND_FREE
 
 """
     ElementalField{T<:Number, IT<:Integer} <: AbstractField
@@ -35,10 +36,9 @@ of the argument `zi`.
 function ElementalField(data::Matrix{T}, zi::IT) where {T<:Number,IT<:Integer}
     values = deepcopy(data)
     dofnums = 0 * similar(values, IT)
-    is_fixed = similar(values, Bool)
-    fill!(is_fixed, false)
-    nfreedofs = zero(IT)
-    return ElementalField(values, dofnums, is_fixed, nfreedofs)
+    kind = similar(values, Int8)
+    fill!(kind, DOF_KIND_FREE)
+    return ElementalField(values, dofnums, kind, UnitRange{IT}[])
 end
 
 function ElementalField(data::Matrix{T}) where {T<:Number}

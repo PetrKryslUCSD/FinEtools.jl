@@ -1,11 +1,7 @@
 using Test
 
-@testset "Meshing" begin
-    include("test_meshing.jl")
-end
-
-@testset "Basics" begin
-    include("test_basics.jl")
+@testset "Forms" begin
+    include("test_forms.jl")
 end
 
 @testset "Miscellaneous" begin
@@ -24,8 +20,12 @@ end
     include("test_meshing_2.jl")
 end
 
-@testset "Forms" begin
-    include("test_forms.jl")
+@testset "Meshing" begin
+    include("test_meshing.jl")
+end
+
+@testset "Basics" begin
+    include("test_basics.jl")
 end
 
 true

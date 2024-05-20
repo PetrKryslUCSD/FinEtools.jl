@@ -6,7 +6,7 @@ Module for base  algorithms.
 module AlgoBaseModule
 
 using ..FEMMBaseModule: integratefieldfunction, transferfield!
-using ..FieldModule: AbstractField, nfreedofs, gathersysvec, scattersysvec!
+using ..FieldModule: AbstractField, nfreedofs, gathersysvec, scattersysvec!, DOF_KIND_ALL
 using ..MatrixUtilityModule:
     matrix_blocked_ff, matrix_blocked_fd, matrix_blocked_df, matrix_blocked_dd
 using ..MatrixUtilityModule: vector_blocked_f, vector_blocked_d
@@ -647,7 +647,7 @@ function solve_blocked!(
     K::M,
     F::V,
 ) where {AF<:AbstractField,M<:AbstractMatrix,V<:AbstractVector}
-    U = gathersysvec(u, :a)
+    U = gathersysvec(u, DOF_KIND_ALL)
     x_f, b_d = solve_blocked(K, F, U, nfreedofs(u))
     scattersysvec!(u, x_f)
     return u
