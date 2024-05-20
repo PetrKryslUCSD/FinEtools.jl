@@ -1,4 +1,5 @@
 module mbas113
+using FinEtools
 using Test
 using LinearAlgebra
 function test()
