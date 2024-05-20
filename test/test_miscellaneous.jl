@@ -763,8 +763,8 @@ function test()
     @test norm(u.dofnums) == 0
     setebc!(u, [1, 3])
     numberdofs!(u)
-    @test norm(u.is_fixed[1, :]) != 0
-    @test norm(u.is_fixed[3, :]) != 0
+    @test norm(u.kind[1, :] .-= DOF_KIND_DATA) == 0
+    @test norm(u.kind[3, :] .-= DOF_KIND_DATA) == 0
     @test norm(u.dofnums[2, :]) > 0.0
 end
 end
@@ -797,8 +797,8 @@ function test()
     @test norm(u.dofnums) == 0
     setebc!(u, [1, 3])
     numberdofs!(u)
-    @test norm(u.is_fixed[1, :]) != 0
-    @test norm(u.is_fixed[3, :]) != 0
+    @test norm(u.kind[1, :] .-= DOF_KIND_DATA) == 0
+    @test norm(u.kind[3, :] .-= DOF_KIND_DATA) == 0
     @test norm(u.dofnums[2, :]) > 0.0
 end
 end
@@ -907,32 +907,21 @@ function test()
     setebc!(f, [3, 4], true, 1, 7.0)
     # display(f)
     applyebc!(f)
-    dest = zeros(2, 1)
-    # length([1,4])
-    gatherfixedvalues_asmat!(f, dest, [1, 4])
-    # display(dest)
-    @test (dest[1, 1] == 0.0) && (dest[2, 1] == 7.0)
+    
 
     f = NodalField(zeros(5, 1))
     setebc!(f, [3, 4], true, 1)
     # display(f)
     applyebc!(f)
-    dest = zeros(2, 1)
-    # length([1,4])
-    gatherfixedvalues_asmat!(f, dest, [1, 4])
-    # display(dest)
-    @test (dest[1, 1] == 0.0) && (dest[2, 1] == 0.0)
+    
+    
 
 
     f = NodalField(zeros(5, 1))
     setebc!(f, [3, 4], 1, 8.2)
     # display(f)
     applyebc!(f)
-    dest = zeros(2, 1)
-    # length([1,4])
-    gatherfixedvalues_asmat!(f, dest, [1, 4])
-    # display(dest)
-    @test (dest[1, 1] == 0.0) && (dest[2, 1] == 8.2)
+    
 end
 end
 using .mmfieldx1

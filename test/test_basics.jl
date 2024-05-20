@@ -619,8 +619,8 @@ cleandchi() = deepcopy(
             0.0 0.0 0.0 0.0020849461988275853 0.0 0.0
         ],
         [21 22 23 1 24 25; 2 3 4 5 6 7; 8 9 10 11 12 13; 14 15 16 17 18 19; 26 27 28 20 29 30],
-        Bool[1 1 1 0 1 1; 0 0 0 0 0 0; 0 0 0 0 0 0; 0 0 0 0 0 0; 1 1 1 0 1 1],
-        20,
+        [DOF_KIND_DATA DOF_KIND_DATA DOF_KIND_DATA DOF_KIND_FREE DOF_KIND_DATA DOF_KIND_DATA; DOF_KIND_FREE DOF_KIND_FREE DOF_KIND_FREE DOF_KIND_FREE DOF_KIND_FREE DOF_KIND_FREE; DOF_KIND_FREE DOF_KIND_FREE DOF_KIND_FREE DOF_KIND_FREE DOF_KIND_FREE DOF_KIND_FREE; DOF_KIND_FREE DOF_KIND_FREE DOF_KIND_FREE DOF_KIND_FREE DOF_KIND_FREE DOF_KIND_FREE; DOF_KIND_DATA DOF_KIND_DATA DOF_KIND_DATA DOF_KIND_FREE DOF_KIND_DATA DOF_KIND_DATA],
+        [1:20, 21:30],
     ),
 )
 cleandchiv() = deepcopy([
@@ -670,8 +670,6 @@ function test()
             1.0842021724855044e-19,
         ],
     ) / norm(elv) <= 1.0e-6
-    gatherfixedvalues_asvec!(dchi, elv, [1, 2])
-    norm(elv) <= 1.0e-15
     @test FinEtools.FieldModule.anyfixedvaluenz(dchi, [1, 2]) == false
     edn = fill(0, 12)
     gatherdofnums!(dchi, edn, [1, 2])
@@ -682,79 +680,79 @@ function test()
 
     dchi = cleandchi()
     setebc!(dchi, 1, true, 1, -0.013)
-    @test dchi.is_fixed[1, 1] == true
+    @test dchi.kind[1, 1] == DOF_KIND_DATA
     @test dchi.values[1, 1] == -0.013
     setebc!(dchi, 5, true, 4, 0.61)
-    @test dchi.is_fixed[5, 4] == true
+    @test dchi.kind[5, 4] == DOF_KIND_DATA
     @test dchi.values[5, 4] == 0.61
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], true, 2, [-0.013, 2.0])
-    @test dchi.is_fixed[1, 2] == true
+    @test dchi.kind[1, 2] == DOF_KIND_DATA
     @test dchi.values[1, 2] == -0.013
-    @test dchi.is_fixed[5, 2] == true
+    @test dchi.kind[5, 2] == DOF_KIND_DATA
     @test dchi.values[5, 2] == 2.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], true, 2, -10.0)
-    @test dchi.is_fixed[1, 2] == true
+    @test dchi.kind[1, 2] == DOF_KIND_DATA
     @test dchi.values[1, 2] == -10.0
-    @test dchi.is_fixed[5, 2] == true
+    @test dchi.kind[5, 2] == DOF_KIND_DATA
     @test dchi.values[5, 2] == -10.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], true, 2)
-    @test dchi.is_fixed[1, 2] == true
+    @test dchi.kind[1, 2] == DOF_KIND_DATA
     @test dchi.values[1, 2] == 0.0
-    @test dchi.is_fixed[5, 2] == true
+    @test dchi.kind[5, 2] == DOF_KIND_DATA
     @test dchi.values[5, 2] == 0.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], 2, [-10.0, 10.0])
-    @test dchi.is_fixed[1, 2] == true
+    @test dchi.kind[1, 2] == DOF_KIND_DATA
     @test dchi.values[1, 2] == -10.0
-    @test dchi.is_fixed[5, 2] == true
+    @test dchi.kind[5, 2] == DOF_KIND_DATA
     @test dchi.values[5, 2] == 10.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], 2)
-    @test dchi.is_fixed[1, 2] == true
+    @test dchi.kind[1, 2] == DOF_KIND_DATA
     @test dchi.values[1, 2] == 0.0
-    @test dchi.is_fixed[5, 2] == true
+    @test dchi.kind[5, 2] == DOF_KIND_DATA
     @test dchi.values[5, 2] == 0.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], true, [2, 3], -10.0)
-    @test dchi.is_fixed[1, 2] == true
+    @test dchi.kind[1, 2] == DOF_KIND_DATA
     @test dchi.values[1, 2] == -10.0
-    @test dchi.is_fixed[5, 3] == true
+    @test dchi.kind[5, 3] == DOF_KIND_DATA
     @test dchi.values[5, 3] == -10.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5], true, [2, 3])
-    @test dchi.is_fixed[1, 2] == true
+    @test dchi.kind[1, 2] == DOF_KIND_DATA
     @test dchi.values[1, 2] == 0.0
-    @test dchi.is_fixed[5, 3] == true
+    @test dchi.kind[5, 3] == DOF_KIND_DATA
     @test dchi.values[5, 3] == 0.0
 
     dchi = cleandchi()
     setebc!(dchi, [1, 5])
     for i in [1, 5]
-        @test any([!dchi.is_fixed[i, idx] for idx in 1:ndofs(dchi)]) == false
+        @test any([dchi.kind[i, idx] != DOF_KIND_DATA for idx in 1:ndofs(dchi)]) == false
         @test any([dchi.values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
     end
 
     dchi = cleandchi()
     setebc!(dchi, 3)
     for i in [3]
-        @test any([!dchi.is_fixed[i, idx] for idx in 1:ndofs(dchi)]) == false
+        @test any([dchi.kind[i, idx] != DOF_KIND_DATA  for idx in 1:ndofs(dchi)]) == false
         @test any([dchi.values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
     end
 
     dchi = cleandchi()
     setebc!(dchi)
     for i in 1:nents(dchi)
-        @test any([dchi.is_fixed[i, idx] for idx in 1:ndofs(dchi)]) == false
+        @test any([dchi.kind[i, idx] == DOF_KIND_DATA for idx in 1:ndofs(dchi)]) == false
         @test any([dchi.values[i, idx] != 0.0 for idx in 1:ndofs(dchi)]) == false
     end
 
@@ -902,6 +900,7 @@ function test()
 
     femm = FEMMBase(IntegDomain(fes, GaussRule(3, 2)))
     v = gathersysvec(psi)
+    
     G = innerproduct(femm, geom, psi)
     # @show v' * G * v
     @test abs(v' * G * v - (W*L*t)) / (W*L*t) <= 1.0e-5
@@ -2666,7 +2665,7 @@ function test(n, nfreed)
     x = A \ b
 
     u = NodalField(x)
-    u.is_fixed[nfreed+1:end] .= true
+    u.kind[nfreed+1:end] .= DOF_KIND_DATA
     numberdofs!(u)
 
     solve_blocked!(u, A, b)
