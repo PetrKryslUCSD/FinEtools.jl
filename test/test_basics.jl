@@ -5,7 +5,7 @@ using LinearAlgebra
 function test()
     ua = rand(500, 3)
     u = NodalField(ua)
-    for i in [1:4, 7:10, 13:16, 19:22, 25:28]
+    for i in [1, 4, 7, 10, 13, 16, 19, 22, 25]
         setebc!(u, [i], 1, 0.0)
         setebc!(u, [i], 2, 0.0)
     end
