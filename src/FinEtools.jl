@@ -60,6 +60,7 @@ using .FESetModule:
     accepttodelegate,
     fromarray!,
     connasarray,
+    boundaryfe,
     setlabel!,
     subset,
     cat,
@@ -102,7 +103,7 @@ export AbstractFESet,
     FESetT4,
     FESetT10
 # Exported: methods for accessing dimensions and counts
-export manifdim, nodesperelem, count, eachindex
+export manifdim, nodesperelem, count, eachindex, boundaryfe
 # Exported: methods for accepting delegation and revealing the delegating object
 export delegateof, accepttodelegate
 # Exported: methods for  manipulating connectivity  and labels
