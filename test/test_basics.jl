@@ -21,6 +21,39 @@ test()
 nothing
 end
 
+module mbas114
+using FinEtools
+using Test
+using LinearAlgebra
+function test()
+    DOF_KIND_INTERFACE = 3
+    ua = rand(50, 3)
+    u = NodalField(ua)
+    for i in [1, 4, 7, 10, 13, 16, 19, 22, 25]
+        setebc!(u, [i], 1, 0.0)
+        setebc!(u, [i], 2, 0.0)
+    end
+    u.kind[2, 1] = DOF_KIND_INTERFACE
+    u.kind[3, 1] = DOF_KIND_INTERFACE
+    applyebc!(u)
+    numberdofs!(u, 1:nents(u), [DOF_KIND_FREE, DOF_KIND_INTERFACE, DOF_KIND_DATA])
+    uf = gathersysvec(u, DOF_KIND_FREE)
+    ui = gathersysvec(u, DOF_KIND_INTERFACE)
+    ud = gathersysvec(u, DOF_KIND_DATA)
+    ua = gathersysvec(u, DOF_KIND_ALL)
+    @test norm(vcat(uf, ui, ud) - ua) <= 1.0e-9
+    numberdofs!(u, nents(u):-1:1, [DOF_KIND_FREE, DOF_KIND_INTERFACE, DOF_KIND_DATA])
+    uf = gathersysvec(u, DOF_KIND_FREE)
+    ui = gathersysvec(u, DOF_KIND_INTERFACE)
+    ud = gathersysvec(u, DOF_KIND_DATA)
+    ua = gathersysvec(u, DOF_KIND_ALL)
+    @test norm(vcat(uf, ui, ud) - ua) <= 1.0e-9
+    true
+end
+test()
+nothing
+end
+
 module mmassembly2ya1
 using FinEtools
 using Test
