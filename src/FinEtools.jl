@@ -121,6 +121,7 @@ export FENodeToFEMap
 
 using .FieldModule:
     AbstractField,
+    KIND_INT,
     DOF_KIND_ALL,
     DOF_KIND_FREE,
     DOF_KIND_DATA,
@@ -147,6 +148,7 @@ using .FieldModule:
     incrscattersysvec!
 # Exported: abstract field type, methods for the abstract field type (retrieval of data  from a field, setting of data in the field)
 export AbstractField,
+    KIND_INT,
     DOF_KIND_ALL,
     DOF_KIND_FREE,
     DOF_KIND_DATA,

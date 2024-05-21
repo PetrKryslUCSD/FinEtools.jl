@@ -9,6 +9,7 @@ __precompile__(true)
 
 import ..FieldModule.AbstractField
 import ..FieldModule.@add_Field_fields
+import ..FieldModule.KIND_INT
 import ..FieldModule.DOF_KIND_FREE
 
 """

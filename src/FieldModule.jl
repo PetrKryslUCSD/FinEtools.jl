@@ -25,6 +25,20 @@ See also: [`@add_Field_fields()`](@ref) .
 abstract type AbstractField end
 
 """
+    KIND_INT
+
+Constant representing the type of the integer representing the `kind` of a degree of freedom.
+"""
+const KIND_INT = Int8
+
+"""
+Predefined kinds of degrees of freedom.
+"""
+const DOF_KIND_ALL::KIND_INT = 0
+const DOF_KIND_FREE::KIND_INT = 1
+const DOF_KIND_DATA::KIND_INT = 2
+
+"""
     add_Field_fields()
 
 Generate the attributes (i. e. fields) of a `Field`. The methods defined for
@@ -33,17 +47,10 @@ the abstract type depend on these attributes to be present.
 macro add_Field_fields()
     return esc(:(values::Array{T,2};
     dofnums::Array{IT,2};
-    kind::Matrix{Int8};
+    kind::Matrix{KIND_INT};
     ranges::Vector{UnitRange{IT}}
     ))
 end
-
-"""
-Predefined kinds of degrees of freedom.
-"""
-const DOF_KIND_ALL = 0
-const DOF_KIND_FREE = 1
-const DOF_KIND_DATA = 2
 
 """
     ndofs(self::F)
@@ -76,21 +83,21 @@ end
 """
     nfreedofs(self::F) where {F<:AbstractField}
 
-Return to number of FREE degrees of freedom (known, data).
+Return the number of FREE degrees of freedom (known, data).
 """
 nfreedofs(self::F) where {F<:AbstractField} = length(dofrange(self, DOF_KIND_FREE)) 
 
 """
     nfixeddofs(self::F)
 
-Return to number of FIXED degrees of freedom (known, data).
+Return the number of FIXED degrees of freedom (known, data).
 """
 nfixeddofs(self::F) where {F<:AbstractField} = length(dofrange(self, DOF_KIND_DATA)) 
 
 """
     nalldofs(self::F) where {F<:AbstractField}
 
-Return to number of ALL degrees of freedom (known, data).
+Return the number of ALL degrees of freedom (known, data).
 """
 nalldofs(self::F) where {F<:AbstractField} = sum(length(v) for v in values(self.ranges))
 
@@ -139,7 +146,7 @@ function wipe!(self::F) where {F<:AbstractField}
 end
 
 """
-    gathersysvec(self::F, kind = DOF_KIND_FREE) where {F<:AbstractField}
+    gathersysvec(self::F, kind::KIND_INT = DOF_KIND_FREE) where {F<:AbstractField}
 
 Gather values from the field for the system vector.
 
@@ -147,10 +154,31 @@ Gather values from the field for the system vector.
 - `self`: field;
 - `kind`: kind of degrees of freedom to gather; default is `DOF_KIND_FREE`.
 """
-function gathersysvec(self::F, kind = DOF_KIND_FREE) where {F<:AbstractField}
+function gathersysvec(self::F, kind::KIND_INT = DOF_KIND_FREE) where {F<:AbstractField}
     N = length(dofrange(self, kind))
     vec = zeros(eltype(self.values), N)
     return gathersysvec!(self, vec, kind)
+end
+
+"""
+    gathersysvec(self::F, kind::Symbol) where {F<:AbstractField}
+
+Gather values from the field for the system vector.
+
+This is a compatibility version, using a symbol.
+
+# Arguments
+- `self::F`: The field object.
+- `kind::Symbol`: The kind of system vector to gather. 
+"""
+function gathersysvec(self::F, kind::Symbol) where {F<:AbstractField}
+    if kind == :f
+        return gathersysvec(self, DOF_KIND_FREE)
+    elseif kind == :d
+        return gathersysvec(self, DOF_KIND_DATA)
+    else
+        return gathersysvec(self, DOF_KIND_ALL)
+    end
 end
 
 """

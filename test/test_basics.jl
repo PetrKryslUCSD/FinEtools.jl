@@ -26,7 +26,7 @@ using FinEtools
 using Test
 using LinearAlgebra
 function test()
-    DOF_KIND_INTERFACE = 3
+    DOF_KIND_INTERFACE::KIND_INT = 3
     ua = rand(50, 3)
     u = NodalField(ua)
     for i in [1, 4, 7, 10, 13, 16, 19, 22, 25]
