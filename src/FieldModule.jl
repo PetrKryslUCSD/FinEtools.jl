@@ -182,8 +182,7 @@ function gathersysvec(self::F, kind::Symbol) where {F<:AbstractField}
 end
 
 """
-    gathersysvec!(self::F,
-        vec::Vector{T}, which = :f) where {F<:AbstractField, T}
+    gathersysvec!(self::F, vec::Vector{T}, kind::KIND_INT = DOF_KIND_FREE) where {F<:AbstractField,T}
 
 Gather values from the field for the system vector.
 
@@ -192,7 +191,7 @@ Gather values from the field for the system vector.
 - `vec`: destination buffer;
 - `kind`: integer, kind of degrees of freedom to gather: default is `DOF_KIND_FREE`.
 """
-function gathersysvec!(self::F, vec::Vector{T}, kind = DOF_KIND_FREE) where {F<:AbstractField,T}
+function gathersysvec!(self::F, vec::Vector{T}, kind::KIND_INT = DOF_KIND_FREE) where {F<:AbstractField,T}
     nents, dim = size(self.values)
     from, upto = first(dofrange(self, kind)), last(dofrange(self, kind))
     length(vec) == length(from:upto) || error("Vector needs to be of length equal to $(length(from:upto))")
@@ -650,21 +649,22 @@ function applyebc!(self::F) where {F<:AbstractField}
 end
 
 """
-    scattersysvec!(self::F, vec::AbstractVector{T}) where {F<:AbstractField, T<:Number}
+    scattersysvec!(self::F, vec::AbstractVector{T}, kind::KIND_INT = DOF_KIND_FREE) where {F<:AbstractField,T<:Number}
 
 Scatter values to the field from a system vector.
 
-The vector may be either for just the free degrees of freedom, or for all the
-degrees of freedom.
+The vector may be for an arbitrary kind of degrees of freedom (default is the free degrees of freedom).
 """
-function scattersysvec!(self::F, vec::AbstractVector{T}) where {F<:AbstractField,T<:Number}
+function scattersysvec!(self::F, vec::AbstractVector{T}, kind::KIND_INT = DOF_KIND_FREE) where {F<:AbstractField,T<:Number}
     nents, dim = size(self.values)
-    nve = length(vec)
-    for i = 1:nents
-        for j = 1:dim
-            dn = self.dofnums[i, j]
-            if (dn > 0) && (dn <= nve)
-                self.values[i, j] = vec[dn]
+    from, upto = first(dofrange(self, kind)), last(dofrange(self, kind))
+    length(vec) == length(from:upto) || error("Vector needs to be of length equal to $(length(from:upto))")
+    @inbounds for i in 1:nents
+        for j in 1:dim
+            en = self.dofnums[i, j]
+            if from <= en <= upto
+                p = en - from + 1
+                self.values[i, j] = vec[p] 
             end
         end
     end
