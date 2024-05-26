@@ -306,7 +306,8 @@ using .MeshModificationModule:
     distortblock,
     outer_surface_of_solid,
     reordermesh,
-    element_coloring
+    element_coloring,
+    validate_mesh
 # Exported: extraction of boundary, fusing of nodes  and merging of meshes, mesh smoothing,  node partitioning
 export meshboundary,
     fusenodes,
@@ -323,7 +324,8 @@ export meshboundary,
     distortblock,
     outer_surface_of_solid,
     reordermesh,
-    element_coloring
+    element_coloring,
+    validate_mesh
 
 using .MeshImportModule: import_NASTRAN, import_ABAQUS, import_MESH, import_H5MESH
 # Exported: mesh import functions

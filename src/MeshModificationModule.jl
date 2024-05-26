@@ -21,7 +21,7 @@ import ..FESetModule:
     subset
 import ..FENodeSetModule: FENodeSet
 import ..BoxModule: boundingbox, inflatebox!, intersectboxes, inbox
-import ..MeshSelectionModule: connectednodes, selectelem
+import ..MeshSelectionModule: connectednodes, selectelem, findunconnnodes
 import ..SurfaceNormalModule: SurfaceNormal, updatenormal!
 using Base.Sort
 using Base.Order
@@ -1356,5 +1356,48 @@ function element_coloring!(element_colors, unique_colors, color_counts, fes, n2e
     end
     return element_colors, unique_colors, color_counts
 end
+
+"""
+    validate_mesh(fens, fes)
+
+Validate the given mesh by checking if it satisfies certain sanity criteria.
+
+# Arguments
+- `fens`: The finite element nodes of the mesh.
+- `fes`: The finite elements of the mesh.
+
+Validate finite element mesh.
+    
+A finite element mesh given by the node set and the finite element set is
+validated by checking the sanity of the numbering:
+- the node numbers need to be positive and in serial order
+- the fe connectivity needs to refer to valid nodes
+- the finite element nodes need to be connected to at least one finite element
+
+An error is reported as soon as it is detected.
+
+# Returns
+A boolean indicating whether the mesh is valid or not.
+"""
+function validate_mesh(fens, fes)
+    totnfens = count(fens)
+    for i in eachindex(fes)
+        if (max(fes.conn[i]...) > totnfens)
+            error("Wrong connectivity (refers to nonexistent node): $(fes.conn[i])")
+        end
+        if (min(fes.conn[i]...) < 1)
+            error("Wrong connectivity (refers to nonexistent node): $(fes.conn[i])")
+        end
+        if (length(unique(fes.conn[i])) != length(fes.conn[i]))
+            error("Wrong connectivity (multiply referenced node): $(fes.conn[i])")
+        end
+    end
+    connected = findunconnnodes(fens, fes)
+    if (any(connected == 0))
+        error("Unconnected nodes present: $(sum(connected==0)) total")
+    end
+    return true
+end
+
 
 end # module

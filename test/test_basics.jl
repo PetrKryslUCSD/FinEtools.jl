@@ -1,3 +1,24 @@
+module mval001
+using Test
+using FinEtools
+function test()
+    fens = FENodeSet(rand(5, 2))
+    fes = FESetT3([1 2 6; 3 4 5])
+    @test_throws ErrorException validate_mesh(fens, fes)
+    fes = FESetT3([1 2 6; -1 4 5])
+    @test_throws ErrorException validate_mesh(fens, fes)
+    fes = FESetT3([1 2 3; 0 4 5])
+    @test_throws ErrorException validate_mesh(fens, fes)
+    fes = FESetT3([1 2 3; 0 4 5])
+    @test_throws ErrorException validate_mesh(fens, fes)
+    fes = FESetT3([1 2 3; 2 4 5])
+    @test validate_mesh(fens, fes)
+    true
+end
+test()
+nothing
+end
+
 module mbas113
 using FinEtools
 using Test
@@ -3015,4 +3036,3 @@ end
 test()
 nothing
 end
-
