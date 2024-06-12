@@ -29,21 +29,24 @@ function connectednodes(fes::AbstractFESet)
 end
 
 """
-    connectedelems(fes::AbstractFESet, node_list::FIntVec)
+    connectedelems(
+        fes::AbstractFESet,
+        node_list::Vector{IT},
+        nmax::IT,
+    ) where {IT<:Integer}
 
-Extract the list of numbers for the fes  that are connected to given
-nodes.
+Extract the list of serial numbers of the fes connected to given nodes.
 """
 function connectedelems(
     fes::AbstractFESet,
     node_list::Vector{IT},
     nmax::IT,
 ) where {IT<:Integer}
-    f2fm = FENodeToFEMap(fes.conn, nmax)
+    n2e = FENodeToFEMap(fes.conn, nmax)
     cg = zeros(IT, count(fes)) # No elements are part of the group to begin with
     for j in node_list # for all nodes in the list
-        for i in eachindex(f2fm.map[j])
-            cg[f2fm.map[j][i]] = 1   # Mark element as being part of the group
+        for i in eachindex(n2e.map[j]) # for all elements connected to the node
+            cg[n2e.map[j][i]] = 1   # Mark element as being part of the group
         end
     end
     return findall(v -> (v != 0), cg)
