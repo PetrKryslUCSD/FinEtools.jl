@@ -25,6 +25,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 06/17/2024: Propagate labels of extruded triangles.
 - 05/19/2024: Make it possible to have different kinds of degrees of freedom.
 - 04/19/2024: Replace asserts with errors.
 - 04/11/2024: Speed up box selection of elements.

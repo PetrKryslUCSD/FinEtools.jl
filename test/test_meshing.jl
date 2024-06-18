@@ -6449,6 +6449,7 @@ function test()
     @test count(fens) == (nlayers + 1) * count(surfens)
     # @show fens, fes
     @test count(fes) == 3 * nlayers * count(surfes)
+    @test length(findall(x -> x == 3, fes.label)) == count(fes)
     # @show count(fens)
     goodnodes = true
     for i in eachindex(fes)

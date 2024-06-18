@@ -992,6 +992,7 @@ function _doextrude(fens, fes::FESetT3, nLayers, extrusionh)
     nn1 = count(fens) # number of nodes in the surface to be extruded
     nt1 = count(fes)
     ntets = 3 * nt1 * nLayers # number of tetrahedra to be generated 
+    labels = zeros(Int, ntets)
     tconn = zeros(Int, ntets, 4)
     xyz = zeros(eltype(fens.xyz), nn1 * (nLayers + 1), 3) # array of coordinates for each of the nodes in the resulting mesh
     for j = 1:nn1
@@ -1011,16 +1012,21 @@ function _doextrude(fens, fes::FESetT3, nLayers, extrusionh)
             # The algorithm traverses triangles one by one and generates three tetrahedra 
             # per triangle. The connectivities of those tetrahedra are:
             i, j, k = (fes.conn[triangle] .+ (layer - 1) * nn1)
+            label = fes.label[triangle]
             N = nn1
             tconn[cel, :] = [i, i < j ? j : j + N, i < k ? k : k + N, i + N]
+            labels[cel] = label
             cel = cel + 1
             tconn[cel, :] = [j, j < k ? k : k + N, j < i ? i : i + N, j + N]
+            labels[cel] = label
             cel = cel + 1
             tconn[cel, :] = [k, k < i ? i : i + N, k < j ? j : j + N, k + N]
+            labels[cel] = label
             cel = cel + 1
         end
     end
     efes = FESetT4(tconn)
+    setlabel!(efes, labels)
     efens = FENodeSet(xyz)
     return efens, efes
 end
