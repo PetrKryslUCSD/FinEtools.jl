@@ -391,6 +391,7 @@ function _doextrude(fens, fes::FESetQ4, nLayers, extrusionh)
     nn1 = count(fens)
     nnt = nn1 * nLayers
     ngc = count(fes) * nLayers
+    labels = zeros(Int, ngc)
     conn = connasarray(fes)
     hconn = zeros(eltype(conn), ngc, 8)
     xyz = zeros(eltype(fens.xyz), nn1 * (nLayers + 1), 3)
@@ -407,12 +408,13 @@ function _doextrude(fens, fes::FESetQ4, nLayers, extrusionh)
     gc = 1
     for k = 1:nLayers
         for i in eachindex(fes)
-            hconn[gc, :] =
-                [broadcast(+, conn[i, :], (k - 1) * nn1) broadcast(+, conn[i, :], k * nn1)]
+            hconn[gc, :] = [broadcast(+, conn[i, :], (k - 1) * nn1) broadcast(+, conn[i, :], k * nn1)]
+            labels[gc] = fes.label[i]
             gc = gc + 1
         end
     end
     efes = FESetH8(hconn)
+    setlabel!(efes, labels)
     efens = FENodeSet(xyz)
     return efens, efes
 end
