@@ -25,13 +25,8 @@ The package supports application packages, for instance:
 
 ## News
 
-- 06/19/2024: Propagate labels of extruded quadrilaterals and triangles.
-- 05/19/2024: Make it possible to have different kinds of degrees of freedom.
-- 04/19/2024: Replace asserts with errors.
-- 04/11/2024: Speed up box selection of elements.
-- 03/21/2024: Implement element coloring.
-- 03/12/2024: Move parallel functionality to FinEtoolsMultithreading.
-- 02/19/2024: Implement mesh reordering.
+- 11/28/2024: Add OFF export of surface meshes.
+
 
 
 
@@ -66,6 +61,13 @@ The documentation  is published as [Github pages](https://petrkryslucsd.github.i
 
 ## <a name="past-news"></a>Past news
 
+- 06/19/2024: Propagate labels of extruded quadrilaterals and triangles.
+- 05/19/2024: Make it possible to have different kinds of degrees of freedom.
+- 04/19/2024: Replace asserts with errors.
+- 04/11/2024: Speed up box selection of elements.
+- 03/21/2024: Implement element coloring.
+- 03/12/2024: Move parallel functionality to FinEtoolsMultithreading.
+- 02/19/2024: Implement mesh reordering.
 - 02/17/2024: Implement generic parallel matrix assembly using threaded tasks.
 - 12/31/2023: Update for Julia 1.10.
 - 06/19/2023: Introduce DataCache, generic linear and bilinear forms. 

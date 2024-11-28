@@ -1,3 +1,31 @@
+module mexpoff1
+using FinEtools
+using FinEtools.MeshExportModule.OFF: header, vertex, facet
+using Test
+function test()
+    rin, rex, nr, nc, Angl, orientation::Symbol =
+        1.0, 2.0, 7, 16, pi / 3, :a
+    fens, fes = T3annulus(rin, rex, nr, nc, Angl, orientation::Symbol)
+    fens.xyz = xyz3(fens)
+    filename = "mesh.off"
+    e = OFFExporter(filename::AbstractString)
+    header(e, count(fens), count(fes))
+    for i in eachindex(fens)
+        vertex(e, fens.xyz[i, :]...)
+    end 
+    for i in eachindex(fes)
+        c = fes.conn[i]
+        facet(e, c[1], c[2], c[3],)
+    end
+    close(e)
+    @test filesize(filename) > 0
+    # rm(filename)
+    # @async run(`"paraview.exe" $File`)
+end
+end
+using .mexpoff1
+mexpoff1.test()
+
 # function test_coloring(coloring, n2e)
 #     element_colors, unique_colors = coloring
 #     findall(c -> c <= 0, element_colors) === nothing

@@ -1917,4 +1917,70 @@ end
 
 end # VTKWrite
 
+module OFF
+################################################################################
+# OFF export
+################################################################################
+using Printf
+import LinearAlgebra: norm, cross
+import Base.close
+
+"""
+OFFExporter
+
+Exporter of a surface mesh as an OFF file.
+"""
+mutable struct OFFExporter
+    filename::AbstractString
+    ios::IO
+    element_range::Tuple{Int64,Int64}
+    function OFFExporter(filename::AbstractString)
+        if match(r".*\.off$", filename) === nothing
+            filename = filename * ".off"
+        end
+        ios = open(filename, "w+")
+        return new(deepcopy(filename), ios, (typemax(Int64), 0))
+    end
+end
+
+"""
+    header(self::OFFExporter, numvertices::IT, numfacets::IT) where {IT}
+
+Write a header to begin the file.
+"""
+function header(self::OFFExporter, numvertices::IT, numfacets::IT) where {IT}
+    @printf self.ios "OFF\n%d %d 0\n" numvertices numfacets
+end
+
+"""
+    vertex(self::OFFExporter, x::T, y::T, z::T) where {T}
+
+Write a single vertex.
+"""
+function vertex(self::OFFExporter, x::T, y::T, z::T) where {T}
+    @printf self.ios "%f %f %f\n" x y z
+end
+
+"""
+    facet(self::OFFExporter, v1::IT, v2::IT, v3::IT) where {IT}
+
+Write a single facet.
+
+Supply one based indices. They will be internally converted to zero based.
+"""
+function facet(self::OFFExporter, v1::IT, v2::IT, v3::IT) where {IT}
+    @printf self.ios "3 %d %d %d\n" v1-1 v2-1 v3-1
+end
+
+"""
+    close(self::OFFExporter)
+
+Close  the stream opened by the exporter.
+"""
+function close(self::OFFExporter)
+    close(self.ios)
+end
+
+end # OFF
+
 end
