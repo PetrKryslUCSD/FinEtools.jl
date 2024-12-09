@@ -5,7 +5,7 @@ authors:
   given-names: "Petr"
   orcid: "https://orcid.org/0000-0003-1761-5047"
 title: "FinEtools.jl: Finite Element Tools in Julia"
-version: 7.3.0
+version: 8.0.26
 doi: 10.5281/zenodo.7187506
-date-released: 2024-1-5
+date-released: 2024-2-8
 url: "https://github.com/PetrKryslUCSD/FinEtools.jl"
