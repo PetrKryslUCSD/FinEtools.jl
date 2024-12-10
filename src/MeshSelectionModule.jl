@@ -86,7 +86,7 @@ The keyword `plane` defines the plane by its normal (the first two or
 three numbers) and its distance from the origin (the last number). Nodes
 are selected they lie on the plane,  or near the plane within the
 distance `thickness` from the plane. The normal is assumed to be of unit
-length, if it isn't apply as such, it will be normalized internally.
+length; if it isn't already, it will be normalized internally.
 
 ### nearestto
 ```
