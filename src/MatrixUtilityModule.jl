@@ -12,7 +12,7 @@ using SparseArrays
 using LoopVectorization
 
 """
-    loc!(loc::Matrix{T}, ecoords::Matrix{T}, N::Matrix{T}) where {T}
+    loc!(loc::AbstractMatrix{<:Real}, ecoords::AbstractMatrix{<:Real}, N::AbstractMatrix{<:Real}) 
 
 Compute the location of the quadrature point.
 
@@ -21,12 +21,12 @@ Arguments:
 `ecoords` = matrix of the node coordinates for the element.
 `N` = matrix of basis function values
 """
-function loc!(loc::Matrix{T}, ecoords::Matrix{T}, N::Matrix{T}) where {T}
+function loc!(loc::AbstractMatrix{<:Real}, ecoords::AbstractMatrix{<:Real}, N::AbstractMatrix{<:Real}) 
     return mulCAtB!(loc, N, ecoords)
 end
 
 """
-    jac!(J::Matrix{T}, ecoords::Matrix{T}, gradNparams::Matrix{T}) where {T}
+    jac!(J::AbstractMatrix{<:Real}, ecoords::AbstractMatrix{<:Real}, gradNparams::AbstractMatrix{<:Real})
 
 Compute the Jacobian matrix at the quadrature point.
 
@@ -35,18 +35,18 @@ Arguments:
 `ecoords` = matrix of the node coordinates for the element.
 `gradNparams` = matrix of basis function gradients
 """
-function jac!(J::Matrix{T}, ecoords::Matrix{T}, gradNparams::Matrix{T}) where {T}
+function jac!(J::AbstractMatrix{<:Real}, ecoords::AbstractMatrix{<:Real}, gradNparams::AbstractMatrix{<:Real})
     return mulCAtB!(J, ecoords, gradNparams)
 end
 
 """
     locjac!(
-        loc::Matrix{T},
-        J::Matrix{T},
-        ecoords::Matrix{T},
-        N::Matrix{T},
-        gradNparams::Matrix{T},
-    ) where {T}
+        loc::AbstractMatrix{<:Real},
+        J::AbstractMatrix{<:Real},
+        ecoords::AbstractMatrix{<:Real},
+        N::AbstractMatrix{<:Real},
+        gradNparams::AbstractMatrix{<:Real},
+    )
 
 Compute location and Jacobian matrix at the quadrature point.
 
@@ -58,17 +58,17 @@ Arguments:
 `gradNparams` = matrix of basis function gradients
 """
 function locjac!(
-    loc::Matrix{T},
-    J::Matrix{T},
-    ecoords::Matrix{T},
-    N::Matrix{T},
-    gradNparams::Matrix{T},
-) where {T}
+    loc::AbstractMatrix{<:Real},
+    J::AbstractMatrix{<:Real},
+    ecoords::AbstractMatrix{<:Real},
+    N::AbstractMatrix{<:Real},
+    gradNparams::AbstractMatrix{<:Real},
+)
     return loc!(loc, ecoords, N), jac!(J, ecoords, gradNparams)
 end
 
 """
-    add_mggt_ut_only!(Ke::Matrix{T}, gradN::Matrix{T}, mult) where {T}
+    add_mggt_ut_only!(Ke::AbstractMatrix{<:Real}, gradN::AbstractMatrix{<:Real}, mult::T) where {T<:Real}
 
 Add the product `gradN*mult*gradNT` to the matrix `Ke`.
 
@@ -81,7 +81,7 @@ The matrix `Ke` is assumed to be suitably initialized.
 The matrix `Ke` is modified.  The matrix `gradN` is not modified
 inside this function.
 """
-function add_mggt_ut_only!(Ke::Matrix{MT}, gradN::Matrix{T}, mult) where {MT,T}
+function add_mggt_ut_only!(Ke::AbstractMatrix{<:Real}, gradN::AbstractMatrix{<:Real}, mult::T) where {T<:Real}
     Kedim = size(Ke, 1)
     @assert Kedim == size(Ke, 2) # Square matrix?
     nne, mdim = size(gradN)
@@ -99,12 +99,12 @@ end
 
 """
     add_gkgt_ut_only!(
-        Ke::Matrix{T},
-        gradN::Matrix{T},
+        Ke::AbstractMatrix{<:Real},
+        gradN::AbstractMatrix{<:Real},
         Jac_w::T,
-        kappa_bar::Matrix{T},
-        kappa_bargradNT::Matrix{T},
-    ) where {T}
+        kappa_bar::AbstractMatrix{<:Real},
+        kappa_bargradNT::AbstractMatrix{<:Real},
+    )
 
 Add the product `gradN*kappa_bar*gradNT*(Jac*w[j])` to the matrix `Ke`.
 
@@ -118,12 +118,12 @@ is overwritten during each call of this function. The matrices `gradN` and
 `kappa_bar` are not modified inside this function.
 """
 function add_gkgt_ut_only!(
-    Ke::Matrix{T},
-    gradN::Matrix{T},
+    Ke::AbstractMatrix{<:Real},
+    gradN::AbstractMatrix{<:Real},
     Jac_w::T,
-    kappa_bar::Matrix{T},
-    kappa_bargradNT::Matrix{T},
-) where {T}
+    kappa_bar::AbstractMatrix{<:Real},
+    kappa_bargradNT::AbstractMatrix{<:Real},
+) where {T<:Real}
     @assert size(Ke, 1) == size(Ke, 2)
     Kedim = size(Ke, 1)
     nne, mdim = size(gradN)
@@ -132,7 +132,7 @@ function add_gkgt_ut_only!(
     # A_mul_Bt!(kappa_bargradNT, kappa_bar, gradN); # intermediate result
     @inbounds for nx = 1:nne
         @inbounds for mx = 1:mdim
-            accum = T(0.0)
+            accum = eltype(Ke)(0.0)
             @inbounds @simd for px = 1:mdim
                 accum += kappa_bar[mx, px] * gradN[nx, px]
             end
@@ -142,7 +142,7 @@ function add_gkgt_ut_only!(
     # Ke = Ke + gradN*(kappa_bar*(Jac*w[j]))*gradN'; only upper triangle
     @inbounds for nx = 1:Kedim
         @inbounds for mx = 1:nx # only the upper triangle
-            accum = T(0.0)
+            accum = eltype(Ke)(0.0)
             @inbounds @simd for px = 1:mdim
                 accum += gradN[mx, px] * kappa_bargradNT[px, nx]
             end
@@ -153,7 +153,7 @@ function add_gkgt_ut_only!(
 end
 
 """
-    complete_lt!(Ke::Matrix{T}) where {T}
+    complete_lt!(Ke::AbstractMatrix{<:Real})
 
 Complete the lower triangle of the elementwise matrix `Ke`.
 
@@ -161,7 +161,7 @@ The matrix `Ke` is modified  inside this function. The
 upper-triangle  entries  are copied  across the diagonal
 to the lower triangle.
 """
-function complete_lt!(Ke::Matrix{T}) where {T}
+function complete_lt!(Ke::AbstractMatrix{<:Real})
     Kedim = size(Ke, 1)
     @assert Kedim == size(Ke, 2)
     @inbounds for nx = 1:Kedim # complete the lower triangle
@@ -173,7 +173,7 @@ function complete_lt!(Ke::Matrix{T}) where {T}
 end
 
 """
-    add_btdb_ut_only!(Ke::Matrix{T}, B::Matrix{T}, Jac_w::T, D::Matrix{T}, DB::Matrix{T}) where {T}
+    add_btdb_ut_only!(Ke::AbstractMatrix{<:Real}, B::AbstractMatrix{<:Real}, Jac_w::T, D::AbstractMatrix{<:Real}, DB::AbstractMatrix{<:Real}) where {T<:Real}
 
 Add the product  `(B'*(D*(Jac*w[j]))*B)`, to the matrix Ke.
 
@@ -186,13 +186,7 @@ The matrix Ke is modified.  The matrices B and D are not modified
 inside this function. The scratch buffer DB is overwritten
 during each call of this function.
 """
-function add_btdb_ut_only!(
-    Ke::Matrix{T},
-    B::Matrix{T},
-    Jac_w::T,
-    D::Matrix{T},
-    DB::Matrix{T},
-) where {T}
+function add_btdb_ut_only!(Ke::AbstractMatrix{<:Real}, B::AbstractMatrix{<:Real}, Jac_w::T, D::AbstractMatrix{<:Real}, DB::AbstractMatrix{<:Real}) where {T<:Real}
     @assert size(Ke, 1) == size(Ke, 2)
     @assert size(B, 1) == size(D, 1)
     nstr, Kedim = size(B)
@@ -201,7 +195,7 @@ function add_btdb_ut_only!(
     # A_mul_B!(DB, D, B)    # intermediate product
     @inbounds for nx = 1:Kedim
         @inbounds for mx = 1:nstr
-            accum = T(0.0)
+            accum = eltype(Ke)(0.0)
             @inbounds for px = 1:nstr
                 accum += D[mx, px] * B[px, nx]
             end
@@ -211,7 +205,7 @@ function add_btdb_ut_only!(
     #  Ke = Ke + (B'*(D*(Jac*w[j]))*B); only the upper triangle
     @inbounds for nx = 1:Kedim
         @inbounds for mx = 1:nx # only the upper triangle
-            accum = T(0.0)
+            accum = eltype(Ke)(0.0)
             @inbounds for px = 1:nstr
                 accum += B[px, mx] * DB[px, nx]
             end
@@ -223,13 +217,13 @@ end
 
 """
     add_b1tdb2!(
-        Ke::Matrix{T},
-        B1::Matrix{T},
-        B2::Matrix{T},
+        Ke::AbstractMatrix{<:Real},
+        B1::AbstractMatrix{<:Real},
+        B2::AbstractMatrix{<:Real},
         Jac_w::T,
-        D::Matrix{T},
-        DB2::Matrix{T},
-    ) where {T}
+        D::AbstractMatrix{<:Real},
+        DB2::AbstractMatrix{<:Real},
+    ) where {T<:Real}
 
 Add the product  `(B1'*(D*(Jac_w))*B2)`, to the matrix `Ke`.
 
@@ -243,13 +237,13 @@ inside this function. The scratch buffer `DB` is overwritten
 during each call of this function.
 """
 function add_b1tdb2!(
-    Ke::Matrix{T},
-    B1::Matrix{T},
-    B2::Matrix{T},
+    Ke::AbstractMatrix{<:Real},
+    B1::AbstractMatrix{<:Real},
+    B2::AbstractMatrix{<:Real},
     Jac_w::T,
-    D::Matrix{T},
-    DB2::Matrix{T},
-) where {T}
+    D::AbstractMatrix{<:Real},
+    DB2::AbstractMatrix{<:Real},
+) where {T<:Real}
     Kedim1, Kedim2 = size(Ke)
     Ddim1, Ddim2 = size(D)
     @assert size(B1) == (Ddim1, Kedim1)
@@ -279,7 +273,12 @@ function add_b1tdb2!(
 end
 
 """
-    add_btsigma!(Fe::Vector{T}, B::Matrix{T}, coefficient::T, sigma::Vector{T}) where {T}
+    add_btsigma!(
+        Fe::AbstractVector{<:Real},
+        B::AbstractMatrix{<:Real},
+        coefficient::T,
+        sigma::AbstractVector{<:Real},
+    ) where {T<:Real}
 
 Add the product  `B'*(sigma*coefficient)`, to the elementwise vector `Fe`.
 
@@ -289,15 +288,15 @@ The vector `Fe` is modified.  The vector `sigma` is not modified
 inside this function. 
 """
 function add_btsigma!(
-    Fe::Vector{T},
-    B::Matrix{T},
+    Fe::AbstractVector{<:Real},
+    B::AbstractMatrix{<:Real},
     coefficient::T,
-    sigma::Vector{T},
-) where {T}
+    sigma::AbstractVector{<:Real},
+) where {T<:Real}
     @assert size(B, 1) == length(sigma)
     nstr, Kedim = size(B)
     @inbounds for nx = 1:Kedim
-        accum = T(0.0)
+        accum = eltype(Fe)(0.0)
         @inbounds for px = 1:nstr
             accum += sigma[px] * B[px, nx]
         end
@@ -307,7 +306,7 @@ function add_btsigma!(
 end
 
 """
-    add_nnt_ut_only!(Ke::Matrix{T}, N::Matrix{T}, Jac_w_coeff::T) where {T<:Number}
+    add_nnt_ut_only!(Ke::AbstractMatrix{<:Real}, N::AbstractMatrix{<:Real}, Jac_w_coeff::T) where {T<:Real}
 
 Add the product  `Nn*(Nn'*(coeff*(Jac*w(j)))`, to the matrix `Ke`.
 
@@ -319,7 +318,7 @@ matrix `Nn` has a single column.
 The matrix `Ke` is modified.  The matrix `Nn` is not modified
 inside this function.
 """
-function add_nnt_ut_only!(Ke::Matrix{T}, N::Matrix{T}, Jac_w_coeff::T) where {T<:Number}
+function add_nnt_ut_only!(Ke::AbstractMatrix{<:Real}, N::AbstractMatrix{<:Real}, Jac_w_coeff::T) where {T<:Real}
     Kedim = size(N, 1)
     @assert Kedim == size(Ke, 2)
     @inbounds for nx = 1:Kedim
@@ -332,7 +331,12 @@ function add_nnt_ut_only!(Ke::Matrix{T}, N::Matrix{T}, Jac_w_coeff::T) where {T<
 end
 
 """
-    add_n1n2t!(Ke::Matrix{T}, N1::Matrix{T}, N2::Matrix{T}, Jac_w_coeff::T) where {T<:Number}
+    add_n1n2t!(
+        Ke::AbstractMatrix{<:Real},
+        N1::VecOrMat{<:Real},
+        N2::VecOrMat{<:Real},
+        Jac_w_coeff::T,
+    ) where {T<:Real}
 
 Add the product  `N1*(N2'*(coeff*(Jac*w(j)))`, to the matrix `Ke`.
 
@@ -343,23 +347,23 @@ The matrix `Ke` is modified.  The matrix `N1` and `N2` are  not modified inside
 this function.
 """
 function add_n1n2t!(
-    Ke::Matrix{T},
-    N1::VecOrMat{T},
-    N2::VecOrMat{T},
+    Ke::AbstractMatrix{<:Real},
+    N1::VecOrMat{<:Real},
+    N2::VecOrMat{<:Real},
     Jac_w_coeff::T,
-) where {T<:Number}
+) where {T<:Real}
     @assert length(N1) == size(Ke, 1)
     @assert length(N2) == size(Ke, 2)
-    @inbounds for nx = 1:size(Ke, 2)
+    @inbounds for nx in axes(Ke, 2)
         a = (Jac_w_coeff) * N2[nx]
-        @inbounds for mx = 1:size(Ke, 1) # only the upper triangle
+        @inbounds for mx in axes(Ke, 1) # only the upper triangle
             Ke[mx, nx] += N1[mx] * a
         end
     end
     return true
 end
 
-function add_nnt_ut_only!(Ke::Matrix{T}, N::Vector{T}, Jac_w_coeff::T) where {T}
+function add_nnt_ut_only!(Ke::AbstractMatrix{<:Real}, N::AbstractVector{<:Real}, Jac_w_coeff::T) where {T<:Real}
     return add_nnt_ut_only!(Ke, reshape(N, length(N), 1), Jac_w_coeff)
 end
 
@@ -393,7 +397,7 @@ Make the matrix on input symmetric.
 
 The operation is in-place.
 """
-function symmetrize!(a)
+function symmetrize!(a::AbstractMatrix{<:Real})
     @assert size(a, 1) == size(a, 2)
     @inbounds for c in axes(a, 2)
         @inbounds for r = c:size(a, 1)
@@ -577,11 +581,11 @@ function mulCABt!(C, A, B)
 end
 
 """
-    detC(::Val{3}, C::Matrix{T})
+    detC(::Val{3}, C::AbstractMatrix{<:Real}) 
 
 Compute determinant of 3X3 `C`.
 """
-function detC(::Val{3}, C::Matrix{T}) where {T}
+function detC(::Val{3}, C::AbstractMatrix{<:Real}) 
     #define MAT3DUTIL_DET_3X3(T3X3) 
     return (
         (C[1, 1] * C[2, 2] * C[3, 3]) +
@@ -592,14 +596,14 @@ function detC(::Val{3}, C::Matrix{T}) where {T}
 end
 
 """
-    mulCAB!(C::Vector{T}, A, B::Vector{T})  where {T}
+    mulCAB!(C::AbstractVector{<:Real}, A::AbstractMatrix{<:Real}, B::AbstractVector{<:Real}) 
 
-Compute the product `C = A * B`, where `C` and `B` are "vectors".
+Compute the product `C = A * B`, where `C` and `B` are "vectors", and `A` is an abstract matrix.
 
 The use of BLAS is purposefully avoided in order to eliminate contentions of
 multi-threaded execution of the library code with the user-level threads.
 """
-function mulCAB!(C::Vector{T}, A, B::Vector{T}) where {T}
+function mulCAB!(C::AbstractVector{<:Real}, A::AbstractMatrix{<:Real}, B::AbstractVector{<:Real}) 
     M, N = size(A)
     @assert length(C) == M
     @assert length(B) == N

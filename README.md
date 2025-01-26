@@ -25,6 +25,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 01/26/2025: Relax types in matrix utilities.
 - 12/04/2024: Test with Julia 1.11.2.
 - 11/28/2024: Add OFF export of surface meshes.
 
