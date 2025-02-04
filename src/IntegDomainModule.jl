@@ -75,10 +75,28 @@ function IntegDomain(
     integration_rule::IR,
     otherdimension::T,
 ) where {S<:AbstractFESet,IR<:AbstractIntegRule,T<:Number}
-    function otherdimensionfu(loc::Matrix{T}, conn::CC, N::Matrix{T}) where {CC,T<:Number}
+    function otherdimensionfu(loc::AbstractVecOrMat{<:Real}, conn::CC, N::AbstractMatrix{<:Real}) where {CC}
         return otherdimension
     end
     return IntegDomain(fes, integration_rule, otherdimensionfu, false)
+end
+
+"""
+    IntegDomain(
+        fes::S,
+        integration_rule::IR,
+        otherdimension::F,
+    ) where {S<:AbstractFESet, IR<:AbstractIntegRule, F<:Function}
+
+Construct with the default orientation matrix (identity), and  other
+dimension provided by a function.
+"""
+function IntegDomain(
+    fes::S,
+    integration_rule::IR,
+    otherdimension::F,
+) where {S<:AbstractFESet, IR<:AbstractIntegRule, F<:Function}
+    return IntegDomain(fes, integration_rule, otherdimension, false)
 end
 
 """

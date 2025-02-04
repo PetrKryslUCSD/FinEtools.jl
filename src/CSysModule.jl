@@ -22,7 +22,7 @@ struct CSys{T<:Number,F<:Function}
     __updatebuffer!::F # function to update the coordinate system matrix.
     # Signature: `update!(csmatout::Matrix{T}, XYZ::VecOrMat{T}, tangents::Matrix{T},
     # feid::IT, qpid::IT) where {T, IT}`
-    _csmat::Array{T,2} # the coordinate system matrix (buffer); see
+    _csmat::Matrix{T} # the coordinate system matrix (buffer); see
 end
 
 """
@@ -33,8 +33,13 @@ rotation matrix is given.
 
 The function signature:
 ```
-update!(csmatout::Matrix{T}, XYZ::VecOrMat{T}, tangents::Matrix{T},
-    feid::IT, qpid::IT) where {T, IT}
+update!(
+        csmatout::AbstractMatrix{<:Real},
+        XYZ::AbstractVecOrMat{<:Real},
+        tangents::AbstractMatrix{<:Real},
+        feid::Integer,
+        qpid::Integer,
+    ) 
 ```
 where
 - `csmatout`= output matrix buffer, of size `(sdim, mdim)`
@@ -76,8 +81,13 @@ rotation matrix of type `T` is given.
 - `z` = zero value,
 - The `computecsmat` function signature:
     ```
-    update!(csmatout::Matrix{T}, XYZ::VecOrMat{T}, tangents::Matrix{T},
-        feid::IT, qpid::IT) where {T, IT}
+    update!(
+            csmatout::AbstractMatrix{<:Real},
+            XYZ::AbstractVecOrMat{<:Real},
+            tangents::AbstractMatrix{<:Real},
+            feid::Integer,
+            qpid::Integer,
+        ) 
     ```
     where
     - `csmatout`= output matrix buffer, of size `(sdim, mdim)`;
@@ -122,12 +132,12 @@ Construct coordinate system when the rotation matrix is given.
 """
 function CSys(csmat::Matrix{T}) where {T}
     function __updatebuffer!(
-        csmatout::Matrix{T},
-        XYZ::VecOrMat{T},
-        tangents::Matrix{T},
-        feid::IT1,
-        qpid::IT2,
-    ) where {T,IT1,IT2}
+        csmatout::AbstractMatrix{<:Real},
+        XYZ::AbstractVecOrMat{<:Real},
+        tangents::AbstractMatrix{<:Real},
+        feid::Integer,
+        qpid::Integer,
+    ) 
         return csmatout # nothing to be done here, the matrix is already in the buffer
     end
     return CSys(true, false, __updatebuffer!, deepcopy(csmat))# fill the buffer with the given matrix
@@ -143,12 +153,12 @@ identity.
 """
 function CSys(dim::IT, z::T) where {IT<:Integer,T}
     function __updatebuffer!(
-        csmatout::Matrix{T},
-        XYZ::VecOrMat{T},
-        tangents::Matrix{T},
-        feid::IT1,
-        qpid::IT2,
-    ) where {T,IT1,IT2}
+        csmatout::AbstractMatrix{<:Real},
+        XYZ::AbstractVecOrMat{<:Real},
+        tangents::AbstractMatrix{<:Real},
+        feid::Integer,
+        qpid::Integer,
+    ) 
         return csmatout # nothing to be done here, the matrix is already in the buffer
     end
     return CSys(
@@ -191,23 +201,25 @@ finite elements.
 """
 function CSys(sdim::IT1, mdim::IT2) where {IT1<:Integer,IT2<:Integer}
     function __updatebuffer!(
-        csmatout::Matrix{T},
-        XYZ::VecOrMat{T},
-        tangents::Matrix{T},
-        feid::IT1,
-        qpid::IT2,
-    ) where {T,IT1,IT2}
+        csmatout::AbstractMatrix{<:Real},
+        XYZ::AbstractVecOrMat{<:Real},
+        tangents::AbstractMatrix{<:Real},
+        feid::Integer,
+        qpid::Integer,
+    ) 
         return gen_iso_csmat!(csmatout, XYZ, tangents, feid, qpid)
     end
     return CSys(false, false, __updatebuffer!, fill(zero(Float64), sdim, mdim))
 end
 
 """
-    updatecsmat!(self::CSys,
-        XYZ::Matrix{T},
-        tangents::Matrix{T},
-        feid::IT1,
-        qpid::IT2) where {T, IT1, IT2}
+    updatecsmat!(
+        self::CSys,
+        XYZ::AbstractVecOrMat{<:Real},
+        tangents::AbstractMatrix{<:Real},
+        feid::Integer,
+        qpid::Integer,
+    ) 
 
 Update the coordinate system orientation matrix.
 
@@ -221,11 +233,11 @@ buffer as `self.csmat`.
 """
 function updatecsmat!(
     self::CSys,
-    XYZ::Matrix{T},
-    tangents::Matrix{T},
-    feid::IT1,
-    qpid::IT2,
-) where {T,IT1,IT2}
+    XYZ::AbstractVecOrMat{<:Real},
+    tangents::AbstractMatrix{<:Real},
+    feid::Integer,
+    qpid::Integer,
+) 
     self.__updatebuffer!(self._csmat, XYZ, tangents, feid, qpid)
     return self._csmat
 end
