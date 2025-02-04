@@ -22,7 +22,8 @@ follows:
 
 ```
 function fillcache!(cacheout::D,
-    XYZ::VecOrMat{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {D, T, IT}
+    XYZ::AbstractVecOrMat{<:Real}, tangents::AbstractMatrix{<:Real},
+    feid::IT, qpid::IT) where {D, T, IT}
     ... # modify the value of cacheout
     return cacheout
 end
@@ -41,7 +42,7 @@ called, and the output `cacheout` is filled with the value of the cached data.
 # Example
 ```
 function fillcache!(cacheout::Array{CT, N},
-        XYZ::VecOrMat{T}, tangents::Matrix{T},
+        XYZ::AbstractVecOrMat{<:Real}, tangents::AbstractMatrix{<:Real},
         feid::IT, qpid::IT) where {CT, N, T, IT}
     cacheout .= LinearAlgebra.I(3)
     return cacheout
@@ -61,7 +62,7 @@ end
     The bad news is, the cache is not thread safe. Reading is okay, but writing
     can lead to data races.
 """
-mutable struct DataCache{D,F<:Function}
+mutable struct DataCache{D, F<:Function}
     # Cache where the current value of the data can be retrieved
     _cache::D
     # Function to update and retrieve the array
@@ -69,18 +70,18 @@ mutable struct DataCache{D,F<:Function}
 end
 
 """
-    DataCache(data::Array{CT, N}) where {CT<:Number, N}
+    DataCache(data::D) where {D}
 
 Construct data cache. The *constant* data is given.
 """
 function DataCache(data::D) where {D}
     function _fillcache_constant!(
         cacheout::D,
-        XYZ::VecOrMat{T},
-        tangents::Matrix{T},
+        XYZ::AbstractVecOrMat{<:Real},
+        tangents::AbstractMatrix{<:Real},
         feid::IT,
         qpid::IT,
-    ) where {D,T<:Number,IT<:Integer}
+    ) where {D, IT<:Integer}
         # do nothing:  the data is already in the cache
         return cacheout
     end
@@ -90,16 +91,21 @@ end
 datatype(c::DataCache) = typeof(c._cache)
 
 """
-    (c::DataCache)(XYZ::VecOrMat{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {T<:Number, IT<:Integer}
+    (c::DataCache)(
+        XYZ::AbstractVecOrMat{<:Real},
+        tangents::AbstractMatrix{<:Real},
+        feid::IT,
+        qpid::IT,
+    ) where {IT<:Integer}
 
 Update the cache and retrieve the array.
 """
 function (c::DataCache)(
-    XYZ::VecOrMat{T},
-    tangents::Matrix{T},
+    XYZ::AbstractVecOrMat{<:Real},
+    tangents::AbstractMatrix{<:Real},
     feid::IT,
     qpid::IT,
-) where {T<:Number,IT<:Integer}
+) where {IT<:Integer}
     c._cache = c._fillcache!(c._cache, XYZ, tangents, feid, qpid)
     return c._cache
 end

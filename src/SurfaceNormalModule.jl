@@ -25,11 +25,11 @@ point `XYZ`, using the columns of the Jacobian matrix of the element,
 quadrature point, `qpid`:
 
 ```
-function computenormal!(normalout::Vector{CT}, XYZ::Matrix{T},
-        tangents::Matrix{T}, feid::IT, qpid::IT) where {CT, T, IT}
-        # Calculate the normal  and copy it into the buffer....
-        return normalout
-    end
+function computenormal!(normalout::Vector{CT}, XYZ::AbstractVecOrMat{<:Real},
+    tangents::AbstractMatrix{<:Real}, feid::IT, qpid::IT) where {CT, IT}
+    # Calculate the normal  and copy it into the buffer....
+    return normalout
+end
 ```
 
 The buffer `normalout` needs to be filled with the value  of the normal vector.
@@ -65,8 +65,8 @@ vector is given.
   have a signature of
 
     ```
-    function computenormal!(normalout::Vector{CT}, XYZ::Matrix{T},
-        tangents::Matrix{T}, feid::IT, qpid::IT) where {CT, T, IT}
+    function computenormal!(normalout::Vector{CT}, XYZ::AbstractVecOrMat{<:Real},
+        tangents::AbstractMatrix{<:Real}, feid::IT, qpid::IT) where {CT, IT}
         # Calculate the normal  and copy it into the buffer....
         return normalout
     end
@@ -95,12 +95,12 @@ In that case a zero vector is returned, and a warning is printed.
 """
 function SurfaceNormal(ndimensions)
     function defaultcomputenormal!(
-        normalout::Vector{T},
-        XYZ::Matrix{T},
-        tangents::Matrix{T},
+        normalout::AbstractVector{T},
+        XYZ::AbstractVecOrMat{<:Real},
+        tangents::AbstractMatrix{<:Real},
         feid::IT,
         qpid::IT,
-    ) where {T<:Number,IT<:Integer}
+    ) where {T<:Real, IT<:Integer}
         fill!(normalout, zero(T))
         # Produce a default normal
         if (size(tangents, 1) == 3) && (size(tangents, 2) == 2)# surface in three dimensions
@@ -132,7 +132,13 @@ function SurfaceNormal(vector::Vector{T}) where {T<:Number}
 end
 
 """
-    updatenormal!(self::SurfaceNormal, XYZ::Matrix{T}, tangents::Matrix{T}, feid::IT, qpid::IT) where {T, IT}
+    updatenormal!(
+        self::SurfaceNormal,
+        XYZ::AbstractVecOrMat{<:Real},
+        tangents::AbstractMatrix{<:Real},
+        feid::IT,
+        qpid::IT,
+    ) where {IT}
 
 Update the surface normal vector.
 
@@ -140,11 +146,11 @@ Returns the normal vector (stored in the cache).
 """
 function updatenormal!(
     self::SurfaceNormal,
-    XYZ::Matrix{T},
-    tangents::Matrix{T},
+    XYZ::AbstractVecOrMat{<:Real},
+    tangents::AbstractMatrix{<:Real},
     feid::IT,
     qpid::IT,
-) where {T,IT}
+) where {IT}
     return self._cache(XYZ, tangents, feid, qpid)
 end
 
