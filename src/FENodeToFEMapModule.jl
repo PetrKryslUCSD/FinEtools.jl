@@ -84,4 +84,24 @@ function FENodeToFEMap(fes::FE, nmax::IT) where {FE<:AbstractFESet,IT<:Integer}
     return FENodeToFEMap(_makemap(fes.conn, 1:count(fes), nmax))
 end
 
+"""
+    FENodeToFEMap(fes::FE, nmax::IT) where {FE<:AbstractFESet,IT<:Integer}
+
+Map from finite element nodes to the finite elements connecting them.
+
+Convenience constructor.
+"""
+function FENodeToFEMap(mconn::Matrix{IT}, nmax::IT) where {IT<:Integer}
+    map = Array{Vector{IT}}(undef, nmax)
+    @inbounds for i in eachindex(map)
+        map[i] = IT[]  # initially empty arrays
+    end
+    @inbounds for j in axes(mconn, 1)
+        for i in axes(mconn, 2)
+            push!(map[mconn[j, i]], j)
+        end
+    end
+    return FENodeToFEMap(map)
+end
+
 end
