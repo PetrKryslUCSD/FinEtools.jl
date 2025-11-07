@@ -54,7 +54,7 @@ vector is given.
   have a signature of
     ```
     function computeforce!(forceout::Vector{CT}, XYZ::Matrix{T},
-        tangents::Matrix{T}, feid::IT) ) where {CT, T<:Number, IT<:Integer}
+        tangents::Matrix{T}, feid::IT) where {CT, T<:Number, IT<:Integer}
         # Calculate the force  and copy it into the buffer forceout....
         return forceout
     end

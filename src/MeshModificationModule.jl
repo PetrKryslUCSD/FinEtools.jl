@@ -221,10 +221,10 @@ function fusenodes(fens1::FENodeSet{T}, fens2::FENodeSet{T}, tolerance::T) where
     nn1 = count(fens1)
     nn2 = count(fens2)
     xyz1 = zeros(T, nn1, dim)
-    copyto!(xyz1, fens1.xyz)#::FFltMat = copy(fens1.xyz::FFltMat)
+    copyto!(xyz1, fens1.xyz)
     id1 = collect(1:nn1)
     xyz2 = zeros(T, nn2, dim)
-    copyto!(xyz2, fens2.xyz)#xyz2::FFltMat = copy(fens2.xyz::FFltMat)
+    copyto!(xyz2, fens2.xyz)
     id2 = collect(1:nn2)
     # Decide which nodes should be checked for proximity
     ib = intersectboxes(
