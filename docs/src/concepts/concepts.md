@@ -53,14 +53,15 @@ The FinEtools package consists of many modules which fall into several  categori
 
 ## Arithmetic types
 
-The FinEtools package tries to make typing arguments easier. The arithmetic
-types used throughout are `FInt` for integer data, `FFlt` for floating-point
-data, and `Complex{FFlt}` for applications that work with complex linear
-algebra quantities.
+The FinEtools package tries to make typing arguments easier with a convenience
+module. The arithmetic types used  are `FInt` for integer data,
+`Float64` for floating-point data, and `Complex{Float64}` for applications that
+work with complex linear algebra quantities.
+The module `FTypesModule` also defines abbreviations for vectors and matrices with entries of these types.
 
-The module `FTypesModule` defines these types, and also defines abbreviations for vectors and matrices with entries of these types.
-
-Some algorithms expect input in the form of a *data dictionary*, `FDataDict`, and also produce output in this form.
+Finally, 
+some algorithms expect input in the form of a *data dictionary*, `FDataDict`, and also produce output in this form.
+FinEtools uses the type of the data dictionary, but none of the other types defined in the module `FTypesModule`.
 
 
 ## Physical units
@@ -455,8 +456,8 @@ A finite element set is equipped with  a way of  calculating  the "other" dimens
 
 Thus, the way in which the "other"  dimension gets used by the integration domain methods depends on the model. As an example, consider  the  method
 ```julia
-function Jacobianvolume(self::IntegDomain{T}, J::FFltMat, loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {T<:AbstractFESet2Manifold, CC<:AbstractArray{FInt}}
-    Jac = Jacobiansurface(self, J, loc, conn, N)::FFlt
+function Jacobianvolume(self::IntegDomain{T}, J, loc, conn::CC, N)::Float64 where {T<:AbstractFESet2Manifold, CC<:AbstractArray{FInt}}
+    Jac = Jacobiansurface(self, J, loc, conn, N)::Float64
     if self.axisymmetric
         return Jac*2*pi*loc[1];
     else
@@ -470,7 +471,7 @@ The callback function computes the "other" dimension from  two kinds of  informa
 
 - The approach ad (a) is suitable  when the "other" dimension is given as a function of the physical coordinates. The  simplest case is obviously  a uniform distribution of the "other" dimension. When  no  callback is explicitly provided,  the  "other"  dimension  callback is  automatically generated as the trivial
 ```julia
-function otherdimensionunity(loc::FFltMat, conn::CC, N::FFltMat)::FFlt where {CC<:AbstractArray{FInt}}
+function otherdimensionunity(loc, conn::CC, N)::Float64 where {CC<:AbstractArray{FInt}}
     return 1.0
 end
 ```
@@ -527,7 +528,7 @@ This integral evaluates to a number, the heat load  applied to the degree of fre
 Evaluating integrals of this form is so common that there is a module `FEMMBaseModule` with the method `distribloads` that computes and assembles the global vector. For instance to evaluate this heat load vector  on the mesh composed of three-node triangles, for a uniform heat generation rate `Q`, we can write
 
 ```julia
-fi = ForceIntensity(FFlt[Q]);
+fi = ForceIntensity(Float64[Q]);
 F1 = distribloads(FEMMBase(IntegDomain(fes, TriRule(1))), geom, tempr, fi, 3);
 ```
 
@@ -611,7 +612,7 @@ The material response  is described in  material-point-attached coordinate syste
 The type `CSys` (module `CSysModule`) is the updater of the material coordinate system matrix. The object is equipped with a callback to store the current orientation matrix. For instance: the coordinate system for an orthotropic material wound around a cylinder could be described in the coordinate system `CSys(3, 3, updatecs!)`, where the callback `updatecs!` is defined as
 
 ```julia
-function updatecs!(csmatout::FFltMat, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+function updatecs!(csmatout, XYZ, tangents, feid, qpid)
     csmatout[:, 2] = [0.0 0.0 1.0]
     csmatout[:, 3] = XYZ
     csmatout[3, 3] = 0.0
