@@ -3036,3 +3036,60 @@ end
 test()
 nothing
 end
+
+
+module mgausr111cr1
+using FinEtools
+using LinearAlgebra
+using Test
+function test()
+    fens, fes = H8spheren(3.1, 5)
+    @test (count(fens), count(fes)) == (175, 108)
+    # File = "mesh.vtk"
+    # VTK.vtkexportmesh(File, fens, fes)
+    geom = NodalField(fens.xyz)
+    results = []
+    for order in 1:9
+        cr = CompositeRule(GaussRule(3, order), GaussRule(3, order+1))
+        femm = FEMMBase(IntegDomain(fes, cr))
+        V = integratefunction(femm, geom, (x) -> 1.0)
+        push!(results, V)
+    end
+    @test norm(
+        results - [
+            15.06847962861544,
+            15.137585913524491,
+            15.137585913524477,
+            15.137585913524472,
+            15.137585913524491,
+            15.13758591352459,
+            15.137585913524601,
+            15.137585913524363,
+            15.137585913524278,
+        ],
+    ) <= 1.0e-9
+    results = []
+    for order in 1:9
+        cr = CompositeRule(GaussRule(3, order), GaussRule(3, order+1); default = 2)
+        femm = FEMMBase(IntegDomain(fes, cr))
+        V = integratefunction(femm, geom, (x) -> 1.0)
+        push!(results, V)
+    end
+    @test norm(
+        results - [
+            15.137585913524491,
+            15.137585913524477,
+            15.137585913524472,
+            15.137585913524491,
+            15.13758591352459,
+            15.137585913524601,
+            15.137585913524363,
+            15.137585913524278,
+            15.137585913524612,
+        ],
+    ) <= 1.0e-9
+    true
+end
+end
+using .mgausr111cr1
+mgausr111cr1.test()

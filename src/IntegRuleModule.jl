@@ -14,6 +14,10 @@ Abstract type for integration rule.
 """
 abstract type AbstractIntegRule end
 
+ir_param_coords(rule::AbstractIntegRule) = rule.param_coords
+ir_weights(rule::AbstractIntegRule) = rule.weights
+ir_npts(rule::AbstractIntegRule) = rule.npts
+
 """
 	TriRule <: AbstractIntegRule
 
@@ -667,4 +671,31 @@ function NodalTensorProductRule(dim = 1)
     )
 end
 
+"""
+    CompositeRule <: AbstractIntegRule
+
+The integration rule that is a composite of two rules.
+
+This rule is useful for implementing selective reduced integration. The 
+client must make sense of the two rules (which is the full rule and 
+which is the reduced rule).
+
+"""
+struct CompositeRule{R1<:AbstractIntegRule,R2<:AbstractIntegRule} <: AbstractIntegRule
+    default::Int
+    rule1::R1
+    rule2::R2
 end
+
+"""
+    CompositeRule(rule1, rule2; default=1)
+"""
+function CompositeRule(rule1::R1, rule2::R2; default::Int = 1) where {R1<:AbstractIntegRule,R2<:AbstractIntegRule}
+    return CompositeRule(default, rule1, rule2)
+end
+
+ir_param_coords(rule::CompositeRule) = (rule.default == 1 ? rule.rule1 : rule.rule2).param_coords
+ir_weights(rule::CompositeRule) = (rule.default == 1 ? rule.rule1 : rule.rule2).weights
+ir_npts(rule::CompositeRule) = (rule.default == 1 ? rule.rule1 : rule.rule2).npts
+
+end # module IntegRuleModule

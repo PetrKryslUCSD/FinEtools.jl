@@ -382,6 +382,9 @@ export AbstractSysmatAssembler,
 
 using .IntegRuleModule:
     AbstractIntegRule,
+    ir_param_coords,
+    ir_weights,
+    ir_npts,
     TriRule,
     GaussRule,
     TetRule,
@@ -389,9 +392,13 @@ using .IntegRuleModule:
     SimplexRule,
     TrapezoidalRule,
     NodalSimplexRule,
-    NodalTensorProductRule
+    NodalTensorProductRule,
+    CompositeRule
 # Exported: type for various integration rules
 export AbstractIntegRule,
+    ir_param_coords,
+    ir_weights,
+    ir_npts,
     TriRule,
     GaussRule,
     TetRule,
@@ -399,7 +406,8 @@ export AbstractIntegRule,
     SimplexRule,
     TrapezoidalRule,
     NodalSimplexRule,
-    NodalTensorProductRule
+    NodalTensorProductRule,
+    CompositeRule
 
 using .IntegDomainModule:
     IntegDomain,
