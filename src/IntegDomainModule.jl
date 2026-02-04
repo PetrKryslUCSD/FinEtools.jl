@@ -22,7 +22,7 @@ import ..FESetModule:
     bfun,
     bfundpar
 import ..FENodeSetModule: FENodeSet
-import ..IntegRuleModule: AbstractIntegRule
+import ..IntegRuleModule: AbstractIntegRule, ir_param_coords, ir_weights, ir_npts
 
 """
     IntegDomain{S<:AbstractFESet, F<:Function}
@@ -633,14 +633,14 @@ function integrationdata(
     self::ID,
     integration_rule::IR,
 ) where {ID<:IntegDomain,IR<:AbstractIntegRule}
-    T = eltype(integration_rule.param_coords)
-    pc::Matrix{T} = integration_rule.param_coords
-    w::Matrix{T} = integration_rule.weights
-    npts = integration_rule.npts
+    T = eltype(ir_param_coords(integration_rule))
+    pc::Matrix{T} = ir_param_coords(integration_rule)
+    w::Matrix{T} = ir_weights(integration_rule)
+    npts = ir_npts(integration_rule)
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     Ns = Matrix{T}[]
     gradNparams = Matrix{T}[]
-    for j = 1:npts
+    for j in 1:npts
         push!(Ns, bfun(self.fes, vec(pc[j, :])))
         push!(gradNparams, bfundpar(self.fes, vec(pc[j, :])))
     end

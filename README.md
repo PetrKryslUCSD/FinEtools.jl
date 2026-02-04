@@ -25,9 +25,9 @@ The package supports application packages, for instance:
 
 ## News
 
+- 02/03/2026: Add a composite rule in support of selective reduced integration.
 - 01/26/2025: Relax types in matrix utilities.
-- 12/04/2024: Test with Julia 1.11.2.
-- 11/28/2024: Add OFF export of surface meshes.
+
 
 
 
@@ -63,6 +63,8 @@ The documentation  is published as [Github pages](https://petrkryslucsd.github.i
 
 ## <a name="past-news"></a>Past news
 
+- 12/04/2024: Test with Julia 1.11.2.
+- 11/28/2024: Add OFF export of surface meshes.
 - 06/19/2024: Propagate labels of extruded quadrilaterals and triangles.
 - 05/19/2024: Make it possible to have different kinds of degrees of freedom.
 - 04/19/2024: Replace asserts with errors.
