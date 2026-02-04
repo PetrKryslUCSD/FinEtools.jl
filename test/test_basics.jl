@@ -3093,3 +3093,21 @@ end
 end
 using .mgausr111cr1
 mgausr111cr1.test()
+
+
+module mgausr111cr12
+using FinEtools
+using LinearAlgebra
+using Test
+function test()
+    order = 2
+    cr = CompositeRule(GaussRule(3, order), GaussRule(3, order + 1))
+    pc = ir_param_coords(cr, 1)
+    @test size(pc, 1) == 8
+    pc = ir_param_coords(cr, 2)
+    @test size(pc, 1) == 27
+    true
+end
+end
+using .mgausr111cr12
+mgausr111cr12.test()

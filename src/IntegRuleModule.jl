@@ -10,7 +10,7 @@ __precompile__(true)
 """
     AbstractIntegRule
 
-Abstract type for integration rule.
+Abstract type for an integration rule.
 """
 abstract type AbstractIntegRule end
 
@@ -32,9 +32,9 @@ end
 """
     TriRule(npts=1)
 
-Type for triangular quadrature rule.  Used for integration of the standard
+Type for triangular quadrature rule.  Used for integration on the standard
 triangle, which is between 0 and 1 in both parametric coordinates.
-`npts` = number of points (1-- one-point rule, 3 -- three-point rule, 6 -- six
+- `npts` = number of points (1-- one-point rule, 3 -- three-point rule, 6 -- six
  point rule, 9 --nine point rule, 10 -- Strang 10 point, order 13, degree of
  precision 7, rule), 12 and 13--twelve- and thirteen-point rule.
 """
@@ -201,7 +201,7 @@ end
 """
     GaussRule(dim=1, order=1)
 
-Gauss rule.
+Gauss rule for integration in "blocks" in one, two, or three dimensions.
 """
 function GaussRule(dim = 1, order = 1)
     (1 <= dim <= 3) || error("Gauss rule of dimension $(dim) not available")
@@ -412,7 +412,7 @@ end
     TetRule(npts=1)
 
 Tetrahedral integration rule.
-npts=number of points (1-- one-point rule, 4 -- four-point rule, 5 -- five point
+- `npts`=number of points (1-- one-point rule, 4 -- four-point rule, 5 -- five point
 rule).
 """
 function TetRule(npts = 1)
@@ -464,7 +464,7 @@ end
 """
     PointRule()
 
-POINT integration rule.
+Point integration rule.
 """
 function PointRule()
     return PointRule(1, reshape([1.0], 1, 1), reshape([1.0], 1, 1))
@@ -579,8 +579,8 @@ The rule is applicable for line segments, triangles, tetrahedra.
 
 !!! note
 
-The quadrature points for a nodal quadrature rule must be listed in the order 
-in which the nodes are used in the definition of the element!
+    The quadrature points for a nodal quadrature rule must be listed in the order 
+    in which the nodes are used in the definition of the element!
 """
 struct NodalSimplexRule <: AbstractIntegRule
     dim::Int
@@ -625,8 +625,8 @@ The rule is applicable for line segments, quadrilaterals, hexahedra.
 
 !!! note
 
-The quadrature points for a nodal quadrature rule must be listed in the order 
-in which the nodes are used in the definition of the element!
+    The quadrature points for a nodal quadrature rule must be listed in the order 
+    in which the nodes are used in the definition of the element!
 """
 struct NodalTensorProductRule <: AbstractIntegRule
     dim::Int
@@ -676,9 +676,12 @@ end
 
 The integration rule that is a composite of two rules.
 
-This rule is useful for implementing selective reduced integration. The 
-client must make sense of the two rules (which is the full rule and 
-which is the reduced rule).
+This rule is useful for implementing selective reduced integration. 
+    
+!!! note
+
+    The client must make sense of the two rules (which is the full rule and 
+    which is the reduced rule).
 
 """
 struct CompositeRule{R1<:AbstractIntegRule,R2<:AbstractIntegRule} <: AbstractIntegRule
@@ -697,5 +700,9 @@ end
 ir_param_coords(rule::CompositeRule) = (rule.default == 1 ? rule.rule1 : rule.rule2).param_coords
 ir_weights(rule::CompositeRule) = (rule.default == 1 ? rule.rule1 : rule.rule2).weights
 ir_npts(rule::CompositeRule) = (rule.default == 1 ? rule.rule1 : rule.rule2).npts
+
+ir_param_coords(rule::CompositeRule, which::Int) = (which == 1 ? rule.rule1 : rule.rule2).param_coords
+ir_weights(rule::CompositeRule, which::Int) = (which == 1 ? rule.rule1 : rule.rule2).weights
+ir_npts(rule::CompositeRule, which::Int) = (which == 1 ? rule.rule1 : rule.rule2).npts
 
 end # module IntegRuleModule
