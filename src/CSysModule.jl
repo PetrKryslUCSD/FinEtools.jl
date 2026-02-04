@@ -197,7 +197,7 @@ finite elements.
     more efficient.
 
 # See also
-`gen_iso_csmat`
+[`@gen_iso_csmat()`](@ref)
 """
 function CSys(sdim::IT1, mdim::IT2) where {IT1<:Integer,IT2<:Integer}
     function __updatebuffer!(

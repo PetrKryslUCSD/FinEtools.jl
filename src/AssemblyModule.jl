@@ -389,6 +389,7 @@ This is how a symmetric sparse matrix is assembled from two square dense matrice
 ```
 # See also
 SysmatAssemblerSparse
+[`@SysmatAssemblerSparse()`](@ref)
 """
 function SysmatAssemblerSparseSymm(z::T, nomatrixresult = false) where {T}
     return SysmatAssemblerSparseSymm(
