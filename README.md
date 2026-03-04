@@ -25,6 +25,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 03/04/2026: Re-implement the distortion of a block for benchmarks.
 - 02/03/2026: Add a composite rule in support of selective reduced integration.
 - 01/26/2025: Relax types in matrix utilities.
 

@@ -1082,31 +1082,16 @@ function nodepartitioning(fens::FENodeSet, fesarr, npartitions::Vector{Int})
     return partitioning
 end
 
-"""
-    distortblock(ofens::FENodeSet{T}, xdispmul::T, ydispmul::T) where {T<:Number}
-
-Distort a block mesh by shifting around the nodes. The goal is to
-distort the horizontal and vertical mesh lines into slanted lines.
-"""
-function distortblock(ofens::FENodeSet{T}, xdispmul::T, ydispmul::T) where {T<:Number}
-    Lx = maximum(ofens.xyz[:, 1])
-    Ly = maximum(ofens.xyz[:, 2])
-    xic(x) = (2 * x - Lx) / Lx
-    etac(y) = (2 * y - Ly) / Ly
-
-    fens = deepcopy(ofens)
-
-    for k in eachindex(fens)
-        x, y = fens.xyz[k, :]
-        xi, eta = xic(x), etac(y)
-        u = xdispmul * (1 + xi) * (1 - xi) * eta
-        v = ydispmul * xi * (1 + eta) * (1 - eta)
-
-        fens.xyz[k, 1] = x + u
-        fens.xyz[k, 2] = y + v
+function _shifts_edge(Nx)
+    s = zeros(Nx + 1)
+    Dx = 2.0 / Nx / (Nx + 1)
+    sx = Dx
+    for i in 2:Nx
+        s[i] = sx
+        sx += Dx * i
     end
-
-    return fens
+    s[end] = 1.0
+    return s
 end
 
 """
@@ -1116,33 +1101,56 @@ end
         Width::T,
         nL::IT,
         nW::IT,
-        xdispmul::T,
-        ydispmul::T,
+        pattern = :lefttoprightbottom
     ) where {F<:Function, T<:Number, IT<:Integer}
 
 Distort a block mesh by shifting around the nodes. The goal is to distort the
-horizontal and vertical mesh lines into slanted lines. This is useful when
+horizontal and vertical mesh lines into slanted lines and 
+compress/expand/shear elements. This is useful when
 testing finite elements where special directions must be avoided.
+
+!!! note
+
+    This function should only be used with linear elements. 
+    It does not account for mid-edge nodes.
+
+Example:
+```
+fens, fes = distortblock(Q4block, 1.0, 1.0, 87, 94)
+
+using FinEtools.MeshExportModule.VTK
+vtkexportmesh("try.vtk", fens, fes)
+```
 """
-function distortblock(
-    B::F,
+function distortblock(B::F,
     Length::T,
     Width::T,
     nL::IT,
     nW::IT,
-    xdispmul::T,
-    ydispmul::T,
-) where {F<:Function,T<:Number,IT<:Integer}
-    (1.0 >= abs(xdispmul) >= 0.0) || error("xdispmul must be between 0 and 1")
-    (1.0 >= abs(ydispmul) >= 0.0) || error("ydispmul must be between 0 and 1")
-    fens, fes = B(1.0, 1.0, nL, nW)
-    nfens = deepcopy(fens)
-    if xdispmul != 0.0 || ydispmul != 0.0
-        nfens = distortblock(fens, xdispmul, ydispmul)
+    pattern=:lefttoprightbottom) where {F<:Function, T<:Number, IT<:Integer}
+    fens, fes = B(T(nL), T(nW), nL, nW)
+    if pattern == :lefttoprightbottom
+        ex0 = _shifts_edge(nW)
+        ex1 = 1.0 .- reverse(_shifts_edge(nW))
+        ey0 = _shifts_edge(nL)
+        ey1 = 1.0 .- reverse(_shifts_edge(nL))
+    else
+        ex1 = _shifts_edge(nW)
+        ex0 = 1.0 .- reverse(_shifts_edge(nW))
+        ey1 = _shifts_edge(nL)
+        ey0 = 1.0 .- reverse(_shifts_edge(nL))
     end
-    nfens.xyz[:, 1] .*= Length
-    nfens.xyz[:, 2] .*= Width
-    return nfens, fes
+    for k in eachindex(fens)
+        i, j = Int.(fens.xyz[k, :])
+        xi, eta = (2 * T(i) - nL) / nL, (2 * T(j) - nW) / nW
+        i += 1
+        j += 1
+        fens.xyz[k, 1] = ey0[i] * (1 - eta) / 2 + ey1[i] * (1 + eta) / 2
+        fens.xyz[k, 2] = ex0[j] * (1 - xi) / 2 + ex1[j] * (1 + xi) / 2
+    end
+    fens.xyz[:, 1] .*= Length
+    fens.xyz[:, 2] .*= Width
+    return fens, fes
 end
 
 function __all_behind(xyz, centroid, c, n, conn, tol, mask)

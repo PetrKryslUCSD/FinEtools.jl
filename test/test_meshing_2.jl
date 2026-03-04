@@ -1293,147 +1293,20 @@ function test()
     a = Lx / nx * 3 / 2
     b = Ly / ny * 3 / 2
 
-    fens, fes = T3block(Lx, Ly, nx, ny) # Mesh
-    fens = distortblock(fens, 1.0 / nx, -1.0 / ny)
+    fens, fes = distortblock(T3block, Lx, Ly, nx, ny)
 
-    File = "mesh_1g.vtk"
+    File = "mesh_1g-lefttoprightbottom.vtk"
+    MeshExportModule.VTK.vtkexportmesh(File, fens, fes)
+
+    fens, fes = distortblock(T3block, Lx, Ly, nx, ny, :topbottomrighttop)
+
+    File = "mesh_1g-topbottomrighttop.vtk"
     MeshExportModule.VTK.vtkexportmesh(File, fens, fes)
 
 end
 end
 using .miscellaneous_1g
 miscellaneous_1g.test()
-
-
-module miscellaneous_2g
-using FinEtools
-using Test
-using FinEtools.MeshExportModule
-function test()
-    rho = 1.21 * 1e-9# mass density
-    c = 345.0 * 1000# millimeters per second
-    bulk = c^2 * rho
-    Lx = 900.0# length of the box, millimeters
-    Ly = 800.0 # length of the box, millimeters
-    nx = 8
-    ny = 4
-    a = Lx / nx * 3 / 2
-    b = Ly / ny * 3 / 2
-
-    fens, fes = Q8block(Lx, Ly, nx, ny) # Mesh
-    fens = distortblock(fens, 1.0 / nx, -1.0 / ny)
-
-    File = "mesh_2g.vtk"
-    MeshExportModule.VTK.vtkexportmesh(File, fens, fes)
-
-end
-end
-using .miscellaneous_2g
-miscellaneous_2g.test()
-
-module miscellaneous_3g
-using FinEtools
-using Test
-using FinEtools.MeshExportModule
-function test()
-    rho = 1.21 * 1e-9# mass density
-    c = 345.0 * 1000# millimeters per second
-    bulk = c^2 * rho
-    Lx = 900.0# length of the box, millimeters
-    Ly = 800.0 # length of the box, millimeters
-    nx = 8
-    ny = 5
-    a = Lx / nx * 1.2
-    b = Ly / ny * 3 / 2
-
-    fens, fes = Q4block(Lx, Ly, nx, ny) # Mesh
-    fens = distortblock(fens, 1.0 / nx, -1.0 / ny)
-
-    File = "mesh_3g.vtk"
-    MeshExportModule.VTK.vtkexportmesh(File, fens, fes)
-
-end
-end
-using .miscellaneous_3g
-miscellaneous_3g.test()
-
-module miscellaneous_4g
-using FinEtools
-using Test
-using FinEtools.MeshExportModule
-function test()
-    rho = 1.21 * 1e-9# mass density
-    c = 345.0 * 1000# millimeters per second
-    bulk = c^2 * rho
-    Lx = 900.0# length of the box, millimeters
-    Ly = 800.0 # length of the box, millimeters
-    nx = 8
-    ny = 5
-    a = Lx / nx * 1.2
-    b = Ly / ny * 3 / 2
-
-    fens, fes = Q4block(Lx, Ly, nx, ny) # Mesh
-    fens = distortblock(fens, 1.0 / nx, 1.0 / ny)
-
-    File = "mesh_4g.vtk"
-    MeshExportModule.VTK.vtkexportmesh(File, fens, fes)
-
-end
-end
-using .miscellaneous_4g
-miscellaneous_4g.test()
-
-
-module miscellaneous_5g
-using FinEtools
-using Test
-using FinEtools.MeshExportModule
-function test()
-    rho = 1.21 * 1e-9# mass density
-    c = 345.0 * 1000# millimeters per second
-    bulk = c^2 * rho
-    Lx = 900.0# length of the box, millimeters
-    Ly = 800.0 # length of the box, millimeters
-    nx = 8
-    ny = 5
-    a = Lx / nx * 1.2
-    b = Ly / ny * 3 / 2
-
-    fens, fes = distortblock(Q4block, Lx, Ly, nx, ny, 1.0 / nx, 1.0 / ny)
-
-    File = "mesh_5g.vtk"
-    MeshExportModule.VTK.vtkexportmesh(File, fens, fes)
-
-end
-end
-using .miscellaneous_5g
-miscellaneous_5g.test()
-
-
-module miscellaneous_6g
-using FinEtools
-using Test
-using FinEtools.MeshExportModule
-function test()
-    rho = 1.21 * 1e-9# mass density
-    c = 345.0 * 1000# millimeters per second
-    bulk = c^2 * rho
-    Lx = 900.0# length of the box, millimeters
-    Ly = 800.0 # length of the box, millimeters
-    nx = 8
-    ny = 5
-    a = Lx / nx * 1.2
-    b = Ly / ny * 3 / 2
-
-    fens, fes = distortblock(Q4block, Lx, Ly, nx, ny, 1.0 / nx, 0.0 * Ly / ny)
-
-    File = "mesh_6g.vtk"
-    MeshExportModule.VTK.vtkexportmesh(File, fens, fes)
-
-end
-end
-using .miscellaneous_6g
-miscellaneous_6g.test()
 
 
 module mt3rand1x
