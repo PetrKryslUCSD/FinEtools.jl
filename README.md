@@ -25,12 +25,9 @@ The package supports application packages, for instance:
 
 ## News
 
+- 03/05/2026: Add Simpson 1/3  rule.
 - 03/04/2026: Re-implement the distortion of a block for benchmarks.
 - 02/03/2026: Add a composite rule in support of selective reduced integration.
-- 01/26/2025: Relax types in matrix utilities.
-
-
-
 
 
 [Past news](#past-news)
@@ -64,6 +61,7 @@ The documentation  is published as [Github pages](https://petrkryslucsd.github.i
 
 ## <a name="past-news"></a>Past news
 
+- 01/26/2025: Relax types in matrix utilities.
 - 12/04/2024: Test with Julia 1.11.2.
 - 11/28/2024: Add OFF export of surface meshes.
 - 06/19/2024: Propagate labels of extruded quadrilaterals and triangles.

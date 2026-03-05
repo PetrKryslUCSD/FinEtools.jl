@@ -3111,3 +3111,25 @@ end
 end
 using .mgausr111cr12
 mgausr111cr12.test()
+
+
+module msimpsonr1
+using FinEtools
+using LinearAlgebra
+using Test
+function test()
+    fens, fes = H8spheren(3.1, 5)
+    @test (count(fens), count(fes)) == (175, 108)
+    # File = "mesh.vtk"
+    # VTK.vtkexportmesh(File, fens, fes)
+    geom = NodalField(fens.xyz)
+    cr = Simpson13Rule(3)
+    femm = FEMMBase(IntegDomain(fes, cr))
+    V = integratefunction(femm, geom, (x) -> 1.0)
+    # println("Volume: ", V)
+    @test abs(V - 15.137585913524491) / 15.137585913524491 <= 1.0e-9
+    true
+end
+end
+using .msimpsonr1
+msimpsonr1.test()

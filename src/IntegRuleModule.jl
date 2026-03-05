@@ -398,6 +398,71 @@ function GaussRule(dim = 1, order = 1)
 end
 
 """
+    Simpson13Rule <: AbstractIntegRule
+
+The Simpson 1/3 rule, applicable for a tensor product of  intervals -1 <=x<= +1.
+"""
+struct Simpson13Rule <: AbstractIntegRule
+    dim::Int
+    npts::Int
+    param_coords::Array{Float64,2}
+    weights::Array{Float64,2}
+end
+
+"""
+    Simpson13Rule(dim=1)
+
+Simpson 1/3 rule for integration in "blocks" in one, two, or three dimensions.
+"""
+function Simpson13Rule(dim = 1)
+    (1 <= dim <= 3) || error("Simpson 1/3 rule of dimension $(dim) not available")
+    param_coords = vec([-1.0 0.0 1.0])
+    weights = vec([1.0 4.0 1.0]) ./ 3
+    
+    if (dim == 1)
+        npts = 3
+        param_coords = reshape(param_coords', npts, 1)
+        weights = reshape(weights, npts, 1)
+    elseif (dim == 2)
+        pc = param_coords
+        w = weights
+        npts = 3^2
+        param_coords = zeros(Float64, npts, 2)
+        weights = zeros(Float64, npts, 1)
+        r = 1
+        for i = 1:3
+            for j = 1:3
+                param_coords[r, :] = [pc[i] pc[j]]
+                weights[r] = w[i] * w[j]
+                r = r + 1
+            end
+        end
+    else # (dim==3)
+        pc = param_coords
+        w = weights
+        npts = 3^3
+        param_coords = zeros(Float64, npts, 3)
+        weights = zeros(Float64, npts, 1)
+        r = 1
+        for i = 1:3
+            for j = 1:3
+                for k = 1:3
+                    param_coords[r, :] = [pc[i] pc[j] pc[k]]
+                    weights[r] = w[i] * w[j] * w[k]
+                    r = r + 1
+                end
+            end
+        end
+    end
+    return Simpson13Rule(
+        dim,
+        Int(npts),
+        reshape(param_coords, size(param_coords, 1), dim),
+        reshape(weights, length(weights), 1),
+    )
+end
+
+"""
     TetRule <: AbstractIntegRule
 
 Tetrahedral quadrature rule, used for integration on the standard tetrahedron.
