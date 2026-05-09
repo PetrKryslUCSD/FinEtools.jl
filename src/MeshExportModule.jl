@@ -1769,7 +1769,7 @@ Arguments:
 - `theFile` = file name,
 - `Connectivity` = array of connectivities, one row per element,
 - `Points` = array of node coordinates, one row per node,
-- `Cell_type` = type of the cell, refer to the predefined 
+- `celltype` = type of the cell, refer to the predefined 
     constants `WriteVTK.P1`, `WriteVTK.L2`, ..., `WriteVTK.H20``, ...
 - `scalars` = array of tuples, (name, data)
 - `vectors` = array of tuples, (name, data)
