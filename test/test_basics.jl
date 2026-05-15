@@ -3133,3 +3133,62 @@ end
 end
 using .msimpsonr1
 msimpsonr1.test()
+
+
+module mnsimpr12d
+using FinEtools
+using FinEtools.MeshExportModule
+# using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+    xs = collect(linearspace(0.0, pi / 2, 5))
+    ys = collect(linearspace(0.0, pi / 4, 5))
+    fens, fes = L2blockx(xs, ys)
+    @test count(fes) == 4
+
+    geom = NodalField(fens.xyz)
+    femm = FEMMBase(IntegDomain(fes, NodalSimplexRule(3)))
+    V1 = integratefunction(femm, geom, (x) -> 1.0)
+    femm = FEMMBase(IntegDomain(fes, SimplexRule(3, 4)))
+    V2 = integratefunction(femm, geom, (x) -> 1.0)
+    @test abs(V1 - V2) / V1 <= 1.0e-5
+
+    # VTK.vtkexportmesh("L2blockx-mesh.vtk", fens, fes)
+    true
+end
+end
+using .mnsimpr12d
+mnsimpr12d.test()
+
+
+module mnsimpr13d
+using FinEtools
+using FinEtools.MeshExportModule
+# using FinEtools.MeshExportModule: VTK
+using Test
+function test()
+    n = 25
+    xs = zeros(n)
+    ys = zeros(n)
+    zs = zeros(n)
+    for i in 1:n
+        xs[i] = cos(2 * (i - 1) * pi / (n - 1))
+        ys[i] = sin(2 * (i - 1) * pi / (n - 1))
+        zs[i] = (i - 1) * pi / (2 * (n - 1))
+    end
+    fens, fes = L2blockx(xs, ys, zs)
+    @test count(fes) == n - 1
+
+    geom = NodalField(fens.xyz)
+    femm = FEMMBase(IntegDomain(fes, NodalSimplexRule(3)))
+    V1 = integratefunction(femm, geom, (x) -> 1.0)
+    femm = FEMMBase(IntegDomain(fes, SimplexRule(3, 4)))
+    V2 = integratefunction(femm, geom, (x) -> 1.0)
+    @test abs(V1 - V2) / V1 <= 1.0e-5
+
+    # VTK.vtkexportmesh("L2blockx-mesh.vtk", fens, fes)
+    true
+end
+end
+using .mnsimpr13d
+mnsimpr13d.test()

@@ -27,7 +27,48 @@ end
 Graded mesh of a 1-D block, L2 finite elements.
 """
 function L2blockx(xs::Vector{T}) where {T<:Number}
-    xyz = reshape(sort(xs), length(xs), 1)
+    xyz = reshape(xs, length(xs), 1)
+    ncells = length(xs) - 1
+
+    # create the nodes
+    fens = FENodeSet(xyz)
+    # Create the finite elements
+    fes = FESetL2([(1:ncells) (2:(ncells+1))])
+
+    return fens, fes
+end
+
+"""
+    L2blockx(xs::Vector{T}, ys::Vector{T}) where {T<:Number}
+
+Graded mesh of a 1-D block, L2 finite elements.
+
+Embedded in two dimensions.
+"""
+function L2blockx(xs::Vector{T}, ys::Vector{T}) where {T<:Number}
+    @assert length(xs) == length(ys) "The vectors of coordinates must have the same length."
+    xyz = reshape([xs; ys], length(xs), 2)
+    ncells = length(xs) - 1
+
+    # create the nodes
+    fens = FENodeSet(xyz)
+    # Create the finite elements
+    fes = FESetL2([(1:ncells) (2:(ncells+1))])
+
+    return fens, fes
+end
+
+"""
+    L2blockx(xs::Vector{T}, ys::Vector{T}, zs::Vector{T}) where {T<:Number}
+
+Graded mesh of a 1-D block, L2 finite elements.
+
+Embedded in three dimensions.
+"""
+function L2blockx(xs::Vector{T}, ys::Vector{T}, zs::Vector{T}) where {T<:Number}
+    @assert length(xs) == length(ys) "The vectors of coordinates must have the same length."
+    @assert length(xs) == length(zs) "The vectors of coordinates must have the same length."
+    xyz = reshape([xs; ys; zs], length(xs), 3)
     ncells = length(xs) - 1
 
     # create the nodes
