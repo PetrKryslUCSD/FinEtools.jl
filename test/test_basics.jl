@@ -3210,3 +3210,28 @@ end
 test()
 nothing
 end
+
+module mbas001002
+using Test
+using FinEtools
+using FinEtools.AlgoBaseModule: penaltyebc!
+function test()
+    K = [2 -1 0; -1 2 -1; 0 -1 2]
+    F = [-4, 2, 0]
+    dofnums = [3]
+    prescribedvalues = [5.00]
+    penfact = 1.0e5
+    Km = deepcopy(K)
+    Fm = deepcopy(F)
+    penaltyebc!(Km, Fm, dofnums, prescribedvalues, penfact)
+    # @show Km
+    # @show Fm
+    # @show U = Km \ Fm
+    U = Km \ Fm
+    # @show K * U
+    @test isapprox(U, [-0.33334444437037103, 3.333311111259258, 4.999966666888887], rtol = 1.0e-3)
+    true
+end
+test()
+nothing
+end
