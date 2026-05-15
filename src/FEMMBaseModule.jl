@@ -1823,4 +1823,108 @@ function bilform_lin_elastic(
     return bilform_lin_elastic(self, assembler, geom, u, mr, cf)
 end
 
+
+"""
+    bilform_masslike(
+        self::FEMM,
+        assembler::A,
+        geom::NodalField{FT},
+        phi::NodalField{T},
+        cf::DC;
+        m = 3,
+    ) where {FEMM<:AbstractFEMM,A<:AbstractSysmatAssembler,FT,T,DC<:DataCache}
+
+Compute the sparse matrix implied by the bilinear form of the "mass-like" type.
+
+```math
+\\int_{\\Gamma} \\mathbf{\\chi} c \\mathbf{\\phi}   \\; \\mathrm{d} \\Gamma
+```
+
+Here ``\\mathbf{\\chi}`` is the scalar test function, ``\\mathbf{\\phi}`` is the
+scalar trial function, ``c`` is a scalar coefficient (e.g. mass density); ``c`` is
+computed by `cf`, which is a given function (data). The test
+function is assumed to be an indicator functions for the finite element set.
+The trial function is based on  the regular basis for the nodal field 
+supported on the finite element set.
+
+The coefficient `cf` is represented with [`DataCache`](@ref), and 
+needs to return a scalar value.
+
+The integral is with respect to the area of the domain ``\\Gamma`` (i.e. a two
+dimensional integral).
+
+# Arguments
+- `self` = finite element machine;
+- `assembler` = assembler of the global matrix;
+- `geom` = geometry field;
+- `phi` = trial field;
+- `cf`= data cache, which is called to evaluate the coefficient ``c``,
+  given the location of the integration point, the Jacobian matrix, and the
+  finite element label.
+"""
+function bilform_masslike(
+    self::FEMM,
+    assembler::A,
+    geom::NodalField{FT},
+    phi::NodalField{T},
+    cf::DC;
+    m = 3,
+) where {FEMM<:AbstractFEMM,A<:AbstractSysmatAssembler,FT,T,DC<:DataCache}
+
+    fes = finite_elements(self)
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, phi)
+    elmdim, elmat_buf, elvec = _buff_e(self, geom, phi, assembler)
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
+
+    n_elems = count(fes)
+    elrows = ndn
+    elcols = nne * ndn
+
+    if !(size(elmat_buf,1) == elrows && size(elmat_buf,2) == elcols)
+        elmat = zeros(Float64, elrows, elcols)
+    else
+        elmat = elmat_buf
+        fill!(elmat, 0.0)
+    end
+
+    nrows_global = n_elems * elrows
+    ncols_global = nalldofs(phi)
+    startassembly!(assembler, size(elmat)..., n_elems, nrows_global, ncols_global)
+
+    for i in eachindex(fes)
+        gathervalues_asmat!(geom, ecoords, fes.conn[i])
+        fill!(elmat, 0.0)
+
+        for j = 1:npts
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
+            Jac = Jacobianmdim(self.integdomain, J, loc, fes.conn[i], Ns[j], m)
+            c = cf(loc, J, i, j)
+            for b_local = 1:nne
+                factor = Ns[j][b_local] * Jac * w[j]
+                for p = 1:ndn, q = 1:ndn
+                    col_idx = (b_local-1)*ndn + q
+                    elmat[p, col_idx] += factor * c[p, q]
+                end
+            end
+        end
+
+        gatherdofnums!(phi, dofnums, fes.conn[i])
+        rowdofs = collect(((i-1)*elrows + 1) : (i*elrows))
+        assemble!(assembler, elmat, rowdofs, dofnums)
+    end
+
+    return makematrix!(assembler)
+end
+
+function bilform_masslike(
+    self::FEMM,
+    geom::NodalField{FT},
+    u::NodalField{T},
+    cf::DC,
+) where {FEMM<:AbstractFEMM,FT,T,DC<:DataCache}
+    assembler = SysmatAssemblerSparse()
+    return bilform_masslike(self, assembler, geom, u, cf)
+end
+
+
 end # module

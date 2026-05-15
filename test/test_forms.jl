@@ -599,4 +599,24 @@ test()
 nothing
 end
 
+module mbilform_masslike_1
+using FinEtools
+using LinearAlgebra
+using Test
+function test()
 
+    xs = [1.0, 1.0, 1.0]
+    ys = [0.0, 1.0, 2.0]
+    fens, fes = L2blockx(xs, ys)
+    geom = NodalField(fens.xyz)
+    psi = NodalField(fill(1.0, count(fens), 1))
+    numberdofs!(psi)
+    femm = FEMMBase(IntegDomain(fes, GaussRule(1, 2)))
+    G = bilform_masslike(femm, geom, psi, DataCache(LinearAlgebra.I(1)))
+    @test Matrix(G) == [0.5 0.5 0.0; 
+                        0.0 0.5 0.5]
+    # @show G
+end
+test()
+nothing
+end

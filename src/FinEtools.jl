@@ -477,6 +477,7 @@ using .FEMMBaseModule:
     bilform_convection,
     bilform_div_grad,
     bilform_lin_elastic,
+    bilform_masslike,
     innerproduct,
     field_elem_to_nodal!,
     field_nodal_to_elem!
@@ -501,6 +502,7 @@ export AbstractFEMM,
     bilform_convection,
     bilform_div_grad,
     bilform_lin_elastic,
+    bilform_masslike,
     innerproduct,
     field_elem_to_nodal!,
     field_nodal_to_elem!
