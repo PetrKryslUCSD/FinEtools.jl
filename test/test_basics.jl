@@ -3172,8 +3172,8 @@ function test()
     ys = zeros(n)
     zs = zeros(n)
     for i in 1:n
-        xs[i] = cos(2 * (i - 1) * pi / (n - 1))
-        ys[i] = sin(2 * (i - 1) * pi / (n - 1))
+        xs[i] = cos(5 * (i - 1) * pi / (n - 1))
+        ys[i] = sin(5 * (i - 1) * pi / (n - 1))
         zs[i] = (i - 1) * pi / (2 * (n - 1))
     end
     fens, fes = L2blockx(xs, ys, zs)
