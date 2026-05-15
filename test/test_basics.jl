@@ -3192,3 +3192,21 @@ end
 end
 using .mnsimpr13d
 mnsimpr13d.test()
+
+module mbas001001
+using FinEtools
+using Test
+function test()
+    y = logspace(2.0, 3.0, 5)                                                             
+    @test isapprox(y, [
+    100.0
+    177.82794100389228   
+    316.2277660168379      
+    562.341325190349  
+    1000.0    
+    ], rtol = 1e-10)
+    true
+end
+test()
+nothing
+end
