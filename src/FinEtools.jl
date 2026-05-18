@@ -668,4 +668,12 @@ export vector_blocked_f, vector_blocked_d
 using .MatrixUtilityModule: setvectorentries!
 export setvectorentries!
 
+############################################################################
+# Mortar method
+############################################################################
+using .MortarModule:
+    common_refinement
+export common_refinement
+
+
 end
