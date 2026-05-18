@@ -32,3 +32,7 @@ end
     include("test_mortar.jl")
 end
 true
+
+@testset "Error" begin
+    include("test_error.jl")
+end

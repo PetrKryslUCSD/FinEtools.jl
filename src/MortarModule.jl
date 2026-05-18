@@ -13,7 +13,6 @@ using ..NodalFieldModule: NodalField
 using ..ElementalFieldModule: ElementalField
 using ..FEMMBaseModule: FEMMBase, bilform_masslike, bilform_dot
 using ..FESetModule: FESetT3, FESetT6
-using ..FENodeSetModule: FENodeSet
 using ..DataCacheModule: DataCache
 using ..FieldModule: numberdofs!
 
@@ -263,11 +262,11 @@ function barycentre(x, xas::Matrix)
         d20 = dot(v2, v0)
         d21 = dot(v2, v1)
 
-        λ2 = (d11 * d20 - d01 * d21) / denom
-        λ3 = (d00 * d21 - d01 * d20) / denom
-        λ1 = 1.0 - λ2 - λ3
+        lam2 = (d11 * d20 - d01 * d21) / denom
+        lam3 = (d00 * d21 - d01 * d20) / denom
+        lam1 = 1.0 - lam2 - lam3
 
-        bary = [λ1, λ2, λ3]
+        bary = [lam1, lam2, lam3]
 
         return bary
     elseif size(xas, 1) == 4
@@ -290,32 +289,28 @@ function barycentre(x, xas::Matrix)
         s = 0.5
         t = 0.5
         for iter in 1:20
-            # residual in R^3
             r = a + s*e1 + t*e2 + (s*t)*e3 - x
 
-            # tangent vectors dX/ds and dX/dt in R^3
             Js = e1 + t*e3
             Jt = e2 + s*e3
 
-            # Solve least-squares Newton step:
-            # [Js Jt] * δ ≈ r
             J = hcat(Js, Jt)   # 3 x 2
-            δ = J \ r          # least-squares, no singular planar 3x3 solve
+            delta = J \ r          # least-squares, no singular planar 3x3 solve
 
-            s -= δ[1]
-            t -= δ[2]
+            s -= delta[1]
+            t -= delta[2]
 
-            if norm(δ) < 1e-12 || norm(r) < 1e-12
+            if norm(delta) < 1e-12 || norm(r) < 1e-12
                 break
             end
         end
 
-        λ1 = (1 - s) * (1 - t)
-        λ2 = s * (1 - t)
-        λ3 = s * t
-        λ4 = (1 - s) * t
+        lam1 = (1 - s) * (1 - t)
+        lam2 = s * (1 - t)
+        lam3 = s * t
+        lam4 = (1 - s) * t
 
-        return [λ1, λ2, λ3, λ4]
+        return [lam1, lam2, lam3, lam4]
     else
         error("Unsupported element with $(size(xas,1)) nodes")
     end

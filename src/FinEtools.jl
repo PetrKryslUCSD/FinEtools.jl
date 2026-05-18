@@ -676,4 +676,12 @@ using .MortarModule:
 export common_refinement
 
 
+#####################################################################
+# Error module
+######################################################################
+
+using .ErrorModule: L2error
+export L2error
+
 end
+
