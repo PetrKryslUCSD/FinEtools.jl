@@ -15,6 +15,7 @@ using ..FEMMBaseModule: FEMMBase, bilform_masslike, bilform_dot
 using ..FESetModule: FESetT3, FESetT6
 using ..DataCacheModule: DataCache
 using ..FieldModule: numberdofs!
+using ..FESetModule: bfun, map2parametric
 
 export common_refinement
 
@@ -156,32 +157,33 @@ end
 
 # ##############################################################################
 function get_node_id(x::Vector{Float64}, node_map, XU,
-                     ai, ax, IA, JA, VA, 
-                     bi, bx, IB, JB, VB; order=1, dim_u=1)
+                     fes_a, ai, ax, IA, JA, VA, 
+                     fes_b, bi, bx, IB, JB, VB; order=1, dim_u=1)
     # TODO: cannot use anything in the negative
 
     return get!(node_map, abs.(round.(x; digits=5))) do
         # create new node
         push!(XU, x)
         
-        baryA = barycentre(x, ax)
+        basisA = bfun(fes_a, map2parametric(fes_a, ax, x)[1])
+
         # 
         nids_a = vcat([[dim_u*(size(XU,1)-1) + j for j in 1:dim_u] for k in 1:length(ai)]...)
         nids_b = vcat([[dim_u*(size(XU,1)-1) + j for j in 1:dim_u] for k in 1:length(bi)]...)
 
         dofs_a = vcat([[dim_u*(ai[k]-1) + j for j in 1:dim_u] for k in 1:length(ai)]...)
-        baryAs = [baryA[k] for k in 1:length(ai) for j in 1:dim_u]
+        dofbasisA = [basisA[k] for k in 1:length(ai) for j in 1:dim_u]
 
         push!(IA, nids_a...)
         push!(JA, dofs_a...)
-        push!(VA, baryAs...)
+        push!(VA, dofbasisA...)
         if order == 1
-            baryB = barycentre(x, bx)
-            baryBs = [baryB[k] for k in 1:length(bi) for j in 1:dim_u]
+            basisB = bfun(fes_b, map2parametric(fes_b, bx, x)[1])
+            dofbasisB = [basisB[k] for k in 1:length(bi) for j in 1:dim_u]
             dofs_b = vcat([[dim_u*(bi[k]-1) + j for j in 1:dim_u] for k in 1:length(bi)]...)
             push!(IB, nids_b...)
             push!(JB, dofs_b...)
-            push!(VB, baryBs...)
+            push!(VB, dofbasisB...)
         end
         size(XU,1)
 
@@ -240,87 +242,13 @@ function query_grid(g::Grid, aabb_mn::Vector{Float64}, aabb_mx::Vector{Float64})
     unique!(cand)
     return cand
 end
-# ###############################################################################
 
-function barycentre(x, xas::Matrix)
-    if size(xas, 1) == 3
-        a = xas[1, :]
-        b = xas[2, :]
-        c = xas[3, :]
 
-        v0 = b - a
-        v1 = c - a
-
-        d00 = dot(v0, v0)
-        d01 = dot(v0, v1)
-        d11 = dot(v1, v1)
-
-        denom = d00 * d11 - d01 * d01
-        @assert denom != 0 "Triangle is degenerate"
-        v2 = x - a
-
-        d20 = dot(v2, v0)
-        d21 = dot(v2, v1)
-
-        lam2 = (d11 * d20 - d01 * d21) / denom
-        lam3 = (d00 * d21 - d01 * d20) / denom
-        lam1 = 1.0 - lam2 - lam3
-
-        bary = [lam1, lam2, lam3]
-
-        return bary
-    elseif size(xas, 1) == 4
-        a = xas[1, :]
-        b = xas[2, :]
-        c = xas[3, :]
-        d = xas[4, :]
-
-        # Bilinear map:
-        # X(s,t) = (1-s)(1-t)a + s(1-t)b + st c + (1-s)t d
-        #
-        # Equivalently:
-        # X(s,t) = a + s(b-a) + t(d-a) + s*t(c-b-d+a)
-
-        e1 = b - a
-        e2 = d - a
-        e3 = c - b - d + a
-
-        # good default for clipped points inside the element
-        s = 0.5
-        t = 0.5
-        for iter in 1:20
-            r = a + s*e1 + t*e2 + (s*t)*e3 - x
-
-            Js = e1 + t*e3
-            Jt = e2 + s*e3
-
-            J = hcat(Js, Jt)   # 3 x 2
-            delta = J \ r          # least-squares, no singular planar 3x3 solve
-
-            s -= delta[1]
-            t -= delta[2]
-
-            if norm(delta) < 1e-12 || norm(r) < 1e-12
-                break
-            end
-        end
-
-        lam1 = (1 - s) * (1 - t)
-        lam2 = s * (1 - t)
-        lam3 = s * t
-        lam4 = (1 - s) * t
-
-        return [lam1, lam2, lam3, lam4]
-    else
-        error("Unsupported element with $(size(xas,1)) nodes")
-    end
-end 
 # ###############################################################################
 function common_refinement(fensA, fesA,
                             fensB, fesB; 
                             h = 0.1, lam_order = 1, tri_order = 1,
                              triangulation_type = "naive" , dim_u=1)
-
     XA = fensA.xyz
     connA = stack(fesA.conn, dims=1)
     XB = fensB.xyz
@@ -394,8 +322,8 @@ function common_refinement(fensA, fesA,
                 
                 vs = [clipped[k][1], clipped[k][2], clipped[k][3]]
                 push!(conn, get_node_id(vs, node_map, XU,
-                                        ai, ax, IA, JA, VA, 
-                                        bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u))
+                                        fesA, ai, ax, IA, JA, VA, 
+                                        fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u))
             end
             conn = unique(conn)
             nv = length(conn)
@@ -412,14 +340,14 @@ function common_refinement(fensA, fesA,
                             mid31 = (XU[conn[k]] + XU[conn[1]]) / 2
 
                             mid12_id = get_node_id(mid12, node_map, XU,
-                                                    ai, ax, IA, JA, VA, 
-                                                    bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
+                                                    fesA, ai, ax, IA, JA, VA, 
+                                                    fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
                             mid23_id = get_node_id(mid23, node_map, XU,
-                                                    ai, ax, IA, JA, VA, 
-                                                    bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
+                                                    fesA, ai, ax, IA, JA, VA, 
+                                                    fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
                             mid31_id = get_node_id(mid31, node_map, XU,
-                                                    ai, ax, IA, JA, VA, 
-                                                    bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
+                                                    fesA, ai, ax, IA, JA, VA, 
+                                                    fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
 
                             conn_cuurent = [conn[1], conn[k-1], conn[k], mid12_id, mid23_id, mid31_id]
                         end
@@ -441,8 +369,8 @@ function common_refinement(fensA, fesA,
                 end
                 centroid ./= nv
                 cnid = get_node_id(centroid, node_map, XU,
-                            ai, ax, IA, JA, VA, 
-                            bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
+                            fesA, ai, ax, IA, JA, VA, 
+                            fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
                 # triangulate using centroid as Steiner 
                 for k in 1:nv
                     conn_cuurent = [conn[k], conn[mod1(k+1, nv)], cnid]
@@ -454,14 +382,14 @@ function common_refinement(fensA, fesA,
                         mid31 = (XU[cnid] + XU[conn[k]]) / 2
 
                         mid12_id = get_node_id(mid12, node_map, XU,
-                                                ai, ax, IA, JA, VA, 
-                                                bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
+                                                fesA, ai, ax, IA, JA, VA, 
+                                                fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
                         mid23_id = get_node_id(mid23, node_map, XU,
-                                                ai, ax, IA, JA, VA, 
-                                                bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
+                                                fesA, ai, ax, IA, JA, VA, 
+                                                fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
                         mid31_id = get_node_id(mid31, node_map, XU,
-                                                ai, ax, IA, JA, VA, 
-                                                bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
+                                                fesA, ai, ax, IA, JA, VA, 
+                                                fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
 
                         conn_cuurent = [conn[k], conn[mod1(k+1,nv)], cnid , mid12_id, mid23_id, mid31_id]
                     end
