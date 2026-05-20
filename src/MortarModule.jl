@@ -157,14 +157,18 @@ end
 
 # ##############################################################################
 function get_node_id(x::Vector{Float64}, node_map, XU,
-                     fes_a, ai, ax, IA, JA, VA, 
-                     fes_b, bi, bx, IB, JB, VB; order=1, dim_u=1)
+                     XA, fes_a, i, IA, JA, VA, 
+                     XB, fes_b, j, IB, JB, VB; order=1, dim_u=1)
     # TODO: cannot use anything in the negative
 
     return get!(node_map, abs.(round.(x; digits=5))) do
         # create new node
         push!(XU, x)
-        
+        ai = [fes_a.conn[i]...]
+        bi = [fes_b.conn[j]...]
+        ax = XA[ai, :]
+        bx = XB[bi, :]
+
         basisA = bfun(fes_a, map2parametric(fes_a, ax, x)[1])
 
         # 
@@ -260,6 +264,14 @@ function common_refinement(fensA, fesA,
         XB = hcat(XB, zeros(size(XB, 1)))
     end
 
+    # just take vertex nodes for HO triangles for now,
+    if size(connA,2)==6
+        connA = connA[:, [1,2,3]]
+    end
+    if size(connB,2)==6
+        connB = connB[:, [1,2,3]]
+    end
+
     nA = size(connA,1)
     nB = size(connB,1)
     pad = 1e-2
@@ -322,8 +334,8 @@ function common_refinement(fensA, fesA,
                 
                 vs = [clipped[k][1], clipped[k][2], clipped[k][3]]
                 push!(conn, get_node_id(vs, node_map, XU,
-                                        fesA, ai, ax, IA, JA, VA, 
-                                        fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u))
+                                        XA, fesA, i, IA, JA, VA, 
+                                        XB, fesB, j, IB, JB, VB; order=lam_order, dim_u=dim_u))
             end
             conn = unique(conn)
             nv = length(conn)
@@ -340,14 +352,14 @@ function common_refinement(fensA, fesA,
                             mid31 = (XU[conn[k]] + XU[conn[1]]) / 2
 
                             mid12_id = get_node_id(mid12, node_map, XU,
-                                                    fesA, ai, ax, IA, JA, VA, 
-                                                    fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
+                                                    XA, fesA, i, IA, JA, VA, 
+                                                    XB, fesB, j, IB, JB, VB; order=lam_order, dim_u=dim_u)
                             mid23_id = get_node_id(mid23, node_map, XU,
-                                                    fesA, ai, ax, IA, JA, VA, 
-                                                    fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
+                                                    XA, fesA, i, IA, JA, VA, 
+                                                    XB, fesB, j, IB, JB, VB; order=lam_order, dim_u=dim_u)
                             mid31_id = get_node_id(mid31, node_map, XU,
-                                                    fesA, ai, ax, IA, JA, VA, 
-                                                    fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
+                                                    XA, fesA, i, IA, JA, VA, 
+                                                    XB, fesB, j, IB, JB, VB; order=lam_order, dim_u=dim_u)
 
                             conn_cuurent = [conn[1], conn[k-1], conn[k], mid12_id, mid23_id, mid31_id]
                         end
@@ -369,8 +381,8 @@ function common_refinement(fensA, fesA,
                 end
                 centroid ./= nv
                 cnid = get_node_id(centroid, node_map, XU,
-                            fesA, ai, ax, IA, JA, VA, 
-                            fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
+                            XA, fesA, i, IA, JA, VA, 
+                            XB, fesB, j, IB, JB, VB; order=lam_order, dim_u=dim_u)
                 # triangulate using centroid as Steiner 
                 for k in 1:nv
                     conn_cuurent = [conn[k], conn[mod1(k+1, nv)], cnid]
@@ -382,14 +394,14 @@ function common_refinement(fensA, fesA,
                         mid31 = (XU[cnid] + XU[conn[k]]) / 2
 
                         mid12_id = get_node_id(mid12, node_map, XU,
-                                                fesA, ai, ax, IA, JA, VA, 
-                                                fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
+                                                XA, fesA, i, IA, JA, VA, 
+                                                XB, fesB, j, IB, JB, VB; order=lam_order, dim_u=dim_u)
                         mid23_id = get_node_id(mid23, node_map, XU,
-                                                fesA, ai, ax, IA, JA, VA, 
-                                                fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
+                                                XA, fesA, i, IA, JA, VA, 
+                                                XB, fesB, j, IB, JB, VB; order=lam_order, dim_u=dim_u)
                         mid31_id = get_node_id(mid31, node_map, XU,
-                                                fesA, ai, ax, IA, JA, VA, 
-                                                fesB, bi, bx, IB, JB, VB; order=lam_order, dim_u=dim_u)
+                                                XA, fesA, i, IA, JA, VA, 
+                                                XB, fesB, j, IB, JB, VB; order=lam_order, dim_u=dim_u)
 
                         conn_cuurent = [conn[k], conn[mod1(k+1,nv)], cnid , mid12_id, mid23_id, mid31_id]
                     end
@@ -429,8 +441,10 @@ function common_refinement(fensA, fesA,
     # 
     if tri_order ==1
         fesu = FESetT3(stack(connU, dims=1))
+        rule = TriRule(3)
     elseif tri_order == 2
         fesu = FESetT6(stack(connU, dims=1))
+        rule = TriRule(6)
     end
     fensu = FENodeSet(stack(XU, dims=1))
     # if tri_order==2
@@ -439,7 +453,7 @@ function common_refinement(fensA, fesA,
     geomu = NodalField(fensu.xyz)
     uu = NodalField(zeros(size(fensu.xyz, 1), dim_u))
     numberdofs!(uu)
-    femmu = FEMMBase(IntegDomain(fesu, TriRule(3)))
+    femmu = FEMMBase(IntegDomain(fesu, rule))
 
     if lam_order ==1
         # @infiltrate
