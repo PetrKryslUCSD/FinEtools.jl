@@ -818,6 +818,36 @@ function SOLID_SECTION(
     println(self.ios, "$(thickness),")
 end
 
+"""
+    SHELL_SECTION(self::AbaqusExporter, MATERIAL::AbstractString,
+      ELSET::AbstractString)
+
+Write out the `*SHELL SECTION` option.
+
+Level: Part,  Part instance
+
+Example:
+```
+*Shell Section, elset=Set-6, material=ELASTICITY
+1e-06, 5
+```
+"""
+function SHELL_SECTION(
+    self::AbaqusExporter,
+    MATERIAL::AbstractString,
+    ELSET::AbstractString,
+    thickness::F,
+) where {F}
+    println(
+        self.ios,
+        "*SHELL SECTION,MATERIAL=" *
+        MATERIAL *
+        ",ELSET=" *
+        ELSET,
+    )
+    println(self.ios, "$(thickness), 5")
+end
+
 # """
 #     HOURGLASS(self::AbaqusExporter, KIND::AbstractString, VALUE::F) where {F}
 #
@@ -1074,6 +1104,29 @@ function TEMPERATURE(
     for ixxxx in eachindex(nlist)
         println(self.ios, Classifier * "$(nlist[ixxxx]),$(tlist[ixxxx])")
     end
+end
+
+"""
+    FIELD_OUTPUT(self::AbaqusExporter, 
+        node_variables::AbstractString = "PRESELECT, 
+        element_variables::AbstractString = "LE, S, SF")
+
+Write out the `*FIELD OUTPUT` option.
+
+```
+*Output, field
+*Node Output, variable=PRESELECT
+*Element Output, directions=YES
+LE, S, SF
+```
+"""
+function FIELD_OUTPUT(self::AbaqusExporter, 
+        node_variables::AbstractString = "PRESELECT", 
+        element_variables::AbstractString = "LE, S, SF")
+    println(self.ios, "*OUTPUT, FIELD")
+    println(self.ios, "*NODE OUTPUT, VARIABLE=" * node_variables)
+    println(self.ios, "*ELEMENT OUTPUT, DIRECTIONS=YES")
+    println(self.ios, element_variables)
 end
 
 """
