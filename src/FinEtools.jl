@@ -186,9 +186,9 @@ using .ElementalFieldModule: ElementalField, nelems
 # Exported: type of elemental field
 export ElementalField, nelems
 
-using .MeshUtilModule: linearspace, gradedspace, logspace
+using .MeshUtilModule: linearspace, gradedspace, logspace, biasedspace
 # Exported: functions to generate a sequence of numbers between start and stop
-export linearspace, gradedspace, logspace
+export linearspace, gradedspace, logspace, biasedspace
 
 using .MeshSelectionModule:
     connectednodes, connectedelems, selectnode, selectelem, findunconnnodes
