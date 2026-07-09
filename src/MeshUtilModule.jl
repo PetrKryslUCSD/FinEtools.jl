@@ -105,7 +105,7 @@ end
 Generate linear space.
 
 Generate a linear sequence of `N` numbers between  `start` and `stop` (i. e.
-sequence  of number with uniform intervals inbetween).
+sequence  of numbers with uniform intervals inbetween).
 
 # Example
 ```
@@ -118,13 +118,15 @@ function linearspace(start::T, stop::T, N::Int) where {T<:Number}
 end
 
 """
-    gradedspace(start::T, stop::T, N::Int)  where {T<:Number}
+    gradedspace(start::T, stop::T, N::Int, strength = 2) where {T<:Number}
 
-Generate quadratic space.
+Generate "power graded" space.
 
-Generate a quadratic sequence of `N` numbers between `start` and `stop`. This
-sequence corresponds to separation of adjacent numbers that increases linearly
-from start to finish.
+Generate a sequence of `N` numbers between `start` and `stop`. 
+The strength of the grading is controlled by `strength`.
+For instance, `strength=1` gives an ungraded space, 
+`strength>1` gives a graded space, the separation of adjacent
+numbers increasing quicker with greater `strength`.
 
 # Example
 ```
@@ -140,9 +142,6 @@ julia> gradedspace(2.0, 3.0, 5)
 function gradedspace(start::T, stop::T, N::Int, strength = 2) where {T<:Number}
     x = range(0.0, stop = 1.0, length = N)
     x = x .^ strength
-    # for i = 1:strength
-    #     x = cumsum(x);
-    # end
     x = x / maximum(x)
     out = start .* (1.0 .- x) .+ stop .* x
 end
@@ -152,8 +151,9 @@ end
 
 Generate logarithmic space.
 
-Generate a logarithmic sequence of `N` numbers between  `start` and `stop` (i. e.
-sequence  of number with uniform intervals inbetween in the log space).
+Generate a logarithmic sequence of `N` numbers between  
+`10^start` and `10^stop` (i. e. sequence  of numbers with 
+uniform intervals inbetween in the log space).
 
 # Example
 ```
@@ -169,6 +169,32 @@ julia> logspace(2.0, 3.0, 5)
 function logspace(start::T, stop::T, N::Int) where {T<:Number}
     es = range(start, stop = stop, length = N)
     return [10^e for e in es]
+end
+
+"""
+    biasedspace(start, stop, N, bias)
+
+Generate biased space.
+
+Generate a sequence of `N` numbers such that the interval
+between the first two and the last two is in ratio `bias`.
+
+Example:
+```julia
+x = biasedspace(6, 9, 5, 100.0) = [6.0, 6.023587513687645, 6.133071053832905, 6.6412486312355385, 9.0]
+(x[2] - x[1]) / (x[end] - x[end - 1]) = 0.010000000000000306
+```
+"""
+function biasedspace(start, stop, N, bias)
+    N = N - 1 # convert total of "numbers" to the total of intervals in-between them
+    b = exp(-log(bias) / (N-1))
+    x = [0.0]
+    for i in 1:N
+        x = vcat(x, x[end] + b^(i-1))
+    end
+    x ./= x[end]
+    x = x[end] .- reverse(x)
+    return vec(start .* (1.0 .- x) .+ stop .* x)
 end
 
 end
