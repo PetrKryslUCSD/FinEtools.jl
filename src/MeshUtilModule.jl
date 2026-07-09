@@ -178,6 +178,9 @@ Generate biased space.
 
 Generate a sequence of `N` numbers such that the interval
 between the first two and the last two is in ratio `bias`.
+The distance between the numbers increases in the same proportion
+for any two adjacent intervals. The first number is `start`, 
+    the last number is `stop`.
 
 Example:
 ```julia
