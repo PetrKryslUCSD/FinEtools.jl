@@ -191,7 +191,7 @@ l = selectelem(fens, fes, flood = true, startnode = 13)
 ### Optional keyword arguments
 Should we consider the element only if all its nodes are in?
 - `allin` = Boolean: if true, then all nodes of an element must satisfy
-the criterion; otherwise  one is enough.
+    the criterion; otherwise one node is enough.
 
 # Output
 `felist` = list of finite elements from the set that satisfy the criteria
@@ -216,7 +216,7 @@ function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET<:AbstractFESe
     T = eltype(fens.xyz)
 
     # Extract arguments
-    allin = nothing
+    allin = true
     flood = nothing
     facing = nothing
     label = nothing
@@ -325,19 +325,28 @@ function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET<:AbstractFESe
     end
 
     # Helper Function: are all nodes of an element in the list?
-    function nodesin(c, withnodes)
-        for i in c
-            if !(i in withnodes)
-                return false
+    function nodesin(c, withnodes, allin)
+        if !(allin === nothing) && allin
+            for i in c
+                if !(i in withnodes)  # Any node not in?
+                    return false
+                end
             end
+            return true
+        else
+            for i in c
+                if (i in withnodes) # Any node in?
+                    return true
+                end
+            end
+            return false
         end
-        return true
     end
 
     # Select all elements whose nodes are in a given list
     if withnodes !== nothing
         for i in eachindex(fes.conn)
-            if nodesin(fes.conn[i], withnodes)
+            if nodesin(fes.conn[i], withnodes, allin)
                 felist[i] = i   # matched this element
             end
         end
@@ -472,7 +481,7 @@ function selectelem(fens::FENodeSet, fes::ET; kwargs...) where {ET<:AbstractFESe
     #       if numel(crows) == 1
     #         # if there's only one, this is superb, we can add it to the
     #         # list and continue to the next location
-    #         felist(end+1) = crows;
+    #         felist(end+1) = crowrs;
     #       else
 
     #         # otherwise we must determine which cell is closest based on

@@ -1618,13 +1618,26 @@ using FinEtools
 using Test
 function test()
     fens, fes = Q4block(1.3, 3.1, 3, 2) # Mesh
-    l = selectelem(fens, fes, withnodes = [3, 4, 7, 8, 11, 12])
+    l = selectelem(fens, fes, withnodes = [3, 4, 7, 8, 11, 12], allin=true)
     @test l == [5, 6]
     true
 end
 end
 using .mwithnodes4
 mwithnodes4.test()
+
+module mwithnodes4o
+using FinEtools
+using Test
+function test()
+    fens, fes = Q4block(1.3, 3.1, 3, 2) # Mesh
+    l = selectelem(fens, fes, withnodes = [3, 4, 7, 8, 11, 12], allin = false)
+    @test l == [3, 4, 5, 6]
+    true
+end
+end
+using .mwithnodes4o
+mwithnodes4o.test()
 
 
 # module mutil_th001
