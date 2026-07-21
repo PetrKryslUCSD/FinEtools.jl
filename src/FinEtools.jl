@@ -480,7 +480,8 @@ using .FEMMBaseModule:
     bilform_masslike,
     innerproduct,
     field_elem_to_nodal!,
-    field_nodal_to_elem!
+    field_nodal_to_elem!, 
+    primal_dual
 # Exported: type base discretization methods
 export AbstractFEMM,
     FEMMBase,

@@ -11,7 +11,7 @@ using ..IntegRuleModule: TriRule, GaussRule
 using ..IntegDomainModule: IntegDomain
 using ..NodalFieldModule: NodalField
 using ..ElementalFieldModule: ElementalField
-using ..FEMMBaseModule: FEMMBase, bilform_masslike, bilform_dot
+using ..FEMMBaseModule: FEMMBase, bilform_masslike, bilform_dot, primal_dual
 using ..FESetModule: FESetT3, FESetT6
 using ..DataCacheModule: DataCache
 using ..FieldModule: numberdofs!
@@ -252,7 +252,11 @@ end
 function common_refinement(fensA, fesA,
                             fensB, fesB; 
                             h = 0.1, lam_order = 1, tri_order = 1,
-                             triangulation_type = "naive" , dim_u=1)
+                             triangulation_type = "naive" , dim_u=1, dual=false)
+    if dual
+        lam_order = 1
+    end
+    
     XA = fensA.xyz
     connA = stack(fesA.conn, dims=1)
     XB = fensB.xyz
@@ -455,15 +459,22 @@ function common_refinement(fensA, fesA,
     numberdofs!(uu)
     femmu = FEMMBase(IntegDomain(fesu, rule))
 
-    if lam_order ==1
-        # @infiltrate
-        M = bilform_dot(femmu, geomu, uu, DataCache(LinearAlgebra.I(dim_u)))
+    if dual
+        M = primal_dual(femmu, geomu, uu, PiB, fesB, parentB;m=2)
+        C = M * PiA
+    else
+        if lam_order ==1
+            # @infiltrate
+            M = bilform_dot(femmu, geomu, uu, DataCache(LinearAlgebra.I(dim_u)))
+            C = PiB' * M * PiA
 
-        # onevec = ones(size(M, 1))
-    elseif lam_order == 0
-        M = bilform_masslike(femmu, geomu, uu, DataCache(LinearAlgebra.I(dim_u)))
+            # onevec = ones(size(M, 1))
+        elseif lam_order == 0
+            M = bilform_masslike(femmu, geomu, uu, DataCache(LinearAlgebra.I(dim_u)))
+            C = PiB' * M * PiA
+        end
     end
-    C = PiB' * M * PiA
+    
 
     
 
