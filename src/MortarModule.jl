@@ -346,7 +346,7 @@ function common_refinement(fensA, fesA,
             if triangulation_type=="naive"
                 if length(conn)>=3
                     for k in 3:nv
-                        conn_cuurent = [conn[1], conn[k-1], conn[k]]
+                        conn_current = [conn[1], conn[k-1], conn[k]]
 
                         if tri_order == 2
                             # add midpoints of edges
@@ -364,9 +364,9 @@ function common_refinement(fensA, fesA,
                                                     XA, fesA, i, IA, JA, VA, 
                                                     XB, fesB, j, IB, JB, VB; order=lam_order, dim_u=dim_u)
 
-                            conn_cuurent = [conn[1], conn[k-1], conn[k], mid12_id, mid23_id, mid31_id]
+                            conn_current = [conn[1], conn[k-1], conn[k], mid12_id, mid23_id, mid31_id]
                         end
-                        push!(connU, conn_cuurent )
+                        push!(connU, conn_current )
                         push!(parentA, i)
                         push!(parentB, j)
                         if lam_order==0
