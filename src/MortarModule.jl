@@ -294,7 +294,7 @@ function common_refinement(fensA, fesA,
 
     XU = Vector{Vector{Float64}}()
     connU = Array{Int}[]
-    node_map = Dict{Vector{Float64},Int}()
+    node_map = Dict{NTuple{3,Int},Int}()
     for i in 1:nA
         count = 0
         ai = connA[i,:]
