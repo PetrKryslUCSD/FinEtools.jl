@@ -6,6 +6,7 @@ using ..IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
 using ..FieldModule: gathervalues_asmat!, ndofs
 using ..MatrixUtilityModule: locjac!
 using ..FESetModule: nodesperelem, manifdim, count
+using LinearAlgebra: dot
 
 __precompile__(true)
 
