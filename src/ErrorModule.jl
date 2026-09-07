@@ -5,7 +5,7 @@ using ..FEMMBaseModule: AbstractFEMM
 using ..IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
 using ..FieldModule: gathervalues_asmat!, ndofs
 using ..MatrixUtilityModule: locjac!
-using ..FESetModule: nodesperelem, manifdim
+using ..FESetModule: nodesperelem, manifdim, count
 
 __precompile__(true)
 
