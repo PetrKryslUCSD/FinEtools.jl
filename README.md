@@ -25,6 +25,7 @@ The package supports application packages, for instance:
 
 ## News
 
+- 09/06/2026: Add mortar routines.
 - 07/20/2026: Fix selection with nodes.
 - 03/05/2026: Add Simpson 1/3  rule.
 - 03/04/2026: Re-implement the distortion of a block for benchmarks.
