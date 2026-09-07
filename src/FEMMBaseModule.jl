@@ -9,6 +9,7 @@ __precompile__(true)
 
 using LinearAlgebra
 using LinearAlgebra: mul!, Transpose
+using SparseArrays
 At_mul_B!(C, A, B) = mul!(C, Transpose(A), B)
 A_mul_B!(C, A, B) = mul!(C, A, B)
 using SparseArrays: sparse, findnz
@@ -1926,5 +1927,123 @@ function bilform_masslike(
     return bilform_masslike(self, assembler, geom, u, cf)
 end
 
+
+
+function primal_dual(
+    self::FEMM,
+    assembler::A,
+    geom::NodalField{FT},
+    u::NodalField{T},
+    Pi_phi::AbstractMatrix,
+    skeleton_fes,
+    parent_skeleton::AbstractVector{<:Integer};
+    m = 3,
+) where {
+    FEMM <: AbstractFEMM,
+    A <: AbstractSysmatAssembler,
+    FT,
+    T,
+}
+
+    fes = finite_elements(self)
+
+    nne, ndn, ecoords, dofnums, loc, J, gradN = _buff_b(self, geom, u)
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
+    length(parent_skeleton) == count(fes) ||
+        error("parent_skeleton must contain one entry per common-refinement element")
+
+    nne_s = 3
+
+    W = [
+         3.0 -1.0 -1.0
+        -1.0  3.0 -1.0
+        -1.0 -1.0  3.0
+    ]
+
+    Wdof = zeros(Float64, nne_s * ndn, nne_s * ndn)
+
+    for a in 1:nne_s, b in 1:nne_s, p in 1:ndn
+        Wdof[(a - 1) * ndn + p, (b - 1) * ndn + p] = W[a, b]
+    end
+
+    Mel = zeros(Float64, nne * ndn, nne * ndn)
+    Pphi = zeros(Float64, nne * ndn, nne_s * ndn)
+    temp = zeros(Float64, nne_s * ndn, nne * ndn)
+    Hel = zeros(Float64, nne_s * ndn, nne * ndn)
+    sdofs = zeros(Int, nne_s * ndn)
+
+    startassembly!(assembler, size(Hel, 1), size(Hel, 2), count(fes), size(Pi_phi, 2), nalldofs(u))
+
+    for i in eachindex(fes)
+
+        conn_u = fes.conn[i]
+        skeleton_element = parent_skeleton[i]
+        conn_s = skeleton_fes.conn[skeleton_element]
+
+        length(conn_s) == nne_s ||
+            error("primal_dual currently requires T3 skeleton elements")
+
+        gathervalues_asmat!(geom, ecoords, conn_u)
+        gatherdofnums!(u, dofnums, conn_u)
+
+        for a in 1:nne_s, p in 1:ndn
+            sdofs[(a - 1) * ndn + p] =
+                (conn_s[a] - 1) * ndn + p
+        end
+
+        fill!(Mel, 0.0)
+
+        for j in 1:npts
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
+            Jac = Jacobianmdim(self.integdomain, J, loc, conn_u, Ns[j], m)
+            for a in 1:nne, b in 1:nne
+                factor = Ns[j][a] *Ns[j][b] *Jac *w[j]
+                for p in 1:ndn
+                    row = (a - 1) * ndn + p
+                    col = (b - 1) * ndn + p
+                    Mel[row, col] += factor
+                end
+            end
+        end
+
+        for a in axes(Pphi, 1), b in axes(Pphi, 2)
+            Pphi[a, b] = Pi_phi[dofnums[a], sdofs[b]]
+        end
+
+        mul!(temp, transpose(Pphi), Mel)
+        mul!(Hel, transpose(Wdof), temp)
+
+        assemble!(assembler, Hel, sdofs, dofnums)
+    end
+
+    return makematrix!(assembler)
+end
+
+
+function primal_dual(
+    self::FEMM,
+    geom::NodalField{FT},
+    u::NodalField{T},
+    Pi_phi::AbstractMatrix,
+    skeleton_fes,
+    parent_skeleton::AbstractVector{<:Integer};
+    m = 3,
+) where {
+    FEMM <: AbstractFEMM,
+    FT,
+    T,
+}
+
+    return primal_dual(
+        self,
+        SysmatAssemblerSparse(),
+        geom,
+        u,
+        Pi_phi,
+        skeleton_fes,
+        parent_skeleton;
+        m = m,
+    )
+end
 
 end # module

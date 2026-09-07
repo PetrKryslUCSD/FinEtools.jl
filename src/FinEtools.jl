@@ -484,7 +484,8 @@ using .FEMMBaseModule:
     bilform_masslike,
     innerproduct,
     field_elem_to_nodal!,
-    field_nodal_to_elem!
+    field_nodal_to_elem!, 
+    primal_dual
 # Exported: type base discretization methods
 export AbstractFEMM,
     FEMMBase,
@@ -672,4 +673,20 @@ export vector_blocked_f, vector_blocked_d
 using .MatrixUtilityModule: setvectorentries!
 export setvectorentries!
 
+############################################################################
+# Mortar method
+############################################################################
+using .MortarModule:
+    common_refinement
+export common_refinement
+
+
+#####################################################################
+# Error module
+######################################################################
+
+using .ErrorModule: L2error
+export L2error
+
 end
+

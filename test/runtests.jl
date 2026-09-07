@@ -28,4 +28,11 @@ end
     include("test_meshing.jl")
 end
 
+@testset "Mortar method" begin
+    include("test_mortar.jl")
+end
 true
+
+@testset "Error" begin
+    include("test_error.jl")
+end
