@@ -37,7 +37,11 @@ function L2error(self::AbstractFEMM,
         for j in 1:npts
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j])
-            err.values[i] += ((elvec'*Ns[j] .- exact(loc))' * (elvec'*Ns[j] .- exact(loc)) * w[j] * Jac)[1]
+            uh = vec(elvec' * Ns[j])
+            ex = exact(vec(loc))
+            exv = ex isa Number ? fill(ex, ndn) : vec(ex)
+            diff = uh .- exv
+            err.values[i] += dot(diff, diff) * w[j] * Jac
         end
         err.values[i] = sqrt(err.values[i])
     end
