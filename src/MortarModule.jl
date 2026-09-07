@@ -159,10 +159,9 @@ end
 function get_node_id(x::Vector{Float64}, node_map, XU,
                      XA, fes_a, i, IA, JA, VA, 
                      XB, fes_b, j, IB, JB, VB; order=1, dim_u=1)
-    # TODO: cannot use anything in the negative
-
-    return get!(node_map, abs.(round.(x; digits=5))) do
-        # create new node
+    # Quantize coordinates so numerically-close points map to the same node id.
+    key = (round(Int, x[1]*1e5), round(Int, x[2]*1e5), round(Int, x[3]*1e5))
+    return get!(node_map, key) do
         push!(XU, x)
         ai = [fes_a.conn[i]...]
         bi = [fes_b.conn[j]...]
