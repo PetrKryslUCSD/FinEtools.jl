@@ -7,51 +7,31 @@ module RotationUtilModule
 
 __precompile__(true)
 
-import LinearAlgebra: norm
+import LinearAlgebra: norm, I
 
 function _I3(one::T = T(1.0), zero::T = T(0.0)) where {T}
     [i == j ? one : zero for i = 1:3, j = 1:3]
 end
 
 """
-    rotmat3!(Rmout::Matrix{T}, a::VT) where {T, VT}
+    rotmat3!(Rmout::Matrix{T}, a::AbstractVector{VT}) where {T,VT}
 
 Compute a 3D rotation matrix in-place.
 
 `a` = array, vector, or tuple with three floating-point numbers
 """
-function rotmat3!(Rmout::Matrix{T}, a::VT) where {T,VT}
-    m, n = size(Rmout)
-    @assert (m == n) && (m == 3) && (length(a) == m)
-    na = norm(a)
-    if (na == 0.0)
-        for i in axes(Rmout, 1), j in axes(Rmout, 2)
-            Rmout[i, j] = (i == j ? 1.0 : 0.0)
-        end
+function rotmat3!(Rmout::Matrix{T}, a::AbstractVector{VT}) where {T,VT}
+    t = norm(a)
+    if t == zero(VT)
+        Rmout .= I(3)
     else
-        # thetatilde = zeros(3,3);
-        # skewmat!(thetatilde, a);
-        # a = a/na;
-        # ca = cos(na);
-        # sa = sin(na);
-        # aa = a*a';
-        # copyto!(Rmout, ca * (_I3-aa) + sa/na*thetatilde + aa);
-        as = (a[1] / na, a[2] / na, a[3] / na)
-        ca = cos(na)
-        sa = sin(na)
-        oca = (1.0 - ca)
-        for j = 1:3, i = 1:3
-            Rmout[i, j] = oca * as[i] * as[j]
-        end
-        Rmout[1, 2] += sa * -as[3]
-        Rmout[1, 3] += sa * as[2]
-        Rmout[2, 1] += sa * as[3]
-        Rmout[2, 3] += sa * -as[1]
-        Rmout[3, 1] += sa * -as[2]
-        Rmout[3, 2] += sa * as[1]
-        Rmout[1, 1] += ca
-        Rmout[2, 2] += ca
-        Rmout[3, 3] += ca
+        kx, ky, kz = a ./ t
+        c = cos(t); s = sin(t)
+        Rmout .= [
+                c + (1 - c) * kx^2           (1 - c) * kx * ky - s * kz   (1 - c) * kx * kz + s * ky
+                (1 - c) * kx * ky + s * kz      c + (1 - c) * ky^2        (1 - c) * ky * kz - s * kx
+                (1 - c) * kx * kz - s * ky   (1 - c) * ky * kz + s * kx      c + (1 - c) * kz^2
+            ]
     end
     return Rmout
 end

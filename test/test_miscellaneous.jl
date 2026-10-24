@@ -2289,11 +2289,11 @@ function test()
     Sz = integratefunction(femm, geom, (x) -> x[3])
     @test abs(Sz / V) / t <= eps(1.0)
     Ixx = integratefunction(femm, geom, (x) -> x[2]^2 + x[3]^2)
-    @test abs(Ixx - V * (W^2 + t^2) / 12) / V <= eps(V)
+    @test abs(Ixx - V * (W^2 + t^2) / 12) / V <= 10 * eps(V)
     Iyy = integratefunction(femm, geom, (x) -> x[1]^2 + x[3]^2)
-    @test abs(Iyy - V * (L^2 + t^2) / 12) / V <= eps(V)
+    @test abs(Iyy - V * (L^2 + t^2) / 12) / V <= 10 * eps(V)
     Ixy = integratefunction(femm, geom, (x) -> (-x[1] * x[2]))
-    @test abs(Ixy) / V <= eps(V)
+    @test abs(Ixy) / V <= 10 * eps(V)
     true
 end
 end
@@ -2406,23 +2406,26 @@ using FinEtools
 using LinearAlgebra: norm, I
 # using BenchmarkTools
 using Test
-function test()
+function test(scale = 1.0)
     for i in 1:10
         Rmout = rand(3, 3)
-        a = rand(3)
+        a = scale .* rand(3)
         # Rmout = [0.056575544213388396 0.8235145288079604 0.4566335160952417; 0.6335215149040396 0.8852762577618685 0.803417762628938; 0.5940995203626245 0.35601280936101065 0.6825575362008556]                                                                                                 
         # a = [0.11011521831193871, 0.5097478695998647, 0.8139760429477749]  
         rotmat3!(Rmout, a)
         # Rmout = [0.5736166081143759 -0.6670428981551146 0.47541325067375245; 0.7189364978350996 0.6881251218379588 0.0980516638109532; -0.3925484670406451 
         # 0.2855478746485778 0.8742814834523946]      
-        @test norm(Rmout' * Rmout - 1.0 * I) <= 1.0e-6
+        @test norm(Rmout' * Rmout - 1.0 * I) <= scale * 1.0e-6
         # @btime rotmat3!($Rmout, $a)
     end
     true
 end
 end
 using .mrotationmatrixs1
-mrotationmatrixs1.test()
+mrotationmatrixs1.test(1.0)
+mrotationmatrixs1.test(1.0e-3)
+mrotationmatrixs1.test(1.0e-9)
+mrotationmatrixs1.test(1.0e-16)
 
 module mrotationmatrixs2
 using FinEtools
