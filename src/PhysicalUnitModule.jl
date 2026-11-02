@@ -199,7 +199,7 @@ function _physunitdict(::Type{T}, system_of_units, base_time_units) where {T}
     d["A"] = uA
     uV = uJ / uCOUL
     d["V"] = uV
-    uOHM = uA / uV
+    uOHM = uV / uA
     d["OHM"] = uOHM
 
     # frequency
