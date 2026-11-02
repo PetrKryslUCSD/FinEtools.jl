@@ -100,7 +100,7 @@ function SurfaceNormal(ndimensions)
         tangents::AbstractMatrix{<:Real},
         feid::IT,
         qpid::IT,
-    ) where {T<:Real, IT<:Integer}
+    ) where {T<:Real, IT<:Integer}  
         fill!(normalout, zero(T))
         # Produce a default normal
         if (size(tangents, 1) == 3) && (size(tangents, 2) == 2)# surface in three dimensions
@@ -113,7 +113,8 @@ function SurfaceNormal(ndimensions)
         end
         nn = norm(normalout)
         if nn == 0.0
-            @warn("Zero-length normal")
+            @error("Zero-length normal")
+            return (normalout .= NaN)
         else
             normalout ./= nn
         end
