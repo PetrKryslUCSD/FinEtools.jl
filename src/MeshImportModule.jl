@@ -165,9 +165,9 @@ function import_NASTRAN(filename; allocationchunk = chunk, expectfixedformat = f
     xyz = node[:, 2:4]
     # Cleanup element connectivities
     ennod = unique(elem[:, 3])
-    (length(ennod) == 1) || zero("Cannot handle mixture of element types")
+    (length(ennod) == 1) || error("Cannot handle mixture of element types")
 
-    (((ennod[1] == 4) || (ennod[1] == 10))) || zero("Unknown element type")
+    (((ennod[1] == 4) || (ennod[1] == 10))) || error("Unknown element type")
     conn = elem[:, 4:(3+convert(Int, ennod[1]))]
     pids = elem[:, 2] # property identifier: different identifiers, different materials
     upids = unique(pids)
